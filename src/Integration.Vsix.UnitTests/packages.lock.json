@@ -852,6 +852,7 @@
           "NuGet.Core": "2.12.0",
           "NuGet.VisualStudio": "3.3.0",
           "SonarLint.VisualStudio.CFamily": "1.0.0",
+          "SonarLint.VisualStudio.CloudSecrets": "1.0.0",
           "SonarLint.VisualStudio.Core": "1.0.0",
           "SonarLint.VisualStudio.Infrastructure.VS": "1.0.0",
           "SonarLint.VisualStudio.Integration": "1.0.0",
@@ -873,6 +874,12 @@
           "Newtonsoft.Json": "6.0.8",
           "SonarLint.VisualStudio.Core": "1.0.0",
           "SonarLint.VisualStudio.Infrastructure.VS": "1.0.0"
+        }
+      },
+      "SonarLint.VisualStudio.CloudSecrets": {
+        "type": "Project",
+        "dependencies": {
+          "SonarLint.VisualStudio.Core": "1.0.0"
         }
       },
       "SonarLint.VisualStudio.Core": {

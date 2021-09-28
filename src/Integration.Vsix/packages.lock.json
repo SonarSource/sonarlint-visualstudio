@@ -789,6 +789,12 @@
           "SonarLint.VisualStudio.Infrastructure.VS": "1.0.0"
         }
       },
+      "SonarLint.VisualStudio.CloudSecrets": {
+        "type": "Project",
+        "dependencies": {
+          "SonarLint.VisualStudio.Core": "1.0.0"
+        }
+      },
       "SonarLint.VisualStudio.Core": {
         "type": "Project",
         "dependencies": {
