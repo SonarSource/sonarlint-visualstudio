@@ -79,6 +79,27 @@
   </ItemGroup>
   <!-- ********************************************************** -->
 
+  <!-- ********************************************************** -->
+  <!-- Sonar Secrets -->
+  <!-- ********************************************************** -->
+  <!-- We assume that the package restore has happened so the files are already on disc -->
+
+  <ItemGroup Label="Sonar Secrets">
+    <!-- Reference the package we want to import -->
+    <PackageReference Include="SonarLint.Secrets.DotNet" Version="$(EmbeddedSonarSecretsAnalyzerVersion)" GeneratePathProperty="true" />
+
+    <!-- Include all of the binaries including third-party binaries in the VSIX -->
+    <AllSonarSecretAssemblies Include="$(PkgSonarLint_Secrets_DotNet)\*.dll" />
+    <VSIXSourceItem Include="@(AllSonarSecretAssemblies)" />
+
+    <!-- Make sure the Sonar* assemblies are included in the AsmRef check -->
+    <!-- We don't want to copy third-party assemblies from the analyzers in case there are version conflicts e.g. NewtonSoft.Json.dll -->
+    <SonarAuthoredSecretAssemblies Include="$(PkgSonarLint_Secrets_DotNet)\Sonar*.dll" />
+    <None Include="@(SonarAuthoredSecretAssemblies)" CopyToOutputDirectory="PreserveNewest" />
+
+  </ItemGroup>
+  <!-- ********************************************************** -->
+
 
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>

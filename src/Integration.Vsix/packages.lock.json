@@ -202,6 +202,12 @@
         "resolved": "8.29.0.36737",
         "contentHash": "HDzmq6iyhxlOOwxf5FvRs5N4Y+W23XqfshCRnNCkRUPsJoGLqaM9VF0ubUr8wqeUWlYiTGREYcRFVlu8kLUiaQ=="
       },
+      "SonarLint.Secrets.DotNet": {
+        "type": "Direct",
+        "requested": "[1.0.0, )",
+        "resolved": "1.0.0",
+        "contentHash": "jjFi9kQ1S9KqcmAA+ZkO/mfB0YHFK0axwPniwWL3uEU8R3+tvb7npvGUBUio3do3JAAgXZ9ZPJK0adI1CrDM6A=="
+      },
       "System.Collections.Immutable": {
         "type": "Direct",
         "requested": "[1.1.37, )",
@@ -792,6 +798,7 @@
       "SonarLint.VisualStudio.CloudSecrets": {
         "type": "Project",
         "dependencies": {
+          "SonarLint.Secrets.DotNet": "1.0.0",
           "SonarLint.VisualStudio.Core": "1.0.0"
         }
       },
