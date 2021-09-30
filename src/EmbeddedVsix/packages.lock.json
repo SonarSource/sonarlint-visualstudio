@@ -11,12 +11,6 @@
           "Microsoft.VisualStudio.SDK.Analyzers": "15.8.33"
         }
       },
-      "Newtonsoft.Json": {
-        "type": "Direct",
-        "requested": "[6.0.8, )",
-        "resolved": "6.0.8",
-        "contentHash": "7ut47NDedTW19EbL0JpFDYUP62fcuz27hJrehCDNajdCS5NtqL+E39+7Um3OkNc2wl2ym7K8Ln5eNuLus6mVGQ=="
-      },
       "Microsoft.VisualStudio.SDK.Analyzers": {
         "type": "Transitive",
         "resolved": "15.8.33",

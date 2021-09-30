@@ -77,6 +77,7 @@
     <Reference Include="$(NuGetPackageRoot)SonarAnalyzer.CSharp\$(EmbeddedSonarAnalyzerVersion)\analyzers\SonarAnalyzer.dll" />
 
   </ItemGroup>
+  <!-- ********************************************************** -->
 
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
@@ -396,6 +397,7 @@
   <Target Name="IncludeNuGetPackageReferences" AfterTargets="GetVsixSourceItems">
     <ItemGroup>
       <VSIXSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'System.IO.Abstractions'" />
+      <VSIXSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'SonarLint.Secrets.DotNet'" />
       <VSIXSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'BouncyCastle'" />
     </ItemGroup>
   </Target>
