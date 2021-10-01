@@ -79,7 +79,6 @@
   </ItemGroup>
   <!-- ********************************************************** -->
 
-
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
 
@@ -395,9 +394,15 @@
     </ItemGroup>
   </Target>
 
+
+  <!-- *************************************************************************** -->
+  <!-- Include nuget packages in the VSIX: workaround for bug https://github.com/NuGet/Home/issues/5899 -->
+  <!-- *************************************************************************** -->
+
   <Target Name="IncludeNuGetPackageReferences" AfterTargets="GetVsixSourceItems">
     <ItemGroup>
       <VSIXSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'System.IO.Abstractions'" />
+      <VSIXSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'SonarLint.Secrets.DotNet'" />
       <VSIXSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'BouncyCastle'" />
     </ItemGroup>
   </Target>
