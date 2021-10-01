@@ -4,9 +4,9 @@
     ".NETFramework,Version=v4.6": {
       "SonarLint.Secrets.DotNet": {
         "type": "Direct",
-        "requested": "[1.0.0, )",
-        "resolved": "1.0.0",
-        "contentHash": "jjFi9kQ1S9KqcmAA+ZkO/mfB0YHFK0axwPniwWL3uEU8R3+tvb7npvGUBUio3do3JAAgXZ9ZPJK0adI1CrDM6A=="
+        "requested": "[0.0.1, )",
+        "resolved": "0.0.1",
+        "contentHash": "+duxMJOFgXLvgGJKhLJeuRIDa0U+BZ0qeXWSEcHv18Cxx74Jfw9kWL6oqk6c47bPBKt6Gz0KtEKpMMP2C1sLxQ=="
       },
       "BouncyCastle": {
         "type": "Transitive",
