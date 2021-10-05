@@ -372,8 +372,8 @@
       },
       "SonarLint.Secrets.DotNet": {
         "type": "Transitive",
-        "resolved": "0.0.1",
-        "contentHash": "+duxMJOFgXLvgGJKhLJeuRIDa0U+BZ0qeXWSEcHv18Cxx74Jfw9kWL6oqk6c47bPBKt6Gz0KtEKpMMP2C1sLxQ=="
+        "resolved": "0.0.2",
+        "contentHash": "y0uSGDGlK+1WK4Ntk13kYS6WJzh68Zr25NIi5zi0z3DuHwrj34UxwnmTPnZ/Sdg4tPgJ3nPLhtnoFK5hh3x5xw=="
       },
       "stdole": {
         "type": "Transitive",
@@ -419,7 +419,7 @@
       "SonarLint.VisualStudio.CloudSecrets": {
         "type": "Project",
         "dependencies": {
-          "SonarLint.Secrets.DotNet": "0.0.1",
+          "SonarLint.Secrets.DotNet": "0.0.2",
           "SonarLint.VisualStudio.Core": "1.0.0"
         }
       },
