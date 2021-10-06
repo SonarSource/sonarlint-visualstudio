@@ -20,11 +20,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.Secrets.DotNet;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -43,7 +44,8 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         {
             MefTestHelpers.CheckTypeCanBeImported<SecretsAnalyzer, IAnalyzer>(null, new[]
             {
-                MefTestHelpers.CreateExport<IFileSystem>(Mock.Of<IFileSystem>()),
+                MefTestHelpers.CreateExport<ITextDocumentFactoryService>(Mock.Of<ITextDocumentFactoryService>()),
+                MefTestHelpers.CreateExport<IContentTypeRegistryService>(Mock.Of<IContentTypeRegistryService>()),
                 MefTestHelpers.CreateExport<IAnalysisStatusNotifier>(Mock.Of<IAnalysisStatusNotifier>()),
             });
         }
@@ -73,7 +75,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         [TestMethod]
         public void ExecuteAnalysis_AllDetectorsAreCalled()
         {
-            var fileSystem = SetupFileSystem(ValidFilePath, ValidFileContent);
+            var textDocumentFactoryService = SetupTextDocumentFactoryService(ValidFilePath, ValidFileContent);
 
             var consumer = new Mock<IIssueConsumer>();
 
@@ -84,53 +86,71 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
                 SetupSecretDetector(ValidFileContent)
             };
 
-            ExecuteAnalysis(ValidFilePath, consumer.Object, fileSystem, secretDetectors: secretDetectors);
+            var testSubject = CreateTestSubject(textDocumentFactoryService: textDocumentFactoryService, detectors: secretDetectors);
+            ExecuteAnalysis(testSubject, ValidFilePath, consumer.Object);
 
             foreach (var detector in secretDetectors)
             {
-                detector.Verify(x=> x.Find(ValidFileContent), Times.Once());
+                detector.Verify(x => x.Find(ValidFileContent), Times.Once());
             }
         }
 
         [TestMethod]
         public void ExecuteAnalysis_ResponseWithNoIssues_ConsumerNotCalled()
         {
-            var fileSystem = SetupFileSystem(ValidFilePath, ValidFileContent);
+            var textDocumentFactoryService = SetupTextDocumentFactoryService(ValidFilePath, ValidFileContent);
 
             var consumer = new Mock<IIssueConsumer>();
 
             var secretDetector = SetupSecretDetector(ValidFileContent);
 
-            ExecuteAnalysis(ValidFilePath, consumer.Object, fileSystem, secretDetectors: secretDetector);
+            var testSubject = CreateTestSubject(textDocumentFactoryService: textDocumentFactoryService, detectors: secretDetector);
+            ExecuteAnalysis(testSubject, ValidFilePath, consumer.Object );
 
-            secretDetector.Verify(x=> x.Find(ValidFileContent), Times.Once);
+            secretDetector.Verify(x => x.Find(ValidFileContent), Times.Once);
             consumer.Invocations.Count.Should().Be(0);
         }
 
         [TestMethod]
-        public void ExecuteAnalysis_ResponseWithIssues_ConsumerCalled()
+        public void ExecuteAnalysis_ResponseWithIssues_ConsumerCalledWithConvertedIssues()
         {
-            var fileSystem = SetupFileSystem(ValidFilePath, ValidFileContent);
+            var textDocumentFactoryService = SetupTextDocumentFactoryService(ValidFilePath, ValidFileContent);
 
             var consumer = new Mock<IIssueConsumer>();
 
-            var secretDetector = SetupSecretDetector(ValidFileContent, Mock.Of<ISecret>());
+            var secrets = new[] { Mock.Of<ISecret>(), Mock.Of<ISecret>() };
+            var secretDetector = SetupSecretDetector(ValidFileContent, secrets);
 
-            ExecuteAnalysis(ValidFilePath, consumer.Object, fileSystem, secretDetectors: secretDetector);
+            var convertedIssues = new[] { Mock.Of<IAnalysisIssue>(), Mock.Of<IAnalysisIssue>() };
+            var secretsToAnalysisIssueConverter = SetupIssuesConverter(new[]
+            {
+                (secrets[0], convertedIssues[0]),
+                (secrets[1], convertedIssues[1])
+            }, secretDetector.Object);
+
+            var testSubject = CreateTestSubject(
+                textDocumentFactoryService: textDocumentFactoryService, 
+                secretsToAnalysisIssueConverter: secretsToAnalysisIssueConverter,
+                detectors: secretDetector);
+
+            ExecuteAnalysis(testSubject, ValidFilePath, consumer.Object);
 
             secretDetector.Verify(x => x.Find(ValidFileContent), Times.Once);
-            consumer.Verify(x => x.Accept(ValidFilePath, It.IsAny<IEnumerable<IAnalysisIssue>>()));
+            consumer.Verify(x => x.Accept(ValidFilePath, convertedIssues), Times.Once);
+            consumer.Invocations.Count.Should().Be(1);
         }
 
         [TestMethod]
         public void ExecuteAnalysis_CriticalException_ExceptionThrown()
         {
-            var fileSystem = new Mock<IFileSystem>();
-            fileSystem.Setup(x => x.File.ReadAllText(ValidFilePath)).Throws<StackOverflowException>();
+            var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>();
+            textDocumentFactoryService
+                .Setup(x => x.CreateAndLoadTextDocument(ValidFilePath, It.IsAny<IContentType>()))
+                .Throws<StackOverflowException>();
 
-            var secretDetector = SetupSecretDetector(ValidFileContent, Mock.Of<ISecret>());
+            var testSubject = CreateTestSubject(textDocumentFactoryService: textDocumentFactoryService.Object);
 
-            Action act = () => ExecuteAnalysis(ValidFilePath, null, fileSystem.Object, secretDetectors: secretDetector);
+            Action act = () => ExecuteAnalysis(testSubject, ValidFilePath, null);
             act.Should().ThrowExactly<StackOverflowException>();
         }
 
@@ -140,12 +160,15 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             var statusNotifier = new Mock<IAnalysisStatusNotifier>();
             var exception = new NotImplementedException("this is a test");
 
-            var fileSystem = new Mock<IFileSystem>();
-            fileSystem.Setup(x => x.File.ReadAllText(ValidFilePath)).Throws(exception);
+            var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>();
+            textDocumentFactoryService
+                .Setup(x => x.CreateAndLoadTextDocument(ValidFilePath, It.IsAny<IContentType>()))
+                .Throws(exception);
 
             var consumer = new Mock<IIssueConsumer>();
 
-            ExecuteAnalysis(ValidFilePath, consumer.Object, fileSystem.Object, statusNotifier.Object);
+            var testSubject = CreateTestSubject(textDocumentFactoryService: textDocumentFactoryService.Object, statusNotifier: statusNotifier.Object);
+            ExecuteAnalysis(testSubject, ValidFilePath, consumer.Object);
 
             statusNotifier.Verify(x => x.AnalysisStarted(ValidFilePath), Times.Once);
             statusNotifier.Verify(x => x.AnalysisFailed(ValidFilePath, exception), Times.Once);
@@ -155,7 +178,8 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         [TestMethod]
         public void ExecuteAnalysis_AnalysisFinished_NotifiesThatAnalysisFinished()
         {
-            var fileSystem = SetupFileSystem(ValidFilePath, ValidFileContent);
+            var textDocumentFactoryService = SetupTextDocumentFactoryService(ValidFilePath, ValidFileContent);
+
             var statusNotifier = new Mock<IAnalysisStatusNotifier>();
 
             var consumer = new Mock<IIssueConsumer>();
@@ -163,30 +187,36 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             var secrets = new[] { Mock.Of<ISecret>(), Mock.Of<ISecret>() };
             var secretDetector = SetupSecretDetector(ValidFileContent, secrets);
 
-            ExecuteAnalysis(ValidFilePath, consumer.Object, fileSystem, statusNotifier.Object, secretDetector);
+            var testSubject = CreateTestSubject(textDocumentFactoryService: textDocumentFactoryService, statusNotifier: statusNotifier.Object, detectors: secretDetector);
+            ExecuteAnalysis(testSubject, ValidFilePath, consumer.Object);
 
             statusNotifier.Verify(x => x.AnalysisStarted(ValidFilePath), Times.Once);
             statusNotifier.Verify(x => x.AnalysisFinished(ValidFilePath, secrets.Length, It.IsAny<TimeSpan>()), Times.Once);
             statusNotifier.VerifyNoOtherCalls();
         }
 
-        private void ExecuteAnalysis(string filePath, IIssueConsumer consumer, IFileSystem fileSystem, IAnalysisStatusNotifier statusNotifier = null, params Mock<ISecretDetector>[] secretDetectors)
+        private void ExecuteAnalysis(SecretsAnalyzer testSubject, string filePath, IIssueConsumer consumer)
         {
-            var testSubject = CreateTestSubject(statusNotifier, fileSystem, secretDetectors);
             testSubject.ExecuteAnalysis(filePath, "", Array.Empty<AnalysisLanguage>(), consumer, null, CancellationToken.None);
         }
 
         private SecretsAnalyzer CreateTestSubject(IAnalysisStatusNotifier statusNotifier = null,
-            IFileSystem fileSystem = null,
-            IEnumerable<Mock<ISecretDetector>> detectors = null)
+            ITextDocumentFactoryService textDocumentFactoryService = null,
+            ISecretsToAnalysisIssueConverter secretsToAnalysisIssueConverter = null,
+            params Mock<ISecretDetector>[] detectors)
         {
             statusNotifier ??= Mock.Of<IAnalysisStatusNotifier>();
-            fileSystem ??= Mock.Of<IFileSystem>();
             detectors ??= Array.Empty<Mock<ISecretDetector>>();
+            secretsToAnalysisIssueConverter ??= Mock.Of<ISecretsToAnalysisIssueConverter>();
 
-            return new SecretsAnalyzer(detectors.Select(x=> x.Object),
+            var contentTypeRegistryService = new Mock<IContentTypeRegistryService>();
+            contentTypeRegistryService.Setup(x => x.UnknownContentType).Returns(Mock.Of<IContentType>());
+
+            return new SecretsAnalyzer(textDocumentFactoryService,
+                contentTypeRegistryService.Object,
+                detectors.Select(x => x.Object),
                 statusNotifier,
-                fileSystem);
+                secretsToAnalysisIssueConverter);
         }
 
         private Mock<ISecretDetector> SetupSecretDetector(string input, params ISecret[] secrets)
@@ -197,12 +227,34 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             return detector;
         }
 
-        private IFileSystem SetupFileSystem(string filePath, string content)
+        private ITextDocumentFactoryService SetupTextDocumentFactoryService(string filePath, string content)
         {
-            var fileSystem = new Mock<IFileSystem>();
-            fileSystem.Setup(x => x.File.ReadAllText(filePath)).Returns(content);
+            var snapshot = new Mock<ITextSnapshot>();
+            snapshot.Setup(x => x.GetText()).Returns(content);
 
-            return fileSystem.Object;
+            var textDocument = new Mock<ITextDocument>();
+            textDocument.Setup(x => x.TextBuffer.CurrentSnapshot).Returns(snapshot.Object);
+
+            var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>();
+            textDocumentFactoryService
+                .Setup(x => x.CreateAndLoadTextDocument(filePath, It.IsAny<IContentType>()))
+                .Returns(textDocument.Object);
+
+            return textDocumentFactoryService.Object;
+        }
+
+        private ISecretsToAnalysisIssueConverter SetupIssuesConverter(IEnumerable<(ISecret, IAnalysisIssue)> convertedIssues, ISecretDetector secretDetector)
+        {
+            var converter = new Mock<ISecretsToAnalysisIssueConverter>();
+
+            foreach (var convertedIssue in convertedIssues)
+            {
+                converter
+                    .Setup(x => x.Convert(convertedIssue.Item1, secretDetector, ValidFilePath, It.IsAny<ITextSnapshot>()))
+                    .Returns(convertedIssue.Item2);
+            }
+
+            return converter.Object;
         }
     }
 }

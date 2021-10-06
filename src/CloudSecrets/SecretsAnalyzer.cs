@@ -22,9 +22,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 using SonarLint.Secrets.DotNet;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -34,23 +35,37 @@ namespace SonarLint.VisualStudio.CloudSecrets
     [Export(typeof(IAnalyzer))]
     internal class SecretsAnalyzer : IAnalyzer
     {
+        private readonly ITextDocumentFactoryService textDocumentFactoryService;
         private readonly IEnumerable<ISecretDetector> secretDetectors;
         private readonly IAnalysisStatusNotifier analysisStatusNotifier;
-        private readonly IFileSystem fileSystem;
+        private readonly ISecretsToAnalysisIssueConverter secretsToAnalysisIssueConverter;
+        private readonly IContentType filesContentType;
 
         [ImportingConstructor]
-        public SecretsAnalyzer([ImportMany] IEnumerable<ISecretDetector> secretDetectors, IAnalysisStatusNotifier analysisStatusNotifier)
-            : this(secretDetectors, analysisStatusNotifier, new FileSystem())
+        public SecretsAnalyzer(
+            ITextDocumentFactoryService textDocumentFactoryService,
+            IContentTypeRegistryService contentTypeRegistryService,
+            [ImportMany] IEnumerable<ISecretDetector> secretDetectors,
+            IAnalysisStatusNotifier analysisStatusNotifier)
+            : this(textDocumentFactoryService,
+                contentTypeRegistryService,
+                secretDetectors,
+                analysisStatusNotifier,
+                new SecretsToAnalysisIssueConverter())
         {
         }
 
-        internal SecretsAnalyzer(IEnumerable<ISecretDetector> secretDetectors,
+        internal SecretsAnalyzer(ITextDocumentFactoryService textDocumentFactoryService,
+            IContentTypeRegistryService contentTypeRegistryService,
+            IEnumerable<ISecretDetector> secretDetectors,
             IAnalysisStatusNotifier analysisStatusNotifier,
-            IFileSystem fileSystem)
+            ISecretsToAnalysisIssueConverter secretsToAnalysisIssueConverter)
         {
+            this.textDocumentFactoryService = textDocumentFactoryService;
             this.secretDetectors = secretDetectors;
             this.analysisStatusNotifier = analysisStatusNotifier;
-            this.fileSystem = fileSystem;
+            this.secretsToAnalysisIssueConverter = secretsToAnalysisIssueConverter;
+            filesContentType = contentTypeRegistryService.UnknownContentType;
         }
 
         public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
@@ -71,14 +86,21 @@ namespace SonarLint.VisualStudio.CloudSecrets
             {
                 var stopwatch = Stopwatch.StartNew();
 
-                var fileContent = fileSystem.File.ReadAllText(filePath);
+                var textDocument = textDocumentFactoryService.CreateAndLoadTextDocument(filePath, filesContentType); // load the document from disc
+                var currentSnapshot = textDocument.TextBuffer.CurrentSnapshot;
+                var fileContent = currentSnapshot.GetText();
 
-                // todo: pass rules configuration if should run the detector? or should each detector expose metadata?
-                // todo: pass cancellation token that should be checked before running each detector? or should check the cancellation here?
-                var detectedSecrets = secretDetectors.SelectMany(x => x.Find(fileContent));
-                var issues = detectedSecrets.Select(x => CreateIssue(x, filePath)).ToArray();
+                var issues = new List<IAnalysisIssue>();
 
-                analysisStatusNotifier.AnalysisFinished(filePath, issues.Length, stopwatch.Elapsed);
+                foreach (var secretDetector in secretDetectors)
+                {
+                    // todo: check cancellation token
+                    // todo: check if rule is enabled 
+                    var detectedSecrets = secretDetector.Find(fileContent);
+                    issues.AddRange(detectedSecrets.Select(x => secretsToAnalysisIssueConverter.Convert(x, secretDetector, filePath, currentSnapshot)));
+                }
+
+                analysisStatusNotifier.AnalysisFinished(filePath, issues.Count, stopwatch.Elapsed);
 
                 if (issues.Any())
                 {
@@ -89,31 +111,6 @@ namespace SonarLint.VisualStudio.CloudSecrets
             {
                 analysisStatusNotifier.AnalysisFailed(filePath, ex);
             }
-        }
-
-        private IAnalysisIssue CreateIssue(ISecret secret, string filePath)
-        {
-            var ruleKey = secret.RuleKey;
-            var severity = AnalysisIssueSeverity.Major;
-            var message = "this is a secret";
-
-            var startLine = 0;
-            var endLine = 0;
-            var startLineOffset = 0;
-            var endLineOffset = 0;
-            string lineHash = null;
-
-            return new AnalysisIssue(ruleKey,
-                severity,
-                AnalysisIssueType.Vulnerability,
-                message,
-                filePath,
-                startLine,
-                endLine,
-                startLineOffset,
-                endLineOffset,
-                lineHash,
-                null);
         }
     }
 }

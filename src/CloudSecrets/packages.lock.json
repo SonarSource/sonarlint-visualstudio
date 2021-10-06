@@ -2,11 +2,26 @@
   "version": 1,
   "dependencies": {
     ".NETFramework,Version=v4.6": {
+      "Microsoft.VisualStudio.CoreUtility": {
+        "type": "Direct",
+        "requested": "[14.0.23205, )",
+        "resolved": "14.0.23205",
+        "contentHash": "9xV78lxgEyb6sFtoxt8qhIpPajp1HMoqdv0I15akLCdXAJ8Lzv64t8RvyE4vlEIRpeAu19+ag4pg9hFHPtE/og=="
+      },
+      "Microsoft.VisualStudio.Text.Data": {
+        "type": "Direct",
+        "requested": "[14.0.23205, )",
+        "resolved": "14.0.23205",
+        "contentHash": "yRSJIlKwj4K4/oTj3WQBgKYQK6QzrTdlU/50/7IPpq+dTkZhXBDp3BRURHMW8pWqKmEq9s/lQc7mSL4+mrVTQw==",
+        "dependencies": {
+          "Microsoft.VisualStudio.CoreUtility": "14.0.23205"
+        }
+      },
       "SonarLint.Secrets.DotNet": {
         "type": "Direct",
-        "requested": "[0.0.2, )",
-        "resolved": "0.0.2",
-        "contentHash": "y0uSGDGlK+1WK4Ntk13kYS6WJzh68Zr25NIi5zi0z3DuHwrj34UxwnmTPnZ/Sdg4tPgJ3nPLhtnoFK5hh3x5xw=="
+        "requested": "[0.0.3, )",
+        "resolved": "0.0.3",
+        "contentHash": "0dpbJGx9NlC9mYhnR3J0swbxm74HFUwIBAnj/HW4nvn4BZ2VNiNLv7pIHC7MLHGnUhrk5kElbAQqxsTfWU1/pw=="
       },
       "BouncyCastle": {
         "type": "Transitive",
