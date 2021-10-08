@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         public void Convert_FieldsPopulated()
         {
             var secretsDetector = CreateSecretsDetector(ValidRuleKey, ValidRuleMessage);
-            var secret = CreateSecret(2, 20);
+            var secret = CreateSecret(2, 1);
 
             var textSnapshot = CreateTextSnapshot();
             var dummyLine = CreateVsLine(textSnapshot.Object, 0, 1, 2);
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         public void Convert_FilePath_QualifiedFilePath(string originalPath, string expectedPath)
         {
             var secretsDetector = CreateSecretsDetector(ValidRuleKey, ValidRuleMessage);
-            var secret = CreateSecret(2, 20);
+            var secret = CreateSecret(2, 1);
 
             var textSnapshot = CreateTextSnapshot();
             var dummyLine = CreateVsLine(textSnapshot.Object, 0, 1, 2);
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         public void Convert_SingleLineSecret_PositionConverted()
         {
             var secretsDetector = CreateSecretsDetector(ValidRuleKey, ValidRuleMessage);
-            var secret = CreateSecret(200, 300);
+            var secret = CreateSecret(200, 100);
 
             var textSnapshot = CreateTextSnapshot();
             var vsLine = CreateVsLine(textSnapshot.Object, 20, 150, 300);
@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         public void Convert_MultiLineSecret_PositionConverted()
         {
             var secretsDetector = CreateSecretsDetector(ValidRuleKey, ValidRuleMessage);
-            var secret = CreateSecret(200, 300);
+            var secret = CreateSecret(200, 100);
 
             var textSnapshot = CreateTextSnapshot();
             var vsStartLine = CreateVsLine(textSnapshot.Object, 20, 150, 100);
@@ -133,11 +133,11 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             return secretDetector.Object;
         }
 
-        private ISecret CreateSecret(int startIndex, int endIndex)
+        private ISecret CreateSecret(int startIndex, int length)
         {
             var secret = new Mock<ISecret>();
             secret.Setup(x => x.StartIndex).Returns(startIndex);
-            secret.Setup(x => x.EndIndex).Returns(endIndex);
+            secret.Setup(x => x.Length).Returns(length);
 
             return secret.Object;
         }
@@ -175,7 +175,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             ITextSnapshotLine vsEndLine = null)
         {
             snapshot.Setup(x => x.GetLineFromPosition(secret.StartIndex)).Returns(vsStartLine);
-            snapshot.Setup(x => x.GetLineFromPosition(secret.EndIndex + 1)).Returns(vsEndLine);
+            snapshot.Setup(x => x.GetLineFromPosition(secret.StartIndex + secret.Length)).Returns(vsEndLine);
         }
     }
 }

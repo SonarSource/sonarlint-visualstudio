@@ -34,8 +34,7 @@ namespace SonarLint.VisualStudio.CloudSecrets
     {
         public IAnalysisIssue Convert(ISecret secret, ISecretDetector secretDetector, string filePath, ITextSnapshot textSnapshot)
         {
-            var secretLength = secret.EndIndex - secret.StartIndex + 1;
-            var snapshotSpan = new SnapshotSpan(textSnapshot, secret.StartIndex, secretLength);
+            var snapshotSpan = new SnapshotSpan(textSnapshot, secret.StartIndex, secret.Length);
 
             var vsStartLine = snapshotSpan.Start.GetContainingLine();
             var startLine = vsStartLine.LineNumber + 1;
@@ -43,7 +42,7 @@ namespace SonarLint.VisualStudio.CloudSecrets
 
             var vsEndLine = snapshotSpan.End.GetContainingLine();
             var endLine = vsEndLine.LineNumber + 1;
-            var endLineOffset = secret.EndIndex - vsEndLine.Start.Position;
+            var endLineOffset = secret.StartIndex + secret.Length - vsEndLine.Start.Position;
 
             return new AnalysisIssue(ruleKey: secretDetector.RuleKey,
                 severity: AnalysisIssueSeverity.Major,
