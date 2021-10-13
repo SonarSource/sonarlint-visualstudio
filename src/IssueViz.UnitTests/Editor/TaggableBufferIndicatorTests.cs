@@ -18,16 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 using Moq;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
-using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 using SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
@@ -37,16 +33,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
     {
         private const string FilePath = "test.cpp";
 
-        private Mock<ISonarLanguageRecognizer> languageRecognizerMock;
-
         private TaggableBufferIndicator testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            languageRecognizerMock = new Mock<ISonarLanguageRecognizer>();
-
-            testSubject = new TaggableBufferIndicator(languageRecognizerMock.Object);
+            testSubject = new TaggableBufferIndicator();
         }
 
         [TestMethod]
@@ -62,34 +54,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         }
 
         [TestMethod]
-        public void IsTaggable_NoDetectedLanguages_False()
+        public void IsTaggable_ContentTypeIsOutput_False()
         {
-            var buffer = TaggerTestHelper.CreateBufferMock(filePath: FilePath);
+            var contentType = new Mock<IContentType>();
+            contentType.Setup(x => x.IsOfType("Output")).Returns(true);
 
-            SetupDetectedLanguages(buffer, Enumerable.Empty<AnalysisLanguage>());
+            var buffer = TaggerTestHelper.CreateBufferMock(filePath: FilePath);
+            buffer.Setup(x => x.ContentType).Returns(contentType.Object);
 
             var result = testSubject.IsTaggable(buffer.Object);
-
             result.Should().BeFalse();
         }
 
         [TestMethod]
-        public void IsTaggable_HasDetectedLanguage_True()
+        public void IsTaggable_ContentTypeIsNotOutput_True()
         {
-            var buffer = TaggerTestHelper.CreateBufferMock(filePath: FilePath);
+            var contentType = new Mock<IContentType>();
+            contentType.Setup(x => x.IsOfType("Output")).Returns(false);
 
-            SetupDetectedLanguages(buffer, new List<AnalysisLanguage> {AnalysisLanguage.Javascript});
+            var buffer = TaggerTestHelper.CreateBufferMock(filePath: FilePath);
+            buffer.Setup(x => x.ContentType).Returns(contentType.Object);
 
             var result = testSubject.IsTaggable(buffer.Object);
-
             result.Should().BeTrue();
-        }
-
-        private void SetupDetectedLanguages(Mock<ITextBuffer> buffer, IEnumerable<AnalysisLanguage> detectedLanguages)
-        {
-            languageRecognizerMock
-                .Setup(x => x.Detect(FilePath, buffer.Object.ContentType))
-                .Returns(detectedLanguages);
         }
     }
 }

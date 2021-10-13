@@ -57,6 +57,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private TestLogger logger;
         private Mock<IScheduler> mockAnalysisScheduler;
         private Mock<ISonarLanguageRecognizer> mockSonarLanguageRecognizer;
+        private Mock<ITaggableBufferIndicator> mockTaggableBufferIndicator;
 
         private TaggerProvider provider;
 
@@ -98,6 +99,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             logger = new TestLogger();
 
             mockSonarLanguageRecognizer = new Mock<ISonarLanguageRecognizer>();
+
+            mockTaggableBufferIndicator = new Mock<ITaggableBufferIndicator>();
+            mockTaggableBufferIndicator.Setup(x => x.IsTaggable(It.IsAny<ITextBuffer>())).Returns(true);
+
             var mockAnalysisRequester = new Mock<IAnalysisRequester>();
 
             mockAnalysisScheduler = new Mock<IScheduler>();
@@ -106,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var issuesFilter = new Mock<IIssuesFilter>();
             this.provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, issuesFilter.Object, mockAnalyzerController.Object, serviceProvider,
-                mockSonarLanguageRecognizer.Object, mockAnalysisRequester.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), logger, mockAnalysisScheduler.Object);
+                mockSonarLanguageRecognizer.Object, mockAnalysisRequester.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), mockTaggableBufferIndicator.Object, logger, mockAnalysisScheduler.Object);
         }
 
         [TestMethod]
@@ -133,6 +138,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyCheckedAnalysisIsSupported();
             mockAnalyzerController.VerifyNoOtherCalls();
         }
+
+
+        [TestMethod]
+        public void CreateTagger_should_return_null_when_buffer_is_not_taggable()
+        {
+            var doc = CreateMockedDocument("anyname", isDetectable: true);
+            mockTaggableBufferIndicator.Setup(x => x.IsTaggable(doc.TextBuffer)).Returns(false);;
+
+            var tagger = CreateTaggerForDocument(doc);
+
+            tagger.Should().BeNull();
+
+            mockTaggableBufferIndicator.Verify(x=> x.IsTaggable(doc.TextBuffer), Times.Once);
+            mockTaggableBufferIndicator.Verify(x=> x.IsTaggable(It.IsAny<ITextBuffer>()), Times.Once);
+        }
+
 
         [TestMethod]
         public void CreateTagger_SameDocument_ShouldUseSameSingletonManager()

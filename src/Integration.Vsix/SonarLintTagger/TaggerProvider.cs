@@ -69,6 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISonarLanguageRecognizer languageRecognizer;
         private readonly IVsStatusbar vsStatusBar;
         private readonly IAnalysisIssueVisualizationConverter converter;
+        private readonly ITaggableBufferIndicator taggableBufferIndicator;
         private readonly ILogger logger;
         private readonly IScheduler scheduler;
         private readonly IVsSolution5 vsSolution;
@@ -82,6 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             ISonarLanguageRecognizer languageRecognizer,
             IAnalysisRequester analysisRequester,
             IAnalysisIssueVisualizationConverter converter,
+            ITaggableBufferIndicator taggableBufferIndicator,
             ILogger logger,
             IScheduler scheduler)
         {
@@ -93,6 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.dte = serviceProvider.GetService<DTE>();
             this.languageRecognizer = languageRecognizer;
             this.converter = converter;
+            this.taggableBufferIndicator = taggableBufferIndicator;
             this.logger = logger;
             this.scheduler = scheduler;
 
@@ -153,6 +156,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             // Only attempt to track the view's edit buffer.
             if (typeof(T) != typeof(IErrorTag))
+            {
+                return null;
+            }
+
+            if (!taggableBufferIndicator.IsTaggable(buffer))
             {
                 return null;
             }

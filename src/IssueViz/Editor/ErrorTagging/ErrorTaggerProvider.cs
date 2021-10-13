@@ -28,18 +28,21 @@ using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
 {
     [Export(typeof(ITaggerProvider))]
-    [ContentType("code")]
+    [ContentType("text")]
     [TagType(typeof(IErrorTag))]
     internal class ErrorTaggerProvider : ITaggerProvider
     {
         private readonly IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService;
+        private readonly ITaggableBufferIndicator taggableBufferIndicator;
         private readonly IErrorTagTooltipProvider errorTagTooltipProvider;
 
         [ImportingConstructor]
-        public ErrorTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, 
+        public ErrorTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
+            ITaggableBufferIndicator taggableBufferIndicator,
             IErrorTagTooltipProvider errorTagTooltipProvider)
         {
             this.bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
+            this.taggableBufferIndicator = taggableBufferIndicator;
             this.errorTagTooltipProvider = errorTagTooltipProvider;
         }
 
@@ -50,9 +53,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
                 throw new ArgumentNullException(nameof(buffer));
             }
 
-            var filePath = buffer.GetFilePath();
-
-            if (string.IsNullOrEmpty(filePath))
+            if (!taggableBufferIndicator.IsTaggable(buffer))
             {
                 return null;
             }

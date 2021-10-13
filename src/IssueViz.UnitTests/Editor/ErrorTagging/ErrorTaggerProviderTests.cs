@@ -18,21 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
-using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTagging
 {
     [TestClass]
-    public class ErrorTaggerProviderTests
+    public class ErrorTaggerProviderTests : CommonTaggerProviderTestsBase
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
@@ -40,74 +38,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
             MefTestHelpers.CheckTypeCanBeImported<ErrorTaggerProvider, ITaggerProvider>(null,
                 new[]
                 {
+                    MefTestHelpers.CreateExport<ITaggableBufferIndicator>(Mock.Of<ITaggableBufferIndicator>()),
                     MefTestHelpers.CreateExport<IBufferTagAggregatorFactoryService>(Mock.Of<IBufferTagAggregatorFactoryService>()),
                     MefTestHelpers.CreateExport<IErrorTagTooltipProvider>(Mock.Of<IErrorTagTooltipProvider>())
                 });
         }
 
-        [TestMethod]
-        public void CreateTagger_BufferIsNull_Throws()
-        {
-            var testSubject = CreateTestSubject();
-
-            Action act = () => testSubject.CreateTagger<ITag>(null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("buffer");
-        }
-
-        [TestMethod]
-        public void CreateTagger_BufferIsNotNull_ReturnsNewTaggerPerRequest()
-        {
-            var buffer = CreateBuffer();
-            var testSubject = CreateTestSubject();
-
-            // 1. Request first tagger for buffer
-            var tagger1 = testSubject.CreateTagger<ITag>(buffer);
-            tagger1.Should().NotBeNull();
-
-            // 2. Request second tagger - expecting a different instance
-            var tagger2 = testSubject.CreateTagger<ITag>(buffer);
-            tagger2.Should().NotBeNull();
-
-            tagger1.Should().NotBeSameAs(tagger2);
-        }
-
-        [TestMethod]
-        public void CreateTagger_TwoBuffers_ReturnsNewTaggerPerRequest()
-        {
-            var buffer1 = CreateBuffer();
-            var buffer2 = CreateBuffer();
-            var testSubject = CreateTestSubject();
-
-            // 1. Request tagger for first buffer
-            var tagger1 = testSubject.CreateTagger<ITag>(buffer1);
-            tagger1.Should().NotBeNull();
-
-            // 2. Request tagger for second buffer - expecting a different instance
-            var tagger2 = testSubject.CreateTagger<ITag>(buffer2);
-            tagger2.Should().NotBeNull();
-
-            tagger1.Should().NotBeSameAs(tagger2);
-        }
-
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow("")]
-        public void CreateTagger_NoFilePath_NullBuffer(string bufferFilePath)
-        {
-            var buffer = CreateBufferMock(filePath: bufferFilePath);
-            var testSubject = CreateTestSubject();
-
-            var tagger = testSubject.CreateTagger<ITag>(buffer.Object);
-            tagger.Should().BeNull();
-        }
-
-        private ErrorTaggerProvider CreateTestSubject()
+        internal override ITaggerProvider CreateTestSubject(ITaggableBufferIndicator taggableBufferIndicator)
         {
             var aggregatorMock = new Mock<IBufferTagAggregatorFactoryService>();
             aggregatorMock.Setup(x => x.CreateTagAggregator<IIssueLocationTag>(It.IsAny<ITextBuffer>()))
                 .Returns(Mock.Of<ITagAggregator<IIssueLocationTag>>());
 
-            return new ErrorTaggerProvider(aggregatorMock.Object,Mock.Of<IErrorTagTooltipProvider>());
+            return new ErrorTaggerProvider(aggregatorMock.Object, taggableBufferIndicator, Mock.Of<IErrorTagTooltipProvider>());
         }
     }
 }
