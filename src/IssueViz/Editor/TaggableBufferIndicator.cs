@@ -19,13 +19,11 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Linq;
 using Microsoft.VisualStudio.Text;
-using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor
 {
-    internal interface ITaggableBufferIndicator
+    public interface ITaggableBufferIndicator
     {
         bool IsTaggable(ITextBuffer buffer);
     }
@@ -33,14 +31,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
     [Export(typeof(ITaggableBufferIndicator))]
     internal class TaggableBufferIndicator : ITaggableBufferIndicator
     {
-        private readonly ISonarLanguageRecognizer languageRecognizer;
-
-        [ImportingConstructor]
-        public TaggableBufferIndicator(ISonarLanguageRecognizer languageRecognizer)
-        {
-            this.languageRecognizer = languageRecognizer;
-        }
-
         public bool IsTaggable(ITextBuffer buffer)
         {
             var filePath = buffer.GetFilePath();
@@ -50,9 +40,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
                 return false;
             }
 
-            var analysisLanguages = languageRecognizer.Detect(filePath, buffer.ContentType);
+            var isOutputBuffer = buffer.ContentType.IsOfType("Output");
 
-            return analysisLanguages.Any();
+            if (isOutputBuffer)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

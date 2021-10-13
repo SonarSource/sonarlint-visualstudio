@@ -28,7 +28,7 @@ using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
 {
     [Export(typeof(ITaggerProvider))]
-    [ContentType("code")]
+    [ContentType("text")]
     [TagType(typeof(IErrorTag))]
     internal class ErrorTaggerProvider : ITaggerProvider
     {
@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
         private readonly IErrorTagTooltipProvider errorTagTooltipProvider;
 
         [ImportingConstructor]
-        public ErrorTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, 
+        public ErrorTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
             ITaggableBufferIndicator taggableBufferIndicator,
             IErrorTagTooltipProvider errorTagTooltipProvider)
         {

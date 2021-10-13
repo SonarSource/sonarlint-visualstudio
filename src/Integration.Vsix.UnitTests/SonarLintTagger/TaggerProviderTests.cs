@@ -54,10 +54,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private Mock<ISonarErrorListDataSource> mockSonarErrorDataSource;
         private Mock<IAnalyzerController> mockAnalyzerController;
-        private IAnalyzerController analyzerController;
         private TestLogger logger;
         private Mock<IScheduler> mockAnalysisScheduler;
         private Mock<ISonarLanguageRecognizer> mockSonarLanguageRecognizer;
+        private Mock<ITaggableBufferIndicator> mockTaggableBufferIndicator;
 
         private TaggerProvider provider;
 
@@ -71,8 +71,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockSonarErrorDataSource = new Mock<ISonarErrorListDataSource>();
 
             mockAnalyzerController = new Mock<IAnalyzerController>();
-            mockAnalyzerController.Setup(x => x.IsAnalysisSupported(It.IsAny<IEnumerable<AnalysisLanguage>>())).Returns(true);
-            analyzerController = this.mockAnalyzerController.Object;
 
             var mockProject = new Mock<Project>();
             mockProject.Setup(p => p.Name).Returns("MyProject");
@@ -101,6 +99,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             logger = new TestLogger();
 
             mockSonarLanguageRecognizer = new Mock<ISonarLanguageRecognizer>();
+
+            mockTaggableBufferIndicator = new Mock<ITaggableBufferIndicator>();
+            mockTaggableBufferIndicator.Setup(x => x.IsTaggable(It.IsAny<ITextBuffer>())).Returns(true);
+
             var mockAnalysisRequester = new Mock<IAnalysisRequester>();
 
             mockAnalysisScheduler = new Mock<IScheduler>();
@@ -108,8 +110,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Callback((string file, Action<CancellationToken> analyze, int timeout) => analyze(CancellationToken.None));
 
             var issuesFilter = new Mock<IIssuesFilter>();
-            this.provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, issuesFilter.Object, analyzerController, serviceProvider,
-                mockSonarLanguageRecognizer.Object, mockAnalysisRequester.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), logger, mockAnalysisScheduler.Object);
+            this.provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, issuesFilter.Object, mockAnalyzerController.Object, serviceProvider,
+                mockSonarLanguageRecognizer.Object, mockAnalysisRequester.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), mockTaggableBufferIndicator.Object, logger, mockAnalysisScheduler.Object);
         }
 
         [TestMethod]
@@ -119,16 +121,39 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var tagger = CreateTaggerForDocument(doc);
 
             tagger.Should().NotBeNull();
+
+            VerifyCheckedAnalysisIsSupported();
+            VerifyAnalysisWasRequested();
+            mockAnalyzerController.VerifyNoOtherCalls();
         }
 
         [TestMethod]
         public void CreateTagger_should_return_null_when_analysis_is_not_supported()
-        {
+        { 
             var doc = CreateMockedDocument("anyname", isDetectable: false);
             var tagger = CreateTaggerForDocument(doc);
 
             tagger.Should().BeNull();
+
+            VerifyCheckedAnalysisIsSupported();
+            mockAnalyzerController.VerifyNoOtherCalls();
         }
+
+
+        [TestMethod]
+        public void CreateTagger_should_return_null_when_buffer_is_not_taggable()
+        {
+            var doc = CreateMockedDocument("anyname", isDetectable: true);
+            mockTaggableBufferIndicator.Setup(x => x.IsTaggable(doc.TextBuffer)).Returns(false);;
+
+            var tagger = CreateTaggerForDocument(doc);
+
+            tagger.Should().BeNull();
+
+            mockTaggableBufferIndicator.Verify(x=> x.IsTaggable(doc.TextBuffer), Times.Once);
+            mockTaggableBufferIndicator.Verify(x=> x.IsTaggable(It.IsAny<ITextBuffer>()), Times.Once);
+        }
+
 
         [TestMethod]
         public void CreateTagger_SameDocument_ShouldUseSameSingletonManager()
@@ -389,8 +414,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Register the buffer-to-doc mapping for the factory service
             dummyDocumentFactoryService.RegisterDocument(mockTextDocument.Object);
 
-            SetupDetectedLanguages(fileName, bufferContentType,
-                isDetectable ? new[] {AnalysisLanguage.Javascript} : Enumerable.Empty<AnalysisLanguage>());
+            var analysisLanguages = isDetectable ? new[] { AnalysisLanguage.Javascript } : Enumerable.Empty<AnalysisLanguage>();
+
+            SetupDetectedLanguages(fileName, bufferContentType, analysisLanguages);
+
+            mockAnalyzerController.Setup(x => x.IsAnalysisSupported(analysisLanguages)).Returns(isDetectable);
 
             return mockTextDocument.Object;
         }
@@ -416,6 +444,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             buffer.Properties.TryGetProperty<SingletonDisposableTaggerManager<IErrorTag>>(TaggerProvider.SingletonManagerPropertyCollectionKey, out var propertyValue);
             return propertyValue;
+        }
+
+        private void VerifyCheckedAnalysisIsSupported()
+        {
+            mockAnalyzerController.Verify(x => x.IsAnalysisSupported(It.IsAny<IEnumerable<AnalysisLanguage>>()), Times.Once);
+        }
+
+        private void VerifyAnalysisWasRequested()
+        {
+            mockAnalyzerController.Verify(
+                x => x.ExecuteAnalysis("anyname", "utf-8", It.IsAny<IEnumerable<AnalysisLanguage>>(),
+                    It.IsAny<IIssueConsumer>(), null, CancellationToken.None), Times.Once);
         }
 
         private class DummyTextDocumentFactoryService : ITextDocumentFactoryService

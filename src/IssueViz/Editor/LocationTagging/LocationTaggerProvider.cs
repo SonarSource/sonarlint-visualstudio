@@ -28,7 +28,7 @@ using SonarLint.VisualStudio.Integration;
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
 {
     [Export(typeof(ITaggerProvider))]
-    [ContentType("code")]
+    [ContentType("text")]
     [TagType(typeof(IIssueLocationTag))]
     internal class LocationTaggerProvider : ITaggerProvider
     {
