@@ -69,6 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISonarLanguageRecognizer languageRecognizer;
         private readonly IVsStatusbar vsStatusBar;
         private readonly IAnalysisIssueVisualizationConverter converter;
+        private readonly ITaggableBufferIndicator taggableBufferIndicator;
         private readonly ILogger logger;
         private readonly IScheduler scheduler;
         private readonly IVsSolution5 vsSolution;
@@ -82,6 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             ISonarLanguageRecognizer languageRecognizer,
             IAnalysisRequester analysisRequester,
             IAnalysisIssueVisualizationConverter converter,
+            ITaggableBufferIndicator taggableBufferIndicator,
             ILogger logger,
             IScheduler scheduler)
         {
@@ -93,6 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.dte = serviceProvider.GetService<DTE>();
             this.languageRecognizer = languageRecognizer;
             this.converter = converter;
+            this.taggableBufferIndicator = taggableBufferIndicator;
             this.logger = logger;
             this.scheduler = scheduler;
 
@@ -157,6 +160,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return null;
             }
 
+            if (!taggableBufferIndicator.IsTaggable(buffer))
+            {
+                return null;
+            }
+
             if (!textDocumentFactoryService.TryGetTextDocument(buffer, out var textDocument))
             {
                 return null;
@@ -164,7 +172,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             var detectedLanguages = languageRecognizer.Detect(textDocument.FilePath, buffer.ContentType);
 
-            if (detectedLanguages.Any() && analyzerController.IsAnalysisSupported(detectedLanguages))
+            if (analyzerController.IsAnalysisSupported(detectedLanguages))
             {
                 // We only want one TBIT per buffer and we don't want it be disposed until
                 // it is not being used by any tag aggregators, so we're wrapping it in a SingletonDisposableTaggerManager
