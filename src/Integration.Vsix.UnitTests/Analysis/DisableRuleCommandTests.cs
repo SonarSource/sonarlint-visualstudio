@@ -88,6 +88,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         [DataRow("c:S222")]
         [DataRow("javascript:S333")]
         [DataRow("typescript:S444")]
+        [DataRow("secrets:S555")]
         public void CheckStatusAndExecute_SingleIssue_SupportedRepo_StandaloneMode_VisibleAndEnabled(string errorCode)
         {
             // Arrange
@@ -126,6 +127,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         [DataRow("javascript:S111", SonarLintMode.LegacyConnected, true)]
         [DataRow("typescript:S111", SonarLintMode.Connected, true)]
         [DataRow("typescript:S111", SonarLintMode.LegacyConnected, true)]
+        [DataRow("secrets:S111", SonarLintMode.Connected, true)]
+        [DataRow("secrets:S111", SonarLintMode.LegacyConnected, true)]
         public void CheckStatus_SingleIssue_SupportedRepo_ConnectedMode_HasExpectedEnabledStatus(string errorCode, SonarLintMode bindingMode,
             bool expectedEnabled)
         {
@@ -275,6 +278,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         [DataRow("cpp:S222", "cpp", "S222")]
         [DataRow("javascript:S333", "javascript", "S333")]
         [DataRow("typescript:S444", "typescript", "S444")]
+        [DataRow("secrets:S555", "secrets", "S555")]
         [DataRow("foo:bar", "foo", "bar")]
         public void GetErrorCode_SingleSonarIssue_ErrorCodeReturned(string fullRuleKey, string expectedRepo, string expectedRule)
         {

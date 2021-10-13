@@ -66,6 +66,8 @@ namespace SonarLint.VisualStudio.Core
         public const string C = "c";
         public const string Cpp = "cpp";
 
+        public const string Secrets = "secrets";
+
         public const string CSharpSecurityRules = "roslyn.sonaranalyzer.security.cs";
         public const string CSharpRules = "csharpsquid";
 
