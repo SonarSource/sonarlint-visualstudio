@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.Secrets.DotNet;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
@@ -47,6 +48,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
                 MefTestHelpers.CreateExport<ITextDocumentFactoryService>(Mock.Of<ITextDocumentFactoryService>()),
                 MefTestHelpers.CreateExport<IContentTypeRegistryService>(Mock.Of<IContentTypeRegistryService>()),
                 MefTestHelpers.CreateExport<IAnalysisStatusNotifier>(Mock.Of<IAnalysisStatusNotifier>()),
+                MefTestHelpers.CreateExport<IUserSettingsProvider>(Mock.Of<IUserSettingsProvider>())
             });
         }
 
@@ -119,7 +121,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             var consumer = new Mock<IIssueConsumer>();
 
             var secrets = new[] { Mock.Of<ISecret>(), Mock.Of<ISecret>() };
-            var secretDetector = SetupSecretDetector(ValidFileContent, secrets);
+            var secretDetector = SetupSecretDetector(ValidFileContent, secrets: secrets);
 
             var convertedIssues = new[] { Mock.Of<IAnalysisIssue>(), Mock.Of<IAnalysisIssue>() };
             var secretsToAnalysisIssueConverter = SetupIssuesConverter(new[]
@@ -185,7 +187,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             var consumer = new Mock<IIssueConsumer>();
 
             var secrets = new[] { Mock.Of<ISecret>(), Mock.Of<ISecret>() };
-            var secretDetector = SetupSecretDetector(ValidFileContent, secrets);
+            var secretDetector = SetupSecretDetector(ValidFileContent, secrets: secrets);
 
             var testSubject = CreateTestSubject(textDocumentFactoryService: textDocumentFactoryService, statusNotifier: statusNotifier.Object, detectors: secretDetector);
             ExecuteAnalysis(testSubject, ValidFilePath, consumer.Object);
@@ -195,6 +197,44 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             statusNotifier.VerifyNoOtherCalls();
         }
 
+        [TestMethod]
+        public void ExecuteAnalysis_DisabledDetectorsAreNotChecked()
+        {
+            var textDocumentFactoryService = SetupTextDocumentFactoryService(ValidFilePath, ValidFileContent);
+
+            var rulesSettings = new RulesSettings();
+            rulesSettings.Rules.Add("rule1", new RuleConfig{Level = RuleLevel.On});
+            rulesSettings.Rules.Add("rule2", new RuleConfig{Level = RuleLevel.Off });
+            rulesSettings.Rules.Add("rule3", new RuleConfig{Level = RuleLevel.On });
+            rulesSettings.Rules.Add("rule4", new RuleConfig{Level = RuleLevel.Off });
+
+            var consumer = new Mock<IIssueConsumer>();
+
+            var secretDetectors = new[]
+            {
+                SetupSecretDetector(ValidFileContent, "rule1"),
+                SetupSecretDetector(ValidFileContent, "rule2"),
+                SetupSecretDetector(ValidFileContent, "rule3"),
+                SetupSecretDetector(ValidFileContent, "rule4"),
+                SetupSecretDetector(ValidFileContent, "rule5")
+            };
+
+            var testSubject = CreateTestSubject(
+                textDocumentFactoryService: textDocumentFactoryService,
+                detectors: secretDetectors, 
+                rulesSettings: rulesSettings);
+
+            ExecuteAnalysis(testSubject, ValidFilePath, consumer.Object);
+
+            secretDetectors[0].Verify(x => x.Find(ValidFileContent), Times.Once());
+            secretDetectors[1].Verify(x => x.Find(It.IsAny<string>()), Times.Never());
+            secretDetectors[2].Verify(x => x.Find(ValidFileContent), Times.Once());
+            secretDetectors[3].Verify(x => x.Find(It.IsAny<string>()), Times.Never());
+            // enabled by default
+            secretDetectors[4].Verify(x => x.Find(ValidFileContent), Times.Once());
+        }
+
+
         private void ExecuteAnalysis(SecretsAnalyzer testSubject, string filePath, IIssueConsumer consumer)
         {
             testSubject.ExecuteAnalysis(filePath, "", Array.Empty<AnalysisLanguage>(), consumer, null, CancellationToken.None);
@@ -203,11 +243,16 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         private SecretsAnalyzer CreateTestSubject(IAnalysisStatusNotifier statusNotifier = null,
             ITextDocumentFactoryService textDocumentFactoryService = null,
             ISecretsToAnalysisIssueConverter secretsToAnalysisIssueConverter = null,
+            RulesSettings rulesSettings = null,
             params Mock<ISecretDetector>[] detectors)
         {
             statusNotifier ??= Mock.Of<IAnalysisStatusNotifier>();
             detectors ??= Array.Empty<Mock<ISecretDetector>>();
             secretsToAnalysisIssueConverter ??= Mock.Of<ISecretsToAnalysisIssueConverter>();
+
+            rulesSettings ??= new RulesSettings();
+            var userSettingsProvider = new Mock<IUserSettingsProvider>();
+            userSettingsProvider.Setup(x => x.UserSettings).Returns(new UserSettings(rulesSettings));
 
             var contentTypeRegistryService = new Mock<IContentTypeRegistryService>();
             contentTypeRegistryService.Setup(x => x.UnknownContentType).Returns(Mock.Of<IContentType>());
@@ -216,13 +261,15 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
                 contentTypeRegistryService.Object,
                 detectors.Select(x => x.Object),
                 statusNotifier,
+                userSettingsProvider.Object,
                 secretsToAnalysisIssueConverter);
         }
 
-        private Mock<ISecretDetector> SetupSecretDetector(string input, params ISecret[] secrets)
+        private Mock<ISecretDetector> SetupSecretDetector(string input, string ruleKey = "some rule", params ISecret[] secrets)
         {
             var detector = new Mock<ISecretDetector>();
             detector.Setup(x => x.Find(input)).Returns(secrets);
+            detector.Setup(x => x.RuleKey).Returns(ruleKey);
 
             return detector;
         }
