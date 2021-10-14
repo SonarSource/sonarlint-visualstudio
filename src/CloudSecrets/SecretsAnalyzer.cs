@@ -38,6 +38,7 @@ namespace SonarLint.VisualStudio.CloudSecrets
         private readonly ITextDocumentFactoryService textDocumentFactoryService;
         private readonly IEnumerable<ISecretDetector> secretDetectors;
         private readonly IAnalysisStatusNotifier analysisStatusNotifier;
+        private readonly IUserSettingsProvider userSettingsProvider;
         private readonly ISecretsToAnalysisIssueConverter secretsToAnalysisIssueConverter;
         private readonly IContentType filesContentType;
 
@@ -46,11 +47,13 @@ namespace SonarLint.VisualStudio.CloudSecrets
             ITextDocumentFactoryService textDocumentFactoryService,
             IContentTypeRegistryService contentTypeRegistryService,
             [ImportMany] IEnumerable<ISecretDetector> secretDetectors,
-            IAnalysisStatusNotifier analysisStatusNotifier)
+            IAnalysisStatusNotifier analysisStatusNotifier,
+            IUserSettingsProvider userSettingsProvider)
             : this(textDocumentFactoryService,
                 contentTypeRegistryService,
                 secretDetectors,
                 analysisStatusNotifier,
+                userSettingsProvider,
                 new SecretsToAnalysisIssueConverter())
         {
         }
@@ -59,11 +62,13 @@ namespace SonarLint.VisualStudio.CloudSecrets
             IContentTypeRegistryService contentTypeRegistryService,
             IEnumerable<ISecretDetector> secretDetectors,
             IAnalysisStatusNotifier analysisStatusNotifier,
+            IUserSettingsProvider userSettingsProvider,
             ISecretsToAnalysisIssueConverter secretsToAnalysisIssueConverter)
         {
             this.textDocumentFactoryService = textDocumentFactoryService;
             this.secretDetectors = secretDetectors;
             this.analysisStatusNotifier = analysisStatusNotifier;
+            this.userSettingsProvider = userSettingsProvider;
             this.secretsToAnalysisIssueConverter = secretsToAnalysisIssueConverter;
             filesContentType = contentTypeRegistryService.UnknownContentType;
         }
@@ -94,8 +99,12 @@ namespace SonarLint.VisualStudio.CloudSecrets
 
                 foreach (var secretDetector in secretDetectors)
                 {
+                    if (!IsRuleActive(secretDetector.RuleKey))
+                    {
+                        continue;
+                    }
+
                     // todo: check cancellation token
-                    // todo: check if rule is enabled 
                     var detectedSecrets = secretDetector.Find(fileContent);
                     issues.AddRange(detectedSecrets.Select(x => secretsToAnalysisIssueConverter.Convert(x, secretDetector, filePath, currentSnapshot)));
                 }
@@ -111,6 +120,18 @@ namespace SonarLint.VisualStudio.CloudSecrets
             {
                 analysisStatusNotifier.AnalysisFailed(filePath, ex);
             }
+        }
+
+        private bool IsRuleActive(string ruleKey)
+        {
+            // User settings override the default, if present
+            if (userSettingsProvider.UserSettings.RulesSettings.Rules.TryGetValue(ruleKey, out var ruleConfig))
+            {
+                return ruleConfig.Level == RuleLevel.On;
+            }
+
+            // Secrets are active by default
+            return true;
         }
     }
 }
