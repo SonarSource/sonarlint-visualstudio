@@ -186,6 +186,12 @@ namespace SonarLint.VisualStudio.Integration.Tests
                     IsCMakeNonAnalyzable = true,
                     IsVcxNonAnalyzable = true,
                     IsVcxAnalyzable = true
+                },
+                RulesUsage = new RulesUsage
+                {
+                    DisabledByDefaultThatWereEnabled = new List<string> { "rule1", "rule2" },
+                    EnabledByDefaultThatWereDisabled = new List<string> { "rule3", "rule4" },
+                    RulesThatRaisedIssues = new List<string> { "rule5", "rule6" }
                 }
             };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
@@ -208,6 +214,9 @@ namespace SonarLint.VisualStudio.Integration.Tests
             telemetryData.CFamilyProjectTypes.IsCMakeAnalyzable.Should().BeFalse(); // should have cleared the value
             telemetryData.CFamilyProjectTypes.IsVcxAnalyzable.Should().BeFalse(); // should have cleared the value
             telemetryData.CFamilyProjectTypes.IsVcxNonAnalyzable.Should().BeFalse(); // should have cleared the value
+            telemetryData.RulesUsage.DisabledByDefaultThatWereEnabled.Should().BeEmpty(); // should have cleared the value
+            telemetryData.RulesUsage.EnabledByDefaultThatWereDisabled.Should().BeEmpty(); // should have cleared the value
+            telemetryData.RulesUsage.RulesThatRaisedIssues.Should().BeEmpty(); // should have cleared the value
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
             telemetryClientMock.Verify(x => x.SendPayloadAsync(It.IsAny<TelemetryPayload>()), Times.Once);
         }

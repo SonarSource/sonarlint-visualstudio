@@ -79,5 +79,8 @@ namespace SonarLint.VisualStudio.Integration
 
         [JsonProperty("cfamily_project_types")]
         public CFamilyProjectTypes CFamilyProjectTypes { get; set; }
+
+        [JsonProperty("rules")]
+        public RulesUsage RulesUsage { get; set; }
     }
 }
