@@ -86,6 +86,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     IsCMakeAnalyzable = true,
                     IsVcxNonAnalyzable = true,
                     IsVcxAnalyzable = true
+                },
+                RulesUsage = new RulesUsage
+                {
+                    DisabledByDefaultThatWereEnabled = new List<string> { "rule1", "rule2" },
+                    EnabledByDefaultThatWereDisabled = new List<string> { "rule3", "rule4" },
+                    RulesThatRaisedIssues = new List<string> { "rule5", "rule6" }
                 }
             };
 
@@ -143,6 +149,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     ""cmake_non_analyzable"": true,
     ""vcx_analyzable"": true,
     ""vcx_non_analyzable"": true
+  },
+  ""rules"": {
+    ""default_disabled"": [
+      ""rule3"",
+      ""rule4""
+    ],
+    ""non_default_enabled"": [
+      ""rule1"",
+      ""rule2""
+    ],
+    ""raised_issues"": [
+      ""rule5"",
+      ""rule6""
+    ]
   }
 }";
             serialized.Should().Be(expected);

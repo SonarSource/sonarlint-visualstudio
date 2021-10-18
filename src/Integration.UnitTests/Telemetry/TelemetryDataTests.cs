@@ -89,6 +89,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     IsCMakeAnalyzable = true,
                     IsVcxAnalyzable = true,
                     IsVcxNonAnalyzable = true
+                },
+
+                RulesUsage = new RulesUsage
+                {
+                    DisabledByDefaultThatWereEnabled = new List<string>{"rule1", "rule2"},
+                    EnabledByDefaultThatWereDisabled = new List<string> { "rule3", "rule4" },
+                    RulesThatRaisedIssues = new List<string> { "rule5", "rule6" }
                 }
             };
 
@@ -139,6 +146,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             reloadedData.CFamilyProjectTypes.IsCMakeAnalyzable.Should().BeTrue();
             reloadedData.CFamilyProjectTypes.IsVcxNonAnalyzable.Should().BeTrue();
             reloadedData.CFamilyProjectTypes.IsVcxAnalyzable.Should().BeTrue();
+
+            reloadedData.RulesUsage.DisabledByDefaultThatWereEnabled.Should().BeEquivalentTo("rule1", "rule2");
+            reloadedData.RulesUsage.EnabledByDefaultThatWereDisabled.Should().BeEquivalentTo("rule3", "rule4");
+            reloadedData.RulesUsage.RulesThatRaisedIssues.Should().BeEquivalentTo("rule5", "rule6");
         }
 
         [TestMethod]
