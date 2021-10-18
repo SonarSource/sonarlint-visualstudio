@@ -158,7 +158,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
   ""show_hotspot"": null,
   ""taint_vulnerabilities"": null,
   ""server_notifications"": null,
-  ""cfamily_project_types"": null
+  ""cfamily_project_types"": null,
+  ""rules"": null
 }";
 
             httpHandlerMock.VerifyAll();

@@ -77,6 +77,9 @@ namespace SonarLint.VisualStudio.Integration
         [XmlElement(nameof(CFamilyProjectTypes))]
         public CFamilyProjectTypes CFamilyProjectTypes { get; set; } = new CFamilyProjectTypes();
 
+        [XmlElement(nameof(RulesUsage))] 
+        public RulesUsage RulesUsage { get; set; } = new RulesUsage();
+
         private static DateTimeOffset ParseSavedString(string data)
         {
             // ParseExact will throw an exception when value is invalid date, but

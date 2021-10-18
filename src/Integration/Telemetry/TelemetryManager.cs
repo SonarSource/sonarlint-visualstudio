@@ -238,6 +238,7 @@ namespace SonarLint.VisualStudio.Integration
                 telemetryRepository.Data.TaintVulnerabilities = new TaintVulnerabilities();
                 telemetryRepository.Data.ServerNotifications = new ServerNotifications();
                 telemetryRepository.Data.CFamilyProjectTypes = new CFamilyProjectTypes();
+                telemetryRepository.Data.RulesUsage = new RulesUsage();
                 telemetryRepository.Save();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))

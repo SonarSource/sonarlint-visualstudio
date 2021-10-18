@@ -78,6 +78,11 @@ namespace SonarLint.VisualStudio.Integration.Tests
     <IsVcxAnalyzable>false</IsVcxAnalyzable>
     <IsVcxNonAnalyzable>false</IsVcxNonAnalyzable>
   </CFamilyProjectTypes>
+  <RulesUsage>
+    <EnabledByDefaultThatWereDisabled />
+    <DisabledByDefaultThatWereEnabled />
+    <RulesThatRaisedIssues />
+  </RulesUsage>
 </TelemetryData>");
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock);
@@ -120,6 +125,20 @@ namespace SonarLint.VisualStudio.Integration.Tests
       </KeyValue>
     </ServerNotificationCounters>
   </ServerNotifications>
+  <RulesUsage>
+    <EnabledByDefaultThatWereDisabled>
+      <string>rule1</string> 
+      <string>rule2</string> 
+    </EnabledByDefaultThatWereDisabled>
+    <DisabledByDefaultThatWereEnabled>
+      <string>rule3</string> 
+      <string>rule4</string> 
+    </DisabledByDefaultThatWereEnabled>
+    <RulesThatRaisedIssues>
+      <string>rule5</string> 
+      <string>rule6</string> 
+    </RulesThatRaisedIssues>
+  </RulesUsage>
 </TelemetryData>");
 
             InitializeMocks(fileContents, fileExists: true, dirExists: true);
@@ -133,14 +152,21 @@ namespace SonarLint.VisualStudio.Integration.Tests
             repository.Data.InstallationDate.Should().Be(new DateTimeOffset(new DateTime(2017, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1)));
             repository.Data.LastSavedAnalysisDate.Should().Be(new DateTimeOffset(new DateTime(2018, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1)));
             repository.Data.LastUploadDate.Should().Be(new DateTimeOffset(new DateTime(2019, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1)));
+           
             repository.Data.ShowHotspot.NumberOfRequests.Should().Be(20);
+          
             repository.Data.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(55);
             repository.Data.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(66);
+           
             repository.Data.ServerNotifications.IsDisabled.Should().BeTrue();
             repository.Data.ServerNotifications.ServerNotificationCounters["QUALITY_GATE"].ClickedCount.Should().Be(22);
             repository.Data.ServerNotifications.ServerNotificationCounters["QUALITY_GATE"].ReceivedCount.Should().Be(11);
             repository.Data.ServerNotifications.ServerNotificationCounters["NEW_ISSUES"].ClickedCount.Should().Be(44);
             repository.Data.ServerNotifications.ServerNotificationCounters["NEW_ISSUES"].ReceivedCount.Should().Be(33);
+
+            repository.Data.RulesUsage.EnabledByDefaultThatWereDisabled.Should().BeEquivalentTo("rule1", "rule2");
+            repository.Data.RulesUsage.DisabledByDefaultThatWereEnabled.Should().BeEquivalentTo("rule3", "rule4");
+            repository.Data.RulesUsage.RulesThatRaisedIssues.Should().BeEquivalentTo("rule5", "rule6");
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock);
         }
@@ -212,6 +238,20 @@ namespace SonarLint.VisualStudio.Integration.Tests
       </KeyValue>
     </ServerNotificationCounters>
   </ServerNotifications>
+  <RulesUsage>
+    <EnabledByDefaultThatWereDisabled>
+      <string>rule11</string> 
+      <string>rule12</string> 
+    </EnabledByDefaultThatWereDisabled>
+    <DisabledByDefaultThatWereEnabled>
+      <string>rule13</string> 
+      <string>rule14</string> 
+    </DisabledByDefaultThatWereEnabled>
+    <RulesThatRaisedIssues>
+      <string>rule15</string> 
+      <string>rule16</string> 
+    </RulesThatRaisedIssues>
+  </RulesUsage>
 </TelemetryData>");
 
             fileSystemWatcherMock
@@ -223,14 +263,21 @@ namespace SonarLint.VisualStudio.Integration.Tests
             repository.Data.InstallationDate.Should().Be(newInstallationDate);
             repository.Data.LastSavedAnalysisDate.Should().Be(newLastSavedAnalysisDate);
             repository.Data.LastUploadDate.Should().Be(newLastUploadDate);
+         
             repository.Data.ShowHotspot.NumberOfRequests.Should().Be(newHotspotsRequests);
+           
             repository.Data.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(newTaintRedirects);
             repository.Data.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(newTaintOpenedIssues);
+        
             repository.Data.ServerNotifications.IsDisabled.Should().Be(notificationsDisabled);
             repository.Data.ServerNotifications.ServerNotificationCounters["QUALITY_GATE"].ClickedCount.Should().Be(qualityGateClickedCount);
             repository.Data.ServerNotifications.ServerNotificationCounters["QUALITY_GATE"].ReceivedCount.Should().Be(qualityGateReceivedCount);
             repository.Data.ServerNotifications.ServerNotificationCounters["NEW_ISSUES"].ClickedCount.Should().Be(newIssuesClickedCount);
             repository.Data.ServerNotifications.ServerNotificationCounters["NEW_ISSUES"].ReceivedCount.Should().Be(newIssuesReceivedCount);
+
+            repository.Data.RulesUsage.EnabledByDefaultThatWereDisabled.Should().BeEquivalentTo("rule11", "rule12");
+            repository.Data.RulesUsage.DisabledByDefaultThatWereEnabled.Should().BeEquivalentTo("rule13", "rule14");
+            repository.Data.RulesUsage.RulesThatRaisedIssues.Should().BeEquivalentTo("rule15", "rule16");
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock, fileSystemWatcherMock);
         }

@@ -63,6 +63,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     IsCMakeAnalyzable = true,
                     IsVcxNonAnalyzable = true,
                     IsVcxAnalyzable = true
+                },
+                RulesUsage = new RulesUsage
+                {
+                    DisabledByDefaultThatWereEnabled = new List<string> { "rule1", "rule2" },
+                    EnabledByDefaultThatWereDisabled = new List<string> { "rule3", "rule4" },
+                    RulesThatRaisedIssues = new List<string> { "rule5", "rule6" }
                 }
             };
 
@@ -86,13 +92,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.VisualStudioVersion.Should().Be("1.2.3.4");
             result.InstallDate.Should().Be(new DateTimeOffset(now.AddDays(-10)));
             result.SystemDate.Should().Be(new DateTimeOffset(now));
+
             result.ShowHotspot.NumberOfRequests.Should().Be(11);
+
             result.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(44);
             result.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(55);
+
             result.CFamilyProjectTypes.IsCMakeNonAnalyzable.Should().BeTrue();
             result.CFamilyProjectTypes.IsCMakeAnalyzable.Should().BeTrue();
             result.CFamilyProjectTypes.IsVcxNonAnalyzable.Should().BeTrue();
             result.CFamilyProjectTypes.IsVcxAnalyzable.Should().BeTrue();
+
+            result.RulesUsage.DisabledByDefaultThatWereEnabled.Should().BeEquivalentTo("rule1", "rule2");
+            result.RulesUsage.EnabledByDefaultThatWereDisabled.Should().BeEquivalentTo("rule3", "rule4");
+            result.RulesUsage.RulesThatRaisedIssues.Should().BeEquivalentTo("rule5", "rule6");
         }
 
         [TestMethod]
