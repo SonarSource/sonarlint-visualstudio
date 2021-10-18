@@ -39,6 +39,7 @@ namespace SonarLint.VisualStudio.CloudSecrets
         private readonly IEnumerable<ISecretDetector> secretDetectors;
         private readonly IAnalysisStatusNotifier analysisStatusNotifier;
         private readonly IUserSettingsProvider userSettingsProvider;
+        private readonly ICloudSecretsTelemetryManager cloudSecretsTelemetryManager;
         private readonly ISecretsToAnalysisIssueConverter secretsToAnalysisIssueConverter;
         private readonly IContentType filesContentType;
 
@@ -48,12 +49,14 @@ namespace SonarLint.VisualStudio.CloudSecrets
             IContentTypeRegistryService contentTypeRegistryService,
             [ImportMany] IEnumerable<ISecretDetector> secretDetectors,
             IAnalysisStatusNotifier analysisStatusNotifier,
-            IUserSettingsProvider userSettingsProvider)
+            IUserSettingsProvider userSettingsProvider,
+            ICloudSecretsTelemetryManager telemetryManager)
             : this(textDocumentFactoryService,
                 contentTypeRegistryService,
                 secretDetectors,
                 analysisStatusNotifier,
                 userSettingsProvider,
+                telemetryManager,
                 new SecretsToAnalysisIssueConverter())
         {
         }
@@ -63,12 +66,14 @@ namespace SonarLint.VisualStudio.CloudSecrets
             IEnumerable<ISecretDetector> secretDetectors,
             IAnalysisStatusNotifier analysisStatusNotifier,
             IUserSettingsProvider userSettingsProvider,
+            ICloudSecretsTelemetryManager cloudSecretsTelemetryManager,
             ISecretsToAnalysisIssueConverter secretsToAnalysisIssueConverter)
         {
             this.textDocumentFactoryService = textDocumentFactoryService;
             this.secretDetectors = secretDetectors;
             this.analysisStatusNotifier = analysisStatusNotifier;
             this.userSettingsProvider = userSettingsProvider;
+            this.cloudSecretsTelemetryManager = cloudSecretsTelemetryManager;
             this.secretsToAnalysisIssueConverter = secretsToAnalysisIssueConverter;
             filesContentType = contentTypeRegistryService.UnknownContentType;
         }
@@ -106,6 +111,12 @@ namespace SonarLint.VisualStudio.CloudSecrets
 
                     // todo: check cancellation token
                     var detectedSecrets = secretDetector.Find(fileContent);
+
+                    if (detectedSecrets.Any())
+                    {
+                        cloudSecretsTelemetryManager.SecretDetected(secretDetector.RuleKey);
+                    }
+
                     issues.AddRange(detectedSecrets.Select(x => secretsToAnalysisIssueConverter.Convert(x, secretDetector, filePath, currentSnapshot)));
                 }
 

@@ -48,6 +48,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
                 MefTestHelpers.CreateExport<ITextDocumentFactoryService>(Mock.Of<ITextDocumentFactoryService>()),
                 MefTestHelpers.CreateExport<IContentTypeRegistryService>(Mock.Of<IContentTypeRegistryService>()),
                 MefTestHelpers.CreateExport<IAnalysisStatusNotifier>(Mock.Of<IAnalysisStatusNotifier>()),
+                MefTestHelpers.CreateExport<ICloudSecretsTelemetryManager>(Mock.Of<ICloudSecretsTelemetryManager>()),
                 MefTestHelpers.CreateExport<IUserSettingsProvider>(Mock.Of<IUserSettingsProvider>())
             });
         }
@@ -234,6 +235,40 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             secretDetectors[4].Verify(x => x.Find(ValidFileContent), Times.Once());
         }
 
+        [TestMethod]
+        public void ExecuteAnalysis_DetectorsThatRaisedIssuesAreReportedToTelemetry()
+        {
+            var textDocumentFactoryService = SetupTextDocumentFactoryService(ValidFilePath, ValidFileContent);
+
+            var rulesSettings = new RulesSettings();
+            rulesSettings.Rules.Add("rule1", new RuleConfig { Level = RuleLevel.On });
+            rulesSettings.Rules.Add("rule2", new RuleConfig { Level = RuleLevel.On });
+            rulesSettings.Rules.Add("rule3", new RuleConfig { Level = RuleLevel.On });
+
+            var consumer = new Mock<IIssueConsumer>();
+
+            var secretDetectors = new[]
+            {
+                SetupSecretDetector(ValidFileContent, "rule1", Mock.Of<ISecret>()),
+                SetupSecretDetector(ValidFileContent, "rule2"),
+                SetupSecretDetector(ValidFileContent, "rule3", Mock.Of<ISecret>(), Mock.Of<ISecret>())
+            };
+
+            var telemetryManager = new Mock<ICloudSecretsTelemetryManager>();
+
+            var testSubject = CreateTestSubject(
+                textDocumentFactoryService: textDocumentFactoryService,
+                detectors: secretDetectors,
+                rulesSettings: rulesSettings,
+                telemetryManager: telemetryManager.Object);
+
+            ExecuteAnalysis(testSubject, ValidFilePath, consumer.Object);
+
+            telemetryManager.Verify(x=> x.SecretDetected("rule1"), Times.Once());
+            telemetryManager.Verify(x => x.SecretDetected("rule2"), Times.Never);
+            telemetryManager.Verify(x=> x.SecretDetected("rule3"), Times.Once());
+            telemetryManager.VerifyNoOtherCalls();
+        }
 
         private void ExecuteAnalysis(SecretsAnalyzer testSubject, string filePath, IIssueConsumer consumer)
         {
@@ -244,11 +279,13 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             ITextDocumentFactoryService textDocumentFactoryService = null,
             ISecretsToAnalysisIssueConverter secretsToAnalysisIssueConverter = null,
             RulesSettings rulesSettings = null,
+            ICloudSecretsTelemetryManager telemetryManager = null,
             params Mock<ISecretDetector>[] detectors)
         {
             statusNotifier ??= Mock.Of<IAnalysisStatusNotifier>();
             detectors ??= Array.Empty<Mock<ISecretDetector>>();
             secretsToAnalysisIssueConverter ??= Mock.Of<ISecretsToAnalysisIssueConverter>();
+            telemetryManager ??= Mock.Of<ICloudSecretsTelemetryManager>();
 
             rulesSettings ??= new RulesSettings();
             var userSettingsProvider = new Mock<IUserSettingsProvider>();
@@ -256,12 +293,13 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
 
             var contentTypeRegistryService = new Mock<IContentTypeRegistryService>();
             contentTypeRegistryService.Setup(x => x.UnknownContentType).Returns(Mock.Of<IContentType>());
-
+            
             return new SecretsAnalyzer(textDocumentFactoryService,
                 contentTypeRegistryService.Object,
                 detectors.Select(x => x.Object),
                 statusNotifier,
                 userSettingsProvider.Object,
+                telemetryManager,
                 secretsToAnalysisIssueConverter);
         }
 
