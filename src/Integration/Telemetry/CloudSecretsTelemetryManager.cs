@@ -18,23 +18,31 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 using SonarLint.VisualStudio.CloudSecrets;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Telemetry
 {
     [Export(typeof(ICloudSecretsTelemetryManager))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class CloudSecretsTelemetryManager : ICloudSecretsTelemetryManager
+    internal class CloudSecretsTelemetryManager : ICloudSecretsTelemetryManager, IDisposable
     {
+        private const string SecretsRepositoryKey = "secrets:";
+
         private readonly ITelemetryDataRepository telemetryDataRepository;
+        private readonly IUserSettingsProvider userSettingsProvider;
         private static readonly object Lock = new object();
 
         [ImportingConstructor]
-        public CloudSecretsTelemetryManager(ITelemetryDataRepository telemetryDataRepository)
+        public CloudSecretsTelemetryManager(ITelemetryDataRepository telemetryDataRepository, IUserSettingsProvider userSettingsProvider)
         {
             this.telemetryDataRepository = telemetryDataRepository;
+            this.userSettingsProvider = userSettingsProvider;
+
+            userSettingsProvider.SettingsChanged += UserSettingsProvider_SettingsChanged;
         }
 
         public void SecretDetected(string ruleId)
@@ -44,10 +52,27 @@ namespace SonarLint.VisualStudio.Integration.Telemetry
             lock (Lock)
             {
                 rulesUsage.RulesThatRaisedIssues.Add(ruleId);
-                rulesUsage.RulesThatRaisedIssues = rulesUsage.RulesThatRaisedIssues.Distinct().ToList();
+                rulesUsage.RulesThatRaisedIssues = rulesUsage.RulesThatRaisedIssues.Distinct().OrderBy(x => x).ToList();
             }
 
             telemetryDataRepository.Save();
+        }
+
+        private void UserSettingsProvider_SettingsChanged(object sender, EventArgs e)
+        {
+            var disabledSecretRules = userSettingsProvider.UserSettings.RulesSettings.Rules
+                .Where(x => x.Key.StartsWith(SecretsRepositoryKey) && x.Value.Level == RuleLevel.Off)
+                .Select(x => x.Key)
+                .OrderBy(x=> x)
+                .ToList();
+
+           telemetryDataRepository.Data.RulesUsage.EnabledByDefaultThatWereDisabled = disabledSecretRules;
+           telemetryDataRepository.Save();
+        }
+
+        public void Dispose()
+        {
+            userSettingsProvider.SettingsChanged -= UserSettingsProvider_SettingsChanged;
         }
     }
 }
