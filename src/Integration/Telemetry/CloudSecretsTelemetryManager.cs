@@ -41,13 +41,19 @@ namespace SonarLint.VisualStudio.Integration.Telemetry
         {
             var rulesUsage = telemetryDataRepository.Data.RulesUsage;
 
-            lock (Lock)
+            if (!rulesUsage.RulesThatRaisedIssues.Contains(ruleId))
             {
-                rulesUsage.RulesThatRaisedIssues.Add(ruleId);
-                rulesUsage.RulesThatRaisedIssues = rulesUsage.RulesThatRaisedIssues.Distinct().ToList();
-            }
+                lock (Lock)
+                {
+                    if (!rulesUsage.RulesThatRaisedIssues.Contains(ruleId))
+                    {
+                        rulesUsage.RulesThatRaisedIssues.Add(ruleId);
+                        rulesUsage.RulesThatRaisedIssues = rulesUsage.RulesThatRaisedIssues.Distinct().ToList();
 
-            telemetryDataRepository.Save();
+                        telemetryDataRepository.Save();
+                    }
+                }
+            }
         }
     }
 }
