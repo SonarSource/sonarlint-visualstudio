@@ -38,38 +38,39 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
             MefTestHelpers.CheckTypeCanBeImported<CloudSecretsTelemetryManager, ICloudSecretsTelemetryManager>(null,new []
             {
                 MefTestHelpers.CreateExport<ITelemetryDataRepository>(Mock.Of<ITelemetryDataRepository>()),
-                MefTestHelpers.CreateExport<IUserSettingsProvider>(Mock.Of<IUserSettingsProvider>())
+                MefTestHelpers.CreateExport<IUserSettingsProvider>(Mock.Of<IUserSettingsProvider>()),
+                MefTestHelpers.CreateExport<ITelemetryEvents>(Mock.Of<ITelemetryEvents>())
             });
         }
 
         [TestMethod]
         public void Ctor_SubscribesToEvents()
         {
-            var userSettingsProvider = new Mock<IUserSettingsProvider>();
-            userSettingsProvider.SetupAdd(x => x.SettingsChanged += (_, _) => { });
+            var telemetryEvents = new Mock<ITelemetryEvents>();
+            telemetryEvents.SetupAdd(x => x.BeforeTelemetrySent += (_, _) => { });
 
-            CreateTestSubject(Mock.Of<ITelemetryDataRepository>(), userSettingsProvider.Object);
+            CreateTestSubject(Mock.Of<ITelemetryDataRepository>(), telemetryEvents: telemetryEvents.Object);
 
-            userSettingsProvider.VerifyAdd(x => x.SettingsChanged += It.IsAny<System.EventHandler>(), Times.Once);
+            telemetryEvents.VerifyAdd(x => x.BeforeTelemetrySent += It.IsAny<EventHandler>(), Times.Once);
         }
 
         [TestMethod]
         public void Dispose_UnsubscribesFromEvents()
         {
-            var userSettingsProvider = new Mock<IUserSettingsProvider>();
-            userSettingsProvider.SetupAdd(x => x.SettingsChanged += (_, _) => { });
+            var telemetryEvents = new Mock<ITelemetryEvents>();
+            telemetryEvents.SetupAdd(x => x.BeforeTelemetrySent += (_, _) => { });
 
-            var testSubject = CreateTestSubject(Mock.Of<ITelemetryDataRepository>(), userSettingsProvider.Object);
-            
-            userSettingsProvider.VerifyRemove(x => x.SettingsChanged -= It.IsAny<System.EventHandler>(), Times.Never);
+            var testSubject = CreateTestSubject(Mock.Of<ITelemetryDataRepository>(), telemetryEvents: telemetryEvents.Object);
+
+            telemetryEvents.VerifyRemove(x => x.BeforeTelemetrySent -= It.IsAny<EventHandler>(), Times.Never);
 
             testSubject.Dispose();
 
-            userSettingsProvider.VerifyRemove(x => x.SettingsChanged -= It.IsAny<System.EventHandler>(), Times.Once);
+            telemetryEvents.VerifyRemove(x => x.BeforeTelemetrySent -= It.IsAny<EventHandler>(), Times.Once);
         }
 
         [TestMethod]
-        public void UserSettingsChanged_DisabledSecretRulesAreUpdated()
+        public void BeforeTelemetrySent_DisabledSecretRulesAreUpdated()
         {
             var ruleSettings = new RulesSettings();
             ruleSettings.Rules.Add("rule1", new RuleConfig { Level = RuleLevel.Off }); // wrong repo
@@ -83,17 +84,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
             var userSettingsProvider = CreateUserSettingsProvider(ruleSettings);
             var telemetryData = CreateTelemetryData();
             var telemetryDataRepository = CreateTelemetryRepository(telemetryData);
+            var telemetryEvents = new Mock<ITelemetryEvents>();
 
-            CreateTestSubject(telemetryDataRepository.Object, userSettingsProvider.Object);
+            CreateTestSubject(telemetryDataRepository.Object, userSettingsProvider.Object, telemetryEvents.Object);
 
-            RaiseUserSettingsChangedEvent(userSettingsProvider);
+            RaiseBeforeTelemetrySentEvent(telemetryEvents);
 
             telemetryData.RulesUsage.EnabledByDefaultThatWereDisabled.Should().BeEquivalentTo("secrets:rule3", "secrets:rule6");
             telemetryDataRepository.Verify(x=> x.Save(), Times.Once);
         }
 
         [TestMethod]
-        public void UserSettingsChanged_PreviousRulesAreOverriden()
+        public void BeforeTelemetrySent_PreviousRulesAreOverriden()
         {
             var ruleSettings = new RulesSettings();
             ruleSettings.Rules.Add("secrets:rule1", new RuleConfig { Level = RuleLevel.Off });
@@ -102,31 +104,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
             var userSettingsProvider = CreateUserSettingsProvider(ruleSettings);
             var telemetryData = CreateTelemetryData();
             var telemetryDataRepository = CreateTelemetryRepository(telemetryData);
+            var telemetryEvents = new Mock<ITelemetryEvents>();
 
-            CreateTestSubject(telemetryDataRepository.Object, userSettingsProvider.Object);
+            CreateTestSubject(telemetryDataRepository.Object, userSettingsProvider.Object, telemetryEvents.Object);
 
-            RaiseUserSettingsChangedEvent(userSettingsProvider);
+            RaiseBeforeTelemetrySentEvent(telemetryEvents);
 
             telemetryData.RulesUsage.EnabledByDefaultThatWereDisabled.Should().BeEquivalentTo("secrets:rule1");
 
             ruleSettings.Rules["secrets:rule1"].Level = RuleLevel.On;
             ruleSettings.Rules["secrets:rule2"].Level = RuleLevel.Off;
 
-            RaiseUserSettingsChangedEvent(userSettingsProvider);
+            RaiseBeforeTelemetrySentEvent(telemetryEvents);
 
             telemetryData.RulesUsage.EnabledByDefaultThatWereDisabled.Should().BeEquivalentTo("secrets:rule2");
             telemetryDataRepository.Verify(x => x.Save(), Times.Exactly(2));
 
             ruleSettings.Rules["secrets:rule2"].Level = RuleLevel.On;
 
-            RaiseUserSettingsChangedEvent(userSettingsProvider);
+            RaiseBeforeTelemetrySentEvent(telemetryEvents);
 
             telemetryData.RulesUsage.EnabledByDefaultThatWereDisabled.Should().BeEmpty();
             telemetryDataRepository.Verify(x => x.Save(), Times.Exactly(3));
         }
 
         [TestMethod]
-        public void UserSettingsChanged_ListIsOrdered()
+        public void BeforeTelemetrySent_DisabledRulesListIsOrdered()
         {
             var ruleSettings = new RulesSettings();
             ruleSettings.Rules.Add("secrets:cccc", new RuleConfig { Level = RuleLevel.Off });
@@ -137,10 +140,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
             var userSettingsProvider = CreateUserSettingsProvider(ruleSettings);
             var telemetryData = CreateTelemetryData();
             var telemetryDataRepository = CreateTelemetryRepository(telemetryData);
+            var telemetryEvents = new Mock<ITelemetryEvents>();
 
-            CreateTestSubject(telemetryDataRepository.Object, userSettingsProvider.Object);
+            CreateTestSubject(telemetryDataRepository.Object, userSettingsProvider.Object, telemetryEvents.Object);
 
-            RaiseUserSettingsChangedEvent(userSettingsProvider);
+            RaiseBeforeTelemetrySentEvent(telemetryEvents);
 
             telemetryData.RulesUsage.EnabledByDefaultThatWereDisabled.Should().BeEquivalentTo(
                 "secrets:aaaa123",
@@ -238,11 +242,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
                 "cccc");
         }
 
-        private CloudSecretsTelemetryManager CreateTestSubject(ITelemetryDataRepository telemetryDataRepository, IUserSettingsProvider userSettingsProvider = null)
+        private CloudSecretsTelemetryManager CreateTestSubject(ITelemetryDataRepository telemetryDataRepository, 
+            IUserSettingsProvider userSettingsProvider = null,
+            ITelemetryEvents telemetryEvents = null)
         {
             userSettingsProvider ??= Mock.Of<IUserSettingsProvider>();
+            telemetryEvents ??= Mock.Of<ITelemetryEvents>();
 
-            return new(telemetryDataRepository, userSettingsProvider);
+            return new(telemetryDataRepository, userSettingsProvider, telemetryEvents);
         }
 
         private static Mock<ITelemetryDataRepository> CreateTelemetryRepository(TelemetryData data)
@@ -259,9 +266,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
                 RulesUsage = new RulesUsage()
             };
 
-        private static void RaiseUserSettingsChangedEvent(Mock<IUserSettingsProvider> userSettingsProvider)
+        private static void RaiseBeforeTelemetrySentEvent(Mock<ITelemetryEvents> telemetryEvents)
         {
-            userSettingsProvider.Raise(x => x.SettingsChanged += null, EventArgs.Empty);
+            telemetryEvents.Raise(x => x.BeforeTelemetrySent += null, EventArgs.Empty);
         }
 
         private static Mock<IUserSettingsProvider> CreateUserSettingsProvider(RulesSettings ruleSettings)

@@ -32,8 +32,15 @@ using SonarLint.VisualStudio.Integration.Telemetry.Payload;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    [Export(typeof(ITelemetryManager)), PartCreationPolicy(CreationPolicy.Shared)]
-    public sealed class TelemetryManager : ITelemetryManager, IDisposable
+    internal interface ITelemetryEvents
+    {
+        event EventHandler BeforeTelemetrySent;
+    }
+
+    [Export(typeof(ITelemetryManager))] 
+    [Export(typeof(ITelemetryEvents))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    public sealed class TelemetryManager : ITelemetryManager, IDisposable, ITelemetryEvents
     {
         private readonly IActiveSolutionBoundTracker solutionBindingTracker;
         private readonly ITelemetryClient telemetryClient;
@@ -81,6 +88,8 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
+        public event EventHandler BeforeTelemetrySent;
+
         public bool IsAnonymousDataShared => telemetryRepository.Data.IsAnonymousDataShared;
 
         public void Dispose()
@@ -106,6 +115,8 @@ namespace SonarLint.VisualStudio.Integration
             telemetryRepository.Save();
 
             DisableAllEvents();
+
+            BeforeTelemetrySent?.Invoke(this, EventArgs.Empty);
 
             await telemetryClient.OptOutAsync(GetPayload(telemetryRepository.Data));
         }
@@ -229,6 +240,8 @@ namespace SonarLint.VisualStudio.Integration
             try
             {
                 telemetryRepository.Data.LastUploadDate = e.SignalTime;
+
+                BeforeTelemetrySent?.Invoke(this, EventArgs.Empty);
 
                 await telemetryClient.SendPayloadAsync(GetPayload(telemetryRepository.Data));
 

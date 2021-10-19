@@ -138,6 +138,47 @@ namespace SonarLint.VisualStudio.Integration.Tests
         }
 
         [TestMethod]
+        public void OptOut_BeforeTelemetrySentEventIsRaised()
+        {
+            // Arrange
+            var telemetryData = new TelemetryData { InstallationDate = AnyValidTime };
+            telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
+
+            var manager = CreateManager();
+
+            var eventHandler = new Mock<EventHandler>();
+            manager.BeforeTelemetrySent += eventHandler.Object;
+
+            // Act
+            manager.OptOut();
+
+            // Assert
+            eventHandler.Verify(x=> x(manager, EventArgs.Empty), Times.Once);
+        }
+
+        [TestMethod]
+        public void WhenTelemetryIsSent_BeforeTelemetrySentEventIsRaised()
+        {
+            // Arrange
+            var telemetryData = new TelemetryData { IsAnonymousDataShared = true };
+            telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
+
+            var manager = CreateManager();
+
+            var eventHandler = new Mock<EventHandler>();
+            manager.BeforeTelemetrySent += eventHandler.Object;
+
+            var now = DateTimeOffset.Now;
+
+            // Act
+            telemetryTimerMock.Raise(x => x.Elapsed += null, new TelemetryTimerEventArgs(now));
+
+            // Assert
+            eventHandler.Verify(x=> x(manager, EventArgs.Empty), Times.Once);
+            telemetryClientMock.Verify(x => x.SendPayloadAsync(It.IsAny<TelemetryPayload>()), Times.Once);
+        }
+
+        [TestMethod]
         public void WhenFirstCallDelayerAndNewDay_ChangeLastUploadAndSaveAndSendPayload()
         {
             // Arrange
