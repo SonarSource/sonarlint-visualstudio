@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.Telemetry
 {
     [Export(typeof(ICloudSecretsTelemetryManager))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class CloudSecretsTelemetryManager : ICloudSecretsTelemetryManager, IDisposable
+    internal sealed class CloudSecretsTelemetryManager : ICloudSecretsTelemetryManager, IDisposable
     {
         private const string SecretsRepositoryKey = "secrets:";
 
@@ -49,13 +49,18 @@ namespace SonarLint.VisualStudio.Integration.Telemetry
         {
             var rulesUsage = telemetryDataRepository.Data.RulesUsage;
 
-            lock (Lock)
+            if (!rulesUsage.RulesThatRaisedIssues.Contains(ruleId))
             {
-                rulesUsage.RulesThatRaisedIssues.Add(ruleId);
-                rulesUsage.RulesThatRaisedIssues = rulesUsage.RulesThatRaisedIssues.Distinct().OrderBy(x => x).ToList();
+                lock (Lock)
+                {
+                    if (!rulesUsage.RulesThatRaisedIssues.Contains(ruleId))
+                    {
+                        rulesUsage.RulesThatRaisedIssues.Add(ruleId);
+                        rulesUsage.RulesThatRaisedIssues = rulesUsage.RulesThatRaisedIssues.Distinct().OrderBy(x => x).ToList();
+                        telemetryDataRepository.Save();
+                    }
+                }
             }
-
-            telemetryDataRepository.Save();
         }
 
         private void UserSettingsProvider_SettingsChanged(object sender, EventArgs e)
@@ -63,11 +68,11 @@ namespace SonarLint.VisualStudio.Integration.Telemetry
             var disabledSecretRules = userSettingsProvider.UserSettings.RulesSettings.Rules
                 .Where(x => x.Key.StartsWith(SecretsRepositoryKey) && x.Value.Level == RuleLevel.Off)
                 .Select(x => x.Key)
-                .OrderBy(x=> x)
+                .OrderBy(x => x)
                 .ToList();
 
-           telemetryDataRepository.Data.RulesUsage.EnabledByDefaultThatWereDisabled = disabledSecretRules;
-           telemetryDataRepository.Save();
+            telemetryDataRepository.Data.RulesUsage.EnabledByDefaultThatWereDisabled = disabledSecretRules;
+            telemetryDataRepository.Save();
         }
 
         public void Dispose()

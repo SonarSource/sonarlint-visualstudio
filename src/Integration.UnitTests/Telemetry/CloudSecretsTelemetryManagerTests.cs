@@ -192,7 +192,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
             testSubject.SecretDetected("rule1");
 
             telemetryData.RulesUsage.RulesThatRaisedIssues.Should().BeEquivalentTo("rule1");
-            telemetryDataRepository.Verify(x => x.Save(), Times.Exactly(3));
+
+            // should be called only for the first time
+            telemetryDataRepository.Verify(x => x.Save(), Times.Exactly(1));
+        }
+
+        [TestMethod]
+        public void SecretDetected_RuleAlreadyInTheList_TelemetryNotUpdated()
+        {
+            var telemetryData = CreateTelemetryData();
+            var telemetryDataRepository = CreateTelemetryRepository(telemetryData);
+
+            var testSubject = CreateTestSubject(telemetryDataRepository.Object);
+
+            testSubject.SecretDetected("rule1");
+
+            var oldList = telemetryData.RulesUsage.RulesThatRaisedIssues;
+
+            testSubject.SecretDetected("rule1");
+
+            telemetryData.RulesUsage.RulesThatRaisedIssues.Should().BeSameAs(oldList);
+            telemetryData.RulesUsage.RulesThatRaisedIssues.Should().BeEquivalentTo("rule1");
+
+            // should be called only for the first time
+            telemetryDataRepository.Verify(x => x.Save(), Times.Exactly(1));
         }
 
         [TestMethod]
