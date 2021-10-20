@@ -20,16 +20,22 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.CloudSecrets;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Core.VsVersion;
 using SonarLint.VisualStudio.Integration.Telemetry.Payload;
+using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.Integration.Tests
 {
@@ -49,6 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         private Mock<ITelemetryTimer> telemetryTimerMock;
         private Mock<IKnownUIContexts> knownUIContexts;
         private Mock<IVsVersionProvider> vsVersionProvider;
+        private Mock<IUserSettingsProvider> userSettingsProvider;
 
         [TestInitialize]
         public void TestInitialize()
@@ -60,6 +67,9 @@ namespace SonarLint.VisualStudio.Integration.Tests
             telemetryTimerMock = new Mock<ITelemetryTimer>();
             knownUIContexts = new Mock<IKnownUIContexts>();
             vsVersionProvider = new Mock<IVsVersionProvider>();
+            userSettingsProvider = new Mock<IUserSettingsProvider>();
+            
+            SetupUserSettingsProvider(new RulesSettings());
 
             activeSolutionTrackerMock.Setup(x => x.CurrentConfiguration).Returns(BindingConfiguration.Standalone);
         }
@@ -200,7 +210,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             var now = DateTimeOffset.Now;
 
             // Act
-            telemetryTimerMock.Raise(x => x.Elapsed += null, new TelemetryTimerEventArgs(now));
+            TriggerTimerElapsed(now);
 
             // Assert
             telemetryData.LastUploadDate.Should().Be(now);
@@ -359,8 +369,9 @@ namespace SonarLint.VisualStudio.Integration.Tests
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Never);
         }
 
-        private TelemetryManager CreateManager(ICurrentTimeProvider mockTimeProvider = null) => new TelemetryManager(activeSolutionTrackerMock.Object,
-            telemetryRepositoryMock.Object, vsVersionProvider.Object, loggerMock.Object, telemetryClientMock.Object,
+        private TelemetryManager CreateManager(ICurrentTimeProvider mockTimeProvider = null) => 
+            new(activeSolutionTrackerMock.Object,
+            telemetryRepositoryMock.Object, vsVersionProvider.Object, userSettingsProvider.Object, loggerMock.Object, telemetryClientMock.Object,
             telemetryTimerMock.Object, knownUIContexts.Object, mockTimeProvider ?? currentTimeProvider);
 
         #region Languages analyzed tests
@@ -611,21 +622,227 @@ namespace SonarLint.VisualStudio.Integration.Tests
         [DataRow(false)]
         public void SendPayload_SendsVsVersion(bool isVersionNull)
         {
-            telemetryRepositoryMock.Setup(x => x.Data).Returns(new TelemetryData());
+            telemetryRepositoryMock.Setup(x => x.Data).Returns(new TelemetryData{IsAnonymousDataShared = true});
 
             var vsVersion = isVersionNull ? null : Mock.Of<IVsVersion>();
             vsVersionProvider.Setup(x => x.Version).Returns(vsVersion);
 
-            var testSubject = CreateManager();
+            CreateManager();
+            TriggerTimerElapsed();
 
-            // trigger sending a payload
-            testSubject.OptOut();
-
-            telemetryClientMock.Verify(x => x.OptOutAsync(
+            telemetryClientMock.Verify(x => x.SendPayloadAsync(
                 It.Is((TelemetryPayload payload) =>
                     isVersionNull
                         ? payload.VisualStudioVersionInformation == null
                         : payload.VisualStudioVersionInformation != null)), Times.Once);
+        }
+
+        [TestMethod]
+        public void SendPayload_DisabledSecretRulesAreUpdated()
+        {
+            var ruleSettings = new RulesSettings();
+            ruleSettings.Rules.Add("rule1", new RuleConfig { Level = RuleLevel.Off }); // wrong repo
+            ruleSettings.Rules.Add("secret:rule2", new RuleConfig { Level = RuleLevel.Off }); // wrong repo
+            ruleSettings.Rules.Add("secrets:rule3", new RuleConfig { Level = RuleLevel.Off });
+            ruleSettings.Rules.Add("Secrets:rule4", new RuleConfig { Level = RuleLevel.Off }); // wrong case
+            ruleSettings.Rules.Add("SECRETS:rule5", new RuleConfig { Level = RuleLevel.Off }); // wrong case
+            ruleSettings.Rules.Add("secrets:rule6", new RuleConfig { Level = RuleLevel.Off });
+            ruleSettings.Rules.Add("secrets:rule7", new RuleConfig { Level = RuleLevel.On }); // enabled
+
+            SetupUserSettingsProvider(ruleSettings);
+
+            var telemetryData = CreateRulesUsageTelemetryData();
+            SetupTelemetryRepository(telemetryData);
+
+            CreateManager();
+
+            telemetryRepositoryMock.Invocations.Clear();
+
+            TriggerTimerElapsed();
+
+            telemetryClientMock.Verify(x => x.SendPayloadAsync(
+                It.Is((TelemetryPayload payload) => 
+                    payload.RulesUsage.EnabledByDefaultThatWereDisabled.Count == 2 &&
+                    payload.RulesUsage.EnabledByDefaultThatWereDisabled.Contains("secrets:rule3") &&
+                    payload.RulesUsage.EnabledByDefaultThatWereDisabled.Contains("secrets:rule6"))), Times.Once);
+
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
+        }
+
+        [TestMethod]
+        public void SendPayload_PreviousRulesAreOverriden()
+        {
+            var ruleSettings = new RulesSettings();
+            ruleSettings.Rules.Add("secrets:rule1", new RuleConfig { Level = RuleLevel.Off });
+            ruleSettings.Rules.Add("secrets:rule2", new RuleConfig { Level = RuleLevel.On });
+            ruleSettings.Rules.Add("secrets:rule3", new RuleConfig { Level = RuleLevel.Off });
+
+            SetupUserSettingsProvider(ruleSettings);
+
+            var telemetryData = CreateRulesUsageTelemetryData();
+            SetupTelemetryRepository(telemetryData);
+
+            telemetryData.RulesUsage.EnabledByDefaultThatWereDisabled = new List<string> { "secrets:rule4",  "secrets:rule5"};
+
+            CreateManager();
+            
+            telemetryRepositoryMock.Invocations.Clear();
+
+            TriggerTimerElapsed();
+
+            telemetryClientMock.Verify(x => x.SendPayloadAsync(
+                It.Is((TelemetryPayload payload) =>
+                    payload.RulesUsage.EnabledByDefaultThatWereDisabled.Count == 2 &&
+                    payload.RulesUsage.EnabledByDefaultThatWereDisabled.Contains("secrets:rule1") &&
+                    payload.RulesUsage.EnabledByDefaultThatWereDisabled.Contains("secrets:rule3"))), Times.Once);
+
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
+        }
+
+        [TestMethod]
+        public void SendPayload_ListIsOrdered()
+        {
+            var ruleSettings = new RulesSettings();
+            ruleSettings.Rules.Add("secrets:cccc", new RuleConfig { Level = RuleLevel.Off });
+            ruleSettings.Rules.Add("secrets:bbbb", new RuleConfig { Level = RuleLevel.Off });
+            ruleSettings.Rules.Add("secrets:aaaa456", new RuleConfig { Level = RuleLevel.Off });
+            ruleSettings.Rules.Add("secrets:aaaa123", new RuleConfig { Level = RuleLevel.Off });
+
+            SetupUserSettingsProvider(ruleSettings);
+
+            var telemetryData = CreateRulesUsageTelemetryData();
+            SetupTelemetryRepository(telemetryData);
+
+            CreateManager();
+
+            telemetryRepositoryMock.Invocations.Clear();
+
+            TriggerTimerElapsed();
+
+            telemetryClientMock.Verify(x => x.SendPayloadAsync(
+                It.Is((TelemetryPayload payload) =>
+                    payload.RulesUsage.EnabledByDefaultThatWereDisabled.Count == 4 &&
+                    payload.RulesUsage.EnabledByDefaultThatWereDisabled[0] == "secrets:aaaa123" &&
+                    payload.RulesUsage.EnabledByDefaultThatWereDisabled[1] == "secrets:aaaa456" &&
+                    payload.RulesUsage.EnabledByDefaultThatWereDisabled[2] == "secrets:bbbb" &&
+                    payload.RulesUsage.EnabledByDefaultThatWereDisabled[3] == "secrets:cccc"
+                )), Times.Once);
+
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
+        }
+
+        [TestMethod]
+        public void SecretDetected_NoPreviousIssues_TelemetryUpdated()
+        {
+            var telemetryData = CreateRulesUsageTelemetryData();
+            SetupTelemetryRepository(telemetryData);
+
+            var testSubject = CreateManager();
+
+            telemetryRepositoryMock.Invocations.Clear();
+
+            testSubject.SecretDetected("rule1");
+
+            telemetryData.RulesUsage.RulesThatRaisedIssues.Should().BeEquivalentTo("rule1");
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
+        }
+
+        [TestMethod]
+        public void SecretDetected_HasPreviousIssues_TelemetryUpdated()
+        {
+            var telemetryData = CreateRulesUsageTelemetryData();
+            SetupTelemetryRepository(telemetryData);
+
+            var testSubject = CreateManager();
+
+            telemetryRepositoryMock.Invocations.Clear();
+
+            testSubject.SecretDetected("rule1");
+            testSubject.SecretDetected("rule2");
+            testSubject.SecretDetected("rule3");
+
+            telemetryData.RulesUsage.RulesThatRaisedIssues.Should().BeEquivalentTo("rule1", "rule2", "rule3");
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Exactly(3));
+        }
+
+        [TestMethod]
+        public void SecretDetected_DuplicatedIssuesAreIgnored()
+        {
+            var telemetryData = CreateRulesUsageTelemetryData();
+            SetupTelemetryRepository(telemetryData);
+
+            var testSubject = CreateManager();
+
+            telemetryRepositoryMock.Invocations.Clear();
+
+            testSubject.SecretDetected("rule1");
+            testSubject.SecretDetected("rule1");
+            testSubject.SecretDetected("rule1");
+
+            telemetryData.RulesUsage.RulesThatRaisedIssues.Should().BeEquivalentTo("rule1");
+
+            // should be called only for the first time
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Exactly(1));
+        }
+
+        [TestMethod]
+        public void SecretDetected_RuleAlreadyInTheList_TelemetryNotUpdated()
+        {
+            var telemetryData = CreateRulesUsageTelemetryData();
+            SetupTelemetryRepository(telemetryData);
+
+            var testSubject = CreateManager();
+
+            telemetryRepositoryMock.Invocations.Clear();
+
+            testSubject.SecretDetected("rule1");
+
+            var oldList = telemetryData.RulesUsage.RulesThatRaisedIssues;
+
+            testSubject.SecretDetected("rule1");
+
+            telemetryData.RulesUsage.RulesThatRaisedIssues.Should().BeSameAs(oldList);
+            telemetryData.RulesUsage.RulesThatRaisedIssues.Should().BeEquivalentTo("rule1");
+
+            // should be called only for the first time
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Exactly(1));
+        }
+
+        [TestMethod]
+        public void SecretDetected_ListIsOrdered()
+        {
+            var telemetryData = CreateRulesUsageTelemetryData();
+            SetupTelemetryRepository(telemetryData);
+
+            var testSubject = CreateManager();
+
+            testSubject.SecretDetected("cccc");
+            testSubject.SecretDetected("bbbb");
+            testSubject.SecretDetected("aaaa:456");
+            testSubject.SecretDetected("aaaa:123");
+
+            telemetryData.RulesUsage.RulesThatRaisedIssues.Should().BeEquivalentTo(
+                "aaaa:123",
+                "aaaa:456",
+                "bbbb",
+                "cccc");
+        }
+
+        private TelemetryData CreateRulesUsageTelemetryData() =>
+            new()
+            {
+                RulesUsage = new RulesUsage(),
+                IsAnonymousDataShared = true
+            };
+
+        private void SetupUserSettingsProvider(RulesSettings ruleSettings)
+        {
+            userSettingsProvider.Setup(x => x.UserSettings).Returns(new UserSettings(ruleSettings));
+        }
+
+        private void SetupTelemetryRepository(TelemetryData data)
+        {
+            telemetryRepositoryMock.SetupGet(x => x.Data).Returns(data);
         }
 
         private static Mock<ICurrentTimeProvider> CreateMockTimeProvider(DateTimeOffset now, int timeZoneOffsetFromUTC)
@@ -636,6 +853,13 @@ namespace SonarLint.VisualStudio.Integration.Tests
             mock.Setup(x => x.Now).Returns(now);
             mock.Setup(x => x.LocalTimeZone).Returns(localTimeZone);
             return mock;
+        }
+
+        private void TriggerTimerElapsed(DateTimeOffset? dateTimeOffset = null)
+        {
+            dateTimeOffset ??= DateTimeOffset.Now;
+
+            telemetryTimerMock.Raise(x => x.Elapsed += null, new TelemetryTimerEventArgs(dateTimeOffset.Value));
         }
     }
 }
