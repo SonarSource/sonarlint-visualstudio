@@ -75,43 +75,6 @@ namespace SonarLint.VisualStudio.Integration.Tests
         }
 
         [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            var batch = new CompositionBatch();
-
-            // Set up the exports required by the test subject
-
-            var telemetryDataRepository = new Mock<ITelemetryDataRepository>();
-            telemetryDataRepository.Setup(x => x.Data).Returns(new TelemetryData { IsAnonymousDataShared = false });
-
-            batch.AddExport(MefTestHelpers.CreateExport<ITelemetryDataRepository>(telemetryDataRepository.Object));
-            batch.AddExport(MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(Mock.Of<IActiveSolutionBoundTracker>()));
-            batch.AddExport(MefTestHelpers.CreateExport<IVsVersionProvider>(Mock.Of<IVsVersionProvider>()));
-            batch.AddExport(MefTestHelpers.CreateExport<IUserSettingsProvider>(Mock.Of<IUserSettingsProvider>()));
-            batch.AddExport(MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>()));
-
-            // Set up importers for each of the interfaces exported by the test subject
-            var managerImporter = new SingleObjectImporter<ITelemetryManager>();
-            var cloudSecretsImporter = new SingleObjectImporter<ICloudSecretsTelemetryManager>();
-            batch.AddPart(managerImporter);
-            batch.AddPart(cloudSecretsImporter);
-
-            // Specify the source types that can be used to satify any import requests
-            var catalog = new TypeCatalog(typeof(TelemetryManager));
-
-            using var container = new CompositionContainer(catalog);
-            container.Compose(batch);
-
-            // Both imports should be satisfied...
-            managerImporter.Import.Should().NotBeNull();
-            cloudSecretsImporter.Import.Should().NotBeNull();
-
-            // ... and the the export should be a singleton, so the both importers should
-            // get the same instance
-            managerImporter.Import.Should().BeSameAs(cloudSecretsImporter.Import);
-        }
-
-        [TestMethod]
         public void Ctor_WhenInstallationDateIsDateTimeMin_SetsCurrentDateAndSave()
         {
             // Arrange

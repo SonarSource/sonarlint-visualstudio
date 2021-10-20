@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration
     [Export(typeof(ITelemetryManager))]
     [Export(typeof(ICloudSecretsTelemetryManager))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public sealed class TelemetryManager : ITelemetryManager, ICloudSecretsTelemetryManager
+    public sealed class TelemetryManager : ITelemetryManager, ICloudSecretsTelemetryManager, IDisposable
     {
         private const string SecretsRepositoryKey = "secrets:";
 
