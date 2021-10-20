@@ -23,6 +23,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.CloudSecrets;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
@@ -32,9 +33,13 @@ using SonarLint.VisualStudio.Integration.Telemetry.Payload;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    [Export(typeof(ITelemetryManager)), PartCreationPolicy(CreationPolicy.Shared)]
-    public sealed class TelemetryManager : ITelemetryManager, IDisposable
+    [Export(typeof(ITelemetryManager))]
+    [Export(typeof(ICloudSecretsTelemetryManager))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    public sealed class TelemetryManager : ITelemetryManager, ICloudSecretsTelemetryManager, IDisposable
     {
+        private const string SecretsRepositoryKey = "secrets:";
+
         private readonly IActiveSolutionBoundTracker solutionBindingTracker;
         private readonly ITelemetryClient telemetryClient;
         private readonly ILogger logger;
@@ -43,20 +48,30 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IKnownUIContexts knownUIContexts;
         private readonly ICurrentTimeProvider currentTimeProvider;
         private readonly IVsVersion vsVersion;
+        private readonly IUserSettingsProvider userSettingsProvider;
+
+        private static readonly object Lock = new object();
 
         [ImportingConstructor]
         public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker, 
             ITelemetryDataRepository telemetryRepository,
             IVsVersionProvider vsVersionProvider,
+            IUserSettingsProvider userSettingsProvider,
             ILogger logger)
-            : this(solutionBindingTracker, telemetryRepository, vsVersionProvider, logger,
+            : this(solutionBindingTracker, telemetryRepository, vsVersionProvider, userSettingsProvider, logger,
                   new TelemetryClient(), new TelemetryTimer(telemetryRepository, new TimerFactory()),
                   new KnownUIContextsWrapper(), DefaultCurrentTimeProvider.Instance)
         {
         }
 
-        public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker, ITelemetryDataRepository telemetryRepository, IVsVersionProvider vsVersionProvider,
-            ILogger logger, ITelemetryClient telemetryClient, ITelemetryTimer telemetryTimer, IKnownUIContexts knownUIContexts,
+        public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker,
+            ITelemetryDataRepository telemetryRepository, 
+            IVsVersionProvider vsVersionProvider,
+            IUserSettingsProvider userSettingsProvider,
+            ILogger logger,
+            ITelemetryClient telemetryClient, 
+            ITelemetryTimer telemetryTimer,
+            IKnownUIContexts knownUIContexts,
             ICurrentTimeProvider currentTimeProvider)
         {
             this.solutionBindingTracker = solutionBindingTracker;
@@ -66,6 +81,7 @@ namespace SonarLint.VisualStudio.Integration
             this.telemetryTimer = telemetryTimer;
             this.knownUIContexts = knownUIContexts;
             this.currentTimeProvider = currentTimeProvider;
+            this.userSettingsProvider = userSettingsProvider;
 
             vsVersion = vsVersionProvider.Version;
 
@@ -224,11 +240,37 @@ namespace SonarLint.VisualStudio.Integration
             telemetryRepository.Save();
         }
 
+        public void SecretDetected(string ruleId)
+        {
+            var rulesUsage = telemetryRepository.Data.RulesUsage;
+
+            if (!rulesUsage.RulesThatRaisedIssues.Contains(ruleId))
+            {
+                lock (Lock)
+                {
+                    if (!rulesUsage.RulesThatRaisedIssues.Contains(ruleId))
+                    {
+                        rulesUsage.RulesThatRaisedIssues.Add(ruleId);
+                        rulesUsage.RulesThatRaisedIssues = rulesUsage.RulesThatRaisedIssues.Distinct().OrderBy(x => x).ToList();
+                        telemetryRepository.Save();
+                    }
+                }
+            }
+        }
+
         private async void OnTelemetryTimerElapsed(object sender, TelemetryTimerEventArgs e)
         {
             try
             {
                 telemetryRepository.Data.LastUploadDate = e.SignalTime;
+
+                var disabledSecretRules = userSettingsProvider.UserSettings.RulesSettings.Rules
+                    .Where(x => x.Key.StartsWith(SecretsRepositoryKey) && x.Value.Level == RuleLevel.Off)
+                    .Select(x => x.Key)
+                    .OrderBy(x => x)
+                    .ToList();
+
+                telemetryRepository.Data.RulesUsage.EnabledByDefaultThatWereDisabled = disabledSecretRules;
 
                 await telemetryClient.SendPayloadAsync(GetPayload(telemetryRepository.Data));
 
