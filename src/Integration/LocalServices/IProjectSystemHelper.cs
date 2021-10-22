@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.Integration
@@ -30,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration
     /// <summary>
     /// Wrapper service to abstract the VS related API handling
     /// </summary>
-    public interface IProjectSystemHelper : ILocalService, IVsHierarchyLocator
+    public interface IProjectSystemHelper : ILocalService, IVsHierarchyLocator, ISourceControlWorkspace
     {
         /// <summary>
         /// Returns the current active solution

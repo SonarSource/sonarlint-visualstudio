@@ -40,6 +40,7 @@ namespace SonarLint.VisualStudio.CloudSecrets
         private readonly IAnalysisStatusNotifier analysisStatusNotifier;
         private readonly IUserSettingsProvider userSettingsProvider;
         private readonly ICloudSecretsTelemetryManager cloudSecretsTelemetryManager;
+        private readonly ISourceControlWorkspace sourceControlWorkspace;
         private readonly ISecretsToAnalysisIssueConverter secretsToAnalysisIssueConverter;
         private readonly IContentType filesContentType;
 
@@ -50,13 +51,15 @@ namespace SonarLint.VisualStudio.CloudSecrets
             [ImportMany] IEnumerable<ISecretDetector> secretDetectors,
             IAnalysisStatusNotifier analysisStatusNotifier,
             IUserSettingsProvider userSettingsProvider,
-            ICloudSecretsTelemetryManager telemetryManager)
+            ICloudSecretsTelemetryManager telemetryManager,
+            ISourceControlWorkspace sourceControlWorkspace)
             : this(textDocumentFactoryService,
                 contentTypeRegistryService,
                 secretDetectors,
                 analysisStatusNotifier,
                 userSettingsProvider,
                 telemetryManager,
+                sourceControlWorkspace,
                 new SecretsToAnalysisIssueConverter())
         {
         }
@@ -67,6 +70,7 @@ namespace SonarLint.VisualStudio.CloudSecrets
             IAnalysisStatusNotifier analysisStatusNotifier,
             IUserSettingsProvider userSettingsProvider,
             ICloudSecretsTelemetryManager cloudSecretsTelemetryManager,
+            ISourceControlWorkspace sourceControlWorkspace,
             ISecretsToAnalysisIssueConverter secretsToAnalysisIssueConverter)
         {
             this.textDocumentFactoryService = textDocumentFactoryService;
@@ -74,6 +78,7 @@ namespace SonarLint.VisualStudio.CloudSecrets
             this.analysisStatusNotifier = analysisStatusNotifier;
             this.userSettingsProvider = userSettingsProvider;
             this.cloudSecretsTelemetryManager = cloudSecretsTelemetryManager;
+            this.sourceControlWorkspace = sourceControlWorkspace;
             this.secretsToAnalysisIssueConverter = secretsToAnalysisIssueConverter;
             filesContentType = contentTypeRegistryService.UnknownContentType;
         }
@@ -90,6 +95,11 @@ namespace SonarLint.VisualStudio.CloudSecrets
             IAnalyzerOptions analyzerOptions,
             CancellationToken cancellationToken)
         {
+            if (sourceControlWorkspace.IsFileIgnoredInSourceControl(filePath))
+            {
+                return;
+            }
+
             analysisStatusNotifier.AnalysisStarted(filePath);
 
             try

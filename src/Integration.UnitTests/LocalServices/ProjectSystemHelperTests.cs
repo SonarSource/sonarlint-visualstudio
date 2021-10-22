@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using IVsHierarchy = Microsoft.VisualStudio.Shell.Interop.IVsHierarchy;
 
@@ -65,18 +66,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             batch.AddExport(MefTestHelpers.CreateExport<IProjectToLanguageMapper>(Mock.Of<IProjectToLanguageMapper>()));
 
             var helperImport = new SingleObjectImporter<IProjectSystemHelper>();
-            var vsHierarchyLocator = new SingleObjectImporter<IVsHierarchyLocator>();
+            var vsHierarchyLocatorImport = new SingleObjectImporter<IVsHierarchyLocator>();
+            var sourceControlWorkspaceImport = new SingleObjectImporter<ISourceControlWorkspace>();
             batch.AddPart(helperImport);
-            batch.AddPart(vsHierarchyLocator);
+            batch.AddPart(vsHierarchyLocatorImport);
+            batch.AddPart(sourceControlWorkspaceImport);
 
             var catalog = new TypeCatalog(typeof(ProjectSystemHelper));
             using var container = new CompositionContainer(catalog);
             container.Compose(batch);
 
             helperImport.Import.Should().NotBeNull();
-            vsHierarchyLocator.Import.Should().NotBeNull();
+            vsHierarchyLocatorImport.Import.Should().NotBeNull();
+            sourceControlWorkspaceImport.Import.Should().NotBeNull();
 
-            helperImport.Import.Should().BeSameAs(vsHierarchyLocator.Import);
+            helperImport.Import.Should().BeSameAs(vsHierarchyLocatorImport.Import);
+            vsHierarchyLocatorImport.Import.Should().BeSameAs(sourceControlWorkspaceImport.Import);
         }
 
         #region Tests
@@ -792,6 +797,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var result = testSubject.GetVsHierarchyForFile("some file");
             result.Should().Be(project);
+        }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void IsFileIgnoredInSourceControl_CallsVsAPI(bool vsResult)
+        {
+            var sourceControl = new Mock<SourceControl>();
+            sourceControl.Setup(x => x.IsItemUnderSCC("some file")).Returns(vsResult);
+
+            var dte = SetupDteMock(Mock.Of<Solution>());
+            dte.Setup(x => x.SourceControl).Returns(sourceControl.Object);
+            
+            serviceProvider.RegisterService(typeof(DTE), dte.Object);
+
+            var result = testSubject.IsFileIgnoredInSourceControl("some file");
+            result.Should().Be(!vsResult);
         }
 
         private static Mock<DTE> SetupDteMock(Solution solution)

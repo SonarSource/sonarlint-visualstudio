@@ -29,13 +29,15 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Flavor;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using Language = SonarLint.VisualStudio.Core.Language;
+using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration
 {
     [Export(typeof(IVsHierarchyLocator))]
     [Export(typeof(IProjectSystemHelper))]
+    [Export(typeof(ISourceControlWorkspace))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ProjectSystemHelper : IProjectSystemHelper
     {
@@ -511,6 +513,14 @@ namespace SonarLint.VisualStudio.Integration
             var hierarchy = GetIVsHierarchy(dteProject);
 
             return hierarchy != null && hierarchy is IVsAggregatableProjectCorrected;
+        }
+
+        public bool IsFileIgnoredInSourceControl(string fullFilePath)
+        {
+            var dte = serviceProvider.GetService<DTE>();
+            var isUnderSourceControl = dte.SourceControl.IsItemUnderSCC(fullFilePath);
+
+            return !isUnderSourceControl;
         }
     }
 }

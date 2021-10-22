@@ -231,5 +231,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #endregion Test helpers
+
+        public bool IsFileIgnoredInSourceControl(string fullFilePath)
+        {
+            return false;
+        }
     }
 }

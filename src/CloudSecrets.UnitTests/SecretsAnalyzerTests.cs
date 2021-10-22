@@ -49,6 +49,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
                 MefTestHelpers.CreateExport<IContentTypeRegistryService>(Mock.Of<IContentTypeRegistryService>()),
                 MefTestHelpers.CreateExport<IAnalysisStatusNotifier>(Mock.Of<IAnalysisStatusNotifier>()),
                 MefTestHelpers.CreateExport<ICloudSecretsTelemetryManager>(Mock.Of<ICloudSecretsTelemetryManager>()),
+                MefTestHelpers.CreateExport<ISourceControlWorkspace>(Mock.Of<ISourceControlWorkspace>()),
                 MefTestHelpers.CreateExport<IUserSettingsProvider>(Mock.Of<IUserSettingsProvider>())
             });
         }
@@ -270,6 +271,30 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             telemetryManager.VerifyNoOtherCalls();
         }
 
+        [TestMethod]
+        public void ExecuteAnalysis_FileIsIgnoredInSourceControl_AnalysisNotExecuted()
+        {
+            var sourceControlWorkspace = new Mock<ISourceControlWorkspace>();
+            sourceControlWorkspace.Setup(x => x.IsFileIgnoredInSourceControl(ValidFilePath)).Returns(true);
+
+            var textDocumentFactoryService = SetupTextDocumentFactoryService(ValidFilePath, ValidFileContent);
+            var statusNotifier = new Mock<IAnalysisStatusNotifier>();
+            var consumer = new Mock<IIssueConsumer>();
+            var secrets = new[] { Mock.Of<ISecret>(), Mock.Of<ISecret>() };
+            var secretDetector = SetupSecretDetector(ValidFileContent, secrets: secrets);
+
+            var testSubject = CreateTestSubject(textDocumentFactoryService: textDocumentFactoryService, 
+                statusNotifier: statusNotifier.Object,
+                sourceControlWorkspace: sourceControlWorkspace.Object,
+                detectors: secretDetector);
+
+            ExecuteAnalysis(testSubject, ValidFilePath, consumer.Object);
+
+            statusNotifier.Invocations.Count.Should().Be(0);
+            secretDetector.Invocations.Count.Should().Be(0);
+            consumer.Invocations.Count.Should().Be(0);
+        }
+
         private void ExecuteAnalysis(SecretsAnalyzer testSubject, string filePath, IIssueConsumer consumer)
         {
             testSubject.ExecuteAnalysis(filePath, "", Array.Empty<AnalysisLanguage>(), consumer, null, CancellationToken.None);
@@ -280,12 +305,14 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             ISecretsToAnalysisIssueConverter secretsToAnalysisIssueConverter = null,
             RulesSettings rulesSettings = null,
             ICloudSecretsTelemetryManager telemetryManager = null,
+            ISourceControlWorkspace sourceControlWorkspace = null,
             params Mock<ISecretDetector>[] detectors)
         {
             statusNotifier ??= Mock.Of<IAnalysisStatusNotifier>();
             detectors ??= Array.Empty<Mock<ISecretDetector>>();
             secretsToAnalysisIssueConverter ??= Mock.Of<ISecretsToAnalysisIssueConverter>();
             telemetryManager ??= Mock.Of<ICloudSecretsTelemetryManager>();
+            sourceControlWorkspace ??= Mock.Of<ISourceControlWorkspace>();
 
             rulesSettings ??= new RulesSettings();
             var userSettingsProvider = new Mock<IUserSettingsProvider>();
@@ -300,6 +327,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
                 statusNotifier,
                 userSettingsProvider.Object,
                 telemetryManager,
+                sourceControlWorkspace,
                 secretsToAnalysisIssueConverter);
         }
 
