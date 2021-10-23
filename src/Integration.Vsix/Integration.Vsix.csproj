@@ -416,7 +416,6 @@
     <ItemGroup>
       <VSIXSourceItem Include="@(SonarSecretsFilesToAdd)">
         <VSIXSubPath>secrets</VSIXSubPath>
-        <InstallRoot>$(InstallRoot)</InstallRoot>
       </VSIXSourceItem>
     </ItemGroup>
 
