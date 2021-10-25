@@ -945,16 +945,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
                 return ResourceManager.GetString("RefreshCommandTooltip", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The applied ruleset is weakening the SonarQube quality profile in one or more projects. See output window (SonarLint) for more details. [Click here]() to fix automatically..
-        /// </summary>
-        public static string RuleSetConflictsDetected {
-            get {
-                return ResourceManager.GetString("RuleSetConflictsDetected", resourceCulture);
-            }
-        }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Rule set generated from SonarQube.
         /// </summary>

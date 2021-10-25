@@ -26,7 +26,6 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
-using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -207,22 +206,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 this.host.VisualStateManager.SetBoundProject(bindingArgs.Connection.ServerUri, bindingArgs.Connection.Organization?.Key, bindingArgs.ProjectKey);
 
-                // The conflicts controller is only applicable in legacy connected mode
-                // However, it is safe to call it regardless - in new connected mode it will
-                // not return any conflicts.
-                var conflictsController = this.host.GetService<IRuleSetConflictsController>();
-                conflictsController.AssertLocalServiceIsNotNull();
-
-                if (conflictsController.CheckForConflicts())
-                {
-                    // In some cases we will end up navigating to the solution explorer, this will make sure that
-                    // we're back in team explorer to view the conflicts
-                    this.host.GetMefService<ITeamExplorerController>()?.ShowSonarQubePage();
-                }
-                else
-                {
-                    VsShellUtils.ActivateSolutionExplorer(this.host);
-                }
+                VsShellUtils.ActivateSolutionExplorer(this.host);
             }
             else
             {
