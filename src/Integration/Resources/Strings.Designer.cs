@@ -294,97 +294,8 @@ namespace SonarLint.VisualStudio.Integration.Resources {
                 return ResourceManager.GetString("CannotDownloadQualityProfileForLanguage", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Missing rules (or Action set to None): .
-        /// </summary>
-        public static string ConflictDetailMissingRules {
-            get {
-                return ResourceManager.GetString("ConflictDetailMissingRules", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to RuleSet &apos;{0}&apos; has:.
-        /// </summary>
-        public static string ConflictDetailRuleSetInfo {
-            get {
-                return ResourceManager.GetString("ConflictDetailRuleSetInfo", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Rule &apos;{0}&apos; action is {1}, instead of {2}..
-        /// </summary>
-        public static string ConflictDetailWeakenedRulesDetail {
-            get {
-                return ResourceManager.GetString("ConflictDetailWeakenedRulesDetail", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Weakened rules:.
-        /// </summary>
-        public static string ConflictDetailWeakenedRulesTitle {
-            get {
-                return ResourceManager.GetString("ConflictDetailWeakenedRulesTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to RuleSet conflicts resolution summary for project &apos;{0}&apos;, configuration(s): {1}.
-        /// </summary>
-        public static string ConflictFixHeader {
-            get {
-                return ResourceManager.GetString("ConflictFixHeader", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to RuleSet imports were reset for: &apos;{0}&apos;..
-        /// </summary>
-        public static string ConflictFixResetInclude {
-            get {
-                return ResourceManager.GetString("ConflictFixResetInclude", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Conflicting rules were removed from &apos;{0}&apos;:.
-        /// </summary>
-        public static string ConflictFixRulesDeleted {
-            get {
-                return ResourceManager.GetString("ConflictFixRulesDeleted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to RuleSet &apos;{0}&apos; cannot be analyzed against &apos;{1}&apos; due to error: {2}. .
-        /// </summary>
-        public static string ConflictsManagerFailedInFindConflicts {
-            get {
-                return ResourceManager.GetString("ConflictsManagerFailedInFindConflicts", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SonarLint conflicts manager warning: {0}.
-        /// </summary>
-        public static string ConflictsManagerWarningMessage {
-            get {
-                return ResourceManager.GetString("ConflictsManagerWarningMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to RuleSet conflicts detected for project &apos;{0}&apos;, configuration(s): {1}.
-        /// </summary>
-        public static string ConflictsSummaryHeader {
-            get {
-                return ResourceManager.GetString("ConflictsSummaryHeader", resourceCulture);
-            }
-        }
-        
+
+
         /// <summary>
         ///   Looks up a localized string similar to _Connect.
         /// </summary>
@@ -393,7 +304,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
                 return ResourceManager.GetString("ConnectButtonText", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Connect to a SonarQube Server.
         /// </summary>
