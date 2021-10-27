@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\SonarLint.Product.props" />
+  <Import Project="..\SonarLint.VsPkgRefs.props" />
 
   <PropertyGroup>
     <ProjectGuid>{9CBAB074-AB53-4AC5-85E0-FD064D71B170}</ProjectGuid>
@@ -10,16 +11,6 @@
 
   <ItemGroup Label="Framework references">
     <Reference Include="System.ComponentModel.Composition" />
-  </ItemGroup>
-
-  <ItemGroup Label="Package references">
-    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.16.30" />
-    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="15.0.27" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.14.0" Version="14.3.25407" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.10.0" Version="10.0.30319" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.11.0" Version="11.0.61030" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="14.0.23205" />
-    <PackageReference Include="Microsoft.VisualStudio.Editor" Version="14.0.23205" />
   </ItemGroup>
 
   <ItemGroup>

@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:vm="clr-namespace:SonarLint.VisualStudio.Progress.Observation.ViewModels;assembly=SonarLint.VisualStudio.Progress"
              xmlns:common="clr-namespace:SonarLint.VisualStudio.Progress.Controller;assembly=SonarLint.VisualStudio.Progress"
-             xmlns:ui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
+             xmlns:ui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              >
     <!-- Get VS styles -->
     <ResourceDictionary.MergedDictionaries>

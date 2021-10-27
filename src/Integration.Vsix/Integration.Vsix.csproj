@@ -1,7 +1,8 @@
 ﻿<Project>
 
   <Import Project="..\SonarLint.Product.props" />
-
+  <Import Project="..\SonarLint.VsPkgRefs.props" />
+  
   <!-- The VSSDK targets need to be imported after the Net.Sdk targets which means we  have to import the
        .NET.Sdk targets using Import rather than specifying it as the Sdk in the Project element. -->
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
@@ -111,22 +112,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="EnvDTE" Version="8.0.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Editor" Version="14.0.23205" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="1.3.2" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.10.0" Version="10.0.30319" />
     <PackageReference Include="System.Collections.Immutable" Version="1.1.37" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="1.3.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="1.3.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="1.3.2" />
     <PackageReference Include="Microsoft.Composition" Version="1.0.30" />
-    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="14.0.25424" />
-    <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="14.0.23205" />
-    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="14.3.25407" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" Version="14.3.25407" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="14.0.23205" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.Logic" Version="14.0.23205" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="14.0.23205" />
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
     <PackageReference Include="System.IO.Abstractions" Version="7.1.10" />
@@ -141,9 +131,8 @@
          signed builds. -->
     <PackageReference Include="Microsoft.VSSDK.Vsixsigntool" Version="15.0.26201" />
 
-    <!-- Workaround for NuGet bug https://github.com/NuGet/Home/issues/2365 
-         EmbedInteropAssemblies isn't set for PackagReferences. -->
-    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="15.0.27" />
+    <!-- This package references Roslyn components used by VS. It isn't part of the VSSDK meta-package. -->
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="1.3.2" />
   </ItemGroup>
 
   <ItemGroup Label="Project references">
