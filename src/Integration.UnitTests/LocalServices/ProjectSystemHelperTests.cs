@@ -23,6 +23,7 @@ using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.Linq;
 using EnvDTE;
+using EnvDTE80;
 using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
@@ -251,7 +252,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             const string SolutionItemsName = "Hello world";
             this.SetSolutionFolderName(SolutionItemsName);
             DTEMock dte = new DTEMock();
-            this.serviceProvider.RegisterService(typeof(DTE), dte);
+            this.serviceProvider.RegisterService(typeof(SDTE), dte);
             dte.Solution = this.solutionMock;
 
             // Act
@@ -276,7 +277,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             /// Arrange
             const string solutionFolderName = "SomeFolderName";
             DTEMock dte = new DTEMock();
-            this.serviceProvider.RegisterService(typeof(DTE), dte);
+            this.serviceProvider.RegisterService(typeof(SDTE), dte);
             dte.Solution = this.solutionMock;
 
             // Act
@@ -295,7 +296,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             /// Arrange
             const string solutionFolderName = "SomeFolderName";
             DTEMock dte = new DTEMock();
-            this.serviceProvider.RegisterService(typeof(DTE), dte);
+            this.serviceProvider.RegisterService(typeof(SDTE), dte);
             dte.Solution = this.solutionMock;
 
             // Act
@@ -311,7 +312,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             const string solutionFolderName = "SomeFolderName";
             DTEMock dte = new DTEMock();
-            this.serviceProvider.RegisterService(typeof(DTE), dte);
+            this.serviceProvider.RegisterService(typeof(SDTE), dte);
             dte.Solution = this.solutionMock;
             Project project1 = this.testSubject.GetSolutionFolderProject(solutionFolderName, true);
 
@@ -452,7 +453,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             DTEMock dte = new DTEMock();
-            this.serviceProvider.RegisterService(typeof(DTE), dte);
+            this.serviceProvider.RegisterService(typeof(SDTE), dte);
             dte.Solution = this.solutionMock;
             var project = this.testSubject.GetSolutionFolderProject("foo", true);
             const string file = @"x:\myFile.txt";
@@ -472,7 +473,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var dte = new DTEMock();
-            this.serviceProvider.RegisterService(typeof(DTE), dte);
+            this.serviceProvider.RegisterService(typeof(SDTE), dte);
 
             var p1 = new ProjectMock("p1.proj");
             var p2 = new ProjectMock("p1.proj");
@@ -733,7 +734,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void GetVsHierarchyForFile_NoOpenSolution_Null()
         {
             var dte = SetupDteMock(solution: null);
-            serviceProvider.RegisterService(typeof(DTE), dte.Object);
+            serviceProvider.RegisterService(typeof(SDTE), dte.Object);
 
             var result = testSubject.GetVsHierarchyForFile("some file");
 
@@ -746,7 +747,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var solution = SetupSolution(projectItem: null);
             var dte = SetupDteMock(solution.Object);
-            serviceProvider.RegisterService(typeof(DTE), dte.Object);
+            serviceProvider.RegisterService(typeof(SDTE), dte.Object);
 
             var result = testSubject.GetVsHierarchyForFile("some file");
 
@@ -760,7 +761,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var projectItem = SetupProjectItem(containingProject: null);
             var solution = SetupSolution(projectItem.Object);
             var dte = SetupDteMock(solution.Object);
-            serviceProvider.RegisterService(typeof(DTE), dte.Object);
+            serviceProvider.RegisterService(typeof(SDTE), dte.Object);
 
             var result = testSubject.GetVsHierarchyForFile("some file");
 
@@ -774,7 +775,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var projectItem = SetupProjectItem(Mock.Of<Project>());
             var solution = SetupSolution(projectItem.Object);
             var dte = SetupDteMock(solution.Object);
-            serviceProvider.RegisterService(typeof(DTE), dte.Object);
+            serviceProvider.RegisterService(typeof(SDTE), dte.Object);
 
             var result = testSubject.GetVsHierarchyForFile("some file");
 
@@ -788,15 +789,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var projectItem = SetupProjectItem(project);
             var solution = SetupSolution(projectItem.Object);
             var dte = SetupDteMock(solution.Object);
-            serviceProvider.RegisterService(typeof(DTE), dte.Object);
+            serviceProvider.RegisterService(typeof(SDTE), dte.Object);
 
             var result = testSubject.GetVsHierarchyForFile("some file");
             result.Should().Be(project);
         }
 
-        private static Mock<DTE> SetupDteMock(Solution solution)
+        private static Mock<DTE2> SetupDteMock(Solution solution)
         {
-            var dte = new Mock<DTE>();
+            var dte = new Mock<DTE2>();
             dte.Setup(x => x.Solution).Returns(solution);
             return dte;
         }

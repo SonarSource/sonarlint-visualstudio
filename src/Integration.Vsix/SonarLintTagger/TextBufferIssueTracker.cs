@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
+using EnvDTE80;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -48,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </remarks>
     internal class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>, IDisposable
     {
-        private readonly DTE dte;
+        private readonly DTE2 dte;
         internal /* for testing */ TaggerProvider Provider { get; }
         private readonly ITextBuffer textBuffer;
         private readonly IEnumerable<AnalysisLanguage> detectedLanguages;
@@ -64,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public string FilePath { get; private set; }
         internal /* for testing */ IssuesSnapshotFactory Factory { get; }
 
-        public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
+        public TextBufferIssueTracker(DTE2 dte, TaggerProvider provider, ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
             ISonarErrorListDataSource sonarErrorDataSource, IAnalysisIssueVisualizationConverter converter,
             IVsSolution5 vsSolution, ILogger logger)
