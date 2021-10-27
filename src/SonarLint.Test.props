@@ -1,0 +1,12 @@
+<Project>
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+
+    <IsTestProject>true</IsTestProject>
+    <RequiresSigning>false</RequiresSigning>
+    <SonarQubeTestProject>true</SonarQubeTestProject>
+  </PropertyGroup>
+  
+</Project>

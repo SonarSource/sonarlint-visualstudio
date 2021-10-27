@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\SonarLint.Test.props" />
+
   <PropertyGroup Label="Specify which external/VS-specific refs are required">
-    <IsTestProject>true</IsTestProject>
     <RequiresTeamFoundation>true</RequiresTeamFoundation>
     <RequiresRuleset>true</RequiresRuleset>
     <RequiresAlmAuthentication>true</RequiresAlmAuthentication>
@@ -10,12 +11,9 @@
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
-    
     <ProjectGuid>{115CC746-5181-485C-8707-346E8D55B1E5}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Integration.TeamExplorer.UnitTests</RootNamespace>
-    <AssemblyName>SonarLint.VisualStudio.Integration.TeamExplorer.UnitTests</AssemblyName>
-    
+    <AssemblyName>SonarLint.VisualStudio.Integration.TeamExplorer.UnitTests</AssemblyName>    
   </PropertyGroup>
 
   <ItemGroup Label="Framework references">

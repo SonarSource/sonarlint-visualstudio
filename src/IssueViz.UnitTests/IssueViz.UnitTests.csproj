@@ -1,17 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <IsTestProject>true</IsTestProject>
-  </PropertyGroup>
+  <Import Project="..\SonarLint.Test.props" />
 
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
-
     <ProjectGuid>{B25B73F0-13DF-4B90-918A-1F0A7A3753FE}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.IssueVisualization.UnitTests</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.IssueVisualization.UnitTests</AssemblyName>
-    <LangVersion>latest</LangVersion>
-
   </PropertyGroup>
 
   <ItemGroup>
