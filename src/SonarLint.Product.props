@@ -1,0 +1,11 @@
+<Project>
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <TargetFramework Condition=" $(VsTargetVersion) == '2017' ">net462</TargetFramework>
+
+    <RequiresSigning>true</RequiresSigning>
+    <SonarQubeTestProject>false</SonarQubeTestProject>
+  </PropertyGroup>
+  
+</Project>
