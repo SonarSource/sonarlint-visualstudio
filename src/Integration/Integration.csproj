@@ -1,5 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\SonarLint.Product.props" />
+
   <PropertyGroup Label="Specify which external/VS-specific refs are required">
     <RequiresRuleset>true</RequiresRuleset>
     <RequiresAlmAuthentication>true</RequiresAlmAuthentication>
@@ -7,12 +9,9 @@
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
-
     <ProjectGuid>{03278C1A-EE78-4FA7-A5B0-1AB0A81EA76F}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Integration</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Integration</AssemblyName>
-    <RequiresSigning>true</RequiresSigning>
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
   </PropertyGroup>
 

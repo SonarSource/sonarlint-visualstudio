@@ -2,12 +2,12 @@
 
   <!-- NOTE: this assembly should NOT have any dependencies on Visual Studio assemblies -->
 
+  <Import Project="..\SonarLint.Product.props" />
+
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
     <ProjectGuid>{4F379759-6798-4C98-9CDD-31853F8E46DF}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Core</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Core</AssemblyName>
-    <RequiresSigning>true</RequiresSigning>
 
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
   </PropertyGroup>
