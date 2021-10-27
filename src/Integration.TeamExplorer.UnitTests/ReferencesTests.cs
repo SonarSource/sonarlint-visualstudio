@@ -66,9 +66,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 dllMajorVersion.Should().Be(16);
             }
+            else if (executingAssemblyLocation.Contains("\\VS2022\\"))
+            {
+                dllMajorVersion.Should().Be(17);
+            }
             else
             {
-                Assert.Fail("Test setup error: Expecting the path to the test dll to contain one of 'VS2015', 'VS2017' or 'VS2019'.");
+                Assert.Fail("Test setup error: Expecting the path to the test dll to contain one of 'VS2015', 'VS2017', 'VS2019' or 'VS2022'.");
             }
         }
     }
