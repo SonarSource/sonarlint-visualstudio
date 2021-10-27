@@ -1,13 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+  <Import Project="..\SonarLint.Test.props" />
 
+  <PropertyGroup>
     <ProjectGuid>{AB7A8888-EF8B-4F6D-8005-398744A60BA2}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Progress.TestFramework</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Progress.TestFramework</AssemblyName>
-        
-    <SonarQubeTestProject>true</SonarQubeTestProject>
   </PropertyGroup>
 
   <ItemGroup>

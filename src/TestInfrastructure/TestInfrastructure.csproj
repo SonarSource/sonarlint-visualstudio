@@ -1,21 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\SonarLint.Test.props" />
+
   <PropertyGroup Label="Specify which VS-specific refs are required">
-    <IsTestProject>true</IsTestProject>
     <RequiresRuleset>true</RequiresRuleset>
   </PropertyGroup>
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
     <RootNamespace>SonarLint.VisualStudio.Integration.UnitTests</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Integration.TestInfrastructure</AssemblyName>
-
     <ProjectGuid>{FBD8024A-9795-4E5B-938E-AFE44FCA240C}</ProjectGuid>
-
-    <SonarQubeTestProject>true</SonarQubeTestProject>
-
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   
   <ItemGroup Label="References">

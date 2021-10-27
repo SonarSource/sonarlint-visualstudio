@@ -53,6 +53,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{90141AF9-756
 		src\Directory.Build.props = src\Directory.Build.props
 		src\EmbeddedSonarAnalyzer.props = src\EmbeddedSonarAnalyzer.props
 		src\SonarLint.Product.props = src\SonarLint.Product.props
+		src\SonarLint.Test.props = src\SonarLint.Test.props
 		src\SonarLint.VSSpecificAssemblies.props = src\SonarLint.VSSpecificAssemblies.props
 	EndProjectSection
 EndProject
