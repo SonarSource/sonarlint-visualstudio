@@ -24,6 +24,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using EnvDTE;
+using EnvDTE80;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -84,12 +85,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockSolution.Setup(s => s.FindProjectItem(It.IsAny<string>())).Returns(projectItem);
             var solution = mockSolution.Object;
 
-            var mockDTE = new Mock<DTE>();
+            var mockDTE = new Mock<DTE2>();
             mockDTE.Setup(d => d.Solution).Returns(solution);
             var dte = mockDTE.Object;
 
             var mockServiceProvider = new Mock<IServiceProvider>();
-            mockServiceProvider.Setup(s => s.GetService(typeof(DTE))).Returns(dte);
+            mockServiceProvider.Setup(s => s.GetService(typeof(SDTE))).Returns(dte);
             mockServiceProvider.Setup(s=> s.GetService(typeof(SVsSolution))).Returns(Mock.Of<IVsSolution5>());
 
             var serviceProvider = mockServiceProvider.Object;

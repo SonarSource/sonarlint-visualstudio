@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Globalization;
 using System.Linq;
-using EnvDTE;
+using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal readonly ISonarErrorListDataSource sonarErrorDataSource;
         internal readonly ITextDocumentFactoryService textDocumentFactoryService;
         internal readonly IIssuesFilter issuesFilter;
-        internal readonly DTE dte;
+        internal readonly DTE2 dte;
 
         private readonly ISet<IIssueTracker> issueTrackers = new HashSet<IIssueTracker>();
 
@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.issuesFilter = issuesFilter;
 
             this.analyzerController = analyzerController;
-            this.dte = serviceProvider.GetService<DTE>();
+            this.dte = serviceProvider.GetService<SDTE, DTE2>();
             this.languageRecognizer = languageRecognizer;
             this.converter = converter;
             this.taggableBufferIndicator = taggableBufferIndicator;
