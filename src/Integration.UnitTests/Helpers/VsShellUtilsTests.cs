@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var serviceProvider = new ConfigurableServiceProvider();
             var dteMock = new DTEMock();
-            serviceProvider.RegisterService(typeof(DTE), dteMock);
+            serviceProvider.RegisterService(typeof(SDTE), dteMock);
 
             // Sanity
             dteMock.ToolWindows.SolutionExplorer.Window.Active.Should().BeFalse();

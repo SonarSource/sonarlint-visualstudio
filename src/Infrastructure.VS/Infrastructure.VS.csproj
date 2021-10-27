@@ -1,12 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\SonarLint.Product.props" />
+
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
     <ProjectGuid>{9CBAB074-AB53-4AC5-85E0-FD064D71B170}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Infrastructure.VS</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Infrastructure.VS</AssemblyName>
-    <RequiresSigning>true</RequiresSigning>
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup Label="Framework references">

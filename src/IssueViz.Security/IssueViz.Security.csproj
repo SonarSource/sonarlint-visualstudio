@@ -1,5 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project>
 
+  <Import Project="..\SonarLint.Product.props" />
+  
   <!-- The VSSDK targets need to be imported after the Net.Sdk targets which means we  have to import the
        .NET.Sdk targets using Import rather than specifying it as the Sdk in the Project element. -->
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
@@ -17,11 +19,9 @@
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
     <ProjectGuid>{8D0D5AF0-D5B7-41ED-9EC6-9E10C66B37E0}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.IssueVisualization.Security</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.IssueVisualization.Security</AssemblyName>
-    <RequiresSigning>true</RequiresSigning>
     <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
 
     <!-- Vsix -->

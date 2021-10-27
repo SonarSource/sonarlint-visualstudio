@@ -1,5 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\SonarLint.Product.props" />
+
   <PropertyGroup Label="Specify which VS-specific refs are required">
     <RequiresTeamFoundation>true</RequiresTeamFoundation>
 
@@ -11,12 +13,9 @@
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
-
     <ProjectGuid>{9FCAEACD-EDEA-42D3-A8E4-16E42D1CF8F4}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Integration.TeamExplorer</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Integration.TeamExplorer</AssemblyName>
-    <RequiresSigning>true</RequiresSigning>
   </PropertyGroup>
 
   <ItemGroup Label="Framework references">

@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             workflow = new TestBindingWorkflow();
             serviceProvider = new ConfigurableServiceProvider();
             dteMock = new DTEMock();
-            serviceProvider.RegisterService(typeof(DTE), dteMock);
+            serviceProvider.RegisterService(typeof(SDTE), dteMock);
             solutionMock = new SolutionMock();
             monitorSelection = KnownUIContextsAccessor.MonitorSelectionService;
             projectSystemHelper = new ConfigurableVsProjectSystemHelper(serviceProvider);

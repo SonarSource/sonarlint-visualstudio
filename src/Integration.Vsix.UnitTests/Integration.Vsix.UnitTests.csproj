@@ -1,20 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\SonarLint.Test.props" />
+
   <PropertyGroup Label="Specify which VS-specific refs are required">
-    <IsTestProject>true</IsTestProject>
     <RequiresVCProjectEngine>true</RequiresVCProjectEngine>
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
   </PropertyGroup>
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
-
     <ProjectGuid>{203F7669-02B6-4314-BD11-20E8D7C19FBC}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Integration.UnitTests</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Integration.Vsix.UnitTests</AssemblyName>
-
-
   </PropertyGroup>
   
   <ItemGroup Label="HACK to make the C++ rule loader tests work">

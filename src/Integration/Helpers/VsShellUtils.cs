@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public static void ActivateSolutionExplorer(IServiceProvider serviceProvider)
         {
-            var dte = serviceProvider.GetService<DTE, DTE2>();
+            var dte = serviceProvider.GetService<SDTE, DTE2>();
             dte.ToolWindows.SolutionExplorer.Parent.Activate();
         }
 

@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public IVsHierarchy GetVsHierarchyForFile(string fileName)
         {
-            var dte = serviceProvider.GetService<DTE>();
+            var dte = serviceProvider.GetService<SDTE, DTE2>();
             var projectItem = dte?.Solution?.FindProjectItem(fileName);
 
             return projectItem?.ContainingProject == null ? null : GetIVsHierarchy(projectItem.ContainingProject);
@@ -269,7 +269,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public Solution2 GetCurrentActiveSolution()
         {
-            DTE dte = this.serviceProvider.GetService<DTE>();
+            var dte = serviceProvider.GetService<SDTE, DTE2>();
             Debug.Assert(dte != null, "Could not find the DTE service");
 
             Solution2 solution = (Solution2)dte?.Solution;
@@ -313,7 +313,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public IEnumerable<Project> GetSelectedProjects()
         {
-            var dte = this.serviceProvider.GetService<DTE>();
+            var dte = serviceProvider.GetService<SDTE, DTE2>();
             if (dte == null)
             {
                 Debug.Fail("Failed to get DTE");

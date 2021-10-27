@@ -24,6 +24,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using EnvDTE;
+using EnvDTE80;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -456,7 +457,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             mockSolution.Setup(s => s.FindProjectItem(It.IsAny<string>()))
                 .Returns(projectItem);
 
-            var mockDTE = new Mock<DTE>();
+            var mockDTE = new Mock<DTE2>();
             mockDTE.Setup(d => d.Solution).Returns(mockSolution.Object);
 
             var mockVsSolution = new Mock<IVsSolution5>();
@@ -464,7 +465,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 .Returns(projectGuid);
 
             var serviceProvider = new ConfigurableServiceProvider();
-            serviceProvider.RegisterService(typeof(DTE), mockDTE.Object);
+            serviceProvider.RegisterService(typeof(SDTE), mockDTE.Object);
             serviceProvider.RegisterService(typeof(IVsStatusbar), Mock.Of<IVsStatusbar>());
             serviceProvider.RegisterService(typeof(SVsSolution), mockVsSolution.Object);
 
@@ -525,7 +526,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         // See https://github.com/SonarSource/sonarlint-visualstudio/issues/1522
         private class TestableTextBufferIssueTracker : TextBufferIssueTracker
         {
-            public TestableTextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
+            public TestableTextBufferIssueTracker(DTE2 dte, TaggerProvider provider, ITextDocument document,
                 IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
                 ISonarErrorListDataSource sonarErrorDataSource, IAnalysisIssueVisualizationConverter converter, IVsSolution5 vsSolution, ILogger logger)
                 : base(dte, provider, document, detectedLanguages, issuesFilter, sonarErrorDataSource, converter, vsSolution, logger)

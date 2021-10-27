@@ -1,5 +1,7 @@
 ﻿<Project>
 
+  <Import Project="..\SonarLint.Product.props" />
+
   <!-- The VSSDK targets need to be imported after the Net.Sdk targets which means we  have to import the
        .NET.Sdk targets using Import rather than specifying it as the Sdk in the Project element. -->
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
@@ -11,18 +13,16 @@
        or
        
        * build from a VS2017/2019 command line, and specify the version of VS to target by
-         setting the vsTargetVersion property to 2015, 2017 or 2019 e.g.
+         setting the vsTargetVersion property to 2017 or 2019 e.g.
            /p:vsTargetVersion=2017
 
        The projects use the new-style SDK-format and so cannot be opened in VS2015.
 
        Background:
-       We want to be able to use the same set of projects to develop in multiple versions of VS (currently VS2015
-       and VS2017, soon to include VS2019).
+       We want to be able to use the same set of projects to develop in multiple versions of VS (VS2017, VS2019).
 
        To achieve this, this project file has the following features:
-       * we can't use the new SDK-style project format since VS2015 doesn't understand it.
-
+       
        * there's a minor hack to prevent VS2017 from auto-upgrading the project - see the PropertyGroup below.
          (The changes made by the auto-upgrade are not required and prevent the project from opening in VS2015).
 
@@ -80,12 +80,9 @@
   <!-- ********************************************************** -->
 
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
-
     <ProjectGuid>{FF2AD819-28F4-493A-8E9B-1D3F16BD4689}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Integration.Vsix</RootNamespace>
     <AssemblyName>SonarLint.$(VersionSpecificSuffix)</AssemblyName>
-    <RequiresSigning>true</RequiresSigning>
     <TargetVsixContainerName>SonarLint.VSIX-$(VsixVersion)-$(VersionSpecificSuffix).vsix</TargetVsixContainerName>
 
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
@@ -274,7 +271,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="secrets\LICENSE.txt" >
+    <Content Include="secrets\LICENSE.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
