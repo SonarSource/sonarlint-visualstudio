@@ -6,7 +6,7 @@
                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                    xmlns:models="clr-namespace:SonarQube.Client.Models;assembly=SonarQube.Client"
                    xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.Resources"
-                   xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
+                   xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
                    Title="Select an organization on SonarCloud"
                    MaxWidth="400"
                    FocusManager.FocusedElement="{Binding ElementName=OrganizationComboBox}"
