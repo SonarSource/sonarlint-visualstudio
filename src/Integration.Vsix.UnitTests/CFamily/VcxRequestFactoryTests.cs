@@ -32,6 +32,8 @@ using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 using static SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests.CFamilyTestUtility;
 using System.Threading.Tasks;
+using EnvDTE80;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
@@ -340,11 +342,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var mockSolution = new Mock<Solution>();
             mockSolution.Setup(s => s.FindProjectItem(It.IsAny<string>())).Returns(projectItemToReturn);
 
-            var mockDTE = new Mock<DTE>();
+            var mockDTE = new Mock<DTE2>();
             mockDTE.Setup(d => d.Solution).Returns(mockSolution.Object);
 
             var mockServiceProvider = new Mock<IServiceProvider>();
-            mockServiceProvider.Setup(s => s.GetService(typeof(DTE))).Returns(mockDTE.Object);
+            mockServiceProvider.Setup(s => s.GetService(typeof(SDTE))).Returns(mockDTE.Object);
 
             return mockServiceProvider;
         }
