@@ -1,7 +1,7 @@
 {
   "version": 1,
   "dependencies": {
-    ".NETFramework,Version=v4.6": {
+    ".NETFramework,Version=v4.7.2": {
       "EnvDTE": {
         "type": "Direct",
         "requested": "[8.0.0, )",
