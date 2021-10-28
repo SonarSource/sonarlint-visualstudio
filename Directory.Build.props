@@ -38,7 +38,7 @@
          See #2474 for more info.
    -->
   <PropertyGroup>
-    <NewtonsoftVersion>8.0.3</NewtonsoftVersion>
+    <NewtonsoftVersion>13.0.1</NewtonsoftVersion>
   </PropertyGroup>
   
   <ItemGroup Label="Newtonsoft" Condition=" $(RequiresNewtonsoft)=='true' " >

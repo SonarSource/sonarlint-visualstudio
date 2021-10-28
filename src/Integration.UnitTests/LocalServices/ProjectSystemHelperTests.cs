@@ -878,7 +878,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 return VSConstants.S_OK;
             }
 
-            int IVsShell.LoadUILibrary(ref Guid guidPackage, uint dwExFlags, out uint phinstOut)
+            int IVsShell.LoadUILibrary(ref Guid guidPackage, uint dwExFlags, out IntPtr phinstOut)
             {
                 throw new NotImplementedException();
             }

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region DTE
 
-        Document _DTE.ActiveDocument
+        Document DTE.ActiveDocument
         {
             get
             {
@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        object _DTE.ActiveSolutionProjects
+        object DTE.ActiveSolutionProjects
         {
             get
             {
@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        Window _DTE.ActiveWindow
+        Window DTE.ActiveWindow
         {
             get
             {
@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        AddIns _DTE.AddIns
+        AddIns DTE.AddIns
         {
             get
             {
@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        DTE _DTE.Application
+        DTE DTE.Application
         {
             get
             {
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        object _DTE.CommandBars
+        object DTE.CommandBars
         {
             get
             {
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        string _DTE.CommandLineArguments
+        string DTE.CommandLineArguments
         {
             get
             {
@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        Commands _DTE.Commands
+        Commands DTE.Commands
         {
             get
             {
@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        ContextAttributes _DTE.ContextAttributes
+        ContextAttributes DTE.ContextAttributes
         {
             get
             {
@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        Debugger _DTE.Debugger
+        Debugger DTE.Debugger
         {
             get
             {
@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        vsDisplay _DTE.DisplayMode
+        vsDisplay DTE.DisplayMode
         {
             get
             {
@@ -129,7 +129,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        Documents _DTE.Documents
+        Documents DTE.Documents
         {
             get
             {
@@ -137,7 +137,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        DTE _DTE.DTE
+        DTE DTE.DTE
         {
             get
             {
@@ -145,7 +145,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        string _DTE.Edition
+        string DTE.Edition
         {
             get
             {
@@ -153,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        Events _DTE.Events
+        Events DTE.Events
         {
             get
             {
@@ -161,7 +161,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        string _DTE.FileName
+        string DTE.FileName
         {
             get
             {
@@ -169,7 +169,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        Find _DTE.Find
+        Find DTE.Find
         {
             get
             {
@@ -177,7 +177,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        string _DTE.FullName
+        string DTE.FullName
         {
             get
             {
@@ -185,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        Globals _DTE.Globals
+        Globals DTE.Globals
         {
             get
             {
@@ -193,7 +193,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        ItemOperations _DTE.ItemOperations
+        ItemOperations DTE.ItemOperations
         {
             get
             {
@@ -201,7 +201,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        int _DTE.LocaleID
+        int DTE.LocaleID
         {
             get
             {
@@ -209,7 +209,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        Macros _DTE.Macros
+        Macros DTE.Macros
         {
             get
             {
@@ -217,7 +217,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        DTE _DTE.MacrosIDE
+        DTE DTE.MacrosIDE
         {
             get
             {
@@ -225,7 +225,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        Window _DTE.MainWindow
+        Window DTE.MainWindow
         {
             get
             {
@@ -233,7 +233,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        vsIDEMode _DTE.Mode
+        vsIDEMode DTE.Mode
         {
             get
             {
@@ -241,7 +241,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        string _DTE.Name
+        string DTE.Name
         {
             get
             {
@@ -249,7 +249,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        ObjectExtenders _DTE.ObjectExtenders
+        ObjectExtenders DTE.ObjectExtenders
         {
             get
             {
@@ -257,7 +257,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        string _DTE.RegistryRoot
+        string DTE.RegistryRoot
         {
             get
             {
@@ -265,7 +265,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        SelectedItems _DTE.SelectedItems
+        SelectedItems DTE.SelectedItems
         {
             get
             {
@@ -273,7 +273,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        Solution _DTE.Solution
+        Solution DTE.Solution
         {
             get
             {
@@ -281,7 +281,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        SourceControl _DTE.SourceControl
+        SourceControl DTE.SourceControl
         {
             get
             {
@@ -289,7 +289,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        StatusBar _DTE.StatusBar
+        StatusBar DTE.StatusBar
         {
             get
             {
@@ -297,28 +297,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        bool _DTE.SuppressUI
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        UndoContext _DTE.UndoContext
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        bool _DTE.UserControl
+        bool DTE.SuppressUI
         {
             get
             {
@@ -331,7 +310,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        string _DTE.Version
+        UndoContext DTE.UndoContext
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        bool DTE.UserControl
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        string DTE.Version
         {
             get
             {
@@ -339,7 +339,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        WindowConfigurations _DTE.WindowConfigurations
+        WindowConfigurations DTE.WindowConfigurations
         {
             get
             {
@@ -347,7 +347,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        EnvDTE.Windows _DTE.Windows
+        EnvDTE.Windows DTE.Windows
         {
             get
             {
@@ -355,42 +355,42 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        void _DTE.ExecuteCommand(string CommandName, string CommandArgs)
+        void DTE.ExecuteCommand(string CommandName, string CommandArgs)
         {
             throw new NotImplementedException();
         }
 
-        object _DTE.GetObject(string Name)
+        object DTE.GetObject(string Name)
         {
             throw new NotImplementedException();
         }
 
-        bool _DTE.get_IsOpenFile(string ViewKind, string FileName)
+        bool DTE.get_IsOpenFile(string ViewKind, string FileName)
         {
             throw new NotImplementedException();
         }
 
-        Properties _DTE.get_Properties(string Category, string Page)
+        Properties DTE.get_Properties(string Category, string Page)
         {
             throw new NotImplementedException();
         }
 
-        wizardResult _DTE.LaunchWizard(string VSZFile, ref object[] ContextParams)
+        wizardResult DTE.LaunchWizard(string VSZFile, ref object[] ContextParams)
         {
             throw new NotImplementedException();
         }
 
-        Window _DTE.OpenFile(string ViewKind, string FileName)
+        Window DTE.OpenFile(string ViewKind, string FileName)
         {
             throw new NotImplementedException();
         }
 
-        void _DTE.Quit()
+        void DTE.Quit()
         {
             throw new NotImplementedException();
         }
 
-        string _DTE.SatelliteDllPath(string Path, string Name)
+        string DTE.SatelliteDllPath(string Path, string Name)
         {
             throw new NotImplementedException();
         }

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        int Window.HWnd
+        IntPtr Window.HWnd
         {
             get
             {
@@ -284,7 +284,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.Active = true;
         }
 
-        void Window.Attach(int lWindowHandle)
+        void Window.Attach(IntPtr lWindowHandle)
         {
             throw new NotImplementedException();
         }
