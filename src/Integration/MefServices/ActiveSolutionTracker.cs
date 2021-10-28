@@ -166,39 +166,3 @@ namespace SonarLint.VisualStudio.Integration
         }
     }
 }
-
-// Decompiled with JetBrains decompiler
-// Type: Microsoft.VisualStudio.Shell.Interop.IVsSolutionEvents7
-// MVID: 1C59188A-5A3D-4544-B9B8-A6F9357934A8
-
-/// <summary>
-/// IVsSolutionEvents7 provides information for Open-As-Folder events.
-/// However, it's not available in VS 2015, so we can't reference the assembly.
-/// Since we only need to embed the COM type, it doesn't matter which assembly it's coming
-/// from and we can place the declaration in our assembly.
-/// </summary>
-namespace Microsoft.VisualStudio.Shell.Interop
-{
-    [CompilerGenerated]
-    [Guid("A459C228-5617-4136-BCBE-C282DF6D9A62")]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    [TypeIdentifier]
-    [ComImport]
-    public interface IVsSolutionEvents7
-    {
-        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-        void OnAfterOpenFolder([MarshalAs(UnmanagedType.LPWStr), In] string folderPath);
-
-        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-        void OnBeforeCloseFolder([MarshalAs(UnmanagedType.LPWStr), In] string folderPath);
-
-        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-        void OnQueryCloseFolder([MarshalAs(UnmanagedType.LPWStr), In] string folderPath, [In, Out] ref int pfCancel);
-
-        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-        void OnAfterCloseFolder([MarshalAs(UnmanagedType.LPWStr), In] string folderPath);
-
-        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-        void OnAfterLoadAllDeferredProjects();
-    }
-}
