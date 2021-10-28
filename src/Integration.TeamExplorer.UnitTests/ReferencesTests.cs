@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using FluentAssertions;
@@ -32,48 +33,45 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void MicrosoftTeamFoundationClient_EnsureCorrectVersion()
         {
+            var expectedDllVersions = new Dictionary<string, int>
+            {
+                { "VS2017", 15 },
+                { "VS2019", 16 },
+                { "VS2022", 16 } // 2022's dll is still 16 and not 17
+            };
+
             var tfClientAssemblyVersion = AssemblyHelper.GetVersionOfReferencedAssembly(
                     typeof(TeamExplorerController), "Microsoft.TeamFoundation.Client");
 
-            AssertIsCorrectMajorVersion(tfClientAssemblyVersion.Major);
+            AssertIsCorrectMajorVersion(tfClientAssemblyVersion.Major, expectedDllVersions);
         }
 
         [TestMethod]
         public void MicrosoftTeamFoundationControls_EnsureCorrectVersion()
         {
+            var expectedDllVersions = new Dictionary<string, int>
+            {
+                { "VS2017", 15 },
+                { "VS2019", 16 },
+                { "VS2022", 17 }
+            };
+
             var tfControlsAssemblyVersion = AssemblyHelper.GetVersionOfReferencedAssembly(
                     typeof(TeamExplorerController), "Microsoft.TeamFoundation.Controls");
 
-            AssertIsCorrectMajorVersion(tfControlsAssemblyVersion.Major);
+            AssertIsCorrectMajorVersion(tfControlsAssemblyVersion.Major, expectedDllVersions);
         }
 
-        private void AssertIsCorrectMajorVersion(int dllMajorVersion)
+        private void AssertIsCorrectMajorVersion(int dllMajorVersion, Dictionary<string, int> expectedDllVersions)
         {
             var executingAssemblyLocation = Assembly.GetExecutingAssembly().Location;
             executingAssemblyLocation.Should()
                 .NotBeNull()
                 .And.EndWith("Integration.TeamExplorer.UnitTests.dll");
 
-            if (executingAssemblyLocation.Contains("\\VS2015\\"))
-            {
-                dllMajorVersion.Should().Be(14);
-            }
-            else if (executingAssemblyLocation.Contains("\\VS2017\\"))
-            {
-                dllMajorVersion.Should().Be(15);
-            }
-            else if (executingAssemblyLocation.Contains("\\VS2019\\"))
-            {
-                dllMajorVersion.Should().Be(16);
-            }
-            else if (executingAssemblyLocation.Contains("\\VS2022\\"))
-            {
-                dllMajorVersion.Should().Be(17);
-            }
-            else
-            {
-                Assert.Fail("Test setup error: Expecting the path to the test dll to contain one of 'VS2015', 'VS2017', 'VS2019' or 'VS2022'.");
-            }
+            var expectedVersion = expectedDllVersions.Single(x => executingAssemblyLocation.Contains(x.Key)).Value;
+
+            dllMajorVersion.Should().Be(expectedVersion);
         }
     }
 }
