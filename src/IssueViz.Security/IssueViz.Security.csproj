@@ -1,7 +1,8 @@
 ﻿<Project>
 
   <Import Project="..\SonarLint.Product.props" />
-  
+  <Import Project="..\SonarLint.VsPkgRefs.props" />
+
   <!-- The VSSDK targets need to be imported after the Net.Sdk targets which means we  have to import the
        .NET.Sdk targets using Import rather than specifying it as the Sdk in the Project element. -->
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
@@ -44,10 +45,6 @@
   <ItemGroup Label="Package references">
     <PackageReference Include="Microsoft.Owin" Version="4.1.1" />
     <PackageReference Include="Microsoft.Owin.Host.HttpListener" Version="4.1.1" />
-    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="14.0.25424" />
-    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="14.0.23205" />
-    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="15.0.34" />
-    <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="14.3.25407" />
   </ItemGroup>
 
   <ItemGroup Label="Project references">

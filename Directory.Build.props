@@ -28,7 +28,7 @@
   <!-- ******************************************************************************* -->
   <!-- Newtonsoft -->
   <!-- ******************************************************************************* -->
-  <!-- NOTE: we are referencing a version that is installed with VS2015. VS2017 and VS2019 ship with newer versions
+  <!-- NOTE: we are referencing a version that is installed with VS2017 RTM. Newer versions  of VS ship with newer versions
          of the Newtonsoft assembly and have binding redirects. This means that we don't need to ship the Newtonsoft dll
          ourselves. 
          However, the SonarAnalyzers from v4.25+ also depend on a different version of the Newtonsoft assembly which is
@@ -38,7 +38,7 @@
          See #2474 for more info.
    -->
   <PropertyGroup>
-    <NewtonsoftVersion>6.0.8</NewtonsoftVersion>
+    <NewtonsoftVersion>8.0.3</NewtonsoftVersion>
   </PropertyGroup>
   
   <ItemGroup Label="Newtonsoft" Condition=" $(RequiresNewtonsoft)=='true' " >
