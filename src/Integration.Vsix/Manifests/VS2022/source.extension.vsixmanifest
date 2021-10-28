@@ -3,7 +3,8 @@
     <Metadata>
         <!-- Note: keep the version number in sync with AssemblyInfo.Shared.cs -->
         <Identity Id="SonarLint.0DE19254-1DCA-4479-8EAF-58E5D677FF4D" Version="4.39.0.0" Language="en-US" Publisher="SonarSource" />
-        <DisplayName>SonarLint for Visual Studio 2022</DisplayName>
+        <DisplayName>SonarLint for Visual Studio 2022 RC2</DisplayName>
+        <Preview>true</Preview>
         <Description xml:space="preserve">Roslyn based static code analysis: Find and instantly fix nasty bugs and code smells in C#, VB.Net, C, C++ and JS.</Description>
         <MoreInfo>http://vs.sonarlint.org</MoreInfo>
         <License>LICENSE</License>
@@ -16,7 +17,7 @@
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,18.0)" />
     </Installation>
     <Dependencies>
-        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.6,)" />
+        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.7.2,)" />
         <Dependency d:Source="Project" d:ProjectName="EmbeddedVsix" Version="[4.39.0.0]" d:InstallSource="Embed" d:VsixSubPath="EmbeddedVsix" Location="|EmbeddedVsix;VSIXContainerProjectOutputGroup|" DisplayName="|EmbeddedVsix;VSIXNameProjectOutputGroup|" Id="|EmbeddedVsix;VSIXIdentifierProjectOutputGroup|" />
     </Dependencies>
     <Assets>
