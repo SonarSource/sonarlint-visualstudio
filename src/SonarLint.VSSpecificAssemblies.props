@@ -35,6 +35,7 @@
 
     <VersionSpecificSuffix Condition="$(VersionSpecificSuffix)=='' AND $(VisualStudioVersion)=='15.0'">2017</VersionSpecificSuffix>
     <VersionSpecificSuffix Condition="$(VersionSpecificSuffix)=='' AND $(VisualStudioVersion)=='16.0'">2019</VersionSpecificSuffix>
+    <VersionSpecificSuffix Condition="$(VersionSpecificSuffix)=='' AND $(VisualStudioVersion)=='17.0'">2022</VersionSpecificSuffix>
 
     <!-- We're referencing VS-specific assemblies so we'll build to a VS-specific output folder -->
     <OutputPath>bin\$(Configuration)\VS$(VersionSpecificSuffix)\</OutputPath>
@@ -44,11 +45,11 @@
   <Target Name="CheckVsTargetVersionSetting" BeforeTargets="PrepareForBuild">
     <Error 
       Condition=" $(BuildingInsideVisualStudio) != 'true' AND $(VsTargetVersion) == '' "
-      Text="Must set VsTargetVersion build property when building outside Visual Studio. Expected values: 2017, 2019"/>
+      Text="Must set VsTargetVersion build property when building outside Visual Studio. Expected values: 2017, 2019, 2022"/>
 
     <Error
-      Condition=" $(BuildingInsideVisualStudio) != 'true' AND $(VsTargetVersion) != '2017' AND $(VsTargetVersion) != '2019' "
-      Text="Invalid value for VsTargetVersion. Expected values: 2017, 2019. Actual value: $(VsTargetVersion)"/>
+      Condition=" $(BuildingInsideVisualStudio) != 'true' AND $(VsTargetVersion) != '2017' AND $(VsTargetVersion) != '2019' AND $(VsTargetVersion) != '2022' "
+      Text="Invalid value for VsTargetVersion. Expected values: 2017, 2019, 2022. Actual value: $(VsTargetVersion)"/>
     
   </Target>
 
@@ -66,6 +67,7 @@
     <VsTargetMajorMinorVersion>Unknown VS target version - should never happen because of the validation target above</VsTargetMajorMinorVersion>
     <VsTargetMajorMinorVersion Condition="$(VersionSpecificSuffix) == '2017' ">15.0</VsTargetMajorMinorVersion>
     <VsTargetMajorMinorVersion Condition="$(VersionSpecificSuffix) == '2019' ">16.0</VsTargetMajorMinorVersion>
+    <VsTargetMajorMinorVersion Condition="$(VersionSpecificSuffix) == '2022' ">17.0</VsTargetMajorMinorVersion>
   </PropertyGroup>
 
   <!-- ******************************************************************************* -->
@@ -82,14 +84,12 @@
   <!-- ******************************************************************************* -->
   <!-- Team foundation assemblies -->
   <!-- ******************************************************************************* -->
-  <!-- If we don't specify the version explicitly then the build agents pick up v12 of the assemblies
-       from somewhere. This means we need different includes for VS2015 and VS2017. -->
   <ItemGroup Label="TeamFoundation" Condition="$(RequiresTeamFoundation)=='true'">
-    <Reference Include="Microsoft.TeamFoundation.Client, Version=$(VsTargetMajorMinorVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.TeamFoundation.Client">
       <HintPath>$(ThirdPartyPath)\Microsoft.TeamFoundation.Client.dll</HintPath>
       <Private>$(CopyVSAssembliesToOutput)</Private>
     </Reference>
-    <Reference Include="Microsoft.TeamFoundation.Controls, Version=$(VsTargetMajorMinorVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.TeamFoundation.Controls">
       <HintPath>$(ThirdPartyPath)\Microsoft.TeamFoundation.Controls.dll</HintPath>
       <Private>$(CopyVSAssembliesToOutput)</Private>
     </Reference>
@@ -97,11 +97,11 @@
 
   <!-- The following dependencies are required by the test projects at runtime but are not required for compile time -->
   <ItemGroup Label="TeamFoundation" Condition="$(RequiresTeamFoundation)=='true' AND $(IsTestProject) == 'true'">
-    <Reference Include="Microsoft.TeamFoundation.Common, Version=$(VsTargetMajorMinorVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.TeamFoundation.Common">
       <HintPath>$(ThirdPartyPath)\Microsoft.TeamFoundation.Common.dll</HintPath>
       <Private>$(CopyVSAssembliesToOutput)</Private>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.Services.Common, Version=$(VsTargetMajorMinorVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.VisualStudio.Services.Common">
       <HintPath>$(ThirdPartyPath)\Microsoft.VisualStudio.Services.Common.dll</HintPath>
       <Private>$(CopyVSAssembliesToOutput)</Private>
     </Reference>
