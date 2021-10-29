@@ -29,13 +29,13 @@
     </AssemblyInformationalVersion>
 
     <!-- Set VSIX version in all VSIXes, including the embedded vsix -->
-    <VsixVersion Include="$(SolutionRoot)\src\Integration.Vsix\Manifests\VS201*\source.extension.vsixmanifest;$(SolutionRoot)\src\EmbeddedVsix\source.extension.vsixmanifest">
+    <VsixVersion Include="$(SolutionRoot)\src\Integration.Vsix\Manifests\VS*\source.extension.vsixmanifest;$(SolutionRoot)\src\EmbeddedVsix\Manifests\*\source.extension.vsixmanifest">
       <Find>(?&lt;=Identity.*Version=")([^"]*)</Find>
       <ReplaceWith>$(VsixVersion)</ReplaceWith>
       <ExpectedMatchCount>1</ExpectedMatchCount>
     </VsixVersion>
 
-    <RefToEmbeddedVsix Include="$(SolutionRoot)\src\Integration.Vsix\Manifests\VS201*\source.extension.vsixmanifest">
+    <RefToEmbeddedVsix Include="$(SolutionRoot)\src\Integration.Vsix\Manifests\VS*\source.extension.vsixmanifest">
       <Find>(?&lt;=Dependency.*="EmbeddedVsix".*Version=")([^"]*)</Find>
       <!-- Note square brackets i.e. "only this exact version" --> 
       <ReplaceWith>[$(VsixVersion)]</ReplaceWith>
