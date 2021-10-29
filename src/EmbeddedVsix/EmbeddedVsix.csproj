@@ -31,7 +31,7 @@
       <CreateVsixContainer>true</CreateVsixContainer>
     </PropertyGroup>
   </Target>
-  
+
   <!-- *********************************************************-->
 
   <PropertyGroup>
@@ -79,7 +79,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  
+
   <!-- ***************************************************************** -->
   <!--    Do not add any project references to this project              -->
   <!--                                                                   -->
@@ -88,23 +88,32 @@
   <!-- Adding a reference to another project in the solution will cause  -->
   <!-- it to be built much more frequently.                              -->
   <!-- ***************************************************************** -->
-  
+
   <ItemGroup>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.8.3038" GeneratePathProperty="true">
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.0.5321-preview5-gf917fac8" GeneratePathProperty="true">
       <IncludeAssets>runtime; build; native; contentfiles; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-	<Reference Include="System" />
-   <Reference Include="System.ComponentModel.Composition" />
-   <None Include="source.extension.vsixmanifest">
-      <SubType>Designer</SubType>
-    </None>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Content Include="ReadMe.txt" />
-   <Compile Include="InternalsVisibleTo.cs" />
-   <Compile Include="TypeScriptPathsProvider.cs" /> 
+    <Compile Include="InternalsVisibleTo.cs" />
+    <Compile Include="TypeScriptPathsProvider.cs" />
   </ItemGroup>
- 
- 
+
+  <!-- ***************************************** -->
+  <!-- Select the manifest to use -->
+  <!-- VS2022+ are 64bit. Earlier versions are 32bit. -->
+  <PropertyGroup>
+    <ManifestFolder>Manifests\PreVS2022\</ManifestFolder>
+    <ManifestFolder Condition=" $(VSTargetVersion) == '2022' ">Manifests\VS2022\</ManifestFolder>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="$(ManifestFolder)source.extension.vsixmanifest" />
+  </ItemGroup>
+  <!-- ***************************************** -->
+
+
   <Import Project="..\EmbeddedSonarAnalyzer.props" />
   <!-- ********************************************************** -->
   <!-- SonarJS plugin handling -->
@@ -115,10 +124,10 @@
     <!-- Download url for the SonarJS plugin. Update this url to embed a new version of the plugin. -->
     <PluginUrl>https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</PluginUrl>
     <TypeScriptFolderName>ts</TypeScriptFolderName>
-	
+
     <!-- Folder the embedded files should be copied to. This folder should be excluded from source code control. -->
     <TypeScriptTargetDirectory>$(MSBuildThisFileDirectory)$(TypeScriptFolderName)</TypeScriptTargetDirectory>
-	
+
     <!-- Hook the target that fetches the additional files into to the build process. 
          This needs to be set after the SDK targets have been imported.
     -->
@@ -132,7 +141,7 @@
     <AdditionalFilesInput Include="..\EmbeddedSonarAnalyzer.props" />
     <AdditionalFilesOutput Include="$(OutputPath)$(AssemblyName).vsix" />
   </ItemGroup>
- 
+
   <Target Name="GetTypeScriptFiles" Inputs="@(AdditionalFilesInput)" Outputs="@(AdditionalFilesOutput)">
     <Message Importance="high" Text="Fetching the TypeScript files..." />
     <!-- Note: building the helper project explicitly using MSBuild rather than referencing it via a ProjectReference.
@@ -141,7 +150,7 @@
          Also, we are using the "Exec" task to invoke MSBuild.exe rather the "MSBuild" task when building
          DownloadCFamilyPlugin.csproj to avoid getting file-locking errors when rebuilding.
     -->
-	<!-- NB we are specifying an output path for the task assembly to avoid potentially file locking issues
+    <!-- NB we are specifying an output path for the task assembly to avoid potentially file locking issues
 	     with the version of the same project used by Integration.Vsix.csproj when fetching the CFamily files -->
     <Exec Command="&quot;$(MSBuildBinPath)\msbuild.exe&quot; ..\..\build\DownloadSonarPlugin\DownloadSonarPlugin.csproj /p:PluginUrl=$(PluginUrl) /p:TargetDirectory=&quot;$(TypeScriptTargetDirectory)&quot; /p:UseSharedCompilation=false /t:Restore;Build;EmbedTypeScriptFiles /p:OutputPath=bin\GetTypeScriptFiles\ /p:VsTargetVersion=$(VsTargetVersion)" LogStandardErrorAsError="true" IgnoreExitCode="false" />
     <ItemGroup>
@@ -162,14 +171,14 @@
       </Content>
     </ItemGroup>
     <CallTarget Targets="SonarLint_ForceCreateVsix"/>
-  
+
   </Target>
 
   <PropertyGroup>
     <VsixUtilPath>$(PkgMicrosoft_VSSDK_BuildTools)\tools\vssdk\bin\VsixUtil.exe</VsixUtilPath>
     <CorFlagsPath>$(MSBuildThisFileDirectory)\..\..\build\CorFlags.exe</CorFlagsPath>
   </PropertyGroup>
-  
+
   <Target Name="ModifyVsixUtilCorFlags">
     <!-- VsixUtil.exe is running by default with "32-bit required" flag, which is causing Out of Memory exceptions when building the VSIX 
          due to too many files. We are using CorFlags.exe to change the flag and that fixes the problem and allows the Vsix to be built. -->
