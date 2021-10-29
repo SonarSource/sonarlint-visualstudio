@@ -1,7 +1,14 @@
 <Project>
 
-  <ItemGroup Label="VS packages">
+  <Import Condition=" $(VsTargetVersionPropsImported) != 'true'" Project="..\SonarLint.VsTargetVersion.props" />
+
+  <ItemGroup Condition=" $(VsTargetVersion) != '2022' ">
     <PackageReference Include="Microsoft.VisualStudio.Sdk" Version="15.0.1" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" $(VsTargetVersion) == '2022' ">
+    <PackageReference Include="Microsoft.VisualStudio.Sdk" Version="17.0.0-previews-4-31709-430" />
+    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="17.0.0-previews-4-31709-430" />
   </ItemGroup>
 
 </Project>
