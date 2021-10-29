@@ -111,9 +111,9 @@
       },
       "Microsoft.VSSDK.BuildTools": {
         "type": "Direct",
-        "requested": "[16.8.3038, )",
-        "resolved": "16.8.3038",
-        "contentHash": "o50FG7fmzq7PCCoPWvBvqbDsr+fG6wfeKxJ12Ec0vsa34l7wOasP7+ENnlxbXCrGpl/QNOv6hL0QAUngNRS2IA==",
+        "requested": "[17.0.5321-preview5-gf917fac8, )",
+        "resolved": "17.0.5321-preview5-gf917fac8",
+        "contentHash": "6jWH8KCAOn8oiSXLgCfVSZEAUo4qbJ9fqhM6lOTdmSJqcsV8qg7OcBe9/GvRmCuv9sejTxP7wMSjIC2fupb7fw==",
         "dependencies": {
           "Microsoft.VisualStudio.SDK.Analyzers": "15.8.33"
         }

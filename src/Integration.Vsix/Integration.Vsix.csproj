@@ -121,7 +121,7 @@
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
     <PackageReference Include="System.IO.Abstractions" Version="7.1.10" />
     <PackageReference Include="System.Reflection.Metadata" Version="1.2.0" />
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.8.3038">
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.0.5321-preview5-gf917fac8">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -294,20 +294,9 @@
   </ItemGroup>
 
   <!-- ***************************************** -->
-  <!-- Select the manifest to use -->
-  <!-- In most cases we can just select the folder using the $(VersionSpecificSuffic) property.
-         The one special case is if we are targetting VS2015 but not building in VS2015. In that case,
-         we need to use the v3 version of the manifest (used by VS2017+), otherwise the VSSDK build
-         targets will complain. -->
-  <ItemGroup>
+  <ItemGroup Label="Select the manifest to use">
     <None Remove="Manifests\**" />
-  </ItemGroup>
-  <PropertyGroup>
-    <ManifestFolder>Manifests\VS$(VersionSpecificSuffix)\</ManifestFolder>
-    <ManifestFolder Condition=" $(VSTargetVersion) == '2015' AND $(VisualStudioVersion) != '14.0' ">Manifests\VS2015_v3Manifest\</ManifestFolder>
-  </PropertyGroup>
-  <ItemGroup>
-    <None Include="$(ManifestFolder)source.extension.vsixmanifest" />
+    <None Include="Manifests\VS$(VersionSpecificSuffix)\source.extension.vsixmanifest" />
   </ItemGroup>
   <!-- ***************************************** -->
 

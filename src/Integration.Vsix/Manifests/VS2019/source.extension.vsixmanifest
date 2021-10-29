@@ -13,8 +13,10 @@
         <Tags>SonarLint;SonarQube;Analysis;Roslyn;CodeAnalysis;Analyzer;Code analysis;Sonar;Debt;Technical;Tech;Quality</Tags>
     </Metadata>
     <Installation>
-        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.0,17.0)" />
-    </Installation>
+        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.0,17.0)">
+          <ProductArchitecture>x86</ProductArchitecture>
+        </InstallationTarget>
+      </Installation>
     <Dependencies>
         <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.6,)" />
         <Dependency d:Source="Project" d:ProjectName="EmbeddedVsix" Version="[4.39.0.0]" d:InstallSource="Embed" d:VsixSubPath="EmbeddedVsix" Location="|EmbeddedVsix;VSIXContainerProjectOutputGroup|" DisplayName="|EmbeddedVsix;VSIXNameProjectOutputGroup|" Id="|EmbeddedVsix;VSIXIdentifierProjectOutputGroup|" />
