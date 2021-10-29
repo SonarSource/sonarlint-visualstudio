@@ -4,6 +4,9 @@
   
        Applies to every project in the repo, including those in the sonarqube-webclient submodule
        and the utility projects under "build" directory. -->
+
+  <Import Condition=" $(VsTargetVersionPropsImported) != 'true'" Project="SonarLint.VsTargetVersion.props" />
+
   <PropertyGroup>
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory).sonarlint\sonarlint-visualstudioCsharp.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
