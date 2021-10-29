@@ -830,11 +830,6 @@
         "resolved": "12.0.0",
         "contentHash": "HeuaZh8+wNVdwx7VF8guFGH2Z2zH+FYxWBsRNp+FjjlmrhCfM7GUQV5azaTv/bN5TPaK8ALJoP9UX5o1FB5k1A=="
       },
-      "Microsoft.VSSDK.Vsixsigntool": {
-        "type": "Transitive",
-        "resolved": "15.0.26201",
-        "contentHash": "i5ggxKHwIUjUSou7EwT3oOGnCz8JYB0CeOwep8oCzH9rm/StImYEEnnc1UxeMrtY+eYVu/p+pSCCP8HiK6E29A=="
-      },
       "Microsoft.Web.Xdt": {
         "type": "Transitive",
         "resolved": "2.1.0",
@@ -1165,7 +1160,6 @@
           "Microsoft.CodeAnalysis.CSharp.Workspaces": "1.3.2",
           "Microsoft.CodeAnalysis.Workspaces.Common": "1.3.2",
           "Microsoft.Composition": "1.0.30",
-          "Microsoft.VSSDK.Vsixsigntool": "15.0.26201",
           "Microsoft.VisualStudio.LanguageServices": "1.3.2",
           "Microsoft.VisualStudio.Sdk": "15.0.1",
           "Newtonsoft.Json": "8.0.3",
