@@ -80,16 +80,11 @@
   <!--**********************************************************************-->
   <!-- Workarounds -->
   <!--**********************************************************************-->
-  <ItemGroup>
-    <!-- Workaround for NuGet bug https://github.com/NuGet/Home/issues/2365 
-         EmbedInteropAssemblies isn't set for PackagReferences. -->
-    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="15.0.27" />
-  </ItemGroup>
 
   <!-- The Alm.Auth assemblies aren't being included in the VSIX for some reason.	
        This workaround adds metadata to three artifacts so that the standard VSSDK targets will	
        include them.	
-       NB the target is based on the one from Microsoft.VisualStudio.SDK.EmbedInteropTypes above. -->
+  -->
   <Target Name="HackIncludeALMAuthInVsix" AfterTargets="ResolveReferences" BeforeTargets="FindReferenceAssembliesForReferences">
     <ItemGroup>
       <ReferencePath Condition="'%(FileName)' == 'Microsoft.Alm.Authentication' or '%(FileName)' == 'Microsoft.Alm.Git' or '%(FileName)' == 'Microsoft.Vsts.Authentication'">
