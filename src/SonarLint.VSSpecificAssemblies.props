@@ -17,41 +17,18 @@
 
         3. Import this file
 
-
-       Building from the command line
-       ==============================
-       When building from the command line you must specify the version of VS to target e.g.
-
-         msbuild.exe SonarLint.VisualStudio.Integration.sln /p:VsTargetVersion=2017   
-
-       The allowed values for VsTargetVersion are 2017 and 2019.
-
   -->
+  
+  <Import Condition=" $(VsTargetVersionPropsImported) != 'true'" Project="..\SonarLint.VsTargetVersion.props" />
   
   <PropertyGroup>
     <!-- VsTargetVersion should be set when building from the command line to specify the version.
          Expected value: 2017, 2019 -->
     <VersionSpecificSuffix>$(VsTargetVersion)</VersionSpecificSuffix>
 
-    <VersionSpecificSuffix Condition="$(VersionSpecificSuffix)=='' AND $(VisualStudioVersion)=='15.0'">2017</VersionSpecificSuffix>
-    <VersionSpecificSuffix Condition="$(VersionSpecificSuffix)=='' AND $(VisualStudioVersion)=='16.0'">2019</VersionSpecificSuffix>
-    <VersionSpecificSuffix Condition="$(VersionSpecificSuffix)=='' AND $(VisualStudioVersion)=='17.0'">2022</VersionSpecificSuffix>
-
     <!-- We're referencing VS-specific assemblies so we'll build to a VS-specific output folder -->
     <OutputPath>bin\$(Configuration)\VS$(VersionSpecificSuffix)\</OutputPath>
   </PropertyGroup>
-
-  <!-- Sanity check to fail the build if VsTargetVersion isn't used correctly -->
-  <Target Name="CheckVsTargetVersionSetting" BeforeTargets="PrepareForBuild">
-    <Error 
-      Condition=" $(BuildingInsideVisualStudio) != 'true' AND $(VsTargetVersion) == '' "
-      Text="Must set VsTargetVersion build property when building outside Visual Studio. Expected values: 2017, 2019, 2022"/>
-
-    <Error
-      Condition=" $(BuildingInsideVisualStudio) != 'true' AND $(VsTargetVersion) != '2017' AND $(VsTargetVersion) != '2019' AND $(VsTargetVersion) != '2022' "
-      Text="Invalid value for VsTargetVersion. Expected values: 2017, 2019, 2022. Actual value: $(VsTargetVersion)"/>
-    
-  </Target>
 
   <PropertyGroup>
     <!-- By default, we don't want to copy the assemblies locally for product projects, otherwise they will be

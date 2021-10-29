@@ -1,0 +1,53 @@
+<Project>
+
+  <!-- This file sets the VsTargetVersion property.
+
+       It should be imported by any other props/targets/project file that needs to conditionally
+       modify the build based on the version of VS.
+       
+       It can be conditionally imported as follows:
+       <Import Condition=" $(VsTargetVersionPropsImported) != 'true'" Project="[PATH](SonarLint.VsTargetVersion.props" />
+
+
+       Building from the command line
+       ==============================
+       When building from the command line you must specify the version of VS to target e.g.
+
+         msbuild.exe SonarLint.VisualStudio.Integration.sln /p:VsTargetVersion=2017   
+
+       The allowed values for VsTargetVersion are 2017, 2019 and 2022.
+
+  -->
+
+  <PropertyGroup>
+    <!-- Flag to prevent importing this file multiple times -->
+    <VsTargetVersionPropsImported>true</VsTargetVersionPropsImported>
+  </PropertyGroup>
+  
+  <!-- ************************************************************* -->
+  <!-- Building inside Visual Studio -->
+  <!-- ************************************************************* -->
+  <!-- Set the VsTargetVersion based on the version of VS -->
+  <PropertyGroup Condition=" $(BuildingInsideVisualStudio) == 'true' AND $(VsTargetVersion) == '' " >
+    <VsTargetVersion Condition="$(VisualStudioVersion)=='15.0'">2017</VsTargetVersion>
+    <VsTargetVersion Condition="$(VisualStudioVersion)=='16.0'">2019</VsTargetVersion>
+    <VsTargetVersion Condition="$(VisualStudioVersion)=='17.0'">2022</VsTargetVersion>
+  </PropertyGroup>
+
+  <!-- ************************************************************* -->
+  <!-- Sanity check to fail the build if VsTargetVersion isn't used correctly -->
+  <!-- ************************************************************* -->
+  <Target Name="CheckVsTargetVersionSetting" BeforeTargets="PrepareForBuild">
+    <Error
+      Condition=" $(BuildingInsideVisualStudio) != 'true' AND $(VsTargetVersion) == '' "
+      Text="Must set VsTargetVersion build property when building outside Visual Studio. Expected values: 2017, 2019, 2022"/>
+
+    <Error
+      Condition=" $(VsTargetVersion) != '2017' AND $(VsTargetVersion) != '2019' AND $(VsTargetVersion) != '2022' "
+      Text="Invalid value for VsTargetVersion. Expected values: 2017, 2019, 2022. Actual value: $(VsTargetVersion)"/>
+
+    <Message Importance="high" Text="SonarLint VsTargetVersion: $(VsTargetVersion)" />
+    
+  </Target>
+  
+</Project>
