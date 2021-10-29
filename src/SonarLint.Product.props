@@ -1,5 +1,7 @@
 <Project>
 
+  <Import Condition=" $(VsTargetVersionPropsImported) != 'true'" Project="..\SonarLint.VsTargetVersion.props" />
+
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <TargetFramework Condition=" $(VsTargetVersion) == '2017' ">net462</TargetFramework>
