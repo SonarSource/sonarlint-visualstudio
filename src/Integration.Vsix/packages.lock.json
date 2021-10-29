@@ -118,11 +118,11 @@
           "Microsoft.VisualStudio.SDK.Analyzers": "15.8.33"
         }
       },
-      "Microsoft.VSSDK.Vsixsigntool": {
+      "Microsoft.VSSDK.VsixSignTool": {
         "type": "Direct",
-        "requested": "[15.0.26201, )",
-        "resolved": "15.0.26201",
-        "contentHash": "i5ggxKHwIUjUSou7EwT3oOGnCz8JYB0CeOwep8oCzH9rm/StImYEEnnc1UxeMrtY+eYVu/p+pSCCP8HiK6E29A=="
+        "requested": "[16.2.29116.78, )",
+        "resolved": "16.2.29116.78",
+        "contentHash": "HMivXxSU2deRjrDLzYhW48BuYcWOaGcFPMur9VtK5SU/YDFa+55LrT8hikE1wsOSEGMWwC5nthYcsA3UqJISjA=="
       },
       "Newtonsoft.Json": {
         "type": "Direct",
@@ -1141,7 +1141,6 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Alm.Authentication": "4.0.0.1",
-          "Microsoft.VisualStudio.SDK.EmbedInteropTypes": "15.0.27",
           "Microsoft.VisualStudio.Sdk": "15.0.1",
           "Newtonsoft.Json": "8.0.3",
           "NuGet.Core": "2.12.0",

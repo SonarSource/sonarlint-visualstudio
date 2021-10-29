@@ -68,12 +68,6 @@
           "VSLangProj2": "7.0.5001"
         }
       },
-      "Microsoft.VisualStudio.SDK.EmbedInteropTypes": {
-        "type": "Direct",
-        "requested": "[15.0.27, )",
-        "resolved": "15.0.27",
-        "contentHash": "rZNw+lD53U0DMFMiHEe3TnIr2RyWPaqr+kNVITrKVZHwI3y27KQ0sbj8w7o/BoMilR8dFJwzcKn60SXITYdkzA=="
-      },
       "Newtonsoft.Json": {
         "type": "Direct",
         "requested": "[8.0.3, )",
@@ -348,6 +342,11 @@
           "Microsoft.CodeAnalysis.BannedApiAnalyzers": "2.9.4",
           "Microsoft.VisualStudio.Threading.Analyzers": "16.3.52"
         }
+      },
+      "Microsoft.VisualStudio.SDK.EmbedInteropTypes": {
+        "type": "Transitive",
+        "resolved": "15.0.27",
+        "contentHash": "rZNw+lD53U0DMFMiHEe3TnIr2RyWPaqr+kNVITrKVZHwI3y27KQ0sbj8w7o/BoMilR8dFJwzcKn60SXITYdkzA=="
       },
       "Microsoft.VisualStudio.Setup.Configuration.Interop": {
         "type": "Transitive",
