@@ -878,10 +878,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 return VSConstants.S_OK;
             }
 
+#if VS2022
+            int IVsShell.LoadUILibrary(ref Guid guidPackage, uint dwExFlags, out IntPtr phinstOut)
+            {
+                throw new NotImplementedException();
+            }
+#else
             int IVsShell.LoadUILibrary(ref Guid guidPackage, uint dwExFlags, out uint phinstOut)
             {
                 throw new NotImplementedException();
             }
+#endif
 
             int IVsShell.SetProperty(int propid, object var)
             {
@@ -898,9 +905,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 throw new NotImplementedException();
             }
 
-            #endregion IVsShell
+#endregion IVsShell
         }
 
-        #endregion Helpers
+#endregion Helpers
     }
 }

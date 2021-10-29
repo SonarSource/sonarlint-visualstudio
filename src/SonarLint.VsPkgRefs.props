@@ -1,7 +1,9 @@
 <Project>
 
   <ItemGroup Label="VS packages">
-    <PackageReference Include="Microsoft.VisualStudio.Sdk" Version="15.0.1" />
+    <PackageReference Condition=" $(VsTargetVersion) != '2022' " Include="Microsoft.VisualStudio.Sdk" Version="15.0.1" />
+    <PackageReference Condition=" $(VsTargetVersion) == '2022' " Include="Microsoft.VisualStudio.Sdk" Version="17.0.0-previews-4-31709-430" />
+    <PackageReference Condition=" $(VsTargetVersion) == '2022' " Include="Microsoft.VisualStudio.Interop" Version="17.0.0-previews-4-31709-430" />
   </ItemGroup>
 
 </Project>

@@ -34,6 +34,415 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public string Version { get; set; }
 
+#if VS2022
+        #region DTE
+
+        Document DTE.ActiveDocument
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        object DTE.ActiveSolutionProjects
+        {
+            get
+            {
+                return this.ActiveSolutionProjects;
+            }
+        }
+
+        Window DTE.ActiveWindow
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        AddIns DTE.AddIns
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        DTE DTE.Application
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        object DTE.CommandBars
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        string DTE.CommandLineArguments
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        Commands DTE.Commands
+        {
+            get
+            {
+                return this.Commands;
+            }
+        }
+
+        ContextAttributes DTE.ContextAttributes
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        Debugger DTE.Debugger
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        vsDisplay DTE.DisplayMode
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        Documents DTE.Documents
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        DTE DTE.DTE
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        string DTE.Edition
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        Events DTE.Events
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        string DTE.FileName
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        Find DTE.Find
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        string DTE.FullName
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        Globals DTE.Globals
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        ItemOperations DTE.ItemOperations
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        int DTE.LocaleID
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        Macros DTE.Macros
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        DTE DTE.MacrosIDE
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        Window DTE.MainWindow
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        vsIDEMode DTE.Mode
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        string DTE.Name
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        ObjectExtenders DTE.ObjectExtenders
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        string DTE.RegistryRoot
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        SelectedItems DTE.SelectedItems
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        Solution DTE.Solution
+        {
+            get
+            {
+                return this.Solution;
+            }
+        }
+
+        SourceControl DTE.SourceControl
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        StatusBar DTE.StatusBar
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        bool DTE.SuppressUI
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        UndoContext DTE.UndoContext
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        bool DTE.UserControl
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        string DTE.Version
+        {
+            get
+            {
+                return Version;
+            }
+        }
+
+        WindowConfigurations DTE.WindowConfigurations
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        EnvDTE.Windows DTE.Windows
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        void DTE.ExecuteCommand(string CommandName, string CommandArgs)
+        {
+            throw new NotImplementedException();
+        }
+
+        object DTE.GetObject(string Name)
+        {
+            throw new NotImplementedException();
+        }
+
+        bool DTE.get_IsOpenFile(string ViewKind, string FileName)
+        {
+            throw new NotImplementedException();
+        }
+
+        Properties DTE.get_Properties(string Category, string Page)
+        {
+            throw new NotImplementedException();
+        }
+
+        wizardResult DTE.LaunchWizard(string VSZFile, ref object[] ContextParams)
+        {
+            throw new NotImplementedException();
+        }
+
+        Window DTE.OpenFile(string ViewKind, string FileName)
+        {
+            throw new NotImplementedException();
+        }
+
+        void DTE.Quit()
+        {
+            throw new NotImplementedException();
+        }
+
+        string DTE.SatelliteDllPath(string Path, string Name)
+        {
+            throw new NotImplementedException();
+        }
+
+        void DTE2.Quit()
+        {
+            throw new NotImplementedException();
+        }
+
+        object DTE2.GetObject(string Name)
+        {
+            throw new NotImplementedException();
+        }
+
+        Window DTE2.OpenFile(string ViewKind, string FileName)
+        {
+            throw new NotImplementedException();
+        }
+
+        void DTE2.ExecuteCommand(string CommandName, string CommandArgs)
+        {
+            throw new NotImplementedException();
+        }
+
+        wizardResult DTE2.LaunchWizard(string VSZFile, ref object[] ContextParams)
+        {
+            throw new NotImplementedException();
+        }
+
+        string DTE2.SatelliteDllPath(string Path, string Name)
+        {
+            throw new NotImplementedException();
+        }
+
+        uint DTE2.GetThemeColor(vsThemeColors Element)
+        {
+            throw new NotImplementedException();
+        }
+
+        Properties DTE2.get_Properties(string Category, string Page)
+        {
+            throw new NotImplementedException();
+        }
+
+        bool DTE2.get_IsOpenFile(string ViewKind, string FileName)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion DTE
+#else
         #region DTE
 
         Document _DTE.ActiveDocument
@@ -441,6 +850,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #endregion DTE
+#endif
+
 
         #region DTE2
 

@@ -41,7 +41,8 @@
          See #2474 for more info.
    -->
   <PropertyGroup>
-    <NewtonsoftVersion>8.0.3</NewtonsoftVersion>
+    <NewtonsoftVersion Condition=" $(VsTargetVersion) != '2022' " >8.0.3</NewtonsoftVersion>
+    <NewtonsoftVersion Condition=" $(VsTargetVersion) == '2022' " >13.0.1</NewtonsoftVersion>
   </PropertyGroup>
   
   <ItemGroup Label="Newtonsoft" Condition=" $(RequiresNewtonsoft)=='true' " >

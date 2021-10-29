@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -108,6 +108,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
+#if VS2022
+        IntPtr Window.HWnd
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+#else
         int Window.HWnd
         {
             get
@@ -115,6 +124,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 throw new NotImplementedException();
             }
         }
+#endif
 
         bool Window.IsFloating
         {
@@ -284,10 +294,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.Active = true;
         }
 
+#if VS2022
+        void Window.Attach(IntPtr lWindowHandle)
+        {
+            throw new NotImplementedException();
+        }
+#else
         void Window.Attach(int lWindowHandle)
         {
             throw new NotImplementedException();
         }
+#endif
 
         void Window.Close(vsSaveChanges SaveChanges)
         {
@@ -324,6 +341,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             throw new NotImplementedException();
         }
 
-        #endregion Window
+#endregion Window
     }
 }
