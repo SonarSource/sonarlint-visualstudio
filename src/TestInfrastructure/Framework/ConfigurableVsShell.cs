@@ -108,15 +108,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             throw new NotImplementedException();
         }
 
-#endregion IVsShell
+        #endregion IVsShell
 
-#region Test helpers
+        #region Test helpers
 
         public void RegisterPropertyGetter(int propertyId, Func<object> getter)
         {
             this.propertyGetters[propertyId] = getter;
         }
 
-#endregion Test helpers
+        #endregion Test helpers
     }
 }
