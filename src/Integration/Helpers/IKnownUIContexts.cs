@@ -35,7 +35,9 @@ namespace SonarLint.VisualStudio.Integration
         event EventHandler<UIContextChangedEventArgs> CSharpProjectContextChanged;
         event EventHandler<UIContextChangedEventArgs> VBProjectContextChanged;
 
+        IUIContext SolutionBuildingContext { get; }
         IUIContext SolutionExistsAndFullyLoadedContext { get; }
         IUIContext SolutionExistsAndNotBuildingAndNotDebuggingContext { get; }
+        IUIContext DebuggingContext { get; }
     }
 }
