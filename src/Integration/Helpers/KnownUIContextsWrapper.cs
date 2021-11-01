@@ -32,6 +32,8 @@ namespace SonarLint.VisualStudio.Integration
         public UIContextWrapper(UIContext uIContext) => wrapped = uIContext;
 
         public bool IsActive => wrapped.IsActive;
+
+        public void WhenActivated(Action action) => wrapped.WhenActivated(action);
     }
 
     [ExcludeFromCodeCoverage] // Wrapper around Visual Studio
@@ -90,6 +92,7 @@ namespace SonarLint.VisualStudio.Integration
         public IUIContext SolutionExistsAndFullyLoadedContext => new UIContextWrapper(KnownUIContexts.SolutionExistsAndFullyLoadedContext);
 
         public IUIContext SolutionExistsAndNotBuildingAndNotDebuggingContext => new UIContextWrapper(KnownUIContexts.SolutionBuildingContext);
+
         public IUIContext DebuggingContext => new UIContextWrapper(KnownUIContexts.DebuggingContext);
     }
 }
