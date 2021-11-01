@@ -22,11 +22,9 @@ using System;
 using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using System.Windows.Threading;
-using EnvDTE;
 using FluentAssertions;
-using Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -39,8 +37,8 @@ using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.Progress.Controller;
-using SonarQube.Client.Models;
 using SonarQube.Client;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
@@ -53,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private TestBindingWorkflow workflow;
         private ConfigurableServiceProvider serviceProvider;
         private SolutionMock solutionMock;
-        private ConfigurableVsMonitorSelection monitorSelection;
+        private Mock<IKnownUIContexts> knownUIContexts;
         private DTEMock dteMock;
         private ConfigurableRuleSetConflictsController conflictsController;
         private ConfigurableConfigurationProvider configProvider;
@@ -67,14 +65,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestInitialize]
         public void TestInitialize()
         {
-            KnownUIContextsAccessor.Reset();
             sonarQubeService = new Mock<ISonarQubeService>();
             workflow = new TestBindingWorkflow();
             serviceProvider = new ConfigurableServiceProvider();
             dteMock = new DTEMock();
             serviceProvider.RegisterService(typeof(SDTE), dteMock);
             solutionMock = new SolutionMock();
-            monitorSelection = KnownUIContextsAccessor.MonitorSelectionService;
+            knownUIContexts = new Mock<IKnownUIContexts>();
             projectSystemHelper = new ConfigurableVsProjectSystemHelper(serviceProvider);
             conflictsController = new ConfigurableRuleSetConflictsController();
             configProvider = new ConfigurableConfigurationProvider();
@@ -156,32 +153,51 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void BindingController_BindCommand_Status_VsState()
+        [DataRow(false, false, false)]
+        [DataRow(false, true, false)]
+        [DataRow(true, false, false)]
+        [DataRow(true, true, true)]
+        public void BindingController_BindCommand_Status_UIContexts(
+            bool slnExistsAndIsFullyLoaded,
+            bool slnExistsAndNotBuildingAndNotDebugging,
+            bool expected)
         {
             // Arrange
             BindCommandArgs bindArgs = CreateBindingArguments("proj1", "name1", "http://localhost:9000");
             BindingController testSubject = PrepareCommandForExecution();
-            ProjectMock project1 = solutionMock.Projects.Single();
 
-            // Case 1: SolutionExistsAndFullyLoaded is not active
-            monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, false);
+            SetKnownUIContexts(slnExistsAndIsFullyLoaded, slnExistsAndNotBuildingAndNotDebugging);
+
             // Act + Assert
-            testSubject.BindCommand.CanExecute(bindArgs).Should().BeFalse("No UI context: SolutionExistsAndFullyLoaded");
+            testSubject.BindCommand.CanExecute(bindArgs).Should().Be(expected);
+        }
 
-            // Case 2: SolutionExistsAndNotBuildingAndNotDebugging is not active
-            monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, true);
-            monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndNotBuildingAndNotDebugging_guid, false);
-            // Act + Assert
-            testSubject.BindCommand.CanExecute(bindArgs).Should().BeFalse("No UI context: SolutionExistsAndNotBuildingAndNotDebugging");
+        [TestMethod]
+        public void BindingController_BindCommand_Status_NonManagedProject()
+        {
+            // Arrange
+            BindCommandArgs bindArgs = CreateBindingArguments("proj1", "name1", "http://localhost:9000");
+            BindingController testSubject = PrepareCommandForExecution();
+            SetKnownUIContexts(true, true);
 
-            // Case 3: Non-managed project kind
-            monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndNotBuildingAndNotDebugging_guid, true);
+            // No managed projects
             projectSystemHelper.Projects = null;
+
             // Act + Assert
             testSubject.BindCommand.CanExecute(bindArgs).Should().BeFalse("No managed projects");
+        }
 
-            // Case 4: No projects at all
-            solutionMock.RemoveProject(project1);
+        [TestMethod]
+        public void BindingController_BindCommand_Status_NoProjects()
+        {
+            // Arrange
+            BindCommandArgs bindArgs = CreateBindingArguments("proj1", "name1", "http://localhost:9000");
+            BindingController testSubject = PrepareCommandForExecution();
+            SetKnownUIContexts(true, false);
+
+            // No projects at all
+            solutionMock.RemoveProject(solutionMock.Projects.Single());
+
             // Act + Assert
             testSubject.BindCommand.CanExecute(bindArgs).Should().BeFalse("No projects");
         }
@@ -528,8 +544,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             host.SetActiveSection(ConfigurableSectionController.CreateDefault());
 
-            monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, isSolutionLoaded);
-            monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndNotBuildingAndNotDebugging_guid, isSolutionNotBuilding);
+            SetKnownUIContexts(isSolutionLoaded, isSolutionNotBuilding);
 
             if (hasProjects)
             {
@@ -557,7 +572,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private BindingController CreateBindingController()
         {
-            return new BindingController(host, workflow);
+            return new BindingController(host, workflow, knownUIContexts.Object);
+        }
+
+        private void SetKnownUIContexts(bool slnExistsAndFullyLoaded_IsActive, bool slnExistsAndNotBuildingAndNotDebugging_IsActive)
+        {
+            knownUIContexts.Reset();
+            knownUIContexts.SetupGet(x => x.SolutionExistsAndFullyLoadedContext).Returns(CreateContext(slnExistsAndFullyLoaded_IsActive));
+            knownUIContexts.SetupGet(x => x.SolutionExistsAndNotBuildingAndNotDebuggingContext).Returns(CreateContext(slnExistsAndNotBuildingAndNotDebugging_IsActive));
+        }
+
+        private static IUIContext CreateContext(bool isActive)
+        {
+            var context = new Mock<IUIContext>();
+            context.Setup(x => x.IsActive).Returns(isActive);
+            return context.Object;
         }
 
         #endregion Helpers
