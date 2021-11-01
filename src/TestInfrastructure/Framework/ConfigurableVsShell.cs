@@ -79,10 +79,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             throw new NotImplementedException();
         }
 
+#if VS2022
+        int IVsShell.LoadUILibrary(ref Guid guidPackage, uint dwExFlags, out IntPtr phinstOut)
+        {
+            throw new NotImplementedException();
+        }
+
+#else 
         int IVsShell.LoadUILibrary(ref Guid guidPackage, uint dwExFlags, out uint phinstOut)
         {
             throw new NotImplementedException();
         }
+
+#endif
 
         int IVsShell.SetProperty(int propid, object var)
         {
