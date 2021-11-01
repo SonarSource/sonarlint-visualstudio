@@ -26,6 +26,8 @@ namespace SonarLint.VisualStudio.Integration
     public interface IUIContext
     {
         bool IsActive { get; }
+
+        void WhenActivated(Action action);
     }
 
     public interface IKnownUIContexts
