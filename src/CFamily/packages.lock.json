@@ -306,11 +306,6 @@
         "resolved": "15.0.27",
         "contentHash": "rZNw+lD53U0DMFMiHEe3TnIr2RyWPaqr+kNVITrKVZHwI3y27KQ0sbj8w7o/BoMilR8dFJwzcKn60SXITYdkzA=="
       },
-      "Microsoft.VisualStudio.Setup.Configuration.Interop": {
-        "type": "Transitive",
-        "resolved": "1.16.30",
-        "contentHash": "lC6SqNkraWUSY7cyF5GUmXSECoTMwslBc/r1dguChjsi0D0BlF7G6PLsvXD0NFCwnpKlgVzUYrIq7DQakdGerw=="
-      },
       "Microsoft.VisualStudio.Shell.15.0": {
         "type": "Transitive",
         "resolved": "15.0.26228",
