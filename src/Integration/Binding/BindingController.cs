@@ -44,13 +44,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IBindingWorkflowExecutor workflowExecutor;
         private readonly IProjectSystemHelper projectSystemHelper;
         private readonly IFolderWorkspaceService folderWorkspaceService;
+        private readonly IKnownUIContexts knownUIContexts;
 
         public BindingController(IHost host)
-            : this(host, null)
+            : this(host, null, new KnownUIContextsWrapper())
         {
         }
 
-        internal /*for testing purposes*/ BindingController(IHost host, IBindingWorkflowExecutor workflowExecutor)
+        internal /*for testing purposes*/ BindingController(IHost host, IBindingWorkflowExecutor workflowExecutor, IKnownUIContexts knownUIContexts)
             : base(host)
         {
             if (host == null)
@@ -62,6 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.BindCommand = new RelayCommand<BindCommandArgs>(this.OnBind, this.OnBindStatus);
             this.workflowExecutor = workflowExecutor ?? this;
+            this.knownUIContexts = knownUIContexts;
             this.projectSystemHelper = this.host.GetService<IProjectSystemHelper>();
             this.projectSystemHelper.AssertLocalServiceIsNotNull();
 
@@ -100,12 +102,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             return args != null
                    && args.ProjectKey != null
-                   && this.host.VisualStateManager.IsConnected
-                   && !this.host.VisualStateManager.IsBusy
+                   && host.VisualStateManager.IsConnected
+                   && !host.VisualStateManager.IsBusy
                    && (folderWorkspaceService.IsFolderWorkspace()
-                       || (VsShellUtils.IsSolutionExistsAndFullyLoaded()
-                           && VsShellUtils.IsSolutionExistsAndNotBuildingAndNotDebugging()))
-                   && (this.projectSystemHelper.GetSolutionProjects()?.Any() ?? false);
+                       || (knownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive
+                           && knownUIContexts.SolutionExistsAndNotBuildingAndNotDebuggingContext.IsActive))
+                   && (projectSystemHelper.GetSolutionProjects()?.Any() ?? false);
         }
 
         private void OnBind(BindCommandArgs args)

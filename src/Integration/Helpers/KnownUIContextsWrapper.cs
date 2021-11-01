@@ -25,6 +25,18 @@ using Microsoft.VisualStudio.Shell;
 namespace SonarLint.VisualStudio.Integration
 {
     [ExcludeFromCodeCoverage] // Wrapper around Visual Studio
+    public class UIContextWrapper : IUIContext
+    {
+        private readonly UIContext wrapped;
+
+        public UIContextWrapper(UIContext uIContext) => wrapped = uIContext;
+
+        public bool IsActive => wrapped.IsActive;
+
+        public void WhenActivated(Action action) => wrapped.WhenActivated(action);
+    }
+
+    [ExcludeFromCodeCoverage] // Wrapper around Visual Studio
     public class KnownUIContextsWrapper : IKnownUIContexts
     {
         public event EventHandler<UIContextChangedEventArgs> SolutionBuildingContextChanged
@@ -74,5 +86,13 @@ namespace SonarLint.VisualStudio.Integration
                 KnownUIContexts.VBProjectContext.UIContextChanged -= value;
             }
         }
+
+        public IUIContext SolutionBuildingContext => new UIContextWrapper(KnownUIContexts.SolutionBuildingContext);
+
+        public IUIContext SolutionExistsAndFullyLoadedContext => new UIContextWrapper(KnownUIContexts.SolutionExistsAndFullyLoadedContext);
+
+        public IUIContext SolutionExistsAndNotBuildingAndNotDebuggingContext => new UIContextWrapper(KnownUIContexts.SolutionBuildingContext);
+
+        public IUIContext DebuggingContext => new UIContextWrapper(KnownUIContexts.DebuggingContext);
     }
 }

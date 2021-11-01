@@ -48,6 +48,8 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IHost host;
         private readonly IUnboundProjectFinder unboundProjectFinder;
         private readonly ILogger logger;
+        private readonly IKnownUIContexts knownUIContexts;
+
         private readonly IConfigurationProviderService configProvider;
         private IInfoBar currentErrorWindowInfoBar;
         private bool currentErrorWindowInfoBarHandlingClick;
@@ -55,10 +57,17 @@ namespace SonarLint.VisualStudio.Integration
         private bool isDisposed;
 
         public ErrorListInfoBarController(IHost host, IUnboundProjectFinder unboundProjectFinder, ILogger logger)
+            : this(host, unboundProjectFinder, logger, new KnownUIContextsWrapper())
+        {
+        }
+
+        internal /* for testing */ ErrorListInfoBarController(IHost host, IUnboundProjectFinder unboundProjectFinder, ILogger logger,
+            IKnownUIContexts knownUIContexts)
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
             this.unboundProjectFinder = unboundProjectFinder ?? throw new ArgumentNullException(nameof(unboundProjectFinder));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.knownUIContexts = knownUIContexts;
 
             this.configProvider = host.GetService<IConfigurationProviderService>();
             this.configProvider.AssertLocalServiceIsNotNull();
@@ -176,9 +185,9 @@ namespace SonarLint.VisualStudio.Integration
                 }
 
                 // If the solution is not fully loaded, wait until is fully loaded
-                if (!KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive)
+                if (!knownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive)
                 {
-                    KnownUIContexts.SolutionExistsAndFullyLoadedContext.WhenActivated(this.ProcessSolutionBinding);
+                    knownUIContexts.SolutionExistsAndFullyLoadedContext.WhenActivated(this.ProcessSolutionBinding);
                     return;
                 }
 
@@ -261,7 +270,7 @@ namespace SonarLint.VisualStudio.Integration
             {
                 ClearCurrentInfoBar();
             }
-            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 LogUnexpectedError(ex);
             }

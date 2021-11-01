@@ -41,18 +41,21 @@ namespace SonarLint.VisualStudio.Integration
         private readonly HashSet<string> filesCreate = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly Queue<Func<bool>> fileWriteOperations = new Queue<Func<bool>>();
         private readonly IFileSystem fileSystem;
+        private readonly IKnownUIContexts knownUIContexts;
         private IVsQueryEditQuerySave2 queryFileOperation;
 
         public SourceControlledFileSystem(IServiceProvider serviceProvider, ILogger logger)
-            : this(serviceProvider, logger, new FileSystem())
+            : this(serviceProvider, logger, new FileSystem(), new KnownUIContextsWrapper())
         {
         }
 
-        internal /*for testing purposes*/ SourceControlledFileSystem(IServiceProvider serviceProvider, ILogger logger, IFileSystem fileSystem)
+        internal /*for testing purposes*/ SourceControlledFileSystem(IServiceProvider serviceProvider, ILogger logger, IFileSystem fileSystem,
+            IKnownUIContexts knownUIContexts)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+            this.knownUIContexts = knownUIContexts ?? throw new ArgumentNullException(nameof(knownUIContexts));
         }
 
         protected IVsQueryEditQuerySave2 QueryFileOperation
@@ -134,7 +137,7 @@ namespace SonarLint.VisualStudio.Integration
                 // and generated ruleset files in new connected mode that are not in the solution)
                 VsQueryEditFlags.ForceEdit_NoPrompting;
 
-            if (KnownUIContexts.DebuggingContext.IsActive || KnownUIContexts.SolutionBuildingContext.IsActive)
+            if (knownUIContexts.DebuggingContext.IsActive || knownUIContexts.SolutionBuildingContext.IsActive)
             {
                 // Don't reload files while debugging or building
                 flags |= VsQueryEditFlags.NoReload;

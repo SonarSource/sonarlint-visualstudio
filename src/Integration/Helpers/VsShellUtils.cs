@@ -85,26 +85,6 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        public static bool IsSolutionExistsAndNotBuildingAndNotDebugging()
-        {
-            Debug.Assert(KnownUIContexts.SolutionExistsAndNotBuildingAndNotDebuggingContext != null, "KnownUIContexts.SolutionExistsAndNotBuildingAndNotDebugging is null");
-            if (KnownUIContexts.SolutionExistsAndNotBuildingAndNotDebuggingContext != null)
-            {
-                return KnownUIContexts.SolutionExistsAndNotBuildingAndNotDebuggingContext.IsActive;
-            }
-            return false;
-        }
-
-        public static bool IsSolutionExistsAndFullyLoaded()
-        {
-            Debug.Assert(KnownUIContexts.SolutionExistsAndFullyLoadedContext != null, "KnownUIContexts.SolutionExistsAndFullyLoadedContext is null");
-            if (KnownUIContexts.SolutionExistsAndFullyLoadedContext != null)
-            {
-                return KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive;
-            }
-            return false;
-        }
-
         public static void ActivateSolutionExplorer(IServiceProvider serviceProvider)
         {
             var dte = serviceProvider.GetService<SDTE, DTE2>();
