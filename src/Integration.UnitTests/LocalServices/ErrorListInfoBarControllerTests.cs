@@ -25,7 +25,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Threading;
 using FluentAssertions;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -35,7 +34,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.InfoBar;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -57,6 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableConfigurationProvider configProvider;
         private ConfigurableStateManager stateManager;
+        private Mock<IKnownUIContexts> knownUIContexts;
         private ILogger logger;
 
         #region Test plumbing
@@ -64,7 +63,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestInitialize]
         public void TestInit()
         {
-            KnownUIContextsAccessor.Reset();
+            ThreadHelper.SetCurrentThreadAsUIThread();
+
             this.serviceProvider = new ConfigurableServiceProvider();
 
             this.teamExplorerController = new ConfigurableTeamExplorerController();
@@ -92,6 +92,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.stateManager = (ConfigurableStateManager)this.host.VisualStateManager;
             this.logger = new TestLogger();
+        
+            this.knownUIContexts = new Mock<IKnownUIContexts>();
         }
 
         #endregion Test plumbing
@@ -186,20 +188,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SetBindingMode(SonarLintMode.LegacyConnected);
             var testSubject = CreateTestSubject();
             this.ConfigureLoadedSolution();
-            SetSolutionExistsAndFullyLoadedContextState(isActive: false);
+
+            var uiContext = SetSolutionExistsAndFullyLoadedContextState(isActive: false);
 
             // Act
             testSubject.Refresh();
             RunAsyncAction();
 
             // Assert
+            // Action should have been queued because the context is not active
+            uiContext.Verify(x => x.WhenActivated(testSubject.ProcessSolutionBinding), Times.Once());
+
             this.outputWindowPane.AssertOutputStrings(0);
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
 
             // Act (simulate solution fully loaded event)
-            SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            uiContext = SetSolutionExistsAndFullyLoadedContextState(isActive: true);
+            SimulateUIContextIsActivated(testSubject);
 
             // Assert
+            // Action should not have been queued because the context is active
+            uiContext.Verify(x => x.WhenActivated(It.IsAny<Action>()), Times.Never);
+
             this.outputWindowPane.AssertOutputStrings(2);
             this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(1, new[] { "unbound.csproj" }, splitter: "\r\n\t ()".ToArray());
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
@@ -869,7 +879,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Test helpers
 
         private ErrorListInfoBarController CreateTestSubject() =>
-            new ErrorListInfoBarController(host, unboundProjectFinder, logger);
+            new ErrorListInfoBarController(host, unboundProjectFinder, logger, knownUIContexts.Object);
 
         private static IHost CreateHostWithThrowingConfigProvider(Exception exceptionToThrow)
         {
@@ -995,10 +1005,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             SetSolutionExistsAndFullyLoadedContextState(isActive: true);
         }
 
-        private static void SetSolutionExistsAndFullyLoadedContextState(bool isActive)
+        private Mock<IUIContext> SetSolutionExistsAndFullyLoadedContextState(bool isActive, Action whenChangedCallback = null)
         {
-            KnownUIContextsAccessor.MonitorSelectionService.SetContext(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, isActive);
+            knownUIContexts.Reset();
+
+            var context = new Mock<IUIContext>();
+            context.Setup(x => x.IsActive).Returns(isActive);
+
+            knownUIContexts.SetupGet(x => x.SolutionExistsAndFullyLoadedContext).Returns(context.Object);
+            return context;
         }
+
+        private void SimulateUIContextIsActivated(ErrorListInfoBarController testSubject) =>
+            testSubject.ProcessSolutionBinding();
 
         private static void VerifyInfoBar(ConfigurableInfoBar infoBar)
         {
