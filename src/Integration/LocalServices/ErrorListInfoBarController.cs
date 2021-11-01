@@ -261,7 +261,7 @@ namespace SonarLint.VisualStudio.Integration
             {
                 ClearCurrentInfoBar();
             }
-            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 LogUnexpectedError(ex);
             }
