@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using FluentAssertions;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -37,17 +36,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsQueryEditQuerySave2 queryEditAndSave;
         private MockFileSystem fileSystem;
+        private Mock<IKnownUIContexts> knownUIContexts;
         private TestLogger logger;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            KnownUIContextsAccessor.Reset();
-            this.serviceProvider = new ConfigurableServiceProvider();
-            this.queryEditAndSave = new ConfigurableVsQueryEditQuerySave2();
-            this.serviceProvider.RegisterService(typeof(SVsQueryEditQuerySave), this.queryEditAndSave);
-            this.fileSystem = new MockFileSystem();
-            this.logger = new TestLogger();
+            knownUIContexts = new Mock<IKnownUIContexts>();
+            SetKnownUIContexts(false, false);
+            serviceProvider = new ConfigurableServiceProvider();
+            queryEditAndSave = new ConfigurableVsQueryEditQuerySave2();
+            serviceProvider.RegisterService(typeof(SVsQueryEditQuerySave), this.queryEditAndSave);
+            fileSystem = new MockFileSystem();
+            logger = new TestLogger();
         }
 
         [TestMethod]
@@ -55,14 +56,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             Exceptions.Expect<ArgumentNullException>(() => new SourceControlledFileSystem(null, logger));
             Exceptions.Expect<ArgumentNullException>(() => new SourceControlledFileSystem(this.serviceProvider, null));
-
         }
 
         [TestMethod]
         public void SourceControlledFileSystem_FileExistOrQueuedToBeWritten()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
+            var testSubject = CreateTestSubject();
             string file = @"Z:\Y\XXX \n.lll";
 
             // Case 1: file exists
@@ -95,8 +95,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [DataRow(false, false, false)]
         public void SourceControlledFileSystem_FilesExistOrQueuedToBeWritten_ReturnsIfAllFilesAreQueuedOrWritten(bool firstFileExists, bool secondFileExists, bool expectedResult)
         {
-            var testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
-            var files = new List<string> {@"Z:\Y\XXX\first.txt", @"Z:\Y\XXX\second.txt"};
+            var testSubject = CreateTestSubject();
+            var files = new List<string> { @"Z:\Y\XXX\first.txt", @"Z:\Y\XXX\second.txt" };
 
             if (firstFileExists)
             {
@@ -115,7 +115,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SourceControlledFileSystem_QueueFileWrites_OneCallbackForAllFiles()
         {
             // Arrange
-            var testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
+            var testSubject = CreateTestSubject();
             var files = new List<string> { @"Z:\Y\XXX\first.txt", @"Z:\Y\XXX\second.txt" };
             var callback = new Mock<Func<bool>>();
 
@@ -124,14 +124,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.WriteQueuedFiles();
 
             // Assert
-            callback.Verify(x=> x(), Times.Once);
+            callback.Verify(x => x(), Times.Once);
         }
 
         [TestMethod]
         public void SourceControlledFileSystem_QueueFileWrite_QueryNewFile()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
+            var testSubject = CreateTestSubject();
             string file = @"Z:\Y\XXX \n.lll";
             bool pendExecuted = false;
 
@@ -149,7 +149,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SourceControlledFileSystem_QueueFileWrite_QueryEditFile()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
+            var testSubject = CreateTestSubject();
             string file = @"Z:\Y\XXX \n.lll";
             this.fileSystem.AddFile(file, new MockFileData(""));
             bool pendExecuted = false;
@@ -168,7 +168,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SourceControlledFileSystem_QueueFileWrite_WriteQueuedFiles_ExecutionOrder()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
+            var testSubject = CreateTestSubject();
             string file1 = @"Z:\Y\XXX \1.lll";
             string file2 = @"Z:\Y\XXX \3.lll";
             string file3 = @"Z:\Y\XXX \2.lll";
@@ -191,11 +191,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SourceControlledFileSystem_WriteQueuedFiles_CheckoutFileWhenWhenDebugging()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
+            var testSubject = CreateTestSubject();
             string file1 = @"Z:\Y\XXX \1.lll";
             this.fileSystem.AddFile(file1, new MockFileData(""));
             this.queryEditAndSave.VerifyQueryEditFlags |= (uint)VsQueryEditFlags.NoReload;
-            KnownUIContextsAccessor.MonitorSelectionService.SetContext(VSConstants.UICONTEXT.Debugging_guid, true);
+
+            SetKnownUIContexts(false, true);
             testSubject.QueueFileWrite(file1, () => true);
 
             // Act
@@ -209,11 +210,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SourceControlledFileSystem_WriteQueuedFiles_CheckoutFileWhenBuilding()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
+            var testSubject = CreateTestSubject();
             string file1 = @"Z:\Y\XXX \1.lll";
             this.fileSystem.AddFile(file1, new MockFileData(""));
             this.queryEditAndSave.VerifyQueryEditFlags |= (uint)VsQueryEditFlags.NoReload;
-            KnownUIContextsAccessor.MonitorSelectionService.SetContext(VSConstants.UICONTEXT.SolutionBuilding_guid, true);
+            SetKnownUIContexts(true, false);
+
             testSubject.QueueFileWrite(file1, () => true);
 
             // Act
@@ -227,7 +229,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SourceControlledFileSystem_WriteQueuedFiles_QueryEditFilesFailed()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
+            var testSubject = CreateTestSubject();
             string file1 = @"Z:\Y\XXX \1.lll";
             this.fileSystem.AddFile(file1, new MockFileData(""));
             this.queryEditAndSave.QueryEditFilesVerdict = tagVSQueryEditResult.QER_EditNotOK;
@@ -246,7 +248,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SourceControlledFileSystem_WriteQueuedFiles_NoisyPromptForCreateOperationIsRequired()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
+            var testSubject = CreateTestSubject();
             string file1 = @"Z:\Y\XXX \1.lll";
             this.queryEditAndSave.QuerySaveFilesVerification = flags =>
             {
@@ -274,7 +276,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SourceControlledFileSystem_WriteQueuedFiles_Failed()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
+            var testSubject = CreateTestSubject();
             string file1 = @"Z:\Y\XXX \1.lll";
             this.queryEditAndSave.QuerySaveFilesVerification = flags =>
             {
@@ -294,7 +296,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SourceControlledFileSystem_WriteQueuedFiles_Batching()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
+            var testSubject = CreateTestSubject();
             string file1 = @"Z:\Y\XXX \1.lll";
             string file2 = @"Z:\Y\XXX \3.lll";
             string file3 = @"Z:\Y\XXX \2.lll";
@@ -330,7 +332,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SourceControlledFileSystem_WriteQueuedFiles_FailureInWriteOperation()
         {
             // Arrange
-            SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
+            var testSubject = CreateTestSubject();
             string file1 = @"Z:\Y\XXX \1.lll";
             string file2 = @"Z:\Y\XXX \3.lll";
 
@@ -343,6 +345,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.queryEditAndSave.AssertCreateRequested(file1, file2);
             this.queryEditAndSave.AssertNoEditRequested();
             this.queryEditAndSave.AssertAllBatchesCompleted(1);
+        }
+
+        private SourceControlledFileSystem CreateTestSubject() =>
+            new SourceControlledFileSystem(serviceProvider, logger, fileSystem, knownUIContexts.Object);
+
+        private void SetKnownUIContexts(bool isSolutionBuilding, bool isDebugging)
+        {
+            knownUIContexts.Reset();
+            knownUIContexts.SetupGet(x => x.SolutionBuildingContext).Returns(CreateContext(isSolutionBuilding));
+            knownUIContexts.SetupGet(x => x.DebuggingContext).Returns(CreateContext(isDebugging));
+        }
+
+        private static IUIContext CreateContext(bool isActive)
+        {
+            var context = new Mock<IUIContext>();
+            context.Setup(x => x.IsActive).Returns(isActive);
+            return context.Object;
         }
     }
 }
