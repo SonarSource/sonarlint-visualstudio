@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public IUIContext SolutionExistsAndFullyLoadedContext => new UIContextWrapper(KnownUIContexts.SolutionExistsAndFullyLoadedContext);
 
-        public IUIContext SolutionExistsAndNotBuildingAndNotDebuggingContext => new UIContextWrapper(KnownUIContexts.SolutionBuildingContext);
+        public IUIContext SolutionExistsAndNotBuildingAndNotDebuggingContext => new UIContextWrapper(KnownUIContexts.SolutionExistsAndNotBuildingAndNotDebuggingContext);
 
         public IUIContext DebuggingContext => new UIContextWrapper(KnownUIContexts.DebuggingContext);
     }
