@@ -26,6 +26,9 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
+using VsServiceProvider = Microsoft.VisualStudio.Shell.ServiceProvider;
+using IOLEServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+
 namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 {
     [TestClass]
@@ -37,16 +40,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         [TestInitialize]
         public void TestInitialize()
         {
-            var serviceProvider = VsServiceProviderHelper.GlobalServiceProvider;
+            var serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: true);
             var configurableVsProjectSystemHelper = new ConfigurableVsProjectSystemHelper(serviceProvider);
             serviceProvider.RegisterService(typeof(IProjectSystemHelper), configurableVsProjectSystemHelper, true);
 
             SetupCapabilityEvaluator(serviceProvider);
 
+            SetupVSGlobalServiceProvider(serviceProvider);
+            
             testSubject = new ProjectCapabilityTestProjectIndicator(serviceProvider);
         }
 
-        [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
+        private void SetupVSGlobalServiceProvider(IOLEServiceProvider oleServiceProvider)
+        {
+            // The product code is calling a VS class that internally uses the VS global ServiceProvider instance.
+            // There's no public way to mock this, but we can use reflection to inject our OLE service provider.
+
+            // Note: VsServiceProvider.CreateFromSetSite(...) can also be used to set the global service provider. However,
+            // it has side-effects (additional initialisation that needs other services to be mocked. See
+            // https://www.nuget.org/packages/Microsoft.VisualStudio.Sdk.TestFramework/16.5.22-beta for more information.
+
+            // 1. Create a new VS service provider that will delegate calls to our OLE service provider.
+            var vsServiceProvider = new VsServiceProvider(oleServiceProvider);
+
+            // 2. Update the static field in the VS ServiceProvider to make the new VSServiceProvider the global provider.
+            var globalProviderField = typeof(VsServiceProvider).GetField("globalProvider", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            globalProviderField.SetValue(null, vsServiceProvider);
+        }
+
         [TestMethod]
         public void Ctor_NullServiceProvider_ArgumentNullException()
         {
@@ -55,7 +76,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
 
-        [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
         [TestMethod]
         public void IsTestProject_ProjectHasNoCapabilities_Null()
         {
@@ -65,7 +85,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             actual.Should().BeNull();
         }
 
-        [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
         [TestMethod]
         public void IsTestProject_ProjectHasNonTestCapability_Null()
         {
@@ -76,7 +95,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             actual.Should().BeNull();
         }
 
-        [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
         [TestMethod]
         public void IsTestProject_ProjectHasTestCapability_True()
         {
@@ -89,8 +107,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
         private static void SetCapability(ProjectMock projectMock, string capability)
         {
-            var vsHierarchy = projectMock as IVsHierarchy;
-            vsHierarchy.SetProperty(VSConstants.VSITEMID_ROOT, -2124, capability);
+            var vsHierarchy = (IVsHierarchy)projectMock;
+            vsHierarchy.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID5.VSHPROPID_ProjectCapabilities, capability);
         }
 
         private static void SetupCapabilityEvaluator(ConfigurableServiceProvider serviceProvider)
