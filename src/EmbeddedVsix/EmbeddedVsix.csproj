@@ -90,10 +90,17 @@
   <!-- ***************************************************************** -->
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.0.5321-preview5-gf917fac8" GeneratePathProperty="true">
+
+    <PackageReference Condition=" $(VsTargetVersion) != '2022' " Include="Microsoft.VSSDK.BuildTools" Version="16.8.3038" GeneratePathProperty="true">
       <IncludeAssets>runtime; build; native; contentfiles; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+
+    <PackageReference Condition=" $(VsTargetVersion) == '2022' " Include="Microsoft.VSSDK.BuildTools" Version="17.0.5321-preview5-gf917fac8" GeneratePathProperty="true">
+      <IncludeAssets>runtime; build; native; contentfiles; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Content Include="ReadMe.txt" />

@@ -121,7 +121,13 @@
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
     <PackageReference Include="System.IO.Abstractions" Version="7.1.10" />
     <PackageReference Include="System.Reflection.Metadata" Version="1.2.0" />
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.0.5321-preview5-gf917fac8">
+
+    <PackageReference Condition=" $(VsTargetVersion) != '2022' " Include="Microsoft.VSSDK.BuildTools" Version="16.8.3038">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+
+    <PackageReference Condition=" $(VsTargetVersion) == '2022' " Include="Microsoft.VSSDK.BuildTools" Version="17.0.5321-preview5-gf917fac8">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
