@@ -201,14 +201,13 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
-    <ProjectReference Include="..\CloudSecrets\CloudSecrets.csproj">
+    <!-- __secrets <ProjectReference Include="..\CloudSecrets\CloudSecrets.csproj">
       <Project>{4bc2f68c-6c25-4763-a22e-21b211749e04}</Project>
       <Name>CloudSecrets</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
-    </ProjectReference>
+    </ProjectReference>-->
   </ItemGroup>
-
   <ItemGroup>
     <EmbeddedResource Update="Analysis\AnalysisStrings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -260,10 +259,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="secrets\LICENSE.txt">
+    <!--<Content Include="secrets\LICENSE.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
+    </Content>-->
 
     <Page Include="Settings\GeneralOptionsDialogControl.xaml" />
     <Page Include="Settings\OtherOptionsDialogControl.xaml" />
