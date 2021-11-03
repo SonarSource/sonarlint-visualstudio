@@ -137,13 +137,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
 
             FileConfig.GetCompilerVersion("v142", "14.25.28612").Should().Be("19.25.28612");
 
+            FileConfig.GetCompilerVersion("v143", "14.30.30705").Should().Be("19.30.30705"); // default for VS2022
+
             Action action = () => FileConfig.GetCompilerVersion("v142", "2132");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
                 .StartWith("Unsupported VCToolsVersion: 2132");
 
-            action = () => FileConfig.GetCompilerVersion("v143", "14.30.0000");
+            action = () => FileConfig.GetCompilerVersion("v144", "14.30.0000");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
-                .StartWith("Unsupported PlatformToolset: v143");
+                .StartWith("Unsupported PlatformToolset: v144");
 
             action = () => FileConfig.GetCompilerVersion("", "");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith

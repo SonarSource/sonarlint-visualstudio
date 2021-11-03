@@ -251,6 +251,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                     throw new ArgumentException(Strings.Daemon_PlatformToolsetNotSpecified);
                 // VCToolsVersion is only avaialble from VS2017 onward
                 // Before VS2017 the platform was enough to deduce the compiler version
+                case "v143": // Note: VS2022 uses v143 by default, but the compiler version is still 19
                 case "v142":
                 case "v141":
                 case "v141_xp":
