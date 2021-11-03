@@ -32,7 +32,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.CloudSecrets
 {
-    // [Export(typeof(IAnalyzer))]
+    // [Export(typeof(IAnalyzer))]// __secrets
     internal class SecretsAnalyzer : IAnalyzer
     {
         private readonly ITextDocumentFactoryService textDocumentFactoryService;

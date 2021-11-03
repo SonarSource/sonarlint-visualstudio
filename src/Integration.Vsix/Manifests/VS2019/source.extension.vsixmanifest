@@ -43,8 +43,9 @@
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Infrastructure.VS" Path="|Infrastructure.VS|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="TypeScript" Path="|TypeScript|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="CFamily" Path="|CFamily|" />
+        <!-- __secrets
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="CloudSecrets" Path="|CloudSecrets|" />
-        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="secrets\SonarLint.Secrets.DotNet.dll" />
+        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="secrets\SonarLint.Secrets.DotNet.dll" />-->
     </Assets>
     <Prerequisites>
         <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[16.0,17.0)" DisplayName="Visual Studio core editor" />
