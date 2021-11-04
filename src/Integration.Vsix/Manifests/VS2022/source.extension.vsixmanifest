@@ -2,7 +2,7 @@
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
         <!-- Note: keep the version number in sync with AssemblyInfo.Shared.cs -->
-        <Identity Id="SonarLint.0DE19254-1DCA-4479-8EAF-58E5D677FF4D" Version="5.0.0.0" Language="en-US" Publisher="SonarSource" />
+        <Identity Id="SonarLint.0DE19254-1DCA-4479-8EAF-58E5D677FF4D" Version="5.1.0.0" Language="en-US" Publisher="SonarSource" />
         <DisplayName>SonarLint for Visual Studio 2022 RC2</DisplayName>
         <Preview>true</Preview>
         <Description xml:space="preserve">Roslyn based static code analysis: Find and instantly fix nasty bugs and code smells in C#, VB.Net, C, C++ and JS.</Description>
@@ -20,7 +20,7 @@
     </Installation>
     <Dependencies>
         <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.7.2,)" />
-        <Dependency d:Source="Project" d:ProjectName="EmbeddedVsix" Version="[5.0.0.0]" d:InstallSource="Embed" d:VsixSubPath="EmbeddedVsix" Location="|EmbeddedVsix;VSIXContainerProjectOutputGroup|" DisplayName="|EmbeddedVsix;VSIXNameProjectOutputGroup|" Id="|EmbeddedVsix;VSIXIdentifierProjectOutputGroup|" />
+        <Dependency d:Source="Project" d:ProjectName="EmbeddedVsix" Version="[5.1.0.0]" d:InstallSource="Embed" d:VsixSubPath="EmbeddedVsix" Location="|EmbeddedVsix;VSIXContainerProjectOutputGroup|" DisplayName="|EmbeddedVsix;VSIXNameProjectOutputGroup|" Id="|EmbeddedVsix;VSIXIdentifierProjectOutputGroup|" />
     </Dependencies>
     <Assets>
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Integration" Path="|Integration|" />
