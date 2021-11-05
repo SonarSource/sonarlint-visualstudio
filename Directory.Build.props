@@ -23,7 +23,7 @@
          
          If the code is being built as a submodule of SLVS then we'll pick up the version
          set in the parent Directory.Build.props. -->
-    <NewtonsoftVersion Condition=" $(NewtonsoftVersion)=='' ">8.0.3</NewtonsoftVersion>
+    <NewtonsoftVersion Condition=" $(NewtonsoftVersion)=='' ">13.0.1</NewtonsoftVersion>
   </PropertyGroup>
 
   <ItemGroup Label="Newtonsoft" Condition=" $(RequiresNewtonsoft)=='true' " >

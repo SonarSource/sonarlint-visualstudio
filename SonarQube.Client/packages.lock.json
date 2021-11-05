@@ -22,9 +22,9 @@
       },
       "Newtonsoft.Json": {
         "type": "Direct",
-        "requested": "[8.0.3, )",
-        "resolved": "8.0.3",
-        "contentHash": "KGsYQdS2zLH+H8x2cZaSI7e+YZ4SFIbyy1YJQYl6GYBWjf5o4H1A68nxyq+WTyVSOJQ4GqS/DiPE+UseUizgMg=="
+        "requested": "[13.0.1, )",
+        "resolved": "13.0.1",
+        "contentHash": "ppPFpBcvxdsfUonNcvITKqLl3bqxWbDCZIzDWHzjpdAHRFfZe0Dw9HmA0+za13IdyrgJwpkDTDA9fHaxOrt20A=="
       },
       "System.Net.Http": {
         "type": "Direct",
