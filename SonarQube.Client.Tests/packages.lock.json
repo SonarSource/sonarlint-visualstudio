@@ -56,9 +56,9 @@
       },
       "Newtonsoft.Json": {
         "type": "Direct",
-        "requested": "[8.0.3, )",
-        "resolved": "8.0.3",
-        "contentHash": "KGsYQdS2zLH+H8x2cZaSI7e+YZ4SFIbyy1YJQYl6GYBWjf5o4H1A68nxyq+WTyVSOJQ4GqS/DiPE+UseUizgMg=="
+        "requested": "[13.0.1, )",
+        "resolved": "13.0.1",
+        "contentHash": "ppPFpBcvxdsfUonNcvITKqLl3bqxWbDCZIzDWHzjpdAHRFfZe0Dw9HmA0+za13IdyrgJwpkDTDA9fHaxOrt20A=="
       },
       "BouncyCastle": {
         "type": "Transitive",
@@ -109,7 +109,7 @@
           "BouncyCastle": "1.8.6.1",
           "Google.Protobuf": "3.6.1",
           "Grpc.Tools": "1.4.1",
-          "Newtonsoft.Json": "8.0.3",
+          "Newtonsoft.Json": "13.0.1",
           "System.Net.Http": "4.0.0"
         }
       }
