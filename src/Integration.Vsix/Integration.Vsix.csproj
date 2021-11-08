@@ -8,28 +8,56 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <!-- Executive summary:
-       * to build the VS2017 vsix, build from inside VS2017.
        * to build the VS2019 vsix, build from inside VS2019.
+       * to build the VS2022 vsix, build from inside VS2022.
        
        or
-       
-       * build from a VS2017/2019 command line, and specify the version of VS to target by
-         setting the vsTargetVersion property to 2017 or 2019 e.g.
+
+       * build from a 2019/2022 command line, without specifying the VSTargetVersion property.
+         The version of the command prompt determines the version of SLVS that is built.
+         e.g. building from the VS2022 command prompt will build SLVS2022.
+
+       or
+
+       * build from a 2019/2022 command line, and specify the version of VS to target by
+         setting the vsTargetVersion property to 2017, 2019 or 2022 e.g.
            /p:vsTargetVersion=2017
 
-       The projects use the new-style SDK-format and so cannot be opened in VS2015.
+       Note: it is not possible to build in VS2017 or from the VS2017 command prompt, becuase the
+             test projects use new C# language features that were not available in the compiler that
+             shipped with VS2017.
 
+
+       Switching between debugging in VS2022 and VS2019
+       ************************************************
+       By default, the solution is set up to debug VS2022, so you should use that as the primary IDE.
+       
+       Debugging in VS2019 as possible, but you have to take care when switching between VS versions to
+       ensure that the correct NuGet packages are used.
+       
+       The following process should work reliably:
+       
+       1. Close all open IDEs
+       2. Open the appropriate version of the developer command prompt
+       3. Execute the following command from the command line:
+       
+          msbuild /t:restore,rebuild
+          
+       4. Open SLVS in the corresponding VS versio
+       5. F5
+       
+
+       ************************************************
+       
        Background:
-       We want to be able to use the same set of projects to develop in multiple versions of VS (VS2017, VS2019).
+       We want to be able to use the same set of projects to develop in multiple versions of VS (VS2017, VS2019, VS2022).
 
        To achieve this, this project file has the following features:
        
        * there's a minor hack to prevent VS2017 from auto-upgrading the project - see the PropertyGroup below.
          (The changes made by the auto-upgrade are not required and prevent the project from opening in VS2015).
 
-       * wherever possible, VS assemblies are referenced using NuGet packages. We're targeting the package version
-         supported by the oldest version of VS we want to support, and we're relying on the VS backward-compatibility
-         mechanisms to make it newer versions of VS.
+       * wherever possible, VS assemblies are referenced using NuGet packages. See the file SonarLint.VsPkgRefs.props.
 
        * the TeamFoundation assemblies specific to a particular version of VS, and are not available as NuGet packages.
          This only affects the Integration.TeamExplorer project. However, it does mean we need to build two versions
@@ -111,6 +139,19 @@
     <NoWarn>NU1605</NoWarn>
   </PropertyGroup>
 
+  <ItemGroup Label="VSSDK Build Tools">
+    <PackageReference Condition=" $(VsTargetVersion) != '2022' " Include="Microsoft.VSSDK.BuildTools" Version="16.8.3038" GeneratePathProperty="true">
+      <IncludeAssets>runtime; build; native; contentfiles; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+
+    <PackageReference Condition=" $(VsTargetVersion) == '2022' " Include="Microsoft.VSSDK.BuildTools" Version="17.0.5321-preview5-gf917fac8" GeneratePathProperty="true">
+      <IncludeAssets>runtime; build; native; contentfiles; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+    
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" Version="1.1.37" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="1.3.2" />
@@ -121,10 +162,6 @@
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
     <PackageReference Include="System.IO.Abstractions" Version="7.1.10" />
     <PackageReference Include="System.Reflection.Metadata" Version="1.2.0" />
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.0.5321-preview5-gf917fac8">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
 
     <!-- The VSIX signing package is only required for signed builds, but the use of package.lock.json
          files means it's simpler to always include it so the contents of the lock file don't change for
