@@ -27,6 +27,28 @@
              test projects use new C# language features that were not available in the compiler that
              shipped with VS2017.
 
+
+       Switching between debugging in VS2022 and VS2019
+       ************************************************
+       By default, the solution is set up to debug VS2022, so you should use that as the primary IDE.
+       
+       Debugging in VS2019 as possible, but you have to take care when switching between VS versions to
+       ensure that the correct NuGet packages are used.
+       
+       The following process should work reliably:
+       
+       1. Close all open IDEs
+       2. Open the appropriate version of the developer command prompt
+       3. Execute the following command from the command line:
+       
+          msbuild /t:restore,rebuild
+          
+       4. Open SLVS in the corresponding VS versio
+       5. F5
+       
+
+       ************************************************
+       
        Background:
        We want to be able to use the same set of projects to develop in multiple versions of VS (VS2017, VS2019, VS2022).
 
