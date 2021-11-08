@@ -89,12 +89,20 @@
   <!-- it to be built much more frequently.                              -->
   <!-- ***************************************************************** -->
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.0.5321-preview5-gf917fac8" GeneratePathProperty="true">
+  <ItemGroup Label="VSSDK Build Tools">
+    <PackageReference Condition=" $(VsTargetVersion) != '2022' " Include="Microsoft.VSSDK.BuildTools" Version="16.8.3038" GeneratePathProperty="true">
       <IncludeAssets>runtime; build; native; contentfiles; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <Reference Include="System" />
+
+    <PackageReference Condition=" $(VsTargetVersion) == '2022' " Include="Microsoft.VSSDK.BuildTools" Version="17.0.5321-preview5-gf917fac8" GeneratePathProperty="true">
+      <IncludeAssets>runtime; build; native; contentfiles; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>    
+	<Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Content Include="ReadMe.txt" />
     <Compile Include="InternalsVisibleTo.cs" />
@@ -179,8 +187,8 @@
     <CorFlagsPath>$(MSBuildThisFileDirectory)\..\..\build\CorFlags.exe</CorFlagsPath>
   </PropertyGroup>
 
-  <Target Name="ModifyVsixUtilCorFlags">
-    <!-- VsixUtil.exe is running by default with "32-bit required" flag, which is causing Out of Memory exceptions when building the VSIX 
+  <Target Name="ModifyVsixUtilCorFlags" Condition=" $(VsTargetVersion) != '2022' ">
+    <!-- The pre-SDK v17 version of VsixUtil.exe is running by default with "32-bit required" flag, which is causing Out of Memory exceptions when building the VSIX 
          due to too many files. We are using CorFlags.exe to change the flag and that fixes the problem and allows the Vsix to be built. -->
     <Message Importance="high" Text="Modifying VsixUtil.exe CorFlags" />
     <Exec Command="&quot;$(CorFlagsPath)&quot; &quot;$(VsixUtilPath)&quot; /32BITREQ- /force" />
