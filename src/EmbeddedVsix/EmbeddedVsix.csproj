@@ -1,12 +1,13 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project>
 
-  <Import Condition=" $(VsTargetVersionPropsImported) != 'true'" Project="..\..\SonarLint.VsTargetVersion.props" />
+  <Import Project="..\SonarLint.Product.props" />
+  <Import Project="..\..\build\version.props" />
 
-  <PropertyGroup>
-    <RequiresSigning>true</RequiresSigning>
-  </PropertyGroup>
 
+  <!-- The VSSDK targets need to be imported after the Net.Sdk targets which means we have to import the
+       .NET.Sdk targets using Import rather than specifying it as the Sdk in the Project element. -->
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  
   <!-- *********************************************************-->
   <!-- Hack to work round the VSIX being created every time -->
   <!-- *********************************************************-->
@@ -35,49 +36,29 @@
   <!-- *********************************************************-->
 
   <PropertyGroup>
-    <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
+      <!-- Hack to prevent VS2017 from automatically attempting to upgrade the project -->
+    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
+
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <TargetFrameworkProfile />
   </PropertyGroup>
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+
 
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ProjectGuid>{4BBE7B39-E00A-40FE-88FC-A53C7E49731F}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
+
     <RootNamespace>SonarLint.VisualStudio.AdditionalFiles</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.AdditionalFiles</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
+
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
-    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
-    <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
     <StartAction>Program</StartAction>
     <StartProgram Condition="'$(DevEnvDir)' != ''">$(DevEnvDir)devenv.exe</StartProgram>
     <StartArguments>/rootsuffix Exp</StartArguments>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>$(DefineConstants);TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
 
   <!-- ***************************************************************** -->
@@ -104,9 +85,6 @@
   <ItemGroup>    
 	<Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
-    <Content Include="ReadMe.txt" />
-    <Compile Include="InternalsVisibleTo.cs" />
-    <Compile Include="TypeScriptPathsProvider.cs" />
   </ItemGroup>
 
   <!-- ***************************************** -->
@@ -117,6 +95,7 @@
     <ManifestFolder Condition=" $(VSTargetVersion) == '2022' ">Manifests\VS2022\</ManifestFolder>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Manifests\**" />
     <None Include="$(ManifestFolder)source.extension.vsixmanifest" />
   </ItemGroup>
   <!-- ***************************************** -->
@@ -193,7 +172,9 @@
     <Message Importance="high" Text="Modifying VsixUtil.exe CorFlags" />
     <Exec Command="&quot;$(CorFlagsPath)&quot; &quot;$(VsixUtilPath)&quot; /32BITREQ- /force" />
   </Target>
-
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
+
+
 </Project>
