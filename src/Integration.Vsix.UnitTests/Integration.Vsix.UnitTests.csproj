@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\SonarLint.Test.props" />
-  <Import Project="..\SonarLint.VsPkgRefs.props" />
+  <!--<Import Project="..\SonarLint.VsPkgRefs.props" />-->
 
   <PropertyGroup Label="Specify which VS-specific refs are required">
     <RequiresVCProjectEngine>true</RequiresVCProjectEngine>
@@ -13,6 +13,8 @@
     <ProjectGuid>{203F7669-02B6-4314-BD11-20E8D7C19FBC}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Integration.UnitTests</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Integration.Vsix.UnitTests</AssemblyName>
+        <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
   
   <ItemGroup Label="HACK to make the C++ rule loader tests work">
@@ -44,19 +46,21 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Sdk.TestFramework" Version="16.5.22-beta" />
+    <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
     <PackageReference Include="System.Collections.Immutable" Version="1.1.37" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="1.3.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="1.3.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="1.3.2" />
     <PackageReference Include="Microsoft.Composition" Version="1.0.30" />
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
-    <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
     <PackageReference Include="System.IO.Abstractions" Version="9.0.4" />
     <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="9.0.4" />
     <PackageReference Include="System.Reflection.Metadata" Version="1.2.0" />
-    
+    <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
   </ItemGroup>
 
   <!-- Only need to reference the analyzer common assembly for testing. -->

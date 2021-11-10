@@ -23,6 +23,7 @@ using System.ComponentModel;
 using System.Windows;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Sdk.TestFramework;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
@@ -31,9 +32,37 @@ using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
 {
+    /// <summary>
+    /// Based on https://github.com/microsoft/vssdktestfx/blob/main/doc/mstest.md
+    /// </summary>
     [TestClass]
+    public class VsThreadingFixer
+    {
+        internal static GlobalServiceProvider MockServiceProvider { get; private set; }
+
+        [AssemblyInitialize]
+        public static void AssemblyInit(TestContext context)
+        {
+            MockServiceProvider = new GlobalServiceProvider();
+        }
+
+        [AssemblyCleanup]
+        public static void AssemblyCleanup()
+        {
+            MockServiceProvider.Dispose();
+        }
+    }
+
+    [TestClass]
+    // [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
     public class GeneralOptionsDialogPageTests
     {
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            VsThreadingFixer.MockServiceProvider.Reset();
+        }
+
         private class GeneralOptionsDialogPageTestable : GeneralOptionsDialogPage
         {
             public GeneralOptionsDialogControl Control => Child as GeneralOptionsDialogControl;
@@ -51,7 +80,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         }
 
         [TestMethod]
-        [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
         public void OnActivate_ControlsAreConfigured()
         {
             var settings = new ConfigurableSonarLintSettings
@@ -73,7 +101,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         }
 
         [TestMethod]
-        [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
         public void OnApply_Cancel_SettingsAreNotUpdated()
         {
             var settings = new ConfigurableSonarLintSettings()
@@ -96,7 +123,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         }
 
         [TestMethod]
-        [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
         public void OnApply_Save_SettingsAreUpdated()
         {
             var settings = new ConfigurableSonarLintSettings()
@@ -119,7 +145,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         }
 
         [TestMethod]
-        [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
         public void ClickHyperlink_ShowWikiCommandIsCalled()
         {
             var browserService = new Mock<IVsBrowserService>();
