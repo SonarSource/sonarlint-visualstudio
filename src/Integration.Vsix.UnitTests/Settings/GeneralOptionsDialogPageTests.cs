@@ -54,7 +54,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
     }
 
     [TestClass]
-    // [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
     public class GeneralOptionsDialogPageTests
     {
         [TestInitialize]

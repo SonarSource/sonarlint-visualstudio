@@ -49,7 +49,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
         }
 
         [TestMethod]
-        [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
         public void OnActivate_WhenDataIsShared_CheckBoxIsChecked()
         {
             // Arrange
@@ -67,7 +66,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
         }
 
         [TestMethod]
-        [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
         public void OnActivate_WhenDataIsNotShared_CheckBoxIsUnchecked()
         {
             // Arrange
@@ -84,7 +82,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
         }
 
         [TestMethod]
-        [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
         public void OnApply_WhenApplyBehaviorIsCancel_DoesNotCallOptInOrOptOut()
         {
             // Arrange
@@ -102,7 +99,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
         }
 
         [TestMethod]
-        [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
         public void OnApply_WhenApplyBehaviorIsCancelNoNavigate_DoesNotCallOptInOrOptOut()
         {
             // Arrange
@@ -120,7 +116,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
         }
 
         [TestMethod]
-        [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
         public void OnApply_WhenApplyBehaviorIsApplyAndShareDataStaysFalse_DoesNotCallOptInOrOptOut()
         {
             // Arrange
@@ -141,7 +136,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
         }
 
         [TestMethod]
-        [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
         public void OnApply_WhenApplyBehaviorIsApplyAndShareDataStaysTrue_DoesNotCallOptInOrOptOut()
         {
             // Arrange
@@ -162,7 +156,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
         }
 
         [TestMethod]
-        [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
         public void OnApply_WhenApplyBehaviorIsApplyAndShareDataBecomesTrue_OnlyCallsOptIn()
         {
             // Arrange
@@ -185,7 +178,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
         }
 
         [TestMethod]
-        [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
         public void OnApply_WhenApplyBehaviorIsApplyAndShareDataBecomesFalse_OnlyCallsOptOut()
         {
             // Arrange
