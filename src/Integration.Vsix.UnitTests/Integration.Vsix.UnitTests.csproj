@@ -48,7 +48,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Sdk.TestFramework" Version="16.5.22-beta" />
     <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
     <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
     <PackageReference Include="System.Collections.Immutable" Version="1.1.37" />
@@ -75,8 +74,13 @@
     <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
     <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
 
-    <PackageReference Include="Moq" Version="4.14.5" />
+    <PackageReference Include="Moq" Version="4.16.1" /> <!-- Needs to use the same version as the MS.VS.SDK.TestFramework -->
     <PackageReference Include="FluentAssertions" Version="5.9.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="VSSDK Test framework">
+    <PackageReference Condition="$(VsTargetVersion) != '2022'" Include="Microsoft.VisualStudio.Sdk.TestFramework" Version="16.5.22-beta" />
+    <PackageReference Condition="$(VsTargetVersion) == '2022'" Include="Microsoft.VisualStudio.Sdk.TestFramework" Version="17.0.8-alpha" />
   </ItemGroup>
 
   <ItemGroup>
