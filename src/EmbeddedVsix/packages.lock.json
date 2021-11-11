@@ -1,7 +1,7 @@
 {
   "version": 1,
   "dependencies": {
-    ".NETFramework,Version=v4.6": {
+    ".NETFramework,Version=v4.7.2": {
       "Microsoft.VSSDK.BuildTools": {
         "type": "Direct",
         "requested": "[17.0.5321-preview5-gf917fac8, )",
@@ -24,9 +24,6 @@
         "resolved": "15.8.122",
         "contentHash": "1gu3LopB8nLiomlMGx6Y8Glb+rwABHpksdpNH1X9/GGp6uJvnHAUZWsFUQz8sAuu1CKcQagJcSOUt4bb4pOFKg=="
       }
-    },
-    ".NETFramework,Version=v4.6/win": {},
-    ".NETFramework,Version=v4.6/win-x64": {},
-    ".NETFramework,Version=v4.6/win-x86": {}
+    }
   }
 }
