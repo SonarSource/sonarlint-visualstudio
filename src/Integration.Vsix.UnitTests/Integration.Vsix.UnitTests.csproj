@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\SonarLint.Test.props" />
-  <Import Project="..\SonarLint.VsPkgRefs.props" />
 
   <PropertyGroup Label="Specify which VS-specific refs are required">
     <RequiresVCProjectEngine>true</RequiresVCProjectEngine>
@@ -13,6 +12,14 @@
     <ProjectGuid>{203F7669-02B6-4314-BD11-20E8D7C19FBC}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Integration.UnitTests</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Integration.Vsix.UnitTests</AssemblyName>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+
+    <!-- Conditional compilation constant for VS2022-specific code.
+         We'd prefer to set this the shared SonarLint.VSSpecificAssemblies.props file, but
+         the IDE isn't picking up the setting if we do that. -->
+    <DefineConstants Condition="$(VSTargetVersion)=='2022'">$(DefineConstants);VS2022</DefineConstants>
+
   </PropertyGroup>
   
   <ItemGroup Label="HACK to make the C++ rule loader tests work">
@@ -56,7 +63,6 @@
     <PackageReference Include="System.IO.Abstractions" Version="9.0.4" />
     <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="9.0.4" />
     <PackageReference Include="System.Reflection.Metadata" Version="1.2.0" />
-    
   </ItemGroup>
 
   <!-- Only need to reference the analyzer common assembly for testing. -->
@@ -71,8 +77,18 @@
     <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
     <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
 
-    <PackageReference Include="Moq" Version="4.14.5" />
+    <PackageReference Include="Moq" Version="4.16.1" /> <!-- Needs to use the same version as the MS.VS.SDK.TestFramework -->
     <PackageReference Include="FluentAssertions" Version="5.9.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="VSSDK Test framework">
+    <!-- see https://github.com/SonarSource/sonarlint-visualstudio/issues/2760 -->
+    <!--<PackageReference Condition="$(VsTargetVersion) != '2022'" Include="Microsoft.VisualStudio.Sdk.TestFramework" Version="16.5.22-beta" />-->
+
+    <!-- NOTE: the "17.0.8.alpha" package is not available from Microsoft in the public NuGet
+         feed. It was created by building and packaging the MS source code at the following
+         commit: https://github.com/microsoft/vssdktestfx/commit/bb86ac65c2195e81e8131865acbbc51f448d9ce8-->
+    <PackageReference Condition="$(VsTargetVersion) == '2022'" Include="Microsoft.VisualStudio.Sdk.TestFramework" Version="17.0.8-alpha" />
   </ItemGroup>
 
   <ItemGroup>
