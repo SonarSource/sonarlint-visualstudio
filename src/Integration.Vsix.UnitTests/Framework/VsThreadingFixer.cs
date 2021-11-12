@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             Console.WriteLine($"XXX AssemblyResolve: {args.Name}");
-            Console.WriteLine($"\t\tRequesting assmebly: {args?.RequestingAssembly.FullName}");
+            Console.WriteLine($"YYY Requesting assembly: {args?.RequestingAssembly?.FullName}");
             return null;
         }
 
