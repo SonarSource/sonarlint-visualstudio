@@ -23,7 +23,6 @@ using System.ComponentModel;
 using System.Windows;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Sdk.TestFramework;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
