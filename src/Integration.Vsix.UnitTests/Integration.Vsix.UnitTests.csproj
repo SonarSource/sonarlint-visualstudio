@@ -82,7 +82,7 @@
 
   <ItemGroup Label="VSSDK Test framework">
     <!-- see https://github.com/SonarSource/sonarlint-visualstudio/issues/2760 -->
-    <PackageReference Condition="$(VsTargetVersion) != '2022'" Include="Microsoft.VisualStudio.Sdk.TestFramework" Version="16.5.22-beta" />
+    <!--<PackageReference Condition="$(VsTargetVersion) != '2022'" Include="Microsoft.VisualStudio.Sdk.TestFramework" Version="16.5.22-beta" />-->
 
     <!-- NOTE: the "17.0.8.alpha" package is not available from Microsoft in the public NuGet
          feed. It was created by building and packaging the MS source code at the following
