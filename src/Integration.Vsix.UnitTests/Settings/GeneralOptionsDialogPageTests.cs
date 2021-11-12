@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#if VS2022 // see https://github.com/SonarSource/sonarlint-visualstudio/issues/2760
+
 using System;
 using System.ComponentModel;
 using System.Windows;
@@ -29,11 +31,18 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Vsix;
 
+
 namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
 {
     [TestClass]
     public class GeneralOptionsDialogPageTests
     {
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            VsThreadingFixer.MockServiceProvider.Reset();
+        }
+
         private class GeneralOptionsDialogPageTestable : GeneralOptionsDialogPage
         {
             public GeneralOptionsDialogControl Control => Child as GeneralOptionsDialogControl;
@@ -51,7 +60,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         }
 
         [TestMethod]
-        [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
         public void OnActivate_ControlsAreConfigured()
         {
             var settings = new ConfigurableSonarLintSettings
@@ -73,7 +81,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         }
 
         [TestMethod]
-        [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
         public void OnApply_Cancel_SettingsAreNotUpdated()
         {
             var settings = new ConfigurableSonarLintSettings()
@@ -96,7 +103,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         }
 
         [TestMethod]
-        [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
         public void OnApply_Save_SettingsAreUpdated()
         {
             var settings = new ConfigurableSonarLintSettings()
@@ -119,7 +125,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         }
 
         [TestMethod]
-        [Ignore("ThreadHelper - needs fix up after VSSDK package update")]
         public void ClickHyperlink_ShowWikiCommandIsCalled()
         {
             var browserService = new Mock<IVsBrowserService>();
@@ -156,3 +161,5 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         }
     }
 }
+
+#endif
