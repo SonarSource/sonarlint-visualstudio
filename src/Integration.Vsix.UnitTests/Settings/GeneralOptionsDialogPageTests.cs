@@ -32,27 +32,6 @@ using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
 {
-    /// <summary>
-    /// Based on https://github.com/microsoft/vssdktestfx/blob/main/doc/mstest.md
-    /// </summary>
-    [TestClass]
-    public class VsThreadingFixer
-    {
-        internal static GlobalServiceProvider MockServiceProvider { get; private set; }
-
-        [AssemblyInitialize]
-        public static void AssemblyInit(TestContext context)
-        {
-            MockServiceProvider = new GlobalServiceProvider();
-        }
-
-        [AssemblyCleanup]
-        public static void AssemblyCleanup()
-        {
-            MockServiceProvider.Dispose();
-        }
-    }
-
     [TestClass]
     public class GeneralOptionsDialogPageTests
     {
