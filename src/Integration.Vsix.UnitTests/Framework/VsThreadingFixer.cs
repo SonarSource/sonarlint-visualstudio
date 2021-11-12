@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Reflection;
 using Microsoft.VisualStudio.Sdk.TestFramework;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -34,7 +36,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [AssemblyInitialize]
         public static void AssemblyInit(TestContext context)
         {
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+
             MockServiceProvider = new GlobalServiceProvider();
+        }
+
+        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            Console.WriteLine($"XXX AssemblyResolve: {args.Name}");
+            Console.WriteLine($"\t\tRequesting assmebly: {args?.RequestingAssembly.FullName}");
+            return null;
         }
 
         [AssemblyCleanup]
