@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#if VS2022 // see https://github.com/SonarSource/sonarlint-visualstudio/issues/2760
+
 using System;
 using System.ComponentModel;
 using System.Windows;
@@ -28,6 +30,7 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Vsix;
+
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
 {
@@ -158,3 +161,5 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         }
     }
 }
+
+#endif

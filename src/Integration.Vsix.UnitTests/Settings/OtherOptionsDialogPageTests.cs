@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#if VS2022 // see https://github.com/SonarSource/sonarlint-visualstudio/issues/2760
+
 using System;
 using System.ComponentModel;
 using FluentAssertions;
@@ -220,3 +222,5 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
         }
     }
 }
+
+#endif

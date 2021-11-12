@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Reflection;
+#if VS2022 // see https://github.com/SonarSource/sonarlint-visualstudio/issues/2760
+
 using Microsoft.VisualStudio.Sdk.TestFramework;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -36,16 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [AssemblyInitialize]
         public static void AssemblyInit(TestContext context)
         {
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
-
             MockServiceProvider = new GlobalServiceProvider();
-        }
-
-        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            Console.WriteLine($"XXX AssemblyResolve: {args.Name}");
-            Console.WriteLine($"YYY Requesting assembly: {args?.RequestingAssembly?.FullName}");
-            return null;
         }
 
         [AssemblyCleanup]
@@ -55,3 +46,5 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
     }
 }
+
+#endif
