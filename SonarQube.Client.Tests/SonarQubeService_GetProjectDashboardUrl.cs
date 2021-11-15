@@ -29,14 +29,23 @@ namespace SonarQube.Client.Tests
     public class SonarQubeService_GetProjectDashboardUrl : SonarQubeService_TestBase
     {
         [TestMethod]
-        public async Task GetProjectDashboardUrl_ReturnsExpectedUrl()
+        public async Task GetProjectDashboardUrl_SonarQube_ReturnsExpectedUrl()
         {
-            await ConnectToSonarQube("6.2.0.0");
+            await ConnectToSonarQube("3.3.0.0", "http://localhost:9000");
 
             var result = service.GetProjectDashboardUrl("myProject");
 
-            result.Host.Should().Be("localhost");
-            result.LocalPath.Should().Be("/dashboard/index/myProject");
+            result.Should().BeEquivalentTo(new Uri("http://localhost:9000/dashboard/index/myProject"));
+        }
+
+        [TestMethod]
+        public async Task GetProjectDashboardUrl_SonarCloud_ReturnsExpectedUrl()
+        {
+            await ConnectToSonarQube("3.3.0.0", serverUrl: "https://sonarcloud.io");
+
+            var result = service.GetProjectDashboardUrl("myProject");
+
+            result.Should().BeEquivalentTo(new Uri("https://sonarcloud.io/project/overview?id=myProject"));
         }
 
         [TestMethod]
