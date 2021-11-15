@@ -104,16 +104,48 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public string RuleKey { get; }
         public bool PartsMakeFlow { get; }
         public MessagePart[] Parts { get; }
+        public Fix[] Fixes { get; }
 
         // SLVS: we expect the class to be JSON-serializable for the ease of testing, and therefore the ctor parameter names must match the property names
         // for the default Newtonsoft serializer to work correctly.
-        public Message(string ruleKey, string filename, int line, int column, int endLine, int endColumn, string text, bool partsMakeFlow, MessagePart[] parts)
+        public Message(string ruleKey, string filename, int line, int column, int endLine, int endColumn, string text, bool partsMakeFlow, MessagePart[] parts, Fix[] fixes)
             : base(filename, line, column, endLine, endColumn, text)
         {
             RuleKey = ruleKey;
             PartsMakeFlow = partsMakeFlow;
             Parts = parts;
+            Fixes = fixes;
         }
 
+    }
+
+    internal class Fix
+    {
+        public string Message { get; }
+        public Edit[] Edits { get; }
+
+        public Fix(string message, Edit[] edits)
+        {
+            Message = message;
+            Edits = edits;
+        }
+    }
+
+    internal class Edit
+    {
+        public int StartLine { get; }
+        public int StartColumn { get; }
+        public int EndLine { get; }
+        public int EndColumn { get; }
+        public string Text { get; }
+
+        public Edit(int startLine, int startColumn, int endLine, int endColumn, string text)
+        {
+            StartLine = startLine;
+            StartColumn = startColumn;
+            EndLine = endLine;
+            EndColumn = endColumn;
+            Text = text;
+        }
     }
 }
