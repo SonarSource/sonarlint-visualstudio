@@ -335,6 +335,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 Protocol.WriteInt(writer, 17);
                 Protocol.WriteUTF(writer, "Flow message");
 
+                // 0 fixes
+                writer.Write(false);
+                Protocol.WriteInt(writer, 0);
+
                 // 1 measure
                 Protocol.WriteUTF(writer, "measures");
                 Protocol.WriteInt(writer, 1);
@@ -385,6 +389,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 writer.Write(false); // no flow
                 Protocol.WriteInt(writer, 0);
 
+                // 0 fixes
+                writer.Write(false);
+                Protocol.WriteInt(writer, 0);
+
                 // Issue 2
                 Protocol.WriteUTF(writer, "message");
                 Protocol.WriteUTF(writer, "ruleKey2");
@@ -397,6 +405,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 Protocol.WriteUTF(writer, "Issue message");
 
                 writer.Write(false); // no flow
+                Protocol.WriteInt(writer, 0);
+
+                // 0 fixes
+                writer.Write(false);
                 Protocol.WriteInt(writer, 0);
 
                 // Issue 3 
@@ -413,6 +425,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 writer.Write(false); // no flow
                 Protocol.WriteInt(writer, 0);
 
+                // 0 fixes
+                writer.Write(false);
+                Protocol.WriteInt(writer, 0);
 
                 // 1 measure
                 Protocol.WriteUTF(writer, "measures");

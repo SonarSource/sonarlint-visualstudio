@@ -2,6 +2,7 @@
   "Messages": [
     {
       "Filename": "",
+      "Fixes": [],
       "RuleKey": "S1135",
       "PartsMakeFlow": false,
       "Parts": [],

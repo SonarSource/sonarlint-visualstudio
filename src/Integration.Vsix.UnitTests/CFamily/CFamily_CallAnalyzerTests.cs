@@ -269,6 +269,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 Protocol.WriteInt(writer, 17);
                 Protocol.WriteUTF(writer, "Flow message");
 
+                // 0 fixes
+                writer.Write(false);
+                Protocol.WriteInt(writer, 0);
+
                 // 1 measure
                 Protocol.WriteUTF(writer, "measures");
                 Protocol.WriteInt(writer, 1);
