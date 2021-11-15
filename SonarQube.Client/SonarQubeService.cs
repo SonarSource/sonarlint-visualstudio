@@ -234,9 +234,12 @@ namespace SonarQube.Client
         {
             EnsureIsConnected();
 
-            const string ProjectDashboardRelativeUrl = "dashboard/index/{0}";
+            const string SonarQube_ProjectDashboardRelativeUrl = "dashboard/index/{0}";
+            const string SonarCloud_ProjectDashboardRelativeUrl = "project/overview?id={0}";
 
-            return new Uri(httpClient.BaseAddress, string.Format(ProjectDashboardRelativeUrl, projectKey));
+            var urlFormat = ServerInfo.ServerType == ServerType.SonarCloud ? SonarCloud_ProjectDashboardRelativeUrl : SonarQube_ProjectDashboardRelativeUrl;
+
+            return new Uri(httpClient.BaseAddress, string.Format(urlFormat, projectKey));
         }
 
         public async Task<SonarQubeQualityProfile> GetQualityProfileAsync(string projectKey, string organizationKey, SonarQubeLanguage language, CancellationToken token)
