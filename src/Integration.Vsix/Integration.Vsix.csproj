@@ -464,8 +464,8 @@
     <!-- Automatically update the baseline when necessary if building in the IDE (simplifies development when working on new code) -->
     <AsmRefUpdateBaselineIfChanged Condition="$(AsmRefUpdateBaseline)=='' AND $(BuildingInsideVisualStudio)=='true'">true</AsmRefUpdateBaselineIfChanged>
 
-    <!-- Only check the VS2019 build -->
-    <AsmRefDisableBaselining Condition=" $(VersionSpecificSuffix) != '2019' ">true</AsmRefDisableBaselining>
+    <!-- Only check the VS2022 build -->
+    <AsmRefDisableBaselining Condition=" $(VersionSpecificSuffix) != '2022' ">true</AsmRefDisableBaselining>
 
     <!-- The version patch number changes in the CI every build so we ignore it when comparing versions -->
     <AsmRefSourceVersionCompatibility>MajorMinorBuild</AsmRefSourceVersionCompatibility>
