@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
 
         #endregion ICFamilyRulesConfigProvider implementation
 
-        private class SingleLanguageRulesConfiguration : ICFamilyRulesConfig
+        private sealed class SingleLanguageRulesConfiguration : ICFamilyRulesConfig
         {
             private static readonly StringComparer RuleKeyComparer = StringComparer.OrdinalIgnoreCase;
 

@@ -27,6 +27,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
     [TestClass]
     public class HotspotRuleTests
     {
+        [TestMethod]
         public void Ctor_PropertiesSet()
         {
             IHotspotRule rule = new HotspotRule("key", "name", "sec cat", HotspotPriority.Medium, "risk", "vuln", "fix");

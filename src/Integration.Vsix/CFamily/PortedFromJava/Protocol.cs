@@ -182,7 +182,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             string text = ReadUTF(reader);
             bool partsMakeFlow = reader.ReadBoolean();
             MessagePart[] parts = ReadMessageParts(reader);
-            return new Message(ruleKey, filename, line, column, endLine, endColumn, text, partsMakeFlow, parts);;
+            return new Message(ruleKey, filename, line, column, endLine, endColumn, text, partsMakeFlow, parts);
         }
 
         private static MessagePart[] ReadMessageParts(BinaryReader reader)

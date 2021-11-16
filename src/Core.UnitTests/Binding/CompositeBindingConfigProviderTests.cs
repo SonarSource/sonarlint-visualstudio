@@ -111,9 +111,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
             var testSubject = new CompositeBindingConfigProvider(otherProvider);
 
             // 1. Multiple matching providers -> config from the first matching provider returned
-            Action act = () => testSubject.GetConfigurationAsync(qp, Language.Cpp, BindingConfiguration.Standalone, CancellationToken.None).Wait();
+            Func<Task> act = async () => await testSubject.GetConfigurationAsync(qp, Language.Cpp, BindingConfiguration.Standalone, CancellationToken.None);
 
-            act.Should().ThrowExactly<AggregateException>().And.InnerException.Should().BeOfType<ArgumentOutOfRangeException>();
+            act.Should().ThrowExactly<ArgumentOutOfRangeException>();
         }
 
         private class DummyProvider : IBindingConfigProvider
