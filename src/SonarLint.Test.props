@@ -9,6 +9,7 @@
     <IsTestProject>true</IsTestProject>
     <RequiresSigning>false</RequiresSigning>
     <SonarQubeTestProject>true</SonarQubeTestProject>
+    <CodeAnalysisRuleSet>TestsRuleset.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   
 </Project>

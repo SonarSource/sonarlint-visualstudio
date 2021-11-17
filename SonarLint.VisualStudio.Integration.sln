@@ -57,6 +57,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{90141AF9-756
 		src\SonarLint.Test.props = src\SonarLint.Test.props
 		src\SonarLint.VsPkgRefs.props = src\SonarLint.VsPkgRefs.props
 		src\SonarLint.VSSpecificAssemblies.props = src\SonarLint.VSSpecificAssemblies.props
+		TestsRuleset.ruleset = TestsRuleset.ruleset
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{E93C2CF9-69A6-4669-BE8A-6060B18FEDCA}"
@@ -106,7 +107,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TypeScript.UnitTests", "src
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EmbeddedVsix", "EmbeddedVsix", "{D0993E3E-A109-4AAE-973E-678CB745127E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmbeddedVsix", "src\EmbeddedVsix\EmbeddedVsix.csproj", "{4BBE7B39-E00A-40FE-88FC-A53C7E49731F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmbeddedVsix", "src\EmbeddedVsix\EmbeddedVsix.csproj", "{4BBE7B39-E00A-40FE-88FC-A53C7E49731F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmbeddedVsix.UnitTests", "src\EmbeddedVsix.UnitTests\EmbeddedVsix.UnitTests.csproj", "{BCE50F3E-7916-4D8A-902E-1B2CB202385F}"
 EndProject

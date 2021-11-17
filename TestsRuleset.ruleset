@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="Tests RuleSet" Description="RuleSet to disable roslyn rules for test code" ToolsVersion="17.0">
+  <Include Path=".\.sonarlint\sonarlint-visualstudiocsharp.ruleset" Action="Default" />
+  <Rules AnalyzerId="Microsoft.CodeAnalysis.Analyzers" RuleNamespace="Microsoft.CodeAnalysis.Analyzers">
+    <Rule Id="RS1001" Action="None" />
+    <Rule Id="RS1004" Action="None" />
+    <Rule Id="RS1009" Action="None" />
+  </Rules>
+  <Rules AnalyzerId="Microsoft.VisualStudio.SDK.Analyzers" RuleNamespace="Microsoft.VisualStudio.SDK.Analyzers">
+    <Rule Id="VSSDK001" Action="None" />
+    <Rule Id="VSSDK003" Action="None" />
+    <Rule Id="VSSDK004" Action="None" />
+  </Rules>
+  <Rules AnalyzerId="Microsoft.VisualStudio.Threading.Analyzers" RuleNamespace="Microsoft.VisualStudio.Threading.Analyzers">
+    <Rule Id="VSTHRD200" Action="None" />
+  </Rules>
+</RuleSet>
