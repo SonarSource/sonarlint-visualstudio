@@ -510,7 +510,7 @@ namespace SonarLint.VisualStudio.Integration
 
             var hierarchy = GetIVsHierarchy(dteProject);
 
-            return hierarchy != null && hierarchy is IVsAggregatableProjectCorrected;
+            return hierarchy is IVsAggregatableProjectCorrected;
         }
     }
 }

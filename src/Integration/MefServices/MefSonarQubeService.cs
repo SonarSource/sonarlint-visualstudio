@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
         {
         }
 
-        private class LoggerAdapter : SonarQube.Client.Logging.ILogger
+        private sealed class LoggerAdapter : SonarQube.Client.Logging.ILogger
         {
             private readonly ILogger logger;
 

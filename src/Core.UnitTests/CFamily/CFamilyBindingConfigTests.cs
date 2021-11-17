@@ -53,8 +53,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         {
             var settings = new RulesSettings();
             var testSubject = new CFamilyBindingConfig(settings, "c:\\test");
-            testSubject.RuleSettings.Equals(settings);
-            testSubject.FilePath.Equals("c:\\test");
+            testSubject.RuleSettings.Should().BeEquivalentTo(settings);
+            testSubject.FilePath.Should().BeEquivalentTo("c:\\test");
         }
 
         [TestMethod]
