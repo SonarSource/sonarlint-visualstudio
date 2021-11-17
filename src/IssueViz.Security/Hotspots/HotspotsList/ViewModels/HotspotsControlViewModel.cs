@@ -100,14 +100,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         {
             NavigateCommand = new DelegateCommand(parameter =>
             {
-                var selectedHotspot = (IHotspotViewModel)parameter;
-                locationNavigator.TryNavigate(selectedHotspot.Hotspot);
+                var hotspot = (IHotspotViewModel)parameter;
+                locationNavigator.TryNavigate(hotspot.Hotspot);
             }, parameter => parameter is IHotspotViewModel);
 
             RemoveCommand = new DelegateCommand(parameter =>
             {
-                var selectedHotspot = (IHotspotViewModel)parameter;
-                hotspotsStore.Remove(selectedHotspot.Hotspot);
+                var hotspot = (IHotspotViewModel)parameter;
+                hotspotsStore.Remove(hotspot.Hotspot);
             }, parameter => parameter is IHotspotViewModel);
         }
 

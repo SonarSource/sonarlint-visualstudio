@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class NoOpNuGetBindingOperationTests
     {
+        [TestMethod]
         public void Ctor_InvalidArgs_Throws()
         {
             // Arrange
@@ -39,6 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
+        [TestMethod]
         public void ProcessExport_ReturnsTrue()
         {
             // Arrange

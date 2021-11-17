@@ -29,14 +29,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
     [TestClass]
     public class SonarLintSettingsTests
     {
-        private ConfigurableServiceProvider serviceProvider;
         private ConfigurableWritableSettingsStore settingsStore;
         private ConfigurableSettingsManager settingsManager;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            this.serviceProvider = new ConfigurableServiceProvider();
             this.settingsStore = new ConfigurableWritableSettingsStore();
             this.settingsManager = new ConfigurableSettingsManager(this.settingsStore);
         }
@@ -156,7 +154,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             }
 
             // Act + Assert (no store -> no exception)
-            testSubject.SetValue("key1", false);
+            Action act = () => testSubject.SetValue("key1", false);
+
+            act.Should().NotThrow();
         }
 
         [TestMethod]
@@ -255,7 +255,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             }
 
             // Act + Assert (no store -> no exception)
-            testSubject.SetValue("key1", "value");
+            Action act = () => testSubject.SetValue("key1", "value");
+
+            act.Should().NotThrow();
         }
 
         [TestMethod]
@@ -354,7 +356,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             }
 
             // Act + Assert (no store -> no exception)
-            testSubject.SetValue("key1", 1);
+            Action act = () => testSubject.SetValue("key1", 1);
+
+            act.Should().NotThrow();
         }
 
         #region Helpers
