@@ -152,7 +152,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void PlatformName()
         {
             CFamilyHelper.Capture.IsPlatformX64("Win32").Should().Be(false);
+            CFamilyHelper.Capture.IsPlatformX64("win32").Should().Be(false);
+            CFamilyHelper.Capture.IsPlatformX64("X86").Should().Be(false);
+            CFamilyHelper.Capture.IsPlatformX64("x86").Should().Be(false);
             CFamilyHelper.Capture.IsPlatformX64("x64").Should().Be(true);
+            CFamilyHelper.Capture.IsPlatformX64("X64").Should().Be(true);
+            CFamilyHelper.Capture.IsPlatformX64("WiN64").Should().Be(true);
 
             Action action = () => CFamilyHelper.Capture.IsPlatformX64("foo");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
