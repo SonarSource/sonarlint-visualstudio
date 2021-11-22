@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using SonarLint.VisualStudio.Integration;
 
@@ -115,7 +116,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
                 public ICFamilyRulesConfig EffectiveConfig { get; }
             }
 
-            private readonly IDictionary<string, CacheEntry> languageToConfigMap = new Dictionary<string, CacheEntry>();
+            private readonly IDictionary<string, CacheEntry> languageToConfigMap = new ConcurrentDictionary<string, CacheEntry>();
 
             internal /* for testing */ int CacheCount { get { return languageToConfigMap.Count; } }
 
