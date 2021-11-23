@@ -75,36 +75,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
         public async Task<IRequest> TryCreateAsync(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
         {
-            IRequest request = null;
-            await threadHandling.RunOnUIThread(() => request = TryCreateSync(analyzedFilePath, analyzerOptions));
-            return request;
-        }
+            threadHandling.ThrowIfOnUIThread();
 
-        private IRequest TryCreateSync(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
-        {
-            LogDebug("Trying to create request for " + analyzedFilePath);
-
-            threadHandling.ThrowIfNotOnUIThread();
             try
             {
-                var projectItem = dte?.Solution?.FindProjectItem(analyzedFilePath);
+                LogDebug("Trying to create request for " + analyzedFilePath);
 
-                if (projectItem == null)
+                IFileConfig fileConfig = null;
+
+                await threadHandling.RunOnUIThread(() =>
                 {
-                    LogDebug("\tCould not locate a project item");
-                    return null;
-                }
-
-                var fileConfig = fileConfigProvider.Get(projectItem, analyzedFilePath, analyzerOptions);
+                    fileConfig = GetFileConfigSync(analyzedFilePath, analyzerOptions);
+                });
 
                 if (fileConfig == null)
                 {
-                    LogDebug("\tCould not get the file configuration");
                     return null;
                 }
 
                 var request = CreateRequest(analyzedFilePath, analyzerOptions, fileConfig);
+
                 LogDebug("\tCreated request successfully");
+
                 return request;
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
@@ -114,8 +106,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             }
         }
 
+        private IFileConfig GetFileConfigSync(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
+        {
+            threadHandling.ThrowIfNotOnUIThread();
+
+            var projectItem = dte?.Solution?.FindProjectItem(analyzedFilePath);
+
+            if (projectItem == null)
+            {
+                LogDebug("\tCould not locate a project item");
+                return null;
+            }
+
+            var fileConfig = fileConfigProvider.Get(projectItem, analyzedFilePath, analyzerOptions);
+
+            if (fileConfig == null)
+            {
+                LogDebug("\tCould not get the file configuration");
+                return null;
+            }
+
+            return fileConfig;
+        }
+
         private IRequest CreateRequest(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions, IFileConfig fileConfig)
         {
+            threadHandling.ThrowIfOnUIThread();
+
             var request = ToRequest(fileConfig, analyzedFilePath);
 
             if (request.CFamilyLanguage == null)
