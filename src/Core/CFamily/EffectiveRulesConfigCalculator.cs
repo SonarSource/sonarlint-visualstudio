@@ -65,6 +65,14 @@ namespace SonarLint.VisualStudio.Core.CFamily
             configCache = new RulesConfigCache();
         }
 
+        /// <summary>
+        /// Calculate the effective rules according to user overrides.
+        /// </summary>
+        /// <remarks>
+        /// GetEffectiveRulesConfig could be called simultaneously from multiple threads. 
+        /// This won't cause a crash because we are using a ConcurrentDictionary (see bug #2783). 
+        /// It could mean that we are doing unnecessary work with multiple threads calculating the same result.
+        /// </remarks>
         public ICFamilyRulesConfig GetEffectiveRulesConfig(string languageKey, ICFamilyRulesConfig defaultRulesConfig, RulesSettings customSettings)
         {
             if (languageKey == null)
