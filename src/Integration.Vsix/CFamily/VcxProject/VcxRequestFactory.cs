@@ -75,6 +75,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
         public async Task<IRequest> TryCreateAsync(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
         {
+            threadHandling.ThrowIfOnUIThread();
+
             try
             {
                 LogDebug("Trying to create request for " + analyzedFilePath);
