@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using SonarLint.VisualStudio.Integration;
 
@@ -64,6 +65,14 @@ namespace SonarLint.VisualStudio.Core.CFamily
             configCache = new RulesConfigCache();
         }
 
+        /// <summary>
+        /// Calculate the effective rules according to user overrides.
+        /// </summary>
+        /// <remarks>
+        /// GetEffectiveRulesConfig could be called simultaneously from multiple threads. 
+        /// This won't cause a crash because we are using a ConcurrentDictionary (see bug #2783). 
+        /// It could mean that we are doing unnecessary work with multiple threads calculating the same result.
+        /// </remarks>
         public ICFamilyRulesConfig GetEffectiveRulesConfig(string languageKey, ICFamilyRulesConfig defaultRulesConfig, RulesSettings customSettings)
         {
             if (languageKey == null)
@@ -115,7 +124,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
                 public ICFamilyRulesConfig EffectiveConfig { get; }
             }
 
-            private readonly IDictionary<string, CacheEntry> languageToConfigMap = new Dictionary<string, CacheEntry>();
+            private readonly IDictionary<string, CacheEntry> languageToConfigMap = new ConcurrentDictionary<string, CacheEntry>();
 
             internal /* for testing */ int CacheCount { get { return languageToConfigMap.Count; } }
 
