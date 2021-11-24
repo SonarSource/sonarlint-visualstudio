@@ -60,6 +60,41 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         [TestMethod]
+        public async Task SynchronizeWithServer_FailureToCheckServerConnection_CriticalException_ExceptionThrown()
+        {
+            var sonarQubeServer = new Mock<ISonarQubeService>();
+            sonarQubeServer.Setup(x => x.IsConnected).Throws(new StackOverflowException());
+
+            var testSubject = CreateTestSubject(
+                sonarService: sonarQubeServer.Object,
+                mode: SonarLintMode.Connected);
+
+            Func<Task> act = async () => await testSubject.SynchronizeWithServer();
+
+            act.Should().Throw<StackOverflowException>();
+        }
+
+        [TestMethod]
+        public async Task SynchronizeWithServer_FailureToCheckServerConnection_NonCriticalException_ExceptionIsCaught()
+        {
+            var sonarQubeServer = new Mock<ISonarQubeService>();
+            sonarQubeServer.Setup(x => x.IsConnected).Throws(new NotImplementedException("this is a test"));
+
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(
+                sonarService: sonarQubeServer.Object,
+                mode: SonarLintMode.Connected,
+                logger: logger);
+
+            Func<Task> act = async () => await testSubject.SynchronizeWithServer();
+
+            act.Should().NotThrow();
+
+            logger.AssertPartialOutputStringExists("this is a test");
+        }
+
+        [TestMethod]
         public async Task SynchronizeWithServer_NotInConnectedMode_StoreCleared()
         {
             var sonarQubeServer = new Mock<ISonarQubeService>();
