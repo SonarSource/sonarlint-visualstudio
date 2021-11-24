@@ -81,16 +81,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
         public async Task SynchronizeWithServer()
         {
-            var bindingConfiguration = configurationProvider.GetConfiguration();
-
-            if (IsStandalone(bindingConfiguration) || !IsConnected() || !IsFeatureSupported())
-            {
-                HandleNoTaintIssues();
-                return;
-            }
-
             try
             {
+                var bindingConfiguration = configurationProvider.GetConfiguration();
+
+                if (IsStandalone(bindingConfiguration) || !IsConnected() || !IsFeatureSupported())
+                {
+                    HandleNoTaintIssues();
+                    return;
+                }
+
                 var projectKey = bindingConfiguration.Project.ProjectKey;
                 var taintVulnerabilities = await sonarQubeService.GetTaintVulnerabilitiesAsync(projectKey, CancellationToken.None);
 
