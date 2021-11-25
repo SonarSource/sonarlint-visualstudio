@@ -1,32 +1,13 @@
-### Description
+Please use the community forum instead of creating issues in this repo.
+The community forum already has answers to many common questions/problems and is actively monitored by many SonarSourcers.
 
-Please provide a succinct description of your issue.
+* for support issues click [here](https://community.sonarsource.com/c/help/sl/11)
 
-### Repro steps
+* to report a false positive click [here](https://community.sonarsource.com/c/bug/fp/7)
 
-Please provide the steps required to reproduce the problem
+* for bug reports click [here](https://community.sonarsource.com/c/bug/fault/6)
 
-1. Step A
+* to suggest new features click [here](https://community.sonarsource.com/c/suggestions/features/14)
 
-2. Step B
 
-If possible then please create a git repository with a repro sample or attach a zip to the issue.
-
-### Expected behavior
-
-Please provide a description of the behavior you expect.
-
-### Actual behavior
-
-Please provide a description of the actual behavior you observe.
-
-### Known workarounds
-
-Please provide a description of any known workarounds.
-
-### Related information
-
-* SonarLint for VS Version
-* Visual Studio Version (e.g. Professional v15.4.1)
-* SonarQube server version
-* Languages in your solution (C#, VB.Net, Javascript, C, C++)
+Thank you.
