@@ -1,4 +1,5 @@
 Please use the community forum instead of creating issues in this repo.
+The community forum already has answers to many common questions/problems and is actively monitored by many SonarSourcers.
 
 * for support issues click [here](https://community.sonarsource.com/c/help/sl/11)
 
@@ -8,6 +9,5 @@ Please use the community forum instead of creating issues in this repo.
 
 * to suggest new features click [here](https://community.sonarsource.com/c/suggestions/features/14)
 
-The community forum already has answers to many common questions/problems, and is actively monitored by many SonarSourcers.
 
 Thank you.
