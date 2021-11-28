@@ -149,17 +149,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void PlatformName()
+        [DataRow("Win32", false)]
+        [DataRow("win32", false)]
+        [DataRow("X86", false)]
+        [DataRow("x86", false)]
+        [DataRow("x64", true)]
+        [DataRow("X64", true)]
+        [DataRow("WiN64", true)]
+        public void PlatformName_StringCaseIsIgnored(string platformName, bool isX64)
         {
-            CFamilyHelper.Capture.IsPlatformX64("Win32").Should().Be(false);
-            CFamilyHelper.Capture.IsPlatformX64("win32").Should().Be(false);
-            CFamilyHelper.Capture.IsPlatformX64("X86").Should().Be(false);
-            CFamilyHelper.Capture.IsPlatformX64("x86").Should().Be(false);
-            CFamilyHelper.Capture.IsPlatformX64("x64").Should().Be(true);
-            CFamilyHelper.Capture.IsPlatformX64("X64").Should().Be(true);
-            CFamilyHelper.Capture.IsPlatformX64("WiN64").Should().Be(true);
+            CFamilyHelper.Capture.IsPlatformX64(platformName).Should().Be(isX64);
+        }
 
+        [TestMethod]
+        public void PlatformName_UnrecognizedPlatform_ArgumentException()
+        {
             Action action = () => CFamilyHelper.Capture.IsPlatformX64("foo");
+
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
                 .StartWith("Unsupported PlatformName: foo");
         }
