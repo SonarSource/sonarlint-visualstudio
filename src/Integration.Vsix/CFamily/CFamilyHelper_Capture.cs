@@ -108,15 +108,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             internal /* for testing */ static bool IsPlatformX64(string platformName)
             {
-                switch (platformName)
+                if (platformName.Equals("win32", StringComparison.OrdinalIgnoreCase) ||
+                    platformName.Equals("x86", StringComparison.OrdinalIgnoreCase))
                 {
-                    default:
-                        throw new ArgumentException($"Unsupported PlatformName: {platformName}", nameof(platformName));
-                    case "Win32":
-                        return false;
-                    case "x64":
-                        return true;
+                    return false;
                 }
+                if (platformName.Equals("win64", StringComparison.OrdinalIgnoreCase) ||
+                    platformName.Equals("x64", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                throw new ArgumentException($"Unsupported PlatformName: {platformName}", nameof(platformName));
             }
 
             internal /* for testing */ static string[] GetAdditionalOptions(string options)
