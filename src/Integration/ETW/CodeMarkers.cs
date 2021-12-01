@@ -22,7 +22,7 @@ using System.Diagnostics.Tracing;
 
 namespace SonarLint.VisualStudio.Integration.ETW
 {
-    [EventSource(Name = "sonarlint.integration")]
+    [EventSource(Name = "sonarlint.vs.integration")]
     public sealed class CodeMarkers : EventSource
     {
         public static readonly CodeMarkers Instance = new CodeMarkers();
@@ -36,8 +36,8 @@ namespace SonarLint.VisualStudio.Integration.ETW
 
         #region Binding: 1000-1999
 
-        private const int ErrorListControllerStartId = 1000;
-        private const int ErrorListControllerEndId = 1001;
+        private const int ErrorListControllerProcessStartId = 1000;
+        private const int ErrorListControllerProcessEndId = 1001;
 
         private const int UnboundProjectsFinderStartId = 1002;
         private const int UnboundProjectsFinderEndId = 1003;
@@ -51,11 +51,11 @@ namespace SonarLint.VisualStudio.Integration.ETW
         private const int GetProjectRuleSetsDeclarationsStartId = 1008;
         private const int GetProjectRuleSetsDeclarationsEndId = 1009;
 
-        [Event(ErrorListControllerStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
-        public void ErrorListControllerStart() => Write(ErrorListControllerStartId);
+        [Event(ErrorListControllerProcessStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
+        public void ErrorListControllerProcessStart() => Write(ErrorListControllerProcessStartId);
 
-        [Event(ErrorListControllerEndId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
-        public void ErrorListControllerEnd() => Write(ErrorListControllerEndId);
+        [Event(ErrorListControllerProcessEndId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
+        public void ErrorListControllerProcessEnd() => Write(ErrorListControllerProcessEndId);
 
         [Event(UnboundProjectsFinderStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
         public void UnboundProjectFinderStart() => Write(UnboundProjectsFinderStartId);
@@ -70,19 +70,20 @@ namespace SonarLint.VisualStudio.Integration.ETW
         public void CheckProjectBindingEnd() => Write(CheckProjectBindingEndId);
 
         [Event(CSharpVBIsBindingRequiredStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
-        public void CSharpVBProjectIsBindingRequiredStart(string projectName) => Write(CSharpVBIsBindingRequiredStartId);
+        public void CSharpVBProjectIsBindingRequiredStart(string projectName) => Write(CSharpVBIsBindingRequiredStartId, projectName);
 
         [Event(CSharpVBIsBindingRequiredEndId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
         public void CSharpVBIsBindingRequiredEnd() => Write(CSharpVBIsBindingRequiredEndId);
 
         [Event(GetProjectRuleSetsDeclarationsStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
-        public void GetProjectRuleSetsDeclarationsStart(string projectName) => Write(GetProjectRuleSetsDeclarationsStartId);
+        public void GetProjectRuleSetsDeclarationsStart(string projectName) => Write(GetProjectRuleSetsDeclarationsStartId, projectName);
 
         [Event(GetProjectRuleSetsDeclarationsEndId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
         public void GetProjectRuleSetsDeclarationsEnd() => Write(GetProjectRuleSetsDeclarationsEndId);
 
         #endregion
 
+        [NonEvent]
         private void Write(int id)
         {
             if (IsEnabled())
@@ -91,6 +92,7 @@ namespace SonarLint.VisualStudio.Integration.ETW
             }
         }
 
+        [NonEvent]
         private void Write(int id, string text)
         {
             if (IsEnabled())
