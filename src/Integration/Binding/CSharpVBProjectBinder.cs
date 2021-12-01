@@ -51,9 +51,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
         }
 
-        internal CSharpVBProjectBinder(IServiceProvider serviceProvider, 
-            IProjectToLanguageMapper projectToLanguageMapper, 
-            IFileSystem fileSystem, 
+        internal CSharpVBProjectBinder(IServiceProvider serviceProvider,
+            IProjectToLanguageMapper projectToLanguageMapper,
+            IFileSystem fileSystem,
             ILogger logger,
             IRuleSetReferenceChecker ruleSetReferenceChecker,
             ICSharpVBAdditionalFileReferenceChecker additionalFileReferenceChecker,
@@ -92,19 +92,27 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public bool IsBindingRequired(BindingConfiguration binding, Project project)
         {
+            ETW.CodeMarkers.Instance.CSharpVBProjectIsBindingRequiredStart(project.Name);
+
             Debug.Assert(binding != null);
             Debug.Assert(project != null);
 
             var languages = projectToLanguageMapper.GetAllBindingLanguagesForProject(project);
             languages = languages.Where(x => x.Equals(Language.VBNET) || x.Equals(Language.CSharp));
 
-            return languages.Any(l => !IsFullyBoundProject(binding, project, l));
+
+            var result = languages.Any(l => !IsFullyBoundProject(binding, project, l));
+
+            ETW.CodeMarkers.Instance.CSharpVBIsBindingRequiredEnd();
+
+            return result;
         }
 
         private bool IsFullyBoundProject(BindingConfiguration binding, Project project, Language language)
         {
             logger.LogDebug($"[Binding check] Checking binding for project '{project.Name}', language '{language}'");
 
+            // PERF: don't need to check the solution binding for every project
             var isSolutionBound = IsSolutionBound(binding, language, out var solutionRuleSetFilePath, out var additionalFilePath);
             logger.LogDebug($"[Binding check] Is solution bound: {isSolutionBound}");
 
@@ -148,6 +156,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return rulesetExists;
         }
 
+        // PERF: this method loads and returns the solution ruleset as an object, but it isn't used; only the file path is used.
+        // Loading the file path does validate that file is valid, but we don't need to do this for every project - once would be enough.
         private RuleSet GetSolutionRuleSet(BindingConfiguration binding, Language language)
         {
             // If solution is not bound/is missing a rules configuration file, no need to go further

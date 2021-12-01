@@ -25,6 +25,7 @@ using System.IO.Abstractions;
 using System.Linq;
 using EnvDTE;
 using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration
@@ -56,7 +57,13 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(project));
             }
 
-            return GetProjectRuleSetsDeclarationsIterator(project);
+            ETW.CodeMarkers.Instance.GetProjectRuleSetsDeclarationsStart(project.Name);
+
+            var result = GetProjectRuleSetsDeclarationsIterator(project);
+
+            ETW.CodeMarkers.Instance.GetProjectRuleSetsDeclarationsEnd();
+
+            return result;
         }
 
         private IEnumerable<RuleSetDeclaration> GetProjectRuleSetsDeclarationsIterator(Project project)
@@ -79,6 +86,7 @@ namespace SonarLint.VisualStudio.Integration
 
             var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
 
+            // PERF: goldbar #2791. This is where most of the time is spent
             var ruleSetProperties = VsShellUtils.GetProjectProperties(project, Constants.CodeAnalysisRuleSetPropertyKey);
             Debug.Assert(ruleSetProperties != null);
             Debug.Assert(ruleSetProperties.All(p => p != null), "Not expecting nulls in the list of properties");
