@@ -172,6 +172,8 @@ namespace SonarLint.VisualStudio.Integration
 
         internal /*for testing purposes*/ void ProcessSolutionBinding()
         {
+            ETW.CodeMarkers.Instance.ErrorListControllerProcessStart();
+
             // We could be on a UI thread so any unhandled exceptions will crash VS.
             // We can't catch at a higher level as this method queues a recursive callback
             // if the solution is not fully loaded.
@@ -201,6 +203,10 @@ namespace SonarLint.VisualStudio.Integration
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(Strings.UnexpectedErrorMessageFormat, typeof(ErrorListInfoBarController), ex, Constants.SonarLintIssuesWebUrl);
+            }
+            finally
+            {
+                ETW.CodeMarkers.Instance.ErrorListControllerProcessEnd();
             }
         }
 
