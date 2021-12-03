@@ -25,6 +25,7 @@ using System.Linq;
 using EnvDTE;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.Integration.ETW;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
@@ -50,6 +51,8 @@ namespace SonarLint.VisualStudio.Integration
 
         public IEnumerable<Project> GetUnboundProjects()
         {
+            CodeMarkers.Instance.UnboundProjectFinderStart();
+
             logger.LogDebug($"[Binding check] Checking for unbound projects...");
 
             var configProvider = serviceProvider.GetService<IConfigurationProviderService>();
@@ -61,6 +64,8 @@ namespace SonarLint.VisualStudio.Integration
 
             var unbound = bindingConfig.Mode.IsInAConnectedMode() ? GetUnboundProjects(bindingConfig) : Array.Empty<Project>();
             logger.LogDebug($"[Binding check] Number of unbound projects: {unbound.Length}");
+
+            CodeMarkers.Instance.UnboundProjectFinderEnd();
             return unbound;
         }
 
@@ -75,18 +80,25 @@ namespace SonarLint.VisualStudio.Integration
             var filteredSolutionProjects = projectSystem.GetFilteredSolutionProjects().ToArray();
             logger.LogDebug($"[Binding check] Number of bindable projects: {filteredSolutionProjects.Length}");
 
-            return filteredSolutionProjects
+            var result = filteredSolutionProjects
                 .Where(project =>
                 {
                     var configProjectBinder = projectBinderFactory.Get(project);
 
-                    logger.LogDebug($"[Binding check] Checking binding for project '{project.Name}'. Binder type: {configProjectBinder.GetType().Name}");
+                    var projectName = project.Name;
+                    ETW.CodeMarkers.Instance.CheckProjectBindingStart(projectName);
+
+                    logger.LogDebug($"[Binding check] Checking binding for project '{projectName}'. Binder type: {configProjectBinder.GetType().Name}");
                     var required = configProjectBinder.IsBindingRequired(binding, project);
-                    logger.LogDebug($"[Binding check] Is binding required: {required} (project: {project.Name})");
+                    logger.LogDebug($"[Binding check] Is binding required: {required} (project: {projectName})");
+
+                    ETW.CodeMarkers.Instance.CheckProjectBindingEnd();
 
                     return required;
                 })
                 .ToArray();
+
+            return result;
         }
     }
 }
