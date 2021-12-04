@@ -33,8 +33,9 @@ namespace SonarLint.VisualStudio.Integration
 {
     internal class UnboundProjectFinder : IUnboundProjectFinder
     {
-        private readonly IServiceProvider serviceProvider;
         private readonly IProjectBinderFactory projectBinderFactory;
+        private readonly IConfigurationProviderService configProvider;
+        private readonly IProjectSystemHelper projectSystem;
         private readonly ILogger logger;
 
         public UnboundProjectFinder(IServiceProvider serviceProvider, ILogger logger)
@@ -44,9 +45,16 @@ namespace SonarLint.VisualStudio.Integration
 
         internal UnboundProjectFinder(IServiceProvider serviceProvider, ILogger logger, IProjectBinderFactory projectBinderFactory)
         {
-            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.projectBinderFactory = projectBinderFactory ?? throw new ArgumentNullException(nameof(projectBinderFactory));
+
+            configProvider = serviceProvider.GetService<IConfigurationProviderService>();
+            projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
         }
 
         public IEnumerable<Project> GetUnboundProjects()
@@ -54,9 +62,6 @@ namespace SonarLint.VisualStudio.Integration
             CodeMarkers.Instance.UnboundProjectFinderStart();
 
             logger.LogDebug($"[Binding check] Checking for unbound projects...");
-
-            var configProvider = serviceProvider.GetService<IConfigurationProviderService>();
-            configProvider.AssertLocalServiceIsNotNull();
 
             // Only applicable in connected mode (legacy or new)
             var bindingConfig = configProvider.GetConfiguration();
@@ -73,9 +78,6 @@ namespace SonarLint.VisualStudio.Integration
         {
             Debug.Assert(binding.Mode.IsInAConnectedMode());
             Debug.Assert(binding.Project != null);
-
-            var projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
-            projectSystem.AssertLocalServiceIsNotNull();
 
             var filteredSolutionProjects = projectSystem.GetFilteredSolutionProjects().ToArray();
             logger.LogDebug($"[Binding check] Number of bindable projects: {filteredSolutionProjects.Length}");
