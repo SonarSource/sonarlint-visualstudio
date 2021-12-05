@@ -22,8 +22,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using EnvDTE;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.ETW;
 using SonarLint.VisualStudio.Integration.Helpers;
@@ -37,13 +40,15 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IConfigurationProviderService configProvider;
         private readonly IProjectSystemHelper projectSystem;
         private readonly ILogger logger;
+        private readonly IThreadHandling threadHandling;
 
         public UnboundProjectFinder(IServiceProvider serviceProvider, ILogger logger)
-            : this(serviceProvider, logger, new ProjectBinderFactory(serviceProvider, logger))
+            : this(serviceProvider, logger, new ProjectBinderFactory(serviceProvider, logger), new ThreadHandling())
         {
         }
 
-        internal UnboundProjectFinder(IServiceProvider serviceProvider, ILogger logger, IProjectBinderFactory projectBinderFactory)
+        internal UnboundProjectFinder(IServiceProvider serviceProvider, ILogger logger,
+            IProjectBinderFactory projectBinderFactory,IThreadHandling threadHandling)
         {
             if (serviceProvider == null)
             {
@@ -52,6 +57,7 @@ namespace SonarLint.VisualStudio.Integration
 
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.projectBinderFactory = projectBinderFactory ?? throw new ArgumentNullException(nameof(projectBinderFactory));
+            this.threadHandling = threadHandling ?? throw new ArgumentNullException(nameof(threadHandling));
 
             configProvider = serviceProvider.GetService<IConfigurationProviderService>();
             projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
@@ -59,6 +65,8 @@ namespace SonarLint.VisualStudio.Integration
 
         public IEnumerable<Project> GetUnboundProjects()
         {
+            threadHandling.ThrowIfOnUIThread();
+
             CodeMarkers.Instance.UnboundProjectFinderStart();
 
             logger.LogDebug($"[Binding check] Checking for unbound projects...");
@@ -76,31 +84,80 @@ namespace SonarLint.VisualStudio.Integration
 
         private Project[] GetUnboundProjects(BindingConfiguration binding)
         {
+            threadHandling.ThrowIfOnUIThread();
+
             Debug.Assert(binding.Mode.IsInAConnectedMode());
             Debug.Assert(binding.Project != null);
 
-            var filteredSolutionProjects = projectSystem.GetFilteredSolutionProjects().ToArray();
-            logger.LogDebug($"[Binding check] Number of bindable projects: {filteredSolutionProjects.Length}");
+            // Using threadHandling.Run(...) here to avoid having to convert all of the upstream
+            // // calling methods to be async.
+            var projects = threadHandling.Run(() => GetUnboundProjectsAsync(binding));
 
-            var result = filteredSolutionProjects
-                .Where(project =>
+            threadHandling.ThrowIfOnUIThread();
+            return projects;
+        }
+
+        private async Task<Project[]> GetUnboundProjectsAsync(BindingConfiguration binding)
+        {
+            threadHandling.ThrowIfOnUIThread();
+
+            Debug.Assert(binding.Mode.IsInAConnectedMode());
+            Debug.Assert(binding.Project != null);
+
+            var filteredSolutionProjects = await GetFilteredSolutionProjectsAsync();
+            Debug.Assert(!threadHandling.CheckAccess(), "Should not be on the UI thread");
+
+            var unboundProjects = new List<Project>();
+            foreach (var project in filteredSolutionProjects)
+            {
+                var isUnbound = await IsBindingRequiredAsync(project, binding);
+
+                if (isUnbound)
                 {
-                    var configProjectBinder = projectBinderFactory.Get(project);
+                    unboundProjects.Add(project);
+                }
+            }
 
-                    var projectName = project.Name;
-                    ETW.CodeMarkers.Instance.CheckProjectBindingStart(projectName);
+            return unboundProjects.ToArray();
+        }
 
-                    logger.LogDebug($"[Binding check] Checking binding for project '{projectName}'. Binder type: {configProjectBinder.GetType().Name}");
-                    var required = configProjectBinder.IsBindingRequired(binding, project);
-                    logger.LogDebug($"[Binding check] Is binding required: {required} (project: {projectName})");
+        private async Task<Project[]> GetFilteredSolutionProjectsAsync()
+        {
+            threadHandling.ThrowIfOnUIThread();
+            Project[] filteredSolutionProjects = null;
 
-                    ETW.CodeMarkers.Instance.CheckProjectBindingEnd();
+            await threadHandling.RunOnUIThread(() =>
+            {
+                filteredSolutionProjects = projectSystem.GetFilteredSolutionProjects().ToArray();
+                logger.LogDebug($"[Binding check] Number of bindable projects: {filteredSolutionProjects.Length}");
+            });
 
-                    return required;
-                })
-                .ToArray();
+            return filteredSolutionProjects;
+        }
 
-            return result;
+        private async Task<bool> IsBindingRequiredAsync(Project project, BindingConfiguration binding)
+        {
+            bool isBindingRequired = false;
+            await threadHandling.RunOnUIThread(() => isBindingRequired = IsBindingRequired(project, binding));
+            return isBindingRequired;
+        }
+
+        private bool IsBindingRequired(Project project, BindingConfiguration binding)
+        {
+            threadHandling.ThrowIfNotOnUIThread();
+
+            var configProjectBinder = projectBinderFactory.Get(project);
+
+            var projectName = project.Name;
+            ETW.CodeMarkers.Instance.CheckProjectBindingStart(projectName);
+
+            logger.LogDebug($"[Binding check] Checking binding for project '{projectName}'. Binder type: {configProjectBinder.GetType().Name}");
+            var required = configProjectBinder.IsBindingRequired(binding, project);
+            logger.LogDebug($"[Binding check] Is binding required: {required} (project: {projectName})");
+
+            ETW.CodeMarkers.Instance.CheckProjectBindingEnd();
+
+            return required;
         }
     }
 }

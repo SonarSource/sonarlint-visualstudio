@@ -37,5 +37,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         public void ThrowIfNotOnUIThread() => ThreadHelper.ThrowIfNotOnUIThread();
 
         public async Task RunOnUIThread(Action op) => await VS.RunOnUIThread.RunAsync(op);
+
+        public T Run<T>(Func<System.Threading.Tasks.Task<T>> asyncMethod) => ThreadHelper.JoinableTaskFactory.Run(asyncMethod);
     }
 }

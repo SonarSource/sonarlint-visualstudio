@@ -51,5 +51,12 @@ namespace SonarLint.VisualStudio.Core
         /// then resume on the caller's thread when then the operation completes.
         /// </summary>
         Task RunOnUIThread(Action op);
+
+
+        /// <summary>
+        /// Runs the asynchronous method to completion while synchronously blocking the calling thread.
+        /// </summary>
+        /// <remarks>Wrapper around <see cref="ThreadHelper.JoinableTaskFactory.Run"/></remarks>
+        T Run<T>(Func<Task<T>> asyncMethod);
     }
 }
