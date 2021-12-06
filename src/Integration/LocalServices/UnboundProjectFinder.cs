@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration
             Debug.Assert(binding.Project != null);
 
             // Using threadHandling.Run(...) here to avoid having to convert all of the upstream
-            // // calling methods to be async.
+            // calling methods to be async.
             var projects = threadHandling.Run(() => GetUnboundProjectsAsync(binding));
 
             threadHandling.ThrowIfOnUIThread();

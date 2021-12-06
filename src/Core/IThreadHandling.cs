@@ -52,11 +52,16 @@ namespace SonarLint.VisualStudio.Core
         /// </summary>
         Task RunOnUIThread(Action op);
 
-
         /// <summary>
         /// Runs the asynchronous method to completion while synchronously blocking the calling thread.
         /// </summary>
         /// <remarks>Wrapper around <see cref="ThreadHelper.JoinableTaskFactory.Run"/></remarks>
         T Run<T>(Func<Task<T>> asyncMethod);
+
+        /// <summary>
+        /// Switches to the background thread
+        /// </summary>
+        /// <remarks>Wrapper that calls <see cref="TaskScheduler.Default"/></remarks>
+        Task SwitchToBackgroundThread();
     }
 }

@@ -20,8 +20,10 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
+using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS
@@ -39,5 +41,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         public async Task RunOnUIThread(Action op) => await VS.RunOnUIThread.RunAsync(op);
 
         public T Run<T>(Func<System.Threading.Tasks.Task<T>> asyncMethod) => ThreadHelper.JoinableTaskFactory.Run(asyncMethod);
+
+        public async Task SwitchToBackgroundThread() => await TaskScheduler.Default;
     }
 }
