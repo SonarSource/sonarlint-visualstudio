@@ -22,8 +22,9 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.Core;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
+using static Microsoft.VisualStudio.Threading.AwaitExtensions;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS
@@ -40,8 +41,51 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
 
         public async Task RunOnUIThread(Action op) => await VS.RunOnUIThread.RunAsync(op);
 
-        public T Run<T>(Func<System.Threading.Tasks.Task<T>> asyncMethod) => ThreadHelper.JoinableTaskFactory.Run(asyncMethod);
+        public T Run<T>(Func<Task<T>> asyncMethod) => ThreadHelper.JoinableTaskFactory.Run(asyncMethod);
 
-        public async Task SwitchToBackgroundThread() => await TaskScheduler.Default;
+        public IAwaitableWrapper SwitchToBackgroundThread() => new TaskSchedulerAwaitableWrapper(new AwaitExtensions.TaskSchedulerAwaitable(TaskScheduler.Default));
+
+        #region Wrappers for VS TaskSchedule awaiter/awaitable structs
+
+        // The wrappers are pass-throughs - no additional logic
+
+        private struct TaskSchedulerAwaitableWrapper : IAwaitableWrapper
+        {
+            private readonly TaskSchedulerAwaitable wrapped;
+
+            public TaskSchedulerAwaitableWrapper(TaskSchedulerAwaitable awaitable)
+            {
+                wrapped = awaitable;
+            }
+
+            public IAwaiterWrapper GetAwaiter() => new TaskSchedulerAwaiterWrapper(wrapped.GetAwaiter());
+        }
+
+        private struct TaskSchedulerAwaiterWrapper : IAwaiterWrapper
+        {
+            private readonly TaskSchedulerAwaiter wrapped;
+
+            public TaskSchedulerAwaiterWrapper(TaskSchedulerAwaiter tsAwaiter)
+            {
+                this.wrapped = tsAwaiter;
+            }
+
+            public void OnCompleted(Action continuation) => wrapped.OnCompleted(continuation);
+
+            public bool IsCompleted => wrapped.IsCompleted;
+
+            public void GetResult() => wrapped.GetResult();
+
+#if VS2022
+            // The awaiters in earlier versions of VS do not implement ICriticalNotifyCompletion
+            public void UnsafeOnCompleted(Action continuation)
+            {
+                wrapped.UnsafeOnCompleted(continuation);
+            }
+#endif
+
+        }
+
+#endregion
     }
 }

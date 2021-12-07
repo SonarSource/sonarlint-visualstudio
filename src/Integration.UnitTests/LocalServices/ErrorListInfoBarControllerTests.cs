@@ -309,7 +309,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = CreateTestSubject(host);
 
             // Act
-            var act = async () => await testSubject.ProcessSolutionBindingAsync();
+            Func<Task> act = async () => await testSubject.ProcessSolutionBindingAsync();
             act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Contain("thrown by test code");
         }
 
@@ -881,7 +881,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ErrorListInfoBarController CreateTestSubject(IHost host = null)
         {
             host ??= this.host;
-            var testSubject = new ErrorListInfoBarController(host, unboundProjectFinder, logger, knownUIContexts.Object, CreateThreadHandlingWithRunPassthrough().Object);
+            var testSubject = new ErrorListInfoBarController(host, unboundProjectFinder, logger, knownUIContexts.Object, new NoOpThreadHandler());
             return testSubject;
         }
 
@@ -1028,18 +1028,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             infoBar.Message.Should().Be(Strings.SonarLintInfoBarUnboundProjectsMessage);
             infoBar.ButtonText.Should().Be(Strings.SonarLintInfoBarUpdateCommandText);
             infoBar.Image.Should().BeEquivalentTo(new SonarLintImageMoniker(KnownMonikers.RuleWarning.Guid, KnownMonikers.RuleWarning.Id));
-        }
-
-        private static Mock<IThreadHandling> CreateThreadHandlingWithRunPassthrough()
-        {
-            // Create a thread handling that will execute RunOnUIThread and Run
-            var threadHandling = new Mock<IThreadHandling>();
-            threadHandling.Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
-                .Callback<Action>(op => op());
-            threadHandling.Setup(x => x.Run(It.IsAny<Func<Task<Project[]>>>()))
-                .Returns<Func<Task<Project[]>>>(op => op().Result);
-
-            return threadHandling;
         }
 
         #endregion Test helpers

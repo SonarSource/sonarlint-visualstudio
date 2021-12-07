@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Core
@@ -62,6 +63,24 @@ namespace SonarLint.VisualStudio.Core
         /// Switches to the background thread
         /// </summary>
         /// <remarks>Wrapper that calls <see cref="TaskScheduler.Default"/></remarks>
-        Task SwitchToBackgroundThread();
+        IAwaitableWrapper SwitchToBackgroundThread();
+    }
+
+    // Wrappers for awaiter /awaitable to avoid VS-specific types on the interface
+    public interface IAwaitableWrapper
+    {
+        IAwaiterWrapper GetAwaiter();
+    }
+
+    public interface IAwaiterWrapper :
+#if VS2022
+        // Earlier versions of VS don't implement ICriticalNotifyCompletion
+        ICriticalNotifyCompletion
+#else
+        INotifyCompletion
+#endif
+    {
+        bool IsCompleted { get; }
+        void GetResult();
     }
 }

@@ -188,11 +188,11 @@ namespace SonarLint.VisualStudio.Integration
             ETW.CodeMarkers.Instance.ErrorListControllerProcessStart();
 
             await threadHandling.SwitchToBackgroundThread();
-
-            threadHandling.ThrowIfOnUIThread();
-
+            
             try
             {
+                threadHandling.ThrowIfOnUIThread();
+
                 // No need to do anything if by the time got here the solution was closed (or unbound)
                 var mode = this.configProvider.GetConfiguration().Mode;
                 if (!mode.IsInAConnectedMode())
