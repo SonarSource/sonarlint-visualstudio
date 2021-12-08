@@ -26,7 +26,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -45,6 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IBindingConfigProvider bindingConfigProvider;
         private readonly SonarLintMode bindingMode;
         private readonly IProjectToLanguageMapper projectToLanguageMapper;
+        private readonly IThreadHandling threadHandling;
 
         internal /*for testing*/ INuGetBindingOperation NuGetBindingOperation { get; }
 
@@ -55,7 +58,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             IUnboundProjectFinder unboundProjectFinder,
             IBindingConfigProvider bindingConfigProvider,
             SonarLintMode bindingMode,
-            bool isFirstBinding = false)
+            bool isFirstBinding = false,
+            IThreadHandling threadHandling = null /* overrideable for testing */)
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
             this.bindingArgs = bindingArgs ?? throw new ArgumentNullException(nameof(bindingArgs));
@@ -65,6 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.bindingConfigProvider = bindingConfigProvider ?? throw new ArgumentNullException(nameof(bindingConfigProvider));
             this.bindingMode = bindingMode;
             projectToLanguageMapper = host.GetMefService<IProjectToLanguageMapper>();
+            this.threadHandling = threadHandling ?? new ThreadHandling();
 
             Debug.Assert(bindingArgs.ProjectKey != null);
             Debug.Assert(bindingArgs.ProjectName != null);
@@ -196,12 +201,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.InternalState.BindingOperationSucceeded = this.NuGetBindingOperation.InstallPackages(this.InternalState.BindingProjects, progress, cancellationToken);
         }
 
-        public void InitializeSolutionBindingOnUIThread()
+        public void InitializeSolutionBindingOnBackgroundThread()
         {
             this.solutionBindingOperation.RegisterKnownConfigFiles(this.InternalState.BindingConfigs);
 
             var projectsToUpdate = GetProjectsForRulesetBinding(this.InternalState.IsFirstBinding, this.InternalState.BindingProjects.ToArray(),
-                this.unboundProjectFinder, this.host.Logger);
+                this.unboundProjectFinder, this.host.Logger, this.threadHandling);
 
             this.solutionBindingOperation.Initialize(projectsToUpdate);
         }
@@ -283,8 +288,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
         internal /* for testing purposes */ static Project[] GetProjectsForRulesetBinding(bool isFirstBinding,
             Project[] allSupportedProjects,
             IUnboundProjectFinder unboundProjectFinder,
-            ILogger logger)
+            ILogger logger,
+            IThreadHandling threadHandling)
         {
+            threadHandling.ThrowIfOnUIThread();
+
             // If we are already bound we don't need to update/create rulesets in projects
             // that already have the ruleset information configured
             var projectsToUpdate = allSupportedProjects;
@@ -297,7 +305,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 var unboundProjects = unboundProjectFinder.GetUnboundProjects()?.ToArray() ?? new Project[] { };
                 projectsToUpdate = projectsToUpdate.Intersect(unboundProjects).ToArray();
-
                 var upToDateProjects = allSupportedProjects.Except(unboundProjects);
                 if (upToDateProjects.Any())
                 {
@@ -315,7 +322,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #endregion
 
-        #region Workflow state
+            #region Workflow state
 
         internal class BindingProcessState
         {

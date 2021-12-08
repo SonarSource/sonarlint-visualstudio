@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,7 +28,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -119,16 +117,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void BindingWorkflow_InitializeSolutionBindingOnUIThread_NoError()
+        public void BindingWorkflow_InitializeSolutionBindingOnBackgroundThread_NoError()
         {
             // Arrange
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
 
             // Act
-            testSubject.InitializeSolutionBindingOnUIThread(progressEvents);
+            testSubject.InitializeSolutionBindingOnBackgroundThread(progressEvents);
 
             // Assert
-            mockBindingProcess.Verify(x => x.InitializeSolutionBindingOnUIThread(), Times.Once);
+            mockBindingProcess.Verify(x => x.InitializeSolutionBindingOnBackgroundThread(), Times.Once);
             progressEvents.AssertProgressMessages(Strings.RuleSetGenerationProgressMessage);
         }
 
