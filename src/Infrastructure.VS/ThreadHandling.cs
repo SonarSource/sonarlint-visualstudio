@@ -19,7 +19,7 @@
  */
 
 using System;
-using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
@@ -29,8 +29,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS
 {
-    [Export(typeof(IThreadHandling))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
+    [ExcludeFromCodeCoverage] // Simple wrapper around hard-to-test VS types
     public class ThreadHandling : IThreadHandling
     {
         public bool CheckAccess() => ThreadHelper.CheckAccess();
