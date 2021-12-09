@@ -18,15 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
@@ -133,20 +130,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                 sp.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper.Object);
                 sp.RegisterService(typeof(IConfigurationProviderService), configProviderMock.Object);
 
-                var testSubject = new UnboundProjectFinder(sp, new TestLogger(), projectBinderFactoryMock.Object, CreateThreadHandlingWithRunPassthrough().Object);
+                var testSubject = new UnboundProjectFinder(sp, new TestLogger(), projectBinderFactoryMock.Object, new NoOpThreadHandler());
                 return testSubject;
-            }
-
-            private static Mock<IThreadHandling> CreateThreadHandlingWithRunPassthrough()
-            {
-                // Create a thread handling that will execute RunOnUIThread and Run
-                var threadHandling = new Mock<IThreadHandling>();
-                threadHandling.Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
-                    .Callback<Action>(op => op());
-                threadHandling.Setup(x => x.Run(It.IsAny<Func<Task<Project[]>>>()))
-                    .Returns<Func<Task<Project[]>>>(op => op().Result);
-
-                return threadHandling;
             }
         }
     }

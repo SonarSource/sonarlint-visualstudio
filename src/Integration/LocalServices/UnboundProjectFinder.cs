@@ -32,6 +32,22 @@ using SonarLint.VisualStudio.Integration.ETW;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
+// ---------
+// Threading
+// ---------
+// Determining whether a project is bound or not requires heavy usage of methods/properties
+// that must be called on the UI, so most of the processing must be on the UI thread.
+// However, a solution could have hundreds of projects, so we can't tie up the UI thread
+// for that long without triggering a perf gold bar. See 
+//
+// The approach taken is as follows:
+// * GetUnboundProjects must be called on a background thread
+// * it fetches the list of projects to check on the UI thread
+// * it loops round each project on the background thread
+// * inside the loop, each project is checked on the UI thread
+//
+// The class has ETW events that can be used to investigate threading and performance issues.
+
 namespace SonarLint.VisualStudio.Integration
 {
     internal class UnboundProjectFinder : IUnboundProjectFinder
@@ -105,7 +121,8 @@ namespace SonarLint.VisualStudio.Integration
             Debug.Assert(binding.Project != null);
 
             var filteredSolutionProjects = await GetFilteredSolutionProjectsAsync();
-            Debug.Assert(!threadHandling.CheckAccess(), "Should not be on the UI thread");
+
+            threadHandling.ThrowIfOnUIThread();
 
             var unboundProjects = new List<Project>();
             foreach (var project in filteredSolutionProjects)

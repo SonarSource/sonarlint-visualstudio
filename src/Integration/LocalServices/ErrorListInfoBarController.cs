@@ -177,7 +177,6 @@ namespace SonarLint.VisualStudio.Integration
 
         private void ProcessSolutionBinding()
         {
-            logger.LogDebug("[ErrorListInfoBarController] Processing solution binding...");
             ProcessSolutionBindingAsync().Forget();
         }
 

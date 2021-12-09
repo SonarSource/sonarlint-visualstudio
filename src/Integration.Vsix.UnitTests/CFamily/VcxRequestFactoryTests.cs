@@ -50,7 +50,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             {
                 MefTestHelpers.CreateExport<VsShell.SVsServiceProvider>(Mock.Of<IServiceProvider>()),
                 MefTestHelpers.CreateExport<ICFamilyRulesConfigProvider>(Mock.Of<ICFamilyRulesConfigProvider>()),
-                MefTestHelpers.CreateExport<IThreadHandling>(Mock.Of<IThreadHandling>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
@@ -326,15 +325,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             cFamilyRulesConfigProvider ??= Mock.Of<ICFamilyRulesConfigProvider>();
             rulesConfigProtocolFormatter ??= Mock.Of<IRulesConfigProtocolFormatter>();
             fileConfigProvider ??= Mock.Of<IFileConfigProvider>();
-            threadHandling ??= CreateRunnableThreadHandling().Object;
+            threadHandling ??= new NoOpThreadHandler();
             logger ??= Mock.Of<ILogger>();
 
             return new VcxRequestFactory(serviceProvider.Object, 
                 cFamilyRulesConfigProvider,
-                threadHandling,
                 rulesConfigProtocolFormatter,
                 fileConfigProvider,
-                logger);
+                logger,
+                threadHandling);
         }
 
         private static Mock<IServiceProvider> CreateServiceProviderReturningProjectItem(ProjectItem projectItemToReturn)
@@ -384,15 +383,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 rulesConfigProtocolFormatter.Object);
 
             return await testSubject.TryCreateAsync(fileToAnalyze, analyzerOptions) as Request;
-        }
-
-        private static Mock<IThreadHandling> CreateRunnableThreadHandling()
-        {
-            // Create a thread handling that will execute RunOnUIThread
-            var threadHandling = new Mock<IThreadHandling>();
-            threadHandling.Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
-                .Callback<Action>(op => op());
-            return threadHandling;
         }
 
         private Mock<IFileConfig> CreateDummyFileConfig(string filePath)

@@ -24,6 +24,11 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
+    /// <summary>
+    /// Dummy implementation of IThreadHandling
+    /// </summary>
+    /// <remarks>All operations are performed synchronously and return immediately.
+    /// No thread switches take place.</remarks>
     internal class NoOpThreadHandler : IThreadHandling
     {
         public bool CheckAccess() => true;
