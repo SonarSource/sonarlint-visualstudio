@@ -110,6 +110,7 @@ namespace SonarLint.VisualStudio.Integration
             var unboundProjects = new List<Project>();
             foreach (var project in filteredSolutionProjects)
             {
+                CodeMarkers.Instance.UnboundProjectFinderBeforeIsBindingRequired();
                 var isUnbound = await IsBindingRequiredAsync(project, binding);
 
                 if (isUnbound)
