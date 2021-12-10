@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         void InstallPackages(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken);
 
-        void InitializeSolutionBindingOnUIThread();
+        void InitializeSolutionBindingOnBackgroundThread();
 
         void PrepareSolutionBinding(CancellationToken cancellationToken);
 

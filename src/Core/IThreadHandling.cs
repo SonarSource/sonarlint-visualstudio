@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Core
@@ -51,5 +52,35 @@ namespace SonarLint.VisualStudio.Core
         /// then resume on the caller's thread when then the operation completes.
         /// </summary>
         Task RunOnUIThread(Action op);
+
+        /// <summary>
+        /// Runs the asynchronous method to completion while synchronously blocking the calling thread.
+        /// </summary>
+        /// <remarks>Wrapper around <see cref="ThreadHelper.JoinableTaskFactory.Run"/></remarks>
+        T Run<T>(Func<Task<T>> asyncMethod);
+
+        /// <summary>
+        /// Switches to the background thread
+        /// </summary>
+        /// <remarks>Wrapper that calls <see cref="TaskScheduler.Default"/></remarks>
+        IAwaitableWrapper SwitchToBackgroundThread();
+    }
+
+    // Wrappers for awaiter /awaitable to avoid VS-specific types on the interface
+    public interface IAwaitableWrapper
+    {
+        IAwaiterWrapper GetAwaiter();
+    }
+
+    public interface IAwaiterWrapper :
+#if VS2022
+        // Earlier versions of VS don't implement ICriticalNotifyCompletion
+        ICriticalNotifyCompletion
+#else
+        INotifyCompletion
+#endif
+    {
+        bool IsCompleted { get; }
+        void GetResult();
     }
 }

@@ -23,7 +23,9 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition.Primitives;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows.Threading;
+using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Imaging;
@@ -56,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableConfigurationProvider configProvider;
         private ConfigurableStateManager stateManager;
         private Mock<IKnownUIContexts> knownUIContexts;
-        private ILogger logger;
+        private TestLogger logger;
 
         #region Test plumbing
 
@@ -182,7 +184,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ErrorListInfoBarController_Refresh_ActiveSolutionBound_NotFullyLoaded_HasUnboundProjects()
+        public async Task ErrorListInfoBarController_Refresh_ActiveSolutionBound_NotFullyLoaded_HasUnboundProjects()
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
@@ -197,14 +199,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             // Action should have been queued because the context is not active
-            uiContext.Verify(x => x.WhenActivated(testSubject.ProcessSolutionBinding), Times.Once());
+            uiContext.Verify(x => x.WhenActivated(It.IsAny<Action>()), Times.Once());
 
             this.outputWindowPane.AssertOutputStrings(0);
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
 
             // Act (simulate solution fully loaded event)
             uiContext = SetSolutionExistsAndFullyLoadedContextState(isActive: true);
-            SimulateUIContextIsActivated(testSubject);
+            await SimulateUIContextIsActivated(testSubject);
 
             // Assert
             // Action should not have been queued because the context is active
@@ -252,7 +254,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ErrorListInfoBarController_CurrentBackgroundProcessorCancellation()
+        public async Task ErrorListInfoBarController_CurrentBackgroundProcessorCancellation()
         {
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
@@ -272,15 +274,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.configProvider.ModeToReturn = SonarLintMode.LegacyConnected;
 
             // Act
-            testSubject.ProcessSolutionBinding();
+            await testSubject.ProcessSolutionBindingAsync();
 
             // Assert
             testSubject.CurrentBackgroundProcessor?.BackgroundTask.Should().NotBeNull("Background task is expected");
             testSubject.CurrentBackgroundProcessor.BackgroundTask.Wait(TimeSpan.FromSeconds(2)).Should().BeTrue("Timeout waiting for the background task");
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
 
-            // Act (refresh again and  let the blocked UI thread run to completion)
-            testSubject.ProcessSolutionBinding();
+            // Act (refresh again and let the blocked UI thread run to completion)
+            await testSubject.ProcessSolutionBindingAsync();
             DispatcherHelper.DispatchFrame(DispatcherPriority.Normal);
             this.SetBindingMode(SonarLintMode.Standalone);
 
@@ -289,26 +291,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ErrorListInfoBarController_Refresh_NonCriticalExceptionIsSuppressed()
+        public async Task ErrorListInfoBarController_Refresh_NonCriticalExceptionIsSuppressed()
         {
-            var logger = new TestLogger();
             var host = CreateHostWithThrowingConfigProvider(new COMException("thrown by test code"));
-            var testSubject = new ErrorListInfoBarController(host, Mock.Of<IUnboundProjectFinder>(), logger);
+            var testSubject = CreateTestSubject(host);
 
             // Act - should not throw
-            testSubject.ProcessSolutionBinding();
+            await testSubject.ProcessSolutionBindingAsync();
 
             logger.AssertPartialOutputStringExists("thrown by test code");
         }
 
         [TestMethod]
-        public void ErrorListInfoBarController_Refresh_CriticalExceptionIsNotSuppressed()
+        public async Task ErrorListInfoBarController_Refresh_CriticalExceptionIsNotSuppressed()
         {
             var host = CreateHostWithThrowingConfigProvider(new StackOverflowException("thrown by test code"));
-            var testSubject = new ErrorListInfoBarController(host, Mock.Of<IUnboundProjectFinder>(), Mock.Of<ILogger>());
+            var testSubject = CreateTestSubject(host);
 
             // Act
-            Action act = () => testSubject.ProcessSolutionBinding();
+            Func<Task> act = async () => await testSubject.ProcessSolutionBindingAsync();
             act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Contain("thrown by test code");
         }
 
@@ -799,9 +800,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ErrorListInfoBarController_InfoBar_ClickButton_NonCriticalExceptionIsSuppressed()
         {
-            var logger = new TestLogger();
             var host = CreateHostWithThrowingConfigProvider(new InvalidOperationException("thrown by test code"));
-            var testSubject = new ErrorListInfoBarController(host, Mock.Of<IUnboundProjectFinder>(), logger);
+            var testSubject = CreateTestSubject(host);
 
             // Act - should not throw
             testSubject.CurrentErrorWindowInfoBar_ButtonClick(this, EventArgs.Empty);
@@ -813,7 +813,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ErrorListInfoBarController_InfoBar_ClickButton_CriticalExceptionIsNotSuppressed()
         {
             var host = CreateHostWithThrowingConfigProvider(new StackOverflowException("thrown by test code"));
-            var testSubject = new ErrorListInfoBarController(host, Mock.Of<IUnboundProjectFinder>(), Mock.Of<ILogger>());
+            var testSubject = CreateTestSubject(host);
 
             // Act
             Action act = () => testSubject.CurrentErrorWindowInfoBar_ButtonClick(this, EventArgs.Empty);
@@ -878,8 +878,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Test helpers
 
-        private ErrorListInfoBarController CreateTestSubject() =>
-            new ErrorListInfoBarController(host, unboundProjectFinder, logger, knownUIContexts.Object);
+        private ErrorListInfoBarController CreateTestSubject(IHost host = null)
+        {
+            host ??= this.host;
+            var testSubject = new ErrorListInfoBarController(host, unboundProjectFinder, logger, knownUIContexts.Object, new NoOpThreadHandler());
+            return testSubject;
+        }
 
         private static IHost CreateHostWithThrowingConfigProvider(Exception exceptionToThrow)
         {
@@ -1016,8 +1020,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return context;
         }
 
-        private void SimulateUIContextIsActivated(ErrorListInfoBarController testSubject) =>
-            testSubject.ProcessSolutionBinding();
+        private async Task SimulateUIContextIsActivated(ErrorListInfoBarController testSubject) =>
+            await testSubject.ProcessSolutionBindingAsync();
 
         private static void VerifyInfoBar(ConfigurableInfoBar infoBar)
         {

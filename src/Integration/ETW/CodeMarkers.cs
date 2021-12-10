@@ -22,7 +22,7 @@ using System.Diagnostics.Tracing;
 
 namespace SonarLint.VisualStudio.Integration.ETW
 {
-    [EventSource(Name = "sonarlint.vs.integration")]
+    [EventSource(Name = "SonarSource-SonarLint-VS-Integration")]
     public sealed class CodeMarkers : EventSource
     {
         public static readonly CodeMarkers Instance = new CodeMarkers();
@@ -41,15 +41,16 @@ namespace SonarLint.VisualStudio.Integration.ETW
 
         private const int UnboundProjectsFinderStartId = 1002;
         private const int UnboundProjectsFinderEndId = 1003;
+        private const int UnboundProjectsFinderBeforeIsBindingRequired = 1004;
 
-        private const int CheckProjectBindingStartId = 1004;
-        private const int CheckProjectBindingEndId = 1005;
+        private const int CheckProjectBindingStartId = 1005;
+        private const int CheckProjectBindingEndId = 1006;
 
-        private const int CSharpVBIsBindingRequiredStartId = 1006;
-        private const int CSharpVBIsBindingRequiredEndId = 1007;
+        private const int CSharpVBIsBindingRequiredStartId = 1007;
+        private const int CSharpVBIsBindingRequiredEndId = 1008;
 
-        private const int GetProjectRuleSetsDeclarationsStartId = 1008;
-        private const int GetProjectRuleSetsDeclarationsEndId = 1009;
+        private const int GetProjectRuleSetsDeclarationsStartId = 1009;
+        private const int GetProjectRuleSetsDeclarationsEndId = 1010;
 
         [Event(ErrorListControllerProcessStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
         public void ErrorListControllerProcessStart() => Write(ErrorListControllerProcessStartId);
@@ -62,6 +63,9 @@ namespace SonarLint.VisualStudio.Integration.ETW
 
         [Event(UnboundProjectsFinderEndId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
         public void UnboundProjectFinderEnd() => Write(UnboundProjectsFinderEndId);
+
+        [Event(UnboundProjectsFinderBeforeIsBindingRequired, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
+        public void UnboundProjectFinderBeforeIsBindingRequired() => Write(UnboundProjectsFinderBeforeIsBindingRequired);
 
         [Event(CheckProjectBindingStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
         public void CheckProjectBindingStart(string projectName) => Write(CheckProjectBindingStartId, projectName);
