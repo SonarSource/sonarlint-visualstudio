@@ -36,7 +36,6 @@ using Moq;
 using NuGet;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -633,7 +632,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             // Act
-            var result = BindingProcessImpl.GetProjectsForRulesetBinding(true, allProjects, finder, logger);
+            var result = BindingProcessImpl.GetProjectsForRulesetBinding(true, allProjects, finder, logger, new NoOpThreadHandler());
 
             // Assert
             result.Should().BeEquivalentTo(allProjects);
@@ -658,7 +657,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             // Act
-            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, finder, logger);
+            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, finder, logger, new NoOpThreadHandler());
 
             // Assert
             result.Should().BeEquivalentTo(allProjects);
@@ -691,7 +690,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             // Act
-            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, finder, logger);
+            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, finder, logger, new NoOpThreadHandler());
 
             // Assert
             result.Should().BeEquivalentTo(allProjects[1], allProjects[3]);
@@ -718,7 +717,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             // Act
-            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, finder, logger);
+            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, finder, logger, new NoOpThreadHandler());
 
             // Assert
             result.Should().BeEmpty();

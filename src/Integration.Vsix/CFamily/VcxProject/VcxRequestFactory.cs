@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Helpers;
 using VsShell = Microsoft.VisualStudio.Shell;
 
@@ -47,23 +48,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
         [ImportingConstructor]
         public VcxRequestFactory([Import(typeof(VsShell.SVsServiceProvider))] IServiceProvider serviceProvider,
             ICFamilyRulesConfigProvider cFamilyRulesConfigProvider,
-            IThreadHandling threadHandling,
             ILogger logger)
             : this(serviceProvider,
                 cFamilyRulesConfigProvider,
-                threadHandling,
                 new RulesConfigProtocolFormatter(),
                 new FileConfigProvider(logger),
-                logger)
+                logger,
+                new ThreadHandling())
         {
         }
 
         internal VcxRequestFactory(IServiceProvider serviceProvider,
             ICFamilyRulesConfigProvider rulesConfigProvider,
-            IThreadHandling threadHandling,
             IRulesConfigProtocolFormatter rulesConfigProtocolFormatter,
             IFileConfigProvider fileConfigProvider,
-            ILogger logger)
+            ILogger logger,
+            IThreadHandling threadHandling)
         {
             this.dte = serviceProvider.GetService<SDTE, DTE2>();
             this.cFamilyRulesConfigProvider = rulesConfigProvider;

@@ -65,17 +65,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
             foreach (var boundProject in boundProjects)
             {
-                testConfig.SetupProjectBindingRequired(boundProject, true);
+                testConfig.SetupProjectBindingRequired(boundProject, false);
             }
             foreach (var boundProject in unboundProjects)
             {
-                testConfig.SetupProjectBindingRequired(boundProject, false);
+                testConfig.SetupProjectBindingRequired(boundProject, true);
             }
 
             var testSubject = testConfig.CreateTestSubject();
 
             var result = testSubject.GetUnboundProjects();
-            result.Should().AllBeEquivalentTo(unboundProjects);
+            result.Should().BeEquivalentTo(unboundProjects);
         }
 
         private static void AssertEmptyResult(IEnumerable<EnvDTE.Project> projects)
@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         {
             private readonly Mock<IProjectBinderFactory> projectBinderFactoryMock = new Mock<IProjectBinderFactory>();
             private readonly List<ProjectMock> projects = new List<ProjectMock>();
-            private readonly BindingConfiguration bindingConfiguration = BindingConfiguration.Standalone;
+            private readonly BindingConfiguration bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(), SonarLintMode.Connected, null);
 
             public ProjectMock AddFilteredProject(string projectKind)
             {
@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                 sp.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper.Object);
                 sp.RegisterService(typeof(IConfigurationProviderService), configProviderMock.Object);
 
-                var testSubject = new UnboundProjectFinder(sp, new TestLogger(), projectBinderFactoryMock.Object);
+                var testSubject = new UnboundProjectFinder(sp, new TestLogger(), projectBinderFactoryMock.Object, new NoOpThreadHandler());
                 return testSubject;
             }
         }

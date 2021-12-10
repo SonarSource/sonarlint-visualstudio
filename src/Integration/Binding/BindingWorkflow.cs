@@ -75,6 +75,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private ProgressStepDefinition[] CreateWorkflowSteps(IProgressController controller)
         {
+            const StepAttributes IndeterminateNonCancellableBackgroundStep = StepAttributes.Indeterminate | StepAttributes.NonCancellable | StepAttributes.BackgroundThread;
             const StepAttributes IndeterminateNonCancellableUIStep = StepAttributes.Indeterminate | StepAttributes.NonCancellable;
             const StepAttributes HiddenIndeterminateNonImpactingNonCancellableUIStep = IndeterminateNonCancellableUIStep | StepAttributes.Hidden | StepAttributes.NoProgressImpact;
             const StepAttributes HiddenNonImpactingBackgroundStep = StepAttributes.BackgroundThread | StepAttributes.Hidden | StepAttributes.NoProgressImpact;
@@ -125,8 +126,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 // * create/update per-project ruleset
                 // * set project-level properties
                 // Most of the work is delegated to SolutionBindingOperation
-                new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, IndeterminateNonCancellableUIStep,
-                        (token, notifications) => this.InitializeSolutionBindingOnUIThread(notifications)),
+                new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, IndeterminateNonCancellableBackgroundStep,
+                        (token, notifications) => this.InitializeSolutionBindingOnBackgroundThread(notifications)),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread | StepAttributes.Indeterminate,
                         (token, notifications) => this.PrepareSolutionBinding(token)),
@@ -184,13 +185,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        internal /* for testing */ void InitializeSolutionBindingOnUIThread(IProgressStepExecutionEvents notificationEvents)
+        internal /* for testing */ void InitializeSolutionBindingOnBackgroundThread(IProgressStepExecutionEvents notificationEvents)
         {
-            Debug.Assert(host.UIDispatcher.CheckAccess(), "Expected to run on UI thread");
 
             notificationEvents.ProgressChanged(Strings.RuleSetGenerationProgressMessage);
 
-            bindingProcess.InitializeSolutionBindingOnUIThread();
+            bindingProcess.InitializeSolutionBindingOnBackgroundThread();
         }
 
         internal /* for testing */ void PrepareSolutionBinding(CancellationToken token)
