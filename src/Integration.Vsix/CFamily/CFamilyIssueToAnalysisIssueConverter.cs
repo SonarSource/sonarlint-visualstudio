@@ -30,6 +30,7 @@ using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Integration.ETW;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
@@ -67,6 +68,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         public IAnalysisIssue Convert(Message cFamilyIssue, string sqLanguage, ICFamilyRulesConfig rulesConfiguration)
         {
+            CodeMarkers.Instance.CFamilyConvertIssueStart(cFamilyIssue.Filename);
+
             // Lines and character positions are 1-based
             Debug.Assert(cFamilyIssue.Line > 0);
 
@@ -93,7 +96,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             var flows = locations.Any() ? new[] { new AnalysisIssueFlow(locations) } : null;
 
-            return ToAnalysisIssue(cFamilyIssue, sqLanguage, defaultSeverity, defaultType, flows, fileContents);
+            var result = ToAnalysisIssue(cFamilyIssue, sqLanguage, defaultSeverity, defaultType, flows, fileContents);
+
+            CodeMarkers.Instance.CFamilyConvertIssueStop();
+
+            return result;
         }
 
         private IDictionary<string, ITextDocument> LoadFileContentsOfReportedFiles(Message cFamilyIssue)
@@ -104,9 +111,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 .Distinct();
 
             return filePaths.ToDictionary(x => x,
-                path => fileSystem.File.Exists(path)
-                    ? textDocumentFactoryService.CreateAndLoadTextDocument(path, filesContentType) // the document is being loaded from disc, so it should match the version that was analyzed by the subprocess
-                    : null);
+                path => GetTextDocument(path));
+        }
+
+        private ITextDocument GetTextDocument(string filePath)
+        {
+            if (fileSystem.File.Exists(filePath))
+            {
+                // The document is being loaded from disc, so it should match the version that was analyzed by the subprocess
+                var doc = textDocumentFactoryService.CreateAndLoadTextDocument(filePath, filesContentType);
+                CodeMarkers.Instance.CFamilyConvertIssueFileLoaded(filePath);
+                return doc;
+            };
+
+            return null;
         }
 
         private IAnalysisIssue ToAnalysisIssue(Message cFamilyIssue, 
