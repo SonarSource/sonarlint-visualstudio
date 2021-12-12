@@ -219,7 +219,7 @@ namespace SonarLint.VisualStudio.Integration
             }
             finally
             {
-                ETW.CodeMarkers.Instance.ErrorListControllerProcessEnd();
+                ETW.CodeMarkers.Instance.ErrorListControllerProcessStop();
             }
         }
 

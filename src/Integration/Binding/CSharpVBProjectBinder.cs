@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             var result = languages.Any(l => !IsFullyBoundProject(binding, project, l));
 
-            ETW.CodeMarkers.Instance.CSharpVBIsBindingRequiredEnd();
+            ETW.CodeMarkers.Instance.CSharpVBIsBindingRequiredStop();
 
             return result;
         }
