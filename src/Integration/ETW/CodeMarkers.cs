@@ -32,6 +32,8 @@ namespace SonarLint.VisualStudio.Integration.ETW
             // Must be powers of 2 so they can be combined bitwise
             public const EventKeywords General = (EventKeywords)1;
             public const EventKeywords Binding = (EventKeywords)2;
+            public const EventKeywords Analysis = (EventKeywords)4;
+            public const EventKeywords CFamily = (EventKeywords)8;
         }
 
         #region Binding: 1000-1999
@@ -84,6 +86,36 @@ namespace SonarLint.VisualStudio.Integration.ETW
 
         [Event(GetProjectRuleSetsDeclarationsStopId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
         public void GetProjectRuleSetsDeclarationsStop() => Write(GetProjectRuleSetsDeclarationsStopId);
+
+        #endregion
+
+        #region Analysis: 2000-2999
+
+        private const int HandleMessageStartId = 2000;
+        private const int HandleMessageStopId = 2001;
+
+        [Event(HandleMessageStartId, Level = EventLevel.Informational, Keywords = Keywords.Analysis)]
+        public void HandleMessageStart(string fileName) => Write(HandleMessageStartId, fileName);
+
+        [Event(HandleMessageStopId, Level = EventLevel.Informational, Keywords = Keywords.Analysis)]
+        public void HandleMessageStop() => Write(HandleMessageStopId);
+
+        #endregion
+
+        #region Analysis: 3000-3999
+
+        private const int CFamilyConvertIssueStartId = 3000;
+        private const int CFamilyConvertIssueStopId = 3001;
+        private const int CFamilyConvertIssueFileLoadedId = 3002;
+
+        [Event(CFamilyConvertIssueStartId, Level = EventLevel.Informational, Keywords = Keywords.CFamily | Keywords.Analysis)]
+        public void CFamilyConvertIssueStart(string fileName) => Write(CFamilyConvertIssueStartId, fileName);
+
+        [Event(CFamilyConvertIssueStopId, Level = EventLevel.Informational, Keywords = Keywords.CFamily | Keywords.Analysis)]
+        public void CFamilyConvertIssueStop() => Write(CFamilyConvertIssueStopId);
+
+        [Event(CFamilyConvertIssueFileLoadedId, Level = EventLevel.Informational, Keywords = Keywords.CFamily | Keywords.Analysis)]
+        public void CFamilyConvertIssueFileLoaded(string filePath) => Write(CFamilyConvertIssueFileLoadedId, filePath);
 
         #endregion
 

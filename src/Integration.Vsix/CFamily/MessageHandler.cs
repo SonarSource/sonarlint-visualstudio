@@ -22,6 +22,7 @@ using System.Linq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.Integration.ETW;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
@@ -84,6 +85,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         public void HandleMessage(Message message)
         {
+            CodeMarkers.Instance.HandleMessageStart(request.Context.File);
+
             // Handle known internal rule keys - used to return info/warnings
             switch (message.RuleKey)
             {
@@ -109,6 +112,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     HandleAnalysisIssue(message);
                     break;
             }
+
+            CodeMarkers.Instance.HandleMessageStop();
         }
 
         private void HandleAnalysisIssue(Message message)
