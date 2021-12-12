@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private readonly ISonarLintSettings settings;
         private readonly IAnalysisStatusNotifier analysisStatusNotifier;
         private readonly ILogger logger;
-        private readonly ICFamilyIssueToAnalysisIssueConverter issueConverter;
+        private readonly ICFamilyIssueConverterFactory issueConverterFactory;
         private readonly IRequestFactoryAggregate requestFactory;
         private readonly IFileSystem fileSystem;
 
@@ -63,17 +63,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public CLangAnalyzer(ITelemetryManager telemetryManager,
             ISonarLintSettings settings,
             IAnalysisStatusNotifier analysisStatusNotifier,
-            ICFamilyIssueToAnalysisIssueConverter issueConverter,
+            ICFamilyIssueConverterFactory issueConverterFactory,
             IRequestFactoryAggregate requestFactory,
             ILogger logger)
-            : this(telemetryManager, settings, analysisStatusNotifier, issueConverter, requestFactory, logger, new FileSystem())
+            : this(telemetryManager, settings, analysisStatusNotifier, issueConverterFactory, requestFactory, logger, new FileSystem())
         {
         }
 
         internal /* for testing */ CLangAnalyzer(ITelemetryManager telemetryManager,
             ISonarLintSettings settings,
             IAnalysisStatusNotifier analysisStatusNotifier,
-            ICFamilyIssueToAnalysisIssueConverter issueConverter,
+            ICFamilyIssueConverterFactory issueConverterFactory,
             IRequestFactoryAggregate requestFactory,
             ILogger logger,
             IFileSystem fileSystem)
@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             this.settings = settings;
             this.analysisStatusNotifier = analysisStatusNotifier;
             this.logger = logger;
-            this.issueConverter = issueConverter;
+            this.issueConverterFactory = issueConverterFactory;
             this.requestFactory = requestFactory;
             this.fileSystem = fileSystem;
         }
@@ -161,7 +161,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             var messageHandler = consumer == null
                 ? NoOpMessageHandler.Instance
-                : new MessageHandler(request, consumer, issueConverter, logger);
+                : new MessageHandler(request, consumer, issueConverterFactory.Create(), logger);
 
             try
             {
