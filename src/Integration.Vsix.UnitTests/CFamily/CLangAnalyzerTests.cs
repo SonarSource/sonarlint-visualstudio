@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var testSubject = new CLangAnalyzer(Mock.Of<ITelemetryManager>(),
                 Mock.Of<ISonarLintSettings>(),
                 Mock.Of<IAnalysisStatusNotifier>(),
-                Mock.Of<ICFamilyIssueToAnalysisIssueConverter>(),
+                Mock.Of<ICFamilyIssueConverterFactory>(),
                 Mock.Of<IRequestFactoryAggregate>(),
                 Mock.Of<ILogger>());
 
@@ -152,10 +152,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 .Setup(x => x.Convert(message2, request.Context.CFamilyLanguage, rulesConfig))
                 .Returns(convertedMessage2);
 
+            var issueConverterFactory = new Mock<ICFamilyIssueConverterFactory>();
+            issueConverterFactory.Setup(x => x.Create()).Returns(issueConverter.Object);
+
             var mockConsumer = new Mock<IIssueConsumer>();
             var statusNotifier = new Mock<IAnalysisStatusNotifier>();
 
-            var testSubject = CreateTestableAnalyzer(issueConverter: issueConverter.Object,
+            var testSubject = CreateTestableAnalyzer(issueConverterFactory: issueConverterFactory.Object,
                 requestFactory: requestFactory.Object);
 
             TestableCLangAnalyzer.HandleCallSubProcess subProcessOp = (handleMessage, _, _, _, _) =>
@@ -258,11 +261,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             var internalErrorMessage = new Message("internal.UnexpectedFailure", "", 1, 1, 1, 1, "XXX Error in subprocess XXX", false, Array.Empty<MessagePart>());
 
-            var issueConverter = new Mock<ICFamilyIssueToAnalysisIssueConverter>();
+            var issueConverterFactory = Mock.Of<ICFamilyIssueConverterFactory>();
             var mockConsumer = new Mock<IIssueConsumer>();
             var statusNotifier = new Mock<IAnalysisStatusNotifier>();
 
-            var testSubject = CreateTestableAnalyzer(issueConverter: issueConverter.Object,
+            var testSubject = CreateTestableAnalyzer(issueConverterFactory: issueConverterFactory,
                 requestFactory: requestFactory.Object);
 
             TestableCLangAnalyzer.HandleCallSubProcess subProcessOp = (handleMessage, _, _, _, _) =>
@@ -302,18 +305,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         private static TestableCLangAnalyzer CreateTestableAnalyzer(ITelemetryManager telemetryManager = null,
             ISonarLintSettings settings = null,
             IAnalysisStatusNotifier statusNotifier = null,
-            ICFamilyIssueToAnalysisIssueConverter issueConverter = null,
+            ICFamilyIssueConverterFactory issueConverterFactory = null,
             IRequestFactoryAggregate requestFactory = null,
             ILogger logger = null)
         {
             telemetryManager ??= Mock.Of<ITelemetryManager>();
             settings ??= new ConfigurableSonarLintSettings();
             statusNotifier ??= Mock.Of<IAnalysisStatusNotifier>();
-            issueConverter ??= Mock.Of<ICFamilyIssueToAnalysisIssueConverter>();
+            issueConverterFactory ??= Mock.Of<ICFamilyIssueConverterFactory>();
             requestFactory ??= Mock.Of<IRequestFactoryAggregate>();
             logger ??= new TestLogger();
 
-            return new TestableCLangAnalyzer(telemetryManager, settings, statusNotifier, logger, issueConverter, requestFactory);
+            return new TestableCLangAnalyzer(telemetryManager, settings, statusNotifier, logger, issueConverterFactory, requestFactory);
         }
 
         private class TestableCLangAnalyzer : CLangAnalyzer
@@ -332,8 +335,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             public TestableCLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, 
                 IAnalysisStatusNotifier analysisStatusNotifier, ILogger logger, 
-                ICFamilyIssueToAnalysisIssueConverter cFamilyIssueConverter, IRequestFactoryAggregate requestFactory)
-                : base(telemetryManager, settings, analysisStatusNotifier, cFamilyIssueConverter, requestFactory, logger)
+                ICFamilyIssueConverterFactory cFamilyIssueConverterFactory, IRequestFactoryAggregate requestFactory)
+                : base(telemetryManager, settings, analysisStatusNotifier, cFamilyIssueConverterFactory, requestFactory, logger)
             {}
 
             protected override void CallSubProcess(Action<Message> handleMessage, IRequest request,

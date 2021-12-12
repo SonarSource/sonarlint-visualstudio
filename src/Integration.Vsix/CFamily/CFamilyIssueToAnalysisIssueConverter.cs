@@ -33,23 +33,61 @@ using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.ETW;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 
+/* Instancing: a new issue converter should be created for each analysis run.
+ * 
+ * Overview
+ * --------
+ * Each analysis is for a single file, although the issues returned could be for related
+ * files (e.g. a header file). The results will generally be a small set of files - the
+ * analysis file + [zero or more related files].
+ * 
+ * Converting an issue entails loading the text document for the file. We don't want to load
+ * the same document multiple times, so we'll create a separate converter for each analysis,
+ * so the converter can cache the loaded text documents.
+ */
+
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
+    internal interface ICFamilyIssueConverterFactory
+    {
+        ICFamilyIssueToAnalysisIssueConverter Create();        
+    }
+
+    [Export(typeof(ICFamilyIssueConverterFactory))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class CFamilyIssueConverterFactory : ICFamilyIssueConverterFactory
+    {
+        private readonly ITextDocumentFactoryService textDocumentFactoryService;
+        private readonly IContentTypeRegistryService contentTypeRegistryService;
+
+        [ImportingConstructor]
+        public CFamilyIssueConverterFactory(ITextDocumentFactoryService textDocumentFactoryService, IContentTypeRegistryService contentTypeRegistryService)
+        {
+            this.textDocumentFactoryService = textDocumentFactoryService;
+            this.contentTypeRegistryService = contentTypeRegistryService;
+        }
+
+        public ICFamilyIssueToAnalysisIssueConverter Create()
+        {
+            return new CFamilyIssueToAnalysisIssueConverter(textDocumentFactoryService, contentTypeRegistryService);
+        }
+    }
+
     internal interface ICFamilyIssueToAnalysisIssueConverter
     {
         IAnalysisIssue Convert(Message cFamilyIssue, string sqLanguage, ICFamilyRulesConfig rulesConfiguration);
     }
 
-    [Export(typeof(ICFamilyIssueToAnalysisIssueConverter))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
+
+    // Short-lived class - one instance per analysis
     internal class CFamilyIssueToAnalysisIssueConverter : ICFamilyIssueToAnalysisIssueConverter
     {
         private readonly ITextDocumentFactoryService textDocumentFactoryService;
         private readonly ILineHashCalculator lineHashCalculator;
         private readonly IFileSystem fileSystem;
         private readonly IContentType filesContentType;
+        private readonly Dictionary<string, ITextDocument> pathToTextDocMap;
 
-        [ImportingConstructor]
         public CFamilyIssueToAnalysisIssueConverter(ITextDocumentFactoryService textDocumentFactoryService, IContentTypeRegistryService contentTypeRegistryService)
             : this(textDocumentFactoryService, contentTypeRegistryService, new LineHashCalculator(), new FileSystem())
         {
@@ -64,6 +102,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             this.lineHashCalculator = lineHashCalculator;
             this.fileSystem = fileSystem;
             filesContentType = contentTypeRegistryService.UnknownContentType;
+
+            pathToTextDocMap = new Dictionary<string, ITextDocument>();
         }
 
         public IAnalysisIssue Convert(Message cFamilyIssue, string sqLanguage, ICFamilyRulesConfig rulesConfiguration)
@@ -82,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             var defaultSeverity = rulesConfiguration.RulesMetadata[cFamilyIssue.RuleKey].DefaultSeverity;
             var defaultType = rulesConfiguration.RulesMetadata[cFamilyIssue.RuleKey].Type;
 
-            var fileContents = LoadFileContentsOfReportedFiles(cFamilyIssue); 
+            var fileContents = GetFileContentsOfReportedFiles(cFamilyIssue); 
 
             var locations = cFamilyIssue.Parts
                 .Select(x=> ToAnalysisIssueLocation(x, fileContents))
@@ -103,15 +143,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return result;
         }
 
-        private IDictionary<string, ITextDocument> LoadFileContentsOfReportedFiles(Message cFamilyIssue)
+        private IReadOnlyDictionary<string, ITextDocument> GetFileContentsOfReportedFiles(Message cFamilyIssue)
         {
             var filePaths = cFamilyIssue.Parts
                 .Select(x => x.Filename)
                 .Union(new[] {cFamilyIssue.Filename})
                 .Distinct();
 
-            return filePaths.ToDictionary(x => x,
-                path => GetTextDocument(path));
+            foreach(var filePath in filePaths)
+            {
+                if (pathToTextDocMap.ContainsKey(filePath))
+                {
+                    CodeMarkers.Instance.CFamilyConvertIssueFileAlreadyLoaded(filePath);
+                }
+                else
+                {
+                    var doc = GetTextDocument(filePath);
+                    pathToTextDocMap.Add(filePath, doc);
+
+                    CodeMarkers.Instance.CFamilyConvertIssueFileLoaded(filePath);
+                }
+            }
+
+            return pathToTextDocMap;
         }
 
         private ITextDocument GetTextDocument(string filePath)
@@ -120,7 +174,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             {
                 // The document is being loaded from disc, so it should match the version that was analyzed by the subprocess
                 var doc = textDocumentFactoryService.CreateAndLoadTextDocument(filePath, filesContentType);
-                CodeMarkers.Instance.CFamilyConvertIssueFileLoaded(filePath);
                 return doc;
             };
 
@@ -132,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             IssueSeverity defaultSeverity,
             IssueType defaultType,
             IReadOnlyList<IAnalysisIssueFlow> flows,
-            IDictionary<string, ITextDocument> fileContents)
+            IReadOnlyDictionary<string, ITextDocument> fileContents)
         {
             return new AnalysisIssue
             (
@@ -154,7 +207,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             );
         }
 
-        private string CalculateLineHash(MessagePart cFamilyIssueLocation, IDictionary<string, ITextDocument> fileContents)
+        private string CalculateLineHash(MessagePart cFamilyIssueLocation, IReadOnlyDictionary<string, ITextDocument> fileContents)
         {
             var isFileLevelLocation = cFamilyIssueLocation.Line == 1 &&
                                       cFamilyIssueLocation.Column <= 1 &&
@@ -171,7 +224,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return textSnapshot == null ? null : lineHashCalculator.Calculate(textSnapshot, cFamilyIssueLocation.Line);
         }
 
-        private AnalysisIssueLocation ToAnalysisIssueLocation(MessagePart cFamilyIssueLocation, IDictionary<string, ITextDocument> fileContents)
+        private AnalysisIssueLocation ToAnalysisIssueLocation(MessagePart cFamilyIssueLocation, IReadOnlyDictionary<string, ITextDocument> fileContents)
         {
             return new AnalysisIssueLocation
             (

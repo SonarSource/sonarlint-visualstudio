@@ -107,6 +107,7 @@ namespace SonarLint.VisualStudio.Integration.ETW
         private const int CFamilyConvertIssueStartId = 3000;
         private const int CFamilyConvertIssueStopId = 3001;
         private const int CFamilyConvertIssueFileLoadedId = 3002;
+        private const int CFamilyConvertIssueFileAlreadyLoadedId = 3003;
 
         [Event(CFamilyConvertIssueStartId, Level = EventLevel.Informational, Keywords = Keywords.CFamily | Keywords.Analysis)]
         public void CFamilyConvertIssueStart(string fileName) => Write(CFamilyConvertIssueStartId, fileName);
@@ -116,6 +117,9 @@ namespace SonarLint.VisualStudio.Integration.ETW
 
         [Event(CFamilyConvertIssueFileLoadedId, Level = EventLevel.Informational, Keywords = Keywords.CFamily | Keywords.Analysis)]
         public void CFamilyConvertIssueFileLoaded(string filePath) => Write(CFamilyConvertIssueFileLoadedId, filePath);
+
+        [Event(CFamilyConvertIssueFileAlreadyLoadedId, Level = EventLevel.Informational, Keywords = Keywords.CFamily | Keywords.Analysis)]
+        public void CFamilyConvertIssueFileAlreadyLoaded(string filePath) => Write(CFamilyConvertIssueFileAlreadyLoadedId, filePath);
 
         #endregion
 

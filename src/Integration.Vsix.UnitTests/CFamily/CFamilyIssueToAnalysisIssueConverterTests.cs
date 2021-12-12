@@ -41,16 +41,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         private static readonly IContentType DummyContentType = Mock.Of<IContentType>();
 
         [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<CFamilyIssueToAnalysisIssueConverter, ICFamilyIssueToAnalysisIssueConverter>(null, new[]
-            {
-                MefTestHelpers.CreateExport<ITextDocumentFactoryService>(Mock.Of<ITextDocumentFactoryService>()),
-                MefTestHelpers.CreateExport<IContentTypeRegistryService>(Mock.Of<IContentTypeRegistryService>())
-            });
-        }
-
-        [TestMethod]
         public void Convert_NoMessageParts_IssueWithoutFlows()
         {
             var message = new Message("rule2", "file", 4, 3, 2, 1, "this is a test", false, new MessagePart[0]);
@@ -379,7 +369,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void Convert_HasMessageParts_EachFileIsLoadedOnlyOnce()
+        public void Convert_HasMessageParts_EachFileIsLoadedOnlyOnce_PerCall()
         {
             var messageParts = new List<MessagePart>
             {
@@ -390,14 +380,55 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             var message = new Message("rule2", "file2.cpp", 40, 3, 2, 1, "this is a test", false, messageParts.ToArray());
 
-            var fileSystemMock = CreateFileSystemMock();
-            var testSubject = CreateTestSubject(fileSystem: fileSystemMock.Object);
+            var fileSystemMock = CreateFileSystemMock(fileExists: true);
+            var textDocFactory = new Mock<ITextDocumentFactoryService>();
+
+            var testSubject = CreateTestSubject(fileSystem: fileSystemMock.Object, textDocFactory: textDocFactory.Object);
 
             Convert(testSubject, message);
 
             fileSystemMock.Verify(x => x.File.Exists("file1.cpp"), Times.Once);
             fileSystemMock.Verify(x => x.File.Exists("file2.cpp"), Times.Once);
             fileSystemMock.VerifyNoOtherCalls();
+
+            textDocFactory.Verify(x => x.CreateAndLoadTextDocument("file1.cpp", It.IsAny<IContentType>()), Times.Once);
+            textDocFactory.Verify(x => x.CreateAndLoadTextDocument("file2.cpp", It.IsAny<IContentType>()), Times.Once);
+            textDocFactory.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Convert_HasMessageParts_EachFileIsLoadedOnlyOnce_AcrossMultipleCalls()
+        {
+            var messageParts1 = new List<MessagePart>
+            {
+                new MessagePart("file1.cpp", 10, 2, 3, 4, "this is a test 1"),
+                new MessagePart("file2.cpp", 30, 6, 7, 8, "this is a test 2")
+            };
+            var message1 = new Message("rule2", "file2.cpp", 40, 3, 2, 1, "this is a test", false, messageParts1.ToArray());
+
+            var messageParts2 = new List<MessagePart>
+            {
+                new MessagePart("file1.cpp", 100, 2, 3, 4, "this is a test 1"),
+                new MessagePart("file2.cpp", 300, 6, 7, 8, "this is a test 2")
+            };
+            var message2 = new Message("rule2", "file2.cpp", 40, 3, 2, 1, "this is another test", false, messageParts2.ToArray());
+
+            var fileSystemMock = CreateFileSystemMock(fileExists: true);
+            var textDocFactory = new Mock<ITextDocumentFactoryService>();
+
+            var testSubject = CreateTestSubject(fileSystem: fileSystemMock.Object, textDocFactory: textDocFactory.Object);
+
+            // Convert multiple times
+            Convert(testSubject, message1);
+            Convert(testSubject, message2);
+
+            fileSystemMock.Verify(x => x.File.Exists("file1.cpp"), Times.Once);
+            fileSystemMock.Verify(x => x.File.Exists("file2.cpp"), Times.Once);
+            fileSystemMock.VerifyNoOtherCalls();
+
+            textDocFactory.Verify(x => x.CreateAndLoadTextDocument("file1.cpp", It.IsAny<IContentType>()), Times.Once);
+            textDocFactory.Verify(x => x.CreateAndLoadTextDocument("file2.cpp", It.IsAny<IContentType>()), Times.Once);
+            textDocFactory.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -531,10 +562,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         private static IAnalysisIssue Convert(CFamilyIssueToAnalysisIssueConverter testSubject, Message message) =>
             testSubject.Convert(message, "lang1", GetDummyRulesConfiguration());
 
-        private static CFamilyIssueToAnalysisIssueConverter CreateTestSubject(IFileSystem fileSystem = null) =>
+        private static CFamilyIssueToAnalysisIssueConverter CreateTestSubject(IFileSystem fileSystem = null,
+            ITextDocumentFactoryService textDocFactory = null) =>
             CreateTestSubject(Mock.Of<ILineHashCalculator>(),
                 fileSystem ?? CreateFileSystemMock().Object,
-                Mock.Of<ITextDocumentFactoryService>());
+                textDocFactory ?? Mock.Of<ITextDocumentFactoryService>());
 
         private static CFamilyIssueToAnalysisIssueConverter CreateTestSubject(
             ILineHashCalculator lineHashCalculator,
@@ -547,10 +579,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             return testSubject;
         }
 
-        private static Mock<IFileSystem> CreateFileSystemMock()
+        private static Mock<IFileSystem> CreateFileSystemMock(bool fileExists = false)
         {
             var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.File.Exists(It.IsAny<string>())).Returns(false);
+            fileSystemMock.Setup(x => x.File.Exists(It.IsAny<string>())).Returns(fileExists);
 
             return fileSystemMock;
         }
