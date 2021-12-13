@@ -48,7 +48,6 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             MefTestHelpers.CheckTypeCanBeImported<VsDevCmdEnvironmentVarsProvider, IVsDevCmdEnvironmentProvider>(null, new[]
             {
                 MefTestHelpers.CreateExport<IVsInfoService>(Mock.Of<IVsInfoService>()),
-                MefTestHelpers.CreateExport<IThreadHandling>(Mock.Of<IThreadHandling>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
