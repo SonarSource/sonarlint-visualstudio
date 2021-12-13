@@ -66,8 +66,8 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         private readonly IFileSystem fileSystem;
 
         [ImportingConstructor]
-        public VsDevCmdEnvironmentVarsProvider(IVsInfoService vsInfoService, IThreadHandling threadHandling, ILogger logger)
-            : this(vsInfoService, threadHandling, logger, new ProcessFactory(), new FileSystem())
+        public VsDevCmdEnvironmentVarsProvider(IVsInfoService vsInfoService, ILogger logger)
+            : this(vsInfoService, new ThreadHandling(), logger, new ProcessFactory(), new FileSystem())
         {
         }
 
