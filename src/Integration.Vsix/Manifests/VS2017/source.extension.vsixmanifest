@@ -4,7 +4,7 @@
     <!-- Note: keep the version number in sync with AssemblyInfo.Shared.cs -->
     <Identity Id="SonarLint.36871a7b-4853-481f-bb52-1835a874e81b" Version="5.3.0.0" Language="en-US" Publisher="SonarSource" />
     <DisplayName>SonarLint for Visual Studio 2017</DisplayName>
-    <Description xml:space="preserve">​​SonarLint helps you detect and fix coding issues so that the code committed is clean and safe. It supports C#, VB.NET, C, C++, JS, and TS and provides real-time feedback and clear fix guidance.</Description>
+    <Description xml:space="preserve">SonarLint helps you detect and fix coding issues so that the code committed is clean and safe. It supports C#, VB.NET, C, C++, JS, and TS and provides real-time feedback and clear fix guidance.</Description>
     <MoreInfo>http://vs.sonarlint.org</MoreInfo>
     <License>LICENSE</License>
     <GettingStartedGuide>http://vs.sonarlint.org</GettingStartedGuide>
