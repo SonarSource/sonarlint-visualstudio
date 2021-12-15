@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration
 
             var result = GetProjectRuleSetsDeclarationsIterator(project);
 
-            ETW.CodeMarkers.Instance.GetProjectRuleSetsDeclarationsEnd();
+            ETW.CodeMarkers.Instance.GetProjectRuleSetsDeclarationsStop();
 
             return result;
         }
