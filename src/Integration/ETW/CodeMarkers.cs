@@ -37,32 +37,32 @@ namespace SonarLint.VisualStudio.Integration.ETW
         #region Binding: 1000-1999
 
         private const int ErrorListControllerProcessStartId = 1000;
-        private const int ErrorListControllerProcessEndId = 1001;
+        private const int ErrorListControllerProcessStopId = 1001;
 
         private const int UnboundProjectsFinderStartId = 1002;
-        private const int UnboundProjectsFinderEndId = 1003;
+        private const int UnboundProjectsFinderStopId = 1003;
         private const int UnboundProjectsFinderBeforeIsBindingRequired = 1004;
 
         private const int CheckProjectBindingStartId = 1005;
-        private const int CheckProjectBindingEndId = 1006;
+        private const int CheckProjectBindingStopId = 1006;
 
         private const int CSharpVBIsBindingRequiredStartId = 1007;
-        private const int CSharpVBIsBindingRequiredEndId = 1008;
+        private const int CSharpVBIsBindingRequiredStopId = 1008;
 
         private const int GetProjectRuleSetsDeclarationsStartId = 1009;
-        private const int GetProjectRuleSetsDeclarationsEndId = 1010;
+        private const int GetProjectRuleSetsDeclarationsStopId = 1010;
 
         [Event(ErrorListControllerProcessStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
         public void ErrorListControllerProcessStart() => Write(ErrorListControllerProcessStartId);
 
-        [Event(ErrorListControllerProcessEndId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
-        public void ErrorListControllerProcessEnd() => Write(ErrorListControllerProcessEndId);
+        [Event(ErrorListControllerProcessStopId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
+        public void ErrorListControllerProcessStop() => Write(ErrorListControllerProcessStopId);
 
         [Event(UnboundProjectsFinderStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
         public void UnboundProjectFinderStart() => Write(UnboundProjectsFinderStartId);
 
-        [Event(UnboundProjectsFinderEndId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
-        public void UnboundProjectFinderEnd() => Write(UnboundProjectsFinderEndId);
+        [Event(UnboundProjectsFinderStopId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
+        public void UnboundProjectFinderStop() => Write(UnboundProjectsFinderStopId);
 
         [Event(UnboundProjectsFinderBeforeIsBindingRequired, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
         public void UnboundProjectFinderBeforeIsBindingRequired() => Write(UnboundProjectsFinderBeforeIsBindingRequired);
@@ -70,20 +70,20 @@ namespace SonarLint.VisualStudio.Integration.ETW
         [Event(CheckProjectBindingStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
         public void CheckProjectBindingStart(string projectName) => Write(CheckProjectBindingStartId, projectName);
 
-        [Event(CheckProjectBindingEndId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
-        public void CheckProjectBindingEnd() => Write(CheckProjectBindingEndId);
+        [Event(CheckProjectBindingStopId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
+        public void CheckProjectBindingStop() => Write(CheckProjectBindingStopId);
 
         [Event(CSharpVBIsBindingRequiredStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
         public void CSharpVBProjectIsBindingRequiredStart(string projectName) => Write(CSharpVBIsBindingRequiredStartId, projectName);
 
-        [Event(CSharpVBIsBindingRequiredEndId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
-        public void CSharpVBIsBindingRequiredEnd() => Write(CSharpVBIsBindingRequiredEndId);
+        [Event(CSharpVBIsBindingRequiredStopId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
+        public void CSharpVBIsBindingRequiredStop() => Write(CSharpVBIsBindingRequiredStopId);
 
         [Event(GetProjectRuleSetsDeclarationsStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
         public void GetProjectRuleSetsDeclarationsStart(string projectName) => Write(GetProjectRuleSetsDeclarationsStartId, projectName);
 
-        [Event(GetProjectRuleSetsDeclarationsEndId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
-        public void GetProjectRuleSetsDeclarationsEnd() => Write(GetProjectRuleSetsDeclarationsEndId);
+        [Event(GetProjectRuleSetsDeclarationsStopId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
+        public void GetProjectRuleSetsDeclarationsStop() => Write(GetProjectRuleSetsDeclarationsStopId);
 
         #endregion
 

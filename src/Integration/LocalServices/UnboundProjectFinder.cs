@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration
             var unbound = bindingConfig.Mode.IsInAConnectedMode() ? GetUnboundProjects(bindingConfig) : Array.Empty<Project>();
             logger.LogDebug($"[Binding check] Number of unbound projects: {unbound.Length}");
 
-            CodeMarkers.Instance.UnboundProjectFinderEnd();
+            CodeMarkers.Instance.UnboundProjectFinderStop();
             return unbound;
         }
 
@@ -173,7 +173,7 @@ namespace SonarLint.VisualStudio.Integration
             var required = configProjectBinder.IsBindingRequired(binding, project);
             logger.LogDebug($"[Binding check] Is binding required: {required} (project: {projectName})");
 
-            ETW.CodeMarkers.Instance.CheckProjectBindingEnd();
+            ETW.CodeMarkers.Instance.CheckProjectBindingStop();
 
             return required;
         }
