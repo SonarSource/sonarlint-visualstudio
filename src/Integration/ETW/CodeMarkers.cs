@@ -89,25 +89,20 @@ namespace SonarLint.VisualStudio.Integration.ETW
 
         #endregion
 
-        #region Analysis: 2000-2999
+        #region CFamily: 2000-2999
 
-        private const int HandleMessageStartId = 2000;
-        private const int HandleMessageStopId = 2001;
+        private const int CFamilyHandleMessageStartId = 2000;
+        private const int CFamilyHandleMessageStopId = 2001;
+        private const int CFamilyConvertIssueStartId = 2002;
+        private const int CFamilyConvertIssueStopId = 2003;
+        private const int CFamilyConvertIssueFileLoadedId = 2004;
+        private const int CFamilyConvertIssueFileAlreadyLoadedId = 2005;
 
-        [Event(HandleMessageStartId, Level = EventLevel.Informational, Keywords = Keywords.Analysis)]
-        public void HandleMessageStart(string fileName) => Write(HandleMessageStartId, fileName);
+        [Event(CFamilyHandleMessageStartId, Level = EventLevel.Informational, Keywords = Keywords.CFamily | Keywords.Analysis)]
+        public void CFamilyHandleMessageStart(string fileName) => Write(CFamilyHandleMessageStartId, fileName);
 
-        [Event(HandleMessageStopId, Level = EventLevel.Informational, Keywords = Keywords.Analysis)]
-        public void HandleMessageStop() => Write(HandleMessageStopId);
-
-        #endregion
-
-        #region Analysis: 3000-3999
-
-        private const int CFamilyConvertIssueStartId = 3000;
-        private const int CFamilyConvertIssueStopId = 3001;
-        private const int CFamilyConvertIssueFileLoadedId = 3002;
-        private const int CFamilyConvertIssueFileAlreadyLoadedId = 3003;
+        [Event(CFamilyHandleMessageStopId, Level = EventLevel.Informational, Keywords = Keywords.CFamily | Keywords.Analysis)]
+        public void CFamilyHandleMessageStop() => Write(CFamilyHandleMessageStopId);
 
         [Event(CFamilyConvertIssueStartId, Level = EventLevel.Informational, Keywords = Keywords.CFamily | Keywords.Analysis)]
         public void CFamilyConvertIssueStart(string fileName) => Write(CFamilyConvertIssueStartId, fileName);

@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         public void HandleMessage(Message message)
         {
-            CodeMarkers.Instance.HandleMessageStart(request.Context.File);
+            CodeMarkers.Instance.CFamilyHandleMessageStart(request.Context.File);
 
             // Handle known internal rule keys - used to return info/warnings
             switch (message.RuleKey)
@@ -113,7 +113,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     break;
             }
 
-            CodeMarkers.Instance.HandleMessageStop();
+            CodeMarkers.Instance.CFamilyHandleMessageStop();
         }
 
         private void HandleAnalysisIssue(Message message)
