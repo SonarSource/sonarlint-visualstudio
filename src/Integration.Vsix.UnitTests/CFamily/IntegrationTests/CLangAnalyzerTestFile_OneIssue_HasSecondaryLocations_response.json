@@ -2,6 +2,7 @@
   "Messages": [
     {
       "Filename": "",
+      "Fixes": [],
       "RuleKey": "S2259",
       "PartsMakeFlow": true,
       "Parts": [

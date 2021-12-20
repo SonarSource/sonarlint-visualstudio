@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void Convert_NoMessageParts_IssueWithoutFlows()
         {
-            var message = new Message("rule2", "file", 4, 3, 2, 1, "this is a test", false, new MessagePart[0]);
+            var message = new Message("rule2", "file", 4, 3, 2, 1, "this is a test", false, new MessagePart[0], Array.Empty<Fix>());
 
             var testSubject = CreateTestSubject();
             var issue = Convert(testSubject, message);
@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 new MessagePart("c:\\test2.cpp", 5, 6, 7, 8, "this is a test 2")
             };
 
-            var message = new Message("rule2", "file", 4, 3, 2, 1, "this is a test", false, messageParts.ToArray());
+            var message = new Message("rule2", "file", 4, 3, 2, 1, "this is a test", false, messageParts.ToArray(), Array.Empty<Fix>());
 
             var testSubject = CreateTestSubject();
             var issue = Convert(testSubject, message);
@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 new MessagePart("c:\\test2.cpp", 5, 6, 7, 8, "this is a test 2")
             };
 
-            var message = new Message("rule2", "file", 4, 3, 2, 1, "this is a test", true, messageParts.ToArray());
+            var message = new Message("rule2", "file", 4, 3, 2, 1, "this is a test", true, messageParts.ToArray(), Array.Empty<Fix>());
 
             var testSubject = CreateTestSubject();
             var issue = Convert(testSubject, message);
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void Convert_IssueEndLineIsNotZero_OffsetsAreCalculatedCorrectly()
         {
-            var message = new Message("rule2", "file", 4, 3, 2, 1, "test endline is not zero", false, new MessagePart[0]);
+            var message = new Message("rule2", "file", 4, 3, 2, 1, "test endline is not zero", false, new MessagePart[0], Array.Empty<Fix>());
 
             // Act
             var testSubject = CreateTestSubject();
@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void Convert_IssueEndLineIsZero_OffsetsAreIgnored()
         {
             // Special case: ignore column offsets if EndLine is zero
-            var message = new Message("rule2", "ff", 101, 1, 0, 3, "test endline is zero", true, new MessagePart[0]);
+            var message = new Message("rule2", "ff", 101, 1, 0, 3, "test endline is zero", true, new MessagePart[0], Array.Empty<Fix>());
 
             // Act
             var testSubject = CreateTestSubject();
@@ -148,7 +148,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void Convert_LocationEndLineIsNotZero_OffsetsAreCalculatedCorrectly()
         {
             var messagePart = new MessagePart("file", 10, 2, 30, 4, "text");
-            var message = new Message("rule2", "file", 4, 3, 2, 1, "test endline is not zero", false, new[] { messagePart });
+            var message = new Message("rule2", "file", 4, 3, 2, 1, "test endline is not zero", false, new[] { messagePart }, Array.Empty<Fix>());
 
             var testSubject = CreateTestSubject();
             var issue = Convert(testSubject, message);
@@ -165,7 +165,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void Convert_LocationEndLineIsZero_OffsetsAreIgnored()
         {
             var messagePart = new MessagePart("file", 10, 2, 0, 4, "text");
-            var message = new Message("rule2", "file", 4, 3, 2, 1, "test endline is not zero", false, new[] { messagePart });
+            var message = new Message("rule2", "file", 4, 3, 2, 1, "test endline is not zero", false, new[] { messagePart }, Array.Empty<Fix>());
 
             var testSubject = CreateTestSubject();
             var issue = Convert(testSubject, message);
@@ -190,7 +190,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             var issueHash = SetupLineHash(fileSystemMock, lineHashCalculator, textDocumentFactoryService, filePath, line);
 
-            var message = new Message("rule2", filePath, line, 3, 2, 1, "this is a test", false, new MessagePart[0]);
+            var message = new Message("rule2", filePath, line, 3, 2, 1, "this is a test", false, new MessagePart[0], Array.Empty<Fix>());
 
             var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
             var issue = Convert(testSubject, message);
@@ -223,7 +223,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 new MessagePart(secondLocationPath, secondLocationLine, 6, 7, 8, "this is a test 2")
             };
 
-            var message = new Message("rule2", issueFilePath, issueLine, 3, 2, 1, "this is a test", false, messageParts.ToArray());
+            var message = new Message("rule2", issueFilePath, issueLine, 3, 2, 1, "this is a test", false, messageParts.ToArray(), Array.Empty<Fix>());
 
             var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
             var issue = Convert(testSubject, message);
@@ -254,7 +254,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 new MessagePart("file3.cpp", 1, 1, 0, 0, "this is a test 2")
             };
 
-            var fileLevelIssue = new Message("rule2", "file1.pp", 1, 0, 0, 0, "this is a test", false, messageParts.ToArray());
+            var fileLevelIssue = new Message("rule2", "file1.pp", 1, 0, 0, 0, "this is a test", false, messageParts.ToArray(), Array.Empty<Fix>());
 
             var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
             var issue = Convert(testSubject, fileLevelIssue);
@@ -285,7 +285,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 new MessagePart("non existing path", 2, 6, 7, 8, "this is a test 2")
             };
 
-            var message = new Message("rule2", "non existing path", 3, 3, 2, 1, "this is a test", false, messageParts.ToArray());
+            var message = new Message("rule2", "non existing path", 3, 3, 2, 1, "this is a test", false, messageParts.ToArray(), Array.Empty<Fix>());
 
             var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
             var issue = Convert(testSubject, message);
@@ -314,7 +314,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             SetupDocumentLoad(textDocumentFactoryService, filePath, textDocument: null);
 
-            var message = new Message("rule2", filePath, 3, 3, 2, 1, "this is a test", false, Array.Empty<MessagePart>());
+            var message = new Message("rule2", filePath, 3, 3, 2, 1, "this is a test", false, Array.Empty<MessagePart>(), Array.Empty<Fix>());
 
             var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
 
@@ -336,7 +336,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var textDocument = CreateTextDocument(null);
             SetupDocumentLoad(textDocumentFactoryService, filePath, textDocument);
 
-            var message = new Message("rule2", filePath, 3, 3, 2, 1, "this is a test", false, Array.Empty<MessagePart>());
+            var message = new Message("rule2", filePath, 3, 3, 2, 1, "this is a test", false, Array.Empty<MessagePart>(), Array.Empty<Fix>());
 
             var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
 
@@ -359,7 +359,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var textDocument = CreateTextDocument(textBuffer);
             SetupDocumentLoad(textDocumentFactoryService, filePath, textDocument);
 
-            var message = new Message("rule2", filePath, 3, 3, 2, 1, "this is a test", false, Array.Empty<MessagePart>());
+            var message = new Message("rule2", filePath, 3, 3, 2, 1, "this is a test", false, Array.Empty<MessagePart>(), Array.Empty<Fix>());
 
             var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
 
@@ -378,7 +378,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 new MessagePart("file2.cpp", 30, 6, 7, 8, "this is a test 2")
             };
 
-            var message = new Message("rule2", "file2.cpp", 40, 3, 2, 1, "this is a test", false, messageParts.ToArray());
+            var message = new Message("rule2", "file2.cpp", 40, 3, 2, 1, "this is a test", false, messageParts.ToArray(), Array.Empty<Fix>());
 
             var fileSystemMock = CreateFileSystemMock(fileExists: true);
             var textDocFactory = new Mock<ITextDocumentFactoryService>();
@@ -404,14 +404,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 new MessagePart("file1.cpp", 10, 2, 3, 4, "this is a test 1"),
                 new MessagePart("file2.cpp", 30, 6, 7, 8, "this is a test 2")
             };
-            var message1 = new Message("rule2", "file2.cpp", 40, 3, 2, 1, "this is a test", false, messageParts1.ToArray());
+            var message1 = new Message("rule2", "file2.cpp", 40, 3, 2, 1, "this is a test", false, messageParts1.ToArray(), Array.Empty<Fix>());
 
             var messageParts2 = new List<MessagePart>
             {
                 new MessagePart("FILE1.cpp", 100, 2, 3, 4, "this is a test 1"),
                 new MessagePart("FILE2.cpp", 300, 6, 7, 8, "this is a test 2")
             };
-            var message2 = new Message("rule2", "file2.cpp", 40, 3, 2, 1, "this is another test", false, messageParts2.ToArray());
+            var message2 = new Message("rule2", "file2.cpp", 40, 3, 2, 1, "this is another test", false, messageParts2.ToArray(), Array.Empty<Fix>());
 
             var fileSystemMock = CreateFileSystemMock(fileExists: true);
             var textDocFactory = new Mock<ITextDocumentFactoryService>();
@@ -436,7 +436,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [DataRow("rule3", AnalysisIssueSeverity.Critical, AnalysisIssueType.Vulnerability)]
         public void Convert_SeverityAndTypeLookup(string ruleKey, AnalysisIssueSeverity severity, AnalysisIssueType type)
         {
-            var message = new Message(ruleKey, "any", 4, 3, 2, 1, "message", false, new MessagePart[0]);
+            var message = new Message(ruleKey, "any", 4, 3, 2, 1, "message", false, new MessagePart[0], Array.Empty<Fix>());
             var testSubject = CreateTestSubject();
             var issue = Convert(testSubject, message);
 
@@ -458,7 +458,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 new MessagePart(originalPath, 10, 2, 3, 4, "this is a test 1"),
             };
 
-            var message = new Message("rule2", "file2.cpp", 40, 3, 2, 1, "this is a test", false, messageParts.ToArray());
+            var message = new Message("rule2", "file2.cpp", 40, 3, 2, 1, "this is a test", false, messageParts.ToArray(), Array.Empty<Fix>());
 
             var testSubject = CreateTestSubject();
             var issue = Convert(testSubject, message);
@@ -476,7 +476,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [DataRow("c:/a\\b/c.txt", "c:\\a\\b\\c.txt")]
         public void Convert_FilePath_QualifiedFilePath(string originalPath, string expectedPath)
         {
-            var message = new Message("rule2", originalPath, 40, 3, 2, 1, "this is a test", false, Array.Empty<MessagePart>());
+            var message = new Message("rule2", originalPath, 40, 3, 2, 1, "this is a test", false, Array.Empty<MessagePart>(), Array.Empty<Fix>());
 
             var testSubject = CreateTestSubject();
             var issue = Convert(testSubject, message);
