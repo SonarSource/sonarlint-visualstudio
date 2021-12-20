@@ -182,7 +182,40 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             string text = ReadUTF(reader);
             bool partsMakeFlow = reader.ReadBoolean();
             MessagePart[] parts = ReadMessageParts(reader);
-            return new Message(ruleKey, filename, line, column, endLine, endColumn, text, partsMakeFlow, parts);
+            reader.ReadBoolean();
+            Fix[] fixes = ReadFixes(reader);
+            return new Message(ruleKey, filename, line, column, endLine, endColumn, text, partsMakeFlow, parts, fixes);
+        }
+
+        private static Fix[] ReadFixes(BinaryReader reader) {
+            int fixesCount = ReadInt(reader);
+            if (fixesCount == 0)
+            {
+                return Array.Empty<Fix>();
+            }
+            Fix[] fixes = new Fix[fixesCount];
+            for (int i = 0; i < fixes.Length; i++)
+            {
+                fixes[i] = new Fix(
+                  /* message= */ ReadUTF(reader),
+                  ReadEdits(reader));
+            }
+            return fixes;
+        }
+
+        private static Edit[] ReadEdits(BinaryReader reader) {
+            int editsCount = ReadInt(reader);
+            Edit[] edits = new Edit[editsCount];
+            for (int i = 0; i < edits.Length; i++)
+            {
+                edits[i] = new Edit(
+                  /* startLine= */ ReadInt(reader),
+                  /* startColumn= */ ReadInt(reader),
+                  /* endLine= */ ReadInt(reader),
+                  /* endColumn= */ ReadInt(reader),
+                  /* text= */ ReadUTF(reader));
+            }
+            return edits;
         }
 
         private static MessagePart[] ReadMessageParts(BinaryReader reader)

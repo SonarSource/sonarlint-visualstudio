@@ -21,6 +21,7 @@
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+using System;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
@@ -45,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void HandleOutput_DoesNothing()
         {
-            var message = new Message("key", "file", 1, 2, 3, 4, "text", false, null);
+            var message = new Message("key", "file", 1, 2, 3, 4, "text", false, null, Array.Empty<Fix>());
 
             var testSubject = new NoOpMessageHandler();
 

@@ -137,8 +137,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             );
             var requestFactory = CreateRequestFactory(fileName, ValidAnalyzerOptions, request);
 
-            var message1 = new Message("rule1", fileName, 1, 1, 1, 1, "message one", false, Array.Empty<MessagePart>());
-            var message2 = new Message("rule2", fileName, 2, 2, 2, 2, "message two", false, Array.Empty<MessagePart>());
+            var message1 = new Message("rule1", fileName, 1, 1, 1, 1, "message one", false, Array.Empty<MessagePart>(), Array.Empty<Fix>());
+            var message2 = new Message("rule2", fileName, 2, 2, 2, 2, "message two", false, Array.Empty<MessagePart>(), Array.Empty<Fix>());
 
             var convertedMessage1 = Mock.Of<IAnalysisIssue>();
             var convertedMessage2 = Mock.Of<IAnalysisIssue>();
@@ -259,7 +259,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var request = CreateRequest(fileName);
             var requestFactory = CreateRequestFactory(fileName, ValidAnalyzerOptions, request);
 
-            var internalErrorMessage = new Message("internal.UnexpectedFailure", "", 1, 1, 1, 1, "XXX Error in subprocess XXX", false, Array.Empty<MessagePart>());
+            var internalErrorMessage = new Message("internal.UnexpectedFailure", "", 1, 1, 1, 1, "XXX Error in subprocess XXX", false, Array.Empty<MessagePart>(), Array.Empty<Fix>());
 
             var issueConverterFactory = Mock.Of<ICFamilyIssueConverterFactory>();
             var mockConsumer = new Mock<IIssueConsumer>();

@@ -41,19 +41,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 .AddRule("rule2", isActive: false);
 
             // 1. Match - active
-            var message = new Message("rule1", "filename", 0, 0, 0, 0, "msg", false, null);
+            var message = new Message("rule1", "filename", 0, 0, 0, 0, "msg", false, null, Array.Empty<Fix>());
             MessageHandler.IsIssueForActiveRule(message, rulesConfig).Should().BeTrue();
 
             // 2. Match - not active
-            message = new Message("rule2", "filename", 0, 0, 0, 0, "msg", false, null);
+            message = new Message("rule2", "filename", 0, 0, 0, 0, "msg", false, null, Array.Empty<Fix>());
             MessageHandler.IsIssueForActiveRule(message, rulesConfig).Should().BeFalse();
 
             // 3. No match - case-sensitivity
-            message = new Message("RULE1", "filename", 0, 0, 0, 0, "msg", false, null);
+            message = new Message("RULE1", "filename", 0, 0, 0, 0, "msg", false, null, Array.Empty<Fix>());
             MessageHandler.IsIssueForActiveRule(message, rulesConfig).Should().BeFalse();
 
             // 4. No match
-            message = new Message("xxx", "filename", 0, 0, 0, 0, "msg", false, null);
+            message = new Message("xxx", "filename", 0, 0, 0, 0, "msg", false, null, Array.Empty<Fix>());
             MessageHandler.IsIssueForActiveRule(message, rulesConfig).Should().BeFalse();
         }
 
@@ -197,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         private static Message CreateMessage(string ruleId, string fileName = "any file", string text = "any text") =>
-            new(ruleId, fileName, -1, -1, -1, -1, text, false, null);
+            new(ruleId, fileName, -1, -1, -1, -1, text, false, null, Array.Empty<Fix>());
 
 
         private class MessageHandlerTestContext

@@ -123,6 +123,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             act.Should().ThrowExactly<InvalidDataException>();
         }
 
+        [TestMethod]
+        public void Read_ResponseWithQuickFixes_QuickFixesRead()
+        {
+            var response = CallProtocolRead(MockResponseWithQuickFixes());
+
+            response.Messages.Length.Should().Be(1);
+         
+            response.Messages[0].Fixes.Length.Should().Be(1);
+            response.Messages[0].Fixes[0].Message.Should().Be("Fix message");
+            response.Messages[0].Fixes[0].Edits.Length.Should().Be(1);
+            response.Messages[0].Fixes[0].Edits[0].Text.Should().Be("Edit message");
+            response.Messages[0].Fixes[0].Edits[0].StartLine.Should().Be(1);
+            response.Messages[0].Fixes[0].Edits[0].StartColumn.Should().Be(2);
+            response.Messages[0].Fixes[0].Edits[0].EndLine.Should().Be(3);
+            response.Messages[0].Fixes[0].Edits[0].EndColumn.Should().Be(4);
+        }
+
         private static Response CallProtocolRead(byte[] data)
         {
             using (MemoryStream stream = new MemoryStream(data))
@@ -335,6 +352,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 Protocol.WriteInt(writer, 17);
                 Protocol.WriteUTF(writer, "Flow message");
 
+                // 0 fixes
+                writer.Write(false);
+                Protocol.WriteInt(writer, 0);
+
                 // 1 measure
                 Protocol.WriteUTF(writer, "measures");
                 Protocol.WriteInt(writer, 1);
@@ -385,6 +406,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 writer.Write(false); // no flow
                 Protocol.WriteInt(writer, 0);
 
+                // 0 fixes
+                writer.Write(false);
+                Protocol.WriteInt(writer, 0);
+
                 // Issue 2
                 Protocol.WriteUTF(writer, "message");
                 Protocol.WriteUTF(writer, "ruleKey2");
@@ -397,6 +422,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 Protocol.WriteUTF(writer, "Issue message");
 
                 writer.Write(false); // no flow
+                Protocol.WriteInt(writer, 0);
+
+                // 0 fixes
+                writer.Write(false);
                 Protocol.WriteInt(writer, 0);
 
                 // Issue 3 
@@ -413,6 +442,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 writer.Write(false); // no flow
                 Protocol.WriteInt(writer, 0);
 
+                // 0 fixes
+                writer.Write(false);
+                Protocol.WriteInt(writer, 0);
 
                 // 1 measure
                 Protocol.WriteUTF(writer, "measures");
@@ -443,5 +475,58 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             }
         }
 
+        private byte[] MockResponseWithQuickFixes()
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                BinaryWriter writer = new BinaryWriter(stream);
+                Protocol.WriteUTF(writer, "OUT");
+
+                // 1 issue
+                Protocol.WriteUTF(writer, "message");
+
+                Protocol.WriteUTF(writer, "ruleKey");
+                Protocol.WriteUTF(writer, "cpp1.cpp");
+                Protocol.WriteInt(writer, 10);
+                Protocol.WriteInt(writer, 11);
+                Protocol.WriteInt(writer, 12);
+                Protocol.WriteInt(writer, 13);
+                Protocol.WriteInt(writer, 100);
+                Protocol.WriteUTF(writer, "Issue message");
+                writer.Write(true);
+
+                // 1 flow
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteUTF(writer, "another.cpp");
+                Protocol.WriteInt(writer, 14);
+                Protocol.WriteInt(writer, 15);
+                Protocol.WriteInt(writer, 16);
+                Protocol.WriteInt(writer, 17);
+                Protocol.WriteUTF(writer, "Flow message");
+
+                // 1 fix
+                writer.Write(true);
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteUTF(writer, "Fix message");
+                // 1 fix edit
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteInt(writer, 1); // start line
+                Protocol.WriteInt(writer, 2); // end line
+                Protocol.WriteInt(writer, 3); // start column
+                Protocol.WriteInt(writer, 4); // end column
+                Protocol.WriteUTF(writer, "Edit message");
+
+                // 0 measures
+                Protocol.WriteUTF(writer, "measures");
+                Protocol.WriteInt(writer, 0);
+
+                // 0 symbols
+                Protocol.WriteUTF(writer, "symbols");
+                Protocol.WriteInt(writer, 0);
+
+                Protocol.WriteUTF(writer, "END");
+                return stream.ToArray();
+            }
+        }
     }
 }
