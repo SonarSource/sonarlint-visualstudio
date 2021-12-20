@@ -404,14 +404,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 new MessagePart("file1.cpp", 10, 2, 3, 4, "this is a test 1"),
                 new MessagePart("file2.cpp", 30, 6, 7, 8, "this is a test 2")
             };
-            var message1 = new Message("rule2", "file2.cpp", 40, 3, 2, 1, "this is a test", false, messageParts1.ToArray());
+            var message1 = new Message("rule2", "file2.cpp", 40, 3, 2, 1, "this is a test", false, messageParts1.ToArray(), Array.Empty<Fix>());
 
             var messageParts2 = new List<MessagePart>
             {
                 new MessagePart("FILE1.cpp", 100, 2, 3, 4, "this is a test 1"),
                 new MessagePart("FILE2.cpp", 300, 6, 7, 8, "this is a test 2")
             };
-            var message2 = new Message("rule2", "file2.cpp", 40, 3, 2, 1, "this is another test", false, messageParts2.ToArray());
+            var message2 = new Message("rule2", "file2.cpp", 40, 3, 2, 1, "this is another test", false, messageParts2.ToArray(), Array.Empty<Fix>());
 
             var fileSystemMock = CreateFileSystemMock(fileExists: true);
             var textDocFactory = new Mock<ITextDocumentFactoryService>();
