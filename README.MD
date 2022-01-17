@@ -1,13 +1,18 @@
 # SonarLint for Visual Studio
 
-[![Quality Gate](https://next.sonarqube.com/sonarqube/api/project_badges/measure?project=sonarlint-visualstudio&metric=alert_status)](https://next.sonarqube.com/sonarqube/dashboard?id=sonarlint-visualstudio)
-[![Coverage](https://next.sonarqube.com/sonarqube/api/project_badges/measure?project=sonarlint-visualstudio&metric=coverage)](https://next.sonarqube.com/sonarqube/component_measures/domain/Coverage?id=sonarlint-visualstudio)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=sonarlint-visualstudio&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=sonarlint-visualstudio)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=sonarlint-visualstudio&metric=coverage)](https://sonarcloud.io/component_measures?id=sonarlint-visualstudio&metric=new_lines_to_cover&view=list)
 
 
-SonarLint is a Visual Studio 2015, 2017 and 2019 extension that provides on-the-fly feedback to developers on new bugs and
-quality issues injected into .NET code. SonarLint for Visual Studio is based on and benefits from the .NET Compiler
-Platform (aka "Roslyn") and its code analysis API to provide a fully-integrated user experience in Visual Studio 2015, Visual Studio 2017 and Visual Studio 2019.
-SonarLint is free, open source, and available in the Visual Studio Gallery.
+SonarLint is a Visual Studio 2017, 2019 and 2022 extension that provides on-the-fly feedback to developers on new bugs and
+quality issues in C#, VB.NET, C/C++, TypeScript and JavaScript.
+
+SonarLint is free, open source, and available in the Visual Studio Marketplace:
+* [SonarLint for Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=SonarSource.SonarLintforVisualStudio2022)
+* [SonarLint for Visual Studio 2019](https://marketplace.visualstudio.com/items?itemName=SonarSource.SonarLintforVisualStudio2019)
+* [SonarLint for Visual Studio 2017](https://marketplace.visualstudio.com/items?itemName=SonarSource.SonarLintforVisualStudio2017)
+Note: SonarLint for Visual Studio 2017 has been deprecated. New versions will not be shipped after March 1, 2022.
+
 
 ## Features
 * On-the-fly feedback
@@ -18,11 +23,9 @@ SonarLint is free, open source, and available in the Visual Studio Gallery.
 [Connected mode](https://github.com/SonarSource/sonarlint-visualstudio/wiki/Connected-Mode) provides suppression of issues marked as `False Positive` or `Won't Fix` on SonarQube and SonarCloud. Follow the link for more information.
 
 ## Useful links
-* [Project homepage](https://redirect.sonarsource.com/doc/sonar-visualstudio.html)
-* [Issue tracking](https://github.com/SonarSource/sonarlint-visualstudio/issues)
 * [Community Forum](https://community.sonarsource.com/)
-* [StackOverflow](https://stackoverflow.com/questions/tagged/sonarlint-vs)
-* [SonarC#](https://github.com/SonarSource/sonar-csharp)
+* [SonarLint overview](https://redirect.sonarsource.com/doc/sonar-visualstudio.html)
+* [Issue tracking](https://github.com/SonarSource/sonarlint-visualstudio/issues)
 
 ## Have question or feedback?
 
@@ -36,6 +39,6 @@ Check out the [contributing](CONTRIBUTING.md) page to see the best places to log
 
 ## License
 
-Copyright 2016-2021 SonarSource.
+Copyright 2016-2022 SonarSource.
 
 Licensed under the [GNU Lesser General Public License, Version 3.0](http://www.gnu.org/licenses/lgpl.txt)
