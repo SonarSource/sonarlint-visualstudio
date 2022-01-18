@@ -24,11 +24,13 @@ using System.Linq;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Threading;
 using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions;
@@ -155,7 +157,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 secondaryLocations:Enumerable.Empty<IAnalysisIssueLocationVisualization>(),
                 selectedIssue: null);
 
-            actionSets.Should().BeEmpty();
+            actionSets.actionList.Should().BeEmpty();
+            actionSets.hasAction.Should().Be(false);
         }
 
         [TestMethod]
@@ -172,7 +175,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 secondaryLocations: Enumerable.Empty<IAnalysisIssueLocationVisualization>(),
                 selectedIssue: null);
 
-            actionSets.Should().BeEmpty();
+            actionSets.actionList.Should().BeEmpty();
+            actionSets.hasAction.Should().Be(false);
         }
 
         [TestMethod]
@@ -190,8 +194,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 secondaryLocations: Enumerable.Empty<IAnalysisIssueLocationVisualization>(),
                 selectedIssue: null);
 
-            actionSets.Count.Should().Be(1);
-            var suggestedActions = actionSets[0].Actions.ToArray();
+            actionSets.actionList.Count.Should().Be(1);
+            actionSets.hasAction.Should().Be(true);
+            var suggestedActions = actionSets.actionList[0].Actions.ToArray();
             suggestedActions.Length.Should().Be(2);
             suggestedActions[0].Should().BeOfType<SelectIssueVisualizationAction>();
             (suggestedActions[0] as SelectIssueVisualizationAction).Issue.Should().Be(issues[0]);
@@ -211,8 +216,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 secondaryLocations: Enumerable.Empty<IAnalysisIssueLocationVisualization>(),
                 selectedIssue: issues[0]);
 
-            actionSets.Count.Should().Be(1);
-            var suggestedActions = actionSets[0].Actions.ToArray();
+            actionSets.actionList.Count.Should().Be(1);
+            actionSets.hasAction.Should().Be(true);
+            var suggestedActions = actionSets.actionList[0].Actions.ToArray();
             suggestedActions.Length.Should().Be(2);
             suggestedActions[0].Should().BeOfType<SelectIssueVisualizationAction>();
             (suggestedActions[0] as SelectIssueVisualizationAction).Issue.Should().Be(issues[0]);
@@ -233,8 +239,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 secondaryLocations: secondaryLocations,
                 selectedIssue: CreateIssueViz());
 
-            actionSets.Count.Should().Be(1);
-            var suggestedActions = actionSets[0].Actions.ToArray();
+            actionSets.actionList.Count.Should().Be(1);
+            actionSets.hasAction.Should().Be(true);
+            var suggestedActions = actionSets.actionList[0].Actions.ToArray();
             suggestedActions.Length.Should().Be(1);
             suggestedActions[0].Should().BeOfType<DeselectIssueVisualizationAction>();
         }
@@ -259,8 +266,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 secondaryLocations: secondaryLocations,
                 selectedIssue: issues[1]);
 
-            actionSets.Count.Should().Be(1);
-            var suggestedActions = actionSets.First().Actions.ToArray();
+            actionSets.actionList.Count.Should().Be(1);
+            actionSets.hasAction.Should().Be(true);
+            var suggestedActions = actionSets.actionList.First().Actions.ToArray();
             suggestedActions.Length.Should().Be(3);
             suggestedActions[0].Should().BeOfType<SelectIssueVisualizationAction>();
             suggestedActions[1].Should().BeOfType<SelectIssueVisualizationAction>();
@@ -283,7 +291,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 secondaryLocations: Enumerable.Empty<IAnalysisIssueLocationVisualization>(),
                 selectedIssue: issuesWithoutSecondaryLocations[0]);
 
-            actionSets.Should().BeEmpty();
+            actionSets.actionList.Should().BeEmpty();
+            actionSets.hasAction.Should().Be(false);
 
         }
 
@@ -322,7 +331,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             return new IssueLocationActionsSource(lightBulbBroker, vsUiShell, bufferTagAggregatorFactoryService.Object, textView, selectionService);
         }
 
-        private IList<SuggestedActionSet> GetSuggestedActions(IEnumerable<IAnalysisIssueVisualization> primaryIssues,
+        private (IList<SuggestedActionSet> actionList, bool hasAction) GetSuggestedActions(IEnumerable<IAnalysisIssueVisualization> primaryIssues,
             IEnumerable<IAnalysisIssueLocationVisualization> secondaryLocations,
             IAnalysisIssueVisualization selectedIssue)
         {
@@ -344,7 +353,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object, selectionService.Object);
             var actualActionsSet = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
 
-            return actualActionsSet.ToList();
+            var hasActions = testSubject.HasSuggestedActionsAsync(null, mockSpan, CancellationToken.None).Result;
+
+            return (actualActionsSet.ToList(), hasActions);
         }
     }
 }
