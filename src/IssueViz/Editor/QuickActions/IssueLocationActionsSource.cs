@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
                 allActions.AddRange(actions);
             } 
 
-            if (IsOnSelectedVisualization(range))
+            if (IsOnSelectedVisualizationWithSecondaries(range))
             {
                 allActions.Add(new DeselectIssueVisualizationAction(selectionService));
             }
@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 
         public Task<bool> HasSuggestedActionsAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
         {
-            return Task.Factory.StartNew(() => IsOnIssueWithSecondaryLocations(range, out _) || IsOnSelectedVisualization(range),
+            return Task.Factory.StartNew(() => IsOnIssueWithSecondaryLocations(range, out _) || IsOnSelectedVisualizationWithSecondaries(range),
                 cancellationToken);
         }
 
@@ -110,12 +110,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
             return issuesWithSecondaryLocations.Any();
         }
 
-        private bool IsOnSelectedVisualization(SnapshotSpan range)
+        private bool IsOnSelectedVisualizationWithSecondaries(SnapshotSpan range)
         {
             var primaryLocationsTagSpans = issueLocationsTagAggregator.GetTags(range);
             var isOnSelectedPrimaryLocation = primaryLocationsTagSpans.Select(x => x.Tag.Location)
                 .OfType<IAnalysisIssueVisualization>()
-                .Any(x => x == selectionService.SelectedIssue);
+                .Any(x => x == selectionService.SelectedIssue && x.GetSecondaryLocations().Any());
 
             var selectedLocationsTagSpans = selectedIssueLocationsTagAggregator.GetTags(range);
             var isOnSelectedSecondaryLocation = selectedLocationsTagSpans.Any();

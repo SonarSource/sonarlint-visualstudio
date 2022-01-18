@@ -269,6 +269,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             (suggestedActions[1] as SelectIssueVisualizationAction).Issue.Should().Be(issues[1]);
         }
 
+        [TestMethod]
+        public void GetSuggestedActions_HasSelecttionTags_NoIssueTagsWithSecondaryLocations_NoActions()
+        {
+            var issuesWithoutSecondaryLocations = new[]
+            {
+                CreateIssueViz(),
+                CreateIssueViz()
+            };
+
+            var actionSets = GetSuggestedActions(
+                primaryIssues: issuesWithoutSecondaryLocations,
+                secondaryLocations: Enumerable.Empty<IAnalysisIssueLocationVisualization>(),
+                selectedIssue: issuesWithoutSecondaryLocations[0]);
+
+            actionSets.Should().BeEmpty();
+
+        }
+
         private static IAnalysisIssueVisualization CreateIssueViz(params IAnalysisIssueFlowVisualization[] flows)
         {
             var issueViz = new Mock<IAnalysisIssueVisualization>();
