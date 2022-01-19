@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         [TestMethod]
-        public void GetSuggestedActions_NoSelectionTags_NoIssueTags_NoActions()
+        public void Get_Has_SuggestedActions_NoSelectionTags_NoIssueTags_NoActions()
         {
             var actionSets = GetSuggestedActions(
                 primaryIssues:Enumerable.Empty<IAnalysisIssueVisualization>(),
@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         [TestMethod]
-        public void GetSuggestedActions_NoSelectionTags_NoIssueTagsWithSecondaryLocations_NoActions()
+        public void Get_Has_SuggestedActions_NoSelectionTags_NoIssueTagsWithSecondaryLocations_NoActions()
         {
             var issuesWithoutSecondaryLocations = new[]
             {
@@ -180,7 +180,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         [TestMethod]
-        public void GetSuggestedActions_NoSelectionTags_HasIssueTagsWithSecondaryLocations_SelectIssueActions()
+        public void Get_Has_SuggestedActions_NoSelectionTags_HasIssueTagsWithSecondaryLocations_SelectIssueActions()
         {
             var issues = new[]
             {
@@ -204,7 +204,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         [TestMethod]
-        public void GetSuggestedActions_NoSelectionTags_HasSelectedIssueTag_SelectAndDeselectIssueAction()
+        public void Get_Has_SuggestedActions_NoSelectionTags_HasSelectedIssueTag_SelectAndDeselectIssueAction()
         {
             var issues = new[]
             {
@@ -226,7 +226,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         [TestMethod]
-        public void GetSuggestedActions_HasSelectionTags_NoIssueTags_DeselectIssueAction()
+        public void Get_Has_SuggestedActions_HasSelectionTags_NoIssueTags_DeselectIssueAction()
         {
             var secondaryLocations = new[]
             {
@@ -247,7 +247,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         [TestMethod]
-        public void GetSuggestedActions_HasSelectionTags_HasIssueTagsWithSecondaryLocations_SelectAndDeselectIssueActions()
+        public void Get_Has_SuggestedActions_HasSelectionTags_HasIssueTagsWithSecondaryLocations_SelectAndDeselectIssueActions()
         {
             var secondaryLocations = new[]
             {
@@ -278,7 +278,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         [TestMethod]
-        public void GetSuggestedActions_HasSelecttionTags_NoIssueTagsWithSecondaryLocations_NoActions()
+        public void Get_Has_SuggestedActions_HasSelecttionTags_NoIssueTagsWithSecondaryLocations_NoActions()
         {
             var issuesWithoutSecondaryLocations = new[]
             {
@@ -351,8 +351,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             selectionService.Setup(x => x.SelectedIssue).Returns(selectedIssue);
 
             var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object, selectionService.Object);
+            
+            //We are testing these two methods together because their logic is coupled. These methods should not act indepedently of each other. 
             var actualActionsSet = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
-
             var hasActions = testSubject.HasSuggestedActionsAsync(null, mockSpan, CancellationToken.None).Result;
 
             return (actualActionsSet.ToList(), hasActions);
