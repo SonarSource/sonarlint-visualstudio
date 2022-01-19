@@ -331,25 +331,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
             var isPluginSupported = !string.IsNullOrWhiteSpace(installedPlugin.Version) &&
                 VersionHelper.Compare(installedPlugin.Version, minimumSupportedPlugin.MinimumVersion) >= 0;
 
-            // Let's handle specific case for old Visual Studio instances
-            if (isPluginSupported &&
-                VisualStudioHelpers.IsVisualStudioBeforeUpdate3())
-            {
-                if (minimumSupportedPlugin == MinimumSupportedSonarQubePlugin.CSharp)
-                {
-                    const string newRoslynSonarCSharpVersion = "7.0";
-                    pluginInfoMessage += $", Maximum version: '{newRoslynSonarCSharpVersion}'";
-                    isPluginSupported = VersionHelper.Compare(installedPlugin.Version, newRoslynSonarCSharpVersion) < 0;
-                }
-
-                if (minimumSupportedPlugin == MinimumSupportedSonarQubePlugin.VbNet)
-                {
-                    const string newRoslynSonarVBNetVersion = "5.0";
-                    pluginInfoMessage += $", Maximum version: '{newRoslynSonarVBNetVersion}'";
-                    isPluginSupported = VersionHelper.Compare(installedPlugin.Version, newRoslynSonarVBNetVersion) < 0;
-                }
-            }
-
             var pluginSupportMessageFormat = string.Format(CultureInfo.CurrentCulture, Strings.SubTextPaddingFormat,
                 isPluginSupported
                     ? Strings.SupportedPluginFoundMessage

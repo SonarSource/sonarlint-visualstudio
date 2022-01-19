@@ -34,13 +34,6 @@ namespace SonarLint.VisualStudio.Integration
             /* for testing purpose only */ internal set;
         } = GetVisualStudioVersion();
 
-        public static bool IsVisualStudioBeforeUpdate3()
-        {
-            Version vsVersion;
-            return Version.TryParse(VisualStudioVersion, out vsVersion) &&
-                vsVersion < visualStudio2015Update3Version;
-        }
-
         private static string GetVisualStudioVersion()
         {
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "msenv.dll");
