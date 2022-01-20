@@ -28,7 +28,6 @@ using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 
@@ -63,7 +62,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         private PackageCommandManager commandManager;
         private SonarAnalyzerManager sonarAnalyzerManager;
-        private DeprecationManager deprecationManager;
 
         private ILogger logger;
 
@@ -98,8 +96,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     serviceProvider.GetMefService<IProjectPropertyManager>(),
                     serviceProvider.GetMefService<IProjectToLanguageMapper>());
 
-                this.deprecationManager = new DeprecationManager(this.GetMefService<IInfoBarManager>(), logger);
-
                 logger.WriteLine(Resources.Strings.SL_InitializationComplete);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -116,9 +112,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 this.sonarAnalyzerManager?.Dispose();
                 this.sonarAnalyzerManager = null;
-
-                this.deprecationManager?.Dispose();
-                this.deprecationManager = null;
             }
         }
     }
