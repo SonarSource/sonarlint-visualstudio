@@ -26,20 +26,11 @@ namespace SonarLint.VisualStudio.Integration
 {
     public static class VisualStudioHelpers
     {
-        private static readonly Version visualStudio2015Update3Version = Version.Parse("14.0.25420.00");
-
         public static string VisualStudioVersion
         {
             get;
             /* for testing purpose only */ internal set;
         } = GetVisualStudioVersion();
-
-        public static bool IsVisualStudioBeforeUpdate3()
-        {
-            Version vsVersion;
-            return Version.TryParse(VisualStudioVersion, out vsVersion) &&
-                vsVersion < visualStudio2015Update3Version;
-        }
 
         private static string GetVisualStudioVersion()
         {

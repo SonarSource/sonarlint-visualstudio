@@ -31,14 +31,13 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
+using SonarQube.Client;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
-using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 {
@@ -596,28 +595,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         }
 
         [TestMethod]
-        public void IsSonarQubePluginSupported_WhenUnsupportedVersionOfVSAndCSharpPluginEquals70_ReturnsFalseAndWriteExpectedText()
-        {
-            TestPluginSupport(
-                expectedResult: false,
-                vsVersion: "14.0",
-                installedPlugin: new SonarQubePlugin("csharp", "7.0"),
-                minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.CSharp,
-                expectedMessage: "   Discovered an unsupported plugin: Plugin: 'SonarC#', Language(s): 'C#', Installed version: '7.0', Minimum version: '5.0', Maximum version: '7.0'");
-        }
-
-        [TestMethod]
-        public void IsSonarQubePluginSupported_WhenUnsupportedVersionOfVSAndCSharpPluginEquals60_ReturnsTrue()
-        {
-            TestPluginSupport(
-                expectedResult: true,
-                vsVersion: "14.0",
-                installedPlugin: new SonarQubePlugin("csharp", "6.0"),
-                minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.CSharp,
-                expectedMessage: "   Discovered a supported plugin: Plugin: 'SonarC#', Language(s): 'C#', Installed version: '6.0', Minimum version: '5.0', Maximum version: '7.0'");
-        }
-
-        [TestMethod]
         public void IsSonarQubePluginSupported_WhenSupportedVersionOfVSAndCSharpPluginEquals70_ReturnsTrueAndWriteExpectedText()
         {
             TestPluginSupport(
@@ -626,28 +603,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 installedPlugin: new SonarQubePlugin("csharp", "7.0"),
                 minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.CSharp,
                 expectedMessage: "   Discovered a supported plugin: Plugin: 'SonarC#', Language(s): 'C#', Installed version: '7.0', Minimum version: '5.0'");
-        }
-
-        [TestMethod]
-        public void IsSonarQubePluginSupported_WhenUnsupportedVersionOfVSAndVBNetPluginEquals50_ReturnsFalseAndWriteExpectedText()
-        {
-            TestPluginSupport(
-                expectedResult: false,
-                vsVersion: "14.0",
-                installedPlugin: new SonarQubePlugin("vbnet", "5.0"),
-                minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.VbNet,
-                expectedMessage: "   Discovered an unsupported plugin: Plugin: 'SonarVB', Language(s): 'VB.NET', Installed version: '5.0', Minimum version: '3.0', Maximum version: '5.0'");
-        }
-
-        [TestMethod]
-        public void IsSonarQubePluginSupported_WhenUnsupportedVersionOfVSAndVBNetPluginEquals40_ReturnsTrue()
-        {
-            TestPluginSupport(
-                expectedResult: true,
-                vsVersion: "14.0",
-                installedPlugin: new SonarQubePlugin("vbnet", "4.0"),
-                minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.VbNet,
-                expectedMessage: "   Discovered a supported plugin: Plugin: 'SonarVB', Language(s): 'VB.NET', Installed version: '4.0', Minimum version: '3.0', Maximum version: '5.0'");
         }
 
         [TestMethod]
