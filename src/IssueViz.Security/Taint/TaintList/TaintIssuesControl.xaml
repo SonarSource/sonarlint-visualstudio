@@ -26,6 +26,13 @@
                         <vsImaging:CrispImage Moniker="{x:Static vsCatalog:KnownMonikers.BrowserLink}"/>
                     </MenuItem.Icon>
                 </MenuItem>
+                <MenuItem Header="Show SonarLint Issue Visualization"
+                          CommandParameter="{Binding}"
+                          Command="{Binding DataContext.ShowVisualizationPaneCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}">
+                    <MenuItem.Icon>
+                        <vsImaging:CrispImage Source="/SonarLint.VisualStudio.IssueVisualization.Security;component/Taint/TaintList/sonarlint.png"/>                        
+                    </MenuItem.Icon>                    
+                </MenuItem>
             </ContextMenu>
 
             <!-- Extend the shared data grid row style to add the context menu and navigability data bindings -->

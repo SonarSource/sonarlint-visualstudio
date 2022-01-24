@@ -32,6 +32,17 @@
 
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Commands\Resources\sonarlint.png" />
+    <None Remove="Taint\TaintList\sonarlint.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Commands\Resources\sonarlint.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <ItemGroup Label="Framework references">
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="PresentationCore" />
@@ -64,6 +75,7 @@
       <Generator>XamlIntelliSenseFileGenerator</Generator>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Page>
+    <Resource Include="Taint\TaintList\sonarlint.png" />
     
     <Compile Update="OpenInIDE\OpenInIDEResources.Designer.cs">
       <DesignTime>True</DesignTime>
