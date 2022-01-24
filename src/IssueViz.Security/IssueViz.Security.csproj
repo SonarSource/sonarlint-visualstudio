@@ -32,6 +32,11 @@
 
   </PropertyGroup>
 
+  <ItemGroup Label="Taint Xaml Sources">
+    <None Remove="Taint\TaintList\sonarlint.png" />
+    <Resource Include="Taint\TaintList\sonarlint.png" />
+  </ItemGroup>
+
   <ItemGroup Label="Framework references">
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="PresentationCore" />
@@ -51,7 +56,7 @@
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\IssueViz\IssueViz.csproj" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <Page Include="Hotspots\HotspotsList\HotspotsControl.xaml">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
@@ -64,7 +69,6 @@
       <Generator>XamlIntelliSenseFileGenerator</Generator>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Page>
-    
     <Compile Update="OpenInIDE\OpenInIDEResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

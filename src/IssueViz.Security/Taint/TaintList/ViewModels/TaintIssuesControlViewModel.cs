@@ -21,6 +21,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Data;
@@ -46,6 +47,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         ICommand ShowInBrowserCommand { get; }
 
+        ICommand ShowVisualizationPaneCommand { get; }
+
         ICommand ShowDocumentationCommand { get; }
 
         ICollectionView IssuesView { get; }
@@ -70,6 +73,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         private readonly ITelemetryManager telemetryManager;
         private readonly IIssueSelectionService selectionService;
         private readonly ITaintStore store;
+        private readonly IMenuCommandService menuCommandService;
         private readonly object Lock = new object();
         private string activeDocumentFilePath;
         private string windowCaption;
@@ -82,6 +86,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         public ICommand NavigateCommand { get; private set; }
 
         public ICommand ShowInBrowserCommand { get; private set; }
+
+        public ICommand ShowVisualizationPaneCommand { get; private set; }
 
         public ICommand ShowDocumentationCommand { get; }
 
@@ -122,11 +128,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             IShowInBrowserService showInBrowserService,
             ITelemetryManager telemetryManager,
             IIssueSelectionService selectionService,
-            ICommand navigateToDocumentationCommand)
+            ICommand navigateToDocumentationCommand,
+            IMenuCommandService menuCommandService)
         {
             unfilteredIssues = new ObservableCollection<ITaintIssueViewModel>();
             AllowMultiThreadedAccessToIssuesCollection();
 
+            this.menuCommandService = menuCommandService;
             activeDocumentFilePath = activeDocumentLocator.FindActiveDocument()?.FilePath;
             this.activeDocumentTracker = activeDocumentTracker;
             activeDocumentTracker.ActiveDocumentChanged += ActiveDocumentTracker_OnDocumentFocused;
@@ -211,6 +219,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
                     showInBrowserService.ShowIssue(taintIssue.IssueKey);
                 },
                 parameter => parameter is ITaintIssueViewModel);
+
+            ShowVisualizationPaneCommand = new DelegateCommand(
+                parameter =>
+                {
+                    telemetryManager.TaintIssueInvestigatedLocally();
+                    var commandId = new CommandID(IssueVisualization.Commands.Constants.CommandSetGuid, IssueVisualization.Commands.Constants.ViewToolWindowCommandId);
+
+                    menuCommandService.GlobalInvoke(commandId);
+
+                }, parameter => parameter is ITaintIssueViewModel); 
+            
+            
         }
 
         private void UpdateIssues()

@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Windows.Input;
 using FluentAssertions;
@@ -230,6 +231,71 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             testSubject.Dispose();
 
             selectionService.VerifyRemove(x => x.SelectedIssueChanged -= It.IsAny<EventHandler>(), Times.Once());
+        }
+
+        [TestMethod]
+        public void ShowVisualizationPaneCommand_CanExecute_NullParameter_False()
+        {
+            var menuCommandService = new Mock<IMenuCommandService>();
+            var testSubject = CreateTestSubject(menuCommandService: menuCommandService.Object);
+
+            VerifyCommandExecution(testSubject.ShowVisualizationPaneCommand, null, false);
+
+            menuCommandService.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void ShowVisualizationPaneCommand_CanExecute_ParameterIsNotTaintViewModel_False()
+        {
+            var menuCommandService = new Mock<IMenuCommandService>();
+            var testSubject = CreateTestSubject(menuCommandService: menuCommandService.Object);
+
+            VerifyCommandExecution(testSubject.ShowVisualizationPaneCommand, "something", false);
+
+            menuCommandService.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void ShowVisualizationPaneCommand_CanExecute_ParameterIsTaintViewModel_True()
+        {
+            var menuCommandService = new Mock<IMenuCommandService>();
+            var testSubject = CreateTestSubject(menuCommandService: menuCommandService.Object);
+
+            VerifyCommandExecution(testSubject.ShowVisualizationPaneCommand, Mock.Of<ITaintIssueViewModel>(), true);
+
+            menuCommandService.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void ShowVisualizationPaneCommand_Execute_LocationNavigated()
+        {
+            var menuCommandService = new Mock<IMenuCommandService>();
+
+            var viewModel = Mock.Of<ITaintIssueViewModel>();
+
+            var testSubject = CreateTestSubject(menuCommandService: menuCommandService.Object);
+            testSubject.ShowVisualizationPaneCommand.Execute(viewModel);
+
+            var cmdID = new CommandID(IssueVisualization.Commands.Constants.CommandSetGuid, IssueVisualization.Commands.Constants.ViewToolWindowCommandId);
+
+            menuCommandService.Verify(x => x.GlobalInvoke(cmdID), Times.Once);
+            menuCommandService.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void ShowVisualizationPaneCommand_Execute_TelemetryUpdated()
+        {
+            var menuCommandService = new Mock<IMenuCommandService>();
+
+            var viewModel = Mock.Of<ITaintIssueViewModel>();
+
+            var telemetryManager = new Mock<ITelemetryManager>();
+            var testSubject = CreateTestSubject(telemetryManager: telemetryManager.Object);
+
+            testSubject.ShowVisualizationPaneCommand.Execute(viewModel);
+
+            telemetryManager.Verify(x => x.TaintIssueInvestigatedLocally(), Times.Once);
+            telemetryManager.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -643,7 +709,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             IActiveDocumentLocator activeDocumentLocator = null,
             ITelemetryManager telemetryManager = null,
             IShowInBrowserService showInBrowserService = null,
-            IIssueSelectionService selectionService = null)
+            IIssueSelectionService selectionService = null,
+            IMenuCommandService menuCommandService = null)
         {
             issueVizs ??= Array.Empty<IAnalysisIssueVisualization>();
             store ??= new Mock<ITaintStore>();
@@ -655,6 +722,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             locationNavigator ??= Mock.Of<ILocationNavigator>();
             telemetryManager ??= Mock.Of<ITelemetryManager>();
             selectionService ??= Mock.Of<IIssueSelectionService>();
+            menuCommandService ??= Mock.Of<IMenuCommandService>();
 
             return new TaintIssuesControlViewModel(store.Object,
                 locationNavigator,
@@ -663,7 +731,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                 showInBrowserService,
                 telemetryManager,
                 selectionService,
-                Mock.Of<ICommand>());
+                Mock.Of<ICommand>(),
+                menuCommandService);
         }
 
         private static IActiveDocumentLocator CreateLocatorAndSetActiveDocument(string activeFilePath)

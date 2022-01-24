@@ -44,8 +44,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
         public override void Invoke(CancellationToken cancellationToken)
         {
             vsUiShell.PostExecCommand(
-                Commands.IssueVisualizationToolWindowCommand.CommandSet,
-                Commands.IssueVisualizationToolWindowCommand.ViewToolWindowCommandId,
+                Commands.Constants.CommandSetGuid,
+                Commands.Constants.ViewToolWindowCommandId,
                 0,
                 0);
 
