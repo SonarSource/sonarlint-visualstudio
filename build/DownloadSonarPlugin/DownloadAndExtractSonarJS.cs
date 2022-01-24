@@ -85,7 +85,7 @@ namespace DownloadCFamilyPlugin
             var pluginFileName = Common.ExtractPluginFileNameFromUrl(DownloadUrl, Log);
 
             // Ensure working directories exists
-            var localWorkingFolder = Path.Combine(Environment.GetEnvironmentVariable("LocalAppData"), "SLVS_TypeScript_Build");
+            var localWorkingFolder = Common.GetLocalBuildTimePluginCacheDir("SLVS_TypeScript_Build");
             var perVersionPluginFolder = Path.Combine(localWorkingFolder, Path.GetFileNameWithoutExtension(pluginFileName));
             Common.EnsureWorkingDirectoryExist(perVersionPluginFolder, this.Log);
 
