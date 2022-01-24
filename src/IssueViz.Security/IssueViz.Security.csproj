@@ -37,12 +37,6 @@
     <Resource Include="Taint\TaintList\sonarlint.png" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Include="Commands\Resources\sonarlint.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
   <ItemGroup Label="Framework references">
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="PresentationCore" />

@@ -271,12 +271,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         {
             var menuCommandService = new Mock<IMenuCommandService>();
 
-            var viewModel = new Mock<ITaintIssueViewModel>();
+            var viewModel = Mock.Of<ITaintIssueViewModel>();
 
             var testSubject = CreateTestSubject(menuCommandService: menuCommandService.Object);
-            testSubject.ShowVisualizationPaneCommand.Execute(viewModel.Object);
+            testSubject.ShowVisualizationPaneCommand.Execute(viewModel);
 
-            menuCommandService.Verify(x => x.GlobalInvoke(It.IsAny<CommandID>()), Times.Once);
+            var cmdID = new CommandID(new Guid("FDEF405A-28C2-4AFD-A37B-49EF2B0D142E"), 0x0100);
+
+            menuCommandService.Verify(x => x.GlobalInvoke(cmdID), Times.Once);
             menuCommandService.VerifyNoOtherCalls();
         }
 
@@ -285,12 +287,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         {
             var menuCommandService = new Mock<IMenuCommandService>();
 
-            var viewModel = new Mock<ITaintIssueViewModel>();
+            var viewModel = Mock.Of<ITaintIssueViewModel>();
 
             var telemetryManager = new Mock<ITelemetryManager>();
             var testSubject = CreateTestSubject(telemetryManager: telemetryManager.Object);
 
-            testSubject.ShowVisualizationPaneCommand.Execute(viewModel.Object);
+            testSubject.ShowVisualizationPaneCommand.Execute(viewModel);
 
             telemetryManager.Verify(x => x.TaintIssueInvestigatedLocally(), Times.Once);
             telemetryManager.VerifyNoOtherCalls();
