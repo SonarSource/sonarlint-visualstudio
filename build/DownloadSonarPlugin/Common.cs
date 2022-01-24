@@ -33,6 +33,26 @@ namespace DownloadCFamilyPlugin
 {
     internal static class Common
     {
+        /// <summary>
+        /// Returns the full path to the local directory in which the plugin will be cached at build time
+        /// </summary>
+        /// <param name="pluginFolderName">Per-plugin unique folder name</param>
+        /// <remarks>By default the plugins will be stored under the user's %LocalAppData% folder e.g. C:\Users\JoeBloggs\AppData\Local.
+        /// An alternative root directory can be specified by setting the environment variable SONARLINT_INTERNAL_PLUGIN_CACHE_DIR.
+        /// This might be necessary if the user name is long so the full paths of the files being unpacked under the root folder
+        /// exceed the maximum path length.</remarks>
+        public static string GetLocalBuildTimePluginCacheDir(string pluginFolderName)
+        {
+            var baseFolder = Environment.GetEnvironmentVariable("SONARLINT_INTERNAL_PLUGIN_CACHE_DIR");
+            if (string.IsNullOrEmpty(baseFolder))
+            {
+                baseFolder = Environment.GetEnvironmentVariable("LocalAppData");
+            }
+
+            var fullPath = Path.Combine(baseFolder, pluginFolderName);
+            return fullPath;
+        }
+
         public static void EnsureWorkingDirectoryExist(string localWorkingFolder, TaskLoggingHelper logger)
         {
             if (!Directory.Exists(localWorkingFolder))
