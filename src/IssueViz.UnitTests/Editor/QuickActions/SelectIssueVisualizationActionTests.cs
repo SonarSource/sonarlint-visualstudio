@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.IssueVisualization.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
+using Constants = SonarLint.VisualStudio.IssueVisualization.Commands.Constants;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickActions
 {
@@ -60,11 +61,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             testSubject.Invoke(CancellationToken.None);
 
             object inputArgs = 0;
-            var guid = IssueVisualizationToolWindowCommand.CommandSet;
+            var guid = Constants.CommandSetGuid;
 
             vsUiShell.Verify(x => x.PostExecCommand(
                     ref guid,
-                    IssueVisualizationToolWindowCommand.ViewToolWindowCommandId,
+                    Constants.ViewToolWindowCommandId,
                     0,
                     ref inputArgs),
                 Times.Once);

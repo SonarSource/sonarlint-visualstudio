@@ -161,7 +161,7 @@
     
     <!-- Context menu styles-->
     <Style TargetType="ContextMenu">
-        <Setter Property="Width" Value="200"/>
+        <Setter Property="MinWidth" Value="200"/>
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.MenuTextKey}}"/>
         <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarMenuBackgroundGradientKey}}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarMenuBorderKey}}"/>

@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Windows.Input;
 using FluentAssertions;
@@ -206,7 +207,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                     Mock.Of<IShowInBrowserService>(),
                     Mock.Of<ITelemetryManager>(),
                     Mock.Of<IIssueSelectionService>(),
-                    Mock.Of<ICommand>());
+                    Mock.Of<ICommand>(),
+                    Mock.Of<IMenuCommandService>());
             }
 
             public void ChangeActiveDocument(string filePath)

@@ -19,9 +19,11 @@
  */
 
 using System;
+using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
@@ -53,7 +55,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
                 componentModel.GetService<IShowInBrowserService>(),
                 componentModel.GetService<ITelemetryManager>(),
                 componentModel.GetService<IIssueSelectionService>(),
-                componentModel.GetService<INavigateToDocumentationCommand>()
+                componentModel.GetService<INavigateToDocumentationCommand>(),
+                GetService(typeof(IMenuCommandService)) as IMenuCommandService
             );
 
             Initialize(viewModel);

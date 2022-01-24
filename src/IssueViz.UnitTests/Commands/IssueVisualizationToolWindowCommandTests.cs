@@ -31,6 +31,7 @@ using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Commands;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;
+using Constants = SonarLint.VisualStudio.IssueVisualization.Commands.Constants;
 using ThreadHelper = SonarLint.VisualStudio.Integration.UnitTests.ThreadHelper;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
@@ -74,14 +75,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
 
             commandService.Verify(x =>
                     x.AddCommand(It.Is((MenuCommand c) =>
-                        c.CommandID.Guid == IssueVisualizationToolWindowCommand.CommandSet &&
-                        c.CommandID.ID == IssueVisualizationToolWindowCommand.ViewToolWindowCommandId)),
+                        c.CommandID.Guid == Constants.CommandSetGuid &&
+                        c.CommandID.ID == Constants.ViewToolWindowCommandId)),
                 Times.Once);
 
             commandService.Verify(x =>
                     x.AddCommand(It.Is((OleMenuCommand c) =>
-                        c.CommandID.Guid == IssueVisualizationToolWindowCommand.CommandSet &&
-                        c.CommandID.ID == IssueVisualizationToolWindowCommand.ErrorListCommandId)),
+                        c.CommandID.Guid == Constants.CommandSetGuid &&
+                        c.CommandID.ID == Constants.ErrorListCommandId)),
                 Times.Once);
 
             commandService.VerifyNoOtherCalls();

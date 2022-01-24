@@ -31,10 +31,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Commands
 {
     internal sealed class NavigationCommands
     {
-        internal const int NextLocationCommandId = 0x1021;
-        internal const int PreviousLocationCommandId = 0x1022;
-
-        public static readonly Guid CommandSet = Constants.CommandSetGuid;
         public static NavigationCommands Instance { get; private set; }
 
         private readonly IIssueFlowStepNavigator issueFlowStepNavigator;
@@ -46,11 +42,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Commands
             this.issueFlowStepNavigator = issueFlowStepNavigator ?? throw new ArgumentNullException(nameof(issueFlowStepNavigator));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            var menuCommandID = new CommandID(CommandSet, NextLocationCommandId);
+            var menuCommandID = new CommandID(Constants.CommandSetGuid, Constants.NextLocationCommandId);
             var menuItem = new MenuCommand(ExecuteGotoNextNavigableFlowStep, menuCommandID);
             commandService.AddCommand(menuItem);
 
-            menuCommandID = new CommandID(CommandSet, PreviousLocationCommandId);
+            menuCommandID = new CommandID(Constants.CommandSetGuid, Constants.PreviousLocationCommandId);
             menuItem = new MenuCommand(ExecuteGotoPreviousNavigableFlowStep, menuCommandID);
             commandService.AddCommand(menuItem);
         }
