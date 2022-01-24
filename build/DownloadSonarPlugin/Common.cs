@@ -40,7 +40,7 @@ namespace DownloadCFamilyPlugin
         /// <remarks>By default the plugins will be stored under the user's %LocalAppData% folder e.g. C:\Users\JoeBloggs\AppData\Local.
         /// An alternative root directory can be specified by setting the environment variable SONARLINT_INTERNAL_PLUGIN_CACHE_DIR.
         /// This might be necessary if the user name is long so the full paths of the files being unpacked under the root folder
-        /// are exceed the maximum path length.</remarks>
+        /// exceed the maximum path length.</remarks>
         public static string GetLocalBuildTimePluginCacheDir(string pluginFolderName)
         {
             var baseFolder = Environment.GetEnvironmentVariable("SONARLINT_INTERNAL_PLUGIN_CACHE_DIR");
