@@ -34,10 +34,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Commands
 {
     internal sealed class IssueVisualizationToolWindowCommand
     {
-        public static readonly Guid CommandSet = Constants.CommandSetGuid;
-        public const int ViewToolWindowCommandId = 0x0100;
-        public const int ErrorListCommandId = 0x0200;
-
         public static IssueVisualizationToolWindowCommand Instance { get; private set; }
 
         private readonly IToolWindowService toolWindowService;
@@ -58,11 +54,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Commands
                 throw new ArgumentNullException(nameof(commandService));
             }
 
-            var menuCommandId = new CommandID(CommandSet, ViewToolWindowCommandId);
+            var menuCommandId = new CommandID(Constants.CommandSetGuid, Constants.ViewToolWindowCommandId);
             var menuItem = new MenuCommand(Execute, menuCommandId);
             commandService.AddCommand(menuItem);
 
-            menuCommandId = new CommandID(CommandSet, ErrorListCommandId);
+            menuCommandId = new CommandID(Constants.CommandSetGuid, Constants.ErrorListCommandId);
             // We're showing the command in two places in the UI, but we only do a status check when it's called from the Error List context menu.
             ErrorListMenuItem = new OleMenuCommand(Execute, null, ErrorListQueryStatus, menuCommandId);
             commandService.AddCommand(ErrorListMenuItem);

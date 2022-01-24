@@ -26,6 +26,7 @@ using Moq;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
+using Constants = SonarLint.VisualStudio.IssueVisualization.Commands.Constants;
 using ThreadHelper = SonarLint.VisualStudio.Integration.UnitTests.ThreadHelper;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
@@ -67,14 +68,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
 
             commandServiceMock.Verify(x =>
                     x.AddCommand(It.Is((MenuCommand c) =>
-                        c.CommandID.Guid == NavigationCommands.CommandSet &&
-                        c.CommandID.ID == NavigationCommands.NextLocationCommandId)),
+                        c.CommandID.Guid == Constants.CommandSetGuid &&
+                        c.CommandID.ID == Constants.NextLocationCommandId)),
                 Times.Once);
 
             commandServiceMock.Verify(x =>
                     x.AddCommand(It.Is((MenuCommand c) =>
-                        c.CommandID.Guid == NavigationCommands.CommandSet &&
-                        c.CommandID.ID == NavigationCommands.PreviousLocationCommandId)),
+                        c.CommandID.Guid == Constants.CommandSetGuid &&
+                        c.CommandID.ID == Constants.PreviousLocationCommandId)),
                 Times.Once);
 
             commandServiceMock.VerifyNoOtherCalls();

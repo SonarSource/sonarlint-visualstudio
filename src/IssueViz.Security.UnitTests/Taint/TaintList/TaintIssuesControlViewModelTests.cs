@@ -276,7 +276,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             var testSubject = CreateTestSubject(menuCommandService: menuCommandService.Object);
             testSubject.ShowVisualizationPaneCommand.Execute(viewModel);
 
-            var cmdID = new CommandID(new Guid("FDEF405A-28C2-4AFD-A37B-49EF2B0D142E"), 0x0100);
+            var cmdID = new CommandID(IssueVisualization.Commands.Constants.CommandSetGuid, IssueVisualization.Commands.Constants.ViewToolWindowCommandId);
 
             menuCommandService.Verify(x => x.GlobalInvoke(cmdID), Times.Once);
             menuCommandService.VerifyNoOtherCalls();

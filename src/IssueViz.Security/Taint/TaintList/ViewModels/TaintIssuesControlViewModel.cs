@@ -79,9 +79,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         private string windowCaption;
         private ITaintIssueViewModel selectedIssue;
 
-        private static readonly Guid CommandSetGuid = new Guid("FDEF405A-28C2-4AFD-A37B-49EF2B0D142E");
-        public const int ViewToolWindowCommandId = 0x0100;
-
         private readonly ObservableCollection<ITaintIssueViewModel> unfilteredIssues;
 
         public ICollectionView IssuesView { get; }
@@ -227,7 +224,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
                 parameter =>
                 {
                     telemetryManager.TaintIssueInvestigatedLocally();
-                    var commandId = new CommandID(CommandSetGuid, ViewToolWindowCommandId);
+                    var commandId = new CommandID(IssueVisualization.Commands.Constants.CommandSetGuid, IssueVisualization.Commands.Constants.ViewToolWindowCommandId);
 
                     menuCommandService.GlobalInvoke(commandId);
 

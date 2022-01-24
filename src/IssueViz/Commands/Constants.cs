@@ -22,9 +22,14 @@ using System;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Commands
 {
-    internal static class Constants
+    public static class Constants
     {
         public static readonly Guid CommandSetGuid = new Guid("FDEF405A-28C2-4AFD-A37B-49EF2B0D142E");
+        public const int ViewToolWindowCommandId = 0x0100;
+        public const int ErrorListCommandId = 0x0200;
+        public const int NextLocationCommandId = 0x1021;
+        public const int PreviousLocationCommandId = 0x1022;
+
         public const string UIContextGuid = "f83e901e-41cb-4faf-8116-aacb1b385381";
     }
 }
