@@ -32,9 +32,9 @@
 
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="Commands\Resources\sonarlint.png" />
+  <ItemGroup Label="Taint Xaml Sources">
     <None Remove="Taint\TaintList\sonarlint.png" />
+    <Resource Include="Taint\TaintList\sonarlint.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -62,7 +62,7 @@
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\IssueViz\IssueViz.csproj" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <Page Include="Hotspots\HotspotsList\HotspotsControl.xaml">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
@@ -75,8 +75,6 @@
       <Generator>XamlIntelliSenseFileGenerator</Generator>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Page>
-    <Resource Include="Taint\TaintList\sonarlint.png" />
-    
     <Compile Update="OpenInIDE\OpenInIDEResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
