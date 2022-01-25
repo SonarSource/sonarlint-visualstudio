@@ -54,7 +54,8 @@ namespace SonarLint.VisualStudio.CloudSecrets
                 startLineOffset: startLineOffset,
                 endLineOffset: endLineOffset,
                 lineHash: null, // suppressions are not yet supported 
-                flows: null);
+                flows: null,
+                fixes: null);
         }
     }
 }

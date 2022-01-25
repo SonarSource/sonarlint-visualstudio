@@ -27,6 +27,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
         AnalysisIssueSeverity Severity { get; }
 
         AnalysisIssueType Type { get; }
+
+        IReadOnlyList<IAnalysisIssueFix> Fixes { get; }
     }
 
     public interface IAnalysisIssueBase : IAnalysisIssueLocation
@@ -41,12 +43,15 @@ namespace SonarLint.VisualStudio.Core.Analysis
         IReadOnlyList<IAnalysisIssueLocation> Locations { get; }
     }
 
-    public interface IAnalysisIssueLocation
+    public interface IAnalysisIssueLocation : IAnalysisIssueTextRange
     {
         string FilePath { get; }
 
         string Message { get; }
+    }
 
+    public interface IAnalysisIssueTextRange 
+    {
         int StartLine { get; }
 
         int EndLine { get; }
@@ -56,6 +61,18 @@ namespace SonarLint.VisualStudio.Core.Analysis
         int EndLineOffset { get; }
 
         string LineHash { get; }
+    }
+
+    public interface IAnalysisIssueFix
+    {
+        string Message { get; }
+
+        IReadOnlyList<IAnalysisIssueFixEdit> Edits { get; }
+    }
+
+    public interface IAnalysisIssueFixEdit : IAnalysisIssueTextRange
+    {
+        string Text { get; }
     }
 
     public enum AnalysisIssueSeverity

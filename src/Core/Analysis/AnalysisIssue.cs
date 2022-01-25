@@ -26,6 +26,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
     public class AnalysisIssue : IAnalysisIssue
     {
         private static readonly IReadOnlyList<IAnalysisIssueFlow> EmptyFlows = Array.Empty<IAnalysisIssueFlow>();
+        private static readonly IReadOnlyList<IAnalysisIssueFix> EmptyFixes = Array.Empty<IAnalysisIssueFix>();
 
         public AnalysisIssue(
             string ruleKey, AnalysisIssueSeverity severity, AnalysisIssueType type,
@@ -33,8 +34,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
             int startLine, int endLine,
             int startLineOffset, int endLineOffset,
             string lineHash,
-            IReadOnlyList<IAnalysisIssueFlow> flows
-            )
+            IReadOnlyList<IAnalysisIssueFlow> flows,
+            IReadOnlyList<IAnalysisIssueFix> fixes)
         {
             RuleKey = ruleKey;
             Severity = severity;
@@ -47,6 +48,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             Message = message;
             LineHash = lineHash;
             Flows = flows ?? EmptyFlows;
+            Fixes = fixes ?? EmptyFixes;
         }
 
         public string RuleKey { get; }
@@ -70,6 +72,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
         public string FilePath { get; }
 
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
+
+        public IReadOnlyList<IAnalysisIssueFix> Fixes { get; }
     }
 
     public class AnalysisIssueFlow : IAnalysisIssueFlow
@@ -102,6 +106,47 @@ namespace SonarLint.VisualStudio.Core.Analysis
         public string FilePath { get; }
 
         public string Message { get; }
+
+        public int StartLine { get; }
+
+        public int EndLine { get; }
+
+        public int StartLineOffset { get; }
+
+        public int EndLineOffset { get; }
+
+        public string LineHash { get; }
+    }
+
+    public class AnalysisIssueFix : IAnalysisIssueFix
+    {
+        public AnalysisIssueFix(string message, IReadOnlyList<IAnalysisIssueFixEdit> edits)
+        {
+            Message = message;
+            Edits = edits;
+        }
+
+        public string Message { get; }
+
+        public IReadOnlyList<IAnalysisIssueFixEdit> Edits { get; }
+    }
+
+    public class AnalysisIssueFixEdit : IAnalysisIssueFixEdit
+    {
+        public AnalysisIssueFixEdit(string text, 
+            int startLine, 
+            int endLine, 
+            int startLineOffset, 
+            int endLineOffset)
+        {
+            Text = text;
+            StartLine = startLine;
+            EndLine = endLine;
+            StartLineOffset = startLineOffset;
+            EndLineOffset = endLineOffset;
+        }
+
+        public string Text { get; }
 
         public int StartLine { get; }
 

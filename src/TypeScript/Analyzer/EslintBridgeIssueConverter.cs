@@ -58,7 +58,8 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                 issue.Column,
                 issue.EndColumn,
                 null,
-                Convert(filePath, issue.SecondaryLocations));
+                Convert(filePath, issue.SecondaryLocations),
+                fixes: null);
         }
 
         internal static /* for testing */ AnalysisIssueSeverity Convert(RuleSeverity ruleSeverity)

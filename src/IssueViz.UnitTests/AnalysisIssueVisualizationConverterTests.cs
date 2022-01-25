@@ -196,7 +196,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
                 Guid.NewGuid().GetHashCode(),
                 Guid.NewGuid().GetHashCode(),
                 Guid.NewGuid().ToString(),
-                flows
+                flows,
+                fixes:null
             );
 
             return issue;

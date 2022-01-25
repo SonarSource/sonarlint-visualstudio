@@ -48,5 +48,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public string FilePath { get; set; }
 
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; } = Array.Empty<IAnalysisIssueFlow>();
+        
+        public IReadOnlyList<IAnalysisIssueFix> Fixes { get; } = Array.Empty<IAnalysisIssueFix>();
     }
 }

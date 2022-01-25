@@ -136,11 +136,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             var flows = locations.Any() ? new[] { new AnalysisIssueFlow(locations) } : null;
 
-            var result = ToAnalysisIssue(cFamilyIssue, sqLanguage, defaultSeverity, defaultType, flows, fileContents);
+            var quickFixes = cFamilyIssue.Fixes.Select(ToQuickFix).ToArray();
+
+            var result = ToAnalysisIssue(cFamilyIssue, sqLanguage, defaultSeverity, defaultType, flows, quickFixes, fileContents);
 
             CodeMarkers.Instance.CFamilyConvertIssueStop();
 
             return result;
+        }
+
+        private IAnalysisIssueFix ToQuickFix(Fix cFamilyFix)
+        {
+            var edits = cFamilyFix.Edits.Select(x => new AnalysisIssueFixEdit(
+                    text: x.Text,
+                    startLine: x.StartLine,
+                    endLine: x.EndLine,
+                    startLineOffset: x.StartColumn,
+                    endLineOffset: x.EndColumn))
+                .ToArray();
+
+            return new AnalysisIssueFix(cFamilyFix.Message, edits);
         }
 
         private IReadOnlyDictionary<string, ITextDocument> GetFileContentsOfReportedFiles(Message cFamilyIssue)
@@ -185,6 +200,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             IssueSeverity defaultSeverity,
             IssueType defaultType,
             IReadOnlyList<IAnalysisIssueFlow> flows,
+            IReadOnlyList<IAnalysisIssueFix> fixes,
             IReadOnlyDictionary<string, ITextDocument> fileContents)
         {
             return new AnalysisIssue
@@ -203,7 +219,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 startLineOffset: cFamilyIssue.EndLine == 0 ? 0 : cFamilyIssue.Column - 1,
                 endLineOffset: cFamilyIssue.EndLine == 0 ? 0 : cFamilyIssue.EndColumn - 1,
 
-                flows: flows
+                flows: flows,
+                fixes: fixes
             );
         }
 

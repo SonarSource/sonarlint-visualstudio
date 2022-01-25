@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
         /// Returns the text span corresponding to the supplied analysis issue location.
         /// Returns null if the location line hash is different from the snapshot line hash
         /// </summary>
-        SnapshotSpan CalculateSpan(IAnalysisIssueLocation location, ITextSnapshot currentSnapshot);
+        SnapshotSpan CalculateSpan(IAnalysisIssueTextRange location, ITextSnapshot currentSnapshot);
     }
 
     [Export(typeof(IIssueSpanCalculator))]
@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             this.checksumCalculator = checksumCalculator;
         }
 
-        public SnapshotSpan CalculateSpan(IAnalysisIssueLocation location, ITextSnapshot currentSnapshot)
+        public SnapshotSpan CalculateSpan(IAnalysisIssueTextRange location, ITextSnapshot currentSnapshot)
         {
             if (location.StartLine > currentSnapshot.LineCount)
             {
@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             return new SnapshotSpan(start, end);
         }
 
-        private bool IsLineHashDifferent(IAnalysisIssueLocation location, ITextSnapshotLine snapshotLine)
+        private bool IsLineHashDifferent(IAnalysisIssueTextRange location, ITextSnapshotLine snapshotLine)
         {
             if (string.IsNullOrEmpty(location.LineHash))
             {
