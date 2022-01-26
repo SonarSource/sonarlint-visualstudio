@@ -109,7 +109,12 @@ namespace SonarLint.VisualStudio.CloudSecrets
                         continue;
                     }
 
-                    // todo: check cancellation token
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        analysisStatusNotifier.AnalysisCancelled(filePath);
+                        return;
+                    }
+
                     var detectedSecrets = secretDetector.Find(fileContent);
 
                     if (detectedSecrets.Any())
