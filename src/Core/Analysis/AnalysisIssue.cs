@@ -70,6 +70,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
         public string FilePath { get; }
 
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
+
+        public IReadOnlyList<IQuickFix> Fixes { get; set; }
     }
 
     public class AnalysisIssueFlow : IAnalysisIssueFlow
