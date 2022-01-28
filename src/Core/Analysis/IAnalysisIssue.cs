@@ -27,6 +27,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
         AnalysisIssueSeverity Severity { get; }
 
         AnalysisIssueType Type { get; }
+
+        IReadOnlyList<object> Fixes { get; }
     }
 
     public interface IAnalysisIssueBase : IAnalysisIssueLocation
