@@ -35,7 +35,7 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes
 {
-    internal class QuickFixActionsSource : ISuggestedActionsSource
+    internal sealed class QuickFixActionsSource : ISuggestedActionsSource
     {
         private readonly ILightBulbBroker lightBulbBroker;
         private readonly ITextView textView;
