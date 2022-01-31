@@ -26,6 +26,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
     public class AnalysisIssue : IAnalysisIssue
     {
         private static readonly IReadOnlyList<IAnalysisIssueFlow> EmptyFlows = Array.Empty<IAnalysisIssueFlow>();
+        private static readonly IReadOnlyList<IQuickFix> EmptyFixes = Array.Empty<IQuickFix>();
 
         public AnalysisIssue(
             string ruleKey, AnalysisIssueSeverity severity, AnalysisIssueType type,
@@ -33,7 +34,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
             int startLine, int endLine,
             int startLineOffset, int endLineOffset,
             string lineHash,
-            IReadOnlyList<IAnalysisIssueFlow> flows
+            IReadOnlyList<IAnalysisIssueFlow> flows,
+            IReadOnlyList<IQuickFix> fixes = null
             )
         {
             RuleKey = ruleKey;
@@ -47,6 +49,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             Message = message;
             LineHash = lineHash;
             Flows = flows ?? EmptyFlows;
+            Fixes = fixes ?? EmptyFixes;
         }
 
         public string RuleKey { get; }

@@ -32,6 +32,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using Edit = SonarLint.VisualStudio.Integration.Vsix.CFamily.Edit;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
@@ -517,6 +518,110 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             Action act = () => CFamilyIssueToAnalysisIssueConverter.Convert((IssueType)(-1));
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueType");
         }
+
+        [TestMethod]
+        public void Convert_Issue_WithSingleFixSingleEdit()
+        {
+            var fix1 = new Fix("Fix 1", new Edit[] { new Edit(1, 2, 3, 4, "Edit 1") });
+
+            var fixes = new Fix[] { fix1 };
+
+            var message = new Message("rule2", "file", 4, 3, 2, 1, "this is a test", false, new MessagePart[0], fixes);
+
+            var testSubject = CreateTestSubject();
+            var issue = Convert(testSubject, message);
+
+            issue.Fixes.Count.Should().Be(1);
+
+            CompareFixes(fix1, issue.Fixes[0]).Should().BeTrue("because Quick fixes were not equal to fixes in CFamily Message");
+        }
+
+        [TestMethod]
+        public void Convert_Issue_WithSingleFixMultipleEdits()
+        {
+            var fix1 = new Fix("Fix 1", new Edit[] { new Edit(11, 12, 13, 14, "Edit 1"), new Edit(21, 22, 23, 24, "Edit 2"), new Edit(31, 32, 33, 34, "Edit 3"), new Edit(41, 42, 43, 44, "Edit 4") });
+
+            var fixes = new Fix[] { fix1 };
+
+            var message = new Message("rule2", "file", 4, 3, 2, 1, "this is a test", false, new MessagePart[0], fixes);
+
+            var testSubject = CreateTestSubject();
+            var issue = Convert(testSubject, message);
+
+            issue.Fixes.Count.Should().Be(1);
+
+            CompareFixes(fix1, issue.Fixes[0]).Should().BeTrue("because Quick fixes were not equal to fixes in CFamily Message");
+        }
+
+        public void Convert_Issue_WithMultipleFixesMultipleEdits()
+        {
+            var fix1 = new Fix("Fix 1", new Edit[] { new Edit(11, 12, 13, 14, "Edit 1"), new Edit(21, 22, 23, 24, "Edit 2"), new Edit(31, 32, 33, 34, "Edit 3"), new Edit(41, 42, 43, 44, "Edit 4") });
+            var fix2 = new Fix("Fix 2", new Edit[] { new Edit(51, 52, 53, 54, "Edit 5"), new Edit(61, 62, 63, 64, "Edit 6"), new Edit(71, 72, 73, 74, "Edit 7"), new Edit(81, 82, 83, 84, "Edit 8") });
+
+            var fixes = new Fix[] { fix1, fix2 };
+
+            var message = new Message("rule2", "file", 4, 3, 2, 1, "this is a test", false, new MessagePart[0], fixes);
+
+            var testSubject = CreateTestSubject();
+            var issue = Convert(testSubject, message);
+
+            issue.Fixes.Count.Should().Be(1);
+
+            CompareFixes(fix1, issue.Fixes[0]).Should().BeTrue("because Quick fixes were not equal to fixes in CFamily Message");
+            CompareFixes(fix2, issue.Fixes[1]).Should().BeTrue("because Quick fixes were not equal to fixes in CFamily Message");
+        }
+
+        [TestMethod]
+        public void Convert_Issue_WithSingleFixNullEdit_Throws()
+        {
+            var fix1 = new Fix("Fix 1", null);
+
+            var fixes = new Fix[] { fix1 };
+
+            var message = new Message("rule2", "file", 4, 3, 2, 1, "this is a test", false, new MessagePart[0], fixes);
+
+            var testSubject = CreateTestSubject();
+            Action act = () => Convert(testSubject, message);
+
+            act.Should().ThrowExactly<ArgumentNullException>();
+        }
+
+        public void Convert_Issue_WithSingleFixEmptyEdit_Throws()
+        {
+            var fix1 = new Fix("Fix 1", Array.Empty<Edit>());
+
+            var fixes = new Fix[] { fix1 };
+
+            var message = new Message("rule2", "file", 4, 3, 2, 1, "this is a test", false, new MessagePart[0], fixes);
+
+            var testSubject = CreateTestSubject();
+            Action act = () => Convert(testSubject, message);
+
+            act.Should().ThrowExactly<ArgumentException>().And.ParamName.Should().Be("edits");
+        }
+
+        private static bool CompareFixes(Fix fix, IQuickFix quickFix)
+        {
+            if (fix.Edits.Length != quickFix.Edits.Count)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < fix.Edits.Length; i++)
+            {
+                if (fix.Edits[i].StartColumn != quickFix.Edits[i].StartColumn ||
+                    fix.Edits[i].EndColumn != quickFix.Edits[i].EndColumn ||
+                    fix.Edits[i].StartLine != quickFix.Edits[i].StartLine ||
+                    fix.Edits[i].EndLine != quickFix.Edits[i].EndLine ||
+                    fix.Edits[i].Text != quickFix.Edits[i].Text)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
 
         private static ICFamilyRulesConfig GetDummyRulesConfiguration()
         {
