@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     internal interface ICFamilyIssueConverterFactory
     {
-        ICFamilyIssueToAnalysisIssueConverter Create();        
+        ICFamilyIssueToAnalysisIssueConverter Create();
     }
 
     [Export(typeof(ICFamilyIssueConverterFactory))]
@@ -122,10 +122,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             var defaultSeverity = rulesConfiguration.RulesMetadata[cFamilyIssue.RuleKey].DefaultSeverity;
             var defaultType = rulesConfiguration.RulesMetadata[cFamilyIssue.RuleKey].Type;
 
-            var fileContents = GetFileContentsOfReportedFiles(cFamilyIssue); 
+            var fileContents = GetFileContentsOfReportedFiles(cFamilyIssue);
 
             var locations = cFamilyIssue.Parts
-                .Select(x=> ToAnalysisIssueLocation(x, fileContents))
+                .Select(x => ToAnalysisIssueLocation(x, fileContents))
                 .ToArray();
 
             // If PartsMakeFlow is set to true the issues are expected to be in the reversed order
@@ -147,10 +147,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             var filePaths = cFamilyIssue.Parts
                 .Select(x => x.Filename)
-                .Union(new[] {cFamilyIssue.Filename})
+                .Union(new[] { cFamilyIssue.Filename })
                 .Distinct();
 
-            foreach(var filePath in filePaths)
+            foreach (var filePath in filePaths)
             {
                 if (pathToTextDocMap.ContainsKey(filePath))
                 {
@@ -180,7 +180,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return null;
         }
 
-        private IAnalysisIssue ToAnalysisIssue(Message cFamilyIssue, 
+        private IAnalysisIssue ToAnalysisIssue(Message cFamilyIssue,
             string sqLanguage,
             IssueSeverity defaultSeverity,
             IssueType defaultType,

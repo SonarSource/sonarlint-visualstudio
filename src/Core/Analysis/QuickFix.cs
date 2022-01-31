@@ -20,20 +20,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Core.Analysis
 {
     public class QuickFix : IQuickFix
     {
-
         public QuickFix(string message, IReadOnlyList<IEdit> edits)
         {
             if (edits == null || edits.Count == 0)
             {
-                throw new ArgumentException("A fix should have at least one edit.", "edits");
+                throw new ArgumentException("A fix should have at least one edit.", nameof(edits));
             }
             Message = message;
             Edits = edits;
@@ -46,8 +42,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
     public class Edit : IEdit
     {
-
-        public Edit( int startLine,
+        public Edit(int startLine,
             int startColumn,
             int endLine, 
             int endColumn,

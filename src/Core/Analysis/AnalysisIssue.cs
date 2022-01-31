@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
 
-        public IReadOnlyList<IQuickFix> Fixes { get; set; }
+        public IReadOnlyList<IQuickFix> Fixes { get; }
     }
 
     public class AnalysisIssueFlow : IAnalysisIssueFlow
