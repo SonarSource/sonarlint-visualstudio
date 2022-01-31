@@ -151,7 +151,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         [TestMethod]
         public async Task HasSuggestedActionsAsync_HasIssuesWithQuickFixes_True()
         {
-            var issues = new[] { CreateIssueViz("quick-fix1") };
+            var issues = new[] { CreateIssueViz(Mock.Of<IQuickFix>()) };
 
             var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
@@ -185,8 +185,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         {
             var issues = new[]
             {
-                CreateIssueViz("quick-fix1", "quick-fix2"),
-                CreateIssueViz("quick-fix3"),
+                CreateIssueViz(Mock.Of<IQuickFix>()),
+                CreateIssueViz(Mock.Of<IQuickFix>(), Mock.Of<IQuickFix>()),
                 CreateIssueViz()
             };
 
@@ -221,7 +221,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 threadHandling);
         }
 
-        private IAnalysisIssueVisualization CreateIssueViz(params object[] fixes)
+        private IAnalysisIssueVisualization CreateIssueViz(params IQuickFix[] fixes)
         {
             var baseIssue = new Mock<IAnalysisIssue>();
             baseIssue.Setup(x => x.Fixes).Returns(fixes);

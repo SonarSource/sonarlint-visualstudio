@@ -298,8 +298,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             firstLocation.LineHash.Should().Be(expectedHash);
 
             // verify that the mock was called only for firstLocationPath
-            textDocumentFactoryService.Verify(x=> x.CreateAndLoadTextDocument(existingFilePath, DummyContentType), Times.Once);
-            textDocumentFactoryService.Verify(x=> x.CreateAndLoadTextDocument(It.IsAny<string>(), It.IsAny<IContentType>()), Times.Once);
+            textDocumentFactoryService.Verify(x => x.CreateAndLoadTextDocument(existingFilePath, DummyContentType), Times.Once);
+            textDocumentFactoryService.Verify(x => x.CreateAndLoadTextDocument(It.IsAny<string>(), It.IsAny<IContentType>()), Times.Once);
         }
 
         [TestMethod]
@@ -538,10 +538,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             return config;
         }
 
-        private static string SetupLineHash(Mock<IFileSystem> fileSystemMock, 
-            Mock<ILineHashCalculator> lineHashCalculatorMock, 
+        private static string SetupLineHash(Mock<IFileSystem> fileSystemMock,
+            Mock<ILineHashCalculator> lineHashCalculatorMock,
             Mock<ITextDocumentFactoryService> textDocumentFactoryService,
-            string filePath, 
+            string filePath,
             int line)
         {
             fileSystemMock.Setup(x => x.File.Exists(filePath)).Returns(true);

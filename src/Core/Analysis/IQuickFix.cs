@@ -18,61 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Core.Analysis
 {
-    public interface IAnalysisIssue : IAnalysisIssueBase
+    public interface IQuickFix
     {
-        AnalysisIssueSeverity Severity { get; }
-
-        AnalysisIssueType Type { get; }
-
-        IReadOnlyList<IQuickFix> Fixes { get; }
-    }
-
-    public interface IAnalysisIssueBase : IAnalysisIssueLocation
-    {
-        string RuleKey { get; }
-
-        IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
-    }
-
-    public interface IAnalysisIssueFlow
-    {
-        IReadOnlyList<IAnalysisIssueLocation> Locations { get; }
-    }
-
-    public interface IAnalysisIssueLocation
-    {
-        string FilePath { get; }
-
         string Message { get; }
+        IReadOnlyList<IEdit> Edits { get; }
+    }
 
+    public interface IEdit
+    {
         int StartLine { get; }
-
+        int StartColumn { get; }
         int EndLine { get; }
-
-        int StartLineOffset { get; }
-
-        int EndLineOffset { get; }
-
-        string LineHash { get; }
-    }
-
-    public enum AnalysisIssueSeverity
-    {
-        Blocker,
-        Critical,
-        Major,
-        Minor,
-        Info,
-    }
-
-    public enum AnalysisIssueType
-    {
-        CodeSmell,
-        Bug,
-        Vulnerability
+        int EndColumn { get; }
+        string Text { get; }
     }
 }

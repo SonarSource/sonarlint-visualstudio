@@ -49,6 +49,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; } = Array.Empty<IAnalysisIssueFlow>();
 
-        public IReadOnlyList<object> Fixes { get; } = Array.Empty<object>();
+        public IReadOnlyList<IQuickFix> Fixes { get; } = Array.Empty<IQuickFix>();
     }
 }
