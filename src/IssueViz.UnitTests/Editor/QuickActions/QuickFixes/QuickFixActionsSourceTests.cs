@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -151,7 +152,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         [TestMethod]
         public async Task HasSuggestedActionsAsync_HasIssuesWithQuickFixes_True()
         {
-            var issues = new[] { CreateIssueViz("quick-fix1") };
+            var issues = new[] { CreateIssueViz(new QuickFix("quick - fix1", new List<IEdit> { new Edit (0,0,0,0,"Edit-1")})) };
 
             var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
@@ -185,8 +186,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         {
             var issues = new[]
             {
-                CreateIssueViz("quick-fix1", "quick-fix2"),
-                CreateIssueViz("quick-fix3"),
+                CreateIssueViz(new QuickFix("quick - fix1", new List<IEdit> { new Edit (0,0,0,0,"Edit-1")}), new QuickFix("quick - fix2", new List<IEdit> { new Edit (0,0,0,0,"Edit-2")})),
+                CreateIssueViz(new QuickFix("quick - fix3", new List<IEdit> { new Edit (0,0,0,0,"Edit-3")})),
                 CreateIssueViz()
             };
 
@@ -221,7 +222,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 threadHandling);
         }
 
-        private IAnalysisIssueVisualization CreateIssueViz(params object[] fixes)
+        private IAnalysisIssueVisualization CreateIssueViz(params IQuickFix[] fixes)
         {
             var baseIssue = new Mock<IAnalysisIssue>();
             baseIssue.Setup(x => x.Fixes).Returns(fixes);

@@ -1060,8 +1060,8 @@
       },
       "Microsoft.VisualStudio.Validation": {
         "type": "Transitive",
-        "resolved": "17.0.25-alpha",
-        "contentHash": "/naX9wxV7cvBX/6RhUz4AtsYLrQp7I8Ew15iSe+J3/GBmBbx2zZeyC+CSdAqA6UYBuUj4qzDfdLKkmaKQGBFQQ=="
+        "resolved": "17.0.28",
+        "contentHash": "qT+0Qv7lxLt7NKQjkroi34s8cDXVPWA3vDkvoFZwM9PRmZ28aKrMLaQRnkT7rgBYLf+mNtr2najktKUzkAtP6Q=="
       },
       "Microsoft.VisualStudio.VSHelp": {
         "type": "Transitive",
