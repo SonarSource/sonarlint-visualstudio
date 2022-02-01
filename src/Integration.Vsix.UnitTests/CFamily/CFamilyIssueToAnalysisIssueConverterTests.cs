@@ -533,7 +533,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             issue.Fixes.Count.Should().Be(1);
 
-            CompareFixes(fix1, issue.Fixes[0]).Should().BeTrue("because Quick fixes were not equal to fixes in CFamily Message");
+            CompareFixes(fix1, issue.Fixes[0]);
         }
 
         [TestMethod]
@@ -550,9 +550,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             issue.Fixes.Count.Should().Be(1);
 
-            CompareFixes(fix1, issue.Fixes[0]).Should().BeTrue("because Quick fixes were not equal to fixes in CFamily Message");
+            CompareFixes(fix1, issue.Fixes[0]);
         }
 
+        [TestMethod]
         public void Convert_Issue_WithMultipleFixesMultipleEdits()
         {
             var fix1 = new Fix("Fix 1", new Edit[] { new Edit(11, 12, 13, 14, "Edit 1"), new Edit(21, 22, 23, 24, "Edit 2"), new Edit(31, 32, 33, 34, "Edit 3"), new Edit(41, 42, 43, 44, "Edit 4") });
@@ -565,10 +566,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var testSubject = CreateTestSubject();
             var issue = Convert(testSubject, message);
 
-            issue.Fixes.Count.Should().Be(1);
+            issue.Fixes.Count.Should().Be(2);
 
-            CompareFixes(fix1, issue.Fixes[0]).Should().BeTrue("because Quick fixes were not equal to fixes in CFamily Message");
-            CompareFixes(fix2, issue.Fixes[1]).Should().BeTrue("because Quick fixes were not equal to fixes in CFamily Message");
+            CompareFixes(fix1, issue.Fixes[0]);
+            CompareFixes(fix2, issue.Fixes[1]);
         }
 
         [TestMethod]
@@ -583,9 +584,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var testSubject = CreateTestSubject();
             Action act = () => Convert(testSubject, message);
 
-            act.Should().ThrowExactly<ArgumentNullException>();
+            act.Should().ThrowExactly<ArgumentException>().And.ParamName.Should().Be("edits");
         }
 
+        [TestMethod]
         public void Convert_Issue_WithSingleFixEmptyEdit_Throws()
         {
             var fix1 = new Fix("Fix 1", Array.Empty<Edit>());
@@ -600,26 +602,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             act.Should().ThrowExactly<ArgumentException>().And.ParamName.Should().Be("edits");
         }
 
-        private static bool CompareFixes(Fix fix, IQuickFix quickFix)
+        private static void CompareFixes(Fix fix, IQuickFix quickFix)
         {
-            if (fix.Edits.Length != quickFix.Edits.Count)
-            {
-                return false;
-            }
-
+            quickFix.Edits.Count.Should().Be(fix.Edits.Length, $"because number of edits were not equal in {fix.Message}");
+            
             for (int i = 0; i < fix.Edits.Length; i++)
             {
-                if (fix.Edits[i].StartColumn != quickFix.Edits[i].StartColumn ||
-                    fix.Edits[i].EndColumn != quickFix.Edits[i].EndColumn ||
-                    fix.Edits[i].StartLine != quickFix.Edits[i].StartLine ||
-                    fix.Edits[i].EndLine != quickFix.Edits[i].EndLine ||
-                    fix.Edits[i].Text != quickFix.Edits[i].Text)
-                {
-                    return false;
-                }
+                fix.Edits[i].StartColumn.Should().Be(quickFix.Edits[i].StartColumn, $"because StartColumn was not equal in {fix.Message}, edit: {i} ");
+                fix.Edits[i].EndColumn.Should().Be(quickFix.Edits[i].EndColumn, $"because EndColumn was not equal in {fix.Message}, edit: {i} ");
+                fix.Edits[i].StartLine.Should().Be(quickFix.Edits[i].StartLine, $"because StartLine was not equal in {fix.Message}, edit: {i} ");
+                fix.Edits[i].EndLine.Should().Be(quickFix.Edits[i].EndLine, $"because EndLine was not equal in {fix.Message}, edit: {i} ");
+                fix.Edits[i].Text.Should().Be(quickFix.Edits[i].Text, $"because Text was not equal in {fix.Message}, edit: {i} ");
             }
-
-            return true;
         }
 
 
