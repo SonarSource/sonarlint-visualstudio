@@ -49,19 +49,22 @@ namespace SonarLint.VisualStudio.Core.Analysis
             string text)
         {
             StartLine = startLine;
-            StartColumn = startColumn;
+            StartLineOffset = startColumn;
             EndLine = endLine;
-            EndColumn = endColumn;
+            EndLineOffset = endColumn;
             Text = text;
+            LineHash = null;
         }
 
         public int StartLine { get; }
 
-        public int StartColumn { get; }
-
         public int EndLine { get; }
 
-        public int EndColumn { get; }
+        public int StartLineOffset { get; }
+
+        public int EndLineOffset { get; }
+
+        public string LineHash { get; }
 
         public string Text { get; }
     }
