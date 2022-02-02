@@ -74,6 +74,67 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         }
 
         [TestMethod]
+        public void Convert_NoTextBuffer_QuickFixSpansAreNotCalculated()
+        {
+            var issue = CreateIssue(Mock.Of<IQuickFix>());
+
+            var result = testSubject.Convert(issue, textSnapshot: null);
+
+            result.QuickFixes.Should().BeEmpty();
+            issueSpanCalculatorMock.Invocations.Count.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void Convert_IssueHasNoQuickFixes_IssueVisualizationWithoutQuickFixes()
+        {
+            var issue = CreateIssue();
+            SetupSpanCalculator(issue, new SnapshotSpan());
+
+            var result = testSubject.Convert(issue, textSnapshotMock);
+
+            result.QuickFixes.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void Convert_IssueHasQuickFixes_QuickFixesSpansAreCalculated()
+        {
+            var edit1 = Mock.Of<IEdit>();
+            var span1 = CreateNonEmptySpan();
+            SetupSpanCalculator(edit1, span1);
+
+            var edit2 = Mock.Of<IEdit>();
+            var span2 = CreateNonEmptySpan();
+            SetupSpanCalculator(edit2, span2);
+
+            var edit3 = Mock.Of<IEdit>();
+            var span3 = CreateNonEmptySpan();
+            SetupSpanCalculator(edit3, span3);
+
+            var fix1 = new QuickFix("fix1", new[] { edit1, edit2 });
+            var fix2 = new QuickFix("fix1", new[] { edit3 });
+            var issue = CreateIssue(fix1, fix2);
+
+            var result = testSubject.Convert(issue, textSnapshotMock);
+
+            result.QuickFixes.Should().NotBeEmpty();
+            result.QuickFixes.Count.Should().Be(2);
+
+            result.QuickFixes[0].Fix.Should().Be(fix1);
+            result.QuickFixes[0].EditVisualizations.Should().NotBeEmpty();
+            result.QuickFixes[0].EditVisualizations.Count.Should().Be(2);
+            result.QuickFixes[0].EditVisualizations[0].Edit.Should().Be(edit1);
+            result.QuickFixes[0].EditVisualizations[0].Span.Should().Be(span1);
+            result.QuickFixes[0].EditVisualizations[1].Edit.Should().Be(edit2);
+            result.QuickFixes[0].EditVisualizations[1].Span.Should().Be(span2);
+
+            result.QuickFixes[1].Fix.Should().Be(fix2);
+            result.QuickFixes[1].EditVisualizations.Should().NotBeEmpty();
+            result.QuickFixes[1].EditVisualizations.Count.Should().Be(1);
+            result.QuickFixes[1].EditVisualizations[0].Edit.Should().Be(edit3);
+            result.QuickFixes[1].EditVisualizations[0].Span.Should().Be(span3);
+        }
+
+        [TestMethod]
         public void Convert_EmptySpan_IssueWithEmptySpan()
         {
             var issue = CreateIssue(Path.GetRandomFileName());
@@ -94,7 +155,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             var issue = CreateIssue(Path.GetRandomFileName(), flows);
             SetupSpanCalculator(issue, issueSpan);
 
-            var expectedIssueVisualization = new AnalysisIssueVisualization(Array.Empty<IAnalysisIssueFlowVisualization>(), issue, issueSpan);
+            var expectedIssueVisualization = new AnalysisIssueVisualization(
+                Array.Empty<IAnalysisIssueFlowVisualization>(), 
+                issue, 
+                issueSpan,
+                Array.Empty<IQuickFixVisualization>());
 
             var actualIssueVisualization = testSubject.Convert(issue, textSnapshotMock);
 
@@ -113,7 +178,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
 
             var expectedLocationVisualization = new AnalysisIssueLocationVisualization(1, location);
             var expectedFlowVisualization = new AnalysisIssueFlowVisualization(1, new[] { expectedLocationVisualization }, flow);
-            var expectedIssueVisualization = new AnalysisIssueVisualization(new[] {expectedFlowVisualization}, issue, issueSpan);
+            
+            var expectedIssueVisualization = new AnalysisIssueVisualization(
+                new[] {expectedFlowVisualization}, 
+                issue, 
+                issueSpan,
+                Array.Empty<IQuickFixVisualization>());
 
             var actualIssueVisualization = testSubject.Convert(issue, textSnapshotMock);
 
@@ -143,7 +213,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             var expectedSecondFlowSecondLocationVisualization = new AnalysisIssueLocationVisualization(2, secondFlowSecondLocation);
             var expectedSecondFlowVisualization = new AnalysisIssueFlowVisualization(2, new[] { expectedSecondFlowFirstLocationVisualization, expectedSecondFlowSecondLocationVisualization }, secondFlow);
 
-            var expectedIssueVisualization = new AnalysisIssueVisualization(new[] { expectedFirstFlowVisualization, expectedSecondFlowVisualization }, issue, issueSpan);
+            var expectedIssueVisualization = new AnalysisIssueVisualization(
+                new[] { expectedFirstFlowVisualization, expectedSecondFlowVisualization }, 
+                issue, 
+                issueSpan,
+                Array.Empty<IQuickFixVisualization>());
 
             var actualIssueVisualization = testSubject.Convert(issue, textSnapshotMock);
 
@@ -169,7 +243,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             var expectedLocation1 = new AnalysisIssueLocationVisualization(1, locationInSameFile) {Span = locationSpan};
             var expectedLocation2 = new AnalysisIssueLocationVisualization(2, locationInAnotherFile) {Span = null};
             var expectedFlow = new AnalysisIssueFlowVisualization(1, new[] {expectedLocation1, expectedLocation2}, flow);
-            var expectedIssueVisualization = new AnalysisIssueVisualization(new[] { expectedFlow }, issue, issueSpan);
+           
+            var expectedIssueVisualization = new AnalysisIssueVisualization(
+                new[] { expectedFlow },
+                issue, 
+                issueSpan,
+                Array.Empty<IQuickFixVisualization>());
 
             var actualIssueVisualization = testSubject.Convert(issue, textSnapshotMock);
 
@@ -181,6 +260,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             actualIssueVisualization.Issue.Should().Be(expectedIssueVisualization.Issue);
 
             actualIssueVisualization.Flows.Should().BeEquivalentTo(expectedIssueVisualization.Flows, c=> c.WithStrictOrdering());
+        }
+
+        private IAnalysisIssue CreateIssue(params IQuickFix[] quickFixes)
+        {
+            var issue = new AnalysisIssue(
+                Guid.NewGuid().ToString(),
+                AnalysisIssueSeverity.Blocker,
+                AnalysisIssueType.Bug,
+                Guid.NewGuid().ToString(),
+                Guid.NewGuid().ToString(),
+                Guid.NewGuid().GetHashCode(),
+                Guid.NewGuid().GetHashCode(),
+                Guid.NewGuid().GetHashCode(),
+                Guid.NewGuid().GetHashCode(),
+                Guid.NewGuid().ToString(),
+                null,
+                quickFixes
+            );
+
+            return issue;
         }
 
         private IAnalysisIssue CreateIssue(string filePath, params IAnalysisIssueFlow[] flows)
@@ -228,9 +327,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             return new SnapshotSpan(mockTextSnapshot.Object, new Span(0, 10));
         }
 
-        private void SetupSpanCalculator(IAnalysisIssueLocation issueLocation, SnapshotSpan nonEmptySpan)
+        private void SetupSpanCalculator(ITextRange textRange, SnapshotSpan nonEmptySpan)
         {
-            issueSpanCalculatorMock.Setup(x => x.CalculateSpan(issueLocation, textSnapshotMock)).Returns(nonEmptySpan);
+            issueSpanCalculatorMock.Setup(x => x.CalculateSpan(textRange, textSnapshotMock)).Returns(nonEmptySpan);
         }
     }
 }
