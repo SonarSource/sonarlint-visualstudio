@@ -19,20 +19,41 @@
  */
 
 using System.Threading;
+using Microsoft.VisualStudio.Text;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes
 {
     internal class QuickFixSuggestedAction : BaseSuggestedAction
     {
-        public QuickFixSuggestedAction(string displayText)
+        private readonly IQuickFixVisualization quickFixVisualization;
+        private readonly ITextBuffer textBuffer;
+
+        public QuickFixSuggestedAction(IQuickFixVisualization quickFixVisualization, ITextBuffer textBuffer)
         {
-            DisplayText = displayText;
+            this.quickFixVisualization = quickFixVisualization;
+            this.textBuffer = textBuffer;
         }
 
-        public override string DisplayText { get; }
+        public override string DisplayText => quickFixVisualization.Fix.Message;
 
         public override void Invoke(CancellationToken cancellationToken)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
+            var textEdit = textBuffer.CreateEdit();
+
+            foreach (var edit in quickFixVisualization.EditVisualizations)
+            {
+                var updatedSpan = edit.Span.TranslateTo(textBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive);
+
+                textEdit.Replace(updatedSpan, edit.Edit.Text);
+            }
+
+            textEdit.Apply();
         }
     }
 }
