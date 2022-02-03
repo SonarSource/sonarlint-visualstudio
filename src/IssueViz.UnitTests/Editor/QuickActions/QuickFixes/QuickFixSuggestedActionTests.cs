@@ -20,7 +20,10 @@
 
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Text;
+using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickActions.QuickFixes
 {
@@ -30,7 +33,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         [TestMethod]
         public void DisplayName_ReturnsFixMessage()
         {
-            var testSubject = new QuickFixSuggestedAction("some fix");
+            var quickFixViz = new Mock<IQuickFixVisualization>();
+            quickFixViz.Setup(x => x.Fix.Message).Returns("some fix");
+
+            var testSubject = new QuickFixSuggestedAction(quickFixViz.Object, Mock.Of<ITextBuffer>());
 
             testSubject.DisplayText.Should().Be("some fix");
         }
