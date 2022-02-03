@@ -48,9 +48,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
 
             foreach (var edit in quickFixVisualization.EditVisualizations)
             {
-                var updatedSpan = edit.Span.TranslateTo(textBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive);
+                //var updatedSpan = edit.Span.TranslateTo(textBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive);
 
-                textEdit.Replace(updatedSpan, edit.Edit.Text);
+                textEdit.Replace(edit.Span, edit.Edit.Text);
             }
 
             textEdit.Apply();

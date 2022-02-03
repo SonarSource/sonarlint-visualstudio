@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
@@ -39,6 +40,62 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             var testSubject = new QuickFixSuggestedAction(quickFixViz.Object, Mock.Of<ITextBuffer>());
 
             testSubject.DisplayText.Should().Be("some fix");
+        }
+
+        [TestMethod]
+        public void Invoke_AppliesFixWithOneEdit()
+        {
+            var editVisualization = new Mock<IQuickFixEditVisualization>();
+            editVisualization.Setup(e => e.Edit.Text).Returns("edit");
+            
+            var quickFixViz = new Mock<IQuickFixVisualization>();            
+            quickFixViz.Setup(x => x.Fix.Message).Returns("some fix");
+            quickFixViz.Setup(x => x.EditVisualizations).Returns(new List<IQuickFixEditVisualization> { editVisualization.Object });
+
+
+            var textEdit = new Mock<ITextEdit>();
+
+            var textBuffer = new Mock<ITextBuffer>();
+            textBuffer.Setup(tb => tb.CreateEdit()).Returns(textEdit.Object);
+
+            var testSubject = new QuickFixSuggestedAction(quickFixViz.Object, textBuffer.Object);
+            testSubject.Invoke(new System.Threading.CancellationToken());
+
+            testSubject.DisplayText.Should().Be("some fix");
+            textBuffer.Verify(tb => tb.CreateEdit(), Times.Once(), "CreateEdit should be called once");
+            textEdit.Verify(tb => tb.Replace(It.IsAny<Span>(), It.IsAny<string>()), Times.Exactly(1), "Replace should be called one time");
+            textEdit.Verify(tb => tb.Apply(), Times.Once(), "Apply should be called once");
+
+        }
+
+        [TestMethod]
+        public void Invoke_AppliesFixWithMultipleEdits()
+        {
+            var editVisualization1 = new Mock<IQuickFixEditVisualization>();
+            editVisualization1.Setup(e => e.Edit.Text).Returns("edit1");
+            var editVisualization2 = new Mock<IQuickFixEditVisualization>();
+            editVisualization2.Setup(e => e.Edit.Text).Returns("edit2");
+            var editVisualization3 = new Mock<IQuickFixEditVisualization>();
+            editVisualization3.Setup(e => e.Edit.Text).Returns("edit3");
+
+            var quickFixViz = new Mock<IQuickFixVisualization>();
+            quickFixViz.Setup(x => x.Fix.Message).Returns("some fix");
+            quickFixViz.Setup(x => x.EditVisualizations).Returns(new List<IQuickFixEditVisualization> { editVisualization1.Object, editVisualization2.Object, editVisualization3.Object, });
+
+
+            var textEdit = new Mock<ITextEdit>();
+
+            var textBuffer = new Mock<ITextBuffer>();
+            textBuffer.Setup(tb => tb.CreateEdit()).Returns(textEdit.Object);
+
+            var testSubject = new QuickFixSuggestedAction(quickFixViz.Object, textBuffer.Object);
+            testSubject.Invoke(new System.Threading.CancellationToken());
+
+            testSubject.DisplayText.Should().Be("some fix");
+            textBuffer.Verify(tb => tb.CreateEdit(), Times.Once(), "CreateEdit should be called once");
+            textEdit.Verify(tb => tb.Replace(It.IsAny<Span>(), It.IsAny<string>()), Times.Exactly(3), "Replace should be called three time");
+            textEdit.Verify(tb => tb.Apply(), Times.Once(), "Apply should be called once");
+
         }
     }
 }
