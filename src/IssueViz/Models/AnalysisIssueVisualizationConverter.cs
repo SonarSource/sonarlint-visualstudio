@@ -39,6 +39,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
     internal class AnalysisIssueVisualizationConverter : IAnalysisIssueVisualizationConverter
     {
         private static readonly IReadOnlyList<IAnalysisIssueFlowVisualization> EmptyConvertedFlows = Array.Empty<IAnalysisIssueFlowVisualization>();
+        private static readonly IReadOnlyList<IQuickFixVisualization> EmptyConvertedFixes = Array.Empty<IQuickFixVisualization>();
 
         private readonly IIssueSpanCalculator issueSpanCalculator;
 
@@ -56,7 +57,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
 
             var flows = Convert(issue.Flows);
 
-            var issueVisualization = new AnalysisIssueVisualization(flows, issue, issueSpan);
+            var quickFixes = GetQuickFixVisualizations(issue, textSnapshot);
+
+            var issueVisualization = new AnalysisIssueVisualization(flows, issue, issueSpan, quickFixes);
 
             if (textSnapshot != null)
             {
@@ -106,6 +109,30 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
                 .ToArray();
 
             return convertedLocations;
+        }
+
+        private IReadOnlyList<IQuickFixVisualization> GetQuickFixVisualizations(IAnalysisIssueBase issue, ITextSnapshot textSnapshot)
+        {
+            if (!(issue is IAnalysisIssue analysisIssue) || textSnapshot == null)
+            {
+                return EmptyConvertedFixes;
+            }
+
+            var convertedQuickFixes = analysisIssue.Fixes.Select(fix =>
+            {
+                var editVisualizations = fix.Edits.Select(edit =>
+                {
+                    var editSpan = issueSpanCalculator.CalculateSpan(edit, textSnapshot);
+
+                    return new QuickFixEditVisualization(edit, editSpan);
+                });
+
+                var fixVisualization = new QuickFixVisualization(fix, editVisualizations.ToArray());
+
+                return fixVisualization;
+            }).ToArray();
+
+            return convertedQuickFixes;
         }
     }
 }
