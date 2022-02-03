@@ -43,12 +43,15 @@ namespace SonarLint.VisualStudio.Core.Analysis
         IReadOnlyList<IAnalysisIssueLocation> Locations { get; }
     }
 
-    public interface IAnalysisIssueLocation
+    public interface IAnalysisIssueLocation : ITextRange
     {
         string FilePath { get; }
 
         string Message { get; }
+    }
 
+    public interface ITextRange
+    {
         int StartLine { get; }
 
         int EndLine { get; }

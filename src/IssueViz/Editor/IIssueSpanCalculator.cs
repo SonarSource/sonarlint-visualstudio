@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
         /// Returns the text span corresponding to the supplied analysis issue location.
         /// Returns null if the location line hash is different from the snapshot line hash
         /// </summary>
-        SnapshotSpan CalculateSpan(IAnalysisIssueLocation location, ITextSnapshot currentSnapshot);
+        SnapshotSpan CalculateSpan(ITextRange range, ITextSnapshot currentSnapshot);
     }
 
     [Export(typeof(IIssueSpanCalculator))]
@@ -53,9 +53,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             this.checksumCalculator = checksumCalculator;
         }
 
-        public SnapshotSpan CalculateSpan(IAnalysisIssueLocation location, ITextSnapshot currentSnapshot)
+        public SnapshotSpan CalculateSpan(ITextRange range, ITextSnapshot currentSnapshot)
         {
-            if (location.StartLine > currentSnapshot.LineCount)
+            if (range.StartLine > currentSnapshot.LineCount)
             {
                 // Race condition: the line reported in the diagnostic is beyond the end of the file, so presumably
                 // the file has been edited while the analysis was being executed
@@ -63,9 +63,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             }
 
             // SonarLint issues line numbers are 1-based, spans lines are 0-based
-            var startLine = currentSnapshot.GetLineFromLineNumber(location.StartLine - 1);
+            var startLine = currentSnapshot.GetLineFromLineNumber(range.StartLine - 1);
 
-            if (IsLineHashDifferent(location, startLine))
+            if (IsLineHashDifferent(range, startLine))
             {
                 // Out of sync: the line reported in the diagnostic has been edited, so we can no longer calculate the span
                 return EmptySpan;
@@ -73,10 +73,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 
             var maxLength = currentSnapshot.Length;
 
-            var startPos = startLine.Start.Position + location.StartLineOffset;
+            var startPos = startLine.Start.Position + range.StartLineOffset;
 
             int endPos;
-            if (location.EndLine == 0          // Special case : EndLine = 0 means "select whole of the start line, ignoring the offset"
+            if (range.EndLine == 0          // Special case : EndLine = 0 means "select whole of the start line, ignoring the offset"
                 || startPos > maxLength)    // Defensive : issue start position is beyond the end of the file. Just select the last line.
             {
                 startPos = startLine.Start.Position;
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             }
             else
             {
-                endPos = currentSnapshot.GetLineFromLineNumber(location.EndLine - 1).Start.Position + location.EndLineOffset;
+                endPos = currentSnapshot.GetLineFromLineNumber(range.EndLine - 1).Start.Position + range.EndLineOffset;
                 // Make sure the end position isn't beyond the end of the snapshot either
                 endPos = Math.Min(maxLength, endPos);
             }
@@ -95,9 +95,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             return new SnapshotSpan(start, end);
         }
 
-        private bool IsLineHashDifferent(IAnalysisIssueLocation location, ITextSnapshotLine snapshotLine)
+        private bool IsLineHashDifferent(ITextRange range, ITextSnapshotLine snapshotLine)
         {
-            if (string.IsNullOrEmpty(location.LineHash))
+            if (string.IsNullOrEmpty(range.LineHash))
             {
                 return false;
             }
@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             var textInSnapshot = snapshotLine.GetText();
             var snapshotLineHash = checksumCalculator.Calculate(textInSnapshot);
 
-            return snapshotLineHash != location.LineHash;
+            return snapshotLineHash != range.LineHash;
         }
     }
 }

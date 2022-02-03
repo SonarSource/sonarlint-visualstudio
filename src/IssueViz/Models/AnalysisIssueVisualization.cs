@@ -33,6 +33,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         IReadOnlyList<IAnalysisIssueFlowVisualization> Flows { get; }
 
         IAnalysisIssueBase Issue { get; }
+
+        IReadOnlyList<IQuickFixVisualization> QuickFixes { get; }
     }
 
     internal class AnalysisIssueVisualization : IAnalysisIssueVisualization
@@ -41,15 +43,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         private string currentFilePath;
         private SnapshotSpan? span;
 
-        public AnalysisIssueVisualization(IReadOnlyList<IAnalysisIssueFlowVisualization> flows, IAnalysisIssueBase issue, SnapshotSpan? span)
+        public AnalysisIssueVisualization(IReadOnlyList<IAnalysisIssueFlowVisualization> flows,
+            IAnalysisIssueBase issue, 
+            SnapshotSpan? span,
+            IReadOnlyList<IQuickFixVisualization> quickFixes)
         {
             Flows = flows;
             Issue = issue;
             CurrentFilePath = issue.FilePath;
             Span = span;
+            QuickFixes = quickFixes;
         }
 
         public IReadOnlyList<IAnalysisIssueFlowVisualization> Flows { get; }
+        public IReadOnlyList<IQuickFixVisualization> QuickFixes { get; }
         public IAnalysisIssueBase Issue { get; }
         public int StepNumber => 0;
         public IAnalysisIssueLocation Location => Issue;

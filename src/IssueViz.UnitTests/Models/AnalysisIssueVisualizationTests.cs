@@ -199,7 +199,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
             issueMock.SetupGet(x => x.FilePath).Returns("x:\\aaa.foo");
             issueMock.SetupGet(x => x.LineHash).Returns("hash");
 
-            var testSubject = new AnalysisIssueVisualization(null, issueMock.Object, new SnapshotSpan());
+            var testSubject = new AnalysisIssueVisualization(null, issueMock.Object, new SnapshotSpan(), null);
 
             testSubject.Should().BeAssignableTo<IFilterableIssue>();
 
@@ -225,7 +225,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
             var issue = new Mock<IAnalysisIssue>();
             issue.SetupGet(x => x.FilePath).Returns(filePath);
 
-            return new AnalysisIssueVisualization(null, issue.Object, span);
+            return new AnalysisIssueVisualization(null, issue.Object, span, null);
         }
 
         private void VerifyPropertyChangedRaised(Mock<PropertyChangedEventHandler> propertyChangedEventHandler, string propertyName)
