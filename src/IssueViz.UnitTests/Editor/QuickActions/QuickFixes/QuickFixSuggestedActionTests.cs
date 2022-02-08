@@ -139,15 +139,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             CancellationTokenSource tokenSource = new CancellationTokenSource();
             quickFixViz.SetupGet(x => x.EditVisualizations).Returns(Array.Empty<IQuickFixEditVisualization>());
 
-            var task = Task.Factory.StartNew(() =>
-            {
-                _ = Task.Delay(100);
-                testSubject.Invoke(tokenSource.Token);
-            });
-
             tokenSource.Cancel();
 
-            task.Wait();            
+            testSubject.Invoke(tokenSource.Token);      
 
             quickFixViz.VerifyNoOtherCalls();
             textBuffer.VerifyNoOtherCalls();
