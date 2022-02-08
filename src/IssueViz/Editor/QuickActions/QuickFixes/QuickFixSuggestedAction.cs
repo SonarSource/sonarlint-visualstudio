@@ -28,11 +28,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
     {
         private readonly IQuickFixVisualization quickFixVisualization;
         private readonly ITextBuffer textBuffer;
+        private readonly IAnalysisIssueVisualization issueViz;
 
-        public QuickFixSuggestedAction(IQuickFixVisualization quickFixVisualization, ITextBuffer textBuffer)
+
+        public QuickFixSuggestedAction(IQuickFixVisualization quickFixVisualization, ITextBuffer textBuffer, IAnalysisIssueVisualization issueViz = null)
         {
             this.quickFixVisualization = quickFixVisualization;
             this.textBuffer = textBuffer;
+            this.issueViz = issueViz;
         }
 
         public override string DisplayText => quickFixVisualization.Fix.Message;
@@ -53,6 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
                 textEdit.Replace(edit.Span, edit.Edit.Text);
             }
 
+            issueViz.InvalidateSpan();
             textEdit.Apply();
         }
     }

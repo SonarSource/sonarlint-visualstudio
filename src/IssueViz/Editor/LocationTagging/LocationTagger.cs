@@ -149,6 +149,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
             {
                 try
                 {
+                    if (!old.Tag.Location.Span.IsNavigable()) 
+                    {
+                        continue; 
+                    }
+                    
                     var newSpan = old.Span.TranslateTo(newSnapshot, SpanTrackingMode.EdgeExclusive);
                     var hasSpanBeenEdited = newSpan.Length != old.Span.Length;
 
