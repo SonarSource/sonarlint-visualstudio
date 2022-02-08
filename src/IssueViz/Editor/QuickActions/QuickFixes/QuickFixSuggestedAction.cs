@@ -20,6 +20,7 @@
 
 using System.Threading;
 using Microsoft.VisualStudio.Text;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes
@@ -28,11 +29,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
     {
         private readonly IQuickFixVisualization quickFixVisualization;
         private readonly ITextBuffer textBuffer;
+        private readonly ISpanTranslator spanTranslator;
 
-        public QuickFixSuggestedAction(IQuickFixVisualization quickFixVisualization, ITextBuffer textBuffer)
+        public QuickFixSuggestedAction(IQuickFixVisualization quickFixVisualization,
+            ITextBuffer textBuffer)
+            : this(quickFixVisualization, textBuffer, new SpanTranslator())
+        {
+
+        }
+        internal QuickFixSuggestedAction(IQuickFixVisualization quickFixVisualization, 
+            ITextBuffer textBuffer, 
+            ISpanTranslator spanTranslator)
         {
             this.quickFixVisualization = quickFixVisualization;
             this.textBuffer = textBuffer;
+            this.spanTranslator = spanTranslator;
         }
 
         public override string DisplayText => quickFixVisualization.Fix.Message;
@@ -48,9 +59,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
 
             foreach (var edit in quickFixVisualization.EditVisualizations)
             {
-                //var updatedSpan = edit.Span.TranslateTo(textBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive);
+                var updatedSpan = spanTranslator.TranslateTo(edit.Span, textBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive);
 
-                textEdit.Replace(edit.Span, edit.Edit.Text);
+                textEdit.Replace(updatedSpan, edit.Edit.Text);
             }
 
             textEdit.Apply();
