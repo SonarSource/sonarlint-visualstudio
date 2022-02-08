@@ -29,7 +29,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
@@ -151,7 +150,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         [TestMethod]
         public async Task HasSuggestedActionsAsync_HasIssuesWithQuickFixes_True()
         {
-            var issues = new[] { CreateIssueViz(Mock.Of<IQuickFix>()) };
+            var issues = new[] { CreateIssueViz(Mock.Of<IQuickFixVisualization>()) };
 
             var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
@@ -185,15 +184,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         {
             var issues = new[]
             {
-                CreateIssueViz(Mock.Of<IQuickFix>()),
-                CreateIssueViz(Mock.Of<IQuickFix>(), Mock.Of<IQuickFix>()),
+                CreateIssueViz(Mock.Of<IQuickFixVisualization>()),
+                CreateIssueViz(Mock.Of<IQuickFixVisualization>(), Mock.Of<IQuickFixVisualization>()),
                 CreateIssueViz()
             };
 
             var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
             var testSubject = CreateTestSubject(issueLocationsTagAggregator.Object);
-
             var hasSuggestedActionsSet = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
 
             hasSuggestedActionsSet.Count().Should().Be(1);
@@ -221,13 +219,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 threadHandling);
         }
 
-        private IAnalysisIssueVisualization CreateIssueViz(params IQuickFix[] fixes)
+        private IAnalysisIssueVisualization CreateIssueViz(params IQuickFixVisualization[] fixes)
         {
-            var baseIssue = new Mock<IAnalysisIssue>();
-            baseIssue.Setup(x => x.Fixes).Returns(fixes);
-
             var issueViz = new Mock<IAnalysisIssueVisualization>();
-            issueViz.Setup(x => x.Issue).Returns(baseIssue.Object);
+            issueViz.Setup(x => x.QuickFixes).Returns(fixes);
 
             return issueViz.Object;
         }

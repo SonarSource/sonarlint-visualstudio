@@ -65,7 +65,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
         public event EventHandler<EventArgs> SuggestedActionsChanged;
 
         public IEnumerable<SuggestedActionSet> GetSuggestedActions(
-            ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range,
+            ISuggestedActionCategorySet requestedActionCategories, 
+            SnapshotSpan range,
             CancellationToken cancellationToken)
         {
             var allActions = new List<ISuggestedAction>();
@@ -74,9 +75,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
             {
                 foreach (var issueViz in issuesWithFixes)
                 {
-                    allActions.AddRange(
-                        (issueViz.Issue as IAnalysisIssue).Fixes
-                        .Select(fix => new QuickFixSuggestedAction("TODO fix message")));
+                    allActions.AddRange(issueViz.QuickFixes.Select(fix => new QuickFixSuggestedAction(fix, textView.TextBuffer)));
                 }
             }
 
@@ -101,7 +100,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
             issuesWithFixes = tagSpans
                 .Select(x => x.Tag.Location)
                 .OfType<IAnalysisIssueVisualization>()
-                .Where(x => x.Issue is IAnalysisIssue analysisIssue && analysisIssue.Fixes.Any());
+                .Where(x => x.QuickFixes.Any());
 
             return issuesWithFixes.Any();
         }
