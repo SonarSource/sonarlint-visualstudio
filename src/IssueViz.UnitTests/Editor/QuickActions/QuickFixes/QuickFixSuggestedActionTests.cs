@@ -62,13 +62,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             var textBuffer = new Mock<ITextBuffer>(MockBehavior.Strict);
             textBuffer.Setup(x => x.CurrentSnapshot).Returns(snapShot.Object);
 
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+
             var sequence = new MockSequence();
 
             textBuffer.InSequence(sequence).Setup(t => t.CreateEdit()).Returns(textEdit.Object);
             textEdit.InSequence(sequence).Setup(t => t.Replace(span, "edit")).Returns(true);
             textEdit.InSequence(sequence).Setup(t => t.Apply()).Returns(Mock.Of<ITextSnapshot>());
 
-            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object);
+            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object, issueViz: issueViz.Object);
             testSubject.Invoke(CancellationToken.None);
 
             textBuffer.Verify(tb => tb.CreateEdit(), Times.Once(), "CreateEdit should be called once");
@@ -106,6 +108,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             var textBuffer = new Mock<ITextBuffer>(MockBehavior.Strict);
             textBuffer.Setup(x => x.CurrentSnapshot).Returns(snapShot.Object);
 
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+
             var sequence = new MockSequence();
 
             textBuffer.InSequence(sequence).Setup(t => t.CreateEdit()).Returns(textEdit.Object);
@@ -114,7 +118,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             textEdit.InSequence(sequence).Setup(t => t.Replace(span3, "edit3")).Returns(true);
             textEdit.InSequence(sequence).Setup(t => t.Apply()).Returns(Mock.Of<ITextSnapshot>());
 
-            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object);
+            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object, issueViz: issueViz.Object);
             testSubject.Invoke(CancellationToken.None);
 
             textBuffer.Verify(tb => tb.CreateEdit(), Times.Once(), "CreateEdit should be called once");
@@ -163,7 +167,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             textBuffer.Setup(t => t.CurrentSnapshot).Returns(snapshot.Object);
             textBuffer.Setup(t => t.CreateEdit()).Returns(textEdit.Object);
 
-            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object, spanTranslator.Object);
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+
+
+            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object, spanTranslator.Object, issueViz.Object);
             testSubject.Invoke(CancellationToken.None);
 
             textEdit.Verify(t => t.Replace(span2, "some edit"), Times.Once);
