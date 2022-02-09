@@ -52,7 +52,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
 
         public override void Invoke(CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested ||
+                !quickFixVisualization.IsApplicable(textBuffer.CurrentSnapshot))
             {
                 return;
             }
@@ -62,7 +63,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
             foreach (var edit in quickFixVisualization.EditVisualizations)
             {
                 var updatedSpan = spanTranslator.TranslateTo(edit.Span, textBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive);
-
+                
                 textEdit.Replace(updatedSpan, edit.Edit.Text);
             }
 

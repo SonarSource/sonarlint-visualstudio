@@ -18,9 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Models
 {
@@ -29,12 +32,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         IQuickFix Fix { get; }
 
         IReadOnlyList<IQuickFixEditVisualization> EditVisualizations { get; }
+
+        bool IsApplicable(ITextSnapshot currentSnapshot);
     }
 
     internal class QuickFixVisualization : IQuickFixVisualization
     {
+        private readonly ISpanTranslator spanTranslator;
+
         public QuickFixVisualization(IQuickFix fix, IReadOnlyList<IQuickFixEditVisualization> editVisualizations)
+            : this(fix, editVisualizations, new SpanTranslator())
         {
+            Fix = fix;
+            EditVisualizations = editVisualizations;
+        }
+
+        internal QuickFixVisualization(IQuickFix fix,
+            IReadOnlyList<IQuickFixEditVisualization> editVisualizations,
+            ISpanTranslator spanTranslator)
+        {
+            this.spanTranslator = spanTranslator;
             Fix = fix;
             EditVisualizations = editVisualizations;
         }
@@ -42,6 +59,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         public IQuickFix Fix { get; }
 
         public IReadOnlyList<IQuickFixEditVisualization> EditVisualizations { get; }
+
+        public bool IsApplicable(ITextSnapshot currentSnapshot) =>
+            EditVisualizations.All(x => IsApplicable(x, currentSnapshot));
+
+        private bool IsApplicable(IQuickFixEditVisualization editViz, ITextSnapshot currentSnapshot)
+        {
+            var updatedSpan = spanTranslator.TranslateTo(editViz.Span, currentSnapshot, SpanTrackingMode.EdgeExclusive);
+            var currentText = currentSnapshot.GetText(updatedSpan);
+
+            return string.Equals(currentText, editViz.OriginalText, StringComparison.InvariantCultureIgnoreCase);
+        }
     }
 
     public interface IQuickFixEditVisualization
@@ -49,18 +77,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         IEdit Edit { get; }
 
         SnapshotSpan Span { get; }
+
+        string OriginalText { get; }
     }
 
     internal class QuickFixEditVisualization : IQuickFixEditVisualization
     {
-        public QuickFixEditVisualization(IEdit edit, SnapshotSpan span)
+        public QuickFixEditVisualization(IEdit edit, SnapshotSpan span, string originalText)
         {
             Edit = edit;
             Span = span;
+            OriginalText = originalText;
         }
 
         public IEdit Edit { get; }
 
         public SnapshotSpan Span { get; }
+
+        public string OriginalText { get; }
+
     }
 }

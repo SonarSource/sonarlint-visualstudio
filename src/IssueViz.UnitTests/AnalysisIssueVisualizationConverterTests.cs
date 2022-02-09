@@ -98,20 +98,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         [TestMethod]
         public void Convert_IssueHasQuickFixes_QuickFixesSpansAreCalculated()
         {
+            var textSnapshot = Mock.Get(textSnapshotMock);
+
             var edit1 = Mock.Of<IEdit>();
-            var span1 = CreateNonEmptySpan();
+            var span1 = CreateNonEmptySpan(start:1, end:2);
             SetupSpanCalculator(edit1, span1);
 
             var edit2 = Mock.Of<IEdit>();
-            var span2 = CreateNonEmptySpan();
+            var span2 = CreateNonEmptySpan(start: 3, end: 4);
             SetupSpanCalculator(edit2, span2);
 
             var edit3 = Mock.Of<IEdit>();
-            var span3 = CreateNonEmptySpan();
+            var span3 = CreateNonEmptySpan(start: 5, end: 6);
             SetupSpanCalculator(edit3, span3);
 
+            textSnapshot.Setup(x => x.GetText(span1)).Returns("original text1");
+            textSnapshot.Setup(x => x.GetText(span2)).Returns("original text2");
+            textSnapshot.Setup(x => x.GetText(span3)).Returns("original text3");
+
             var fix1 = new QuickFix("fix1", new[] { edit1, edit2 });
-            var fix2 = new QuickFix("fix1", new[] { edit3 });
+            var fix2 = new QuickFix("fix2", new[] { edit3 });
             var issue = CreateIssue(fix1, fix2);
 
             var result = testSubject.Convert(issue, textSnapshotMock);
@@ -124,14 +130,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             result.QuickFixes[0].EditVisualizations.Count.Should().Be(2);
             result.QuickFixes[0].EditVisualizations[0].Edit.Should().Be(edit1);
             result.QuickFixes[0].EditVisualizations[0].Span.Should().Be(span1);
+            result.QuickFixes[0].EditVisualizations[0].OriginalText.Should().Be("original text1");
             result.QuickFixes[0].EditVisualizations[1].Edit.Should().Be(edit2);
             result.QuickFixes[0].EditVisualizations[1].Span.Should().Be(span2);
+            result.QuickFixes[0].EditVisualizations[1].OriginalText.Should().Be("original text2");
 
             result.QuickFixes[1].Fix.Should().Be(fix2);
             result.QuickFixes[1].EditVisualizations.Should().NotBeEmpty();
             result.QuickFixes[1].EditVisualizations.Count.Should().Be(1);
             result.QuickFixes[1].EditVisualizations[0].Edit.Should().Be(edit3);
             result.QuickFixes[1].EditVisualizations[0].Span.Should().Be(span3);
+            result.QuickFixes[1].EditVisualizations[0].OriginalText.Should().Be("original text3");
         }
 
         [TestMethod]
@@ -319,12 +328,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             );
         }
 
-        private SnapshotSpan CreateNonEmptySpan()
+        private SnapshotSpan CreateNonEmptySpan(int start = 0, int end = 10)
         {
             var mockTextSnapshot = new Mock<ITextSnapshot>();
             mockTextSnapshot.SetupGet(x => x.Length).Returns(20);
 
-            return new SnapshotSpan(mockTextSnapshot.Object, new Span(0, 10));
+            return new SnapshotSpan(mockTextSnapshot.Object, new Span(start, end));
         }
 
         private void SetupSpanCalculator(ITextRange textRange, SnapshotSpan nonEmptySpan)

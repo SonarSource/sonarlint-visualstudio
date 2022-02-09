@@ -28,7 +28,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -71,11 +70,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
         {
             var allActions = new List<ISuggestedAction>();
 
-            if (IsOnIssueWithQuickFixes(range, out var issuesWithFixes))
+            if (IsOnIssueWithApplicableQuickFixes(range, out var issuesWithFixes))
             {
                 foreach (var issueViz in issuesWithFixes)
                 {
-                    allActions.AddRange(issueViz.QuickFixes.Select(fix => new QuickFixSuggestedAction(fix, textView.TextBuffer, issueViz)));
+                    var applicableFixes = issueViz.QuickFixes.Where(x => x.IsApplicable(textView.TextSnapshot));
+
+                    allActions.AddRange(applicableFixes.Select(fix => new QuickFixSuggestedAction(fix, textView.TextBuffer, issueViz)));
                 }
             }
 
@@ -88,19 +89,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
         {
             var hasActions = false;
 
-            await threadHandling.RunOnUIThread(() => hasActions = IsOnIssueWithQuickFixes(range, out _));
+            await threadHandling.RunOnUIThread(() => hasActions = IsOnIssueWithApplicableQuickFixes(range, out _));
 
             return hasActions;
         }
 
-        private bool IsOnIssueWithQuickFixes(SnapshotSpan range, out IEnumerable<IAnalysisIssueVisualization> issuesWithFixes)
+        private bool IsOnIssueWithApplicableQuickFixes(SnapshotSpan range, out IEnumerable<IAnalysisIssueVisualization> issuesWithFixes)
         {
             var tagSpans = issueLocationsTagAggregator.GetTags(range);
 
             issuesWithFixes = tagSpans
                 .Select(x => x.Tag.Location)
                 .OfType<IAnalysisIssueVisualization>()
-                .Where(x => x.QuickFixes.Any());
+                .Where(x =>
+                    x.QuickFixes.Any(fix => fix.IsApplicable(textView.TextSnapshot)));
 
             return issuesWithFixes.Any();
         }

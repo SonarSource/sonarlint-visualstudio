@@ -55,12 +55,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             editVisualization.Setup(e => e.Edit.Text).Returns("edit");
             editVisualization.Setup(e => e.Span).Returns(snapshotSpan);
 
-            var quickFixViz = new Mock<IQuickFixVisualization>();
-            quickFixViz.Setup(x => x.EditVisualizations).Returns(new List<IQuickFixEditVisualization> { editVisualization.Object });
-
             var textEdit = new Mock<ITextEdit>(MockBehavior.Strict);
             var textBuffer = new Mock<ITextBuffer>(MockBehavior.Strict);
             textBuffer.Setup(x => x.CurrentSnapshot).Returns(snapShot.Object);
+
+            var quickFixViz = new Mock<IQuickFixVisualization>();
+            quickFixViz.Setup(x => x.EditVisualizations).Returns(new List<IQuickFixEditVisualization> { editVisualization.Object });
+            quickFixViz.Setup(x => x.IsApplicable(textBuffer.Object.CurrentSnapshot)).Returns(true);
 
             var issueViz = new Mock<IAnalysisIssueVisualization>();
 
@@ -101,12 +102,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             editVisualization3.Setup(e => e.Edit.Text).Returns("edit3");
             editVisualization3.Setup(e => e.Span).Returns(snapshotSpan3);
 
-            var quickFixViz = new Mock<IQuickFixVisualization>();
-            quickFixViz.Setup(x => x.EditVisualizations).Returns(new List<IQuickFixEditVisualization> { editVisualization1.Object, editVisualization2.Object, editVisualization3.Object, });
-
             var textEdit = new Mock<ITextEdit>(MockBehavior.Strict);
             var textBuffer = new Mock<ITextBuffer>(MockBehavior.Strict);
             textBuffer.Setup(x => x.CurrentSnapshot).Returns(snapShot.Object);
+
+            var quickFixViz = new Mock<IQuickFixVisualization>();
+            quickFixViz.Setup(x => x.EditVisualizations).Returns(new List<IQuickFixEditVisualization> { editVisualization1.Object, editVisualization2.Object, editVisualization3.Object, });
+            quickFixViz.Setup(x => x.IsApplicable(textBuffer.Object.CurrentSnapshot)).Returns(true);
 
             var issueViz = new Mock<IAnalysisIssueVisualization>();
 
@@ -141,6 +143,30 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         [TestMethod]
+        public void Invoke_QuickFixIsNotApplicable_NoChanges()
+        {
+            var snapshot = Mock.Of<ITextSnapshot>();
+
+            var textBuffer = new Mock<ITextBuffer>();
+            textBuffer.Setup(x => x.CurrentSnapshot).Returns(snapshot);
+
+            var quickFixViz = new Mock<IQuickFixVisualization>();
+            quickFixViz
+                .Setup(x => x.IsApplicable(snapshot))
+                .Returns(false);
+
+            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object);
+
+            testSubject.Invoke(CancellationToken.None);
+
+            quickFixViz.Verify(x=> x.IsApplicable(snapshot), Times.Once);
+            quickFixViz.VerifyNoOtherCalls();
+
+            textBuffer.VerifyGet(x => x.CurrentSnapshot, Times.Once);
+            textBuffer.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
         public void Invoke_SpansAreTranslatedCorrectly()
         {
             var snapshot = CreateTextSnapshot();
@@ -159,16 +185,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             editVisualization.Setup(e => e.Span).Returns(originalSnapshotSpan);
             editVisualization.Setup(e => e.Edit.Text).Returns("some edit");
 
-            var quickFixViz = new Mock<IQuickFixVisualization>();
-            quickFixViz.Setup(x => x.EditVisualizations).Returns(new List<IQuickFixEditVisualization> { editVisualization.Object });
-
             var textEdit = new Mock<ITextEdit>();
             var textBuffer = new Mock<ITextBuffer>();
             textBuffer.Setup(t => t.CurrentSnapshot).Returns(snapshot.Object);
             textBuffer.Setup(t => t.CreateEdit()).Returns(textEdit.Object);
 
-            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            var quickFixViz = new Mock<IQuickFixVisualization>();
+            quickFixViz.Setup(x => x.EditVisualizations).Returns(new List<IQuickFixEditVisualization> { editVisualization.Object });
+            quickFixViz.Setup(x => x.IsApplicable(textBuffer.Object.CurrentSnapshot)).Returns(true);
 
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
 
             var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object, spanTranslator.Object, issueViz.Object);
             testSubject.Invoke(CancellationToken.None);
