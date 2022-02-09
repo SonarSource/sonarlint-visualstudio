@@ -178,7 +178,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
         private static QuickFixSuggestedAction CreateTestSubject(IQuickFixVisualization quickFixViz,
             ITextBuffer textBuffer = null,
-            ISpanTranslator spanTranslator = null)
+            ISpanTranslator spanTranslator = null,
+            IAnalysisIssueVisualization issueViz = null)
         {
             if (spanTranslator == null)
             {
@@ -196,7 +197,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 spanTranslator = doNothingSpanTranslator.Object;
             }
 
-            return new QuickFixSuggestedAction(quickFixViz, textBuffer, spanTranslator);
+            return new QuickFixSuggestedAction(quickFixViz, textBuffer, issueViz, spanTranslator);
         }
     }
 }
