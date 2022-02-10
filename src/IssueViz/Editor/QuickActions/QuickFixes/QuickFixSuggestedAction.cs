@@ -21,6 +21,8 @@
 using System.Threading;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes
@@ -31,20 +33,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
         private readonly ITextBuffer textBuffer;
         private readonly ISpanTranslator spanTranslator;
         private readonly IAnalysisIssueVisualization issueViz;
+        private readonly ILogger logger;
 
         public QuickFixSuggestedAction(IQuickFixVisualization quickFixVisualization,
-            ITextBuffer textBuffer, IAnalysisIssueVisualization issueViz)
-            : this(quickFixVisualization, textBuffer, issueViz, new SpanTranslator()){
+            ITextBuffer textBuffer, 
+            IAnalysisIssueVisualization issueViz, 
+            ILogger logger)
+            : this(quickFixVisualization, textBuffer, issueViz, logger, new SpanTranslator()){
 
         }
-        internal QuickFixSuggestedAction(IQuickFixVisualization quickFixVisualization, 
+        internal QuickFixSuggestedAction(IQuickFixVisualization quickFixVisualization,
             ITextBuffer textBuffer,
             IAnalysisIssueVisualization issueViz,
+            ILogger logger,
             ISpanTranslator spanTranslator)
         {
             this.quickFixVisualization = quickFixVisualization;
             this.textBuffer = textBuffer;
             this.issueViz = issueViz;
+            this.logger = logger;
             this.spanTranslator = spanTranslator;
         }
 
@@ -52,9 +59,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
 
         public override void Invoke(CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested ||
-                !quickFixVisualization.CanBeApplied(textBuffer.CurrentSnapshot))
+            if (cancellationToken.IsCancellationRequested)
             {
+                return;
+            }
+
+            if (!quickFixVisualization.CanBeApplied(textBuffer.CurrentSnapshot))
+            {
+                logger.LogDebug("[Quick Fixes] Quick fix cannot be applied as the text has changed. Issue: " + issueViz.RuleId);
                 return;
             }
 

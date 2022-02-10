@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes
 {
@@ -36,13 +37,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
 
         private readonly IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService;
         private readonly ILightBulbBroker lightBulbBroker;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
         public QuickFixActionsSourceProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
-            ILightBulbBroker lightBulbBroker)
+            ILightBulbBroker lightBulbBroker,
+            ILogger logger)
         {
             this.bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
             this.lightBulbBroker = lightBulbBroker;
+            this.logger = logger;
         }
 
         public ISuggestedActionsSource CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)
@@ -52,7 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
                 return null;
             }
 
-            return new QuickFixActionsSource(lightBulbBroker, bufferTagAggregatorFactoryService, textView);
+            return new QuickFixActionsSource(lightBulbBroker, bufferTagAggregatorFactoryService, textView, logger);
         }
     }
 }
