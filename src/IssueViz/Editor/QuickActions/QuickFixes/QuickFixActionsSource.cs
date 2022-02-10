@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
             {
                 foreach (var issueViz in issuesWithFixes)
                 {
-                    var applicableFixes = issueViz.QuickFixes.Where(x => x.IsApplicable(textView.TextSnapshot));
+                    var applicableFixes = issueViz.QuickFixes.Where(x => x.CanBeApplied(textView.TextSnapshot));
 
                     allActions.AddRange(applicableFixes.Select(fix => new QuickFixSuggestedAction(fix, textView.TextBuffer, issueViz)));
                 }
@@ -102,7 +102,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
                 .Select(x => x.Tag.Location)
                 .OfType<IAnalysisIssueVisualization>()
                 .Where(x =>
-                    x.QuickFixes.Any(fix => fix.IsApplicable(textView.TextSnapshot)));
+                    x.QuickFixes.Any(fix => fix.CanBeApplied(textView.TextSnapshot)));
 
             return issuesWithFixes.Any();
         }

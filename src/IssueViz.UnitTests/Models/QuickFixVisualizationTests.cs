@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
@@ -32,72 +33,117 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
     public class QuickFixVisualizationTests
     {
         [TestMethod]
-        public void IsApplicable_HasOneEditWithChangedText_False()
+        public void CanBeApplied_HasOneEditWithChangedText_False()
         {
-            var span1 = new Span(1, 2);
-            var span2 = new Span(3, 4);
+            var snapshot = CreateSnapshot();
+            var spanTranslator = new Mock<ISpanTranslator>();
 
-            var snapshot = new Mock<ITextSnapshot>();
-            snapshot.Setup(x => x.Length).Returns(20);
+            var edit1 = SetupEditVisualization(
+                snapshot,
+                spanTranslator,
+                new Span(1, 2),
+                isSameText: true);
 
-            var edit1 = CreateEditVisualization("edit 1", new SnapshotSpan(snapshot.Object, span1));
-            var edit2 = CreateEditVisualization("edit 2", new SnapshotSpan(snapshot.Object, span2));
+            var edit2 = SetupEditVisualization(
+                snapshot,
+                spanTranslator,
+                new Span(10, 3),
+                isSameText: false);
 
-            snapshot.Setup(x => x.GetText(span1)).Returns("edit 1");
-            snapshot.Setup(x => x.GetText(span2)).Returns("this is some new text");
+            var testSubject = CreateTestSubject(spanTranslator.Object, edit1, edit2);
 
-            var testSubject = CreateTestSubject(edit1, edit2);
-
-            testSubject.IsApplicable(snapshot.Object).Should().BeFalse();
+            testSubject.CanBeApplied(snapshot.Object).Should().BeFalse();
         }
 
         [TestMethod]
-        public void IsApplicable_NoEditsWithChangedText_True()
+        public void CanBeApplied_NoEditsWithChangedText_True()
         {
-            var span1 = new Span(1, 2);
-            var span2 = new Span(3, 4);
+            var snapshot = CreateSnapshot();
+            var spanTranslator = new Mock<ISpanTranslator>();
 
-            var snapshot = new Mock<ITextSnapshot>();
-            snapshot.Setup(x => x.Length).Returns(20);
+            var edit1 = SetupEditVisualization(
+                snapshot, 
+                spanTranslator, 
+                new Span(1, 2), 
+                isSameText: true);
 
-            var edit1 = CreateEditVisualization("edit 1", new SnapshotSpan(snapshot.Object, span1));
-            var edit2 = CreateEditVisualization("edit 2", new SnapshotSpan(snapshot.Object, span2));
+            var edit2 = SetupEditVisualization(
+                snapshot, 
+                spanTranslator, 
+                new Span(10, 3), 
+                isSameText: true);
 
-            snapshot.Setup(x => x.GetText(span1)).Returns("edit 1");
-            snapshot.Setup(x => x.GetText(span2)).Returns("edit 2");
+            var testSubject = CreateTestSubject(spanTranslator.Object, edit1, edit2);
 
-            var testSubject = CreateTestSubject(edit1, edit2);
-
-            testSubject.IsApplicable(snapshot.Object).Should().BeTrue();
+            testSubject.CanBeApplied(snapshot.Object).Should().BeTrue();
         }
 
-        private IQuickFixEditVisualization CreateEditVisualization(string text, SnapshotSpan snapshotSpan)
+        [TestMethod]
+        public void CanBeApplied_SameTextButDifferentCasing_False()
         {
+            var snapshot = CreateSnapshot();
+            var spanTranslator = new Mock<ISpanTranslator>();
+
+            var edit = SetupEditVisualization(
+                snapshot,
+                spanTranslator,
+                originalText: "test",
+                updatedText: "Test");
+
+            var testSubject = CreateTestSubject(spanTranslator.Object, edit);
+
+            testSubject.CanBeApplied(snapshot.Object).Should().BeFalse();
+        }
+
+        private IQuickFixEditVisualization SetupEditVisualization(Mock<ITextSnapshot> snapshot,
+            Mock<ISpanTranslator> spanTranslator,
+            string originalText,
+            string updatedText) =>
+            SetupEditVisualization(snapshot, spanTranslator, new Span(1, 2), originalText, updatedText);
+
+        private IQuickFixEditVisualization SetupEditVisualization(Mock<ITextSnapshot> snapshot,
+            Mock<ISpanTranslator> spanTranslator, 
+            Span originalSpan,
+            bool isSameText)
+        {
+            var originalText = Guid.NewGuid().ToString();
+            var updatedText = isSameText ? originalText : Guid.NewGuid().ToString();
+
+            return SetupEditVisualization(snapshot, spanTranslator, originalSpan, originalText, updatedText);
+        }
+
+        private IQuickFixEditVisualization SetupEditVisualization(Mock<ITextSnapshot> snapshot,
+            Mock<ISpanTranslator> spanTranslator,
+            Span originalSpan,
+            string originalText,
+            string updatedText)
+        {
+            var originalSnapshotSpan = new SnapshotSpan(snapshot.Object, originalSpan);
+
             var editViz = new Mock<IQuickFixEditVisualization>();
-            editViz.Setup(x => x.Span).Returns(snapshotSpan);
-            editViz.Setup(x => x.OriginalText).Returns(text);
+            editViz.Setup(x => x.Span).Returns(originalSnapshotSpan);
+
+            var updatedSnapshotSpan = new SnapshotSpan(snapshot.Object, new Span(originalSpan.Start + 1, originalSpan.Length));
+
+            snapshot.Setup(x => x.GetText(originalSnapshotSpan)).Returns(originalText);
+            snapshot.Setup(x => x.GetText(updatedSnapshotSpan)).Returns(updatedText);
+
+            spanTranslator
+                .Setup(x => x.TranslateTo(originalSnapshotSpan, snapshot.Object, SpanTrackingMode.EdgeExclusive))
+                .Returns(updatedSnapshotSpan);
 
             return editViz.Object;
         }
 
-        private IQuickFixVisualization CreateTestSubject(params IQuickFixEditVisualization[] editVisualizations) => 
-            new QuickFixVisualization(Mock.Of<IQuickFix>(), editVisualizations, GetDoNothingSpanTranslator());
-
-        private ISpanTranslator GetDoNothingSpanTranslator()
+        private static Mock<ITextSnapshot> CreateSnapshot()
         {
-            var doNothingSpanTranslator = new Mock<ISpanTranslator>();
+            var snapshot = new Mock<ITextSnapshot>();
+            snapshot.Setup(x => x.Length).Returns(20);
 
-            var originalSnapshotSpan = new SnapshotSpan();
-
-            doNothingSpanTranslator.Setup(x => x.TranslateTo(
-                    It.IsAny<SnapshotSpan>(),
-                    It.IsAny<ITextSnapshot>(),
-                    It.IsAny<SpanTrackingMode>()))
-                .Callback((SnapshotSpan snapshotSpan, ITextSnapshot textSnapshot, SpanTrackingMode mode)
-                    => originalSnapshotSpan = snapshotSpan)
-                .Returns(() => originalSnapshotSpan);
-
-            return doNothingSpanTranslator.Object;
+            return snapshot;
         }
+
+        private IQuickFixVisualization CreateTestSubject(ISpanTranslator spanTranslator, params IQuickFixEditVisualization[] editVisualizations) => 
+            new QuickFixVisualization(Mock.Of<IQuickFix>(), editVisualizations, spanTranslator);
     }
 }

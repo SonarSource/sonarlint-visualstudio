@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
         public override void Invoke(CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested ||
-                !quickFixVisualization.IsApplicable(textBuffer.CurrentSnapshot))
+                !quickFixVisualization.CanBeApplied(textBuffer.CurrentSnapshot))
             {
                 return;
             }

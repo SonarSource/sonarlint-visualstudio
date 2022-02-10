@@ -154,7 +154,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         [TestMethod]
         public async Task HasSuggestedActionsAsync_NoIssuesWithApplicableQuickFixes_False()
         {
-            var issues = new[] { CreateIssueViz(CreateQuickFixViz(isApplicable:false)) };
+            var issues = new[] { CreateIssueViz(CreateQuickFixViz(canBeApplied:false)) };
 
             var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
@@ -168,7 +168,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         [TestMethod]
         public async Task HasSuggestedActionsAsync_HasIssuesWithApplicableQuickFixes_True()
         {
-            var issues = new[] { CreateIssueViz(CreateQuickFixViz(isApplicable:true)) };
+            var issues = new[] { CreateIssueViz(CreateQuickFixViz(canBeApplied:true)) };
 
             var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
@@ -202,7 +202,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         {
             var issues = new[]
             {
-                CreateIssueViz(CreateQuickFixViz(isApplicable: false))
+                CreateIssueViz(CreateQuickFixViz(canBeApplied: false))
             };
 
             var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
@@ -220,14 +220,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             var issues = new[]
             {
                 CreateIssueViz(
-                    CreateQuickFixViz(isApplicable: false, message: "fix1"),
-                    CreateQuickFixViz(isApplicable: true, message: "fix2")),
+                    CreateQuickFixViz(canBeApplied: false, message: "fix1"),
+                    CreateQuickFixViz(canBeApplied: true, message: "fix2")),
                 CreateIssueViz(
-                    CreateQuickFixViz(isApplicable: true, message: "fix3"),
-                    CreateQuickFixViz(isApplicable: false, message: "fix4")),
+                    CreateQuickFixViz(canBeApplied: true, message: "fix3"),
+                    CreateQuickFixViz(canBeApplied: false, message: "fix4")),
                 CreateIssueViz(),
-                CreateIssueViz(CreateQuickFixViz(isApplicable: false, message: "fix5")),
-                CreateIssueViz(CreateQuickFixViz(isApplicable: true, message: "fix6"))
+                CreateIssueViz(CreateQuickFixViz(canBeApplied: false, message: "fix5")),
+                CreateIssueViz(CreateQuickFixViz(canBeApplied: true, message: "fix6"))
             };
 
             var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
@@ -282,10 +282,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             return issueLocationsTagAggregator;
         }
 
-        private IQuickFixVisualization CreateQuickFixViz(bool isApplicable, string message = null)
+        private IQuickFixVisualization CreateQuickFixViz(bool canBeApplied, string message = null)
         {
             var quickFixViz = new Mock<IQuickFixVisualization>();
-            quickFixViz.Setup(x => x.IsApplicable(textView.TextSnapshot)).Returns(isApplicable);
+            quickFixViz.Setup(x => x.CanBeApplied(textView.TextSnapshot)).Returns(canBeApplied);
             quickFixViz.Setup(x => x.Fix.Message).Returns(message);
 
             return quickFixViz.Object;

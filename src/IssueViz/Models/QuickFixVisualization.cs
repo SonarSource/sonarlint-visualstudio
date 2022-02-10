@@ -33,7 +33,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
 
         IReadOnlyList<IQuickFixEditVisualization> EditVisualizations { get; }
 
-        bool IsApplicable(ITextSnapshot currentSnapshot);
+        /// <summary>
+        /// Returns false if the snapshot has been edited so the fix can no longer be applied, otherwise true.
+        /// </summary>
+        bool CanBeApplied(ITextSnapshot currentSnapshot);
     }
 
     internal class QuickFixVisualization : IQuickFixVisualization
@@ -60,15 +63,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
 
         public IReadOnlyList<IQuickFixEditVisualization> EditVisualizations { get; }
 
-        public bool IsApplicable(ITextSnapshot currentSnapshot) =>
-            EditVisualizations.All(x => IsApplicable(x, currentSnapshot));
+        public bool CanBeApplied(ITextSnapshot currentSnapshot) =>
+            EditVisualizations.All(x => IsTextUnchanged(x, currentSnapshot));
 
-        private bool IsApplicable(IQuickFixEditVisualization editViz, ITextSnapshot currentSnapshot)
+        private bool IsTextUnchanged(IQuickFixEditVisualization editViz, ITextSnapshot currentSnapshot)
         {
+            var originalText = editViz.Span.GetText();
             var updatedSpan = spanTranslator.TranslateTo(editViz.Span, currentSnapshot, SpanTrackingMode.EdgeExclusive);
             var currentText = currentSnapshot.GetText(updatedSpan);
 
-            return string.Equals(currentText, editViz.OriginalText, StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals(currentText, originalText, StringComparison.InvariantCulture);
         }
     }
 
@@ -77,24 +81,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         IEdit Edit { get; }
 
         SnapshotSpan Span { get; }
-
-        string OriginalText { get; }
     }
 
     internal class QuickFixEditVisualization : IQuickFixEditVisualization
     {
-        public QuickFixEditVisualization(IEdit edit, SnapshotSpan span, string originalText)
+        public QuickFixEditVisualization(IEdit edit, SnapshotSpan span)
         {
             Edit = edit;
             Span = span;
-            OriginalText = originalText;
         }
 
         public IEdit Edit { get; }
 
         public SnapshotSpan Span { get; }
-
-        public string OriginalText { get; }
-
     }
 }

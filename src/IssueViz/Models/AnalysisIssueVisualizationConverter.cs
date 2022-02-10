@@ -123,9 +123,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
                 var editVisualizations = fix.Edits.Select(edit =>
                 {
                     var editSpan = issueSpanCalculator.CalculateSpan(edit, textSnapshot);
-                    var originalText = textSnapshot.GetText(editSpan);
 
-                    return new QuickFixEditVisualization(edit, editSpan, originalText);
+                    return new QuickFixEditVisualization(edit, editSpan);
                 });
 
                 var fixVisualization = new QuickFixVisualization(fix, editVisualizations.ToArray());
