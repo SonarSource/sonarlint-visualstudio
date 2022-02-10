@@ -71,12 +71,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
             var snapshot = CreateSnapshot(length: 50);
 
             var inputSpans = CreateSpanCollectionSpanningWholeSnapshot(snapshot);
+            
+            var validSpan = new Span(1, 5);
+            var invalidSpan = new Span(10, 0);
 
-            var primary1 = CreateTagSpanWithPrimaryLocation(snapshot, new Span(1, 5), message: "error message 1", ruleKey: "cpp:S5350");
-            var primary2 = CreateTagSpanWithPrimaryLocation(snapshot, new Span(10, 0), message: "error message 2", ruleKey: "cpp:emptyCompoundStatement");
-            var secondary1 = CreateTagSpanWithSecondaryLocation(snapshot, new Span(20, 5));
-            var secondary2 = CreateTagSpanWithSecondaryLocation(snapshot, new Span(30, 5));
-            var aggregator = CreateAggregator(primary1, secondary1, primary2, secondary2);
+            var primary1 = CreateTagSpanWithPrimaryLocation(snapshot, validSpan, message: "error message 1", ruleKey: "cpp:S5350");
+            var primary2 = CreateTagSpanWithPrimaryLocation(snapshot, invalidSpan, message: "error message 2", ruleKey: "cpp:emptyCompoundStatement");
+            var aggregator = CreateAggregator(primary1, primary2);
 
             var tooltipProvider = new Mock<IErrorTagTooltipProvider>();
             var issue1 = (primary1.Tag.Location as IAnalysisIssueVisualization).Issue;
@@ -92,9 +93,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
             actual.Length.Should().Be(1);
 
             actual[0].Tag.ToolTipContent.Should().Be("some tooltip1");
-            actual[0].Span.Span.Should().Be(primary1.Tag.Location.Span.Value.Span);
-
-
+            actual[0].Span.Span.Should().Be(validSpan);
         }
 
         private static IMappingTagSpan<IIssueLocationTag> CreateTagSpanWithPrimaryLocation(ITextSnapshot snapshot, Span span, string message = "", string ruleKey = "")

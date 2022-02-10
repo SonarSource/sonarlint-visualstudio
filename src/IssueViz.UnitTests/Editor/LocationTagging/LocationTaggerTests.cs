@@ -397,6 +397,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             testSubject.GetTags(inputSpans).ToArray(); // GetTags is lazy so we need to reify the result to force evaluation
 
             testSubject.TagSpans.Count().Should().Be(1);
+            testSubject.TagSpans[0].Tag.Location.Span.Value.Length.Should().Be(10);
         }
 
         [TestMethod]
