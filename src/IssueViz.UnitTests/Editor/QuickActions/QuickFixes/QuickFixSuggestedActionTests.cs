@@ -131,6 +131,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         {
             var quickFixViz = new Mock<IQuickFixVisualization>();
             var textBuffer = new Mock<ITextBuffer>();
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
 
             var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object);
 
@@ -138,6 +139,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
             quickFixViz.VerifyNoOtherCalls();
             textBuffer.VerifyNoOtherCalls();
+            issueViz.VerifyNoOtherCalls();
         }
 
         [TestMethod]
