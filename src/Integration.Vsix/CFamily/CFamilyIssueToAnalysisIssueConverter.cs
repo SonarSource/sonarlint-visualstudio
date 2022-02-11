@@ -210,7 +210,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private static List<QuickFix> ToQuickFixes(Message cFamilyIssue)
         {
-            return cFamilyIssue.Fixes.Select(f => new QuickFix(f.Message, f.Edits?.Select(e => new Core.Analysis.Edit(e.StartLine, e.StartColumn, e.EndLine, e.EndColumn, e.Text)).ToList())).ToList();
+            return cFamilyIssue.Fixes.Select(f =>
+                    new QuickFix(
+                        message: f.Message,
+                        f.Edits?.Select(e =>
+                                new Core.Analysis.Edit(
+                                    startLine: e.StartLine,
+                                    startColumn: e.StartColumn - 1,
+                                    endLine: e.EndLine,
+                                    endColumn: e.EndColumn - 1,
+                                    text: e.Text))
+                            .ToList()))
+                .ToList();
         }
 
         private string CalculateLineHash(MessagePart cFamilyIssueLocation, IReadOnlyDictionary<string, ITextDocument> fileContents)
