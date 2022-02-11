@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
             {
                 foreach (var issueViz in issuesWithFixes)
                 {
-                    allActions.AddRange(issueViz.QuickFixes.Select(fix => new QuickFixSuggestedAction(fix, textView.TextBuffer)));
+                    allActions.AddRange(issueViz.QuickFixes.Select(fix => new QuickFixSuggestedAction(fix, textView.TextBuffer, issueViz)));
                 }
             }
 
