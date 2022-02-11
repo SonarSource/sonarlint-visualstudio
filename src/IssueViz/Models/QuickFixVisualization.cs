@@ -18,9 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Models
 {
@@ -29,12 +32,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         IQuickFix Fix { get; }
 
         IReadOnlyList<IQuickFixEditVisualization> EditVisualizations { get; }
+
+        /// <summary>
+        /// Returns false if the snapshot has been edited so the fix can no longer be applied, otherwise true.
+        /// </summary>
+        bool CanBeApplied(ITextSnapshot currentSnapshot);
     }
 
     internal class QuickFixVisualization : IQuickFixVisualization
     {
+        private readonly ISpanTranslator spanTranslator;
+
         public QuickFixVisualization(IQuickFix fix, IReadOnlyList<IQuickFixEditVisualization> editVisualizations)
+            : this(fix, editVisualizations, new SpanTranslator())
         {
+            Fix = fix;
+            EditVisualizations = editVisualizations;
+        }
+
+        internal QuickFixVisualization(IQuickFix fix,
+            IReadOnlyList<IQuickFixEditVisualization> editVisualizations,
+            ISpanTranslator spanTranslator)
+        {
+            this.spanTranslator = spanTranslator;
             Fix = fix;
             EditVisualizations = editVisualizations;
         }
@@ -42,6 +62,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         public IQuickFix Fix { get; }
 
         public IReadOnlyList<IQuickFixEditVisualization> EditVisualizations { get; }
+
+        public bool CanBeApplied(ITextSnapshot currentSnapshot) =>
+            EditVisualizations.All(x => IsTextUnchanged(x, currentSnapshot));
+
+        private bool IsTextUnchanged(IQuickFixEditVisualization editViz, ITextSnapshot currentSnapshot)
+        {
+            var originalText = editViz.Span.GetText();
+            var updatedSpan = spanTranslator.TranslateTo(editViz.Span, currentSnapshot, SpanTrackingMode.EdgeExclusive);
+            var currentText = currentSnapshot.GetText(updatedSpan);
+
+            return string.Equals(currentText, originalText, StringComparison.InvariantCulture);
+        }
     }
 
     public interface IQuickFixEditVisualization

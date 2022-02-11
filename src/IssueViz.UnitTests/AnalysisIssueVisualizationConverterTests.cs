@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             SetupSpanCalculator(edit3, span3);
 
             var fix1 = new QuickFix("fix1", new[] { edit1, edit2 });
-            var fix2 = new QuickFix("fix1", new[] { edit3 });
+            var fix2 = new QuickFix("fix2", new[] { edit3 });
             var issue = CreateIssue(fix1, fix2);
 
             var result = testSubject.Convert(issue, textSnapshotMock);
@@ -156,8 +156,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             SetupSpanCalculator(issue, issueSpan);
 
             var expectedIssueVisualization = new AnalysisIssueVisualization(
-                Array.Empty<IAnalysisIssueFlowVisualization>(), 
-                issue, 
+                Array.Empty<IAnalysisIssueFlowVisualization>(),
+                issue,
                 issueSpan,
                 Array.Empty<IQuickFixVisualization>());
 
@@ -178,10 +178,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
 
             var expectedLocationVisualization = new AnalysisIssueLocationVisualization(1, location);
             var expectedFlowVisualization = new AnalysisIssueFlowVisualization(1, new[] { expectedLocationVisualization }, flow);
-            
+
             var expectedIssueVisualization = new AnalysisIssueVisualization(
-                new[] {expectedFlowVisualization}, 
-                issue, 
+                new[] { expectedFlowVisualization },
+                issue,
                 issueSpan,
                 Array.Empty<IQuickFixVisualization>());
 
@@ -214,8 +214,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             var expectedSecondFlowVisualization = new AnalysisIssueFlowVisualization(2, new[] { expectedSecondFlowFirstLocationVisualization, expectedSecondFlowSecondLocationVisualization }, secondFlow);
 
             var expectedIssueVisualization = new AnalysisIssueVisualization(
-                new[] { expectedFirstFlowVisualization, expectedSecondFlowVisualization }, 
-                issue, 
+                new[] { expectedFirstFlowVisualization, expectedSecondFlowVisualization },
+                issue,
                 issueSpan,
                 Array.Empty<IQuickFixVisualization>());
 
@@ -240,13 +240,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             var locationSpan = CreateNonEmptySpan();
             SetupSpanCalculator(locationInSameFile, locationSpan);
 
-            var expectedLocation1 = new AnalysisIssueLocationVisualization(1, locationInSameFile) {Span = locationSpan};
-            var expectedLocation2 = new AnalysisIssueLocationVisualization(2, locationInAnotherFile) {Span = null};
-            var expectedFlow = new AnalysisIssueFlowVisualization(1, new[] {expectedLocation1, expectedLocation2}, flow);
-           
+            var expectedLocation1 = new AnalysisIssueLocationVisualization(1, locationInSameFile) { Span = locationSpan };
+            var expectedLocation2 = new AnalysisIssueLocationVisualization(2, locationInAnotherFile) { Span = null };
+            var expectedFlow = new AnalysisIssueFlowVisualization(1, new[] { expectedLocation1, expectedLocation2 }, flow);
+
             var expectedIssueVisualization = new AnalysisIssueVisualization(
                 new[] { expectedFlow },
-                issue, 
+                issue,
                 issueSpan,
                 Array.Empty<IQuickFixVisualization>());
 
@@ -259,7 +259,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         {
             actualIssueVisualization.Issue.Should().Be(expectedIssueVisualization.Issue);
 
-            actualIssueVisualization.Flows.Should().BeEquivalentTo(expectedIssueVisualization.Flows, c=> c.WithStrictOrdering());
+            actualIssueVisualization.Flows.Should().BeEquivalentTo(expectedIssueVisualization.Flows, c => c.WithStrictOrdering());
         }
 
         private IAnalysisIssue CreateIssue(params IQuickFix[] quickFixes)
@@ -303,7 +303,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
 
         private static IAnalysisIssueFlow CreateFlow(params IAnalysisIssueLocation[] locations)
         {
-           return new AnalysisIssueFlow(locations);
+            return new AnalysisIssueFlow(locations);
         }
 
         private static IAnalysisIssueLocation CreateLocation(string filePath)

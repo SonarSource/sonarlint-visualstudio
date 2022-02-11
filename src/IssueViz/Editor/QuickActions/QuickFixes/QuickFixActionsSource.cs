@@ -28,8 +28,8 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
@@ -39,23 +39,27 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
     {
         private readonly ILightBulbBroker lightBulbBroker;
         private readonly ITextView textView;
+        private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
         private readonly ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator;
 
         public QuickFixActionsSource(ILightBulbBroker lightBulbBroker,
             IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
-            ITextView textView)
-            : this(lightBulbBroker, bufferTagAggregatorFactoryService, textView, new ThreadHandling())
+            ITextView textView,
+            ILogger logger)
+            : this(lightBulbBroker, bufferTagAggregatorFactoryService, textView, logger, new ThreadHandling())
         {
         }
 
         internal QuickFixActionsSource(ILightBulbBroker lightBulbBroker,
             IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
             ITextView textView,
+            ILogger logger,
             IThreadHandling threadHandling)
         {
             this.lightBulbBroker = lightBulbBroker;
             this.textView = textView;
+            this.logger = logger;
             this.threadHandling = threadHandling;
 
             issueLocationsTagAggregator = bufferTagAggregatorFactoryService.CreateTagAggregator<IIssueLocationTag>(textView.TextBuffer);
@@ -71,11 +75,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
         {
             var allActions = new List<ISuggestedAction>();
 
-            if (IsOnIssueWithQuickFixes(range, out var issuesWithFixes))
+            if (IsOnIssueWithApplicableQuickFixes(range, out var issuesWithFixes))
             {
                 foreach (var issueViz in issuesWithFixes)
                 {
-                    allActions.AddRange(issueViz.QuickFixes.Select(fix => new QuickFixSuggestedAction(fix, textView.TextBuffer, issueViz)));
+                    var applicableFixes = issueViz.QuickFixes.Where(x => x.CanBeApplied(textView.TextSnapshot));
+
+                    allActions.AddRange(applicableFixes.Select(fix => new QuickFixSuggestedAction(fix, textView.TextBuffer, issueViz, logger)));
                 }
             }
 
@@ -88,19 +94,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
         {
             var hasActions = false;
 
-            await threadHandling.RunOnUIThread(() => hasActions = IsOnIssueWithQuickFixes(range, out _));
+            await threadHandling.RunOnUIThread(() => hasActions = IsOnIssueWithApplicableQuickFixes(range, out _));
 
             return hasActions;
         }
 
-        private bool IsOnIssueWithQuickFixes(SnapshotSpan range, out IEnumerable<IAnalysisIssueVisualization> issuesWithFixes)
+        private bool IsOnIssueWithApplicableQuickFixes(SnapshotSpan range, out IEnumerable<IAnalysisIssueVisualization> issuesWithFixes)
         {
             var tagSpans = issueLocationsTagAggregator.GetTags(range);
 
             issuesWithFixes = tagSpans
                 .Select(x => x.Tag.Location)
                 .OfType<IAnalysisIssueVisualization>()
-                .Where(x => x.QuickFixes.Any());
+                .Where(x =>
+                    x.QuickFixes.Any(fix => fix.CanBeApplied(textView.TextSnapshot)));
 
             return issuesWithFixes.Any();
         }
