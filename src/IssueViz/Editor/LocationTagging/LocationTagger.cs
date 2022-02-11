@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Text;
@@ -131,6 +132,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
                 TranslateTagSpans(spans[0].Snapshot);
             }
 
+            Debug.Assert(TagSpans.All(span => span.Tag.Location.IsNavigable()), "Expecting all tags would be navigable");
             // Find any tags in that overlap with that range
             foreach (var tagSpan in TagSpans)
             {

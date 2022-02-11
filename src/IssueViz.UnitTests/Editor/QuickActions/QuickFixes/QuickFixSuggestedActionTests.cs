@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
@@ -133,13 +134,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         {
             var quickFixViz = new Mock<IQuickFixVisualization>();
             var textBuffer = new Mock<ITextBuffer>();
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
 
-            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object);
+            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object, issueViz: issueViz.Object);
 
             testSubject.Invoke(new CancellationToken(canceled: true));
 
             quickFixViz.VerifyNoOtherCalls();
             textBuffer.VerifyNoOtherCalls();
+            issueViz.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -155,7 +158,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 .Setup(x => x.CanBeApplied(snapshot))
                 .Returns(false);
 
-            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object);
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+
+            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object, issueViz: issueViz.Object);
 
             testSubject.Invoke(CancellationToken.None);
 
@@ -164,6 +169,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
             textBuffer.VerifyGet(x => x.CurrentSnapshot, Times.Once);
             textBuffer.VerifyNoOtherCalls();
+
+            issueViz.VerifyGet(x=> x.RuleId, Times.Once);
+            issueViz.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -191,15 +199,49 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             textBuffer.Setup(t => t.CreateEdit()).Returns(textEdit.Object);
 
             var quickFixViz = new Mock<IQuickFixVisualization>();
-            quickFixViz.Setup(x => x.EditVisualizations).Returns(new List<IQuickFixEditVisualization> { editVisualization.Object });
-            quickFixViz.Setup(x => x.CanBeApplied(textBuffer.Object.CurrentSnapshot)).Returns(true);
+            quickFixViz
+                .Setup(x => x.CanBeApplied(snapshot.Object))
+                .Returns(true);
+            quickFixViz
+                .Setup(x => x.EditVisualizations)
+                .Returns(new List<IQuickFixEditVisualization> { editVisualization.Object });
 
-            var issueViz = new Mock<IAnalysisIssueVisualization>();
-
-            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object, spanTranslator.Object, issueViz.Object);
+            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object, spanTranslator.Object);
             testSubject.Invoke(CancellationToken.None);
 
             textEdit.Verify(t => t.Replace(span2, "some edit"), Times.Once);
+        }
+
+        [TestMethod]
+        public void Invoke_SpanInvalidatedCorrectly()
+        {
+            var snapshot = CreateTextSnapshot();
+
+            var span = new Span(1, 10);
+            var snapshotSpan = new SnapshotSpan(snapshot.Object, span);
+            var editVisualization = new Mock<IQuickFixEditVisualization>();
+            editVisualization.Setup(e => e.Edit.Text).Returns("edit");
+            editVisualization.Setup(e => e.Span).Returns(snapshotSpan);
+
+            var quickFixViz = new Mock<IQuickFixVisualization>();
+            quickFixViz
+                .Setup(x => x.CanBeApplied(snapshot.Object))
+                .Returns(true);
+            quickFixViz
+                .Setup(x => x.EditVisualizations)
+                .Returns(new List<IQuickFixEditVisualization> { editVisualization.Object });
+
+            var textEdit = new Mock<ITextEdit>();
+            var textBuffer = new Mock<ITextBuffer>();
+            textBuffer.Setup(x => x.CurrentSnapshot).Returns(snapshot.Object);
+            textBuffer.Setup(t => t.CreateEdit()).Returns(textEdit.Object);
+
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+
+            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object, issueViz: issueViz.Object);
+            testSubject.Invoke(CancellationToken.None);
+
+            issueViz.VerifySet(iv => iv.Span = new SnapshotSpan());
         }
 
         private static Mock<ITextSnapshot> CreateTextSnapshot()
@@ -230,7 +272,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 spanTranslator = doNothingSpanTranslator.Object;
             }
 
-            return new QuickFixSuggestedAction(quickFixViz, textBuffer, issueViz, spanTranslator);
+            issueViz ??= Mock.Of<IAnalysisIssueVisualization>();
+
+            return new QuickFixSuggestedAction(quickFixViz, textBuffer, issueViz, Mock.Of<ILogger>(), spanTranslator);
         }
     }
 }
