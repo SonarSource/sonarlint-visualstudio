@@ -541,7 +541,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         {
             var fix1 = new Fix("Fix 1", new Edit[] { new Edit(11, 12, 13, 14, "Edit 1"), new Edit(21, 22, 23, 24, "Edit 2"), new Edit(31, 32, 33, 34, "Edit 3"), new Edit(41, 42, 43, 44, "Edit 4") });
 
-            var fixes = new Fix[] { fix1 };
+            var fixes = new[] { fix1 };
 
             var message = new Message("rule2", "file", 4, 3, 2, 1, "this is a test", false, new MessagePart[0], fixes);
 
@@ -608,8 +608,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             
             for (int i = 0; i < fix.Edits.Length; i++)
             {
-                fix.Edits[i].StartColumn.Should().Be(quickFix.Edits[i].StartLineOffset, $"because StartColumn was not equal in {fix.Message}, edit: {i} ");
-                fix.Edits[i].EndColumn.Should().Be(quickFix.Edits[i].EndLineOffset, $"because EndColumn was not equal in {fix.Message}, edit: {i} ");
+                fix.Edits[i].StartColumn.Should().Be(quickFix.Edits[i].StartLineOffset+1, $"because StartColumn was not equal in {fix.Message}, edit: {i} ");
+                fix.Edits[i].EndColumn.Should().Be(quickFix.Edits[i].EndLineOffset+1, $"because EndColumn was not equal in {fix.Message}, edit: {i} ");
                 fix.Edits[i].StartLine.Should().Be(quickFix.Edits[i].StartLine, $"because StartLine was not equal in {fix.Message}, edit: {i} ");
                 fix.Edits[i].EndLine.Should().Be(quickFix.Edits[i].EndLine, $"because EndLine was not equal in {fix.Message}, edit: {i} ");
                 fix.Edits[i].Text.Should().Be(quickFix.Edits[i].Text, $"because Text was not equal in {fix.Message}, edit: {i} ");
