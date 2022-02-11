@@ -30,19 +30,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
         private readonly IQuickFixVisualization quickFixVisualization;
         private readonly ITextBuffer textBuffer;
         private readonly ISpanTranslator spanTranslator;
+        private readonly IAnalysisIssueVisualization issueViz;
 
         public QuickFixSuggestedAction(IQuickFixVisualization quickFixVisualization,
-            ITextBuffer textBuffer)
-            : this(quickFixVisualization, textBuffer, new SpanTranslator())
-        {
+            ITextBuffer textBuffer, IAnalysisIssueVisualization issueViz)
+            : this(quickFixVisualization, textBuffer, issueViz, new SpanTranslator()){
 
         }
         internal QuickFixSuggestedAction(IQuickFixVisualization quickFixVisualization, 
-            ITextBuffer textBuffer, 
+            ITextBuffer textBuffer,
+            IAnalysisIssueVisualization issueViz,
             ISpanTranslator spanTranslator)
         {
             this.quickFixVisualization = quickFixVisualization;
             this.textBuffer = textBuffer;
+            this.issueViz = issueViz;
             this.spanTranslator = spanTranslator;
         }
 
@@ -64,6 +66,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
                 textEdit.Replace(updatedSpan, edit.Edit.Text);
             }
 
+            issueViz.InvalidateSpan();
             textEdit.Apply();
         }
     }

@@ -364,6 +364,42 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             testSubject.TagSpans[1].Tag.Location.Span.Value.Snapshot.Should().Be(snapshotMock2);
         }
 
+
+        [TestMethod]
+        public void GetTags_InvalidatedSpans_ShouldBeFiltered()
+        {
+            const int length = 100;
+            var buffer = CreateBufferMock(length, ValidBufferDocName).Object;
+
+            var versionMock2 = CreateTextVersion(buffer, 2);
+            var versionMock1 = CreateTextVersion(buffer, 1, nextVersion: versionMock2);
+
+            var snapshotMock1 = CreateSnapshot(buffer, length, versionMock1);
+            var snapshotMock2 = CreateSnapshot(buffer, length, versionMock2);
+
+            var locSpan1 = new Span(1, 10);
+            var locSpan2 = new Span(11, 5);
+            var storeMock = CreateStoreWithLocationsWithSpans(snapshotMock1, out _, locSpan1, locSpan2);
+
+            var inputSpans = new NormalizedSnapshotSpanCollection(snapshotMock2, new Span(18, 22));
+
+            var testSubject = new LocationTagger(buffer, storeMock, ValidSpanCalculator, ValidLogger);
+
+            // Sanity checks
+            testSubject.TagSpans.Count().Should().Be(2);
+            testSubject.TagSpans[0].Span.Snapshot.Should().Be(snapshotMock1);
+            testSubject.TagSpans[1].Span.Snapshot.Should().Be(snapshotMock1);
+            testSubject.TagSpans[0].Tag.Location.Span.Value.Snapshot.Should().Be(snapshotMock1);
+            testSubject.TagSpans[1].Tag.Location.Span.Value.Snapshot.Should().Be(snapshotMock1);
+
+            testSubject.TagSpans[1].Tag.Location.Span = new SnapshotSpan();
+
+            testSubject.GetTags(inputSpans).ToArray(); // GetTags is lazy so we need to reify the result to force evaluation
+
+            testSubject.TagSpans.Count().Should().Be(1);
+            testSubject.TagSpans[0].Tag.Location.Span.Value.Length.Should().Be(10);
+        }
+
         [TestMethod]
         public void GetTags_ExceptionInTranslatingSpan_ExceptionSuppressedAndLogged()
         {
