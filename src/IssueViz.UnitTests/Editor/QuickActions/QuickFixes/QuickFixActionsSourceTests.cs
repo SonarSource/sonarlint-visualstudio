@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
@@ -40,8 +41,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
     [TestClass]
     public class QuickFixActionsSourceTests
     {
-        private readonly SnapshotSpan mockSpan = new();
-        private readonly ITextSnapshot snapshot = CreateSnapshot();
+        private SnapshotSpan mockSpan;
+        private ITextView textView;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            mockSpan = new SnapshotSpan();
+            textView = CreateWpfTextView();
+        }
 
         [TestMethod]
         public void TryGetTelemetryId_False()
@@ -83,11 +91,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         {
             var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
             var lightBulbBroker = new Mock<ILightBulbBroker>();
-            var textView = Mock.Of<ITextView>();
 
-            CreateTestSubject(issueLocationsTagAggregator.Object,
-                lightBulbBroker: lightBulbBroker.Object,
-                textView: textView);
+            CreateTestSubject(issueLocationsTagAggregator.Object, lightBulbBroker: lightBulbBroker.Object);
 
             lightBulbBroker.VerifyNoOtherCalls();
 
@@ -148,9 +153,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         [TestMethod]
-        public async Task HasSuggestedActionsAsync_HasIssuesWithQuickFixes_True()
+        public async Task HasSuggestedActionsAsync_NoIssuesWithApplicableQuickFixes_False()
         {
-            var issues = new[] { CreateIssueViz(Mock.Of<IQuickFixVisualization>()) };
+            var issues = new[] { CreateIssueViz(CreateQuickFixViz(canBeApplied:false)) };
+
+            var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
+
+            var testSubject = CreateTestSubject(issueLocationsTagAggregator.Object);
+
+            var hasSuggestedActions = await testSubject.HasSuggestedActionsAsync(null, mockSpan, CancellationToken.None);
+
+            hasSuggestedActions.Should().Be(false);
+        }
+
+        [TestMethod]
+        public async Task HasSuggestedActionsAsync_HasIssuesWithApplicableQuickFixes_True()
+        {
+            var issues = new[] { CreateIssueViz(CreateQuickFixViz(canBeApplied:true)) };
 
             var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
@@ -180,29 +199,53 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         [TestMethod]
-        public void GetSuggestedActions_HasIssuesWithQuickFixes_OneActionForEveryFix()
+        public void GetSuggestedActions_NoIssuesWithApplicableQuickFixes_NoActions()
         {
             var issues = new[]
             {
-                CreateIssueViz(Mock.Of<IQuickFixVisualization>()),
-                CreateIssueViz(Mock.Of<IQuickFixVisualization>(), Mock.Of<IQuickFixVisualization>()),
-                CreateIssueViz()
+                CreateIssueViz(CreateQuickFixViz(canBeApplied: false))
             };
 
             var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
             var testSubject = CreateTestSubject(issueLocationsTagAggregator.Object);
+
             var hasSuggestedActionsSet = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
 
+            hasSuggestedActionsSet.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void GetSuggestedActions_HasIssuesWithQuickFixes_OneActionForEveryApplicableFix()
+        {
+            var issues = new[]
+            {
+                CreateIssueViz(
+                    CreateQuickFixViz(canBeApplied: false, message: "fix1"),
+                    CreateQuickFixViz(canBeApplied: true, message: "fix2")),
+                CreateIssueViz(
+                    CreateQuickFixViz(canBeApplied: true, message: "fix3"),
+                    CreateQuickFixViz(canBeApplied: false, message: "fix4")),
+                CreateIssueViz(),
+                CreateIssueViz(CreateQuickFixViz(canBeApplied: false, message: "fix5")),
+                CreateIssueViz(CreateQuickFixViz(canBeApplied: true, message: "fix6"))
+            };
+
+            var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
+
+            var testSubject = CreateTestSubject(issueLocationsTagAggregator.Object);
+            
+            var hasSuggestedActionsSet = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
             hasSuggestedActionsSet.Count().Should().Be(1);
-            hasSuggestedActionsSet.Single().Actions.Count().Should().Be(3);
+            
+            var quickFixSuggestedActions = hasSuggestedActionsSet.Single().Actions.OfType<QuickFixSuggestedAction>().ToList();
+            quickFixSuggestedActions.Count.Should().Be(3);
+            quickFixSuggestedActions.Select(x => x.DisplayText).Should().BeEquivalentTo("fix2", "fix3", "fix6");
         }
 
         private QuickFixActionsSource CreateTestSubject(ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator,
-            ILightBulbBroker lightBulbBroker = null,
-            ITextView textView = null)
+            ILightBulbBroker lightBulbBroker = null)
         {
-            textView ??= CreateWpfTextView();
             lightBulbBroker ??= Mock.Of<ILightBulbBroker>();
 
             var bufferTagAggregatorFactoryService = new Mock<IBufferTagAggregatorFactoryService>();
@@ -216,6 +259,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             return new QuickFixActionsSource(lightBulbBroker, 
                 bufferTagAggregatorFactoryService.Object, 
                 textView,
+                Mock.Of<ILogger>(),
                 threadHandling);
         }
 
@@ -229,7 +273,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
         private Mock<ITagAggregator<IIssueLocationTag>> CreateTagAggregatorForIssues(IAnalysisIssueVisualization[] issues)
         {
-            var issueTags = issues.Select(x => CreateMappingTagSpan(snapshot, CreateIssueLocationTag(x), mockSpan)).ToArray();
+            var issueTags = issues.Select(x => CreateMappingTagSpan(textView.TextSnapshot, CreateIssueLocationTag(x), mockSpan)).ToArray();
 
             var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
 
@@ -238,6 +282,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 .Returns(issueTags);
 
             return issueLocationsTagAggregator;
+        }
+
+        private IQuickFixVisualization CreateQuickFixViz(bool canBeApplied, string message = null)
+        {
+            var quickFixViz = new Mock<IQuickFixVisualization>();
+            quickFixViz.Setup(x => x.CanBeApplied(textView.TextSnapshot)).Returns(canBeApplied);
+            quickFixViz.Setup(x => x.Fix.Message).Returns(message);
+
+            return quickFixViz.Object;
         }
     }
 }

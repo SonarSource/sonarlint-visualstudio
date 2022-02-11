@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
@@ -41,7 +42,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             MefTestHelpers.CheckTypeCanBeImported<QuickFixActionsSourceProvider, ISuggestedActionsSourceProvider>(null, new[]
             {
                 MefTestHelpers.CreateExport<IBufferTagAggregatorFactoryService>(Mock.Of<IBufferTagAggregatorFactoryService>()),
-                MefTestHelpers.CreateExport<ILightBulbBroker>(Mock.Of<ILightBulbBroker>())
+                MefTestHelpers.CreateExport<ILightBulbBroker>(Mock.Of<ILightBulbBroker>()),
+                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
 
@@ -86,7 +88,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
             var lightBulbBroker = Mock.Of<ILightBulbBroker>();
 
-            return new QuickFixActionsSourceProvider(bufferTagAggregatorFactoryService.Object, lightBulbBroker);
+            return new QuickFixActionsSourceProvider(bufferTagAggregatorFactoryService.Object, lightBulbBroker, Mock.Of<ILogger>());
         }
     }
 }
