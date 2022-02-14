@@ -139,7 +139,7 @@
     -->
     <!-- NB we are specifying an output path for the task assembly to avoid potentially file locking issues
 	     with the version of the same project used by Integration.Vsix.csproj when fetching the CFamily files -->
-    <Exec Command="&quot;$(MSBuildBinPath)\msbuild.exe&quot; ..\..\build\DownloadSonarPlugin\DownloadSonarPlugin.csproj /p:PluginUrl=$(PluginUrl) /p:TargetDirectory=&quot;$(TypeScriptTargetDirectory)&quot; /p:UseSharedCompilation=false /t:Restore;Build;EmbedTypeScriptFiles /p:OutputPath=bin\GetTypeScriptFiles\ /p:VsTargetVersion=$(VsTargetVersion)" LogStandardErrorAsError="true" IgnoreExitCode="false" />
+    <Exec Command="&quot;$(MSBuildBinPath)\msbuild.exe&quot; ..\..\build\DownloadSonarPlugin\DownloadSonarPlugin.csproj /p:PluginUrl=$(PluginUrl) /p:TargetDirectory=&quot;$(TypeScriptTargetDirectory)&quot; /p:UseSharedCompilation=false /t:Restore;Build;EmbedTypeScriptFiles /p:OutputPath=bin\GetTypeScriptFiles\ /p:VsTargetVersion=$(VsTargetVersion) /p:BuildInParallel=false" LogStandardErrorAsError="true" IgnoreExitCode="false" />
     <ItemGroup>
       <!-- Note (1): vsixutil.exe will fail with an OutOfMemory error if there are too many files in the VSIX (the size of the files
                      doesn't matter, it's the number that counts.
