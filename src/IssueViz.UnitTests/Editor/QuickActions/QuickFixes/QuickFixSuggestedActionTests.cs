@@ -45,6 +45,45 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         [TestMethod]
+        public void Invoke_QuickFixCanBeApplied_TelemetryIsSent()
+        {
+            var snapshot = CreateTextSnapshot();
+            var quickFixViz = CreateQuickFixViz(snapshot.Object);
+            var textBuffer = CreateTextBuffer(snapshot.Object);
+
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.Setup(x => x.RuleId).Returns("some rule");
+
+            var telemetryManager = new Mock<IQuickFixesTelemetryManager>();
+
+            var testSubject = CreateTestSubject(quickFixViz.Object,
+                textBuffer.Object,
+                issueViz: issueViz.Object,
+                telemetryManager: telemetryManager.Object);
+
+            testSubject.Invoke(CancellationToken.None);
+
+            telemetryManager.Verify(x=> x.QuickFixApplied("some rule"), Times.Once);
+            telemetryManager.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Invoke_QuickFixCannotBeApplied_TelemetryNotSent()
+        {
+            var snapshot = CreateTextSnapshot();
+            var quickFixViz = CreateNonApplicableQuickFixViz(snapshot.Object);
+            var textBuffer = CreateTextBuffer(snapshot.Object);
+
+            var telemetryManager = new Mock<IQuickFixesTelemetryManager>();
+
+            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object, telemetryManager: telemetryManager.Object);
+            testSubject.Invoke(CancellationToken.None);
+
+            telemetryManager.Verify(x => x.QuickFixApplied(It.IsAny<string>()), Times.Never);
+            telemetryManager.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
         public void Invoke_AppliesFixWithOneEdit()
         {
             var snapshot = CreateTextSnapshot();
@@ -199,7 +238,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         private static QuickFixSuggestedAction CreateTestSubject(IQuickFixVisualization quickFixViz,
             ITextBuffer textBuffer = null,
             ISpanTranslator spanTranslator = null,
-            IAnalysisIssueVisualization issueViz = null)
+            IAnalysisIssueVisualization issueViz = null,
+            IQuickFixesTelemetryManager telemetryManager = null)
         {
             if (spanTranslator == null)
             {
@@ -218,10 +258,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             }
 
             issueViz ??= Mock.Of<IAnalysisIssueVisualization>();
+            telemetryManager ??= Mock.Of<IQuickFixesTelemetryManager>();
 
             return new QuickFixSuggestedAction(quickFixViz,
                 textBuffer,
                 issueViz,
+                telemetryManager,
                 Mock.Of<ILogger>(),
                 spanTranslator);
         }

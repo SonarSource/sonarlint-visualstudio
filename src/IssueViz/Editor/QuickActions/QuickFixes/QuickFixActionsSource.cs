@@ -42,23 +42,27 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
         private readonly ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator;
+        private readonly IQuickFixesTelemetryManager quickFixesTelemetryManager;
 
         public QuickFixActionsSource(ILightBulbBroker lightBulbBroker,
             IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
             ITextView textView,
+            IQuickFixesTelemetryManager quickFixesTelemetryManager,
             ILogger logger)
-            : this(lightBulbBroker, bufferTagAggregatorFactoryService, textView, logger, new ThreadHandling())
+            : this(lightBulbBroker, bufferTagAggregatorFactoryService, textView, quickFixesTelemetryManager, logger, new ThreadHandling())
         {
         }
 
         internal QuickFixActionsSource(ILightBulbBroker lightBulbBroker,
             IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
             ITextView textView,
+            IQuickFixesTelemetryManager quickFixesTelemetryManager,
             ILogger logger,
             IThreadHandling threadHandling)
         {
             this.lightBulbBroker = lightBulbBroker;
             this.textView = textView;
+            this.quickFixesTelemetryManager = quickFixesTelemetryManager;
             this.logger = logger;
             this.threadHandling = threadHandling;
 
@@ -81,7 +85,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
                 {
                     var applicableFixes = issueViz.QuickFixes.Where(x => x.CanBeApplied(textView.TextSnapshot));
 
-                    allActions.AddRange(applicableFixes.Select(fix => new QuickFixSuggestedAction(fix, textView.TextBuffer, issueViz, logger)));
+                    allActions.AddRange(applicableFixes.Select(fix => new QuickFixSuggestedAction(fix, textView.TextBuffer, issueViz, quickFixesTelemetryManager, logger)));
                 }
             }
 
