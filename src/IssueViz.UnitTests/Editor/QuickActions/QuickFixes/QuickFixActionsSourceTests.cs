@@ -259,6 +259,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             return new QuickFixActionsSource(lightBulbBroker, 
                 bufferTagAggregatorFactoryService.Object, 
                 textView,
+                Mock.Of<IQuickFixesTelemetryManager>(),
                 Mock.Of<ILogger>(),
                 threadHandling);
         }

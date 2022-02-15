@@ -37,15 +37,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
 
         private readonly IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService;
         private readonly ILightBulbBroker lightBulbBroker;
+        private readonly IQuickFixesTelemetryManager quickFixesTelemetryManager;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public QuickFixActionsSourceProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
             ILightBulbBroker lightBulbBroker,
+            IQuickFixesTelemetryManager quickFixesTelemetryManager,
             ILogger logger)
         {
             this.bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
             this.lightBulbBroker = lightBulbBroker;
+            this.quickFixesTelemetryManager = quickFixesTelemetryManager;
             this.logger = logger;
         }
 
@@ -56,7 +59,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
                 return null;
             }
 
-            return new QuickFixActionsSource(lightBulbBroker, bufferTagAggregatorFactoryService, textView, logger);
+            return new QuickFixActionsSource(lightBulbBroker,
+                bufferTagAggregatorFactoryService, 
+                textView,
+                quickFixesTelemetryManager,
+                logger);
         }
     }
 }
