@@ -394,7 +394,7 @@
          Also, we are using the "Exec" task to invoke MSBuild.exe rather the "MSBuild" task when building
          DownloadSonarPlugin.csproj to avoid getting file-locking errors when rebuilding.
     -->
-    <Exec Command="&quot;$(MSBuildBinPath)\msbuild.exe&quot; ..\..\build\DownloadSonarPlugin\DownloadSonarPlugin.csproj /p:PluginUrl=$(PluginUrl) /p:TargetDirectory=&quot;$(CFamilyTargetDirectory)&quot; /p:UseSharedCompilation=false /t:Restore;Build;EmbedCFamilyFiles /p:VsTargetVersion=$(VsTargetVersion) /nr:false" LogStandardErrorAsError="true" IgnoreExitCode="false" />
+    <Exec Command="&quot;$(MSBuildBinPath)\msbuild.exe&quot; ..\..\build\DownloadSonarPlugin\DownloadSonarPlugin.csproj /p:PluginUrl=$(PluginUrl) /p:TargetDirectory=&quot;$(CFamilyTargetDirectory)&quot; /p:UseSharedCompilation=false /t:Restore;Build;EmbedCFamilyFiles /p:VsTargetVersion=$(VsTargetVersion) /nr:false /p:BuildInParallel=false" LogStandardErrorAsError="true" IgnoreExitCode="false" />
 
     <!-- Copy the license file to the same directory -->
     <Copy SourceFiles=".\CFamily\LICENSE.txt" DestinationFolder="$(CFamilyTargetDirectory)" SkipUnchangedFiles="true" />
