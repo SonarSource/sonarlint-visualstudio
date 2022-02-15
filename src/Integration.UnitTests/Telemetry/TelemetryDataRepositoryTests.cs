@@ -82,6 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
     <EnabledByDefaultThatWereDisabled />
     <DisabledByDefaultThatWereEnabled />
     <RulesThatRaisedIssues />
+    <RulesWithAppliedQuickFixes />
   </RulesUsage>
 </TelemetryData>");
 
@@ -138,6 +139,10 @@ namespace SonarLint.VisualStudio.Integration.Tests
       <string>rule5</string> 
       <string>rule6</string> 
     </RulesThatRaisedIssues>
+    <RulesWithAppliedQuickFixes>
+      <string>rule7</string> 
+      <string>rule8</string> 
+    </RulesWithAppliedQuickFixes>
   </RulesUsage>
 </TelemetryData>");
 
@@ -167,6 +172,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             repository.Data.RulesUsage.EnabledByDefaultThatWereDisabled.Should().BeEquivalentTo("rule1", "rule2");
             repository.Data.RulesUsage.DisabledByDefaultThatWereEnabled.Should().BeEquivalentTo("rule3", "rule4");
             repository.Data.RulesUsage.RulesThatRaisedIssues.Should().BeEquivalentTo("rule5", "rule6");
+            repository.Data.RulesUsage.RulesWithAppliedQuickFixes.Should().BeEquivalentTo("rule7", "rule8");
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock);
         }
@@ -251,6 +257,10 @@ namespace SonarLint.VisualStudio.Integration.Tests
       <string>rule15</string> 
       <string>rule16</string> 
     </RulesThatRaisedIssues>
+    <RulesWithAppliedQuickFixes>
+      <string>rule17</string> 
+      <string>rule18</string> 
+    </RulesWithAppliedQuickFixes>
   </RulesUsage>
 </TelemetryData>");
 
@@ -278,6 +288,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             repository.Data.RulesUsage.EnabledByDefaultThatWereDisabled.Should().BeEquivalentTo("rule11", "rule12");
             repository.Data.RulesUsage.DisabledByDefaultThatWereEnabled.Should().BeEquivalentTo("rule13", "rule14");
             repository.Data.RulesUsage.RulesThatRaisedIssues.Should().BeEquivalentTo("rule15", "rule16");
+            repository.Data.RulesUsage.RulesWithAppliedQuickFixes.Should().BeEquivalentTo("rule17", "rule18");
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock, fileSystemWatcherMock);
         }

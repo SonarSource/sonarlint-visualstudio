@@ -91,7 +91,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 {
                     DisabledByDefaultThatWereEnabled = new List<string> { "rule1", "rule2" },
                     EnabledByDefaultThatWereDisabled = new List<string> { "rule3", "rule4" },
-                    RulesThatRaisedIssues = new List<string> { "rule5", "rule6" }
+                    RulesThatRaisedIssues = new List<string> { "rule5", "rule6" },
+                    RulesWithAppliedQuickFixes = new List<string> { "rule7", "rule8" }
                 }
             };
 
@@ -162,6 +163,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     ""raised_issues"": [
       ""rule5"",
       ""rule6""
+    ],
+    ""quick_fix_applied"": [
+      ""rule7"",
+      ""rule8""
     ]
   }
 }";
