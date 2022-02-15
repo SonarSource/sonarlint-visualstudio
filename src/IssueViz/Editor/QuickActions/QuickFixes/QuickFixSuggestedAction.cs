@@ -29,6 +29,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
 {
     internal class QuickFixSuggestedAction : BaseSuggestedAction
     {
+        internal const string sonarLintPrefix = "SonarLint: ";
         private readonly IQuickFixVisualization quickFixVisualization;
         private readonly ITextBuffer textBuffer;
         private readonly ISpanTranslator spanTranslator;
@@ -55,7 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
             this.spanTranslator = spanTranslator;
         }
 
-        public override string DisplayText => quickFixVisualization.Fix.Message;
+        public override string DisplayText => sonarLintPrefix + quickFixVisualization.Fix.Message;
 
         public override void Invoke(CancellationToken cancellationToken)
         {

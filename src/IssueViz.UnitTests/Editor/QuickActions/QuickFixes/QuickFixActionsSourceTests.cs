@@ -240,7 +240,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             
             var quickFixSuggestedActions = hasSuggestedActionsSet.Single().Actions.OfType<QuickFixSuggestedAction>().ToList();
             quickFixSuggestedActions.Count.Should().Be(3);
-            quickFixSuggestedActions.Select(x => x.DisplayText).Should().BeEquivalentTo("fix2", "fix3", "fix6");
+            quickFixSuggestedActions.Select(x => x.DisplayText).Should().BeEquivalentTo(QuickFixSuggestedAction.sonarLintPrefix + "fix2", QuickFixSuggestedAction.sonarLintPrefix + "fix3", QuickFixSuggestedAction.sonarLintPrefix + "fix6");
         }
 
         private QuickFixActionsSource CreateTestSubject(ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator,
