@@ -33,5 +33,8 @@ namespace SonarLint.VisualStudio.Integration.Telemetry.Payload
 
         [JsonProperty("raised_issues")]
         public List<string> RulesThatRaisedIssues { get; set; } = new List<string>();
+
+        [JsonProperty("quick_fix_applied")]
+        public List<string> RulesWithAppliedQuickFixes { get; set; } = new List<string>();
     }
 }
