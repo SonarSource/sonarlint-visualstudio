@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
             var testSubject = CreateTestSubject(quickFixViz.Object);
 
-            testSubject.DisplayText.Should().Be("some fix");
+            testSubject.DisplayText.Should().Be(QuickFixSuggestedAction.sonarLintPrefix + "some fix");
         }
 
         [TestMethod]
