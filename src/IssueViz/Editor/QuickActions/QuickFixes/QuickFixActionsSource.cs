@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;

@@ -34,9 +34,11 @@ using SonarLint.VisualStudio.Integration.Telemetry.Payload;
 namespace SonarLint.VisualStudio.Integration
 {
     [Export(typeof(ITelemetryManager))]
+    [Export(typeof(IQuickFixesTelemetryManager))]
     //[Export(typeof(ICloudSecretsTelemetryManager))] 
     [PartCreationPolicy(CreationPolicy.Shared)]
     public sealed class TelemetryManager : ITelemetryManager, 
+        IQuickFixesTelemetryManager,
         //ICloudSecretsTelemetryManager,
         IDisposable
     {
@@ -254,6 +256,24 @@ namespace SonarLint.VisualStudio.Integration
                     {
                         rulesUsage.RulesThatRaisedIssues.Add(ruleId);
                         rulesUsage.RulesThatRaisedIssues = rulesUsage.RulesThatRaisedIssues.Distinct().OrderBy(x => x).ToList();
+                        telemetryRepository.Save();
+                    }
+                }
+            }
+        }
+
+        public void QuickFixApplied(string ruleId)
+        {
+            var rulesUsage = telemetryRepository.Data.RulesUsage;
+
+            if (!rulesUsage.RulesWithAppliedQuickFixes.Contains(ruleId))
+            {
+                lock (Lock)
+                {
+                    if (!rulesUsage.RulesWithAppliedQuickFixes.Contains(ruleId))
+                    {
+                        rulesUsage.RulesWithAppliedQuickFixes.Add(ruleId);
+                        rulesUsage.RulesWithAppliedQuickFixes = rulesUsage.RulesWithAppliedQuickFixes.Distinct().OrderBy(x => x).ToList();
                         telemetryRepository.Save();
                     }
                 }
