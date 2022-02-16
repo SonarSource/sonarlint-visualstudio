@@ -20,6 +20,7 @@
 
 using System.Threading;
 using Microsoft.VisualStudio.Text;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Helpers;
@@ -34,24 +35,28 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
         private readonly ITextBuffer textBuffer;
         private readonly ISpanTranslator spanTranslator;
         private readonly IAnalysisIssueVisualization issueViz;
+        private readonly IQuickFixesTelemetryManager quickFixesTelemetryManager;
         private readonly ILogger logger;
 
         public QuickFixSuggestedAction(IQuickFixVisualization quickFixVisualization,
             ITextBuffer textBuffer, 
-            IAnalysisIssueVisualization issueViz, 
+            IAnalysisIssueVisualization issueViz,
+            IQuickFixesTelemetryManager quickFixesTelemetryManager,
             ILogger logger)
-            : this(quickFixVisualization, textBuffer, issueViz, logger, new SpanTranslator()){
+            : this(quickFixVisualization, textBuffer, issueViz, quickFixesTelemetryManager, logger, new SpanTranslator()){
 
         }
         internal QuickFixSuggestedAction(IQuickFixVisualization quickFixVisualization,
             ITextBuffer textBuffer,
             IAnalysisIssueVisualization issueViz,
+            IQuickFixesTelemetryManager quickFixesTelemetryManager,
             ILogger logger,
             ISpanTranslator spanTranslator)
         {
             this.quickFixVisualization = quickFixVisualization;
             this.textBuffer = textBuffer;
             this.issueViz = issueViz;
+            this.quickFixesTelemetryManager = quickFixesTelemetryManager;
             this.logger = logger;
             this.spanTranslator = spanTranslator;
         }
@@ -82,6 +87,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
 
             issueViz.InvalidateSpan();
             textEdit.Apply();
+
+            quickFixesTelemetryManager.QuickFixApplied(issueViz.RuleId);
         }
     }
 }

@@ -18,23 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using Newtonsoft.Json;
-
-namespace SonarLint.VisualStudio.Integration.Telemetry.Payload
+namespace SonarLint.VisualStudio.Core.Telemetry
 {
-    public sealed class RulesUsage
+    public interface IQuickFixesTelemetryManager
     {
-        [JsonProperty("default_disabled")]
-        public List<string> EnabledByDefaultThatWereDisabled { get; set; } = new List<string>();
-
-        [JsonProperty("non_default_enabled")]
-        public List<string> DisabledByDefaultThatWereEnabled { get; set; } = new List<string>();
-
-        [JsonProperty("raised_issues")]
-        public List<string> RulesThatRaisedIssues { get; set; } = new List<string>();
-
-        [JsonProperty("quick_fix_applied")]
-        public List<string> RulesWithAppliedQuickFixes { get; set; } = new List<string>();
+        void QuickFixApplied(string ruleId);
     }
 }
