@@ -168,15 +168,15 @@
       },
       "SonarAnalyzer.CSharp": {
         "type": "Direct",
-        "requested": "[8.34.0.42011, )",
-        "resolved": "8.34.0.42011",
-        "contentHash": "OSWlrOapKdaFrzJPe7zPG5yXcL50n5kkcu3TmDTOvQnGWA5mJgvEOt/tR8qWo6xsTuL02MQvXvGo1oNE6A2n4g=="
+        "requested": "[8.35.0.42613, )",
+        "resolved": "8.35.0.42613",
+        "contentHash": "bSEpHYZXrSOXJVMr6ozINn0sO5WT9ShmOUZJsJN2CCgyzUhPUZd0wnp59cm9zUiBA28B7yESPo61nbX5trICYw=="
       },
       "SonarAnalyzer.VisualBasic": {
         "type": "Direct",
-        "requested": "[8.34.0.42011, )",
-        "resolved": "8.34.0.42011",
-        "contentHash": "2ICAaq6ElnYJ0onn439Pj5vDgmAdZDU+BQs7/Y5vZRD4FsxeF/cL1o6AuawiOkmIQIkW1d5xcuriJvpqOjRFng=="
+        "requested": "[8.35.0.42613, )",
+        "resolved": "8.35.0.42613",
+        "contentHash": "PLncT+RnV45K3DJH7tnevcj9wdKjrCszP2gORU2tRR4Eqcjw+0+Va/39vMxR7s0LGztsOyK9Yi4h/f6F7rLF7A=="
       },
       "System.Collections.Immutable": {
         "type": "Direct",
