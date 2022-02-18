@@ -215,13 +215,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             if (IsLocationFileLevel(cFamilyIssue))
             {
                 var textSnapshot = fileContents[cFamilyIssue.Filename]?.TextBuffer?.CurrentSnapshot;
-                foreach (var line in textSnapshot.Lines)
+                if (textSnapshot != null)
                 {
-                    if (line.Length > 0)
+                    foreach (var line in textSnapshot.Lines)
                     {
-                        break;
+                        if (line.Length > 0)
+                        {
+                            break;
+                        }
+                        emptyLines++;
                     }
-                    emptyLines++;
                 }
             }
             return cFamilyIssue.Line + emptyLines;
