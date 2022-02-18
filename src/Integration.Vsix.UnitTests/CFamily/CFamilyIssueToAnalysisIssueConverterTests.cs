@@ -193,7 +193,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var textBuffer = CreateTextBuffer(textSnapshot);
             var textDocument = CreateTextDocument(textBuffer);
 
-            var textDocumentFactoryService = CreatetTextDocumentFactoryService(filePath, textDocument);
+            var textDocumentFactoryService = CreateTextDocumentFactoryService(filePath, textDocument);
 
             var testSubject = CreateTestSubject(fileSystem.Object, textDocumentFactoryService);
 
@@ -218,7 +218,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var textSnapshot = CreateTextSnapShot(line1, line2, line3);
             var textBuffer = CreateTextBuffer(textSnapshot);
             var textDocument = CreateTextDocument(textBuffer);
-            var textDocumentFactoryService = CreatetTextDocumentFactoryService(filePath, textDocument);
+            var textDocumentFactoryService = CreateTextDocumentFactoryService(filePath, textDocument);
 
             var testSubject = CreateTestSubject(fileSystem.Object, textDocumentFactoryService);
 
@@ -793,7 +793,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             return line.Object;
         }
-        private static ITextDocumentFactoryService CreatetTextDocumentFactoryService(string filePath, ITextDocument textDocument)
+        private static ITextDocumentFactoryService CreateTextDocumentFactoryService(string filePath, ITextDocument textDocument)
         {
             var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>();
             SetupDocumentLoad(textDocumentFactoryService, filePath, textDocument);
