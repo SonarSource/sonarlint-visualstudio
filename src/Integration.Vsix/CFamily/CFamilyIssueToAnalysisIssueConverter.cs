@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 filePath: Path.IsPathRooted(cFamilyIssue.Filename) ? Path.GetFullPath(cFamilyIssue.Filename) : cFamilyIssue.Filename,
                 message: cFamilyIssue.Text,
                 lineHash: CalculateLineHash(cFamilyIssue, fileContents),
-                startLine: cFamilyIssue.Line,
+                startLine: GetStartLine(cFamilyIssue, fileContents),
                 endLine: cFamilyIssue.EndLine,
 
                 // We don't care about the columns in the special case EndLine=0
@@ -206,6 +206,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 flows: flows,
                 fixes: ToQuickFixes(cFamilyIssue)
             );
+        }
+
+        private int GetStartLine(Message cFamilyIssue, IReadOnlyDictionary<string, ITextDocument> fileContents)
+        {
+            int emptyLines = 0;
+
+            if (IsLocationFileLevel(cFamilyIssue))
+            {
+                var textSnapshot = fileContents[cFamilyIssue.Filename]?.TextBuffer?.CurrentSnapshot;
+                foreach (var line in textSnapshot.Lines)
+                {
+                    if (line.Length > 0)
+                    {
+                        break;
+                    }
+                    emptyLines++;
+                }
+            }
+            return cFamilyIssue.Line + emptyLines;
         }
 
         private static List<QuickFix> ToQuickFixes(Message cFamilyIssue)
@@ -226,12 +245,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private string CalculateLineHash(MessagePart cFamilyIssueLocation, IReadOnlyDictionary<string, ITextDocument> fileContents)
         {
-            var isFileLevelLocation = cFamilyIssueLocation.Line == 1 &&
-                                      cFamilyIssueLocation.Column <= 1 &&
-                                      cFamilyIssueLocation.EndColumn == 0 &&
-                                      cFamilyIssueLocation.EndLine == 0;
-
-            if (isFileLevelLocation)
+            if (IsLocationFileLevel(cFamilyIssueLocation))
             {
                 return null;
             }
@@ -239,6 +253,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             var textSnapshot = fileContents[cFamilyIssueLocation.Filename]?.TextBuffer?.CurrentSnapshot;
 
             return textSnapshot == null ? null : lineHashCalculator.Calculate(textSnapshot, cFamilyIssueLocation.Line);
+        }
+
+        private static bool IsLocationFileLevel(MessagePart cFamilyIssueLocation)
+        {
+            return  cFamilyIssueLocation.Line == 1 &&
+                    cFamilyIssueLocation.Column <= 1 &&
+                    cFamilyIssueLocation.EndColumn == 0 &&
+                    cFamilyIssueLocation.EndLine == 0;
         }
 
         private AnalysisIssueLocation ToAnalysisIssueLocation(MessagePart cFamilyIssueLocation, IReadOnlyDictionary<string, ITextDocument> fileContents)

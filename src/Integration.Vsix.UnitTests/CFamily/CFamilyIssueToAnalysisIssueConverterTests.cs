@@ -180,6 +180,56 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
+        public void Convert_StartsWithEmptyLine_FileLevelIssue_ShouldShowSecondLine()
+        {
+            const string filePath = "file1.cpp";
+
+            var fileSystem = CreateFileSystemMock(true);
+
+            var line1 = CreateTextSnapshotLine(0);
+            var line2 = CreateTextSnapshotLine(10);
+
+            var textSnapshot = CreateTextSnapShot(line1, line2);
+            var textBuffer = CreateTextBuffer(textSnapshot);
+            var textDocument = CreateTextDocument(textBuffer);
+
+            var textDocumentFactoryService = CreatetTextDocumentFactoryService(filePath, textDocument);
+
+            var testSubject = CreateTestSubject(fileSystem.Object, textDocumentFactoryService);
+
+            var message = new Message("rule1", filePath, 1, 1, 0, 0, "this is a file level issue", false, new MessagePart[0], Array.Empty<Fix>());
+
+            var issue = Convert(testSubject, message);
+
+            issue.StartLine.Should().Be(2);
+        }
+
+        [TestMethod]
+        public void Convert_StartsWithEmptyLines_FileLevelIssue_ShouldShowFirsNonEmptyLine()
+        {
+            const string filePath = "file1.cpp";
+
+            var fileSystem = CreateFileSystemMock(true);
+
+            var line1 = CreateTextSnapshotLine(0);
+            var line2 = CreateTextSnapshotLine(0);
+            var line3 = CreateTextSnapshotLine(10);
+
+            var textSnapshot = CreateTextSnapShot(line1, line2, line3);
+            var textBuffer = CreateTextBuffer(textSnapshot);
+            var textDocument = CreateTextDocument(textBuffer);
+            var textDocumentFactoryService = CreatetTextDocumentFactoryService(filePath, textDocument);
+
+            var testSubject = CreateTestSubject(fileSystem.Object, textDocumentFactoryService);
+
+            var message = new Message("rule1", filePath, 1, 1, 0, 0, "this is a file level issue", false, new MessagePart[0], Array.Empty<Fix>());
+
+            var issue = Convert(testSubject, message);
+
+            issue.StartLine.Should().Be(3);
+        }
+
+        [TestMethod]
         public void Convert_NoMessageParts_LineHashCalculatedForIssueOnly()
         {
             const string filePath = "file1.cpp";
@@ -238,15 +288,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             firstLocation.LineHash.Should().Be(firstLocationHash);
         }
 
+        
         [TestMethod]
         public void Convert_HasMessageParts_LineHashCalculatedForNonFileLevelLocationsOnly()
         {
-            var fileSystemMock = CreateFileSystemMock();
-            var lineHashCalculator = new Mock<ILineHashCalculator>();
-            var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>();
-
+            const string fileLevelLocationFilePath = "file1.cpp";
             const string nonFileLevelLocationFilePath = "file2.cpp";
             const int nonFileLevelLocationLine = 20;
+
+            var textSnapshot = CreateTextSnapShot(Array.Empty<ITextSnapshotLine>());
+            var textBuffer = CreateTextBuffer(textSnapshot);
+            var textDocument = CreateTextDocument(textBuffer);
+
+            var fileSystemMock = CreateFileSystemMock();
+            fileSystemMock.Setup(x => x.File.Exists(fileLevelLocationFilePath)).Returns(true);
+
+            var lineHashCalculator = new Mock<ILineHashCalculator>();
+            var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>();
+            SetupDocumentLoad(textDocumentFactoryService, fileLevelLocationFilePath, textDocument);
+
+            
             var nonFileLevelLocationHash = SetupLineHash(fileSystemMock, lineHashCalculator, textDocumentFactoryService, nonFileLevelLocationFilePath, nonFileLevelLocationLine);
 
             var messageParts = new List<MessagePart>
@@ -255,7 +316,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 new MessagePart("file3.cpp", 1, 1, 0, 0, "this is a test 2")
             };
 
-            var fileLevelIssue = new Message("rule2", "file1.pp", 1, 0, 0, 0, "this is a test", false, messageParts.ToArray(), Array.Empty<Fix>());
+            var fileLevelIssue = new Message("rule2", "file1.cpp", 1, 0, 0, 0, "this is a test", false, messageParts.ToArray(), Array.Empty<Fix>());
 
             var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
             var issue = Convert(testSubject, fileLevelIssue);
@@ -715,6 +776,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             textBuffer.Setup(x => x.CurrentSnapshot).Returns(textSnapshot);
 
             return textBuffer.Object;
+        }
+
+        private static ITextSnapshot CreateTextSnapShot(params ITextSnapshotLine[] lines)
+        {
+            var snapshot = new Mock<ITextSnapshot>();
+            snapshot.SetupGet(s => s.Lines).Returns(lines);
+
+            return snapshot.Object;
+        }
+
+        private static ITextSnapshotLine CreateTextSnapshotLine(int lineLength)
+        {
+            var line = new Mock<ITextSnapshotLine>();
+            line.SetupGet(l => l.Length).Returns(lineLength);
+
+            return line.Object;
+        }
+        private static ITextDocumentFactoryService CreatetTextDocumentFactoryService(string filePath, ITextDocument textDocument)
+        {
+            var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>();
+            SetupDocumentLoad(textDocumentFactoryService, filePath, textDocument);
+            return textDocumentFactoryService.Object;
         }
     }
 }
