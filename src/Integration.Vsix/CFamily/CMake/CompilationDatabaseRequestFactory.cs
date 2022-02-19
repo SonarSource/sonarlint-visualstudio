@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
             }
 
             var rulesConfig = rulesConfigProvider.GetRulesConfiguration(languageKey);
-            var context = new RequestContext(languageKey, rulesConfig, analyzedFilePath, SubProcessFilePaths.PchFilePath, analyzerOptions);
+            var context = new RequestContext(languageKey, rulesConfig, analyzedFilePath, SubProcessFilePaths.PchFilePath, analyzerOptions, CFamilyShared.IsHeaderFileExtension(dbEntry.File));
 
             var envVars = await envVarsProvider.GetAsync();
             if (envVars == null)

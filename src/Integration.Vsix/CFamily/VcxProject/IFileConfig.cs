@@ -27,36 +27,5 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
         string CDFile { get; }
         string EnvINCLUDE { get; }
         string HeaderFileLanguage { get; }
-
-        string AbsoluteFilePath { get; }
-        string AbsoluteProjectPath { get; }
-        string PlatformName { get; }
-        string PlatformToolset { get; }
-        string IncludeDirectories { get; }
-        string AdditionalIncludeDirectories { get; }
-        string IgnoreStandardIncludePath { get; }
-        string UndefineAllPreprocessorDefinitions { get; }
-        string PreprocessorDefinitions { get; }
-        string UndefinePreprocessorDefinitions { get; }
-        string ForcedIncludeFiles { get; }
-        string PrecompiledHeader { get; }
-        string PrecompiledHeaderFile { get; }
-        string ItemType { get; }
-        string CompileAs { get; }
-        string CompileAsManaged { get; }
-        string CompileAsWinRT { get; }
-        string DisableLanguageExtensions { get; }
-        string TreatWChar_tAsBuiltInType { get; }
-        string ForceConformanceInForLoopScope { get; }
-        string OpenMPSupport { get; }
-        string RuntimeLibrary { get; }
-        string ExceptionHandling { get; }
-        string EnableEnhancedInstructionSet { get; }
-        string RuntimeTypeInfo { get; }
-        string BasicRuntimeChecks { get; }
-        string OmitDefaultLibName { get; }
-        string AdditionalOptions { get; }
-        string LanguageStandard { get; }
-        string CompilerVersion { get; }
     }
 }

@@ -64,6 +64,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
 
         public IReadOnlyDictionary<string, string> EnvironmentVariables { get; }
 
+        public CompilationDatabaseEntry DatabaseEntry => databaseEntry;
+
         public void WriteRequest(BinaryWriter writer)
         {
             WriteHeader(writer);
@@ -88,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
             WriteSetting(writer, "CreateReproducer", Context?.AnalyzerOptions?.CreateReproducer ?? false ? "true" : "false");
             WriteSetting(writer, "BuildPreamble", Context?.AnalyzerOptions?.CreatePreCompiledHeaders ?? false ? "true" : "false");
 
-            if (CFamilyShared.IsHeaderFileExtension(Context.File))
+            if (Context.IsHeaderFile)
             {
                 WriteSetting(writer, "HeaderFileLanguage", Context.CFamilyLanguage);
             }

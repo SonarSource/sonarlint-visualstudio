@@ -156,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
         private static Mock<IRequest> CreateRequestMock(CFamilyAnalyzerOptions analyzerOptions = null)
         {
-            var context = new RequestContext(null, null, null, null, analyzerOptions);
+            var context = new RequestContext(null, null, null, null, analyzerOptions, false);
             var request = new Mock<IRequest>();
             request.Setup(x => x.Context).Returns(context);
             return request;

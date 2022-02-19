@@ -34,7 +34,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             public IDictionary<string, string> ProjectConfigProperties { get; set; } = new Dictionary<string, string>
             {
-                ["PlatformToolset"] = "v140_xp"
+                ["ClCompilerPath"] = "C:\\path\\cl.exe",
+                ["IncludePath"] = "C:\\path\\includeDir1;C:\\path\\includeDir2;C:\\path\\includeDir3;"
             };
             public IDictionary<string, string> FileConfigProperties { get; set; } = new Dictionary<string, string>
             {
