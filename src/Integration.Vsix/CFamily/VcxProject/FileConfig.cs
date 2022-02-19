@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.IO;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.VCProjectEngine;
@@ -44,19 +45,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             var compilerVersion = GetCompilerVersion(platformToolset, vcToolsVersion);
 
             var vcFileSettings = GetVcFileSettings(logger, absoluteFilePath, vcConfig, vcFile);
-
             if (vcFileSettings == null)
             {
                 // Not supported
                 return null;
             }
+            CmdBuilder cmdBuilder = new CmdBuilder(vcFile.ItemType == "ClInclude");
+            // command: add compiler
+            cmdBuilder.addCompiler(vcConfig.GetEvaluatedPropertyValue("ClCompilerPath"));
+
+            // command: add options from VCRulePropertyStorage
+            cmdBuilder.AddOptFromProperties(vcFileSettings);
+
+            // cmd add File
+            cmdBuilder.AddFile(absoluteFilePath);
+            var envINCLUDE = vcConfig.GetEvaluatedPropertyValue("IncludePath");
 
             // Fetch properties that can be set differently for header files
             var compileAs = vcFileSettings.GetEvaluatedPropertyValue("CompileAs");
             var forcedIncludeFiles = vcFileSettings.GetEvaluatedPropertyValue("ForcedIncludeFiles");
             var precompiledHeader = vcFileSettings.GetEvaluatedPropertyValue("PrecompiledHeader");
             var precompiledHeaderFile = vcFileSettings.GetEvaluatedPropertyValue("PrecompiledHeaderFile");
-            
+
             if (vcFile.ItemType == "ClInclude")
             {
                 // If the project language is not specified. Headers are compiled as CPP
@@ -71,6 +81,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
             return new FileConfig
             {
+                CDDirectory = Path.GetDirectoryName(vcProject.ProjectFile),
+                CDCommand = cmdBuilder.GetFullCmd(),
+                CDFile = absoluteFilePath,
+                EnvINCLUDE = envINCLUDE,
+                HeaderFileLanguage = cmdBuilder.HeaderFileLang,
+
                 AbsoluteFilePath = absoluteFilePath,
                 AbsoluteProjectPath = vcProject.ProjectFile,
 
@@ -178,6 +194,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
         }
 
         #region Properties
+
+        public string CDDirectory { get; set; }
+        public string CDCommand { get; set; }
+        public string CDFile { get; set; }
+        public string EnvINCLUDE { get; set; }
+        public string HeaderFileLanguage { get; set; }
 
         public string AbsoluteFilePath { get; set; }
 

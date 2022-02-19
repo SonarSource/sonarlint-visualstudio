@@ -22,6 +22,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 {
     internal interface IFileConfig
     {
+        string CDDirectory { get; }
+        string CDCommand { get; }
+        string CDFile { get; }
+        string EnvINCLUDE { get; }
+        string HeaderFileLanguage { get; }
+
         string AbsoluteFilePath { get; }
         string AbsoluteProjectPath { get; }
         string PlatformName { get; }
