@@ -99,9 +99,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="CFamily\IntegrationTests\CLangAnalyzerRequestTemplate.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_NoIssues_EmptyFile.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

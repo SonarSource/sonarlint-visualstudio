@@ -18,14 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Abstractions;
+using System.Linq;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.CFamily.CMake;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
 {
@@ -33,13 +41,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
     public class CFamily_CLangAnalyzer_IntegrationTests
     {
         private string testsDataDirectory;
+        private string clExe;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            testsDataDirectory = Path.Combine(
+
+            testsDataDirectory = new Uri(Path.Combine(
                 Path.GetDirectoryName(typeof(CFamily_CLangAnalyzer_IntegrationTests).Assembly.Location),
-                "CFamily\\IntegrationTests\\");
+                "CFamily\\IntegrationTests\\")).AbsolutePath;
+            var code = "Console.Error.WriteLine(\"Microsoft(R) C / C++ Optimizing Compiler Version 19.32.31114.2 for x64\");";
+            clExe = DummyExeHelper.CreateDummyExe(testsDataDirectory, "cl.exe", 0, code);
         }
 
         [TestMethod]
@@ -59,13 +71,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
             messages.Should().BeEquivalentTo(expectedMessages, e => e.WithStrictOrdering());
         }
 
-        private Request GetRequest(string testedFile)
+        private CompilationDatabaseRequest GetRequest(string testedFile)
         {
-            var requestJson = File.ReadAllText(Path.Combine(testsDataDirectory, "CLangAnalyzerRequestTemplate.json"));
-            var request = JsonConvert.DeserializeObject<Request>(requestJson);
-            request.File = testedFile;
-            request.Context = new Core.CFamily.RequestContext(request.CFamilyLanguage, null, testedFile, request.PchFile,
-                new Core.CFamily.CFamilyAnalyzerOptions());
+            var command = "\"" + clExe + "\" /TP " + testedFile;
+            var compilationDatabaseEntry = new CompilationDatabaseEntry { Directory = testsDataDirectory, Command = command, File = testedFile };
+            var envVars = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>() {
+                { "INCLUDE", "" }
+            });
+            var languageKey = SonarLanguageKeys.CPlusPlus;
+
+            var config = new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory).GetRulesConfiguration("cpp");
+            var context = new RequestContext(languageKey, config, testedFile, "",
+                new CFamilyAnalyzerOptions(), false);
+
+            var request = new CompilationDatabaseRequest(compilationDatabaseEntry, context, envVars);
             return request;
         }
 
@@ -73,8 +92,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
         {
             var expectedResponseJson = File.ReadAllText(Path.Combine(testsDataDirectory, testFileName + "_response.json"));
             var expectedResponse = JsonConvert.DeserializeObject<Response>(expectedResponseJson);
-
-            foreach (var expectedResponseMessage in expectedResponse.Messages)
+            var messages = expectedResponse.Messages.Where(m => !m.RuleKey.StartsWith("internal.")).ToArray();
+            foreach (var expectedResponseMessage in messages)
             {
                 expectedResponseMessage.Filename = testedFile;
 
@@ -84,17 +103,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
                 }
             }
 
-            return expectedResponse.Messages;
+            return messages;
         }
 
-        private static List<Message> InvokeAnalyzer(Request request)
+        private static List<Message> InvokeAnalyzer(CompilationDatabaseRequest request)
         {
             var testLogger = new TestLogger(true);
             var processRunner = new ProcessRunner(new ConfigurableSonarLintSettings(), testLogger);
 
             var messages = new List<Message>();
             CLangAnalyzer.ExecuteSubProcess(messages.Add, request, processRunner, testLogger, CancellationToken.None, new FileSystem());
-
+            messages = messages.Where(m => !m.RuleKey.StartsWith("internal.")).ToList();
             return messages;
         }
     }
