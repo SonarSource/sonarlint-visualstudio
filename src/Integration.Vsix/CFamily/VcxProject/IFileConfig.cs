@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
         string CDDirectory { get; }
         string CDCommand { get; }
         string CDFile { get; }
-        string EnvINCLUDE { get; }
+        string EnvInclude { get; }
         string HeaderFileLanguage { get; }
     }
 }

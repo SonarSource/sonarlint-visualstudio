@@ -139,11 +139,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             request.Should().NotBeNull();
             Assert.AreEqual("\"C:\\path\\cl.exe\" /permissive- /std:c++17 /EHsc /arch:AVX512 /MT /RTCu /Zp8 /TP /DA \"c:\\dummy\\file.cpp\"", request.CDCommand);
             Assert.AreEqual("", request.HeaderFileLanguage);
-            Assert.AreEqual("C:\\path\\includeDir1;C:\\path\\includeDir2;C:\\path\\includeDir3;", request.EnvINCLUDE);
+            Assert.AreEqual("C:\\path\\includeDir1;C:\\path\\includeDir2;C:\\path\\includeDir3;", request.EnvInclude);
             Assert.AreEqual("c:\\dummy\\file.cpp", request.CDFile);
             Assert.AreEqual("c:\\foo", request.CDDirectory);
         }
-        
+
         [TestMethod]
         public void TryGet_HeaderFileOptions_ReturnsValidConfig()
         {

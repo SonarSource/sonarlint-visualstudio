@@ -362,7 +362,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             fileConfig.SetupGet(x => x.CDDirectory).Returns("c:\\");
             fileConfig.SetupGet(x => x.CDCommand).Returns("cl.exe " + filePath);
             fileConfig.SetupGet(x => x.CDFile).Returns(filePath);
-            fileConfig.SetupGet(x => x.EnvINCLUDE).Returns("");
+            fileConfig.SetupGet(x => x.EnvInclude).Returns("");
             fileConfig.SetupGet(x => x.HeaderFileLanguage).Returns("");
 
             return fileConfig;

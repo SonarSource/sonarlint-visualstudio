@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 CDDirectory = Path.GetDirectoryName(vcProject.ProjectFile),
                 CDCommand = cmdBuilder.GetFullCmd(),
                 CDFile = absoluteFilePath,
-                EnvINCLUDE = envINCLUDE,
+                EnvInclude = envINCLUDE,
                 HeaderFileLanguage = cmdBuilder.HeaderFileLang,
             };
         }
@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
         public string CDDirectory { get; set; }
         public string CDCommand { get; set; }
         public string CDFile { get; set; }
-        public string EnvINCLUDE { get; set; }
+        public string EnvInclude { get; set; }
         public string HeaderFileLanguage { get; set; }
         #endregion
 

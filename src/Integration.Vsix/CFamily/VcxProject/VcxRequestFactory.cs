@@ -157,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
 
             var envVars = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>() { 
-                { "INCLUDE", fileConfig.EnvINCLUDE } 
+                { "INCLUDE", fileConfig.EnvInclude } 
             });
 
             return new CompilationDatabaseRequest(dbEntry, context, envVars);
