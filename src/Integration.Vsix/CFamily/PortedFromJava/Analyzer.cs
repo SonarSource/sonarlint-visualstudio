@@ -18,57 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
 /**
  * This is a port of the protocol implemented between Java and C++
  * https://github.com/SonarSource/sonar-cpp/blob/master/sonar-cfamily-plugin/src/main/java/com/sonar/cpp/analyzer/Analyzer.java
  */
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
-
-    internal partial class Request
-    {
-        public const int Verify = 1;
-        public const int C99 = 1 << 1;
-        public const int C11 = 1 << 2;
-        public const int CPlusPlus = 1 << 3;
-        public const int CPlusPlus11 = 1 << 4;
-        public const int CPlusPlus14 = 1 << 5;
-        public const int CPlusPlus17 = 1 << 6;
-        public const int ObjC = 1 << 7;
-        public const int MS = 1 << 8;
-        public const int GNU = 1 << 9;
-        public const int OperatorNames = 1 << 10;
-        public const int CharIsUnsigned = 1 << 11;
-        public const int CreateReproducer = 1 << 14;
-        public const int AutoRefCount = 1 << 15;
-        public const int Weak = 1 << 16;
-        public const int C17 = 1 << 17;
-        public const int SonarLint = 1 << 18;
-        public const int BuildPreamble = 1 << 19;
-        public const int MainFileIsHeader = 1 << 20;
-        public const int CPlusPlus20 = 1 << 21;
-        public const int NoDelayedTemplateParsing = 1 << 22;
-        public const int AlignedNew = 1 << 23;
-
-        public string[] Options { get; set; } = Array.Empty<string>();
-        public long Flags { get; set; }
-        public long MsVersion { get; set; }
-        public string[] IncludeDirs { get; set; } = Array.Empty<string>();
-        public string[] FrameworkDirs { get; set; } = Array.Empty<string>();
-        public string[] VfsOverlayFiles { get; set; } = Array.Empty<string>();
-        public string ModuleName { get; set; } = "";
-        public string Predefines { get; set; } = "";
-        public string[] Macros { get; set; } = Array.Empty<string>();
-        public string TargetTriple { get; set; } = "x86_64-unknown-unknown";
-
-        // File and PchFile are also now part of the C# RequestContext class
-        // TODO: refactor to remove them from this class
-        public string File { get; set; } = "";
-        public string PchFile { get; set; } = "";
-    }
-
     internal class Response
     {
         public Message[] Messages { get; }
