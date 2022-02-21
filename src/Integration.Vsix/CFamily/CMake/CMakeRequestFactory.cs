@@ -22,18 +22,19 @@ using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.CFamily.CMake;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily.CompilationDatabase;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
 {
     [Export(typeof(IRequestFactory))]
-    internal class CompilationDatabaseRequestFactory : IRequestFactory
+    internal class CMakeRequestFactory : IRequestFactory
     {
         private readonly ICompilationConfigProvider compilationConfigProvider;
         private readonly ICFamilyRulesConfigProvider rulesConfigProvider;
         private readonly IEnvironmentVarsProvider envVarsProvider;
 
         [ImportingConstructor]
-        public CompilationDatabaseRequestFactory(ICompilationConfigProvider compilationConfigProvider,
+        public CMakeRequestFactory(ICompilationConfigProvider compilationConfigProvider,
             ICFamilyRulesConfigProvider rulesConfigProvider,
             IEnvironmentVarsProvider envVarsProvider)
         {

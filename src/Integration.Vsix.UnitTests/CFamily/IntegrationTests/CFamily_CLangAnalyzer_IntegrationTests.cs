@@ -32,7 +32,7 @@ using SonarLint.VisualStudio.CFamily.CMake;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily.CompilationDatabase;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests

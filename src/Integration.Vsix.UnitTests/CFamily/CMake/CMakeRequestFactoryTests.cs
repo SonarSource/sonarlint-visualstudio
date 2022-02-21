@@ -31,7 +31,7 @@ using SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake;
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
 {
     [TestClass]
-    public class CompilationDatabaseRequestFactoryTests
+    public class CMakeRequestFactoryTests
     {
         private static readonly IEnvironmentVarsProvider ValidEnvVarsProvider = CreateEnvVarsProvider(new Dictionary<string, string> { { "key", "value" } }).Object;
         private static readonly ICFamilyRulesConfigProvider ValidRulesConfigProvider_Cpp = CreateRulesProvider(SonarLanguageKeys.CPlusPlus, new DummyCFamilyRulesConfig((SonarLanguageKeys.CPlusPlus))).Object;
@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<CompilationDatabaseRequestFactory, IRequestFactory>(null, new[]
+            MefTestHelpers.CheckTypeCanBeImported<CMakeRequestFactory, IRequestFactory>(null, new[]
             {
                 MefTestHelpers.CreateExport<ICompilationConfigProvider>(Mock.Of<ICompilationConfigProvider>()),
                 MefTestHelpers.CreateExport<ICFamilyRulesConfigProvider>(Mock.Of<ICFamilyRulesConfigProvider>()),
@@ -164,7 +164,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
             actual.Context.RulesConfiguration.Should().BeSameAs(rulesConfig);
         }
 
-        private static CompilationDatabaseRequestFactory CreateTestSubject(
+        private static CMakeRequestFactory CreateTestSubject(
             ICompilationConfigProvider compilationConfigProvider = null,
             ICFamilyRulesConfigProvider rulesConfigProvider = null,
             IEnvironmentVarsProvider envVarsProvider = null)
@@ -173,7 +173,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
             rulesConfigProvider ??= Mock.Of<ICFamilyRulesConfigProvider>();
             envVarsProvider ??= Mock.Of<IEnvironmentVarsProvider>();
 
-            return new CompilationDatabaseRequestFactory(compilationConfigProvider, rulesConfigProvider, envVarsProvider);
+            return new CMakeRequestFactory(compilationConfigProvider, rulesConfigProvider, envVarsProvider);
         }
 
         private static Mock<ICompilationConfigProvider> CreateCompilationProvider(string fileName, CompilationDatabaseEntry entryToReturn)

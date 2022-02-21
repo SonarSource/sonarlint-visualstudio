@@ -33,7 +33,7 @@ using static SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests.CFamilyTe
 using System.Threading.Tasks;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily.CompilationDatabase;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {

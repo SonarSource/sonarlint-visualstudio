@@ -26,10 +26,11 @@ using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.CFamily.CMake;
 using SonarLint.VisualStudio.Core.CFamily;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
+namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CompilationDatabase
 {
     /// <summary>
     /// Encapsulates a low-level analysis request for the CFamily compilation database entry protocol
+    /// Used for both CMake and Vcx projects
     /// </summary>
     internal class CompilationDatabaseRequest : IRequest
     {

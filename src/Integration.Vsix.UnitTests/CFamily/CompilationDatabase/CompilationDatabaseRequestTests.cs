@@ -29,9 +29,9 @@ using Moq;
 using SonarLint.VisualStudio.CFamily.CMake;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily.CompilationDatabase;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
+namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CompilationDatabase
 {
     [TestClass]
     public class CompilationDatabaseRequestTests
