@@ -46,10 +46,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
         [TestInitialize]
         public void TestInitialize()
         {
-
+            // Uri absolute path is used to make issues filename slashes consistent between expected and actual 
             testsDataDirectory = new Uri(Path.Combine(
                 Path.GetDirectoryName(typeof(CFamily_CLangAnalyzer_IntegrationTests).Assembly.Location),
                 "CFamily\\IntegrationTests\\")).AbsolutePath;
+            // Subprocess.exe requirse a valid path to an executable named cl.exe that prints something similar to the real compiler
             var code = "Console.Error.WriteLine(\"Microsoft(R) C / C++ Optimizing Compiler Version 19.32.31114.2 for x64\");";
             clExe = DummyExeHelper.CreateDummyExe(testsDataDirectory, "cl.exe", 0, code);
         }

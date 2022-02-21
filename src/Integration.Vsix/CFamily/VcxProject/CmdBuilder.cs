@@ -73,12 +73,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             return s;
         }
 
-        internal /* for testing */ void AddCmdWithQuote(string path)
-        {
-            // Always seperate option by space
-            AddCmdOpt(AddQuote(path));
-        }
-
         internal /* for testing */ static string AdjustPath(string path)
         {
             // path cannot be empty
@@ -96,6 +90,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
         internal void AddOptFromProperties(IVCRulePropertyStorage properties)
         {
+            // We use GetEvaluatedPropertyValue for: options that are essential, that were available since the beginning of MSVC C++ support, aor where having a defalt value doesn't make sense.
+            // We use GetPotentiallyUnsupportedPropertyValue for options that are newly introduced by MSVC, newly supported by SLVS, or options where there is a clear default
+
             // list options
             string[] separator = new string[] { ";" };
             AddPathListOptions(properties, "AdditionalIncludeDirectories", "/I", separator);
