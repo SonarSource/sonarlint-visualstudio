@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             }
             CmdBuilder cmdBuilder = new CmdBuilder(vcFile.ItemType == "ClInclude");
             // command: add compiler
-            cmdBuilder.addCompiler(vcConfig.GetEvaluatedPropertyValue("ClCompilerPath"));
+            cmdBuilder.AddCompiler(vcConfig.GetEvaluatedPropertyValue("ClCompilerPath"));
 
             // command: add options from VCRulePropertyStorage
             cmdBuilder.AddOptFromProperties(vcFileSettings);

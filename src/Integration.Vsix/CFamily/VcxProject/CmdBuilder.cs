@@ -47,9 +47,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             // No need for a space at the end after the file
             Cmd.Append(AdjustPath(path));
         }
-        public void addCompiler(string path)
+        public void AddCompiler(string path)
         {
-            // Always seperate option by space
             AddCmdOpt(AddQuote(path));
         }
 
