@@ -20,12 +20,8 @@
        or
 
        * build from a 2019/2022 command line, and specify the version of VS to target by
-         setting the vsTargetVersion property to 2017, 2019 or 2022 e.g.
-           /p:vsTargetVersion=2017
-
-       Note: it is not possible to build in VS2017 or from the VS2017 command prompt, becuase the
-             test projects use new C# language features that were not available in the compiler that
-             shipped with VS2017.
+         setting the vsTargetVersion property to 2019 or 2022 e.g.
+           /p:vsTargetVersion=2019
 
 
        Switching between debugging in VS2022 and VS2019
@@ -50,12 +46,9 @@
        ************************************************
        
        Background:
-       We want to be able to use the same set of projects to develop in multiple versions of VS (VS2017, VS2019, VS2022).
+       We want to be able to use the same set of projects to develop in multiple versions of VS (VS2019, VS2022).
 
        To achieve this, this project file has the following features:
-       
-       * there's a minor hack to prevent VS2017 from auto-upgrading the project - see the PropertyGroup below.
-         (The changes made by the auto-upgrade are not required and prevent the project from opening in VS2015).
 
        * wherever possible, VS assemblies are referenced using NuGet packages. See the file SonarLint.VsPkgRefs.props.
 
@@ -69,9 +62,6 @@
   <Import Project="..\..\build\version.props" />
 
   <PropertyGroup>
-    <!-- Hack to prevent VS2017 from automatically attempting to upgrade the project -->
-    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
-
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
 
     <RequiresVCProjectEngine>true</RequiresVCProjectEngine>

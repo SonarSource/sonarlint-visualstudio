@@ -11,11 +11,6 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <!-- Hack to prevent VS2017 from automatically attempting to upgrade the project -->
-    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
-  </PropertyGroup>
-
   <!-- This project references the Microsoft.VisualStudio.Shell assembly which is VS-version specific -->
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 

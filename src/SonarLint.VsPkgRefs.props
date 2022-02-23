@@ -1,6 +1,6 @@
 <Project>
 
-  <ItemGroup Label="VS packages 2017/2019" Condition=" $(VsTargetVersion) != '2022' ">
+  <ItemGroup Label="VS packages 2019" Condition=" $(VsTargetVersion) != '2022' ">
     <PackageReference Include="Microsoft.VisualStudio.Sdk" Version="15.0.1" />
   </ItemGroup>
 
