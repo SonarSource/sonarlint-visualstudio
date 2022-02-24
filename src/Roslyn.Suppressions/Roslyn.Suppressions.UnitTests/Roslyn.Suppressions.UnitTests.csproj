@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <ProjectGuid>{EB6F36A7-C2BD-4054-ACEC-8B6DEB98CE3D}</ProjectGuid>
+    <ProjectGuid>{C478DAE7-58BC-4D02-929E-E413B40F2517}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests</AssemblyName>
   </PropertyGroup>

@@ -3,7 +3,7 @@
 <Import Project="..\..\SonarLint.Product.props" />
   
   <PropertyGroup>
-    <ProjectGuid>{AA1660FF-CF24-4198-A59C-7DA9B9B39F22}</ProjectGuid>
+    <ProjectGuid>{082D5D8E-F914-4139-9AE3-3F48B679E3DA}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Roslyn.Suppressions</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Roslyn.Suppressions</AssemblyName>
   </PropertyGroup>

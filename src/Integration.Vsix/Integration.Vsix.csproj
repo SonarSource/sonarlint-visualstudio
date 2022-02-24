@@ -227,7 +227,7 @@
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\Roslyn.Suppressions\Roslyn.Suppressions\Roslyn.Suppressions.csproj">
-      <Project>{AA1660FF-CF24-4198-A59C-7DA9B9B39F22}</Project>
+      <Project>{082D5D8E-F914-4139-9AE3-3F48B679E3DA}</Project>
       <Name>Roslyn.Suppressions</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
