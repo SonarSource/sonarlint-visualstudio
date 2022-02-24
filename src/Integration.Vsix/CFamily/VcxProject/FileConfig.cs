@@ -43,8 +43,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 return null;
             }
             CmdBuilder cmdBuilder = new CmdBuilder(vcFile.ItemType == "ClInclude");
+
+            var compilerPath = vcConfig.GetEvaluatedPropertyValue("ClCompilerPath");
+            if (string.IsNullOrEmpty(compilerPath))
+            {
+                // in case ClCompilerPath is not available on VS2017
+                var platform = ((VCPlatform)vcConfig.Platform).Name.Contains("64") ? "x64" : "x86";
+                var exeVar = "VC_ExecutablePath_" + platform;
+                compilerPath = Path.Combine(vcConfig.GetEvaluatedPropertyValue(exeVar), "cl.exe");
+                if (string.IsNullOrEmpty(compilerPath))
+                {
+                    logger.WriteLine("Compiler is not supported. \"ClCompilerPath\" and \"VC_ExecutablePath\" were not found.");
+                    return null;
+                }
+            }
             // command: add compiler
-            cmdBuilder.AddCompiler(vcConfig.GetEvaluatedPropertyValue("ClCompilerPath"));
+            cmdBuilder.AddCompiler(compilerPath);
 
             // command: add options from VCRulePropertyStorage
             cmdBuilder.AddOptFromProperties(vcFileSettings);

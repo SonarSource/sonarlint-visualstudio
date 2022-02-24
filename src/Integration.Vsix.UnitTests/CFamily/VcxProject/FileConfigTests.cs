@@ -187,5 +187,41 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /EHsc /RTCu \"c:\\dummy\\file.h\"", request.CDCommand);
             Assert.AreEqual("c", request.HeaderFileLanguage);
         }
+
+        [TestMethod]
+        public void TryGet_CompilerName_VS2017()
+        {
+            // Arrange
+            var projectItemConfig = new ProjectItemConfig
+            {
+                ProjectConfigProperties = new Dictionary<string, string>
+                {
+                    ["ClCompilerPath"] = null,
+                    ["IncludePath"] = "C:\\path\\includeDir1;C:\\path\\includeDir2;C:\\path\\includeDir3;",
+                    ["VC_ExecutablePath_x86"] = "C:\\path\\x86",
+                    ["VC_ExecutablePath_x64"] = "C:\\path\\x64",
+                }
+            };
+
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
+
+            // Act
+            var request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp");
+
+            // Assert
+            request.Should().NotBeNull();
+            Assert.IsTrue(request.CDCommand.StartsWith("\"C:\\path\\x86\\cl.exe\""));
+
+            // Arrange
+            projectItemConfig.PlatformName = "x64";
+            projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
+            // Act
+            request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp");
+
+            // Assert
+            request.Should().NotBeNull();
+            Assert.IsTrue(request.CDCommand.StartsWith("\"C:\\path\\x64\\cl.exe\""));
+        }
+
     }
 }
