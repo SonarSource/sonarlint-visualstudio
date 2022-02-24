@@ -36,9 +36,6 @@
   <!-- *********************************************************-->
 
   <PropertyGroup>
-      <!-- Hack to prevent VS2017 from automatically attempting to upgrade the project -->
-    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
-
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <TargetFrameworkProfile />
   </PropertyGroup>
