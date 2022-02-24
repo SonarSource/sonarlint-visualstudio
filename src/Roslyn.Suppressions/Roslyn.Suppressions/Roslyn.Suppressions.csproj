@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+<Import Project="..\..\SonarLint.Product.props" />
+  
+  <PropertyGroup>
+    <ProjectGuid>{AA1660FF-CF24-4198-A59C-7DA9B9B39F22}</ProjectGuid>
+    <RootNamespace>SonarLint.VisualStudio.Roslyn.Suppressions</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.Roslyn.Suppressions</AssemblyName>
+  </PropertyGroup>
+
+</Project>
