@@ -1659,6 +1659,7 @@
           "SonarLint.VisualStudio.IssueVisualization.Security": "1.0.0",
           "SonarLint.VisualStudio.Progress": "1.0.0",
           "SonarLint.VisualStudio.ProgressVS": "1.0.0",
+          "SonarLint.VisualStudio.Roslyn.Suppressions": "1.0.0",
           "SonarLint.VisualStudio.TypeScript": "1.0.0",
           "SonarQube.Client": "1.0.0",
           "System.Collections.Immutable": "1.1.37",
@@ -1765,6 +1766,9 @@
           "Microsoft.VisualStudio.Sdk": "17.0.0-previews-4-31709-430",
           "SonarLint.VisualStudio.Progress": "1.0.0"
         }
+      },
+      "SonarLint.VisualStudio.Roslyn.Suppressions": {
+        "type": "Project"
       },
       "SonarLint.VisualStudio.TypeScript": {
         "type": "Project",

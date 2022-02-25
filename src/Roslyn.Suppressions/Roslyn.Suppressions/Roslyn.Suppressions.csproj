@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- NOTE: this assembly should NOT have any dependencies on Visual Studio assemblies
+       
+	   It could be loaded into the external Roslyn analysis process by VS, so it has a
+	   number of limitations about what it can reference / access
+	   
+	   * it can't use MEF to import any of our types.
+        * it can't access any instances/services running in the main VS instance.
+ 
+  -->
+
+  
+<Import Project="..\..\SonarLint.Product.props" />
+  
+  <PropertyGroup>
+    <ProjectGuid>{082D5D8E-F914-4139-9AE3-3F48B679E3DA}</ProjectGuid>
+    <RootNamespace>SonarLint.VisualStudio.Roslyn.Suppressions</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.Roslyn.Suppressions</AssemblyName>
+  </PropertyGroup>
+
+</Project>
