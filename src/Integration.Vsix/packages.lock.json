@@ -1587,6 +1587,9 @@
           "SonarLint.VisualStudio.Progress": "1.0.0"
         }
       },
+      "SonarLint.VisualStudio.Roslyn.Suppressions": {
+        "type": "Project"
+      },
       "SonarLint.VisualStudio.TypeScript": {
         "type": "Project",
         "dependencies": {
