@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\SonarLint.Test.props" />
+
+  
+  <ItemGroup Label="Test framework">
+    <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
+    <PackageReference Include="Moq" Version="4.14.5" />
+    <PackageReference Include="FluentAssertions" Version="5.9.0" />
+  </ItemGroup>
+
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Roslyn.Suppressions\Roslyn.Suppressions.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <ProjectGuid>{C478DAE7-58BC-4D02-929E-E413B40F2517}</ProjectGuid>
+    <RootNamespace>SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests</AssemblyName>
+  </PropertyGroup>
+
+</Project>
