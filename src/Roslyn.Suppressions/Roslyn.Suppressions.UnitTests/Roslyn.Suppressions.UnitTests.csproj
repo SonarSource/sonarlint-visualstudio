@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="..\..\SonarLint.Product.props" />
+  <Import Project="..\..\SonarLint.Test.props" />
 
   
   <ItemGroup Label="Test framework">
