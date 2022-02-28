@@ -47,6 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         private Dictionary<string, List<SonarQubeIssue>> suppressedModuleIssues;
         private List<IGrouping<string, SonarQubeIssue>> suppressedFileIssues;
+        private IList<SonarQubeIssue> allSuppressedIssues;
         private bool hasModules;
 
         private bool isDisposed;
@@ -96,6 +97,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             refreshTimer.Dispose();
             initialFetchCancellationTokenSource.Cancel();
             suppressedFileIssues = null;
+            allSuppressedIssues = null;
             this.isDisposed = true;
         }
 
@@ -130,6 +132,11 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
             return this.suppressedFileIssues.FirstOrDefault(x => filePath.EndsWith(x.Key, StringComparison.OrdinalIgnoreCase))
                 ?? Enumerable.Empty<SonarQubeIssue>();
+        }
+
+        public IEnumerable<SonarQubeIssue> GetAllSuppressedIssues()
+        {
+            return allSuppressedIssues ?? Enumerable.Empty<SonarQubeIssue>();
         }
 
         private string BuildModuleKey(string projectGuid)
@@ -190,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                     .ToDictionary(x => x.Key, x => x.RelativePathToRoot);
                 this.hasModules = moduleKeyToRelativePathToRoot.Keys.Count > 1;
 
-                var allSuppressedIssues = await this.sonarQubeService.GetSuppressedIssuesAsync(sonarQubeProjectKey,
+                this.allSuppressedIssues = await this.sonarQubeService.GetSuppressedIssuesAsync(sonarQubeProjectKey,
                     cancellationTokenSource.Token);
 
                 this.suppressedModuleIssues = allSuppressedIssues.Where(x => string.IsNullOrEmpty(x.FilePath))
