@@ -30,5 +30,10 @@ namespace SonarLint.VisualStudio.Core.Suppression
         /// Returns SonarQube suppressed issues for the specified project and file
         /// </summary>
         IEnumerable<SonarQubeIssue> GetSuppressedIssues(string projectGuid, string filePath);
+
+        /// <summary>
+        /// Returns all SonarQube suppressed issues
+        /// </summary>
+        IEnumerable<SonarQubeIssue> GetAllSuppressedIssues();
     }
 }
