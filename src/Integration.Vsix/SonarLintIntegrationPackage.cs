@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppression;
+using SonarLint.VisualStudio.Integration.Suppression;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -64,6 +65,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private SonarAnalyzerManager sonarAnalyzerManager;
 
         private ILogger logger;
+        private ISuppressedIssuesFileSynchronizer suppressedIssuesFileSynchronizer;
 
         protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -96,6 +98,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     serviceProvider.GetMefService<IProjectPropertyManager>(),
                     serviceProvider.GetMefService<IProjectToLanguageMapper>());
 
+                this.suppressedIssuesFileSynchronizer = await this.GetMefServiceAsync<ISuppressedIssuesFileSynchronizer>();
+
                 logger.WriteLine(Resources.Strings.SL_InitializationComplete);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -112,6 +116,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 this.sonarAnalyzerManager?.Dispose();
                 this.sonarAnalyzerManager = null;
+                this.suppressedIssuesFileSynchronizer?.Dispose();
+                this.suppressedIssuesFileSynchronizer = null;
             }
         }
     }
