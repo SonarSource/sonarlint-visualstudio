@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             var suppressedIssuesFileStorage = new Mock<ISuppressedIssuesFileStorage>();
             var suppressedIssuesProvider = new Mock<ISonarQubeIssuesProvider>();
 
-            var configuration = CreateBindingConfiguration("some project key");
+            var configuration = CreateConnectedConfiguration("some project key");
             activeSolutionBoundTracker.Setup(x => x.CurrentConfiguration).Returns(configuration);
 
             var issues = hasIssues ? new[] { CreateSonarQubeIssue(), CreateSonarQubeIssue() } : Array.Empty<SonarQubeIssue>();
@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 SonarQubeIssueSeverity.Blocker, new DateTimeOffset(), new DateTimeOffset(), null, null);
         }
 
-        private static BindingConfiguration CreateBindingConfiguration(string projectKey)
+        private static BindingConfiguration CreateConnectedConfiguration(string projectKey)
         {
             var project = new BoundSonarQubeProject(new Uri("http://localhost"), projectKey, "project name");
             

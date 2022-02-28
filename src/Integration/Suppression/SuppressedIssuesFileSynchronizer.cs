@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
     }
 
     [Export(typeof(ISuppressedIssuesFileSynchronizer))]
-    internal class SuppressedIssuesFileSynchronizer : ISuppressedIssuesFileSynchronizer
+    internal sealed class SuppressedIssuesFileSynchronizer : ISuppressedIssuesFileSynchronizer
     {
         private readonly ISuppressedIssuesMonitor suppressedIssuesMonitor;
         private readonly ISonarQubeIssuesProvider suppressedIssuesProvider;
