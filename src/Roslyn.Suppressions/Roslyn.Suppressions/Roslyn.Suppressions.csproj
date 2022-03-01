@@ -12,59 +12,22 @@
   
   <Import Project="..\..\SonarLint.Product.props" />
 
+  <!-- Note: the code gen targets file imports Roslyn packages that are also required by this project at runtime. -->
+  <Import Project="SuppressorCodeGen.targets" />
+
   <PropertyGroup>
     <ProjectGuid>{082D5D8E-F914-4139-9AE3-3F48B679E3DA}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Roslyn.Suppressions</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Roslyn.Suppressions</AssemblyName>
   </PropertyGroup>
 
-  <!-- ********************************************************** -->
-  <!-- Generating the list of suppressed diagnostics -->
-  <!-- ********************************************************** -->
-  <!-- We are using T4 to generate a list of SupportedSuppressions, one suppression for each Sonar C#/VB.NET rules. -->
-
-  <Import Project="..\..\EmbeddedSonarAnalyzer.props" />
-
-  <ItemGroup Label="Roslyn / analyzer packages">
-    <!-- NOTE: the SonarAnalzyer NuGets reference an older version of Roslyn. However, we need to reference at
-               least Roslyn v3.3.1, which is when the DiagnosticSuppressor class was introduced.That means
-               NuGetNThat means we neeed to exd to explicitly reference th e a couple of  -->
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.3.1" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.3.1" PrivateAssets="all" />
-
-    <!-- Reference the Sonar analyzers we want to import, but don't include them as analyzers for this project -->
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" />
-    <PackageReference Include="SonarAnalyzer.VisualBasic" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" />
-  </ItemGroup>
-
-  <PropertyGroup>
-    <!-- Calculate the paths to the analyzer dlls so we can reference them from the T4 template -->
-    <SonarCSharpDllPath>$(NuGetPackageRoot)SonarAnalyzer.CSharp\$(EmbeddedSonarAnalyzerVersion)\analyzers\SonarAnalyzer.CSharp.dll</SonarCSharpDllPath>
-    <SonarVBDllPath>$(NuGetPackageRoot)SonarAnalyzer.VisualBasic\$(EmbeddedSonarAnalyzerVersion)\analyzers\SonarAnalyzer.VisualBasic.dll</SonarVBDllPath>
-  </PropertyGroup>
-
   <ItemGroup>
-    <None Update="SupportedSuppressionBuilder.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>SupportedSuppressionBuilder.g.cs</LastGenOutput>
-    </None>
-    <None Include="SupportedSuppressionBuilder.g.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>SupportedSuppressionBuilder.tt</DependentUpon>
-    </None>
-  </ItemGroup>
-      
-  <ItemGroup>
-    <!-- T4 VS service GUID - added automatically by VS -->
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
-      
+
   <ItemGroup>
     <Compile Update="SupportedSuppressionBuilder.g.cs">
       <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>SupportedSuppressionBuilder.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 
