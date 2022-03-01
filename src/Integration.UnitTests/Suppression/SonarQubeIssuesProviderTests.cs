@@ -638,6 +638,54 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             testLogger.AssertPartialOutputStrings("Checking for suppressions", "dummy error from mock");
         }
 
+        [TestMethod]
+        public void GetAllSuppressedIssues_NoIssuesOnServer_ReturnsEmptyList()
+        {
+            SetupSolutionBinding(isConnected: true, issues: null);
+
+            // 1. Created -> issues fetch in background
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey",
+                mockTimerFactory.Object, testLogger);
+            WaitForInitialFetchTaskToStart();
+
+            VerifyServiceGetIssues(Times.Exactly(1), "sqkey");
+
+            // 2. SonarQube project key doesn't match -> no issues
+            var matches = issuesProvider.GetAllSuppressedIssues();
+            matches.Should().NotBeNull();
+            matches.Should().BeEmpty();
+
+            // Cached issues should be used after first fetch. Should not refetch just
+            // because the initial fetch returned no items.
+            VerifyServiceGetIssues(Times.Exactly(1));
+        }
+
+        [TestMethod]
+        public void GetAllSuppressedIssues_HasIssuesOnServer_ReturnsAllIssues()
+        {
+            // Arrange
+            var sonarQubeIssue1 = CreateIssue("aaa\\foo.cs", "module1", "S1");
+            var sonarQubeIssue2 = CreateIssue("toto\\foo.cs", "module2", "S2");
+
+            SetupSolutionBinding(isConnected: true, issues: new []{sonarQubeIssue1, sonarQubeIssue2});
+
+            // 1. Created -> issues fetch in background
+            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey",
+                mockTimerFactory.Object, testLogger);
+            WaitForInitialFetchTaskToStart();
+
+            VerifyServiceGetIssues(Times.Exactly(1), "sqkey");
+
+            // 2. SonarQube project key doesn't match -> no issues
+            var matches = issuesProvider.GetAllSuppressedIssues();
+            matches.Should().NotBeNull();
+            matches.Should().BeEquivalentTo(sonarQubeIssue1, sonarQubeIssue2);
+
+            // Cached issues should be used after first fetch. Should not refetch just
+            // because the initial fetch returned no items.
+            VerifyServiceGetIssues(Times.Exactly(1));
+        }
+
         #endregion
 
         private static SonarQubeIssue CreateIssue(string filePath, string moduleKey, string ruleId) =>

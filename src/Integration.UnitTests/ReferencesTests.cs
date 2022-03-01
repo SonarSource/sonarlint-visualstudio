@@ -43,16 +43,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             executingAssemblyLocation.Should()
                 .NotBeNull()
                 .And.EndWith("Integration.UnitTests.dll");
-
-            if (executingAssemblyLocation.Contains("\\VS2015\\"))
-            {
-                dllMajorVersion.Should().Be(14);
-            }
-            else if (executingAssemblyLocation.Contains("\\VS2017\\"))
-            {
-                dllMajorVersion.Should().Be(15);
-            }
-            else if (executingAssemblyLocation.Contains("\\VS2019\\"))
+            
+            if (executingAssemblyLocation.Contains("\\VS2019\\"))
             {
                 dllMajorVersion.Should().Be(16);
             }
