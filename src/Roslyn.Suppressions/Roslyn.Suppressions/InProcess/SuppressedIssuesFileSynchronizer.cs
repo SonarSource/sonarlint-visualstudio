@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.Suppression
+namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
 {
     /// <summary>
     /// Responsible for listening to <see cref="ISuppressedIssuesMonitor.SuppressionsUpdateRequested"/> and calling

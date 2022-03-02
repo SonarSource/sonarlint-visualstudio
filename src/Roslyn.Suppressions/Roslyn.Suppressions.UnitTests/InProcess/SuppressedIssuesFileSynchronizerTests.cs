@@ -25,11 +25,12 @@ using Moq;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Core.Suppressions;
-using SonarLint.VisualStudio.Integration.Suppression;
+using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
 using SonarQube.Client.Models;
 using EventHandler = System.EventHandler;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
+namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
 {
     [TestClass]
     public class SuppressedIssuesFileSynchronizerTests

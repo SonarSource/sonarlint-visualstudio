@@ -10,13 +10,21 @@
  
   -->
 
-  
-<Import Project="..\..\SonarLint.Product.props" />
+
+  <Import Project="..\..\SonarLint.Product.props" />
   
   <PropertyGroup>
     <ProjectGuid>{082D5D8E-F914-4139-9AE3-3F48B679E3DA}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Roslyn.Suppressions</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Roslyn.Suppressions</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup Label="Framework references">
+    <Reference Include="System.ComponentModel.Composition" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Core.csproj" />
+  </ItemGroup>
 
 </Project>
