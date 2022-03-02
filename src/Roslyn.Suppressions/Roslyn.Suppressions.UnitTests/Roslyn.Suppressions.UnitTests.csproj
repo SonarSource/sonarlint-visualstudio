@@ -2,16 +2,22 @@
 
   <Import Project="..\..\SonarLint.Test.props" />
 
-  
   <ItemGroup Label="Test framework">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
     <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
     <PackageReference Include="Moq" Version="4.14.5" />
     <PackageReference Include="FluentAssertions" Version="5.9.0" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\TestInfrastructure\TestInfrastructure.csproj" />
+    <ProjectReference Include="..\Roslyn.Suppressions\Roslyn.Suppressions.csproj" />
+  </ItemGroup>
 
   
   <ItemGroup>
-    <ProjectReference Include="..\Roslyn.Suppressions\Roslyn.Suppressions.csproj" />
+    <Reference Include="System.ComponentModel.Composition"/>
   </ItemGroup>
 
   <PropertyGroup>

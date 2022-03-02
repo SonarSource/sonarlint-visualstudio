@@ -1768,7 +1768,10 @@
         }
       },
       "SonarLint.VisualStudio.Roslyn.Suppressions": {
-        "type": "Project"
+        "type": "Project",
+        "dependencies": {
+          "SonarLint.VisualStudio.Core": "1.0.0"
+        }
       },
       "SonarLint.VisualStudio.TypeScript": {
         "type": "Project",
