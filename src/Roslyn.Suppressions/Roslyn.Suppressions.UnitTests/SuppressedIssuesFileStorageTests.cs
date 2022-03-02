@@ -26,7 +26,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Integration.Suppression;
+using SonarLint.VisualStudio.Integration.Roslyn.Suppression.SettingsFile;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
@@ -41,20 +41,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             SonarQubeIssue issue = CreateIssue("issueKey");
             var issues = new List<SonarQubeIssue> { issue };
 
-            var logger = new Mock<ILogger>();
+            var logger = new TestLogger();
 
             var directory = new Mock<IDirectory>();
             var file = new Mock<IFile>();
             Mock<IFileSystem> fileSystem = CreateFileSystem(directory, file);
 
-            var fileStorage = new SuppressedIssuesFileStorage(logger.Object, fileSystem.Object);
-
+            var fileStorage = new SuppressedIssuesFileStorage(logger, fileSystem.Object);
 
             fileStorage.Update("projectKey", issues);
 
             directory.Verify(d => d.CreateDirectory(GetTempPath()), Times.Once);
             file.Verify(f => f.WriteAllText(GetFilePath("projectKey"), JsonConvert.SerializeObject(issues)), Times.Once);
-            logger.Verify(l => l.WriteLine(It.IsAny<string>(), It.IsAny<object[]>()), Times.Never);
+            logger.AssertNoOutputMessages();
         }
 
         [TestMethod]
@@ -65,20 +64,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
             var issues = new List<SonarQubeIssue> { issue1, issue2 };
 
-            var logger = new Mock<ILogger>();
+            var logger = new TestLogger();
 
             var directory = new Mock<IDirectory>();
             var file = new Mock<IFile>();
             Mock<IFileSystem> fileSystem = CreateFileSystem(directory, file);
 
-            var fileStorage = new SuppressedIssuesFileStorage(logger.Object, fileSystem.Object);
-
+            var fileStorage = new SuppressedIssuesFileStorage(logger, fileSystem.Object);
 
             fileStorage.Update("projectKey", issues);
 
             directory.Verify(d => d.CreateDirectory(GetTempPath()), Times.Once);
             file.Verify(f => f.WriteAllText(GetFilePath("projectKey"), JsonConvert.SerializeObject(issues)), Times.Once);
-            logger.Verify(l => l.WriteLine(It.IsAny<string>(), It.IsAny<object[]>()), Times.Never);
+            logger.AssertNoOutputMessages();
         }
 
         [TestMethod]
@@ -87,20 +85,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             SonarQubeIssue issue = CreateIssue("issueKey");
             var issues = new List<SonarQubeIssue> { issue };
 
-            var logger = new Mock<ILogger>();
+            var logger = new TestLogger();
 
             var directory = new Mock<IDirectory>();
-            var file = new Mock<IFile>();
-            file.Setup(f => f.ReadAllText(GetFilePath("projectKey"))).Returns(JsonConvert.SerializeObject(issues));
+            Mock<IFile> file = CreateFileForGet("projectKey", issues);
             Mock<IFileSystem> fileSystem = CreateFileSystem(directory, file);
 
-            var fileStorage = new SuppressedIssuesFileStorage(logger.Object, fileSystem.Object);
+            var fileStorage = new SuppressedIssuesFileStorage(logger, fileSystem.Object);
 
             var issuesGotten = fileStorage.Get("projectKey").ToList();
 
             directory.Verify(d => d.CreateDirectory(It.IsAny<string>()), Times.Never);
             file.Verify(f => f.ReadAllText(GetFilePath("projectKey")), Times.Once);
-            logger.Verify(l => l.WriteLine(It.IsAny<string>(), It.IsAny<object[]>()), Times.Never);
+            logger.AssertNoOutputMessages();
 
             Assert.AreEqual(1, issuesGotten?.Count);
             Assert.AreEqual(issue.IssueKey, issuesGotten[0].IssueKey);
@@ -112,82 +109,45 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             SonarQubeIssue issue1 = CreateIssue("issueKey1");
             SonarQubeIssue issue2 = CreateIssue("issueKey2");
             var issues = new List<SonarQubeIssue> { issue1, issue2 };
-
-            var logger = new Mock<ILogger>();
+            
+            var logger = new TestLogger();
 
             var directory = new Mock<IDirectory>();
-            var file = new Mock<IFile>();
-            file.Setup(f => f.ReadAllText(GetFilePath("projectKey"))).Returns(JsonConvert.SerializeObject(issues));
+            var file = CreateFileForGet("projectKey", issues);
             Mock<IFileSystem> fileSystem = CreateFileSystem(directory, file);
 
-            var fileStorage = new SuppressedIssuesFileStorage(logger.Object, fileSystem.Object);
+            var fileStorage = new SuppressedIssuesFileStorage(logger, fileSystem.Object);
 
             var issuesGotten = fileStorage.Get("projectKey").ToList();
 
             directory.Verify(d => d.CreateDirectory(It.IsAny<string>()), Times.Never);
             file.Verify(f => f.ReadAllText(GetFilePath("projectKey")), Times.Once);
-            logger.Verify(l => l.WriteLine(It.IsAny<string>(), It.IsAny<object[]>()), Times.Never);
+            logger.AssertNoOutputMessages();
 
             Assert.AreEqual(2, issuesGotten?.Count);
             Assert.AreEqual(issue1.IssueKey, issuesGotten[0].IssueKey);
             Assert.AreEqual(issue2.IssueKey, issuesGotten[1].IssueKey);
         }
 
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow("  ")]
         [TestMethod]
-        public void Update_Should_LogWhenProjectKeyIsNull()
+        public void Update_Should_ThrowWhenProjectKeyIsNull(string projectKey)
         {
             SonarQubeIssue issue = CreateIssue("issueKey");
             var issues = new List<SonarQubeIssue> { issue };
 
-            var logger = new Mock<ILogger>();
+            var logger = new TestLogger();
 
             var directory = new Mock<IDirectory>();
             var file = new Mock<IFile>();
             Mock<IFileSystem> fileSystem = CreateFileSystem(directory, file);
 
-            var fileStorage = new SuppressedIssuesFileStorage(logger.Object, fileSystem.Object);
-            fileStorage.Update(null, issues);
+            var fileStorage = new SuppressedIssuesFileStorage(logger, fileSystem.Object);
+            var ex = Assert.ThrowsException<ArgumentException>(() => fileStorage.Update(projectKey, issues));
 
-            logger.Verify(l => l.WriteLine("SuppressedIssuesFileStorage: File name should not be empty"), Times.Once);
-            file.Verify(f => f.WriteAllText(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-        }
-
-        [TestMethod]
-        public void Update_Should_LogWhenProjectKeyIsEmpty()
-        {
-            SonarQubeIssue issue = CreateIssue("issueKey");
-            var issues = new List<SonarQubeIssue> { issue };
-
-            var logger = new Mock<ILogger>();
-
-            var directory = new Mock<IDirectory>();
-            var file = new Mock<IFile>();
-            Mock<IFileSystem> fileSystem = CreateFileSystem(directory, file);
-
-            var fileStorage = new SuppressedIssuesFileStorage(logger.Object, fileSystem.Object);
-            fileStorage.Update(string.Empty, issues);
-
-            logger.Verify(l => l.WriteLine("SuppressedIssuesFileStorage: File name should not be empty"), Times.Once);
-            file.Verify(f => f.WriteAllText(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-        }
-
-        [TestMethod]
-        public void Update_Should_LogWhenProjectKeyIsWhiteSpace()
-        {
-            SonarQubeIssue issue = CreateIssue("issueKey");
-            var issues = new List<SonarQubeIssue> { issue };
-
-            var logger = new Mock<ILogger>();
-
-            var directory = new Mock<IDirectory>();
-            var file = new Mock<IFile>();
-            Mock<IFileSystem> fileSystem = CreateFileSystem(directory, file);
-
-            var fileStorage = new SuppressedIssuesFileStorage(logger.Object, fileSystem.Object);
-            fileStorage.Update("  ", issues);
-
-            logger.Verify(l => l.WriteLine("SuppressedIssuesFileStorage: File name should not be empty"), Times.Once);
-            file.Verify(f => f.WriteAllText(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            Assert.AreEqual("Argument must have at least one non white space character\r\nParameter name: sonarProjectKey", ex.Message);
         }
 
         [TestMethod]
@@ -196,101 +156,64 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             SonarQubeIssue issue = CreateIssue("issueKey");
             var issues = new List<SonarQubeIssue> { issue };
 
-            var logger = new Mock<ILogger>();
+            var logger = new TestLogger();
 
             var directory = new Mock<IDirectory>();
             var file = new Mock<IFile>();
             Mock<IFileSystem> fileSystem = CreateFileSystem(directory, file);
 
-            var fileStorage = new SuppressedIssuesFileStorage(logger.Object, fileSystem.Object);
+            var fileStorage = new SuppressedIssuesFileStorage(logger, fileSystem.Object);
             fileStorage.Update("project:Key", issues);
 
-            logger.Verify(l => l.WriteLine("SuppressedIssuesFileStorage: File name has illegal characters"), Times.Once);
-            file.Verify(f => f.WriteAllText(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-        }
 
+            directory.Verify(d => d.CreateDirectory(GetTempPath()), Times.Once);
+            file.Verify(f => f.WriteAllText(GetFilePath("project_Key"), JsonConvert.SerializeObject(issues)), Times.Once);
+            logger.AssertNoOutputMessages();
+        }
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow("  ")]
         [TestMethod]
-        public void Get_Should_LogWhenProjectKeyIsNull()
+        public void Get_Should_ThrowWhenProjectKeyIsNullOrEmpty(string projectKey)
         {
             SonarQubeIssue issue = CreateIssue("issueKey");
             var issues = new List<SonarQubeIssue> { issue };
 
-            var logger = new Mock<ILogger>();
+            var logger = new TestLogger();
 
             var directory = new Mock<IDirectory>();
-            var file = new Mock<IFile>();
-            file.Setup(f => f.ReadAllText(GetFilePath("projectKey"))).Returns(JsonConvert.SerializeObject(issues));
+            var file = CreateFileForGet(projectKey, issues);
             Mock<IFileSystem> fileSystem = CreateFileSystem(directory, file);
 
-            var fileStorage = new SuppressedIssuesFileStorage(logger.Object, fileSystem.Object);
+            var fileStorage = new SuppressedIssuesFileStorage(logger, fileSystem.Object);
 
-            var issuesGotten = fileStorage.Get(null).ToList();
+            var ex = Assert.ThrowsException<ArgumentException>(() => fileStorage.Get(projectKey));
 
-            logger.Verify(l => l.WriteLine("SuppressedIssuesFileStorage: File name should not be empty"), Times.Once);
-            Assert.AreEqual(0, issuesGotten.Count);
+            Assert.AreEqual("Argument must have at least one non white space character\r\nParameter name: sonarProjectKey", ex.Message);
         }
 
         [TestMethod]
-        public void Get_Should_LogWhenProjectKeyIsEmpty()
+        public void Get_Should_ReplaceWhenProjectKeyHasInvalidChars()
         {
             SonarQubeIssue issue = CreateIssue("issueKey");
             var issues = new List<SonarQubeIssue> { issue };
 
-            var logger = new Mock<ILogger>();
+            var logger = new TestLogger();
 
             var directory = new Mock<IDirectory>();
-            var file = new Mock<IFile>();
-            file.Setup(f => f.ReadAllText(GetFilePath("projectKey"))).Returns(JsonConvert.SerializeObject(issues));
+            var file = CreateFileForGet("project_Key", issues);
             Mock<IFileSystem> fileSystem = CreateFileSystem(directory, file);
 
-            var fileStorage = new SuppressedIssuesFileStorage(logger.Object, fileSystem.Object);
-
-            var issuesGotten = fileStorage.Get(string.Empty).ToList();
-
-            logger.Verify(l => l.WriteLine("SuppressedIssuesFileStorage: File name should not be empty"), Times.Once);
-            Assert.AreEqual(0, issuesGotten.Count);
-        }
-
-        [TestMethod]
-        public void Get_Should_LogWhenProjectKeyIsWhiteSpace()
-        {
-            SonarQubeIssue issue = CreateIssue("issueKey");
-            var issues = new List<SonarQubeIssue> { issue };
-
-            var logger = new Mock<ILogger>();
-
-            var directory = new Mock<IDirectory>();
-            var file = new Mock<IFile>();
-            file.Setup(f => f.ReadAllText(GetFilePath("projectKey"))).Returns(JsonConvert.SerializeObject(issues));
-            Mock<IFileSystem> fileSystem = CreateFileSystem(directory, file);
-
-            var fileStorage = new SuppressedIssuesFileStorage(logger.Object, fileSystem.Object);
-
-            var issuesGotten = fileStorage.Get("   ").ToList();
-
-            logger.Verify(l => l.WriteLine("SuppressedIssuesFileStorage: File name should not be empty"), Times.Once);
-            Assert.AreEqual(0, issuesGotten.Count);
-        }
-
-        [TestMethod]
-        public void Get_Should_LogWhenProjectKeyHasInvalidChars()
-        {
-            SonarQubeIssue issue = CreateIssue("issueKey");
-            var issues = new List<SonarQubeIssue> { issue };
-
-            var logger = new Mock<ILogger>();
-
-            var directory = new Mock<IDirectory>();
-            var file = new Mock<IFile>();
-            file.Setup(f => f.ReadAllText(GetFilePath("projectKey"))).Returns(JsonConvert.SerializeObject(issues));
-            Mock<IFileSystem> fileSystem = CreateFileSystem(directory, file);
-
-            var fileStorage = new SuppressedIssuesFileStorage(logger.Object, fileSystem.Object);
+            var fileStorage = new SuppressedIssuesFileStorage(logger, fileSystem.Object);
 
             var issuesGotten = fileStorage.Get("project:Key").ToList();
 
-            logger.Verify(l => l.WriteLine("SuppressedIssuesFileStorage: File name has illegal characters"), Times.Once);
-            Assert.AreEqual(0, issuesGotten.Count);
+            directory.Verify(d => d.CreateDirectory(It.IsAny<string>()), Times.Never);
+            file.Verify(f => f.ReadAllText(GetFilePath("project_Key")), Times.Once);
+            logger.AssertNoOutputMessages();
+
+            Assert.AreEqual(1, issuesGotten?.Count);
+            Assert.AreEqual(issue.IssueKey, issuesGotten[0].IssueKey);
         }
 
         [TestMethod]
@@ -299,19 +222,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             SonarQubeIssue issue = CreateIssue("issueKey");
             var issues = new List<SonarQubeIssue> { issue };
 
-            var logger = new Mock<ILogger>();
+            var logger = new TestLogger();
 
             var directory = new Mock<IDirectory>();
             var file = new Mock<IFile>();
             file.Setup(f => f.WriteAllText(It.IsAny<string>(), It.IsAny<string>())).Throws(new Exception("Test Exception"));
             Mock<IFileSystem> fileSystem = CreateFileSystem(directory, file);
 
-            var fileStorage = new SuppressedIssuesFileStorage(logger.Object, fileSystem.Object);
+            var fileStorage = new SuppressedIssuesFileStorage(logger, fileSystem.Object);
 
 
             fileStorage.Update("projectKey", issues);
 
-            logger.Verify(l => l.WriteLine("SuppressedIssuesFileStorage Update Error: Test Exception"), Times.Once);
+            logger.AssertOutputStringExists("SuppressedIssuesFileStorage Update Error: Test Exception");
+            logger.AssertOutputStrings(1);
         }
 
         [TestMethod]
@@ -320,18 +244,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             SonarQubeIssue issue = CreateIssue("issueKey");
             var issues = new List<SonarQubeIssue> { issue };
 
-            var logger = new Mock<ILogger>();
+            var logger = new TestLogger();
 
             var directory = new Mock<IDirectory>();
             var file = new Mock<IFile>();
             file.Setup(f => f.ReadAllText(GetFilePath("projectKey"))).Throws(new Exception("Test Exception"));
             Mock<IFileSystem> fileSystem = CreateFileSystem(directory, file);
 
-            var fileStorage = new SuppressedIssuesFileStorage(logger.Object, fileSystem.Object);
+            var fileStorage = new SuppressedIssuesFileStorage(logger, fileSystem.Object);
 
             var issuesGotten = fileStorage.Get("projectKey").ToList();
 
-            logger.Verify(l => l.WriteLine("SuppressedIssuesFileStorage Get Error: Test Exception"), Times.Once);
+            logger.AssertOutputStringExists("SuppressedIssuesFileStorage Get Error: Test Exception");
+            logger.AssertOutputStrings(1);
             Assert.AreEqual(0, issuesGotten.Count);
         }
 
@@ -368,5 +293,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
         private static string GetFilePath(string projectKey) => Path.Combine(GetTempPath(), projectKey + ".json");
 
+        private Mock<IFile> CreateFileForGet(string projectKey, IEnumerable<SonarQubeIssue> issues)
+        {
+            var file = new Mock<IFile>();
+            file.Setup(f => f.ReadAllText(GetFilePath(projectKey))).Returns(JsonConvert.SerializeObject(issues));
+            return file;
+        }
     }
 }

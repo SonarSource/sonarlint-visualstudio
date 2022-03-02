@@ -24,10 +24,12 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Suppressions;
+using SonarLint.VisualStudio.Roslyn.Suppressions.Resources;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.Suppression
+namespace SonarLint.VisualStudio.Integration.Roslyn.Suppression.SettingsFile
 {
     internal class SuppressedIssuesFileStorage : ISuppressedIssuesFileStorage
     {
@@ -50,20 +52,18 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         public IEnumerable<SonarQubeIssue> Get(string sonarProjectKey)
         {
+
+            ValidateSonarProjectKey(sonarProjectKey);
             try
             {
-                if (!ValidateFileName(sonarProjectKey))
-                {
-                    return Enumerable.Empty<SonarQubeIssue>();
-                }
-
-                var filePath = GetFilePath(sonarProjectKey);
+                var escapedName = PathHelper.EscapeFileName(sonarProjectKey);
+                var filePath = GetFilePath(escapedName);
                 var fileContent = fileSystem.File.ReadAllText(filePath);
                 return JsonConvert.DeserializeObject<IEnumerable<SonarQubeIssue>>(fileContent);
             }
             catch (Exception ex)
             {
-                logger.WriteLine($"SuppressedIssuesFileStorage Get Error: {ex.Message}");
+                logger.WriteLine(string.Format(Strings.SuppressedIssuesFileStorageGetError, ex.Message));
             }
 
             return Enumerable.Empty<SonarQubeIssue>();
@@ -71,37 +71,28 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         public void Update(string sonarProjectKey, IEnumerable<SonarQubeIssue> allSuppressedIssues)
         {
+            ValidateSonarProjectKey(sonarProjectKey);
             try
             {
-                if (!ValidateFileName(sonarProjectKey))
-                {
-                    return;
-                }
-
-                var filePath = GetFilePath(sonarProjectKey);
+                var escapedName = PathHelper.EscapeFileName(sonarProjectKey);
+                var filePath = GetFilePath(escapedName);
                 var fileContent = JsonConvert.SerializeObject(allSuppressedIssues);
                 fileSystem.Directory.CreateDirectory(fileDirectory);
                 fileSystem.File.WriteAllText(filePath, fileContent);
             }
             catch (Exception ex)
             {
-                logger.WriteLine($"SuppressedIssuesFileStorage Update Error: {ex.Message}");
+                
+                logger.WriteLine(string.Format(Strings.SuppressedIssuesFileStorageUpdateError, ex.Message));
             }
         }
 
-        private bool ValidateFileName(string sonarProjectKey)
+        private void ValidateSonarProjectKey(string sonarProjectKey)
         {
             if (string.IsNullOrWhiteSpace(sonarProjectKey))
             {
-                logger.WriteLine("SuppressedIssuesFileStorage: File name should not be empty");
-                return false;
+                throw new ArgumentException("Argument must have at least one non white space character", "sonarProjectKey");
             }
-            if (sonarProjectKey.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
-            {
-                logger.WriteLine("SuppressedIssuesFileStorage: File name has illegal characters");
-                return false;
-            }
-            return true;
         }
 
         private string GetFilePath(string sonarProjectKey)
