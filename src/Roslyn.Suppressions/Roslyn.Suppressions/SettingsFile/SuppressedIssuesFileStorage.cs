@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.Roslyn.Suppression.SettingsFile
         {
             if (string.IsNullOrWhiteSpace(sonarProjectKey))
             {
-                throw new ArgumentException("Argument must have at least one non white space character", "sonarProjectKey");
+                throw new ArgumentException("Argument must have at least one non white space character", nameof(sonarProjectKey));
             }
         }
 
