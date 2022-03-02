@@ -34,30 +34,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
     [TestClass]
     public class SuppressedIssuesFileStorageTests
     {
-       
-        [TestMethod]
-        public void Update_Should_WriteSingleIssueToFilePath()
-        {
-            SonarQubeIssue issue = CreateIssue("issueKey");
-            var issues = new List<SonarQubeIssue> { issue };
-
-            var logger = new TestLogger();
-
-            var directory = new Mock<IDirectory>();
-            var file = new Mock<IFile>();
-            Mock<IFileSystem> fileSystem = CreateFileSystem(directory, file);
-
-            var fileStorage = new SuppressedIssuesFileStorage(logger, fileSystem.Object);
-
-            fileStorage.Update("projectKey", issues);
-
-            directory.Verify(d => d.CreateDirectory(GetTempPath()), Times.Once);
-            file.Verify(f => f.WriteAllText(GetFilePath("projectKey"), JsonConvert.SerializeObject(issues)), Times.Once);
-            logger.AssertNoOutputMessages();
-        }
 
         [TestMethod]
-        public void Update_Should_WriteMultipleIssuesToFilePath()
+        public void Update_Should_WriteIssuesToFilePath()
         {
             SonarQubeIssue issue1 = CreateIssue("issueKey1");
             SonarQubeIssue issue2 = CreateIssue("issueKey2");
@@ -80,31 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         }
 
         [TestMethod]
-        public void Get_Should_ReadSingleIssueFromFilePath()
-        {
-            SonarQubeIssue issue = CreateIssue("issueKey");
-            var issues = new List<SonarQubeIssue> { issue };
-
-            var logger = new TestLogger();
-
-            var directory = new Mock<IDirectory>();
-            Mock<IFile> file = CreateFileForGet("projectKey", issues);
-            Mock<IFileSystem> fileSystem = CreateFileSystem(directory, file);
-
-            var fileStorage = new SuppressedIssuesFileStorage(logger, fileSystem.Object);
-
-            var issuesGotten = fileStorage.Get("projectKey").ToList();
-
-            directory.Verify(d => d.CreateDirectory(It.IsAny<string>()), Times.Never);
-            file.Verify(f => f.ReadAllText(GetFilePath("projectKey")), Times.Once);
-            logger.AssertNoOutputMessages();
-
-            Assert.AreEqual(1, issuesGotten?.Count);
-            Assert.AreEqual(issue.IssueKey, issuesGotten[0].IssueKey);
-        }
-
-        [TestMethod]
-        public void Get_Should_ReadMultipleIssuesFromFilePath()
+        public void Get_Should_ReadIssuesFromFilePath()
         {
             SonarQubeIssue issue1 = CreateIssue("issueKey1");
             SonarQubeIssue issue2 = CreateIssue("issueKey2");
