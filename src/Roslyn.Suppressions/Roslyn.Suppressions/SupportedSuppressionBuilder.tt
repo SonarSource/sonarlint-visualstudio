@@ -1,0 +1,138 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".g.cs" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="$(SonarCSharpDllPath)" #>
+<#@ assembly name="$(SonarVBDllPath)" #>
+<#@ assembly name="$(MSCodeAnalysisCommonDllPath)" #>
+<#@ assembly name="$(SystemCollectionsImmutableDllPath)" #>
+<#@ assembly name="netstandard" #>
+<#@ assembly name="System.Runtime" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="SonarAnalyzer" #>
+<#@ import namespace="Microsoft.CodeAnalysis" #>
+<#@ import namespace="Microsoft.CodeAnalysis.Diagnostics" #>
+/*
+ * SonarLint for Visual Studio
+ * Copyright (C) 2016-2022 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+using Microsoft.CodeAnalysis;
+using System;
+using System.Collections.Immutable;
+
+namespace SonarLint.VisualStudio.Roslyn.Suppressions
+{
+    /// <summary>
+    /// Generated class that returns SupportedSuppressions for all Sonar C# and VB.NET rules
+    /// </summary>
+    internal sealed class SupportedSuppressionsBuilder
+    {
+        private static readonly Lazy<SupportedSuppressionsBuilder> lazy = new Lazy<SupportedSuppressionsBuilder>(() => new SupportedSuppressionsBuilder());
+
+        public static SupportedSuppressionsBuilder Instance => lazy.Value;
+
+        public ImmutableArray<SuppressionDescriptor> Descriptors { get; }
+
+        private SupportedSuppressionsBuilder()
+        {
+            Descriptors = GetDescriptors();
+        }
+
+        private static ImmutableArray<SuppressionDescriptor> GetDescriptors()
+        {
+            var descriptors = new SuppressionDescriptor[]
+            {
+                // *************************************************************************************************
+                // If the number of diagnostic ids changes significantly or decreases when the analysers are updated,
+                // investigate! There may be a problem with code generator.
+                // *************************************************************************************************
+<#
+                        var idList = GetFilteredDiagnosticIds();
+                        WriteLine("                // Number of unique diagnostic ids (C# and VB.NET): " + idList.Count());
+                        foreach(var id in idList)
+                        {
+#>
+                CreateDescriptor("<#= id #>"),
+<#
+                        }
+#>
+            };
+            return ImmutableArray.ToImmutableArray(descriptors);
+        }
+
+        private static SuppressionDescriptor CreateDescriptor(string diagId) =>
+            new SuppressionDescriptor("X" + diagId, diagId, "Suppressed on the Sonar server");
+    }
+}
+<#+
+
+// T4 Text Templates
+// MS docs - see https://docs.microsoft.com/en-us/visualstudio/modeling/code-generation-and-t4-text-templates?view=vs-2022
+//
+// Notes on debugging through the generator
+// ----------------------------------------
+// * change the "debug" value in line 1 to "true"
+// * add a call to "System.Diagnostics.Debugger.Launch();" somewhere in the code below
+// * save this file.
+// A dialogue should pop up asking you attach a debugger.
+//
+//
+
+        // The set of assemblies in which we should look for diagnostics
+        private readonly Assembly[] AssembliesWithDiagnostics = new Assembly[]
+        {
+            typeof(SonarAnalyzer.Rules.CSharp.CommentKeyword).Assembly,
+            typeof(SonarAnalyzer.Rules.VisualBasic.CommentKeyword).Assembly
+        };
+
+        private IEnumerable<string> GetAllDiagnosticIds() =>
+            AssembliesWithDiagnostics.SelectMany(asm => asm.GetTypes())
+                                     .SelectMany(type => GetDiagnosticDescriptors(type))
+                                     .Select(diag => diag.Id);
+
+        private IEnumerable<string> GetFilteredDiagnosticIds()
+        {
+            return GetAllDiagnosticIds()
+                .Distinct()
+                .Where(id => !id.StartsWith("S999"))    // exclude "utility" analyzers
+                .OrderBy(x => x);
+        }
+
+        private IEnumerable<DiagnosticDescriptor> GetDiagnosticDescriptors(Type t)
+        {
+            try
+            {
+                if (!t.IsAbstract && t.GetCustomAttributes(DiagnosticAnalyzerAttribute, true).Any())
+                {
+                    return Create(t).SupportedDiagnostics;
+                }
+            }
+            catch(Exception e)
+            {
+                WriteLine($"[ERROR] Error creating diagnostic. {t.FullName}, Error: {e.Message}");
+            }
+            return Array.Empty<DiagnosticDescriptor>();
+        }
+
+        private static DiagnosticAnalyzer Create(Type t) =>
+            Activator.CreateInstance(t) as DiagnosticAnalyzer;
+
+        private static readonly Type DiagnosticAnalyzerAttribute = typeof(DiagnosticAnalyzerAttribute);
+#>
