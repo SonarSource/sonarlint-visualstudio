@@ -3,8 +3,8 @@
 <#@ assembly name="System.Core" #>
 <#@ assembly name="$(SonarCSharpDllPath)" #>
 <#@ assembly name="$(SonarVBDllPath)" #>
-<#@ assembly name="$(NuGetPackageRoot)Microsoft.CodeAnalysis.Common\3.3.1\lib\netstandard2.0\Microsoft.CodeAnalysis.dll" #>
-<#@ assembly name="$(NuGetPackageRoot)System.Collections.Immutable\1.5.0\lib\netstandard2.0\System.Collections.Immutable.dll" #>
+<#@ assembly name="$(MSCodeAnalysisCommonDllPath)" #>
+<#@ assembly name="$(SystemCollectionsImmutableDllPath)" #>
 <#@ assembly name="netstandard" #>
 <#@ assembly name="System.Runtime" #>
 <#@ import namespace="System.Linq" #>
@@ -59,9 +59,13 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
         {
             var descriptors = new SuppressionDescriptor[]
             {
+                // *************************************************************************************************
+                // If the number of diagnostic ids changes significantly or decreases when the analysers are updated,
+                // investigate! There may be a problem with code generator.
+                // *************************************************************************************************
 <#
                         var idList = GetFilteredDiagnosticIds();
-                        WriteLine("                // Number of diagnostics (C# and VB.NET): " + idList.Count());
+                        WriteLine("                // Number of unique diagnostic ids (C# and VB.NET): " + idList.Count());
                         foreach(var id in idList)
                         {
 #>
@@ -92,18 +96,18 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
 //
 
         // The set of assemblies in which we should look for diagnostics
-        private static readonly Assembly[] AssembliesWithDiagnostics = new Assembly[]
+        private readonly Assembly[] AssembliesWithDiagnostics = new Assembly[]
         {
             typeof(SonarAnalyzer.Rules.CSharp.CommentKeyword).Assembly,
             typeof(SonarAnalyzer.Rules.VisualBasic.CommentKeyword).Assembly
         };
 
-        private static IEnumerable<string> GetAllDiagnosticIds() =>
+        private IEnumerable<string> GetAllDiagnosticIds() =>
             AssembliesWithDiagnostics.SelectMany(asm => asm.GetTypes())
                                      .SelectMany(type => GetDiagnosticDescriptors(type))
                                      .Select(diag => diag.Id);
 
-        private static IEnumerable<string> GetFilteredDiagnosticIds()
+        private IEnumerable<string> GetFilteredDiagnosticIds()
         {
             return GetAllDiagnosticIds()
                 .Distinct()
@@ -111,19 +115,18 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
                 .OrderBy(x => x);
         }
 
-        private static IEnumerable<DiagnosticDescriptor> GetDiagnosticDescriptors(Type t)
+        private IEnumerable<DiagnosticDescriptor> GetDiagnosticDescriptors(Type t)
         {
             try
             {
-                if (t.GetCustomAttributes(DiagnosticAnalyzerAttribute, false).Any())
+                if (!t.IsAbstract && t.GetCustomAttributes(DiagnosticAnalyzerAttribute, true).Any())
                 {
                     return Create(t).SupportedDiagnostics;
                 }
-
             }
             catch(Exception e)
             {
-                Console.WriteLine(e.Message);
+                WriteLine($"[ERROR] Error creating diagnostic. {t.FullName}, Error: {e.Message}");
             }
             return Array.Empty<DiagnosticDescriptor>();
         }

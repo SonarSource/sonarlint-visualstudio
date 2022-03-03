@@ -10,9 +10,6 @@
  
   -->
 
-
-  <Import Project="..\..\SonarLint.Product.props" />
-  
   <Import Project="..\..\SonarLint.Product.props" />
 
   <PropertyGroup>

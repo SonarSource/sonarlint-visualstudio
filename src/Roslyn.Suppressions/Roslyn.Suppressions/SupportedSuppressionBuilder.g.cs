@@ -44,7 +44,11 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
         {
             var descriptors = new SuppressionDescriptor[]
             {
-                // Number of diagnostics (C# and VB.NET): 429
+                // *************************************************************************************************
+                // If the number of diagnostic ids changes significantly or decreases when the analysers are updated,
+                // investigate! There may be a problem with code generator.
+                // *************************************************************************************************
+                // Number of unique diagnostic ids (C# and VB.NET): 429
                 CreateDescriptor("S100"),
                 CreateDescriptor("S1006"),
                 CreateDescriptor("S101"),

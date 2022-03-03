@@ -12,18 +12,24 @@
                However, the Sonar analyzers currently reference an older version of Roslyn, so we need to explicitly
                reference a couple of Roslyn NuGet packages here to stop NuGet complaining about version conflicts. 
     -->
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.3.1" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.3.1" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.3.1" PrivateAssets="all" GeneratePathProperty="true" />
+    <!-- Note: System.Collections.Immutable is a transitive dependency of MS.CA.Common, so strictly speaking we don't need to
+         reference it directly. However, we have an explicit reference so we use the property path in the .tt file.
+         When updating MS.CA.Common, make sure to update the Sytem.Collections.Immutable to the version it uses. -->
+    <PackageReference Include="System.Collections.Immutable" Version="1.5" PrivateAssets="all" GeneratePathProperty="true" />
 
     <!-- Reference the Sonar analyzers we want to import, but don't include them as analyzers for this project -->
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" />
-    <PackageReference Include="SonarAnalyzer.VisualBasic" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="SonarAnalyzer.VisualBasic" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
   </ItemGroup>
-
+  
   <PropertyGroup>
     <!-- Calculate the paths to the analyzer dlls so we can reference them from the T4 template -->
-    <SonarCSharpDllPath>$(NuGetPackageRoot)SonarAnalyzer.CSharp\$(EmbeddedSonarAnalyzerVersion)\analyzers\SonarAnalyzer.CSharp.dll</SonarCSharpDllPath>
-    <SonarVBDllPath>$(NuGetPackageRoot)SonarAnalyzer.VisualBasic\$(EmbeddedSonarAnalyzerVersion)\analyzers\SonarAnalyzer.VisualBasic.dll</SonarVBDllPath>
+    <SonarCSharpDllPath>$(PkgSonarAnalyzer_CSharp)\analyzers\SonarAnalyzer.CSharp.dll</SonarCSharpDllPath>
+    <SonarVBDllPath>$(PkgSonarAnalyzer_VisualBasic)\analyzers\SonarAnalyzer.VisualBasic.dll</SonarVBDllPath>
+    <!-- ... and for the other NuGet dependencies used by the .tts -->
+    <MSCodeAnalysisCommonDllPath>$(PkgMicrosoft_CodeAnalysis_Common)\lib\netstandard2.0\Microsoft.CodeAnalysis.dll</MSCodeAnalysisCommonDllPath>
+    <SystemCollectionsImmutableDllPath>$(PkgSystem_Collections_Immutable)\lib\netstandard2.0\System.Collections.Immutable.dll</SystemCollectionsImmutableDllPath>
   </PropertyGroup>
 
   <ItemGroup>

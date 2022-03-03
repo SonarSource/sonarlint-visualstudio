@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         }
 
         [TestMethod]
-        public void SupportedSuppressors_ItemsAreNoNull()
+        public void SupportedSuppressors_ItemsAreNotNull()
         {
             var result = SupportedSuppressionsBuilder.Instance.Descriptors;
 
