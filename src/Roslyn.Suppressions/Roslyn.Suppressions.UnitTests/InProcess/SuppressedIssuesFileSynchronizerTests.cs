@@ -19,9 +19,11 @@
  */
 
 using System;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Core.Suppressions;
@@ -124,6 +126,43 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
             suppressedIssuesFileStorage.Verify(x=> x.Update("some project key", issues), Times.Once);
         }
 
+        [TestMethod]
+        public async Task UpdateFileStorage_FileStorageIsUpdatedOnBackgroundThread()
+        {
+            Func<Task<bool>> fileUpdateTask = null;
+            var threadHandling = new Mock<IThreadHandling>();
+            threadHandling
+                .Setup(x => x.Run(It.IsAny<Func<Task<bool>>>()))
+                .Callback((Func<Task<bool>> task) => fileUpdateTask = task);
+
+            var configuration = CreateConnectedConfiguration("some project key");
+            var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
+            activeSolutionBoundTracker.Setup(x => x.CurrentConfiguration).Returns(configuration);
+
+            var suppressedIssuesFileStorage = new Mock<ISuppressedIssuesFileStorage>();
+
+            var issues = new[] { CreateSonarQubeIssue() };
+
+            var suppressedIssuesProvider = new Mock<ISonarQubeIssuesProvider>();
+            suppressedIssuesProvider.Setup(x => x.GetAllSuppressedIssues()).Returns(issues);
+
+            var testSubject = CreateTestSubject(
+                threadHandling: threadHandling.Object,
+                suppressedIssuesProvider: suppressedIssuesProvider.Object,
+                suppressedIssuesFileStorage: suppressedIssuesFileStorage.Object,
+                activeSolutionBoundTracker: activeSolutionBoundTracker.Object);
+
+            testSubject.UpdateFileStorage();
+
+            threadHandling.Verify(x => x.Run(It.IsAny<Func<Task<bool>>>()), Times.Once);
+            suppressedIssuesFileStorage.Invocations.Count.Should().Be(0);
+            activeSolutionBoundTracker.Invocations.Count.Should().Be(0);
+
+            await fileUpdateTask();
+
+            suppressedIssuesFileStorage.Verify(x => x.Update("some project key", issues), Times.Once);
+        }
+
         private SonarQubeIssue CreateSonarQubeIssue()
         {
             return new SonarQubeIssue(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(),
@@ -141,17 +180,20 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
         private SuppressedIssuesFileSynchronizer CreateTestSubject(ISuppressedIssuesMonitor suppressedIssuesMonitor = null,
             ISonarQubeIssuesProvider suppressedIssuesProvider = null,
             ISuppressedIssuesFileStorage suppressedIssuesFileStorage = null,
-            IActiveSolutionBoundTracker activeSolutionBoundTracker = null)
+            IActiveSolutionBoundTracker activeSolutionBoundTracker = null,
+            IThreadHandling threadHandling = null)
         {
             suppressedIssuesMonitor ??= Mock.Of<ISuppressedIssuesMonitor>();
             suppressedIssuesProvider ??= Mock.Of<ISonarQubeIssuesProvider>();
             suppressedIssuesFileStorage ??= Mock.Of<ISuppressedIssuesFileStorage>();
             activeSolutionBoundTracker ??= Mock.Of<IActiveSolutionBoundTracker>();
+            threadHandling ??= new NoOpThreadHandler();
 
             return new SuppressedIssuesFileSynchronizer(suppressedIssuesMonitor, 
                 suppressedIssuesProvider, 
                 suppressedIssuesFileStorage, 
-                activeSolutionBoundTracker);
+                activeSolutionBoundTracker,
+                threadHandling);
         }
     }
 }
