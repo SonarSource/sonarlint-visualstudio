@@ -85,11 +85,9 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
         public void OnSuppressionsUpdateRequested_StandaloneMode_StorageNotUpdated()
         {
             var suppressedIssuesMonitor = new Mock<ISuppressedIssuesMonitor>();
-            var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
             var suppressedIssuesFileStorage = new Mock<ISuppressedIssuesFileStorage>();
-
-            activeSolutionBoundTracker.Setup(x => x.CurrentConfiguration).Returns(BindingConfiguration.Standalone);
-
+            var activeSolutionBoundTracker = CreateActiveSolutionBoundTracker(BindingConfiguration.Standalone);
+            
             CreateTestSubject(suppressedIssuesMonitor: suppressedIssuesMonitor.Object,
                 activeSolutionBoundTracker: activeSolutionBoundTracker.Object,
                 suppressedIssuesFileStorage: suppressedIssuesFileStorage.Object);
@@ -106,15 +104,13 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
         public void OnSuppressionsUpdateRequested_ConnectedMode_StorageUpdated(bool hasIssues)
         {
             var suppressedIssuesMonitor = new Mock<ISuppressedIssuesMonitor>();
-            var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
             var suppressedIssuesFileStorage = new Mock<ISuppressedIssuesFileStorage>();
-            var suppressedIssuesProvider = new Mock<ISonarQubeIssuesProvider>();
 
             var configuration = CreateConnectedConfiguration("some project key");
-            activeSolutionBoundTracker.Setup(x => x.CurrentConfiguration).Returns(configuration);
+            var activeSolutionBoundTracker = CreateActiveSolutionBoundTracker(configuration);
 
             var issues = hasIssues ? new[] { CreateSonarQubeIssue(), CreateSonarQubeIssue() } : Array.Empty<SonarQubeIssue>();
-            suppressedIssuesProvider.Setup(x => x.GetAllSuppressedIssues()).Returns(issues);
+            var suppressedIssuesProvider = CreateSuppressedIssuesProvider(issues);
 
             CreateTestSubject(suppressedIssuesMonitor: suppressedIssuesMonitor.Object,
                 activeSolutionBoundTracker: activeSolutionBoundTracker.Object,
@@ -136,15 +132,12 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
                 .Callback((Func<Task<bool>> task) => fileUpdateTask = task);
 
             var configuration = CreateConnectedConfiguration("some project key");
-            var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
-            activeSolutionBoundTracker.Setup(x => x.CurrentConfiguration).Returns(configuration);
+            var activeSolutionBoundTracker = CreateActiveSolutionBoundTracker(configuration);
 
             var suppressedIssuesFileStorage = new Mock<ISuppressedIssuesFileStorage>();
 
             var issues = new[] { CreateSonarQubeIssue() };
-
-            var suppressedIssuesProvider = new Mock<ISonarQubeIssuesProvider>();
-            suppressedIssuesProvider.Setup(x => x.GetAllSuppressedIssues()).Returns(issues);
+            var suppressedIssuesProvider = CreateSuppressedIssuesProvider(issues);
 
             var testSubject = CreateTestSubject(
                 threadHandling: threadHandling.Object,
@@ -161,6 +154,22 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
             await fileUpdateTask();
 
             suppressedIssuesFileStorage.Verify(x => x.Update("some project key", issues), Times.Once);
+        }
+
+        private static Mock<IActiveSolutionBoundTracker> CreateActiveSolutionBoundTracker(BindingConfiguration configuration)
+        {
+            var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
+            activeSolutionBoundTracker.Setup(x => x.CurrentConfiguration).Returns(configuration);
+            
+            return activeSolutionBoundTracker;
+        }
+
+        private static Mock<ISonarQubeIssuesProvider> CreateSuppressedIssuesProvider(SonarQubeIssue[] issues)
+        {
+            var suppressedIssuesProvider = new Mock<ISonarQubeIssuesProvider>();
+            suppressedIssuesProvider.Setup(x => x.GetAllSuppressedIssues()).Returns(issues);
+
+            return suppressedIssuesProvider;
         }
 
         private SonarQubeIssue CreateSonarQubeIssue()

@@ -26,12 +26,10 @@
     <ProjectReference Include="..\..\Core\Core.csproj" />
     <ProjectReference Include="..\..\Infrastructure.VS\Infrastructure.VS.csproj" />
   </ItemGroup>
-  
-  <ItemGroup>
+
+  <ItemGroup Label="Automatically added by VS">
+    <!-- Note: these settings relate to files in the SuppressorCodeGen.targets -->
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-  </ItemGroup>
-  
-  <ItemGroup>
     <Compile Update="SupportedSuppressionBuilder.g.cs">
       <DesignTime>True</DesignTime>
     </Compile>
