@@ -10,9 +10,8 @@
  
   -->
 
-
   <Import Project="..\..\SonarLint.Product.props" />
-  
+
   <PropertyGroup>
     <ProjectGuid>{082D5D8E-F914-4139-9AE3-3F48B679E3DA}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Roslyn.Suppressions</RootNamespace>
@@ -27,5 +26,17 @@
     <ProjectReference Include="..\..\Core\Core.csproj" />
     <ProjectReference Include="..\..\Infrastructure.VS\Infrastructure.VS.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Update="SupportedSuppressionBuilder.g.cs">
+      <DesignTime>True</DesignTime>
+    </Compile>
+  </ItemGroup>
 
+  <!-- Note: the code gen targets file imports Roslyn packages that are also required by this project at runtime. -->
+  <Import Project="SuppressorCodeGen.targets" />
 </Project>
