@@ -47,9 +47,5 @@
   <ItemGroup Label="Framework references">
     <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
-  
-  <ItemGroup>
-    <ProjectReference Include="..\..\Core\Core.csproj" />
-  </ItemGroup>
 
 </Project>

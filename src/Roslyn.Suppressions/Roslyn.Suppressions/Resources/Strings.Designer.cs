@@ -61,7 +61,16 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SuppressedIssuesFileStorage Get Error: {0}.
+        ///   Looks up a localized string similar to Settings File was not found.
+        /// </summary>
+        internal static string SuppressedIssuesFileStorageFileNotFound {
+            get {
+                return ResourceManager.GetString("SuppressedIssuesFileStorageFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Roslyn Suppressions] Error loading settings for project {0}. Issues suppressed on the server will not be suppressed in the IDE. Error: {1}.
         /// </summary>
         internal static string SuppressedIssuesFileStorageGetError {
             get {
@@ -70,7 +79,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SuppressedIssuesFileStorage Update Error: {0}.
+        ///   Looks up a localized string similar to [Roslyn Suppressions] Error writing settings for project {0}. Issues suppressed on the server may not be suppressed in the IDE. Error: {1}.
         /// </summary>
         internal static string SuppressedIssuesFileStorageUpdateError {
             get {

@@ -117,10 +117,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="SuppressedIssuesFileStorageFileNotFound" xml:space="preserve">
+    <value>Settings File was not found</value>
+  </data>
   <data name="SuppressedIssuesFileStorageGetError" xml:space="preserve">
-    <value>SuppressedIssuesFileStorage Get Error: {0}</value>
+    <value>[Roslyn Suppressions] Error loading settings for project {0}. Issues suppressed on the server will not be suppressed in the IDE. Error: {1}</value>
   </data>
   <data name="SuppressedIssuesFileStorageUpdateError" xml:space="preserve">
-    <value>SuppressedIssuesFileStorage Update Error: {0}</value>
+    <value>[Roslyn Suppressions] Error writing settings for project {0}. Issues suppressed on the server may not be suppressed in the IDE. Error: {1}</value>
   </data>
 </root>

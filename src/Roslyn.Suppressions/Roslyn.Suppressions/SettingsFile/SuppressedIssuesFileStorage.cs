@@ -48,6 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Roslyn.Suppression.SettingsFile
             this.logger = logger;
 
             fileDirectory = Path.Combine(Path.GetTempPath(), "SLVS", "Roslyn");
+            fileSystem.Directory.CreateDirectory(fileDirectory);
         }
 
         public IEnumerable<SonarQubeIssue> Get(string sonarProjectKey)
@@ -58,12 +59,18 @@ namespace SonarLint.VisualStudio.Integration.Roslyn.Suppression.SettingsFile
             {
                 var escapedName = PathHelper.EscapeFileName(sonarProjectKey);
                 var filePath = GetFilePath(escapedName);
+                if(!fileSystem.File.Exists(filePath))
+                {
+                    logger.WriteLine(string.Format(Strings.SuppressedIssuesFileStorageGetError, sonarProjectKey, Strings.SuppressedIssuesFileStorageFileNotFound));
+                    return Enumerable.Empty<SonarQubeIssue>();
+                }
+
                 var fileContent = fileSystem.File.ReadAllText(filePath);
                 return JsonConvert.DeserializeObject<IEnumerable<SonarQubeIssue>>(fileContent);
             }
             catch (Exception ex)
             {
-                logger.WriteLine(string.Format(Strings.SuppressedIssuesFileStorageGetError, ex.Message));
+                logger.WriteLine(string.Format(Strings.SuppressedIssuesFileStorageGetError, sonarProjectKey, ex.Message));
             }
 
             return Enumerable.Empty<SonarQubeIssue>();
@@ -77,13 +84,12 @@ namespace SonarLint.VisualStudio.Integration.Roslyn.Suppression.SettingsFile
                 var escapedName = PathHelper.EscapeFileName(sonarProjectKey);
                 var filePath = GetFilePath(escapedName);
                 var fileContent = JsonConvert.SerializeObject(allSuppressedIssues);
-                fileSystem.Directory.CreateDirectory(fileDirectory);
                 fileSystem.File.WriteAllText(filePath, fileContent);
             }
             catch (Exception ex)
             {
                 
-                logger.WriteLine(string.Format(Strings.SuppressedIssuesFileStorageUpdateError, ex.Message));
+                logger.WriteLine(string.Format(Strings.SuppressedIssuesFileStorageUpdateError, sonarProjectKey, ex.Message));
             }
         }
 
