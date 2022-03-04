@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.Linq;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Resources;
@@ -54,8 +53,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
 
             try
             {
-                var escapedName = PathHelper.EscapeFileName(sonarProjectKey);
-                var filePath = RoslynSettingsFileInfo.GetFilePathFromEscapedProjectKey(escapedName);
+                var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(sonarProjectKey);
 
                 if(!fileSystem.File.Exists(filePath))
                 {
@@ -80,8 +78,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
 
             try
             {
-                var escapedName = PathHelper.EscapeFileName(sonarProjectKey);
-                var filePath = RoslynSettingsFileInfo.GetFilePathFromEscapedProjectKey(escapedName);
+                var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(sonarProjectKey);
                 var fileContent = JsonConvert.SerializeObject(allSuppressedIssues);
                 fileSystem.File.WriteAllText(filePath, fileContent);
             }

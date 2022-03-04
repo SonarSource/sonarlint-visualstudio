@@ -287,7 +287,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
         private static string GetTempPath() => RoslynSettingsFileInfo.Directory;
 
-        private static string GetFilePath(string projectKey) => RoslynSettingsFileInfo.GetFilePathFromEscapedProjectKey(projectKey);
+        private static string GetFilePath(string projectKey) => RoslynSettingsFileInfo.GetSettingsFilePath(projectKey);
 
         private Mock<IFile> CreateFileForGet(string projectKey, IEnumerable<SonarQubeIssue> issues)
         {

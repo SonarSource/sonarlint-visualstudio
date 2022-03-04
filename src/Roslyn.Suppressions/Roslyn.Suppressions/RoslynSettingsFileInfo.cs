@@ -19,6 +19,7 @@
  */
 
 using System.IO;
+using SonarLint.VisualStudio.Core.Helpers;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions
 {
@@ -26,14 +27,23 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
     {
         public static readonly string Directory = Path.Combine(Path.GetTempPath(), "SLVS", "Roslyn");
 
-        public static string GetFilePathFromEscapedProjectKey(string sonarProjectKey)
+        /// <summary>
+        /// Returns the full file path for the given project key
+        /// </summary>
+        public static string GetSettingsFilePath(string sonarProjectKey)
         {
-            var fileName = sonarProjectKey + ".json";
+            var escapedName = PathHelper.EscapeFileName(sonarProjectKey);
+
+            var fileName = escapedName + ".json";
 
             return Path.Combine(Directory, fileName);
         }
 
-        public static string GetEscapedProjectKeyFromFilePath(string filePath)
+        /// <summary>
+        /// Returns an identifier for the project settings to which the settings file relates.
+        /// </summary>
+        /// <remarks> The identifier is *not* the actual project key since we can't recover it accurately from the file name </remarks>
+        public static string GetSettingsKey(string filePath)
         {
             return Path.GetFileNameWithoutExtension(filePath);
         }
