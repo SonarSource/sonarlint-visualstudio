@@ -32,6 +32,16 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
     public class SuppressedIssuesFileWatcherTests
     {
         [TestMethod]
+        public void Ctor_DirectoryIsCreatedIfNeeded()
+        {
+            var fileSystem = new Mock<IFileSystem>();
+
+            CreateTestSubject(fileSystem: fileSystem.Object);
+
+            fileSystem.Verify(x=> x.Directory.CreateDirectory(RoslynSettingsFileInfo.Directory), Times.Once);
+        }
+
+        [TestMethod]
         public void Ctor_RegisterToFileWatcherEvents()
         {
             var fileSystemWatcher = CreateFileSystemWatcher();
@@ -121,18 +131,21 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         }
 
         private static SuppressedIssuesFileWatcher CreateTestSubject(ISuppressedIssuesCache suppressedIssuesCache = null,
-            IFileSystemWatcher fileSystemWatcher = null)
+            IFileSystemWatcher fileSystemWatcher = null,
+            IFileSystem fileSystem = null)
         {
-            suppressedIssuesCache ??= Mock.Of<ISuppressedIssuesCache>();
             fileSystemWatcher ??= Mock.Of<IFileSystemWatcher>();
+            fileSystem ??= Mock.Of<IFileSystem>();
 
-            var fileSystem = new Mock<IFileSystem>();
-
-            fileSystem
+            Mock.Get(fileSystem)
                 .Setup(x => x.FileSystemWatcher.FromPath(RoslynSettingsFileInfo.Directory))
                 .Returns(fileSystemWatcher);
 
-            return new SuppressedIssuesFileWatcher(suppressedIssuesCache, fileSystem.Object);
+            Mock.Get(fileSystem).Setup(x => x.Directory.CreateDirectory(RoslynSettingsFileInfo.Directory));
+
+            suppressedIssuesCache ??= Mock.Of<ISuppressedIssuesCache>();
+
+            return new SuppressedIssuesFileWatcher(suppressedIssuesCache, fileSystem);
         }
     }
 }

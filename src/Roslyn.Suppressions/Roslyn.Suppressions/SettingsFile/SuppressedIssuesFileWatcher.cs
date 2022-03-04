@@ -42,6 +42,8 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
         internal SuppressedIssuesFileWatcher(ISuppressedIssuesCache suppressedIssuesCache, IFileSystem fileSystem)
         {
             this.suppressedIssuesCache = suppressedIssuesCache;
+
+            fileSystem.Directory.CreateDirectory(RoslynSettingsFileInfo.Directory);
             fileSystemWatcher = fileSystem.FileSystemWatcher.FromPath(RoslynSettingsFileInfo.Directory);
 
             fileSystemWatcher.Created += InvalidateCache;
