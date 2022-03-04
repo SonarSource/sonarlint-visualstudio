@@ -26,4 +26,9 @@
     <AssemblyName>SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests</AssemblyName>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.3.1" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.3.1" PrivateAssets="all" />
+  </ItemGroup>
+  
 </Project>
