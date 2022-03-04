@@ -20,20 +20,19 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Suppressions;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Resources;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.Roslyn.Suppression.SettingsFile
+namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
 {
     internal class SuppressedIssuesFileStorage : ISuppressedIssuesFileStorage
     {
-        private readonly string fileDirectory;
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
 
@@ -46,19 +45,18 @@ namespace SonarLint.VisualStudio.Integration.Roslyn.Suppression.SettingsFile
         {
             this.fileSystem = fileSystem;
             this.logger = logger;
-
-            fileDirectory = Path.Combine(Path.GetTempPath(), "SLVS", "Roslyn");
-            fileSystem.Directory.CreateDirectory(fileDirectory);
+            fileSystem.Directory.CreateDirectory(RoslynSettingsFileInfo.Directory);
         }
 
         public IEnumerable<SonarQubeIssue> Get(string sonarProjectKey)
         {
-
             ValidateSonarProjectKey(sonarProjectKey);
+
             try
             {
                 var escapedName = PathHelper.EscapeFileName(sonarProjectKey);
-                var filePath = GetFilePath(escapedName);
+                var filePath = RoslynSettingsFileInfo.GetFilePathFromEscapedProjectKey(escapedName);
+
                 if(!fileSystem.File.Exists(filePath))
                 {
                     logger.WriteLine(string.Format(Strings.SuppressedIssuesFileStorageGetError, sonarProjectKey, Strings.SuppressedIssuesFileStorageFileNotFound));
@@ -79,16 +77,16 @@ namespace SonarLint.VisualStudio.Integration.Roslyn.Suppression.SettingsFile
         public void Update(string sonarProjectKey, IEnumerable<SonarQubeIssue> allSuppressedIssues)
         {
             ValidateSonarProjectKey(sonarProjectKey);
+
             try
             {
                 var escapedName = PathHelper.EscapeFileName(sonarProjectKey);
-                var filePath = GetFilePath(escapedName);
+                var filePath = RoslynSettingsFileInfo.GetFilePathFromEscapedProjectKey(escapedName);
                 var fileContent = JsonConvert.SerializeObject(allSuppressedIssues);
                 fileSystem.File.WriteAllText(filePath, fileContent);
             }
             catch (Exception ex)
             {
-                
                 logger.WriteLine(string.Format(Strings.SuppressedIssuesFileStorageUpdateError, sonarProjectKey, ex.Message));
             }
         }
@@ -99,12 +97,6 @@ namespace SonarLint.VisualStudio.Integration.Roslyn.Suppression.SettingsFile
             {
                 throw new ArgumentException(Strings.SuppressedIssuesFileStorageEmptyProjectKey, nameof(sonarProjectKey));
             }
-        }
-
-        private string GetFilePath(string sonarProjectKey)
-        {
-            string fileName = sonarProjectKey + ".json";
-            return Path.Combine(fileDirectory, fileName);
         }
     }
 }
