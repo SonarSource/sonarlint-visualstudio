@@ -1300,7 +1300,8 @@
       "SonarLint.VisualStudio.Roslyn.Suppressions": {
         "type": "Project",
         "dependencies": {
-          "SonarLint.VisualStudio.Core": "1.0.0"
+          "SonarLint.VisualStudio.Core": "1.0.0",
+          "SonarLint.VisualStudio.Infrastructure.VS": "1.0.0"
         }
       },
       "sonarqube.client": {

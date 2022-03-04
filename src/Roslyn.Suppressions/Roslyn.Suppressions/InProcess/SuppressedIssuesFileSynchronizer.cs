@@ -21,9 +21,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Core.Suppressions;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
@@ -34,6 +37,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
     /// </summary>
     public interface ISuppressedIssuesFileSynchronizer : IDisposable
     {
+        void UpdateFileStorage();
     }
 
     [Export(typeof(ISuppressedIssuesFileStorage))]
@@ -53,34 +57,59 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
     [Export(typeof(ISuppressedIssuesFileSynchronizer))]
     internal sealed class SuppressedIssuesFileSynchronizer : ISuppressedIssuesFileSynchronizer
     {
+        private readonly IThreadHandling threadHandling;
         private readonly ISuppressedIssuesMonitor suppressedIssuesMonitor;
         private readonly ISonarQubeIssuesProvider suppressedIssuesProvider;
         private readonly ISuppressedIssuesFileStorage suppressedIssuesFileStorage;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
 
         [ImportingConstructor]
-        public SuppressedIssuesFileSynchronizer(ISuppressedIssuesMonitor suppressedIssuesMonitor, 
+        public SuppressedIssuesFileSynchronizer(ISuppressedIssuesMonitor suppressedIssuesMonitor,
             ISonarQubeIssuesProvider suppressedIssuesProvider,
             ISuppressedIssuesFileStorage suppressedIssuesFileStorage,
             IActiveSolutionBoundTracker activeSolutionBoundTracker)
+            : this(suppressedIssuesMonitor,
+                suppressedIssuesProvider,
+                suppressedIssuesFileStorage,
+                activeSolutionBoundTracker,
+                new ThreadHandling())
+        {
+        }
+
+        internal SuppressedIssuesFileSynchronizer(ISuppressedIssuesMonitor suppressedIssuesMonitor,
+            ISonarQubeIssuesProvider suppressedIssuesProvider,
+            ISuppressedIssuesFileStorage suppressedIssuesFileStorage,
+            IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            IThreadHandling threadHandling)
         {
             this.suppressedIssuesMonitor = suppressedIssuesMonitor;
             this.suppressedIssuesProvider = suppressedIssuesProvider;
             this.suppressedIssuesFileStorage = suppressedIssuesFileStorage;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+            this.threadHandling = threadHandling;
 
             suppressedIssuesMonitor.SuppressionsUpdateRequested += SuppressedIssuesMonitor_SuppressionsUpdateRequested;
         }
 
         private void SuppressedIssuesMonitor_SuppressionsUpdateRequested(object sender, EventArgs e)
         {
-            var sonarProjectKey = activeSolutionBoundTracker.CurrentConfiguration.Project?.ProjectKey;
+            UpdateFileStorage();
+        }
 
-            if (!string.IsNullOrEmpty(sonarProjectKey))
+        public void UpdateFileStorage()
+        {
+            threadHandling.Run(() =>
             {
-                var allSuppressedIssues = suppressedIssuesProvider.GetAllSuppressedIssues();
-                suppressedIssuesFileStorage.Update(sonarProjectKey, allSuppressedIssues);
-            }
+                var sonarProjectKey = activeSolutionBoundTracker.CurrentConfiguration.Project?.ProjectKey;
+
+                if (!string.IsNullOrEmpty(sonarProjectKey))
+                {
+                    var allSuppressedIssues = suppressedIssuesProvider.GetAllSuppressedIssues();
+                    suppressedIssuesFileStorage.Update(sonarProjectKey, allSuppressedIssues);
+                }
+
+                return Task.FromResult(true);
+            });
         }
 
         public void Dispose()
