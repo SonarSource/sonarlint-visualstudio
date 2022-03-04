@@ -29,7 +29,15 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
         void Invalidate(string settingsKey);
     }
 
-    internal sealed class SuppressedIssuesFileWatcher : IDisposable
+    /// <summary>
+    /// Monitors files created under <see cref="RoslynSettingsFileInfo.Directory"/> directory and
+    /// calls <see cref="ISuppressedIssuesCache.Invalidate"/> when a sonarProject's settings file is changed.
+    /// </summary>
+    internal interface ISuppressedIssuesFileWatcher : IDisposable
+    {
+    }
+
+    internal sealed class SuppressedIssuesFileWatcher : ISuppressedIssuesFileWatcher
     {
         private readonly IFileSystemWatcher fileSystemWatcher;
         private readonly ISuppressedIssuesCache suppressedIssuesCache;
