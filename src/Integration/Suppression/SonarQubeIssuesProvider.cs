@@ -136,6 +136,13 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         public IEnumerable<SonarQubeIssue> GetAllSuppressedIssues()
         {
+            // Block the call while the cache is being built.
+            // If the task has already completed then this will return immediately
+            // (e.g. on subsequent calls)
+            // If we time out waiting for the initial fetch then we won't suppress any issues.
+            // We'll try to fetch the issues again when the timer elapses.
+            this.initialFetch?.Wait(MillisecondsToWaitForInitialFetch);
+
             return allSuppressedIssues ?? Enumerable.Empty<SonarQubeIssue>();
         }
 

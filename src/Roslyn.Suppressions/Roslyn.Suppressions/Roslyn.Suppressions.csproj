@@ -26,6 +26,15 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj" />
     <ProjectReference Include="..\..\Core\Core.csproj" />
+    <ProjectReference Include="..\..\Infrastructure.VS\Infrastructure.VS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Label="Automatically added by VS">
+    <!-- Note: these settings relate to files in the SuppressorCodeGen.targets -->
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+    <Compile Update="SupportedSuppressionBuilder.g.cs">
+      <DesignTime>True</DesignTime>
+    </Compile>
   </ItemGroup>
   
   <ItemGroup>

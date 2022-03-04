@@ -99,6 +99,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     serviceProvider.GetMefService<IProjectToLanguageMapper>());
 
                 this.suppressedIssuesFileSynchronizer = await this.GetMefServiceAsync<ISuppressedIssuesFileSynchronizer>();
+                suppressedIssuesFileSynchronizer.UpdateFileStorage();
 
                 logger.WriteLine(Resources.Strings.SL_InitializationComplete);
             }
