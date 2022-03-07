@@ -30,6 +30,7 @@ using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 using SonarQube.Client.Models;
+using static SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.TestHelper;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 {
@@ -263,29 +264,6 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             
             return fileSystem;
         }
-
-        private static SonarQubeIssue CreateIssue(string issueKey)
-        {
-            return new SonarQubeIssue(issueKey, 
-                "path", 
-                "hash", 
-                "message", 
-                "moduleKey", 
-                "ruleId", 
-                true, 
-                SonarQubeIssueSeverity.Blocker, 
-                DateTimeOffset.Now, 
-                DateTimeOffset.Now, 
-                new IssueTextRange(0, 1, 2, 3),
-                new List<IssueFlow> { 
-                    new IssueFlow(
-                        new List<IssueLocation> { 
-                            new IssueLocation("filepath",
-                                "moduleKey",
-                                new IssueTextRange(10, 11, 12, 13), "locationMEssage") }) });
-        }
-
-        private static string GetTempPath() => RoslynSettingsFileInfo.Directory;
 
         private static string GetFilePath(string projectKey) => RoslynSettingsFileInfo.GetSettingsFilePath(projectKey);
 
