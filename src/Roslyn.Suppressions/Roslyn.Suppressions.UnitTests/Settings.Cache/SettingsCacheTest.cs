@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
         {
             var issues = CreateIssues();
 
-            var cacheObject = CreateCacheObject("settingsKey", issues);
+            var cacheObject = CreatePopulatedCacheObject("settingsKey", issues);
 
             var fileStorage = new Mock<ISuppressedIssuesFileStorage>();
 
@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
         {
             var issues = CreateIssues();
 
-            var cacheObject = CreateCacheObject("differentKey", issues);
+            var cacheObject = CreatePopulatedCacheObject("differentKey", issues);
 
             var fileStorage = new Mock<ISuppressedIssuesFileStorage>();
 
@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
         {
             var issues = CreateIssues();
 
-            var cacheObject = CreateCacheObject("settingsKey", issues);
+            var cacheObject = CreatePopulatedCacheObject("settingsKey", issues);
 
 
             var testSubject = CreateTestSubject(settingsCollection: cacheObject);
@@ -119,13 +119,11 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
             testSubject.Invalidate("settingsKey");
         }
 
-        private static ConcurrentDictionary<string, IEnumerable<SonarQubeIssue>> CreateCacheObject(string settingsKey, IEnumerable<SonarQubeIssue> issues)
+        private static ConcurrentDictionary<string, IEnumerable<SonarQubeIssue>> CreatePopulatedCacheObject(string settingsKey, IEnumerable<SonarQubeIssue> issues)
         {            
             var cacheObject = new ConcurrentDictionary<string, IEnumerable<SonarQubeIssue>>();
-            if (issues != null)
-            {
-                cacheObject.AddOrUpdate(settingsKey, issues, (x, y) => issues);
-            }
+            cacheObject.AddOrUpdate(settingsKey, issues, (x, y) => issues);
+
             return cacheObject;
         }
 
