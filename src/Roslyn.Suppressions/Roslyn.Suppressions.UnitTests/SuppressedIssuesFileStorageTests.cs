@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Integration.Roslyn.Suppression.SettingsFile;
+using SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
@@ -39,8 +40,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestMethod]
         public void Update_HasIssues_IssuesWrittenToFile()
         {
-            SonarQubeIssue issue1 = CreateIssue("issueKey1");
-            SonarQubeIssue issue2 = CreateIssue("issueKey2");
+            SonarQubeIssue issue1 = TestHelper.CreateIssue("issueKey1");
+            SonarQubeIssue issue2 = TestHelper.CreateIssue("issueKey2");
 
             var issues = new List<SonarQubeIssue> { issue1, issue2 };
 
@@ -60,8 +61,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestMethod]
         public void Get_HasIssues_IssuesReadFromFile()
         {
-            SonarQubeIssue issue1 = CreateIssue("issueKey1");
-            SonarQubeIssue issue2 = CreateIssue("issueKey2");
+            SonarQubeIssue issue1 = TestHelper.CreateIssue("issueKey1");
+            SonarQubeIssue issue2 = TestHelper.CreateIssue("issueKey2");
             var issues = new List<SonarQubeIssue> { issue1, issue2 };
             
             var logger = new TestLogger();
@@ -87,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestMethod]
         public void Update_ProjectKeyIsEmpty_ExceptionThrown(string projectKey)
         {
-            SonarQubeIssue issue = CreateIssue("issueKey");
+            SonarQubeIssue issue = TestHelper.CreateIssue("issueKey");
             var issues = new List<SonarQubeIssue> { issue };
 
             var fileStorage = CreateTestSubject();
@@ -99,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestMethod]
         public void Update_ProjectKeyHasInvalidChars_InvalidCharsReplaced()
         {
-            SonarQubeIssue issue = CreateIssue("issueKey");
+            SonarQubeIssue issue = TestHelper.CreateIssue("issueKey");
             var issues = new List<SonarQubeIssue> { issue };
 
             var logger = new TestLogger();
@@ -129,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestMethod]
         public void Get_ProjectKeyHasInvalidChars_InvalidCharsReplaced()
         {
-            SonarQubeIssue issue = CreateIssue("issueKey");
+            SonarQubeIssue issue = TestHelper.CreateIssue("issueKey");
             var issues = new List<SonarQubeIssue> { issue };
 
             var logger = new TestLogger();
@@ -151,7 +152,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestMethod]
         public void Update_ErrorOccuredWhenWritingFile_ErrorIsLogged()
         {
-            SonarQubeIssue issue = CreateIssue("issueKey");
+            SonarQubeIssue issue = TestHelper.CreateIssue("issueKey");
             var issues = new List<SonarQubeIssue> { issue };
 
             var logger = new TestLogger();
@@ -170,7 +171,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestMethod]
         public void Get_ErrorOccuredWhenWritingFile_ErrorIsLoggedAndReturnedEmpty()
         {
-            SonarQubeIssue issue = CreateIssue("issueKey");
+            SonarQubeIssue issue = TestHelper.CreateIssue("issueKey");
             var issues = new List<SonarQubeIssue> { issue };
 
             var logger = new TestLogger();
@@ -227,7 +228,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestMethod]
         public void Get_FileDoesNotExist_ErrorIsLoggedAndReturnedEmpty()
         {
-            SonarQubeIssue issue = CreateIssue("issueKey");
+            SonarQubeIssue issue = TestHelper.CreateIssue("issueKey");
             var issues = new List<SonarQubeIssue> { issue };
 
             var logger = new TestLogger();
@@ -261,27 +262,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             fileSystem.SetupGet(fs => fs.Directory).Returns(directoryObject);
             
             return fileSystem;
-        }
-
-        private static SonarQubeIssue CreateIssue(string issueKey)
-        {
-            return new SonarQubeIssue(issueKey, 
-                "path", 
-                "hash", 
-                "message", 
-                "moduleKey", 
-                "ruleId", 
-                true, 
-                SonarQubeIssueSeverity.Blocker, 
-                DateTimeOffset.Now, 
-                DateTimeOffset.Now, 
-                new IssueTextRange(0, 1, 2, 3),
-                new List<IssueFlow> { 
-                    new IssueFlow(
-                        new List<IssueLocation> { 
-                            new IssueLocation("filepath",
-                                "moduleKey",
-                                new IssueTextRange(10, 11, 12, 13), "locationMEssage") }) });
         }
 
         private static string GetTempPath() => Path.Combine(Path.GetTempPath(), "SLVS", "Roslyn");
