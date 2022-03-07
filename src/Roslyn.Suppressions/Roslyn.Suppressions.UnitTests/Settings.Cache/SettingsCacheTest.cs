@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
         }
 
         [TestMethod]
-        public void GetSettings_SettingNotInCacheAndFile_SettingsEmpty()
+        public void GetSettings_SettingNotInCacheOrFile_SettingsEmpty()
         {
             var fileStorage = new Mock<ISuppressedIssuesFileStorage>();
 
