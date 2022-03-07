@@ -50,7 +50,6 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
         public IEnumerable<SonarQubeIssue> Get(string sonarProjectKey)
         {
             ValidateSonarProjectKey(sonarProjectKey);
-
             try
             {
                 var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(sonarProjectKey);
@@ -84,6 +83,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
             }
             catch (Exception ex)
             {
+                
                 logger.WriteLine(string.Format(Strings.SuppressedIssuesFileStorageUpdateError, sonarProjectKey, ex.Message));
             }
         }
