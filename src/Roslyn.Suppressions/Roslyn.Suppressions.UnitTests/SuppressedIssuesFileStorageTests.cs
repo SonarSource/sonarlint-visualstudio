@@ -30,6 +30,7 @@ using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 using SonarQube.Client.Models;
+using static SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.TestHelper;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 {
@@ -40,8 +41,8 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         [TestMethod]
         public void Update_HasIssues_IssuesWrittenToFile()
         {
-            SonarQubeIssue issue1 = TestHelper.CreateIssue("issueKey1");
-            SonarQubeIssue issue2 = TestHelper.CreateIssue("issueKey2");
+            SonarQubeIssue issue1 = CreateIssue("issueKey1");
+            SonarQubeIssue issue2 = CreateIssue("issueKey2");
 
             var issues = new List<SonarQubeIssue> { issue1, issue2 };
 
@@ -61,8 +62,8 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         [TestMethod]
         public void Get_HasIssues_IssuesReadFromFile()
         {
-            SonarQubeIssue issue1 = TestHelper.CreateIssue("issueKey1");
-            SonarQubeIssue issue2 = TestHelper.CreateIssue("issueKey2");
+            SonarQubeIssue issue1 = CreateIssue("issueKey1");
+            SonarQubeIssue issue2 = CreateIssue("issueKey2");
             var issues = new List<SonarQubeIssue> { issue1, issue2 };
             
             var logger = new TestLogger();
@@ -88,7 +89,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         [TestMethod]
         public void Update_ProjectKeyIsEmpty_ExceptionThrown(string projectKey)
         {
-            SonarQubeIssue issue = TestHelper.CreateIssue("issueKey");
+            SonarQubeIssue issue = CreateIssue("issueKey");
             var issues = new List<SonarQubeIssue> { issue };
 
             var fileStorage = CreateTestSubject();
@@ -100,7 +101,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         [TestMethod]
         public void Update_ProjectKeyHasInvalidChars_InvalidCharsReplaced()
         {
-            SonarQubeIssue issue = TestHelper.CreateIssue("issueKey");
+            SonarQubeIssue issue = CreateIssue("issueKey");
             var issues = new List<SonarQubeIssue> { issue };
 
             var logger = new TestLogger();
@@ -130,7 +131,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         [TestMethod]
         public void Get_ProjectKeyHasInvalidChars_InvalidCharsReplaced()
         {
-            SonarQubeIssue issue = TestHelper.CreateIssue("issueKey");
+            SonarQubeIssue issue = CreateIssue("issueKey");
             var issues = new List<SonarQubeIssue> { issue };
 
             var logger = new TestLogger();
@@ -152,7 +153,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         [TestMethod]
         public void Update_ErrorOccuredWhenWritingFile_ErrorIsLogged()
         {
-            SonarQubeIssue issue = TestHelper.CreateIssue("issueKey");
+            SonarQubeIssue issue = CreateIssue("issueKey");
             var issues = new List<SonarQubeIssue> { issue };
 
             var logger = new TestLogger();
@@ -171,7 +172,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         [TestMethod]
         public void Get_ErrorOccuredWhenWritingFile_ErrorIsLoggedAndReturnedEmpty()
         {
-            SonarQubeIssue issue = TestHelper.CreateIssue("issueKey");
+            SonarQubeIssue issue = CreateIssue("issueKey");
             var issues = new List<SonarQubeIssue> { issue };
 
             var logger = new TestLogger();
@@ -228,7 +229,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         [TestMethod]
         public void Get_FileDoesNotExist_ErrorIsLoggedAndReturnedEmpty()
         {
-            SonarQubeIssue issue = TestHelper.CreateIssue("issueKey");
+            SonarQubeIssue issue = CreateIssue("issueKey");
             var issues = new List<SonarQubeIssue> { issue };
 
             var logger = new TestLogger();
@@ -263,8 +264,6 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             
             return fileSystem;
         }
-
-        private static string GetTempPath() => RoslynSettingsFileInfo.Directory;
 
         private static string GetFilePath(string projectKey) => RoslynSettingsFileInfo.GetSettingsFilePath(projectKey);
 

@@ -20,11 +20,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Resources;
@@ -51,8 +49,6 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
 
         public IEnumerable<SonarQubeIssue> Get(string sonarProjectKey)
         {
-            ValidateSonarProjectKey(sonarProjectKey);
-
             ValidateSonarProjectKey(sonarProjectKey);
             try
             {
