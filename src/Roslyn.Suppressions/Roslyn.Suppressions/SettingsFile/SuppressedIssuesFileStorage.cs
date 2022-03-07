@@ -34,7 +34,6 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
 {
     internal class SuppressedIssuesFileStorage : ISuppressedIssuesFileStorage
     {
-        private readonly string fileDirectory;
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
 
@@ -99,12 +98,6 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
             {
                 throw new ArgumentException(Strings.SuppressedIssuesFileStorageEmptyProjectKey, nameof(sonarProjectKey));
             }
-        }
-
-        private string GetFilePath(string sonarProjectKey)
-        {
-            string fileName = sonarProjectKey + ".json";
-            return Path.Combine(fileDirectory, fileName);
         }
     }
 }
