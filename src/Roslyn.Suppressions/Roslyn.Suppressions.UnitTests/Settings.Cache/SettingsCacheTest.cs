@@ -39,8 +39,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
         public void GetSettings_SettingNotInCache_SettingsReadFromFile()
         {
             var issues = CreateIssues();
-
-            var cacheObject = new ConcurrentDictionary<string, IEnumerable<SonarQubeIssue>>();
+            var cacheObject = CreateEmptyCacheObject();
 
             var fileStorage = new Mock<ISuppressedIssuesFileStorage>();
             fileStorage.Setup(fs => fs.Get("settingsKey")).Returns(issues);
@@ -53,6 +52,8 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
             cacheObject["settingsKey"].Should().BeSameAs(issues);
             settings.Should().BeSameAs(issues);
         }
+
+        
 
         [TestMethod]
         public void GetSettings_SettingInCache_SettingsReadFromCache()
@@ -119,9 +120,9 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
             testSubject.Invalidate("settingsKey");
         }
 
-        private static ConcurrentDictionary<string, IEnumerable<SonarQubeIssue>> CreatePopulatedCacheObject(string settingsKey, IEnumerable<SonarQubeIssue> issues)
-        {            
-            var cacheObject = new ConcurrentDictionary<string, IEnumerable<SonarQubeIssue>>();
+        private ConcurrentDictionary<string, IEnumerable<SonarQubeIssue>> CreatePopulatedCacheObject(string settingsKey, IEnumerable<SonarQubeIssue> issues)
+        {
+            var cacheObject = CreateEmptyCacheObject();
             cacheObject.AddOrUpdate(settingsKey, issues, (x, y) => issues);
 
             return cacheObject;
@@ -140,6 +141,11 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
             settingsCollection = settingsCollection ?? new ConcurrentDictionary<string, IEnumerable<SonarQubeIssue>>();
 
             return new SettingsCache(fileStorage.Object, settingsCollection);
+        }
+
+        private ConcurrentDictionary<string, IEnumerable<SonarQubeIssue>> CreateEmptyCacheObject()
+        {
+            return new ConcurrentDictionary<string, IEnumerable<SonarQubeIssue>>();
         }
     }
 }
