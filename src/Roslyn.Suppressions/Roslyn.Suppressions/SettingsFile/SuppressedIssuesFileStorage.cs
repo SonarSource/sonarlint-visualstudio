@@ -26,10 +26,11 @@ using System.Linq;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Suppressions;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Resources;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.Roslyn.Suppression.SettingsFile
+namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
 {
     internal class SuppressedIssuesFileStorage : ISuppressedIssuesFileStorage
     {
@@ -46,19 +47,18 @@ namespace SonarLint.VisualStudio.Integration.Roslyn.Suppression.SettingsFile
         {
             this.fileSystem = fileSystem;
             this.logger = logger;
-
-            fileDirectory = Path.Combine(Path.GetTempPath(), "SLVS", "Roslyn");
-            fileSystem.Directory.CreateDirectory(fileDirectory);
+            fileSystem.Directory.CreateDirectory(RoslynSettingsFileInfo.Directory);
         }
 
         public IEnumerable<SonarQubeIssue> Get(string sonarProjectKey)
         {
+            ValidateSonarProjectKey(sonarProjectKey);
 
             ValidateSonarProjectKey(sonarProjectKey);
             try
             {
-                var escapedName = PathHelper.EscapeFileName(sonarProjectKey);
-                var filePath = GetFilePath(escapedName);
+                var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(sonarProjectKey);
+
                 if(!fileSystem.File.Exists(filePath))
                 {
                     logger.WriteLine(string.Format(Strings.SuppressedIssuesFileStorageGetError, sonarProjectKey, Strings.SuppressedIssuesFileStorageFileNotFound));
@@ -79,10 +79,10 @@ namespace SonarLint.VisualStudio.Integration.Roslyn.Suppression.SettingsFile
         public void Update(string sonarProjectKey, IEnumerable<SonarQubeIssue> allSuppressedIssues)
         {
             ValidateSonarProjectKey(sonarProjectKey);
+
             try
             {
-                var escapedName = PathHelper.EscapeFileName(sonarProjectKey);
-                var filePath = GetFilePath(escapedName);
+                var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(sonarProjectKey);
                 var fileContent = JsonConvert.SerializeObject(allSuppressedIssues);
                 fileSystem.File.WriteAllText(filePath, fileContent);
             }

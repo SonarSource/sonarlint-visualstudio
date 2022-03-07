@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.Roslyn.Suppression.SettingsFile;
+using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache

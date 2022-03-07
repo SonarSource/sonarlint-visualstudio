@@ -20,18 +20,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Integration.Roslyn.Suppression.SettingsFile;
-using SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
+namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 {
     [TestClass]
     public class SuppressedIssuesFileStorageTests
@@ -264,9 +264,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             return fileSystem;
         }
 
-        private static string GetTempPath() => Path.Combine(Path.GetTempPath(), "SLVS", "Roslyn");
+        private static string GetTempPath() => RoslynSettingsFileInfo.Directory;
 
-        private static string GetFilePath(string projectKey) => Path.Combine(GetTempPath(), projectKey + ".json");
+        private static string GetFilePath(string projectKey) => RoslynSettingsFileInfo.GetSettingsFilePath(projectKey);
 
         private Mock<IFile> CreateFileForGet(string projectKey, IEnumerable<SonarQubeIssue> issues)
         {
