@@ -17,12 +17,9 @@
     <RootNamespace>SonarLint.VisualStudio.Roslyn.Suppressions</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Roslyn.Suppressions</AssemblyName>
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
+    <RequiresSystemIOAbstractions>true</RequiresSystemIOAbstractions>
   </PropertyGroup>
-  
-  <ItemGroup>
-    <PackageReference Include="System.IO.Abstractions" Version="9.0.4" />
-  </ItemGroup>
-  
+    
   <ItemGroup>
     <ProjectReference Include="..\..\..\sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj" />
     <ProjectReference Include="..\..\Core\Core.csproj" />

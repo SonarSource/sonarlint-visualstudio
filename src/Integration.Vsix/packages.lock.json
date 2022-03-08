@@ -196,9 +196,9 @@
       },
       "System.IO.Abstractions": {
         "type": "Direct",
-        "requested": "[7.1.10, )",
-        "resolved": "7.1.10",
-        "contentHash": "qseReDWlVNclqdze6nLnEqQxAyMS2mO5oCG4SIMgJHqTEPLNhGe9a+KReKHl6DFTarzueP4leQOhCXLxoKQL0g=="
+        "requested": "[9.0.4, )",
+        "resolved": "9.0.4",
+        "contentHash": "1h4krG51ZiW/CGzM8gtqrRW2oeG6WZDfPaj27suexL8PxBVahsUlUKMJrqI4kkh6ggHLSDd7MFeU8orpk6COZg=="
       },
       "System.Reflection.Metadata": {
         "type": "Direct",
@@ -1517,7 +1517,7 @@
         "dependencies": {
           "Newtonsoft.Json": "13.0.1",
           "SonarQube.Client": "1.0.0",
-          "System.IO.Abstractions": "7.1.10"
+          "System.IO.Abstractions": "9.0.4"
         }
       },
       "SonarLint.VisualStudio.Infrastructure.VS": {
@@ -1543,7 +1543,7 @@
           "SonarLint.VisualStudio.ProgressVS": "1.0.0",
           "SonarQube.Client": "1.0.0",
           "StrongNamer": "0.0.8",
-          "System.IO.Abstractions": "7.1.10"
+          "System.IO.Abstractions": "9.0.4"
         }
       },
       "SonarLint.VisualStudio.Integration.TeamExplorer": {
