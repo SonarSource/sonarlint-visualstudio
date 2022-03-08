@@ -21,7 +21,7 @@
 using System.IO;
 using SonarLint.VisualStudio.Core.Helpers;
 
-namespace SonarLint.VisualStudio.Roslyn.Suppressions
+namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
 {
     internal static class RoslynSettingsFileInfo
     {
