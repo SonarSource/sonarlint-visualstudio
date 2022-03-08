@@ -61,6 +61,15 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Roslyn Suppressions] Error handling SonarLint suppressions change. Issues suppressed on the server may not be suppressed in the IDE. Error: {0}.
+        /// </summary>
+        internal static string FileWatcherException {
+            get {
+                return ResourceManager.GetString("FileWatcherException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Argument must have at least one non-whitespace character.
         /// </summary>
         internal static string SuppressedIssuesFileStorageEmptyProjectKey {

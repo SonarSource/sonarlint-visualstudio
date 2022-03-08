@@ -24,6 +24,8 @@ using System.IO.Abstractions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
@@ -31,16 +33,6 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
     [TestClass]
     public class SuppressedIssuesFileWatcherTests
     {
-        [TestMethod]
-        public void Ctor_DirectoryIsCreatedIfNeeded()
-        {
-            var fileSystem = new Mock<IFileSystem>();
-
-            CreateTestSubject(fileSystem: fileSystem.Object);
-
-            fileSystem.Verify(x=> x.Directory.CreateDirectory(RoslynSettingsFileInfo.Directory), Times.Once);
-        }
-
         [TestMethod]
         public void Ctor_RegisterToFileWatcherEvents()
         {
@@ -51,6 +43,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             fileSystemWatcher.VerifyAdd(x => x.Created += It.IsAny<FileSystemEventHandler>(), Times.Once);
             fileSystemWatcher.VerifyAdd(x => x.Deleted += It.IsAny<FileSystemEventHandler>(), Times.Once);
             fileSystemWatcher.VerifyAdd(x => x.Changed += It.IsAny<FileSystemEventHandler>(), Times.Once);
+            fileSystemWatcher.VerifySet(x=> x.Filter = "*.json", Times.Once);
             fileSystemWatcher.VerifySet(x=> x.EnableRaisingEvents = true, Times.Once);
 
             fileSystemWatcher.VerifyNoOtherCalls();
@@ -77,6 +70,38 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         }
 
         [TestMethod]
+        [Description("It is a deliberate design choice to let the caller handle initialization exceptions.")]
+        public void Ctor_FailedToCreateFileSystemWatcher_ExceptionsNotHandled()
+        {
+            var fileSystemWatcher = new Mock<IFileSystemWatcher>();
+            fileSystemWatcher
+                .SetupSet(x => x.EnableRaisingEvents = true)
+                .Throws(new NotImplementedException("some exception"));
+
+            Action act = () => CreateTestSubject(fileSystemWatcher: fileSystemWatcher.Object);
+
+            act.Should().Throw<NotImplementedException>().And.Message.Should().Be("some exception");
+        }
+
+        [TestMethod]
+        [DataRow(WatcherChangeTypes.Created)]
+        [DataRow(WatcherChangeTypes.Deleted)]
+        [DataRow(WatcherChangeTypes.Changed)]
+        public void OnFileSystemChanges_SettingsKeyNotFound_CacheNotInvalidated(WatcherChangeTypes changeType)
+        {
+            var fileSystemWatcher = new Mock<IFileSystemWatcher>();
+            var issuesCache = new Mock<ISuppressedIssuesCache>();
+
+            CreateTestSubject(issuesCache.Object, fileSystemWatcher.Object);
+
+            issuesCache.Invocations.Count.Should().Be(0);
+
+            RaiseFileSystemEvent(fileSystemWatcher, changeType, null);
+
+            issuesCache.Invocations.Count.Should().Be(0);
+        }
+
+        [TestMethod]
         [DataRow(WatcherChangeTypes.Created)]
         [DataRow(WatcherChangeTypes.Deleted)]
         [DataRow(WatcherChangeTypes.Changed)]
@@ -93,6 +118,31 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
             issuesCache.Verify(x=> x.Invalidate("some file"), Times.Once);
             issuesCache.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        [DataRow(WatcherChangeTypes.Created)]
+        [DataRow(WatcherChangeTypes.Deleted)]
+        [DataRow(WatcherChangeTypes.Changed)]
+        public void OnFileSystemChanges_ExceptionInvalidatingCache_ExceptionHandled(WatcherChangeTypes changeType)
+        {
+            var fileSystemWatcher = new Mock<IFileSystemWatcher>();
+
+            var issuesCache = new Mock<ISuppressedIssuesCache>();
+            issuesCache
+                .Setup(x => x.Invalidate("some file"))
+                .Throws(new NotImplementedException("some exception"));
+
+            var logger = new TestLogger();
+
+            CreateTestSubject(issuesCache.Object, fileSystemWatcher.Object, logger: logger);
+
+            issuesCache.Invocations.Count.Should().Be(0);
+
+            Action act = () => RaiseFileSystemEvent(fileSystemWatcher, changeType, "c:\\a\\b\\c\\some file.txt");
+
+            act.Should().NotThrow();
+            logger.AssertPartialOutputStringExists("some exception");
         }
 
         private static Mock<IFileSystemWatcher> CreateFileSystemWatcher()
@@ -132,10 +182,12 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
         private static SuppressedIssuesFileWatcher CreateTestSubject(ISuppressedIssuesCache suppressedIssuesCache = null,
             IFileSystemWatcher fileSystemWatcher = null,
-            IFileSystem fileSystem = null)
+            IFileSystem fileSystem = null,
+            ILogger logger = null)
         {
             fileSystemWatcher ??= Mock.Of<IFileSystemWatcher>();
             fileSystem ??= Mock.Of<IFileSystem>();
+            logger ??= Mock.Of<ILogger>();
 
             Mock.Get(fileSystem)
                 .Setup(x => x.FileSystemWatcher.FromPath(RoslynSettingsFileInfo.Directory))
@@ -145,7 +197,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
             suppressedIssuesCache ??= Mock.Of<ISuppressedIssuesCache>();
 
-            return new SuppressedIssuesFileWatcher(suppressedIssuesCache, fileSystem);
+            return new SuppressedIssuesFileWatcher(suppressedIssuesCache, logger, fileSystem);
         }
     }
 }

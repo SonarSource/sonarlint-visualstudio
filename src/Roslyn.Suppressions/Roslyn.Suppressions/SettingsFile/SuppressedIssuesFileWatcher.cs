@@ -21,6 +21,8 @@
 using System;
 using System.IO;
 using System.IO.Abstractions;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Roslyn.Suppressions.Resources;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
 {
@@ -39,21 +41,36 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
 
     internal sealed class SuppressedIssuesFileWatcher : ISuppressedIssuesFileWatcher
     {
-        private readonly IFileSystemWatcher fileSystemWatcher;
+        private IFileSystemWatcher fileSystemWatcher;
         private readonly ISuppressedIssuesCache suppressedIssuesCache;
+        private readonly ILogger logger;
 
-        public SuppressedIssuesFileWatcher(ISuppressedIssuesCache suppressedIssuesCache)
-            : this(suppressedIssuesCache, new FileSystem())
+        public SuppressedIssuesFileWatcher(ISuppressedIssuesCache suppressedIssuesCache, ILogger logger)
+            : this(suppressedIssuesCache, logger, new FileSystem())
         {
         }
 
-        internal SuppressedIssuesFileWatcher(ISuppressedIssuesCache suppressedIssuesCache, IFileSystem fileSystem)
+        internal SuppressedIssuesFileWatcher(ISuppressedIssuesCache suppressedIssuesCache, ILogger logger, IFileSystem fileSystem)
         {
             this.suppressedIssuesCache = suppressedIssuesCache;
+            this.logger = logger;
 
-            fileSystem.Directory.CreateDirectory(RoslynSettingsFileInfo.Directory);
+            WatchSuppressionsDirectory(fileSystem);
+        }
+
+        /// <summary>
+        /// Monitors files created/edited/deleted in <see cref="RoslynSettingsFileInfo.Directory"/> folder.
+        /// </summary>
+        /// <remarks>
+        /// This method can throw (for example if the directory does not exist yet).
+        /// It's a deliberate design choice to not catch exceptions and let the caller handle it.
+        /// This is because parts of the system need to be singletons and the caller should be the one responsible for handling that.
+        /// </remarks>
+        private void WatchSuppressionsDirectory(IFileSystem fileSystem)
+        {
             fileSystemWatcher = fileSystem.FileSystemWatcher.FromPath(RoslynSettingsFileInfo.Directory);
 
+            fileSystemWatcher.Filter = "*.json";
             fileSystemWatcher.Created += InvalidateCache;
             fileSystemWatcher.Changed += InvalidateCache;
             fileSystemWatcher.Deleted += InvalidateCache;
@@ -63,9 +80,20 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
 
         private void InvalidateCache(object sender, FileSystemEventArgs e)
         {
-            var fileName = e.Name;
-            var settingsKey = RoslynSettingsFileInfo.GetSettingsKey(fileName);
-            suppressedIssuesCache.Invalidate(settingsKey);
+            try
+            {
+                var fileName = e.Name;
+                var settingsKey = RoslynSettingsFileInfo.GetSettingsKey(fileName);
+
+                if (!string.IsNullOrEmpty(fileName))
+                {
+                    suppressedIssuesCache.Invalidate(settingsKey);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.WriteLine(Strings.FileWatcherException, ex);
+            }
         }
 
         public void Dispose()
@@ -73,7 +101,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
             fileSystemWatcher.Created -= InvalidateCache;
             fileSystemWatcher.Changed -= InvalidateCache;
             fileSystemWatcher.Deleted -= InvalidateCache;
-            fileSystemWatcher?.Dispose();
+            fileSystemWatcher.Dispose();
         }
     }
 }
