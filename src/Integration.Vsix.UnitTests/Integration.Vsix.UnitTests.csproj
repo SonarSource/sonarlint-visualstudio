@@ -5,6 +5,7 @@
   <PropertyGroup Label="Specify which VS-specific refs are required">
     <RequiresVCProjectEngine>true</RequiresVCProjectEngine>
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
+    <RequiresSystemIOAbstractions>true</RequiresSystemIOAbstractions>
   </PropertyGroup>
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
@@ -60,8 +61,6 @@
     <PackageReference Include="Microsoft.Composition" Version="1.0.30" />
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
-    <PackageReference Include="System.IO.Abstractions" Version="9.0.4" />
-    <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="9.0.4" />
     <PackageReference Include="System.Reflection.Metadata" Version="1.2.0" />
   </ItemGroup>
 

@@ -66,6 +66,7 @@
 
     <RequiresVCProjectEngine>true</RequiresVCProjectEngine>
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
+    <RequiresSystemIOAbstractions>true</RequiresSystemIOAbstractions>
   </PropertyGroup>
 
   <!-- This project references the SonarLint TeamExplorer assembly which is VS-version specific -->
@@ -150,7 +151,6 @@
     <PackageReference Include="Microsoft.Composition" Version="1.0.30" />
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
-    <PackageReference Include="System.IO.Abstractions" Version="7.1.10" />
     <PackageReference Include="System.Reflection.Metadata" Version="1.2.0" />
 
     <!-- The VSIX signing package is only required for signed builds, but the use of package.lock.json

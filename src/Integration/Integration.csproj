@@ -14,6 +14,7 @@
     <RootNamespace>SonarLint.VisualStudio.Integration</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Integration</AssemblyName>
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
+    <RequiresSystemIOAbstractions>true</RequiresSystemIOAbstractions>
   </PropertyGroup>
 
   <ItemGroup Label="Framework references">
@@ -30,7 +31,6 @@
     <!-- We use BouncyCastle nuget package for its MD5 implementation, since the Framework MD5 throws an exception on FIPS-enabled machines. -->
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
-    <PackageReference Include="System.IO.Abstractions" Version="7.1.10" />
   </ItemGroup>
 
   <ItemGroup>
