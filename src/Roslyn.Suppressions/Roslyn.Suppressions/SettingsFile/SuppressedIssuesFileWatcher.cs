@@ -23,17 +23,13 @@ using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Resources;
+using SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
 {
-    internal interface ISuppressedIssuesCache
-    {
-        void Invalidate(string settingsKey);
-    }
-
     /// <summary>
     /// Monitors files created under <see cref="RoslynSettingsFileInfo.Directory"/> directory and
-    /// calls <see cref="ISuppressedIssuesCache.Invalidate"/> when a sonarProject's settings file is changed.
+    /// calls <see cref="ISettingsCache.Invalidate"/> when a sonarProject's settings file is changed.
     /// </summary>
     internal interface ISuppressedIssuesFileWatcher : IDisposable
     {
@@ -42,17 +38,17 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
     internal sealed class SuppressedIssuesFileWatcher : ISuppressedIssuesFileWatcher
     {
         private IFileSystemWatcher fileSystemWatcher;
-        private readonly ISuppressedIssuesCache suppressedIssuesCache;
+        private readonly ISettingsCache settingsCache;
         private readonly ILogger logger;
 
-        public SuppressedIssuesFileWatcher(ISuppressedIssuesCache suppressedIssuesCache, ILogger logger)
-            : this(suppressedIssuesCache, logger, new FileSystem())
+        public SuppressedIssuesFileWatcher(ISettingsCache settingsCache, ILogger logger)
+            : this(settingsCache, logger, new FileSystem())
         {
         }
 
-        internal SuppressedIssuesFileWatcher(ISuppressedIssuesCache suppressedIssuesCache, ILogger logger, IFileSystem fileSystem)
+        internal SuppressedIssuesFileWatcher(ISettingsCache settingsCache, ILogger logger, IFileSystem fileSystem)
         {
-            this.suppressedIssuesCache = suppressedIssuesCache;
+            this.settingsCache = settingsCache;
             this.logger = logger;
 
             WatchSuppressionsDirectory(fileSystem);
@@ -87,7 +83,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
 
                 if (!string.IsNullOrEmpty(fileName))
                 {
-                    suppressedIssuesCache.Invalidate(settingsKey);
+                    settingsCache.Invalidate(settingsKey);
                 }
             }
             catch (Exception ex)

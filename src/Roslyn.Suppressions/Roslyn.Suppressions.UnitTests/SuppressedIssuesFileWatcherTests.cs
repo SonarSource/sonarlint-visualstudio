@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
@@ -90,15 +91,15 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         public void OnFileSystemChanges_SettingsKeyNotFound_CacheNotInvalidated(WatcherChangeTypes changeType)
         {
             var fileSystemWatcher = new Mock<IFileSystemWatcher>();
-            var issuesCache = new Mock<ISuppressedIssuesCache>();
+            var settingsCache = new Mock<ISettingsCache>();
 
-            CreateTestSubject(issuesCache.Object, fileSystemWatcher.Object);
+            CreateTestSubject(settingsCache.Object, fileSystemWatcher.Object);
 
-            issuesCache.Invocations.Count.Should().Be(0);
+            settingsCache.Invocations.Count.Should().Be(0);
 
             RaiseFileSystemEvent(fileSystemWatcher, changeType, null);
 
-            issuesCache.Invocations.Count.Should().Be(0);
+            settingsCache.Invocations.Count.Should().Be(0);
         }
 
         [TestMethod]
@@ -108,16 +109,16 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         public void OnFileSystemChanges_CacheInvalidated(WatcherChangeTypes changeType)
         {
             var fileSystemWatcher = new Mock<IFileSystemWatcher>();
-            var issuesCache = new Mock<ISuppressedIssuesCache>();
+            var settingsCache = new Mock<ISettingsCache>();
 
-            CreateTestSubject(issuesCache.Object, fileSystemWatcher.Object);
+            CreateTestSubject(settingsCache.Object, fileSystemWatcher.Object);
 
-            issuesCache.Invocations.Count.Should().Be(0);
+            settingsCache.Invocations.Count.Should().Be(0);
 
             RaiseFileSystemEvent(fileSystemWatcher, changeType, "c:\\a\\b\\c\\some file.txt");
 
-            issuesCache.Verify(x=> x.Invalidate("some file"), Times.Once);
-            issuesCache.VerifyNoOtherCalls();
+            settingsCache.Verify(x=> x.Invalidate("some file"), Times.Once);
+            settingsCache.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -128,16 +129,16 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         {
             var fileSystemWatcher = new Mock<IFileSystemWatcher>();
 
-            var issuesCache = new Mock<ISuppressedIssuesCache>();
-            issuesCache
+            var settingsCache = new Mock<ISettingsCache>();
+            settingsCache
                 .Setup(x => x.Invalidate("some file"))
                 .Throws(new NotImplementedException("some exception"));
 
             var logger = new TestLogger();
 
-            CreateTestSubject(issuesCache.Object, fileSystemWatcher.Object, logger: logger);
+            CreateTestSubject(settingsCache.Object, fileSystemWatcher.Object, logger: logger);
 
-            issuesCache.Invocations.Count.Should().Be(0);
+            settingsCache.Invocations.Count.Should().Be(0);
 
             Action act = () => RaiseFileSystemEvent(fileSystemWatcher, changeType, "c:\\a\\b\\c\\some file.txt");
 
@@ -180,7 +181,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             }
         }
 
-        private static SuppressedIssuesFileWatcher CreateTestSubject(ISuppressedIssuesCache suppressedIssuesCache = null,
+        private static SuppressedIssuesFileWatcher CreateTestSubject(ISettingsCache settingsCache = null,
             IFileSystemWatcher fileSystemWatcher = null,
             IFileSystem fileSystem = null,
             ILogger logger = null)
@@ -195,9 +196,9 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
             Mock.Get(fileSystem).Setup(x => x.Directory.CreateDirectory(RoslynSettingsFileInfo.Directory));
 
-            suppressedIssuesCache ??= Mock.Of<ISuppressedIssuesCache>();
+            settingsCache ??= Mock.Of<ISettingsCache>();
 
-            return new SuppressedIssuesFileWatcher(suppressedIssuesCache, logger, fileSystem);
+            return new SuppressedIssuesFileWatcher(settingsCache, logger, fileSystem);
         }
     }
 }
