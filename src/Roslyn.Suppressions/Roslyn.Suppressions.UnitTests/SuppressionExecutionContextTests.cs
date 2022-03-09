@@ -34,13 +34,15 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         [TestMethod]
         [DataRow(@"C:\project\.sonarlint\projectKey1\CSharp\SonarLint.xml", "projectKey1")]
         [DataRow(@"C:\project\.sonarlint\projectKey2\VB\SonarLint.xml", "projectKey2")]
+        [DataRow(@"C:\project\.sonarlint\projectKey3\VB\sonarlint.xml", "projectKey3")]
+        [DataRow(@"C:\project\.sonarlint\projectKey4\VB\SONARLINT.xml", "projectKey4")]
         public void SonarProjectKey_PathIsValid_ReturnsKey(string path, string projectKey)
         {
             var additionalText = new ConcreteAdditionalText(path);
 
             var testSubject = CreateTestSubject(additionalText);
 
-            testSubject.SonarProjectKey.Should().Be(projectKey);
+            testSubject.SettingsKey.Should().Be(projectKey);
             testSubject.IsInConnectedMode.Should().BeTrue();
         }
 
@@ -51,7 +53,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
             var testSubject = CreateTestSubject(additionalText);
 
-            testSubject.SonarProjectKey.Should().BeNull();
+            testSubject.SettingsKey.Should().BeNull();
             testSubject.IsInConnectedMode.Should().BeFalse();
         }
 
@@ -63,7 +65,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
             var testSubject = CreateTestSubject(additionalText1, additionalText2);
 
-            testSubject.SonarProjectKey.Should().Be("projectKey2");
+            testSubject.SettingsKey.Should().Be("projectKey2");
             testSubject.IsInConnectedMode.Should().BeTrue();
         }
 
@@ -72,7 +74,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         {
             var testSubject = CreateTestSubject();
 
-            testSubject.SonarProjectKey.Should().BeNull();
+            testSubject.SettingsKey.Should().BeNull();
             testSubject.IsInConnectedMode.Should().BeFalse();
         }
 

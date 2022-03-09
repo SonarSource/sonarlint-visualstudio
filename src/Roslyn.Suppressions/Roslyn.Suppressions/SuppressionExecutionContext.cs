@@ -26,37 +26,34 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
     public interface ISuppressionExecutionContext
     {
         bool IsInConnectedMode { get; }
-        string SonarProjectKey { get; }
+        string SettingsKey { get; }
     }
     internal class SuppressionExecutionContext : ISuppressionExecutionContext
     {
         private const string Exp = @"\\.sonarlint\\(?<sonarkey>[^\\/]+)\\(CSharp|VB)\\SonarLint.xml$";
         private static readonly Regex SonarLintFileRegEx = new Regex(Exp, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.CultureInvariant);
-        private readonly AnalyzerOptions analyzerOptions;
 
 
         public SuppressionExecutionContext(AnalyzerOptions analyzerOptions)
         {
-            this.analyzerOptions = analyzerOptions;
-
-            GetProjectKey();
+            GetProjectKey(analyzerOptions);
         }
 
-        private void GetProjectKey()
+        private void GetProjectKey(AnalyzerOptions analyzerOptions)
         {
             foreach (var item in analyzerOptions.AdditionalFiles)
             {
                 var match = SonarLintFileRegEx.Match(item.Path);
                 if (match.Success)
                 {
-                    SonarProjectKey = match.Groups["sonarkey"].Value;
+                    SettingsKey = match.Groups["sonarkey"].Value;
                     return;
                 }
             }
         }
 
-        public bool IsInConnectedMode => SonarProjectKey != null;
+        public bool IsInConnectedMode => SettingsKey != null;
 
-        public string SonarProjectKey { get; private set; } = null;
+        public string SettingsKey { get; private set; } = null;
     }
 }
