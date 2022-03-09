@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
@@ -27,7 +26,6 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
 {
@@ -38,20 +36,6 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
     public interface ISuppressedIssuesFileSynchronizer : IDisposable
     {
         void UpdateFileStorage();
-    }
-
-    [Export(typeof(ISuppressedIssuesFileStorage))]
-    // todo: temp, will be replaced with real implementation
-    internal class DummySuppressedIssuesFileStorage : ISuppressedIssuesFileStorage
-    {
-        public void Update(string sonarProjectKey, IEnumerable<SonarQubeIssue> allSuppressedIssues)
-        {
-        }
-
-        public IEnumerable<SonarQubeIssue> Get(string sonarProjectKey)
-        {
-            throw new NotImplementedException();
-        }
     }
 
     [Export(typeof(ISuppressedIssuesFileSynchronizer))]

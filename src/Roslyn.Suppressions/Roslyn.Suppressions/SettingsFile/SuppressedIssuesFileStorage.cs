@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.IO.Abstractions;
 using System.Linq;
 using Newtonsoft.Json;
@@ -30,14 +31,15 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
 {
+    [Export(typeof(ISuppressedIssuesFileStorage))]
     internal class SuppressedIssuesFileStorage : ISuppressedIssuesFileStorage
     {
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
 
+        [ImportingConstructor]
         public SuppressedIssuesFileStorage(ILogger logger) : this(logger, new FileSystem())
         {
-            
         }
 
         internal SuppressedIssuesFileStorage(ILogger logger, IFileSystem fileSystem)
