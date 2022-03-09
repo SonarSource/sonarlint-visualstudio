@@ -26,6 +26,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
@@ -37,6 +38,14 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
     [TestClass]
     public class SuppressedIssuesFileStorageTests
     {
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<SuppressedIssuesFileStorage, ISuppressedIssuesFileStorage>(null, new[]
+            {
+                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
+            });
+        }
 
         [TestMethod]
         public void Update_HasIssues_IssuesWrittenToFile()
