@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
         /// We do not provide ValueFactory in the initialization so that exceptions would not be cached.
         /// https://docs.microsoft.com/en-us/dotnet/api/system.threading.lazythreadsafetymode?view=net-6.0
         /// </summary>
-        private static readonly Lazy<Container> _instance = new(LazyThreadSafetyMode.ExecutionAndPublication);
+        private static readonly Lazy<Container> _instance = new Lazy<Container>(LazyThreadSafetyMode.ExecutionAndPublication);
 
         public static IContainer Instance
         {
