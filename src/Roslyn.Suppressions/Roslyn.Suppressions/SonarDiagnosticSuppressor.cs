@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -30,11 +32,50 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal class SonarDiagnosticSuppressor : DiagnosticSuppressor
     {
+        private readonly IContainer container;
+
+        public SonarDiagnosticSuppressor () : this(Container.Instance)
+        {
+
+        }
+
+        internal SonarDiagnosticSuppressor(IContainer container)
+        {
+            this.container = container;
+        }
         public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions => SupportedSuppressionsBuilder.Instance.Descriptors;
 
         public override void ReportSuppressions(SuppressionAnalysisContext context)
         {
-            // TODO - implement
+            var executionContext = new SuppressionExecutionContext(context.Options);
+
+            var suppressions = GetSuppressions(context.ReportedDiagnostics, executionContext);
+
+
+            //SuppressionAnalysisContext is a public struct with an internal constructor and because of that we can't mock or create it
+            //To be able the test we had to seperate parts of code that do not use SuppressionAnalysisContext directly and had to loop twice
+            foreach (var suppression in suppressions)
+            {
+                context.ReportSuppression(suppression);
+            }
+        }
+
+        internal /*For Testing*/ IEnumerable<Suppression> GetSuppressions(ImmutableArray<Diagnostic> ReportedDiagnostics, ISuppressionExecutionContext executionContext)
+        {
+            if (!executionContext.IsInConnectedMode)
+            {
+                return Enumerable.Empty<Suppression>();
+            }
+
+            var result = new List<Suppression>();
+
+            foreach (var diag in ReportedDiagnostics.Where(diag => container.SuppressionChecker.IsSuppressed(diag, executionContext.SettingsKey)))
+            {
+                var suppressionDesc = SupportedSuppressions.Single(x => x.SuppressedDiagnosticId == diag.Id);
+                result.Add(Suppression.Create(suppressionDesc, diag));                
+            }
+
+            return result;
         }
     }
 }
