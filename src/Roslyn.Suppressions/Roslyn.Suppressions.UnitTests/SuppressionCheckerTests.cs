@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.CodeAnalysis;
@@ -216,16 +217,49 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         }
 
         [TestMethod]
-        public void IsMatch_FileLevelIssue()
+        [DataRow(0, 0, true)]
+        [DataRow(1, 0, false)]
+        [DataRow(1, 1, false)]
+        [DataRow(2, 0, false)]
+        [DataRow(2, 2, false)]
+        public void IsMatch_IsRoslynFileLevelIssue_MatchesSonarFileLevelIssue(int roslynStartPosition, int length,
+            bool expected)
         {
-            // TODO
+            const string text = "000\n111\n222\n";
+            var selectedSpan = new TextSpan(roslynStartPosition, length);
+            var syntaxTree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(text, path: "path");
+            var location = Location.Create(syntaxTree, selectedSpan);
+            var diagnostic = CreateDiagnostic("id", location);
+
+            var sonarFileLevelIssue = CreateIssueWithTextRange("id", "path", "hash", null);
+
+            var actual = SuppressionChecker.IsMatch(diagnostic, sonarFileLevelIssue, Mock.Of<IChecksumCalculator>());
+
+            actual.Should().Be(expected);
+        }
+
+        [TestMethod]
+        public void IsMatch_RoslynFileLevelIssue_SonarNonFileLevelIssue_DoNotMatch()
+        {
+            const string text = "000\n111\n222\n";
+            var selectedSpan = new TextSpan(0, 0);
+            var syntaxTree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(text, path: "path");
+            var location = Location.Create(syntaxTree, selectedSpan);
+            var diagnostic = CreateDiagnostic("id", location);
+
+            var sonarFileLevelIssue = CreateIssueWithTextRange("id", "path", "hash", new IssueTextRange(1, 1, 0, 1));
+
+            var actual = SuppressionChecker.IsMatch(diagnostic, sonarFileLevelIssue, Mock.Of<IChecksumCalculator>());
+
+            actual.Should().BeFalse();
         }
 
         [TestMethod]
         [DataRow(@"c:\same.txt", @"c:\same.txt", true)]
         [DataRow(@"C:\SAME.TXT", @"c:\same.txt", true)]
-        [DataRow(@"\differentExt.123", @"\differentExt.999", false)]
-        [DataRow(@"\partial\file.cs", @"c:\aaa\partial\file.cs", true)]
+        [DataRow(@"differentExt.123", @"differentExt.999", false)]
+        [DataRow(@"partial\file.cs", @"c:aaa\partial\file.cs", true)]
+        [DataRow(@"aaa\partial\file.cs", @"partial\file.cs", false)]
         public void IsMatch_IsSameFile(string issueFile, string diagFile, bool expected)
         {
             var checksumCalculator = CreateChecksumCalculator("a hash that won't match");
@@ -287,6 +321,25 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             return CreateIssue("any", diagnostic.Id, issuePath, sonarLine, issueHash);
         }
 
+        private static SonarQubeIssue CreateIssueWithTextRange(string ruleId,
+            string path,
+            string hash,
+            IssueTextRange textRange)
+        {
+            return new SonarQubeIssue("any issue key",
+                path,
+                hash,
+                "message",
+                "moduleKey",
+                ruleId,
+                true,
+                SonarQubeIssueSeverity.Blocker,
+                DateTimeOffset.Now,
+                DateTimeOffset.Now,
+                textRange,
+                null);
+        }
+
         #region Diagnostic helper methods
 
         private static Location CreateNonSourceLocation()
@@ -327,6 +380,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
             return location;
         }
+
         private static TextSpan CreateSpan(string documentText, string selectedText)
         {
             var start = documentText.IndexOf(selectedText);

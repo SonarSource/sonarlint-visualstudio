@@ -122,10 +122,13 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
         private static bool IsSameLine(FileLinePositionSpan roslynLineSpan, IssueTextRange sonarTextRange)
         {
             // Special case: file-level issues
-            if (sonarTextRange == null)
+            var roslynFileLevelIssue = IsRoslynFileLevelIssue(roslynLineSpan);
+            if (sonarTextRange == null || roslynFileLevelIssue)
             {
-                return IsRoslynFileLevelIssue(roslynLineSpan);
+                // File-level issues can only match other file-level issues 
+                return (sonarTextRange == null && roslynFileLevelIssue);
             }
+
 
             // Roslyn lines are 0-based, SonarQube lines are 1-based
             return sonarTextRange.StartLine == roslynLineSpan.StartLinePosition.Line + 1;
