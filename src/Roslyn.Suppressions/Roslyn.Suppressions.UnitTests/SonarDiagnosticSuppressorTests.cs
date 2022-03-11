@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         }
 
         [TestMethod]
-        public void GetSuppressions_HasSupressedDiagnostic_ShouldReturnSupressions()
+        public void GetSuppressions_HasSuppressedDiagnostic_ShouldReturnSuppressions()
         {
 
             var suppressionContext = CreateSuppressionContext("sonarKey");
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         }
 
         [TestMethod]
-        public void GetSuppressions_HasMixedSupressedDiagnostic_ShouldReturnOnlySupressed()
+        public void GetSuppressions_HasMixedSuppressedDiagnostic_ShouldReturnOnlySuppressed()
         {
 
             var suppressionContext = CreateSuppressionContext("sonarKey");
@@ -113,7 +113,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         }
 
         [TestMethod]
-        public void GetSuppressions_HasNotSupressedDiagnostic_ShouldReturnEmpty()
+        public void GetSuppressions_HasNotSuppressedDiagnostic_ShouldReturnEmpty()
         {
             var suppressionContext = CreateSuppressionContext("sonarKey");
             var diag = CreateDiagnostic("S100");
