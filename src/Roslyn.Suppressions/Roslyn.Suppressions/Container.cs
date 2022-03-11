@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
             var settingsCache = new SettingsCache(Logger);
             fileWatcher = new SuppressedIssuesFileWatcher(settingsCache, Logger);
 
-            SuppressionChecker = new SuppressionChecker();
+            SuppressionChecker = new SuppressionChecker(settingsCache);
         }
 
         public void Dispose()
