@@ -19,34 +19,35 @@
  */
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 {
     internal static class TestHelper
     {
-        public static SonarQubeIssue CreateIssue(string issueKey)
+        public static SonarQubeIssue CreateIssue(string issueKey,
+            string ruleId = "ruleId",
+            string path = "path",
+            int startLine = 0,
+            string hash = "hash")
         {
             return new SonarQubeIssue(issueKey,
-                "path",
-                "hash",
+                path,
+                hash,
                 "message",
                 "moduleKey",
-                "ruleId",
+                ruleId,
                 true,
                 SonarQubeIssueSeverity.Blocker,
                 DateTimeOffset.Now,
                 DateTimeOffset.Now,
-                new IssueTextRange(0, 1, 2, 3),
+                new IssueTextRange(startLine, 1, 2, 3),
                 new List<IssueFlow> {
                     new IssueFlow(
                         new List<IssueLocation> {
                             new IssueLocation("filepath",
                                 "moduleKey",
-                                new IssueTextRange(10, 11, 12, 13), "locationMEssage") }) });
+                                new IssueTextRange(10, 11, 12, 13), "locationMessage") }) });
         }
     }
 }
