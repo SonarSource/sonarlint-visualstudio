@@ -126,8 +126,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
             var suppressedIssues = new SonarQubeIssue[]
             {
-         //       CreateIssue("any", DiagRuleId, DiagFileName, MatchingSonarLineNumber, DiagHash),
-         CreateIssueFromDiagnostic(diagnostic)
+                 CreateIssueFromDiagnostic(diagnostic)
             };
 
             var checksumCalculator = CreateChecksumCalculator(DiagHash);
