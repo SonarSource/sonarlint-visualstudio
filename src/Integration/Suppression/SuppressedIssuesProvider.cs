@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
@@ -81,9 +82,13 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             return instance?.GetSuppressedIssues(projectGuid, filePath) ?? Enumerable.Empty<SonarQubeIssue>();
         }
 
-        public IEnumerable<SonarQubeIssue> GetAllSuppressedIssues()
+        public async Task<IEnumerable<SonarQubeIssue>> GetAllSuppressedIssuesAsync()
         {
-            return instance?.GetAllSuppressedIssues() ?? Enumerable.Empty<SonarQubeIssue>();
+            if(instance != null)
+            {
+                return await instance.GetAllSuppressedIssuesAsync();
+            }
+            return Enumerable.Empty<SonarQubeIssue>();
         }
 
         private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)

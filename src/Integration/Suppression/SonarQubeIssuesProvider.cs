@@ -83,7 +83,8 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             refreshTimer.Elapsed += OnRefreshTimerElapsed;
 
             initialFetchCancellationTokenSource = new CancellationTokenSource();
-            this.initialFetch = Task.Factory.StartNew(DoInitialFetchAsync, initialFetchCancellationTokenSource.Token);
+            var hede = Task.Factory.StartNew(DoInitialFetchAsync, initialFetchCancellationTokenSource.Token);
+            this.initialFetch = hede.Unwrap();
             refreshTimer.Start();
         }
 
@@ -134,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 ?? Enumerable.Empty<SonarQubeIssue>();
         }
 
-        public IEnumerable<SonarQubeIssue> GetAllSuppressedIssues()
+        public async Task<IEnumerable<SonarQubeIssue>> GetAllSuppressedIssuesAsync()
         {
             // Block the call while the cache is being built.
             // If the task has already completed then this will return immediately

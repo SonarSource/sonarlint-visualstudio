@@ -82,13 +82,13 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
 
         public void UpdateFileStorage()
         {
-            threadHandling.Run(() =>
+            threadHandling.Run(async () =>
             {
                 var sonarProjectKey = activeSolutionBoundTracker.CurrentConfiguration.Project?.ProjectKey;
 
                 if (!string.IsNullOrEmpty(sonarProjectKey))
                 {
-                    var allSuppressedIssues = suppressedIssuesProvider.GetAllSuppressedIssues();
+                    var allSuppressedIssues = await suppressedIssuesProvider.GetAllSuppressedIssuesAsync();
                     suppressedIssuesFileStorage.Update(sonarProjectKey, allSuppressedIssues);
                 }
 
