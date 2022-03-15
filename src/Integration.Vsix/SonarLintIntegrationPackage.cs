@@ -62,7 +62,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     public class SonarLintIntegrationPackage : AsyncPackage
     {
         private PackageCommandManager commandManager;
-        private SonarAnalyzerManager sonarAnalyzerManager;
 
         private ILogger logger;
         private ISuppressedIssuesFileSynchronizer suppressedIssuesFileSynchronizer;
@@ -91,7 +90,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 var workspace = await this.GetMefServiceAsync<VisualStudioWorkspace>();
 
                 var vsSolution = serviceProvider.GetService<SVsSolution, IVsSolution>();
-                this.sonarAnalyzerManager = new SonarAnalyzerManager(activeSolutionBoundTracker, workspace, vsSolution, logger, sonarQubeIssuesProvider);
 
                 this.commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
                 this.commandManager.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
@@ -115,8 +113,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             base.Dispose(disposing);
             if (disposing)
             {
-                this.sonarAnalyzerManager?.Dispose();
-                this.sonarAnalyzerManager = null;
                 this.suppressedIssuesFileSynchronizer?.Dispose();
                 this.suppressedIssuesFileSynchronizer = null;
             }
