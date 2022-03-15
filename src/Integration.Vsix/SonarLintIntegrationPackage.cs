@@ -24,11 +24,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
 
@@ -62,7 +58,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     public class SonarLintIntegrationPackage : AsyncPackage
     {
         private PackageCommandManager commandManager;
-        private SonarAnalyzerManager sonarAnalyzerManager;
 
         private ILogger logger;
         private ISuppressedIssuesFileSynchronizer suppressedIssuesFileSynchronizer;
@@ -86,13 +81,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 IServiceProvider serviceProvider = this;
 
-                var activeSolutionBoundTracker = await this.GetMefServiceAsync<IActiveSolutionBoundTracker>();
-                var sonarQubeIssuesProvider = await this.GetMefServiceAsync<ISonarQubeIssuesProvider>();
-                var workspace = await this.GetMefServiceAsync<VisualStudioWorkspace>();
-
-                var vsSolution = serviceProvider.GetService<SVsSolution, IVsSolution>();
-                this.sonarAnalyzerManager = new SonarAnalyzerManager(activeSolutionBoundTracker, workspace, vsSolution, logger, sonarQubeIssuesProvider);
-
                 this.commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
                 this.commandManager.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
                     serviceProvider.GetMefService<IProjectPropertyManager>(),
@@ -115,8 +103,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             base.Dispose(disposing);
             if (disposing)
             {
-                this.sonarAnalyzerManager?.Dispose();
-                this.sonarAnalyzerManager = null;
                 this.suppressedIssuesFileSynchronizer?.Dispose();
                 this.suppressedIssuesFileSynchronizer = null;
             }
