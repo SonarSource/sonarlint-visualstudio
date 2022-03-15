@@ -24,11 +24,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
 
@@ -84,12 +80,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 logger.WriteLine(Resources.Strings.SL_Initializing);
 
                 IServiceProvider serviceProvider = this;
-
-                var activeSolutionBoundTracker = await this.GetMefServiceAsync<IActiveSolutionBoundTracker>();
-                var sonarQubeIssuesProvider = await this.GetMefServiceAsync<ISonarQubeIssuesProvider>();
-                var workspace = await this.GetMefServiceAsync<VisualStudioWorkspace>();
-
-                var vsSolution = serviceProvider.GetService<SVsSolution, IVsSolution>();
 
                 this.commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
                 this.commandManager.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
