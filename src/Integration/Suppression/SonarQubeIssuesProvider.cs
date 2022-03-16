@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             refreshTimer.Elapsed += OnRefreshTimerElapsed;
 
             initialFetchCancellationTokenSource = new CancellationTokenSource();
-            this.initialFetch = Task.Factory.StartNew(DoInitialFetchAsync, initialFetchCancellationTokenSource.Token).Unwrap();
+            this.initialFetch = Task.Factory.StartNew(DoInitialFetchAsync, initialFetchCancellationTokenSource.Token);
             refreshTimer.Start();
         }
 
