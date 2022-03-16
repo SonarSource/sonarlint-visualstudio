@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -125,11 +126,11 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
         [TestMethod]
         public async Task UpdateFileStorage_FileStorageIsUpdatedOnBackgroundThread()
         {
-            Func<Task<bool>> fileUpdateTask = null;
+            Func<Task<Task<bool>>> fileUpdateTask = null;
             var threadHandling = new Mock<IThreadHandling>();
             threadHandling
-                .Setup(x => x.Run(It.IsAny<Func<Task<bool>>>()))
-                .Callback((Func<Task<bool>> task) => fileUpdateTask = task);
+                .Setup(x => x.Run(It.IsAny<Func<Task<Task<bool>>>>()))
+                .Callback((Func<Task<Task<bool>>> task) => fileUpdateTask = task);
 
             var configuration = CreateConnectedConfiguration("some project key");
             var activeSolutionBoundTracker = CreateActiveSolutionBoundTracker(configuration);
@@ -147,7 +148,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
 
             testSubject.UpdateFileStorage();
 
-            threadHandling.Verify(x => x.Run(It.IsAny<Func<Task<bool>>>()), Times.Once);
+            threadHandling.Verify(x => x.Run(It.IsAny<Func<Task<Task<bool>>>>()), Times.Once);
             suppressedIssuesFileStorage.Invocations.Count.Should().Be(0);
             activeSolutionBoundTracker.Invocations.Count.Should().Be(0);
 
@@ -164,10 +165,10 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
             return activeSolutionBoundTracker;
         }
 
-        private static Mock<ISonarQubeIssuesProvider> CreateSuppressedIssuesProvider(SonarQubeIssue[] issues)
+        private static Mock<ISonarQubeIssuesProvider> CreateSuppressedIssuesProvider(IEnumerable<SonarQubeIssue> issues)
         {
             var suppressedIssuesProvider = new Mock<ISonarQubeIssuesProvider>();
-            suppressedIssuesProvider.Setup(x => x.GetAllSuppressedIssues()).Returns(issues);
+            suppressedIssuesProvider.Setup(x => x.GetAllSuppressedIssuesAsync()).Returns(Task.FromResult(issues));
 
             return suppressedIssuesProvider;
         }
