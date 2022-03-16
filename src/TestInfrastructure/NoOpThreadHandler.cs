@@ -35,6 +35,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public T Run<T>(Func<Task<T>> asyncMethod) => asyncMethod().Result;
 
+        public Task RunAsync<T>(Func<Task<T>> asyncMethod) => asyncMethod();
+
         public Task RunOnUIThread(Action op)
         {
             op();
