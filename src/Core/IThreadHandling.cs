@@ -60,6 +60,17 @@ namespace SonarLint.VisualStudio.Core
         T Run<T>(Func<Task<T>> asyncMethod);
 
         /// <summary>
+        /// See <see cref="RunAsync{T}"/>
+        /// </summary>
+        Task RunAsync(Func<Task> asyncMethod);
+
+        /// <summary>
+        /// Runs the asynchronous method to completion without blocking the calling thread.
+        /// </summary>
+        /// <remarks>Wrapper around <see cref="ThreadHelper.JoinableTaskFactory.RunAsync"/></remarks>
+        Task RunAsync<T>(Func<Task<T>> asyncMethod);
+
+        /// <summary>
         /// Switches to the background thread
         /// </summary>
         /// <remarks>Wrapper that calls <see cref="TaskScheduler.Default"/></remarks>
