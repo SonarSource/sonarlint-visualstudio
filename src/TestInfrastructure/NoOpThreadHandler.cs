@@ -34,6 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public bool CheckAccess() => true;
 
         public T Run<T>(Func<Task<T>> asyncMethod) => asyncMethod().Result;
+        public Task RunAsync(Func<Task> asyncMethod) => asyncMethod();
 
         public Task RunAsync<T>(Func<Task<T>> asyncMethod) => asyncMethod();
 
