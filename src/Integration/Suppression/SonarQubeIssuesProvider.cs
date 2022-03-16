@@ -134,7 +134,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 ?? Enumerable.Empty<SonarQubeIssue>();
         }
 
-        public IEnumerable<SonarQubeIssue> GetAllSuppressedIssues()
+        public async Task<IEnumerable<SonarQubeIssue>> GetAllSuppressedIssuesAsync()
         {
             // Block the call while the cache is being built.
             // If the task has already completed then this will return immediately

@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -130,11 +131,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [DataTestMethod]
         [DataRow(SolutionBindingEventType.SolutionBindingUpdated)]
         [DataRow(SolutionBindingEventType.SolutionBindingChanged)]
-        public void GetAllSuppressedIssues_SolutionBindingIsStandalone_EmptyList(SolutionBindingEventType eventType)
+        public async Task GetAllSuppressedIssues_SolutionBindingIsStandalone_EmptyList(SolutionBindingEventType eventType)
         {
             SimulateBindingEvent(eventType, BindingConfiguration.Standalone);
 
-            var actual = testSubject.GetAllSuppressedIssues();
+            var actual = await testSubject.GetAllSuppressedIssuesAsync();
 
             actual.Should().BeEmpty();
         }
@@ -142,11 +143,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [DataTestMethod]
         [DataRow(SolutionBindingEventType.SolutionBindingUpdated)]
         [DataRow(SolutionBindingEventType.SolutionBindingChanged)]
-        public void GetAllSuppressedIssues_SolutionBindingIsStandalone_SonarQubeIssuesProviderNotCreated(SolutionBindingEventType eventType)
+        public async Task GetAllSuppressedIssues_SolutionBindingIsStandalone_SonarQubeIssuesProviderNotCreated(SolutionBindingEventType eventType)
         {
             SimulateBindingEvent(eventType, BindingConfiguration.Standalone);
 
-            testSubject.GetAllSuppressedIssues();
+            await testSubject.GetAllSuppressedIssuesAsync();
 
             createProviderFunc.Verify(x =>
                     x(It.IsAny<BindingConfiguration>()),
@@ -158,14 +159,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [DataRow(SolutionBindingEventType.SolutionBindingChanged, SonarLintMode.Connected)]
         [DataRow(SolutionBindingEventType.SolutionBindingUpdated, SonarLintMode.LegacyConnected)]
         [DataRow(SolutionBindingEventType.SolutionBindingChanged, SonarLintMode.LegacyConnected)]
-        public void GetAllSuppressedIssues_SolutionBindingIsConnected_ListFromSonarQubeIssuesProvider(SolutionBindingEventType eventType, SonarLintMode mode)
+        public async Task GetAllSuppressedIssues_SolutionBindingIsConnected_ListFromSonarQubeIssuesProvider(SolutionBindingEventType eventType, SonarLintMode mode)
         {
             var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(), mode, null);
             var expectedIssues = SetupExpectedIssues(bindingConfiguration);
 
             SimulateBindingEvent(eventType, bindingConfiguration);
 
-            var actual = testSubject.GetAllSuppressedIssues();
+            var actual = await testSubject.GetAllSuppressedIssuesAsync();
 
             actual.Should().BeEquivalentTo(expectedIssues);
         }
@@ -289,9 +290,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             }
         }
 
-        private List<SonarQubeIssue> SetupExpectedIssues(BindingConfiguration bindingConfiguration)
+        private IEnumerable<SonarQubeIssue> SetupExpectedIssues(BindingConfiguration bindingConfiguration)
         {
-            var expectedIssues = new List<SonarQubeIssue>
+            IEnumerable<SonarQubeIssue> expectedIssues = new List<SonarQubeIssue>
             {
                 new SonarQubeIssue("id1", "file path", "hash", "message", "module", "rule id", true, SonarQubeIssueSeverity.Critical,
                     DateTimeOffset.MinValue, DateTimeOffset.MinValue, new IssueTextRange(1, 2, 3, 4),  flows: null),
@@ -306,8 +307,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 .Returns(expectedIssues);
 
             issuesProvider
-                .Setup(x => x.GetAllSuppressedIssues())
-                .Returns(expectedIssues);
+                .Setup(x => x.GetAllSuppressedIssuesAsync())
+                .Returns(Task.FromResult(expectedIssues));
 
             createProviderFunc
                 .Setup(x => x(bindingConfiguration))

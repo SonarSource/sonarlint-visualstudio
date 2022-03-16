@@ -30,6 +30,7 @@ using SonarLint.VisualStudio.Integration.Suppression;
 using SonarQube.Client.Models;
 using SonarQube.Client;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 {
@@ -639,7 +640,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         }
 
         [TestMethod]
-        public void GetAllSuppressedIssues_NoIssuesOnServer_ReturnsEmptyList()
+        public async Task GetAllSuppressedIssues_NoIssuesOnServer_ReturnsEmptyList()
         {
             SetupSolutionBinding(isConnected: true, issues: null);
 
@@ -651,7 +652,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             VerifyServiceGetIssues(Times.Exactly(1), "sqkey");
 
             // 2. SonarQube project key doesn't match -> no issues
-            var matches = issuesProvider.GetAllSuppressedIssues();
+            var matches = await issuesProvider.GetAllSuppressedIssuesAsync();
             matches.Should().NotBeNull();
             matches.Should().BeEmpty();
 
@@ -661,7 +662,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         }
 
         [TestMethod]
-        public void GetAllSuppressedIssues_HasIssuesOnServer_ReturnsAllIssues()
+        public async Task GetAllSuppressedIssues_HasIssuesOnServer_ReturnsAllIssues()
         {
             // Arrange
             var sonarQubeIssue1 = CreateIssue("aaa\\foo.cs", "module1", "S1");
@@ -677,7 +678,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             VerifyServiceGetIssues(Times.Exactly(1), "sqkey");
 
             // 2. SonarQube project key doesn't match -> no issues
-            var matches = issuesProvider.GetAllSuppressedIssues();
+            var matches = await issuesProvider.GetAllSuppressedIssuesAsync();
             matches.Should().NotBeNull();
             matches.Should().BeEquivalentTo(sonarQubeIssue1, sonarQubeIssue2);
 
