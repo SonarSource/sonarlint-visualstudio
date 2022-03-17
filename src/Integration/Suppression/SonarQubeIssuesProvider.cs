@@ -25,8 +25,10 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 
@@ -43,7 +45,6 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         private readonly string sonarQubeProjectKey;
         private readonly ITimer refreshTimer;
         private readonly ILogger logger;
-        private readonly CancellationTokenSource initialFetchCancellationTokenSource;
 
         private Dictionary<string, List<SonarQubeIssue>> suppressedModuleIssues;
         private List<IGrouping<string, SonarQubeIssue>> suppressedFileIssues;
@@ -52,9 +53,17 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         private bool isDisposed;
         private CancellationTokenSource cancellationTokenSource;
+        private readonly IThreadHandling threadHandling;
 
         public SonarQubeIssuesProvider(ISonarQubeService sonarQubeService, string sonarQubeProjectKey, ITimerFactory timerFactory,
-            ILogger logger)
+            ILogger logger) : this(sonarQubeService, sonarQubeProjectKey, timerFactory, logger, new ThreadHandling())
+        {
+
+        }
+
+
+        internal SonarQubeIssuesProvider(ISonarQubeService sonarQubeService, string sonarQubeProjectKey, ITimerFactory timerFactory,
+            ILogger logger, IThreadHandling threadHandling)
         {
             if (sonarQubeService == null)
             {
@@ -76,14 +85,14 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             this.sonarQubeService = sonarQubeService;
             this.sonarQubeProjectKey = sonarQubeProjectKey;
             this.logger = logger;
+            this.threadHandling = threadHandling;
 
             refreshTimer = timerFactory.Create();
             refreshTimer.AutoReset = true;
             refreshTimer.Interval = MillisecondsToWaitBetweenRefresh;
             refreshTimer.Elapsed += OnRefreshTimerElapsed;
 
-            initialFetchCancellationTokenSource = new CancellationTokenSource();
-            this.initialFetch = Task.Factory.StartNew(DoInitialFetchAsync, initialFetchCancellationTokenSource.Token).Unwrap();
+            this.initialFetch = threadHandling.RunAsync(DoInitialFetchAsync);
             refreshTimer.Start();
         }
 
@@ -95,7 +104,6 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             }
 
             refreshTimer.Dispose();
-            initialFetchCancellationTokenSource.Cancel();
             suppressedFileIssues = null;
             allSuppressedIssues = null;
             this.isDisposed = true;
@@ -141,8 +149,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             // (e.g. on subsequent calls)
             // If we time out waiting for the initial fetch then we won't suppress any issues.
             // We'll try to fetch the issues again when the timer elapses.
-            this.initialFetch?.Wait(MillisecondsToWaitForInitialFetch);
-
+            var result =  this.initialFetch?.Wait(MillisecondsToWaitForInitialFetch);
             return allSuppressedIssues ?? Enumerable.Empty<SonarQubeIssue>();
         }
 
@@ -165,22 +172,23 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             await SynchronizeSuppressedIssuesAsync();
         }
 
-        private Task DoInitialFetchAsync()
+        private async Task DoInitialFetchAsync()
         {
             // We might not have connected to the server at this point so if necessary
             // wait before trying to fetch the issues
             int retryCount = 0;
             while (!this.sonarQubeService.IsConnected && retryCount < 30)
             {
-                if (this.initialFetchCancellationTokenSource.IsCancellationRequested)
+                
+                if (this.isDisposed)
                 {
-                    return Task.CompletedTask;
+                    return;
                 }
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
                 retryCount++;
             }
 
-            return SynchronizeSuppressedIssuesAsync();
+            await SynchronizeSuppressedIssuesAsync();
         }
 
         private async Task SynchronizeSuppressedIssuesAsync()
@@ -203,10 +211,8 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                         cancellationTokenSource.Token))
                     .ToDictionary(x => x.Key, x => x.RelativePathToRoot);
                 this.hasModules = moduleKeyToRelativePathToRoot.Keys.Count > 1;
-
                 this.allSuppressedIssues = await this.sonarQubeService.GetSuppressedIssuesAsync(sonarQubeProjectKey,
                     cancellationTokenSource.Token);
-
                 this.suppressedModuleIssues = allSuppressedIssues.Where(x => string.IsNullOrEmpty(x.FilePath))
                     .GroupBy(x => x.ModuleKey)
                     .ToDictionary(x => x.Key, x => x.ToList());
