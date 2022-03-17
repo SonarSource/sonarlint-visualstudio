@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             public void UnsafeOnCompleted(Action continuation) => continuation();
         }
 
-        private class NoOpAwaitable : IAwaitableWrapper
+        public class NoOpAwaitable : IAwaitableWrapper
         {
             public IAwaiterWrapper GetAwaiter() => new NoOpAwaiter();
         }

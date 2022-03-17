@@ -32,6 +32,7 @@ using SonarQube.Client;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
+using static SonarLint.VisualStudio.Integration.UnitTests.NoOpThreadHandler;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 {
@@ -74,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             mockTimer.Setup(x => x.Dispose()).Callback(() => timerRunning = false);
 
             threadHandling = new Mock<IThreadHandling>();
-            threadHandling.Setup(th => th.RunAsync(It.IsAny<Func<Task>>())).Returns<Func<Task>>((t) => t.Invoke());
+            threadHandling.Setup(th => th.SwitchToBackgroundThread()).Returns(new NoOpAwaitable());
         }
 
         [TestMethod]

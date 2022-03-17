@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             refreshTimer.Interval = MillisecondsToWaitBetweenRefresh;
             refreshTimer.Elapsed += OnRefreshTimerElapsed;
 
-            this.initialFetch = threadHandling.RunAsync(DoInitialFetchAsync);
+            this.initialFetch = DoInitialFetchAsync();
             refreshTimer.Start();
         }
 
@@ -149,7 +149,8 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             // (e.g. on subsequent calls)
             // If we time out waiting for the initial fetch then we won't suppress any issues.
             // We'll try to fetch the issues again when the timer elapses.
-            var result =  this.initialFetch?.Wait(MillisecondsToWaitForInitialFetch);
+                                    
+            this.initialFetch?.Wait(MillisecondsToWaitForInitialFetch);
             return allSuppressedIssues ?? Enumerable.Empty<SonarQubeIssue>();
         }
 
@@ -174,6 +175,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         private async Task DoInitialFetchAsync()
         {
+            await threadHandling.SwitchToBackgroundThread();
             // We might not have connected to the server at this point so if necessary
             // wait before trying to fetch the issues
             int retryCount = 0;
