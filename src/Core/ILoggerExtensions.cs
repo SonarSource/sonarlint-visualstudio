@@ -18,6 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.IO;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Helpers
@@ -44,6 +48,20 @@ namespace SonarLint.VisualStudio.Integration.Helpers
                 var text = args.Length == 0 ? message : string.Format(message, args);
                 logger.WriteLine("DEBUG: " + text);
             }
+        }
+
+        /// <summary>
+        /// Extended debug logging that includes file, caller, thread and timestamp.
+        public static void LogDebugExtended(this ILogger logger, string message, [CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
+        {
+            if (!shouldLogDebug)
+            {
+                return;
+            }
+
+            var fileName = Path.GetFileNameWithoutExtension(callerFilePath); 
+            var text = $"DEBUG: [{fileName}] [{callerMemberName}] [Thread: {Thread.CurrentThread.ManagedThreadId}, {DateTime.Now.ToString("hh:mm:ss.fff")}]  {message}";
+            logger.WriteLine(text);
         }
     }
 }
