@@ -21,11 +21,14 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
 {
@@ -35,7 +38,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
     /// </summary>
     public interface ISuppressedIssuesFileSynchronizer : IDisposable
     {
-        void UpdateFileStorage();
+        Task UpdateFileStorageAsync();
     }
 
     [Export(typeof(ISuppressedIssuesFileSynchronizer))]
@@ -46,16 +49,19 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
         private readonly ISonarQubeIssuesProvider suppressedIssuesProvider;
         private readonly ISuppressedIssuesFileStorage suppressedIssuesFileStorage;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
         public SuppressedIssuesFileSynchronizer(ISuppressedIssuesMonitor suppressedIssuesMonitor,
             ISonarQubeIssuesProvider suppressedIssuesProvider,
             ISuppressedIssuesFileStorage suppressedIssuesFileStorage,
-            IActiveSolutionBoundTracker activeSolutionBoundTracker)
+            IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            ILogger logger)
             : this(suppressedIssuesMonitor,
                 suppressedIssuesProvider,
                 suppressedIssuesFileStorage,
                 activeSolutionBoundTracker,
+                logger,
                 new ThreadHandling())
         {
         }
@@ -64,12 +70,14 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
             ISonarQubeIssuesProvider suppressedIssuesProvider,
             ISuppressedIssuesFileStorage suppressedIssuesFileStorage,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            ILogger logger,
             IThreadHandling threadHandling)
         {
             this.suppressedIssuesMonitor = suppressedIssuesMonitor;
             this.suppressedIssuesProvider = suppressedIssuesProvider;
             this.suppressedIssuesFileStorage = suppressedIssuesFileStorage;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+            this.logger = logger;
             this.threadHandling = threadHandling;
 
             suppressedIssuesMonitor.SuppressionsUpdateRequested += SuppressedIssuesMonitor_SuppressionsUpdateRequested;
@@ -77,23 +85,40 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
 
         private void SuppressedIssuesMonitor_SuppressionsUpdateRequested(object sender, EventArgs e)
         {
-            UpdateFileStorage();
+            // Called on the UI thread, so unhandled exceptions will crash VS.
+            // Note: we don't expect any exceptions to be thrown, since the called method
+            // does all of its work on a background thread.
+            try
+            {
+                UpdateFileStorageAsync().Forget();
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                // Squash non-critical exceptions
+                logger.LogDebugExtended(ex.ToString());
+            }
         }
 
-        public void UpdateFileStorage()
+        /// <summary>
+        /// Updates the Roslyn suppressed issues file if in connected mode
+        /// </summary>
+        /// <remarks>The method will switch to a background if required, and will *not*
+        /// return to the UI thread on completion.</remarks>
+        public async Task UpdateFileStorageAsync()
         {
-            threadHandling.Run(async () =>
+            logger.LogDebugExtended("Start");
+            await threadHandling.SwitchToBackgroundThread();
+            logger.LogDebugExtended("On background thread");
+
+            var sonarProjectKey = activeSolutionBoundTracker.CurrentConfiguration.Project?.ProjectKey;
+
+            if (!string.IsNullOrEmpty(sonarProjectKey))
             {
-                var sonarProjectKey = activeSolutionBoundTracker.CurrentConfiguration.Project?.ProjectKey;
+                var allSuppressedIssues = await suppressedIssuesProvider.GetAllSuppressedIssuesAsync();
+                suppressedIssuesFileStorage.Update(sonarProjectKey, allSuppressedIssues);
+            }
 
-                if (!string.IsNullOrEmpty(sonarProjectKey))
-                {
-                    var allSuppressedIssues = await suppressedIssuesProvider.GetAllSuppressedIssuesAsync();
-                    suppressedIssuesFileStorage.Update(sonarProjectKey, allSuppressedIssues);
-                }
-
-                return Task.FromResult(true);
-            });
+            logger.LogDebugExtended("End");
         }
 
         public void Dispose()

@@ -65,9 +65,17 @@ namespace SonarLint.VisualStudio.Core
         Task RunAsync(Func<Task> asyncMethod);
 
         /// <summary>
-        /// Runs the asynchronous method to completion without blocking the calling thread.
+        /// Invokes an async delegate on the caller's thread, and yields back to the caller when the async method yields.
+        /// The async delegate is invoked in such a way as to mitigate deadlocks in the event that the async method
+        /// requires the main thread while the main thread is blocked waiting for the async method's completion.
         /// </summary>
-        /// <remarks>Wrapper around <see cref="ThreadHelper.JoinableTaskFactory.RunAsync"/></remarks>
+        /// <remarks>Wrapper around <see cref="ThreadHelper.JoinableTaskFactory.RunAsync"/>.
+        /// Exceptions thrown by the delegate are captured by the Microsoft.VisualStudio.Threading.JoinableTask.
+        /// When the delegate resumes from a yielding await, the default behavior is to resume
+        /// in its original context as an ordinary async method execution would. For example,
+        /// if the caller was on the main thread, execution resumes after an await on the
+        /// main thread; but if it started on a threadpool thread it resumes on a threadpool thread.
+        /// </remarks>
         Task RunAsync<T>(Func<Task<T>> asyncMethod);
 
         /// <summary>
