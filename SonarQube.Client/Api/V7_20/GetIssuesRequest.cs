@@ -81,7 +81,7 @@ namespace SonarQube.Client.Api.V7_20
 
         private SonarQubeIssue ToSonarQubeIssue(ServerIssue issue) =>
             new SonarQubeIssue(issue.IssueKey, ComputePath(issue.Component), issue.Hash, issue.Message, ComputeModuleKey(issue),
-                GetRuleKey(issue.CompositeRuleKey), issue.Status == "RESOLVED",
+                issue.CompositeRuleKey, issue.Status == "RESOLVED",
                 SonarQubeIssueSeverityConverter.Convert(issue.Severity),
                 issue.CreationDate,
                 issue.UpdateDate,
@@ -93,10 +93,6 @@ namespace SonarQube.Client.Api.V7_20
 
         private static string ComputeModuleKey(ServerIssue issue) =>
             issue.SubProject ?? issue.Component;
-
-        private static string GetRuleKey(string compositeRuleKey) =>
-            // ruleKey is "csharpsqid:S1234" or "vbnet:S1234" but we need S1234
-            compositeRuleKey.Replace("vbnet:", string.Empty).Replace("csharpsquid:", string.Empty);
 
         private List<IssueFlow> ToIssueFlows(ServerIssueFlow[] serverIssueFlows) =>
             serverIssueFlows?.Select(ToIssueFlow).ToList();

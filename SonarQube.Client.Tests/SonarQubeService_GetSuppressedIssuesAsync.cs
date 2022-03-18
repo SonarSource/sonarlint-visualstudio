@@ -264,7 +264,7 @@ namespace SonarQube.Client.Tests
             result[0].Message.Should().Be("Mark this assembly with 'System.CLSCompliantAttribute'");
             result[0].ModuleKey.Should().Be("shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082");
             result[0].IsResolved.Should().BeTrue();
-            result[0].RuleId.Should().Be("S3990");
+            result[0].RuleId.Should().Be("csharpsquid:S3990");
             result[0].Severity.Should().Be(SonarQubeIssueSeverity.Major);
 
             result[1].FilePath.Should().Be("Program.cs");
@@ -273,7 +273,7 @@ namespace SonarQube.Client.Tests
             result[1].Message.Should().Be("Add a 'protected' constructor or the 'static' keyword to the class declaration.");
             result[1].ModuleKey.Should().Be("shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082");
             result[1].IsResolved.Should().BeTrue();
-            result[1].RuleId.Should().Be("S1118");
+            result[1].RuleId.Should().Be("csharpsquid:S1118");
             result[1].Severity.Should().Be(SonarQubeIssueSeverity.Major);
 
             // File level issues don't have hash and line
@@ -283,7 +283,7 @@ namespace SonarQube.Client.Tests
             result[2].Message.Should().Be("Add or update the header of this file.");
             result[2].ModuleKey.Should().Be("shared:SharedProject1/SharedClass1.cs");
             result[2].IsResolved.Should().BeTrue();
-            result[2].RuleId.Should().Be("S1451");
+            result[2].RuleId.Should().Be("csharpsquid:S1451");
             result[2].Severity.Should().Be(SonarQubeIssueSeverity.Blocker);
 
             result[3].FilePath.Should().Be("SharedProject1\\SharedClass1.cs");
@@ -292,7 +292,7 @@ namespace SonarQube.Client.Tests
             result[3].Message.Should().Be("Remove this method and declare a constant for this value.");
             result[3].ModuleKey.Should().Be("shared:SharedProject1/SharedClass1.cs");
             result[3].IsResolved.Should().BeTrue();
-            result[3].RuleId.Should().Be("S3400");
+            result[3].RuleId.Should().Be("csharpsquid:S3400");
             result[3].Severity.Should().Be(SonarQubeIssueSeverity.Minor);
 
             messageHandler.VerifyAll();
