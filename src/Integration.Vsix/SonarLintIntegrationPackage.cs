@@ -23,10 +23,13 @@ using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
+using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -57,6 +60,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class SonarLintIntegrationPackage : AsyncPackage
     {
+        // Note: we don't currently have any tests for this class so we don't need to inject
+        // thread handling wrapper. However, we'll still use it so our threading code is
+        // consistent.
+        private readonly IThreadHandling threadHandling = new ThreadHandling();
+
         private PackageCommandManager commandManager;
 
         private ILogger logger;
@@ -71,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private async System.Threading.Tasks.Task InitOnUIThreadAsync()
         {
-            Debug.Assert(ThreadHelper.CheckAccess(), "SonarLint package - expecteding to be called in the UI thread");
+            threadHandling.ThrowIfNotOnUIThread();
 
             try
             {
@@ -87,7 +95,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     serviceProvider.GetMefService<IProjectToLanguageMapper>());
 
                 this.suppressedIssuesFileSynchronizer = await this.GetMefServiceAsync<ISuppressedIssuesFileSynchronizer>();
-                suppressedIssuesFileSynchronizer.UpdateFileStorage();
+                suppressedIssuesFileSynchronizer.UpdateFileStorageAsync().Forget(); // don't wait for it to finish
+                Debug.Assert(threadHandling.CheckAccess(), "Still expecting to be on the UI thread");
 
                 logger.WriteLine(Resources.Strings.SL_InitializationComplete);
             }

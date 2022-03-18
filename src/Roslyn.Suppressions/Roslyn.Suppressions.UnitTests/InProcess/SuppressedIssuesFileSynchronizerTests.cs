@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Core.Suppressions;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
 using SonarQube.Client.Models;
@@ -46,7 +47,8 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
                 MefTestHelpers.CreateExport<ISuppressedIssuesMonitor>(Mock.Of<ISuppressedIssuesMonitor>()),
                 MefTestHelpers.CreateExport<ISonarQubeIssuesProvider>(Mock.Of<ISonarQubeIssuesProvider>()),
                 MefTestHelpers.CreateExport<ISuppressedIssuesFileStorage>(Mock.Of<ISuppressedIssuesFileStorage>()),
-                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(Mock.Of<IActiveSolutionBoundTracker>())
+                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(Mock.Of<IActiveSolutionBoundTracker>()),
+                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
 
@@ -126,11 +128,8 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
         [TestMethod]
         public async Task UpdateFileStorage_FileStorageIsUpdatedOnBackgroundThread()
         {
-            Func<Task<Task<bool>>> fileUpdateTask = null;
             var threadHandling = new Mock<IThreadHandling>();
-            threadHandling
-                .Setup(x => x.Run(It.IsAny<Func<Task<Task<bool>>>>()))
-                .Callback((Func<Task<Task<bool>>> task) => fileUpdateTask = task);
+            threadHandling.Setup(x => x.SwitchToBackgroundThread()).Returns(new NoOpThreadHandler.NoOpAwaitable());
 
             var configuration = CreateConnectedConfiguration("some project key");
             var activeSolutionBoundTracker = CreateActiveSolutionBoundTracker(configuration);
@@ -146,14 +145,12 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
                 suppressedIssuesFileStorage: suppressedIssuesFileStorage.Object,
                 activeSolutionBoundTracker: activeSolutionBoundTracker.Object);
 
-            testSubject.UpdateFileStorage();
+            await testSubject.UpdateFileStorageAsync();
 
-            threadHandling.Verify(x => x.Run(It.IsAny<Func<Task<Task<bool>>>>()), Times.Once);
-            suppressedIssuesFileStorage.Invocations.Count.Should().Be(0);
-            activeSolutionBoundTracker.Invocations.Count.Should().Be(0);
+            threadHandling.Verify(x => x.SwitchToBackgroundThread(), Times.Once);
 
-            await fileUpdateTask();
-
+            suppressedIssuesFileStorage.Invocations.Count.Should().Be(1);
+            activeSolutionBoundTracker.Invocations.Count.Should().Be(1);
             suppressedIssuesFileStorage.Verify(x => x.Update("some project key", issues), Times.Once);
         }
 
@@ -191,18 +188,21 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
             ISonarQubeIssuesProvider suppressedIssuesProvider = null,
             ISuppressedIssuesFileStorage suppressedIssuesFileStorage = null,
             IActiveSolutionBoundTracker activeSolutionBoundTracker = null,
-            IThreadHandling threadHandling = null)
+            IThreadHandling threadHandling = null,
+            ILogger logger = null)
         {
             suppressedIssuesMonitor ??= Mock.Of<ISuppressedIssuesMonitor>();
             suppressedIssuesProvider ??= Mock.Of<ISonarQubeIssuesProvider>();
             suppressedIssuesFileStorage ??= Mock.Of<ISuppressedIssuesFileStorage>();
             activeSolutionBoundTracker ??= Mock.Of<IActiveSolutionBoundTracker>();
             threadHandling ??= new NoOpThreadHandler();
+            logger ??= new TestLogger();
 
             return new SuppressedIssuesFileSynchronizer(suppressedIssuesMonitor, 
                 suppressedIssuesProvider, 
                 suppressedIssuesFileStorage, 
                 activeSolutionBoundTracker,
+                logger,
                 threadHandling);
         }
     }
