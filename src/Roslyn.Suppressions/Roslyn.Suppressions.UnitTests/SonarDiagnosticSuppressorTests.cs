@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using FluentAssertions;
@@ -57,6 +58,61 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         }
 
         [TestMethod]
+        public void GetSuppressionsIsNotCalled_ContainerNotInitialized()
+        {
+            var createContainer = new Mock<Func<IContainer>>();
+
+            var testSubject = CreateTestSubject(createContainer.Object);
+
+            createContainer.Invocations.Count.Should().Be(0);
+
+            var supportedSuppressions = testSubject.SupportedSuppressions;
+
+            supportedSuppressions.Should().NotBeEmpty();
+
+            createContainer.Invocations.Count.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void GetSuppressions_IsNotInConnectedMode_ContainerNotInitialized()
+        {
+            var createContainer = new Mock<Func<IContainer>>();
+
+            var suppressionContext = CreateSuppressionContext(null);
+            var reportedDiagnostics = CreateReportedDiagnostics();
+
+            var testSubject = CreateTestSubject(createContainer.Object);
+
+            var suppressions = testSubject.GetSuppressions(reportedDiagnostics, suppressionContext.Object);
+
+            suppressions.Count().Should().Be(0);
+
+            createContainer.Invocations.Count.Should().Be(0);
+
+            suppressionContext.VerifyGet(c => c.IsInConnectedMode, Times.Once);
+        }
+
+        [TestMethod]
+        public void GetSuppressions_IsInConnectedMode_ContainerInitialized()
+        {
+            var suppressionContext = CreateSuppressionContext("sonarKey");
+            var suppressionChecker = CreateSuppressionChecker("sonarKey");
+            
+            var createContainer = new Mock<Func<IContainer>>();
+            createContainer.Setup(x => x()).Returns(CreateContainer(suppressionChecker));
+
+            var reportedDiagnostics = CreateReportedDiagnostics();
+
+            var testSubject = CreateTestSubject(createContainer.Object);
+
+            var suppressions = testSubject.GetSuppressions(reportedDiagnostics, suppressionContext.Object);
+
+            suppressions.Count().Should().Be(0);
+
+            createContainer.Invocations.Count.Should().Be(1);
+        }
+
+        [TestMethod]
         public void GetSuppressions_IsNotInConnectedMode_ShouldReturnEmpty()
         {
             var suppressionContext = CreateSuppressionContext(null);
@@ -72,7 +128,6 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         [TestMethod]
         public void GetSuppressions_HasSuppressedDiagnostic_ShouldReturnSuppressions()
         {
-
             var suppressionContext = CreateSuppressionContext("sonarKey");
             var diag = CreateDiagnostic("S100");
 
@@ -156,22 +211,26 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
             return diagnostic.Object;
         }
-        
-       private ImmutableArray<Diagnostic> CreateReportedDiagnostics(params Diagnostic[] diagnostics)
+
+        private ImmutableArray<Diagnostic> CreateReportedDiagnostics(params Diagnostic[] diagnostics)
         {
             return diagnostics.ToImmutableArray();
         }
 
-        private SonarDiagnosticSuppressor CreateTestSubject(IContainer container = null)
+        private SonarDiagnosticSuppressor CreateTestSubject(IContainer container) =>
+            CreateTestSubject(() => container);
+
+        private SonarDiagnosticSuppressor CreateTestSubject(Func<IContainer> createContainer = null)
         {
-            container = container ?? CreateContainer();
-            return new SonarDiagnosticSuppressor(container);
+            createContainer ??= () => CreateContainer();
+
+            return new SonarDiagnosticSuppressor(createContainer);
         }
 
         private IContainer CreateContainer(ISuppressionChecker suppressionChecker = null, ILogger logger = null)
         {
-            suppressionChecker = suppressionChecker ?? Mock.Of<ISuppressionChecker>();
-            logger = logger ?? Mock.Of<ILogger>();
+            suppressionChecker ??= Mock.Of<ISuppressionChecker>();
+            logger ??= Mock.Of<ILogger>();
 
             var container = new Mock<IContainer>();
             container.SetupGet(c => c.SuppressionChecker).Returns(suppressionChecker);
