@@ -107,6 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             suppressedFileIssues = null;
             allSuppressedIssues = null;
             this.isDisposed = true;
+            cancellationTokenSource?.Cancel();
         }
 
         public IEnumerable<SonarQubeIssue> GetSuppressedIssues(string projectGuid, string filePath)

@@ -150,6 +150,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 VerifyTimerStart(Times.Once());
                 timerRunning.Should().Be(true);
                 VerifyServiceGetIssues(Times.Once(), "keyXXX");
+                VerifyRanOnBackgroundThread(Times.Once());
             }
         }
 
@@ -753,6 +754,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         private void VerifyTimerStart(Times expected)
         {
             mockTimer.Verify(t => t.Start(), expected);
+        }
+
+        private void VerifyRanOnBackgroundThread(Times expected)
+        {
+            threadHandling.Verify(th => th.SwitchToBackgroundThread(), expected);
         }
 
         private void VerifyServiceGetIssues(Times expected)
