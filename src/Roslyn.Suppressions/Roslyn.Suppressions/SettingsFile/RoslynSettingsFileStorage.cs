@@ -19,82 +19,83 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO.Abstractions;
-using System.Linq;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Resources;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
 {
-    [Export(typeof(ISuppressedIssuesFileStorage))]
-    internal class SuppressedIssuesFileStorage : ISuppressedIssuesFileStorage
+    public interface IRoslynSettingsFileStorage
+    {
+        void Update(RoslynSettings settings);
+
+        /// <summary>
+        /// Return the settings for the specific settings key, or null
+        /// if there are no settings for that key
+        /// </summary>
+        RoslynSettings Get(string settingsKey);
+    }
+
+    [Export(typeof(IRoslynSettingsFileStorage))]
+    internal class RoslynSettingsFileStorage : IRoslynSettingsFileStorage
     {
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
 
         [ImportingConstructor]
-        public SuppressedIssuesFileStorage(ILogger logger) : this(logger, new FileSystem())
+        public RoslynSettingsFileStorage(ILogger logger) : this(logger, new FileSystem())
         {
         }
 
-        internal SuppressedIssuesFileStorage(ILogger logger, IFileSystem fileSystem)
+        internal RoslynSettingsFileStorage(ILogger logger, IFileSystem fileSystem)
         {
             this.fileSystem = fileSystem;
             this.logger = logger;
             fileSystem.Directory.CreateDirectory(RoslynSettingsFileInfo.Directory);
         }
 
-        public IEnumerable<SonarQubeIssue> Get(string sonarProjectKey)
+        public RoslynSettings Get(string settingsKey)
         {
-            ValidateSonarProjectKey(sonarProjectKey);
+            Debug.Assert(settingsKey != null, "Not expecting settings to be null");
+         
             try
             {
-                var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(sonarProjectKey);
+                var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(settingsKey);
 
                 if(!fileSystem.File.Exists(filePath))
                 {
-                    logger.WriteLine(string.Format(Strings.SuppressedIssuesFileStorageGetError, sonarProjectKey, Strings.SuppressedIssuesFileStorageFileNotFound));
-                    return Enumerable.Empty<SonarQubeIssue>();
+                    logger.WriteLine(string.Format(Strings.RoslynSettingsFileStorageGetError, settingsKey, Strings.RoslynSettingsFileStorageFileNotFound));
+                    return null;
                 }
 
                 var fileContent = fileSystem.File.ReadAllText(filePath);
-                return JsonConvert.DeserializeObject<IEnumerable<SonarQubeIssue>>(fileContent);
+                return JsonConvert.DeserializeObject<RoslynSettings>(fileContent);
             }
             catch (Exception ex)
             {
-                logger.WriteLine(string.Format(Strings.SuppressedIssuesFileStorageGetError, sonarProjectKey, ex.Message));
+                logger.WriteLine(string.Format(Strings.RoslynSettingsFileStorageGetError, settingsKey, ex.Message));
             }
 
-            return Enumerable.Empty<SonarQubeIssue>();
+            return null;
         }
 
-        public void Update(string sonarProjectKey, IEnumerable<SonarQubeIssue> allSuppressedIssues)
+        public void Update(RoslynSettings settings)
         {
-            ValidateSonarProjectKey(sonarProjectKey);
+            Debug.Assert(settings != null, "Not expecting settings to be null");
+            Debug.Assert(!string.IsNullOrWhiteSpace(settings.SonarProjectKey), "Not expecting settings.SonarProjectKey to be null");
 
             try
             {
-                var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(sonarProjectKey);
-                var fileContent = JsonConvert.SerializeObject(allSuppressedIssues);
+                var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(settings.SonarProjectKey);
+                var fileContent = JsonConvert.SerializeObject(settings);
                 fileSystem.File.WriteAllText(filePath, fileContent);
             }
             catch (Exception ex)
             {
-                
-                logger.WriteLine(string.Format(Strings.SuppressedIssuesFileStorageUpdateError, sonarProjectKey, ex.Message));
-            }
-        }
-
-        private void ValidateSonarProjectKey(string sonarProjectKey)
-        {
-            if (string.IsNullOrWhiteSpace(sonarProjectKey))
-            {
-                throw new ArgumentException(Strings.SuppressedIssuesFileStorageEmptyProjectKey, nameof(sonarProjectKey));
+                logger.WriteLine(string.Format(Strings.RoslynSettingsFileStorageUpdateError, settings.SonarProjectKey, ex.Message));
             }
         }
     }

@@ -288,7 +288,8 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         private static Mock<ISettingsCache> CreateSettingsCache(string settingsKey, IEnumerable<SonarQubeIssue> suppressedIssues)
         {
             var cache = new Mock<ISettingsCache>();
-            cache.Setup(x => x.GetSettings(settingsKey)).Returns(suppressedIssues);
+            var settings = new RoslynSettings { Suppressions = suppressedIssues };
+            cache.Setup(x => x.GetSettings(settingsKey)).Returns(settings);
             return cache;
         }
 
