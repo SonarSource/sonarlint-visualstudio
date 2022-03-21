@@ -120,9 +120,6 @@
   <data name="FileWatcherException" xml:space="preserve">
     <value>[Roslyn Suppressions] Error handling SonarLint suppressions change. Issues suppressed on the server may not be suppressed in the IDE. Error: {0}</value>
   </data>
-  <data name="SuppressedIssuesFileStorageEmptyProjectKey" xml:space="preserve">
-    <value>Argument must have at least one non-whitespace character</value>
-  </data>
   <data name="SuppressedIssuesFileStorageFileNotFound" xml:space="preserve">
     <value>Settings File was not found</value>
   </data>

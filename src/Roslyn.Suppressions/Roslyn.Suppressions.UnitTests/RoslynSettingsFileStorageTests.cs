@@ -19,14 +19,12 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
@@ -36,12 +34,14 @@ using static SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.TestHelper;
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 {
     [TestClass]
-    public class SuppressedIssuesFileStorageTests
+    public class RoslynSettingsFileStorageTests
     {
+        private static readonly RoslynSettings ValidSettings = new RoslynSettings { SonarProjectKey = "any" };
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<SuppressedIssuesFileStorage, ISuppressedIssuesFileStorage>(null, new[]
+            MefTestHelpers.CheckTypeCanBeImported<RoslynSettingsFileStorage, IRoslynSettingsFileStorage>(null, new[]
             {
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
@@ -50,10 +50,11 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         [TestMethod]
         public void Update_HasIssues_IssuesWrittenToFile()
         {
-            SonarQubeIssue issue1 = CreateIssue("issueKey1");
-            SonarQubeIssue issue2 = CreateIssue("issueKey2");
-
-            var issues = new List<SonarQubeIssue> { issue1, issue2 };
+            var settings = new RoslynSettings
+            {
+                SonarProjectKey = "projectKey",
+                Suppressions = new[] { CreateIssue("issue1") }
+            };
 
             var logger = new TestLogger();
 
@@ -62,9 +63,9 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
             var fileStorage = CreateTestSubject(logger, fileSystem.Object);
 
-            fileStorage.Update("projectKey", issues);
+            fileStorage.Update(settings);
 
-            file.Verify(f => f.WriteAllText(GetFilePath("projectKey"), JsonConvert.SerializeObject(issues)), Times.Once);
+            CheckFileWritten(file, settings);
             logger.AssertNoOutputMessages();
         }
 
@@ -73,16 +74,21 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         {
             SonarQubeIssue issue1 = CreateIssue("issueKey1");
             SonarQubeIssue issue2 = CreateIssue("issueKey2");
-            var issues = new List<SonarQubeIssue> { issue1, issue2 };
+            var settings = new RoslynSettings
+            {
+                SonarProjectKey = "projectKey",
+                Suppressions = new[] { issue1, issue2 }
+            };
             
             var logger = new TestLogger();
 
-            var file = CreateFileForGet("projectKey", issues);
+            var file = CreateFileForGet(settings);
             Mock<IFileSystem> fileSystem = CreateFileSystem(file);
 
             var fileStorage = CreateTestSubject(logger, fileSystem.Object);
 
-            var issuesGotten = fileStorage.Get("projectKey").ToList();
+            var actual = fileStorage.Get("projectKey");
+            var issuesGotten = actual.Suppressions.ToList();
 
             file.Verify(f => f.ReadAllText(GetFilePath("projectKey")), Times.Once);
             logger.AssertNoOutputMessages();
@@ -92,79 +98,27 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             issuesGotten[1].IssueKey.Should().Be(issue2.IssueKey);
         }
 
-        [DataRow(null)]
-        [DataRow("")]
-        [DataRow("  ")]
-        [TestMethod]
-        public void Update_ProjectKeyIsEmpty_ExceptionThrown(string projectKey)
-        {
-            SonarQubeIssue issue = CreateIssue("issueKey");
-            var issues = new List<SonarQubeIssue> { issue };
-
-            var fileStorage = CreateTestSubject();
-
-            Action act = () => fileStorage.Update(projectKey, issues);
-            act.Should().ThrowExactly<ArgumentException>().And.ParamName.Should().Be("sonarProjectKey");
-        }
-
         [TestMethod]
         public void Update_ProjectKeyHasInvalidChars_InvalidCharsReplaced()
         {
-            SonarQubeIssue issue = CreateIssue("issueKey");
-            var issues = new List<SonarQubeIssue> { issue };
+            var settings = new RoslynSettings { SonarProjectKey = "project:key" };
 
             var logger = new TestLogger();
 
             var file = new Mock<IFile>();
             Mock<IFileSystem> fileSystem = CreateFileSystem(file);
 
-            var fileStorage = new SuppressedIssuesFileStorage(logger, fileSystem.Object);
-            fileStorage.Update("project:Key", issues);
+            var fileStorage = new RoslynSettingsFileStorage(logger, fileSystem.Object);
+            fileStorage.Update(settings);
 
-            file.Verify(f => f.WriteAllText(GetFilePath("project_Key"), JsonConvert.SerializeObject(issues)), Times.Once);
+            CheckFileWritten(file, settings);
             logger.AssertNoOutputMessages();
-        }
-
-        [DataRow(null)]
-        [DataRow("")]
-        [DataRow("  ")]
-        [TestMethod]
-        public void Get_ProjectKeyIsEmpty_ExceptionThrown(string projectKey)
-        {
-            var fileStorage = CreateTestSubject();
-
-            Action act = () => fileStorage.Get(projectKey);
-            act.Should().ThrowExactly<ArgumentException>().And.ParamName.Should().Be("sonarProjectKey");
-        }
-
-        [TestMethod]
-        public void Get_ProjectKeyHasInvalidChars_InvalidCharsReplaced()
-        {
-            SonarQubeIssue issue = CreateIssue("issueKey");
-            var issues = new List<SonarQubeIssue> { issue };
-
-            var logger = new TestLogger();
-
-            var file = CreateFileForGet("project_Key", issues);
-            Mock<IFileSystem> fileSystem = CreateFileSystem(file);
-
-            var fileStorage = CreateTestSubject(logger, fileSystem.Object);
-
-            var issuesGotten = fileStorage.Get("project:Key").ToList();
-
-            file.Verify(f => f.ReadAllText(GetFilePath("project_Key")), Times.Once);
-            logger.AssertNoOutputMessages();
-
-            issuesGotten.Count.Should().Be(1);
-            issuesGotten[0].IssueKey.Should().Be(issue.IssueKey);
         }
 
         [TestMethod]
         public void Update_ErrorOccuredWhenWritingFile_ErrorIsLogged()
         {
-            SonarQubeIssue issue = CreateIssue("issueKey");
-            var issues = new List<SonarQubeIssue> { issue };
-
+            var settings = new RoslynSettings { SonarProjectKey = "projectKey" };
             var logger = new TestLogger();
 
             var file = new Mock<IFile>();
@@ -173,34 +127,35 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
             var fileStorage = CreateTestSubject(logger, fileSystem.Object);
 
-            fileStorage.Update("projectKey", issues);
+            fileStorage.Update(settings);
 
             logger.AssertOutputStrings("[Roslyn Suppressions] Error writing settings for project projectKey. Issues suppressed on the server may not be suppressed in the IDE. Error: Test Exception");
         }
 
         [TestMethod]
-        public void Get_ErrorOccuredWhenWritingFile_ErrorIsLoggedAndReturnedEmpty()
+        public void Get_ErrorOccuredWhenWritingFile_ErrorIsLoggedAndReturnsNull()
         {
-            SonarQubeIssue issue = CreateIssue("issueKey");
-            var issues = new List<SonarQubeIssue> { issue };
-
             var logger = new TestLogger();
 
             var file = new Mock<IFile>();
             file.Setup(f => f.ReadAllText(GetFilePath("projectKey"))).Throws(new Exception("Test Exception"));
             Mock<IFileSystem> fileSystem = CreateFileSystem(file);
-            SuppressedIssuesFileStorage fileStorage = CreateTestSubject(logger, fileSystem.Object);
+            RoslynSettingsFileStorage fileStorage = CreateTestSubject(logger, fileSystem.Object);
 
-            var issuesGotten = fileStorage.Get("projectKey").ToList();
+            var actual = fileStorage.Get("projectKey");
 
             logger.AssertOutputStrings("[Roslyn Suppressions] Error loading settings for project projectKey. Issues suppressed on the server will not be suppressed in the IDE. Error: Test Exception");
-            issuesGotten.Count.Should().Be(0);
+            actual.Should().BeNull();
         }
 
         [TestMethod]
         public void Update_HasNoIssues_FileWritten()
         {
-            var issues = Enumerable.Empty<SonarQubeIssue>();
+            var settings = new RoslynSettings
+            {
+                SonarProjectKey = "projectKey",
+                Suppressions = Enumerable.Empty<SonarQubeIssue>()
+            };
 
             var logger = new TestLogger();
 
@@ -209,25 +164,30 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
             var fileStorage = CreateTestSubject(logger, fileSystem.Object);
 
-            fileStorage.Update("projectKey", issues);
+            fileStorage.Update(settings);
 
-            file.Verify(f => f.WriteAllText(GetFilePath("projectKey"), "[]"), Times.Once);
+            CheckFileWritten(file, settings);
             logger.AssertNoOutputMessages();
         }
 
         [TestMethod]
         public void Get_HasNoIssues_ReturnsEmpty()
         {
-            var issues = Enumerable.Empty<SonarQubeIssue>();
+            var settings = new RoslynSettings
+            {
+                SonarProjectKey = "projectKey",
+                Suppressions = Enumerable.Empty<SonarQubeIssue>()
+            };
 
             var logger = new TestLogger();
 
-            var file = CreateFileForGet("projectKey", issues);
+            var file = CreateFileForGet(settings);
             Mock<IFileSystem> fileSystem = CreateFileSystem(file);
 
             var fileStorage = CreateTestSubject(logger, fileSystem.Object);
 
-            var issuesGotten = fileStorage.Get("projectKey").ToList();
+            var actual = fileStorage.Get("projectKey");
+            var issuesGotten = actual.Suppressions.ToList();
 
             file.Verify(f => f.ReadAllText(GetFilePath("projectKey")), Times.Once);
             logger.AssertNoOutputMessages();
@@ -236,27 +196,24 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         }
 
         [TestMethod]
-        public void Get_FileDoesNotExist_ErrorIsLoggedAndReturnedEmpty()
+        public void Get_FileDoesNotExist_ErrorIsLoggedAndReturnsNull()
         {
-            SonarQubeIssue issue = CreateIssue("issueKey");
-            var issues = new List<SonarQubeIssue> { issue };
-
             var logger = new TestLogger();
 
             Mock<IFileSystem> fileSystem = CreateFileSystem(fileExists:false);
-            SuppressedIssuesFileStorage fileStorage = CreateTestSubject(logger, fileSystem.Object);
+            RoslynSettingsFileStorage fileStorage = CreateTestSubject(logger, fileSystem.Object);
 
-            var issuesGotten = fileStorage.Get("projectKey").ToList();
+            var actual = fileStorage.Get("projectKey");
 
             logger.AssertOutputStrings("[Roslyn Suppressions] Error loading settings for project projectKey. Issues suppressed on the server will not be suppressed in the IDE. Error: Settings File was not found");
-            issuesGotten.Count.Should().Be(0);
+            actual.Should().BeNull();
         }
 
-        private SuppressedIssuesFileStorage CreateTestSubject(ILogger logger = null, IFileSystem fileSystem = null)
+        private RoslynSettingsFileStorage CreateTestSubject(ILogger logger = null, IFileSystem fileSystem = null)
         {
             logger = logger ?? Mock.Of<ILogger>();
             fileSystem = fileSystem ?? CreateFileSystem().Object;
-            return new SuppressedIssuesFileStorage(logger, fileSystem);
+            return new RoslynSettingsFileStorage(logger, fileSystem);
         }
 
         private Mock<IFileSystem> CreateFileSystem(Mock<IFile> file = null, bool fileExists = true)
@@ -274,13 +231,22 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             return fileSystem;
         }
 
+        private static void CheckFileWritten(Mock<IFile> file, RoslynSettings settings)
+        {
+            var expectedFilePath = GetFilePath(settings.SonarProjectKey);
+            var expectedContent = JsonConvert.SerializeObject(settings);
+
+            file.Verify(f => f.WriteAllText(expectedFilePath, expectedContent), Times.Once);
+        }
+
         private static string GetFilePath(string projectKey) => RoslynSettingsFileInfo.GetSettingsFilePath(projectKey);
 
-        private Mock<IFile> CreateFileForGet(string projectKey, IEnumerable<SonarQubeIssue> issues)
+        private Mock<IFile> CreateFileForGet(RoslynSettings settings)
         {
             var file = new Mock<IFile>();
-            file.Setup(f => f.ReadAllText(GetFilePath(projectKey))).Returns(JsonConvert.SerializeObject(issues));
+            file.Setup(f => f.ReadAllText(GetFilePath(settings.SonarProjectKey))).Returns(JsonConvert.SerializeObject(settings));
             return file;
         }
+
     }
 }

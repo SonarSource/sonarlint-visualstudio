@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private PackageCommandManager commandManager;
 
         private ILogger logger;
-        private ISuppressedIssuesFileSynchronizer suppressedIssuesFileSynchronizer;
+        private IRoslynSettingsFileSynchronizer roslynSettingsFileSynchronizer;
 
         protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -94,8 +94,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     serviceProvider.GetMefService<IProjectPropertyManager>(),
                     serviceProvider.GetMefService<IProjectToLanguageMapper>());
 
-                this.suppressedIssuesFileSynchronizer = await this.GetMefServiceAsync<ISuppressedIssuesFileSynchronizer>();
-                suppressedIssuesFileSynchronizer.UpdateFileStorageAsync().Forget(); // don't wait for it to finish
+                this.roslynSettingsFileSynchronizer = await this.GetMefServiceAsync<IRoslynSettingsFileSynchronizer>();
+                roslynSettingsFileSynchronizer.UpdateFileStorageAsync().Forget(); // don't wait for it to finish
                 Debug.Assert(threadHandling.CheckAccess(), "Still expecting to be on the UI thread");
 
                 logger.WriteLine(Resources.Strings.SL_InitializationComplete);
@@ -112,8 +112,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             base.Dispose(disposing);
             if (disposing)
             {
-                this.suppressedIssuesFileSynchronizer?.Dispose();
-                this.suppressedIssuesFileSynchronizer = null;
+                this.roslynSettingsFileSynchronizer?.Dispose();
+                this.roslynSettingsFileSynchronizer = null;
             }
         }
     }

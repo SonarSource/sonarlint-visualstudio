@@ -32,7 +32,7 @@ using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 {
     [TestClass]
-    public class SuppressedIssuesFileWatcherTests
+    public class RoslynSettingsFileWatcherTests
     {
         [TestMethod]
         public void Ctor_RegisterToFileWatcherEvents()

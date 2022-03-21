@@ -19,37 +19,32 @@
  */
 
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache
 {
     internal class SettingsCache : ISettingsCache
     {
-        private readonly ISuppressedIssuesFileStorage fileStorage;
-        private readonly ConcurrentDictionary<string, IEnumerable<SonarQubeIssue>> settingsCollection;
+        private readonly IRoslynSettingsFileStorage fileStorage;
+        private readonly ConcurrentDictionary<string, RoslynSettings> settingsCollection;
 
 
-        public SettingsCache(ILogger logger) : this(new SuppressedIssuesFileStorage(logger), new ConcurrentDictionary<string, IEnumerable<SonarQubeIssue>>())
+        public SettingsCache(ILogger logger) : this(new RoslynSettingsFileStorage(logger), new ConcurrentDictionary<string, RoslynSettings>())
         {
-
         }
 
-        internal SettingsCache(ISuppressedIssuesFileStorage fileStorage, ConcurrentDictionary<string, IEnumerable<SonarQubeIssue>> settingsCollection)
+        internal SettingsCache(IRoslynSettingsFileStorage fileStorage, ConcurrentDictionary<string, RoslynSettings> settingsCollection)
         {
             this.fileStorage = fileStorage;
             this.settingsCollection = settingsCollection;
         }
 
-
-        public IEnumerable<SonarQubeIssue> GetSettings(string settingsKey)
+        public RoslynSettings GetSettings(string settingsKey)
         {
             if(!settingsCollection.ContainsKey(settingsKey))
             {
-                var settings = fileStorage.Get(settingsKey);
+                var settings = fileStorage.Get(settingsKey) ?? RoslynSettings.Empty;
                 settingsCollection.AddOrUpdate(settingsKey, settings, (x,y) => settings);
             }
             return settingsCollection[settingsKey];

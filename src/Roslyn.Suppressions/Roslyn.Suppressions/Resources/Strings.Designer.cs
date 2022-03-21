@@ -70,15 +70,6 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Argument must have at least one non-whitespace character.
-        /// </summary>
-        internal static string SuppressedIssuesFileStorageEmptyProjectKey {
-            get {
-                return ResourceManager.GetString("SuppressedIssuesFileStorageEmptyProjectKey", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Settings File was not found.
         /// </summary>
         internal static string SuppressedIssuesFileStorageFileNotFound {

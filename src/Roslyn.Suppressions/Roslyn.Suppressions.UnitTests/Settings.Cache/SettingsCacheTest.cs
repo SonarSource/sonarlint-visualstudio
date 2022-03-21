@@ -19,16 +19,12 @@
  */
 
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache;
-using SonarQube.Client.Models;
-using static SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.TestHelper;
-
+using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
 {
@@ -38,74 +34,70 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
         [TestMethod]
         public void GetSettings_SettingNotInCache_SettingsReadFromFile()
         {
-            var issues = CreateIssues();
+            var settings = new RoslynSettings { SonarProjectKey = "my project" };
             var cacheObject = CreateEmptyCacheObject();
 
-            var fileStorage = new Mock<ISuppressedIssuesFileStorage>();
-            fileStorage.Setup(fs => fs.Get("settingsKey")).Returns(issues);
+            var fileStorage = new Mock<IRoslynSettingsFileStorage>();
+            fileStorage.Setup(fs => fs.Get("settingsKey")).Returns(settings);
 
             var testSubject = CreateTestSubject(fileStorage, cacheObject);
-            var settings = testSubject.GetSettings("settingsKey");
+            var actual = testSubject.GetSettings("settingsKey");
 
             fileStorage.Verify(fs => fs.Get("settingsKey"), Times.Once);
             cacheObject.ContainsKey("settingsKey").Should().BeTrue();
-            cacheObject["settingsKey"].Should().BeSameAs(issues);
-            settings.Should().BeSameAs(issues);
+            cacheObject["settingsKey"].Should().BeSameAs(settings);
+            actual.Should().BeSameAs(settings);
         }
-
-        
 
         [TestMethod]
         public void GetSettings_SettingInCache_SettingsReadFromCache()
         {
-            var issues = CreateIssues();
+            var settings = new RoslynSettings { SonarProjectKey = "my project" };
 
-            var cacheObject = CreatePopulatedCacheObject("settingsKey", issues);
+            var cacheObject = CreatePopulatedCacheObject("settingsKey", settings);
 
-            var fileStorage = new Mock<ISuppressedIssuesFileStorage>();
+            var fileStorage = new Mock<IRoslynSettingsFileStorage>();
 
             var testSubject = CreateTestSubject(fileStorage, cacheObject);
-            var settings = testSubject.GetSettings("settingsKey");
+            var actual = testSubject.GetSettings("settingsKey");
 
             fileStorage.Verify(fs => fs.Get(It.IsAny<string>()), Times.Never);
-            settings.Should().BeSameAs(issues);
+            actual.Should().BeSameAs(settings);
         }
 
         [TestMethod]
         public void GetSettings_SettingNotInCacheOrFile_SettingsEmpty()
         {
-            var fileStorage = new Mock<ISuppressedIssuesFileStorage>();
+            var fileStorage = new Mock<IRoslynSettingsFileStorage>();
 
             var testSubject = CreateTestSubject(fileStorage);
-            var settings = testSubject.GetSettings("settingsKey");
+            var actual = testSubject.GetSettings("settingsKey");
 
             fileStorage.Verify(fs => fs.Get("settingsKey"), Times.Once);
-            settings.Count().Should().Be(0);
+            CheckSettingsAreEmpty(actual);
         }
 
         [TestMethod]
         public void GetSettings_DifferentSettingInCache_SettingsEmpty()
         {
-            var issues = CreateIssues();
+            var settings = new RoslynSettings { SonarProjectKey = "my project" };
 
-            var cacheObject = CreatePopulatedCacheObject("differentKey", issues);
+            var cacheObject = CreatePopulatedCacheObject("differentKey", settings);
 
-            var fileStorage = new Mock<ISuppressedIssuesFileStorage>();
+            var fileStorage = new Mock<IRoslynSettingsFileStorage>();
 
             var testSubject = CreateTestSubject(fileStorage, cacheObject);
-            var settings = testSubject.GetSettings("settingsKey");
+            var actual = testSubject.GetSettings("settingsKey");
 
             fileStorage.Verify(fs => fs.Get("settingsKey"), Times.Once);
-            settings.Count().Should().Be(0);
+            CheckSettingsAreEmpty(actual);
         }
 
         [TestMethod]
         public void Invalidate_SettingInCache_SettingsRemovedFromCache()
         {
-            var issues = CreateIssues();
-
-            var cacheObject = CreatePopulatedCacheObject("settingsKey", issues);
-
+            var cacheObject = CreatePopulatedCacheObject("settingsKey", new RoslynSettings());
+            cacheObject.ContainsKey("settingsKey").Should().BeTrue("Test setup error: cache was not pre-populated correctly");
 
             var testSubject = CreateTestSubject(settingsCollection: cacheObject);
             testSubject.Invalidate("settingsKey");
@@ -120,32 +112,35 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
             testSubject.Invalidate("settingsKey");
         }
 
-        private ConcurrentDictionary<string, IEnumerable<SonarQubeIssue>> CreatePopulatedCacheObject(string settingsKey, IEnumerable<SonarQubeIssue> issues)
+        private ConcurrentDictionary<string, RoslynSettings> CreatePopulatedCacheObject(string settingsKey, RoslynSettings settings)
         {
             var cacheObject = CreateEmptyCacheObject();
-            cacheObject.AddOrUpdate(settingsKey, issues, (x, y) => issues);
+            cacheObject.AddOrUpdate(settingsKey, settings, (x, y) => settings);
 
             return cacheObject;
         }
 
-        private IEnumerable<SonarQubeIssue> CreateIssues()
-        {
-            SonarQubeIssue issue1 = CreateIssue("issueKey1");
-            SonarQubeIssue issue2 = CreateIssue("issueKey2");
-            return new List<SonarQubeIssue> { issue1, issue2 };
-        }
 
-        private SettingsCache CreateTestSubject(Mock<ISuppressedIssuesFileStorage> fileStorage = null, ConcurrentDictionary<string, IEnumerable<SonarQubeIssue>> settingsCollection = null)
+        private SettingsCache CreateTestSubject(Mock<IRoslynSettingsFileStorage> fileStorage = null, ConcurrentDictionary<string, RoslynSettings> settingsCollection = null)
         {
-            fileStorage = fileStorage ?? new Mock<ISuppressedIssuesFileStorage>();
-            settingsCollection = settingsCollection ?? new ConcurrentDictionary<string, IEnumerable<SonarQubeIssue>>();
+            fileStorage = fileStorage ?? new Mock<IRoslynSettingsFileStorage>();
+            settingsCollection = settingsCollection ?? new ConcurrentDictionary<string, RoslynSettings>();
 
             return new SettingsCache(fileStorage.Object, settingsCollection);
         }
 
-        private ConcurrentDictionary<string, IEnumerable<SonarQubeIssue>> CreateEmptyCacheObject()
+        private ConcurrentDictionary<string, RoslynSettings> CreateEmptyCacheObject()
         {
-            return new ConcurrentDictionary<string, IEnumerable<SonarQubeIssue>>();
+            return new ConcurrentDictionary<string, RoslynSettings>();
+        }
+
+        private static void CheckSettingsAreEmpty(RoslynSettings settings)
+        {
+            settings.Should().BeSameAs(RoslynSettings.Empty);
+
+            settings.SonarProjectKey.Should().BeNull();
+            settings.Suppressions.Should().NotBeNull();
+            settings.Suppressions.Count().Should().Be(0);
         }
     }
 }
