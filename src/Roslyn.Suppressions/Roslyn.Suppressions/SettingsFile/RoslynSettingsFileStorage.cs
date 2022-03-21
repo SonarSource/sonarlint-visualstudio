@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
 
                 if(!fileSystem.File.Exists(filePath))
                 {
-                    logger.WriteLine(string.Format(Strings.SuppressedIssuesFileStorageGetError, settingsKey, Strings.SuppressedIssuesFileStorageFileNotFound));
+                    logger.WriteLine(string.Format(Strings.RoslynSettingsFileStorageGetError, settingsKey, Strings.RoslynSettingsFileStorageFileNotFound));
                     return null;
                 }
 
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
             }
             catch (Exception ex)
             {
-                logger.WriteLine(string.Format(Strings.SuppressedIssuesFileStorageGetError, settingsKey, ex.Message));
+                logger.WriteLine(string.Format(Strings.RoslynSettingsFileStorageGetError, settingsKey, ex.Message));
             }
 
             return null;
@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
             }
             catch (Exception ex)
             {
-                logger.WriteLine(string.Format(Strings.SuppressedIssuesFileStorageUpdateError, settings.SonarProjectKey, ex.Message));
+                logger.WriteLine(string.Format(Strings.RoslynSettingsFileStorageUpdateError, settings.SonarProjectKey, ex.Message));
             }
         }
     }
