@@ -21,7 +21,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions
 {
@@ -31,7 +30,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
     /// </summary>
     public class RoslynSettings
     {
-        public static readonly RoslynSettings Empty = new RoslynSettings { Suppressions = Enumerable.Empty<SonarQubeIssue>() };
+        public static readonly RoslynSettings Empty = new RoslynSettings { Suppressions = Enumerable.Empty<SuppressedIssue>() };
 
         /// <summary>
         /// The actual Sonar project key to which the settings relate
@@ -42,45 +41,60 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
         public string SonarProjectKey { get; set; }
         
         [JsonProperty("suppressions")]
-        public IEnumerable<SonarQubeIssue> Suppressions { get; set; }
+        public IEnumerable<SuppressedIssue> Suppressions { get; set; }
     }
 
-    ///// <summary>
-    ///// Describes a single C#/VB.NET issue that has been suppressed on the server
-    ///// </summary>
-    ///// <remarks>This class contains the subset of fields from <see cref="SonarQube.Client.Models.SonarQubeIssue"/>
-    ///// needed to match suppressed issues against "live" Roslyn issues</remarks>
-    //public class SuppressedIssue
-    //{
-    //    public SuppressedIssue(string filePath, string hash, string roslynLanguage, string roslynRuleId, IssueTextRange textRange)
-    //    {
-    //        FilePath = filePath;
-    //        Hash = hash;
-    //        RoslynLanguage = roslynLanguage;
-    //        RoslynRuleId = roslynRuleId;
-    //        TextRange = textRange;
-    //    }
+    public enum RoslynLanguage
+    {
+        Unknown = 0,
+        CSharp = 1,
+        VB = 2
+    }
 
-    //    /// <summary>
-    //    /// Relative file path
-    //    /// </summary>
-    //    /// <remarks>
-    //    /// The path is relative to the Sonar project root.
-    //    /// The path is in Windows format i.e. the directory separators are backslashes
-    //    /// </remarks>
-    //    [JsonProperty("file")]
-    //    public string FilePath { get; }
-        
-    //    [JsonProperty("hash")]
-    //    public string Hash { get; }
-        
-    //    [JsonProperty("lang")] // TODO - Enum / Roslyn string?
-    //    public string RoslynLanguage { get; }
-        
-    //    [JsonProperty("rule")]
-    //    public string RoslynRuleId { get; }
-        
-    //    [JsonProperty("range")]  // TODO - Roslyn type?
-    //    public IssueTextRange TextRange { get; }
-    //}
+    /// <summary>
+    /// Describes a single C#/VB.NET issue that has been suppressed on the server
+    /// </summary>
+    /// <remarks>This class contains the subset of fields from <see cref="SonarQube.Client.Models.SonarQubeIssue"/>
+    /// needed to match suppressed issues against "live" Roslyn issues</remarks>
+    public class SuppressedIssue
+    {
+        public SuppressedIssue(string filePath, string hash, RoslynLanguage roslynLanguage, string roslynRuleId, int? roslynStartLine)
+        {
+            FilePath = filePath;
+            Hash = hash;
+            RoslynLanguage = roslynLanguage;
+            RoslynRuleId = roslynRuleId;
+            RoslynIssueLine = roslynStartLine;
+        }
+
+        /// <summary>
+        /// Relative file path
+        /// </summary>
+        /// <remarks>
+        /// The path is relative to the Sonar project root.
+        /// The path is in Windows format i.e. the directory separators are backslashes
+        /// </remarks>
+        [JsonProperty("file")]
+        public string FilePath { get; }
+
+        [JsonProperty("hash")]
+        public string Hash { get; }
+
+        [JsonProperty("lang")]
+        public RoslynLanguage RoslynLanguage { get; }
+
+        /// <summary>
+        /// The rule ID reported by the Roslyn analyzer e.g. S123
+        /// </summary>
+        /// <remarks>This Sonar rule key without repository key.</remarks>
+        [JsonProperty("rule")]
+        public string RoslynRuleId { get; }
+
+        /// <summary>
+        /// The 0-based line for the issue. Will be null for file-level issues
+        /// </summary>
+        /// <remarks>Roslyn issues are 0-based - Sonar issues are 1-based.</remarks>
+        [JsonProperty("line")]
+        public int? RoslynIssueLine { get; }
+    }
 }
