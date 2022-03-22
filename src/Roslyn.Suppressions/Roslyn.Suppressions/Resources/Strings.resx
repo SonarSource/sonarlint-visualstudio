@@ -120,16 +120,13 @@
   <data name="FileWatcherException" xml:space="preserve">
     <value>[Roslyn Suppressions] Error handling SonarLint suppressions change. Issues suppressed on the server may not be suppressed in the IDE. Error: {0}</value>
   </data>
-  <data name="SuppressedIssuesFileStorageEmptyProjectKey" xml:space="preserve">
-    <value>Argument must have at least one non-whitespace character</value>
-  </data>
-  <data name="SuppressedIssuesFileStorageFileNotFound" xml:space="preserve">
+  <data name="RoslynSettingsFileStorageFileNotFound" xml:space="preserve">
     <value>Settings File was not found</value>
   </data>
-  <data name="SuppressedIssuesFileStorageGetError" xml:space="preserve">
+  <data name="RoslynSettingsFileStorageGetError" xml:space="preserve">
     <value>[Roslyn Suppressions] Error loading settings for project {0}. Issues suppressed on the server will not be suppressed in the IDE. Error: {1}</value>
   </data>
-  <data name="SuppressedIssuesFileStorageUpdateError" xml:space="preserve">
+  <data name="RoslynSettingsFileStorageUpdateError" xml:space="preserve">
     <value>[Roslyn Suppressions] Error writing settings for project {0}. Issues suppressed on the server may not be suppressed in the IDE. Error: {1}</value>
   </data>
 </root>

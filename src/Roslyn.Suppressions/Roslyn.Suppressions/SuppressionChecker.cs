@@ -59,7 +59,9 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
                 return false;
             }
 
-            var suppressedIssues = settingsCache.GetSettings(settingsKey);
+            var settings = settingsCache.GetSettings(settingsKey);
+            var suppressedIssues = settings.Suppressions;
+
             if (suppressedIssues == null || !suppressedIssues.Any())
             {
                 return false;

@@ -17,16 +17,17 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-using System.Collections.Generic;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache
 {
     public interface ISettingsCache
     {
-        IEnumerable<SonarQubeIssue> GetSettings(string settingsKey);
+        /// <summary>
+        /// Returns the settings for the specified key, or <see cref="RoslynSettings.Empty"/> if
+        /// there are no settings for that key
+        /// </summary>
+        RoslynSettings GetSettings(string settingsKey);
+        
         void Invalidate(string settingsKey);
     }
-
-
 }
