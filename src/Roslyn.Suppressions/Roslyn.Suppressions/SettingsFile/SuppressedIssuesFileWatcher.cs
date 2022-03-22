@@ -22,6 +22,7 @@ using System;
 using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.ETW;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Resources;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache;
 
@@ -78,6 +79,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
         {
             try
             {
+                CodeMarkers.Instance.FileWatcherInvalidateStart(e.ChangeType.ToString());
                 var fileName = e.Name;
                 var settingsKey = RoslynSettingsFileInfo.GetSettingsKey(fileName);
 
@@ -89,6 +91,10 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
             catch (Exception ex)
             {
                 logger.WriteLine(Strings.FileWatcherException, ex);
+            }
+            finally
+            {
+                CodeMarkers.Instance.FileWatcherInvalidateStop(e.ChangeType.ToString());
             }
         }
 

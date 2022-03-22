@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.ETW;
 using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
@@ -90,12 +91,17 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
             // does all of its work on a background thread.
             try
             {
+                CodeMarkers.Instance.FileSynchronizerUpdateRequesteStart();
                 UpdateFileStorageAsync().Forget();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 // Squash non-critical exceptions
                 logger.LogDebugExtended(ex.ToString());
+            }
+            finally
+            {
+                CodeMarkers.Instance.FileSynchronizerUpdateRequesteStop();
             }
         }
 

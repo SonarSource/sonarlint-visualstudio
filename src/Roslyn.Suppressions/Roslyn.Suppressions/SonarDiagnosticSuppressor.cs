@@ -23,6 +23,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using SonarLint.VisualStudio.Integration.ETW;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions
 {
@@ -47,6 +48,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
 
         public override void ReportSuppressions(SuppressionAnalysisContext context)
         {
+            CodeMarkers.Instance.ReportSuppressionsStart();
             var executionContext = new SuppressionExecutionContext(context.Options);
 
             var suppressions = GetSuppressions(context.ReportedDiagnostics, executionContext);
@@ -58,6 +60,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
             {
                 context.ReportSuppression(suppression);
             }
+            CodeMarkers.Instance.ReportSuppressionsStop();
         }
 
         internal /*For Testing*/ IEnumerable<Suppression> GetSuppressions(ImmutableArray<Diagnostic> ReportedDiagnostics, ISuppressionExecutionContext executionContext)
@@ -66,7 +69,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
             {
                 return Enumerable.Empty<Suppression>();
             }
-
+            CodeMarkers.Instance.GetSuppressionsStart();
             var result = new List<Suppression>();
 
             foreach (var diag in ReportedDiagnostics.Where(diag => container.SuppressionChecker.IsSuppressed(diag, executionContext.SettingsKey)))
@@ -74,7 +77,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
                 var suppressionDesc = SupportedSuppressions.Single(x => x.SuppressedDiagnosticId == diag.Id);
                 result.Add(Suppression.Create(suppressionDesc, diag));                
             }
-
+            CodeMarkers.Instance.GetSuppressionsStop(result.Count);
             return result;
         }
     }

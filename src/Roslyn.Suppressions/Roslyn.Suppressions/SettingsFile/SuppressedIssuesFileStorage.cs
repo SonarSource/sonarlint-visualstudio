@@ -26,6 +26,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.ETW;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Resources;
 using SonarQube.Client.Models;
 
@@ -54,6 +55,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
             ValidateSonarProjectKey(sonarProjectKey);
             try
             {
+                CodeMarkers.Instance.FileStorageGetStart();
                 var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(sonarProjectKey);
 
                 if(!fileSystem.File.Exists(filePath))
@@ -67,9 +69,12 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
             }
             catch (Exception ex)
             {
-                logger.WriteLine(string.Format(Strings.SuppressedIssuesFileStorageGetError, sonarProjectKey, ex.Message));
+                logger.WriteLine(string.Format(Strings.SuppressedIssuesFileStorageGetError, sonarProjectKey, ex.Message));                
             }
-
+            finally
+            {
+                CodeMarkers.Instance.FileStorageGetStop();
+            }
             return Enumerable.Empty<SonarQubeIssue>();
         }
 
@@ -79,6 +84,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
 
             try
             {
+                CodeMarkers.Instance.FileStorageUpdateStart();
                 var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(sonarProjectKey);
                 var fileContent = JsonConvert.SerializeObject(allSuppressedIssues);
                 fileSystem.File.WriteAllText(filePath, fileContent);
@@ -87,6 +93,10 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
             {
                 
                 logger.WriteLine(string.Format(Strings.SuppressedIssuesFileStorageUpdateError, sonarProjectKey, ex.Message));
+            }
+            finally
+            {
+                CodeMarkers.Instance.FileStorageUpdateStop();
             }
         }
 

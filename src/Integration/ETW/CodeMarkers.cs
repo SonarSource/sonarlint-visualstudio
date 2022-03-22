@@ -34,6 +34,7 @@ namespace SonarLint.VisualStudio.Integration.ETW
             public const EventKeywords Binding = (EventKeywords)2;
             public const EventKeywords Analysis = (EventKeywords)4;
             public const EventKeywords CFamily = (EventKeywords)8;
+            public const EventKeywords Suppression = (EventKeywords)2;
         }
 
         #region Binding: 1000-1999
@@ -115,6 +116,65 @@ namespace SonarLint.VisualStudio.Integration.ETW
 
         [Event(CFamilyConvertIssueFileAlreadyLoadedId, Level = EventLevel.Informational, Keywords = Keywords.CFamily | Keywords.Analysis)]
         public void CFamilyConvertIssueFileAlreadyLoaded(string filePath) => Write(CFamilyConvertIssueFileAlreadyLoadedId, filePath);
+
+        #endregion
+
+        #region Suppressions 3000-3999
+
+        private const int ReportSuppressionsStartId = 3000;
+        private const int ReportSuppressionsStopId = 3001;
+
+        private const int GetSuppressionsStartId = 3002;
+        private const int GetSuppressionsStopId = 3003;
+        
+        private const int FileStorageGetStartId = 3004;
+        private const int FileStorageGetStopId = 3005;
+
+        private const int FileStorageUpdateStartId = 3006;
+        private const int FileStorageUpdateStopId = 3007;
+
+        private const int FileWatcherInvalidateStartId = 3007;
+        private const int FileWatcherInvalidateStopId = 3008;
+
+        private const int FileSynchronizerUpdateRequesteStartId = 3009;
+        private const int FileSynchronizerUpdateRequesteStopId = 3010;
+
+
+        [Event(ReportSuppressionsStartId, Level = EventLevel.Informational, Keywords = Keywords.Suppression)]
+        public void ReportSuppressionsStart() => Write(ReportSuppressionsStartId);
+        
+        [Event(ReportSuppressionsStopId, Level = EventLevel.Informational, Keywords = Keywords.Suppression)]
+        public void ReportSuppressionsStop() => Write(ReportSuppressionsStopId);
+
+        [Event(GetSuppressionsStartId, Level = EventLevel.Informational, Keywords = Keywords.Suppression)]
+        public void GetSuppressionsStart() => Write(GetSuppressionsStartId);
+        
+        [Event(GetSuppressionsStopId, Level = EventLevel.Informational, Keywords = Keywords.Suppression)]
+        public void GetSuppressionsStop(int suppressionCount) => Write(GetSuppressionsStopId, suppressionCount.ToString());
+
+        [Event(FileStorageGetStartId, Level = EventLevel.Informational, Keywords = Keywords.Suppression)]
+        public void FileStorageGetStart() => Write(FileStorageGetStartId);
+
+        [Event(FileStorageGetStopId, Level = EventLevel.Informational, Keywords = Keywords.Suppression)]
+        public void FileStorageGetStop() => Write(FileStorageGetStopId);
+
+        [Event(FileStorageUpdateStartId, Level = EventLevel.Informational, Keywords = Keywords.Suppression)]
+        public void FileStorageUpdateStart() => Write(FileStorageUpdateStartId);
+
+        [Event(FileStorageUpdateStopId, Level = EventLevel.Informational, Keywords = Keywords.Suppression)]
+        public void FileStorageUpdateStop() => Write(FileStorageUpdateStopId);
+
+        [Event(FileWatcherInvalidateStartId, Level = EventLevel.Informational, Keywords = Keywords.Suppression)]
+        public void FileWatcherInvalidateStart(string type) => Write(FileWatcherInvalidateStartId, type);
+
+        [Event(FileWatcherInvalidateStopId, Level = EventLevel.Informational, Keywords = Keywords.Suppression)]
+        public void FileWatcherInvalidateStop(string type) => Write(FileWatcherInvalidateStopId, type);
+
+        [Event(FileSynchronizerUpdateRequesteStartId, Level = EventLevel.Informational, Keywords = Keywords.Suppression)]
+        public void FileSynchronizerUpdateRequesteStart() => Write(FileSynchronizerUpdateRequesteStartId);
+
+        [Event(FileSynchronizerUpdateRequesteStopId, Level = EventLevel.Informational, Keywords = Keywords.Suppression)]
+        public void FileSynchronizerUpdateRequesteStop() => Write(FileSynchronizerUpdateRequesteStopId);
 
         #endregion
 
