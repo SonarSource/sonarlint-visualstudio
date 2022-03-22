@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
                     issue.Hash, language, ruleKey, line);
             }
 
-            private static (string, string) GetRepoAndRuleKey(string sonarRuleId)
+            private static (string repoKey, string ruleKey) GetRepoAndRuleKey(string sonarRuleId)
             {
                 // Sonar rule ids are in the form "[repo key]:[rule key]"
                 var separatorPos = sonarRuleId.IndexOf(":", StringComparison.OrdinalIgnoreCase);
