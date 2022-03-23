@@ -33,6 +33,8 @@ using SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 using SonarQube.Client.Models;
 using EventHandler = System.EventHandler;
+using static SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.TestHelper;
+using System.Linq;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
 {
@@ -154,6 +156,47 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
             roslynSettingsFileStorage.Verify(x => x.Update(It.IsAny<RoslynSettings>()), Times.Once);
         }
 
+        [TestMethod]
+        public async Task UpdateFileStorage_IssuesAreConvertedAndFiltered()
+        {
+            var configuration = CreateConnectedConfiguration("some project key");
+            var activeSolutionBoundTracker = CreateActiveSolutionBoundTracker(configuration);
+
+            var sonarIssues = new []
+            {
+                CreateSonarQubeIssue(ruleId: "csharpsquid:S111"), // C# issue
+                CreateSonarQubeIssue(ruleId: "vbnet:S222"),// VB issue
+                CreateSonarQubeIssue(ruleId: "cpp:S333"),// C++ issue - ignored
+                CreateSonarQubeIssue(ruleId: "xxx:S444"),// unrecognised repo - ignored
+                CreateSonarQubeIssue(ruleId: "xxxS555"),// invalid repo key - ignored
+                CreateSonarQubeIssue(ruleId: "xxx:"),// invalid repo key (no rule id) - ignored
+            };
+            var suppressedIssuesProvider = CreateSuppressedIssuesProvider(sonarIssues);
+
+            RoslynSettings actualSettings = null;
+            var roslynSettingsFileStorage = new Mock<IRoslynSettingsFileStorage>();
+            roslynSettingsFileStorage.Setup(x => x.Update(It.IsAny<RoslynSettings>()))
+                .Callback<RoslynSettings>(x => actualSettings = x);
+
+            var testSubject = CreateTestSubject(
+                suppressedIssuesProvider: suppressedIssuesProvider.Object,
+                roslynSettingsFileStorage: roslynSettingsFileStorage.Object,
+                activeSolutionBoundTracker: activeSolutionBoundTracker.Object);
+
+            await testSubject.UpdateFileStorageAsync();
+
+            actualSettings.Should().NotBeNull();
+            actualSettings.SonarProjectKey.Should().Be("some project key");
+            actualSettings.Suppressions.Should().NotBeNull();
+
+            var actualSuppressions = actualSettings.Suppressions.ToList();
+            actualSuppressions.Count.Should().Be(2);
+            actualSuppressions[0].RoslynLanguage.Should().Be(RoslynLanguage.CSharp);
+            actualSuppressions[0].RoslynRuleId.Should().Be("S111");
+            actualSuppressions[1].RoslynLanguage.Should().Be(RoslynLanguage.VB);
+            actualSuppressions[1].RoslynRuleId.Should().Be("S222");
+        }
+
         private static Mock<IActiveSolutionBoundTracker> CreateActiveSolutionBoundTracker(BindingConfiguration configuration)
         {
             var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
@@ -170,12 +213,6 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
             return suppressedIssuesProvider;
         }
 
-        private SonarQubeIssue CreateSonarQubeIssue()
-        {
-            return new SonarQubeIssue(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), false,
-                SonarQubeIssueSeverity.Blocker, new DateTimeOffset(), new DateTimeOffset(), null, null);
-        }
 
         private static BindingConfiguration CreateConnectedConfiguration(string projectKey)
         {

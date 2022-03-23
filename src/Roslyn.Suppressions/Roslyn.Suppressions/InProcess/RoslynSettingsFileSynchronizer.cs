@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
@@ -29,6 +30,7 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
 {
@@ -115,10 +117,14 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
             if (!string.IsNullOrEmpty(sonarProjectKey))
             {
                 var allSuppressedIssues = await suppressedIssuesProvider.GetAllSuppressedIssuesAsync();
+
                 var settings = new RoslynSettings
                 {
                     SonarProjectKey = sonarProjectKey,
-                    Suppressions = allSuppressedIssues,
+                    Suppressions = allSuppressedIssues
+                                        .Select(x => IssueConverter.Convert(x))
+                                        .Where(x => x.RoslynLanguage != RoslynLanguage.Unknown && !string.IsNullOrEmpty(x.RoslynRuleId))
+                                        .ToArray(),
                 };
                 roslynSettingsFileStorage.Update(settings);
             }
@@ -129,6 +135,52 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
         public void Dispose()
         {
             suppressedIssuesMonitor.SuppressionsUpdateRequested -= SuppressedIssuesMonitor_SuppressionsUpdateRequested;
+        }
+
+        // Converts SonarQube issues to SuppressedIssues that can be compared more easily with Roslyn issues
+        internal static class IssueConverter
+        {
+            public static SuppressedIssue Convert(SonarQubeIssue issue)
+            {
+                (string repoKey, string ruleKey) = GetRepoAndRuleKey(issue.RuleId);
+                var language = GetRoslynLanguage(repoKey);
+
+                int? line = issue.TextRange == null ? (int?)null : issue.TextRange.StartLine - 1;
+                return new SuppressedIssue(issue.FilePath,
+                    issue.Hash, language, ruleKey, line);
+            }
+
+            private static (string repoKey, string ruleKey) GetRepoAndRuleKey(string sonarRuleId)
+            {
+                // Sonar rule ids are in the form "[repo key]:[rule key]"
+                var separatorPos = sonarRuleId.IndexOf(":", StringComparison.OrdinalIgnoreCase);
+                if (separatorPos > -1)
+                {
+                    var repoKey = sonarRuleId.Substring(0, separatorPos);
+                    var ruleKey = sonarRuleId.Substring(separatorPos + 1);
+
+                    return (repoKey, ruleKey);
+                }
+
+                return (null, null); // invalid rule key -> ignore
+            }
+
+            private static RoslynLanguage GetRoslynLanguage(string repoKey)
+            {
+                // Currently the only Sonar repos which contain Roslyn analysis rules are 
+                // csharpsquid and vbnet. These include "normal" and "hotspot" rules.
+                // The taint rules are in a different repo, and the part that is implemented
+                // as a Roslyn analyzer won't raise issues anyway.
+                switch (repoKey)
+                {
+                    case "csharpsquid": // i.e. the rules in SonarAnalyzer.CSharp
+                        return RoslynLanguage.CSharp;
+                    case "vbnet":       // i.e. SonarAnalyzer.VisualBasic
+                        return RoslynLanguage.VB;
+                    default:
+                        return RoslynLanguage.Unknown;
+                }
+            }
         }
     }
 }

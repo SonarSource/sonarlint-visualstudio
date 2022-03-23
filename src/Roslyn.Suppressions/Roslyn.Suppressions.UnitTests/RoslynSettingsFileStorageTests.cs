@@ -28,7 +28,6 @@ using Newtonsoft.Json;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
-using SonarQube.Client.Models;
 using static SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.TestHelper;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
@@ -72,8 +71,8 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         [TestMethod]
         public void Get_HasIssues_IssuesReadFromFile()
         {
-            SonarQubeIssue issue1 = CreateIssue("issueKey1");
-            SonarQubeIssue issue2 = CreateIssue("issueKey2");
+            var issue1 = CreateIssue("key1");
+            var issue2 = CreateIssue("key2");
             var settings = new RoslynSettings
             {
                 SonarProjectKey = "projectKey",
@@ -94,8 +93,8 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             logger.AssertNoOutputMessages();
 
             issuesGotten.Count.Should().Be(2);
-            issuesGotten[0].IssueKey.Should().Be(issue1.IssueKey);
-            issuesGotten[1].IssueKey.Should().Be(issue2.IssueKey);
+            issuesGotten[0].RoslynRuleId.Should().Be(issue1.RoslynRuleId);
+            issuesGotten[1].RoslynRuleId.Should().Be(issue2.RoslynRuleId);
         }
 
         [TestMethod]
@@ -154,7 +153,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             var settings = new RoslynSettings
             {
                 SonarProjectKey = "projectKey",
-                Suppressions = Enumerable.Empty<SonarQubeIssue>()
+                Suppressions = Enumerable.Empty<SuppressedIssue>()
             };
 
             var logger = new TestLogger();
@@ -176,7 +175,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             var settings = new RoslynSettings
             {
                 SonarProjectKey = "projectKey",
-                Suppressions = Enumerable.Empty<SonarQubeIssue>()
+                Suppressions = Enumerable.Empty<SuppressedIssue>()
             };
 
             var logger = new TestLogger();

@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         [TestMethod]
         public void IsSuppressed_EmptySettings_ReturnsFalse()
         {
-            var cache = CreateSettingsCache("settingsKey1", new SonarQubeIssue[0]);
+            var cache = CreateSettingsCache("settingsKey1", new SuppressedIssue[0]);
 
             var testSubject = CreateTestSubject(cache.Object);
 
@@ -102,9 +102,9 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         {
             var diagnostic = CreateDiagnostic("S111", CreateSourceFileLocation("c:\\myfile.cs"));
             
-            var suppressedIssues = new SonarQubeIssue[]
+            var suppressedIssues = new SuppressedIssue[]
             {
-                CreateIssue("any", "S111", "c:\\wrongFile1.txt")
+                CreateIssue("S111", "c:\\wrongFile1.txt")
             };
 
             var cache = CreateSettingsCache("settingsKey", suppressedIssues);
@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             var location = CreateSourceFileLocation(DiagFileName, DiagFileText, DiagSelectedText);
             var diagnostic = CreateDiagnostic(DiagRuleId, location);
 
-            var suppressedIssues = new SonarQubeIssue[]
+            var suppressedIssues = new []
             {
                  CreateIssueFromDiagnostic(diagnostic)
             };
@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             // Sanity check the diagnostic location is on the expected line
             diag.Location.GetLineSpan().StartLinePosition.Line.Should().Be(0, "Test setup error");
 
-            var issue = CreateIssue("any", "S999", "c:\\issueFile.cs", 1, "hash");
+            var issue = CreateIssue("S999", "c:\\issueFile.cs", 1, "hash");
             
             SuppressionChecker.IsMatch(diag, issue, checksumCalculator.Object)
                 .Should().BeFalse();
@@ -167,7 +167,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             // Sanity check the diagnostic location is on the expected line
             diag.Location.GetLineSpan().StartLinePosition.Line.Should().Be(0, "Test setup error");
 
-            var issue = CreateIssue("any", "S999", "c\\file.cs", 1, "hash");
+            var issue = CreateIssue("S999", "c\\file.cs", 1, "hash");
 
             SuppressionChecker.IsMatch(diag, issue, checksumCalculator.Object)
                 .Should().BeFalse();
@@ -187,20 +187,19 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         private const string DiagFileText = "0\n1\n2\n3 text \n\n";
         private const string DiagSelectedText = "text";
         private const int DiagRoslynLineNumber = 3; // the 0-base line in which the word "text" appears
-        private const int MatchingSonarLineNumber = DiagRoslynLineNumber + 1;
 
         [TestMethod]
-        [DataRow(DiagFileName, DiagRuleId, MatchingSonarLineNumber, DiagHash, true)]
-        [DataRow("c:\\wrong file name.cs", DiagRuleId, MatchingSonarLineNumber, DiagHash, false)]
-        [DataRow(DiagFileName, "wrong rule id", MatchingSonarLineNumber, DiagHash, false)]
+        [DataRow(DiagFileName, DiagRuleId, DiagRoslynLineNumber, DiagHash, true)]
+        [DataRow("c:\\wrong file name.cs", DiagRuleId, DiagRoslynLineNumber, DiagHash, false)]
+        [DataRow(DiagFileName, "wrong rule id", DiagRoslynLineNumber, DiagHash, false)]
         [DataRow(DiagFileName, DiagRuleId, 999, "wrong hash", false)] // wrong line, wrong hash -> false
-        [DataRow(DiagFileName, DiagRuleId, MatchingSonarLineNumber, "wrong hash", true)] // right line, wrong hash -> true
+        [DataRow(DiagFileName, DiagRuleId, DiagRoslynLineNumber, "wrong hash", true)] // right line, wrong hash -> true
         [DataRow(DiagFileName, DiagRuleId, 888, DiagHash, true)] // wrong line, right hash -> true
 
         // Special cases
-        [DataRow("C:\\DIAG.TXT", DiagRuleId, MatchingSonarLineNumber, DiagHash, true)] // case-insensitive
-        [DataRow(DiagFileName, "s999", MatchingSonarLineNumber, DiagHash, true)] // case-insensitive
-        public void IsMatch_ReturnsExpectedValue(string issueFile, string issueRuleId, int sonarIssueLine,
+        [DataRow("C:\\DIAG.TXT", DiagRuleId, DiagRoslynLineNumber, DiagHash, true)] // case-insensitive
+        [DataRow(DiagFileName, "s999", DiagRoslynLineNumber, DiagHash, true)] // case-insensitive
+        public void IsMatch_ReturnsExpectedValue(string issueFile, string issueRuleId, int issueLine,
             string issueHash, bool expected)
         {
             // The diagnostic is the same in every case
@@ -209,7 +208,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             // Sanity check the diagnostic location is on the expected line
             diag.Location.GetLineSpan().StartLinePosition.Line.Should().Be(DiagRoslynLineNumber, "Test setup error");
 
-            var issue = CreateIssue("any", issueRuleId, issueFile, sonarIssueLine, issueHash);
+            var issue = CreateIssue(issueRuleId, issueFile, issueLine, issueHash);
 
             SuppressionChecker.IsMatch(diag, issue, checksumCalculator.Object)
                 .Should().Be(expected);
@@ -246,7 +245,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             var location = Location.Create(syntaxTree, selectedSpan);
             var diagnostic = CreateDiagnostic("id", location);
 
-            var sonarFileLevelIssue = CreateIssueWithTextRange("id", "path", "hash", new IssueTextRange(1, 1, 0, 1));
+            var sonarFileLevelIssue = CreateIssueWithTextRange("id", "path", "hash", 2);
 
             var actual = SuppressionChecker.IsMatch(diagnostic, sonarFileLevelIssue, Mock.Of<IChecksumCalculator>());
 
@@ -285,7 +284,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             return new SuppressionChecker(cache, checksumCalculator);
         }
 
-        private static Mock<ISettingsCache> CreateSettingsCache(string settingsKey, IEnumerable<SonarQubeIssue> suppressedIssues)
+        private static Mock<ISettingsCache> CreateSettingsCache(string settingsKey, IEnumerable<SuppressedIssue> suppressedIssues)
         {
             var cache = new Mock<ISettingsCache>();
             var settings = new RoslynSettings { Suppressions = suppressedIssues };
@@ -309,35 +308,28 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         /// The issue will match the diagnostic, unless the file path is overridden.
         /// The diagnostic must have a valid location and source tree.
         /// </remarks>
-        private static SonarQubeIssue CreateIssueFromDiagnostic(Diagnostic diagnostic,
+        private static SuppressedIssue CreateIssueFromDiagnostic(Diagnostic diagnostic,
             string overrideFilePath = null)
         {
             // The issue will match because the line number is the same (so the hash is irrelevant)
-            var sonarLine = diagnostic.Location.GetLineSpan().EndLinePosition.Line + 1;
+            var sonarLine = diagnostic.Location.GetLineSpan().EndLinePosition.Line;
 
             var issuePath = overrideFilePath ?? diagnostic.Location.SourceTree.FilePath;
             var issueHash = System.Guid.NewGuid().ToString();
 
-            return CreateIssue("any", diagnostic.Id, issuePath, sonarLine, issueHash);
+            return CreateIssue(diagnostic.Id, issuePath, sonarLine, issueHash);
         }
 
-        private static SonarQubeIssue CreateIssueWithTextRange(string ruleId,
+        private static SuppressedIssue CreateIssueWithTextRange(string ruleId,
             string path,
             string hash,
-            IssueTextRange textRange)
+            int? line)
         {
-            return new SonarQubeIssue("any issue key",
-                path,
+            return new SuppressedIssue(path,
                 hash,
-                "message",
-                "moduleKey",
+                RoslynLanguage.CSharp,
                 ruleId,
-                true,
-                SonarQubeIssueSeverity.Blocker,
-                DateTimeOffset.Now,
-                DateTimeOffset.Now,
-                textRange,
-                null);
+                line);
         }
 
         #region Diagnostic helper methods
