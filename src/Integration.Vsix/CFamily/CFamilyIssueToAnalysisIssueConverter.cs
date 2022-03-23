@@ -30,7 +30,7 @@ using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Integration.ETW;
+using SonarLint.VisualStudio.Core.ETW;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 
 /* Instancing: a new issue converter should be created for each analysis run.

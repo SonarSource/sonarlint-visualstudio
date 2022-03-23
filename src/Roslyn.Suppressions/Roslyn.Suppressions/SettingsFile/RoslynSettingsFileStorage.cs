@@ -23,6 +23,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core.ETW;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Resources;
 
@@ -63,6 +64,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
          
             try
             {
+                CodeMarkers.Instance.FileStorageGetStart();
                 var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(settingsKey);
 
                 if(!fileSystem.File.Exists(filePath))
@@ -78,7 +80,10 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
             {
                 logger.WriteLine(string.Format(Strings.RoslynSettingsFileStorageGetError, settingsKey, ex.Message));
             }
-
+            finally
+            {
+                CodeMarkers.Instance.FileStorageGetStop();
+            }
             return null;
         }
 
@@ -89,13 +94,19 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
 
             try
             {
+                CodeMarkers.Instance.FileStorageUpdateStart();
                 var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(settings.SonarProjectKey);
                 var fileContent = JsonConvert.SerializeObject(settings);
                 fileSystem.File.WriteAllText(filePath, fileContent);
             }
             catch (Exception ex)
             {
+
                 logger.WriteLine(string.Format(Strings.RoslynSettingsFileStorageUpdateError, settings.SonarProjectKey, ex.Message));
+            }
+            finally
+            {
+                CodeMarkers.Instance.FileStorageUpdateStop();
             }
         }
     }

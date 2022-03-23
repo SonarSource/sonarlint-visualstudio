@@ -44,6 +44,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
             testSubject.SettingsKey.Should().Be(projectKey);
             testSubject.IsInConnectedMode.Should().BeTrue();
+            testSubject.Mode.Should().Be("Connected");
         }
 
         [TestMethod]
@@ -55,6 +56,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
             testSubject.SettingsKey.Should().BeNull();
             testSubject.IsInConnectedMode.Should().BeFalse();
+            testSubject.Mode.Should().Be("Standalone");
         }
 
         [TestMethod]
@@ -67,6 +69,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
             testSubject.SettingsKey.Should().Be("projectKey2");
             testSubject.IsInConnectedMode.Should().BeTrue();
+            testSubject.Mode.Should().Be("Connected");
         }
 
         [TestMethod]
@@ -76,6 +79,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
             testSubject.SettingsKey.Should().BeNull();
             testSubject.IsInConnectedMode.Should().BeFalse();
+            testSubject.Mode.Should().Be("Standalone");
         }
 
         private SuppressionExecutionContext CreateTestSubject(params AdditionalText[] existingAdditionalFiles)
