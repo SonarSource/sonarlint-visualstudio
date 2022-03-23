@@ -76,6 +76,10 @@
     <ProjectReference Include="..\ProgressVS\ProgressVS.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ETW\" />
+  </ItemGroup>
+
 
   <!--**********************************************************************-->
   <!-- Workarounds -->

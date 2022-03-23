@@ -24,10 +24,10 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ETW;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.ETW;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 
@@ -90,18 +90,13 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
             // Note: we don't expect any exceptions to be thrown, since the called method
             // does all of its work on a background thread.
             try
-            {
-                CodeMarkers.Instance.FileSynchronizerUpdateRequesteStart();
+            {                
                 UpdateFileStorageAsync().Forget();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 // Squash non-critical exceptions
                 logger.LogDebugExtended(ex.ToString());
-            }
-            finally
-            {
-                CodeMarkers.Instance.FileSynchronizerUpdateRequesteStop();
             }
         }
 
@@ -112,9 +107,8 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
         /// return to the UI thread on completion.</remarks>
         public async Task UpdateFileStorageAsync()
         {
-            logger.LogDebugExtended("Start");
+            CodeMarkers.Instance.FileSynchronizerUpdateStart();
             await threadHandling.SwitchToBackgroundThread();
-            logger.LogDebugExtended("On background thread");
 
             var sonarProjectKey = activeSolutionBoundTracker.CurrentConfiguration.Project?.ProjectKey;
 
@@ -128,8 +122,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
                 };
                 roslynSettingsFileStorage.Update(settings);
             }
-
-            logger.LogDebugExtended("End");
+            CodeMarkers.Instance.FileSynchronizerUpdateStop();
         }
 
         public void Dispose()

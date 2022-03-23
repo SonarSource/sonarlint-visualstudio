@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.IO.Abstractions;
 using System.Linq;
 using EnvDTE;
+using SonarLint.VisualStudio.Core.ETW;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -57,11 +58,11 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(project));
             }
 
-            ETW.CodeMarkers.Instance.GetProjectRuleSetsDeclarationsStart(project.Name);
+            CodeMarkers.Instance.GetProjectRuleSetsDeclarationsStart(project.Name);
 
             var result = GetProjectRuleSetsDeclarationsIterator(project);
 
-            ETW.CodeMarkers.Instance.GetProjectRuleSetsDeclarationsStop();
+            CodeMarkers.Instance.GetProjectRuleSetsDeclarationsStop();
 
             return result;
         }
