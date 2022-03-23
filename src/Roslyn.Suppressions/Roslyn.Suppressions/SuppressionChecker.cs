@@ -23,7 +23,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache;
 using SonarQube.Client;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions
 {
@@ -74,7 +73,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
             return matchFound;
         }
 
-        internal static /* for testing */ bool IsMatch(Diagnostic diagnostic, SonarQubeIssue suppressedIssue, IChecksumCalculator checksumCalculator)
+        internal static /* for testing */ bool IsMatch(Diagnostic diagnostic, SuppressedIssue suppressedIssue, IChecksumCalculator checksumCalculator)
         {
             // Criteria for matching a Roslyn issue to an issue from the server:
             // (1) same issue key
@@ -84,7 +83,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
             // Note: this first implementation is written in a verbose style to make it easier to debug.
 
             // (1) Id
-            if (!StringComparer.OrdinalIgnoreCase.Equals(diagnostic.Id, suppressedIssue.RuleId))
+            if (!StringComparer.OrdinalIgnoreCase.Equals(diagnostic.Id, suppressedIssue.RoslynRuleId))
             {
                 return false;
             }
@@ -97,7 +96,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
 
             // (3) Location - line matches
             var roslynLineSpan = diagnostic.Location.GetLineSpan();
-            if (IsSameLine(roslynLineSpan, suppressedIssue.TextRange))
+            if (IsSameLine(roslynLineSpan, suppressedIssue))
             {
                 return true;
             }
@@ -117,23 +116,22 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
             return false;
         }
 
-        private static bool IsSameFile(Diagnostic diagnostic, SonarQubeIssue suppressedIssue) =>
+        private static bool IsSameFile(Diagnostic diagnostic, SuppressedIssue suppressedIssue) =>
             diagnostic.Location.SourceTree?.FilePath.EndsWith(suppressedIssue.FilePath, StringComparison.OrdinalIgnoreCase)
             ?? false;
 
-        private static bool IsSameLine(FileLinePositionSpan roslynLineSpan, IssueTextRange sonarTextRange)
+        private static bool IsSameLine(FileLinePositionSpan roslynLineSpan, SuppressedIssue suppressedIssue)
         {
             // Special case: file-level issues
             var roslynFileLevelIssue = IsRoslynFileLevelIssue(roslynLineSpan);
-            if (sonarTextRange == null || roslynFileLevelIssue)
+            var sonarFileLevelIssue = !suppressedIssue.RoslynIssueLine.HasValue;
+            if (sonarFileLevelIssue || roslynFileLevelIssue)
             {
                 // File-level issues can only match other file-level issues 
-                return (sonarTextRange == null && roslynFileLevelIssue);
+                return (sonarFileLevelIssue && roslynFileLevelIssue);
             }
 
-
-            // Roslyn lines are 0-based, SonarQube lines are 1-based
-            return sonarTextRange.StartLine == roslynLineSpan.StartLinePosition.Line + 1;
+            return suppressedIssue.RoslynIssueLine.Value == roslynLineSpan.StartLinePosition.Line;
         }
 
         private static bool IsRoslynFileLevelIssue(FileLinePositionSpan lineSpan) => lineSpan.StartLinePosition.Line == 0 &&
