@@ -17,37 +17,43 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-using System;
-using System.Collections.Generic;
+
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 {
     internal static class TestHelper
     {
-        public static SonarQubeIssue CreateIssue(string issueKey,
-            string ruleId = "ruleId",
+        public static SuppressedIssue CreateIssue(string ruleId = "ruleId",
             string path = "path",
-            int startLine = 0,
+            int? startLine = 0,
             string hash = "hash")
         {
-            return new SonarQubeIssue(issueKey,
+            return new SuppressedIssue(
                 path,
+                hash,
+                RoslynLanguage.CSharp,
+                ruleId,
+                startLine);
+        }
+
+        public static SonarQubeIssue CreateSonarQubeIssue(string ruleId = "any",
+            int? line = null,
+            string filePath = "filePath",
+            string hash = "hash") =>
+            new SonarQubeIssue(
+                "issuedId",
+                filePath,
                 hash,
                 "message",
                 "moduleKey",
                 ruleId,
-                true,
-                SonarQubeIssueSeverity.Blocker,
-                DateTimeOffset.Now,
-                DateTimeOffset.Now,
-                new IssueTextRange(startLine, 1, 2, 3),
-                new List<IssueFlow> {
-                    new IssueFlow(
-                        new List<IssueLocation> {
-                            new IssueLocation("filepath",
-                                "moduleKey",
-                                new IssueTextRange(10, 11, 12, 13), "locationMessage") }) });
-        }
+                false, // isResolved
+                SonarQubeIssueSeverity.Info,
+                System.DateTimeOffset.UtcNow,
+                System.DateTimeOffset.UtcNow,
+                line.HasValue ? new IssueTextRange(line.Value, line.Value, 1, 999) : null,
+                null
+                );
     }
 }
