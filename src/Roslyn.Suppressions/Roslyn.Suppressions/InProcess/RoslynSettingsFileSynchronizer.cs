@@ -108,21 +108,27 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
         public async Task UpdateFileStorageAsync()
         {
             CodeMarkers.Instance.FileSynchronizerUpdateStart();
-            await threadHandling.SwitchToBackgroundThread();
-
-            var sonarProjectKey = activeSolutionBoundTracker.CurrentConfiguration.Project?.ProjectKey;
-
-            if (!string.IsNullOrEmpty(sonarProjectKey))
+            try
             {
-                var allSuppressedIssues = await suppressedIssuesProvider.GetAllSuppressedIssuesAsync();
-                var settings = new RoslynSettings
+                await threadHandling.SwitchToBackgroundThread();
+
+                var sonarProjectKey = activeSolutionBoundTracker.CurrentConfiguration.Project?.ProjectKey;
+
+                if (!string.IsNullOrEmpty(sonarProjectKey))
                 {
-                    SonarProjectKey = sonarProjectKey,
-                    Suppressions = allSuppressedIssues,
-                };
-                roslynSettingsFileStorage.Update(settings);
+                    var allSuppressedIssues = await suppressedIssuesProvider.GetAllSuppressedIssuesAsync();
+                    var settings = new RoslynSettings
+                    {
+                        SonarProjectKey = sonarProjectKey,
+                        Suppressions = allSuppressedIssues,
+                    };
+                    roslynSettingsFileStorage.Update(settings);
+                }
             }
-            CodeMarkers.Instance.FileSynchronizerUpdateStop();
+            finally
+            {
+                CodeMarkers.Instance.FileSynchronizerUpdateStop();
+            }
         }
 
         public void Dispose()

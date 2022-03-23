@@ -56,6 +56,6 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
 
         public string SettingsKey { get; private set; } = null;
 
-        public string Mode => SettingsKey != null ? "Connected" : "Standalone";
+        public string Mode => IsInConnectedMode ? "Connected" : "Standalone";
     }
 }

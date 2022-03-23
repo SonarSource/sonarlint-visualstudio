@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Core.ETW
             public const EventKeywords Binding = (EventKeywords)2;
             public const EventKeywords Analysis = (EventKeywords)4;
             public const EventKeywords CFamily = (EventKeywords)8;
-            public const EventKeywords RoslynSuppression = (EventKeywords)2;
+            public const EventKeywords RoslynSuppression = (EventKeywords)16;
         }
 
         #region Binding: 1000-1999
@@ -123,10 +123,7 @@ namespace SonarLint.VisualStudio.Core.ETW
 
         private const int ReportSuppressionsStartId = 3000;
         private const int ReportSuppressionsStopId = 3001;
-
-        private const int GetSuppressionsStartId = 3002;
-        private const int GetSuppressionsStopId = 3003;
-        
+      
         private const int FileStorageGetStartId = 3004;
         private const int FileStorageGetStopId = 3005;
 
