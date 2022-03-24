@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache
 {
-    public interface ISettingsCache
+    internal interface ISettingsCache
     {
         /// <summary>
         /// Returns the settings for the specified key, or <see cref="RoslynSettings.Empty"/> if
