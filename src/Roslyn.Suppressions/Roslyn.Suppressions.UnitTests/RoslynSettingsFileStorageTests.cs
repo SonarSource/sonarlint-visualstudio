@@ -35,8 +35,6 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
     [TestClass]
     public class RoslynSettingsFileStorageTests
     {
-        private static readonly RoslynSettings ValidSettings = new RoslynSettings { SonarProjectKey = "any" };
-
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
