@@ -36,6 +36,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
                 RoslynRuleId = ruleId,
                 RoslynIssueLine = line
             };
+
     public static SonarQubeIssue CreateSonarQubeIssue(string ruleId = "any",
             int? line = null,
             string filePath = "filePath",
