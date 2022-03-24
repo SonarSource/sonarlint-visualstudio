@@ -18,6 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Globalization;
+using System.Threading;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
@@ -55,5 +58,31 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
                 line.HasValue ? new IssueTextRange(line.Value, line.Value, 1, 999) : null,
                 null
                 );
+    }
+
+    //This is to make sure normalising the keys done correctly with culture invariant
+    //Lower case of SETTINGSKEY in Turkish is not settingskey but settıngskey
+    //https://en.wikipedia.org/wiki/Dotted_and_dotless_I 
+    public class TemporaryCultureSwitch : IDisposable
+    {
+        private readonly CultureInfo _originalCulture;
+        private readonly CultureInfo _originalUICulture;
+
+        public TemporaryCultureSwitch(CultureInfo cultureInfo)
+        {
+            _originalCulture = Thread.CurrentThread.CurrentCulture;
+            _originalUICulture = Thread.CurrentThread.CurrentUICulture;
+
+            Thread.CurrentThread.CurrentCulture = cultureInfo;
+            Thread.CurrentThread.CurrentUICulture = cultureInfo;
+        }
+
+        public TemporaryCultureSwitch(string cultureName) : this(new CultureInfo(cultureName)) { }
+
+        public void Dispose()
+        {
+            Thread.CurrentThread.CurrentCulture = _originalCulture;
+            Thread.CurrentThread.CurrentUICulture = _originalUICulture;
+        }
     }
 }
