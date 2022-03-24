@@ -124,17 +124,17 @@ namespace SonarLint.VisualStudio.Core.ETW
         private const int ReportSuppressionsStartId = 3000;
         private const int ReportSuppressionsStopId = 3001;
       
-        private const int FileStorageGetStartId = 3004;
-        private const int FileStorageGetStopId = 3005;
+        private const int FileStorageGetStartId = 3002;
+        private const int FileStorageGetStopId = 3003;
 
-        private const int FileStorageUpdateStartId = 3006;
-        private const int FileStorageUpdateStopId = 3007;
+        private const int FileStorageUpdateStartId = 3004;
+        private const int FileStorageUpdateStopId = 3005;
 
-        private const int FileWatcherInvalidateStartId = 3007;
-        private const int FileWatcherInvalidateStopId = 3008;
+        private const int FileWatcherInvalidateStartId = 3006;
+        private const int FileWatcherInvalidateStopId = 3007;
 
-        private const int FileSynchronizerUpdateStartId = 3009;
-        private const int FileSynchronizerUpdateStopId = 3010;
+        private const int FileSynchronizerUpdateStartId = 3008;
+        private const int FileSynchronizerUpdateStopId = 3009;
 
 
         [Event(ReportSuppressionsStartId, Level = EventLevel.Informational, Keywords = Keywords.RoslynSuppression)]
