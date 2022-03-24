@@ -229,7 +229,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             var location = Location.Create(syntaxTree, selectedSpan);
             var diagnostic = CreateDiagnostic("id", location);
 
-            var sonarFileLevelIssue = CreateIssueWithTextRange("id", "path", "hash", null);
+            var sonarFileLevelIssue = CreateIssue(ruleId: "id", path: "path", hash: "hash", line: null);
 
             var actual = SuppressionChecker.IsMatch(diagnostic, sonarFileLevelIssue, Mock.Of<IChecksumCalculator>());
 
@@ -245,9 +245,9 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             var location = Location.Create(syntaxTree, selectedSpan);
             var diagnostic = CreateDiagnostic("id", location);
 
-            var sonarFileLevelIssue = CreateIssueWithTextRange("id", "path", "hash", 2);
+            var sonarNonFileLevelIssue = CreateIssue(ruleId: "id", path: "path", hash: "hash", line: 2);
 
-            var actual = SuppressionChecker.IsMatch(diagnostic, sonarFileLevelIssue, Mock.Of<IChecksumCalculator>());
+            var actual = SuppressionChecker.IsMatch(diagnostic, sonarNonFileLevelIssue, Mock.Of<IChecksumCalculator>());
 
             actual.Should().BeFalse();
         }
@@ -320,17 +320,6 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             return CreateIssue(diagnostic.Id, issuePath, sonarLine, issueHash);
         }
 
-        private static SuppressedIssue CreateIssueWithTextRange(string ruleId,
-            string path,
-            string hash,
-            int? line)
-        {
-            return new SuppressedIssue(path,
-                hash,
-                RoslynLanguage.CSharp,
-                ruleId,
-                line);
-        }
 
         #region Diagnostic helper methods
 
