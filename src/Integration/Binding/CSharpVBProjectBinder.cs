@@ -26,6 +26,7 @@ using System.Threading;
 using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ETW;
 using SonarLint.VisualStudio.Integration.Helpers;
 using Language = SonarLint.VisualStudio.Core.Language;
 
@@ -92,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public bool IsBindingRequired(BindingConfiguration binding, Project project)
         {
-            ETW.CodeMarkers.Instance.CSharpVBProjectIsBindingRequiredStart(project.Name);
+            CodeMarkers.Instance.CSharpVBProjectIsBindingRequiredStart(project.Name);
 
             Debug.Assert(binding != null);
             Debug.Assert(project != null);
@@ -103,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             var result = languages.Any(l => !IsFullyBoundProject(binding, project, l));
 
-            ETW.CodeMarkers.Instance.CSharpVBIsBindingRequiredStop();
+            CodeMarkers.Instance.CSharpVBIsBindingRequiredStop();
 
             return result;
         }

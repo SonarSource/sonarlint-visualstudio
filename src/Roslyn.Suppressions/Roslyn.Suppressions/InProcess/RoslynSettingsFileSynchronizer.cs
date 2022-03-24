@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ETW;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
@@ -91,7 +92,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
             // Note: we don't expect any exceptions to be thrown, since the called method
             // does all of its work on a background thread.
             try
-            {
+            {                
                 UpdateFileStorageAsync().Forget();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -108,28 +109,32 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
         /// return to the UI thread on completion.</remarks>
         public async Task UpdateFileStorageAsync()
         {
-            logger.LogDebugExtended("Start");
-            await threadHandling.SwitchToBackgroundThread();
-            logger.LogDebugExtended("On background thread");
-
-            var sonarProjectKey = activeSolutionBoundTracker.CurrentConfiguration.Project?.ProjectKey;
-
-            if (!string.IsNullOrEmpty(sonarProjectKey))
+            CodeMarkers.Instance.FileSynchronizerUpdateStart();
+            try
             {
-                var allSuppressedIssues = await suppressedIssuesProvider.GetAllSuppressedIssuesAsync();
+                await threadHandling.SwitchToBackgroundThread();
 
-                var settings = new RoslynSettings
+                var sonarProjectKey = activeSolutionBoundTracker.CurrentConfiguration.Project?.ProjectKey;
+
+                if (!string.IsNullOrEmpty(sonarProjectKey))
                 {
-                    SonarProjectKey = sonarProjectKey,
-                    Suppressions = allSuppressedIssues
-                                        .Select(x => IssueConverter.Convert(x))
-                                        .Where(x => x.RoslynLanguage != RoslynLanguage.Unknown && !string.IsNullOrEmpty(x.RoslynRuleId))
-                                        .ToArray(),
-                };
-                roslynSettingsFileStorage.Update(settings);
-            }
+                    var allSuppressedIssues = await suppressedIssuesProvider.GetAllSuppressedIssuesAsync();
 
-            logger.LogDebugExtended("End");
+                    var settings = new RoslynSettings
+                    {
+                        SonarProjectKey = sonarProjectKey,
+                        Suppressions = allSuppressedIssues
+                                            .Select(x => IssueConverter.Convert(x))
+                                            .Where(x => x.RoslynLanguage != RoslynLanguage.Unknown && !string.IsNullOrEmpty(x.RoslynRuleId))
+                                            .ToArray(),
+                    };
+                    roslynSettingsFileStorage.Update(settings);
+                }
+            }
+            finally
+            {
+                CodeMarkers.Instance.FileSynchronizerUpdateStop();
+            }
         }
 
         public void Dispose()
@@ -146,8 +151,14 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
                 var language = GetRoslynLanguage(repoKey);
 
                 int? line = issue.TextRange == null ? (int?)null : issue.TextRange.StartLine - 1;
-                return new SuppressedIssue(issue.FilePath,
-                    issue.Hash, language, ruleKey, line);
+                return new SuppressedIssue
+                {
+                    RoslynRuleId = ruleKey,
+                    FilePath = issue.FilePath,
+                    Hash = issue.Hash,
+                    RoslynLanguage = language,
+                    RoslynIssueLine = line
+                };
             }
 
             private static (string repoKey, string ruleKey) GetRepoAndRuleKey(string sonarRuleId)

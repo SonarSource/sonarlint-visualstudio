@@ -20,7 +20,7 @@
 
 using System.Diagnostics.Tracing;
 
-namespace SonarLint.VisualStudio.Integration.ETW
+namespace SonarLint.VisualStudio.Core.ETW
 {
     [EventSource(Name = "SonarSource-SonarLint-VS-Integration")]
     public sealed class CodeMarkers : EventSource
@@ -34,6 +34,7 @@ namespace SonarLint.VisualStudio.Integration.ETW
             public const EventKeywords Binding = (EventKeywords)2;
             public const EventKeywords Analysis = (EventKeywords)4;
             public const EventKeywords CFamily = (EventKeywords)8;
+            public const EventKeywords RoslynSuppression = (EventKeywords)16;
         }
 
         #region Binding: 1000-1999
@@ -118,6 +119,56 @@ namespace SonarLint.VisualStudio.Integration.ETW
 
         #endregion
 
+        #region Roslyn Suppressions 3000-3999
+
+        private const int ReportSuppressionsStartId = 3000;
+        private const int ReportSuppressionsStopId = 3001;
+      
+        private const int FileStorageGetStartId = 3004;
+        private const int FileStorageGetStopId = 3005;
+
+        private const int FileStorageUpdateStartId = 3006;
+        private const int FileStorageUpdateStopId = 3007;
+
+        private const int FileWatcherInvalidateStartId = 3007;
+        private const int FileWatcherInvalidateStopId = 3008;
+
+        private const int FileSynchronizerUpdateStartId = 3009;
+        private const int FileSynchronizerUpdateStopId = 3010;
+
+
+        [Event(ReportSuppressionsStartId, Level = EventLevel.Informational, Keywords = Keywords.RoslynSuppression)]
+        public void ReportSuppressionsStart() => Write(ReportSuppressionsStartId);
+        
+        [Event(ReportSuppressionsStopId, Level = EventLevel.Informational, Keywords = Keywords.RoslynSuppression)]
+        public void ReportSuppressionsStop(string mode ,int suppressionCount) => Write(ReportSuppressionsStopId, mode, suppressionCount.ToString());
+
+        [Event(FileStorageGetStartId, Level = EventLevel.Informational, Keywords = Keywords.RoslynSuppression)]
+        public void FileStorageGetStart() => Write(FileStorageGetStartId);
+
+        [Event(FileStorageGetStopId, Level = EventLevel.Informational, Keywords = Keywords.RoslynSuppression)]
+        public void FileStorageGetStop() => Write(FileStorageGetStopId);
+
+        [Event(FileStorageUpdateStartId, Level = EventLevel.Informational, Keywords = Keywords.RoslynSuppression)]
+        public void FileStorageUpdateStart() => Write(FileStorageUpdateStartId);
+
+        [Event(FileStorageUpdateStopId, Level = EventLevel.Informational, Keywords = Keywords.RoslynSuppression)]
+        public void FileStorageUpdateStop() => Write(FileStorageUpdateStopId);
+
+        [Event(FileWatcherInvalidateStartId, Level = EventLevel.Informational, Keywords = Keywords.RoslynSuppression)]
+        public void FileWatcherInvalidateStart(string type) => Write(FileWatcherInvalidateStartId, type);
+
+        [Event(FileWatcherInvalidateStopId, Level = EventLevel.Informational, Keywords = Keywords.RoslynSuppression)]
+        public void FileWatcherInvalidateStop(string type) => Write(FileWatcherInvalidateStopId, type);
+
+        [Event(FileSynchronizerUpdateStartId, Level = EventLevel.Informational, Keywords = Keywords.RoslynSuppression)]
+        public void FileSynchronizerUpdateStart() => Write(FileSynchronizerUpdateStartId);
+
+        [Event(FileSynchronizerUpdateStopId, Level = EventLevel.Informational, Keywords = Keywords.RoslynSuppression)]
+        public void FileSynchronizerUpdateStop() => Write(FileSynchronizerUpdateStopId);
+
+        #endregion
+
         [NonEvent]
         private void Write(int id)
         {
@@ -128,12 +179,14 @@ namespace SonarLint.VisualStudio.Integration.ETW
         }
 
         [NonEvent]
-        private void Write(int id, string text)
+        private void Write(int id, params string[] texts)
         {
             if (IsEnabled())
             {
-                WriteEvent(id, text);
+                WriteEvent(id, texts);
             }
         }
+
+
     }
 }

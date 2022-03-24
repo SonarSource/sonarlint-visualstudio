@@ -29,18 +29,18 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
     {
         public static SuppressedIssue CreateIssue(string ruleId = "ruleId",
             string path = "path",
-            int? startLine = 0,
-            string hash = "hash")
-        {
-            return new SuppressedIssue(
-                path,
-                hash,
-                RoslynLanguage.CSharp,
-                ruleId,
-                startLine);
-        }
+            int? line = 0,
+            string hash = "hash",
+            RoslynLanguage language = RoslynLanguage.CSharp) => new SuppressedIssue
+            {
+                FilePath = path,
+                Hash = hash,
+                RoslynLanguage = language,
+                RoslynRuleId = ruleId,
+                RoslynIssueLine = line
+            };
 
-        public static SonarQubeIssue CreateSonarQubeIssue(string ruleId = "any",
+    public static SonarQubeIssue CreateSonarQubeIssue(string ruleId = "any",
             int? line = null,
             string filePath = "filePath",
             string hash = "hash") =>

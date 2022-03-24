@@ -35,6 +35,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
     [TestClass]
     public class RoslynSettingsFileStorageTests
     {
+        private static readonly RoslynSettings ValidSettings = new RoslynSettings { SonarProjectKey = "any" };
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
@@ -207,22 +208,86 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             actual.Should().BeNull();
         }
 
+        [TestMethod] // Regression test for SLVS-2946
+        public void SaveAndLoadSettings()
+        {
+            string serializedText = null;
+            var file = CreateSaveAndReloadFile();
+            var fileSystem = CreateFileSystem(file);
+            var testSubject = CreateTestSubject(fileSystem: fileSystem.Object);
+
+            var projectKey = "projectKey";
+            var original = new RoslynSettings
+            {
+                SonarProjectKey = projectKey,
+                Suppressions = new[]
+                {
+                    CreateIssue("rule1", "path1", null, "hash", RoslynLanguage.CSharp), // null line number
+                    CreateIssue("RULE2", "PATH2", 111, null, RoslynLanguage.VB)         // null hash
+                }
+            };
+
+            // Act
+            testSubject.Update(original);
+            var reloaded = testSubject.Get(projectKey);
+
+            reloaded.SonarProjectKey.Should().Be(projectKey);
+            reloaded.Suppressions.Should().NotBeNull();
+            reloaded.Suppressions.Count().Should().Be(2);
+
+            var firstSuppression = reloaded.Suppressions.First();
+            firstSuppression.RoslynRuleId.Should().Be("rule1");
+            firstSuppression.FilePath.Should().Be("path1");
+            firstSuppression.RoslynIssueLine.Should().BeNull();
+            firstSuppression.Hash.Should().Be("hash");
+            firstSuppression.RoslynLanguage.Should().Be(RoslynLanguage.CSharp);
+
+            var secondSuppression = reloaded.Suppressions.Last();
+            secondSuppression.RoslynRuleId.Should().Be("RULE2");
+            secondSuppression.FilePath.Should().Be("PATH2");
+            secondSuppression.RoslynIssueLine.Should().Be(111);
+            secondSuppression.Hash.Should().BeNull();
+            secondSuppression.RoslynLanguage.Should().Be(RoslynLanguage.VB);
+
+            Mock<IFile> CreateSaveAndReloadFile()
+            {
+                // Create a file that that handles "saving" data and
+                // "reading" the saved file back again.
+                var file = new Mock<IFile>();
+
+                // "Save" the data that was written
+                file.Setup(x => x.WriteAllText(It.IsAny<string>(), It.IsAny<string>()))
+                    .Callback<string, string>((_, contents) => { serializedText = contents; });
+
+                // "Load" the saved data
+                // Note: using a function here, so the method returns the value of serializedText when the
+                // method is called, rather than when the mock is created (which would always be null)
+                file.Setup(x => x.ReadAllText(It.IsAny<string>()))
+                    .Returns(
+                        () => {
+                            serializedText.Should().NotBeNull("Test error: data has not been saved");
+                            return serializedText;
+                        });
+
+                return file;
+            }
+        }
+
         private RoslynSettingsFileStorage CreateTestSubject(ILogger logger = null, IFileSystem fileSystem = null)
         {
-            logger = logger ?? Mock.Of<ILogger>();
-            fileSystem = fileSystem ?? CreateFileSystem().Object;
+            logger ??= Mock.Of<ILogger>();
+            fileSystem ??= CreateFileSystem().Object;
             return new RoslynSettingsFileStorage(logger, fileSystem);
         }
 
         private Mock<IFileSystem> CreateFileSystem(Mock<IFile> file = null, bool fileExists = true)
         {
-            file = file ?? new Mock<IFile>();
+            file ??= new Mock<IFile>();
             file.Setup(f => f.Exists(It.IsAny<string>())).Returns(fileExists);
 
             var directoryObject = Mock.Of<IDirectory>();
             var fileSystem = new Mock<IFileSystem>();
 
-            
             fileSystem.SetupGet(fs => fs.File).Returns(file.Object);
             fileSystem.SetupGet(fs => fs.Directory).Returns(directoryObject);
             
