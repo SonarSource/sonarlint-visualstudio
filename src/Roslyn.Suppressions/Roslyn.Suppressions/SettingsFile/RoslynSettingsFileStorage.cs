@@ -29,7 +29,7 @@ using SonarLint.VisualStudio.Roslyn.Suppressions.Resources;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
 {
-    public interface IRoslynSettingsFileStorage
+    internal interface IRoslynSettingsFileStorage
     {
         void Update(RoslynSettings settings);
 
@@ -101,7 +101,6 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
             }
             catch (Exception ex)
             {
-
                 logger.WriteLine(string.Format(Strings.RoslynSettingsFileStorageUpdateError, settings.SonarProjectKey, ex.Message));
             }
             finally

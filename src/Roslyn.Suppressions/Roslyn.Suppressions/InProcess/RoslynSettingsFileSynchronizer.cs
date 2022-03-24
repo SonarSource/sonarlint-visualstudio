@@ -151,8 +151,14 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
                 var language = GetRoslynLanguage(repoKey);
 
                 int? line = issue.TextRange == null ? (int?)null : issue.TextRange.StartLine - 1;
-                return new SuppressedIssue(issue.FilePath,
-                    issue.Hash, language, ruleKey, line);
+                return new SuppressedIssue
+                {
+                    RoslynRuleId = ruleKey,
+                    FilePath = issue.FilePath,
+                    Hash = issue.Hash,
+                    RoslynLanguage = language,
+                    RoslynIssueLine = line
+                };
             }
 
             private static (string repoKey, string ruleKey) GetRepoAndRuleKey(string sonarRuleId)
