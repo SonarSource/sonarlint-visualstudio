@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Concurrent;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
@@ -31,7 +32,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache
         private readonly ConcurrentDictionary<string, RoslynSettings> settingsCollection;
 
 
-        public SettingsCache(ILogger logger) : this(new RoslynSettingsFileStorage(logger), new ConcurrentDictionary<string, RoslynSettings>())
+        public SettingsCache(ILogger logger) : this(new RoslynSettingsFileStorage(logger), new ConcurrentDictionary<string, RoslynSettings>(StringComparer.OrdinalIgnoreCase))
         {
         }
 
@@ -43,18 +44,17 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache
 
         public RoslynSettings GetSettings(string settingsKey)
         {
-            var normalisedKey = NormalizeKey(settingsKey);
-            if (!settingsCollection.ContainsKey(normalisedKey))
+            if (!settingsCollection.ContainsKey(settingsKey))
             {
-                var settings = fileStorage.Get(normalisedKey) ?? RoslynSettings.Empty;
-                settingsCollection.AddOrUpdate(normalisedKey, settings, (x,y) => settings);
+                var settings = fileStorage.Get(settingsKey) ?? RoslynSettings.Empty;
+                settingsCollection.AddOrUpdate(settingsKey, settings, (x,y) => settings);
             }
-            return settingsCollection[normalisedKey];
+            return settingsCollection[settingsKey];
         }
 
         public void Invalidate(string settingsKey)
         {
-            settingsCollection.TryRemove(NormalizeKey(settingsKey), out _);
+            settingsCollection.TryRemove(settingsKey, out _);
         }
     }
 }

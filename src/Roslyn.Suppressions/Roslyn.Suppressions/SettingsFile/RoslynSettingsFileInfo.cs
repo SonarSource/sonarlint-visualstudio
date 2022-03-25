@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
         {
             var escapedName = PathHelper.EscapeFileName(NormalizeKey(sonarProjectKey));
 
-            var fileName = escapedName.ToLowerInvariant() + ".json";
+            var fileName = escapedName + ".json";
 
             return Path.Combine(Directory, fileName);
         }
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
             return Path.GetFileNameWithoutExtension(filePath);
         }
 
-        public static string NormalizeKey(string key)
+        private static string NormalizeKey(string key)
         {
             return key.ToLowerInvariant();
         }

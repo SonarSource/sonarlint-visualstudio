@@ -18,12 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration.UnitTests.Helpers;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 
@@ -39,14 +41,14 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
             var cacheObject = CreateEmptyCacheObject();
 
             var fileStorage = new Mock<IRoslynSettingsFileStorage>();
-            fileStorage.Setup(fs => fs.Get("settingskey")).Returns(settings);
+            fileStorage.Setup(fs => fs.Get("settingsKey")).Returns(settings);
 
             var testSubject = CreateTestSubject(fileStorage, cacheObject);
             var actual = testSubject.GetSettings("settingsKey");
 
-            fileStorage.Verify(fs => fs.Get("settingskey"), Times.Once);
-            cacheObject.ContainsKey("settingskey").Should().BeTrue();
-            cacheObject["settingskey"].Should().BeSameAs(settings);
+            fileStorage.Verify(fs => fs.Get("settingsKey"), Times.Once);
+            cacheObject.ContainsKey("settingsKey").Should().BeTrue();
+            cacheObject["settingsKey"].Should().BeSameAs(settings);
             actual.Should().BeSameAs(settings);
         }
 
@@ -58,20 +60,20 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
         {
             //This is to make sure normalising the keys done correctly with invariant culture
             //https://en.wikipedia.org/wiki/Dotted_and_dotless_I 
-            using (new TemporaryCultureSwitch(new CultureInfo("tr-TR")))
-            { 
-                var settings = new RoslynSettings { SonarProjectKey = "my project" };
+            using var scope = new TurkishCultureScope();
 
-                var cacheObject = CreatePopulatedCacheObject(normalisedKey, settings);
+            var settings = new RoslynSettings { SonarProjectKey = "my project" };
 
-                var fileStorage = new Mock<IRoslynSettingsFileStorage>();
+            var cacheObject = CreatePopulatedCacheObject(normalisedKey, settings);
 
-                var testSubject = CreateTestSubject(fileStorage, cacheObject);
-                var actual = testSubject.GetSettings(settingsKey);
+            var fileStorage = new Mock<IRoslynSettingsFileStorage>();
 
-                fileStorage.Verify(fs => fs.Get(It.IsAny<string>()), Times.Never);
-                actual.Should().BeSameAs(settings);
-            }
+            var testSubject = CreateTestSubject(fileStorage, cacheObject);
+            var actual = testSubject.GetSettings(settingsKey);
+
+            fileStorage.Verify(fs => fs.Get(It.IsAny<string>()), Times.Never);
+            actual.Should().BeSameAs(settings);
+            
         }
 
         [TestMethod]
@@ -82,7 +84,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
             var testSubject = CreateTestSubject(fileStorage);
             var actual = testSubject.GetSettings("settingsKey");
 
-            fileStorage.Verify(fs => fs.Get("settingskey"), Times.Once);
+            fileStorage.Verify(fs => fs.Get("settingsKey"), Times.Once);
             CheckSettingsAreEmpty(actual);
         }
 
@@ -98,7 +100,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
             var testSubject = CreateTestSubject(fileStorage, cacheObject);
             var actual = testSubject.GetSettings("settingsKey");
 
-            fileStorage.Verify(fs => fs.Get("settingskey"), Times.Once);
+            fileStorage.Verify(fs => fs.Get("settingsKey"), Times.Once);
             CheckSettingsAreEmpty(actual);
         }
 
@@ -110,16 +112,16 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
         {
             //This is to make sure normalising the keys done correctly with invariant culture
             //https://en.wikipedia.org/wiki/Dotted_and_dotless_I 
-            using (new TemporaryCultureSwitch(new CultureInfo("tr-TR")))
-            {
-                var cacheObject = CreatePopulatedCacheObject(normalisedKey, new RoslynSettings());
-                cacheObject.ContainsKey(normalisedKey).Should().BeTrue("Test setup error: cache was not pre-populated correctly");
+            using var scope = new TurkishCultureScope();
+            
+            var cacheObject = CreatePopulatedCacheObject(normalisedKey, new RoslynSettings());
+            cacheObject.ContainsKey(normalisedKey).Should().BeTrue("Test setup error: cache was not pre-populated correctly");
 
-                var testSubject = CreateTestSubject(settingsCollection: cacheObject);
-                testSubject.Invalidate(settingsKey);
+            var testSubject = CreateTestSubject(settingsCollection: cacheObject);
+            testSubject.Invalidate(settingsKey);
 
-                cacheObject.ContainsKey(normalisedKey).Should().BeFalse();
-            }
+            cacheObject.ContainsKey(normalisedKey).Should().BeFalse();
+            
         }
         [TestMethod]
         public void Invalidate_SettingNotInCache_NoErrorThrown()
@@ -141,14 +143,14 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
         private SettingsCache CreateTestSubject(Mock<IRoslynSettingsFileStorage> fileStorage = null, ConcurrentDictionary<string, RoslynSettings> settingsCollection = null)
         {
             fileStorage = fileStorage ?? new Mock<IRoslynSettingsFileStorage>();
-            settingsCollection = settingsCollection ?? new ConcurrentDictionary<string, RoslynSettings>();
+            settingsCollection = settingsCollection ?? new ConcurrentDictionary<string, RoslynSettings>(StringComparer.OrdinalIgnoreCase);
 
             return new SettingsCache(fileStorage.Object, settingsCollection);
         }
 
         private ConcurrentDictionary<string, RoslynSettings> CreateEmptyCacheObject()
         {
-            return new ConcurrentDictionary<string, RoslynSettings>();
+            return new ConcurrentDictionary<string, RoslynSettings>(StringComparer.OrdinalIgnoreCase);
         }
 
         private static void CheckSettingsAreEmpty(RoslynSettings settings)
