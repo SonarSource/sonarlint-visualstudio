@@ -56,4 +56,6 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
                 null
                 );
     }
+
+
 }

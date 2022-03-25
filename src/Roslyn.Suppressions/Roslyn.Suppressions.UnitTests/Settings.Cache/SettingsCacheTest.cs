@@ -18,11 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration.UnitTests.Helpers;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 
@@ -49,20 +52,28 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
             actual.Should().BeSameAs(settings);
         }
 
+        [DataRow("settingskey", "settingskey")]//Testing lower case
+        [DataRow("settingsKEY", "settingskey")]//Testing upper case
+        [DataRow("III", "iii")]//Testing upper case with invariant culture
         [TestMethod]
-        public void GetSettings_SettingInCache_SettingsReadFromCache()
+        public void GetSettings_SettingInCache_SettingsReadFromCache(string settingsKey, string normalisedKey)
         {
+            //This is to make sure normalising the keys done correctly with invariant culture
+            //https://en.wikipedia.org/wiki/Dotted_and_dotless_I 
+            using var scope = new TurkishCultureScope();
+
             var settings = new RoslynSettings { SonarProjectKey = "my project" };
 
-            var cacheObject = CreatePopulatedCacheObject("settingsKey", settings);
+            var cacheObject = CreatePopulatedCacheObject(normalisedKey, settings);
 
             var fileStorage = new Mock<IRoslynSettingsFileStorage>();
 
             var testSubject = CreateTestSubject(fileStorage, cacheObject);
-            var actual = testSubject.GetSettings("settingsKey");
+            var actual = testSubject.GetSettings(settingsKey);
 
             fileStorage.Verify(fs => fs.Get(It.IsAny<string>()), Times.Never);
             actual.Should().BeSameAs(settings);
+            
         }
 
         [TestMethod]
@@ -82,7 +93,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
         {
             var settings = new RoslynSettings { SonarProjectKey = "my project" };
 
-            var cacheObject = CreatePopulatedCacheObject("differentKey", settings);
+            var cacheObject = CreatePopulatedCacheObject("differentkey", settings);
 
             var fileStorage = new Mock<IRoslynSettingsFileStorage>();
 
@@ -93,16 +104,24 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
             CheckSettingsAreEmpty(actual);
         }
 
+        [DataRow("settingskey", "settingskey")]//Testing lower case
+        [DataRow("settingsKEY", "settingskey")]//Testing upper case
+        [DataRow("III","iii")]//Testing upper case with invariant culture
         [TestMethod]
-        public void Invalidate_SettingInCache_SettingsRemovedFromCache()
+        public void Invalidate_SettingInCache_SettingsRemovedFromCache(string settingsKey, string normalisedKey)
         {
-            var cacheObject = CreatePopulatedCacheObject("settingsKey", new RoslynSettings());
-            cacheObject.ContainsKey("settingsKey").Should().BeTrue("Test setup error: cache was not pre-populated correctly");
+            //This is to make sure normalising the keys done correctly with invariant culture
+            //https://en.wikipedia.org/wiki/Dotted_and_dotless_I 
+            using var scope = new TurkishCultureScope();
+            
+            var cacheObject = CreatePopulatedCacheObject(normalisedKey, new RoslynSettings());
+            cacheObject.ContainsKey(normalisedKey).Should().BeTrue("Test setup error: cache was not pre-populated correctly");
 
             var testSubject = CreateTestSubject(settingsCollection: cacheObject);
-            testSubject.Invalidate("settingsKey");
+            testSubject.Invalidate(settingsKey);
 
-            cacheObject.ContainsKey("settingsKey").Should().BeFalse();
+            cacheObject.ContainsKey(normalisedKey).Should().BeFalse();
+            
         }
         [TestMethod]
         public void Invalidate_SettingNotInCache_NoErrorThrown()
@@ -124,14 +143,14 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
         private SettingsCache CreateTestSubject(Mock<IRoslynSettingsFileStorage> fileStorage = null, ConcurrentDictionary<string, RoslynSettings> settingsCollection = null)
         {
             fileStorage = fileStorage ?? new Mock<IRoslynSettingsFileStorage>();
-            settingsCollection = settingsCollection ?? new ConcurrentDictionary<string, RoslynSettings>();
+            settingsCollection = settingsCollection ?? new ConcurrentDictionary<string, RoslynSettings>(StringComparer.OrdinalIgnoreCase);
 
             return new SettingsCache(fileStorage.Object, settingsCollection);
         }
 
         private ConcurrentDictionary<string, RoslynSettings> CreateEmptyCacheObject()
         {
-            return new ConcurrentDictionary<string, RoslynSettings>();
+            return new ConcurrentDictionary<string, RoslynSettings>(StringComparer.OrdinalIgnoreCase);
         }
 
         private static void CheckSettingsAreEmpty(RoslynSettings settings)
