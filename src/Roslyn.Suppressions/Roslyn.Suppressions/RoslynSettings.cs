@@ -21,6 +21,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions
 {
@@ -73,6 +74,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
         public string Hash { get; set; }
 
         [JsonProperty("lang")]
+        [JsonConverter(typeof(StringEnumConverter))]
         public RoslynLanguage RoslynLanguage { get; set; }
 
         /// <summary>
