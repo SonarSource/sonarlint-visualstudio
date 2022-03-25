@@ -18,9 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Concurrent;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
+using static SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile.RoslynSettingsFileInfo;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache
 {
@@ -30,7 +32,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache
         private readonly ConcurrentDictionary<string, RoslynSettings> settingsCollection;
 
 
-        public SettingsCache(ILogger logger) : this(new RoslynSettingsFileStorage(logger), new ConcurrentDictionary<string, RoslynSettings>())
+        public SettingsCache(ILogger logger) : this(new RoslynSettingsFileStorage(logger), new ConcurrentDictionary<string, RoslynSettings>(StringComparer.OrdinalIgnoreCase))
         {
         }
 
@@ -42,7 +44,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache
 
         public RoslynSettings GetSettings(string settingsKey)
         {
-            if(!settingsCollection.ContainsKey(settingsKey))
+            if (!settingsCollection.ContainsKey(settingsKey))
             {
                 var settings = fileStorage.Get(settingsKey) ?? RoslynSettings.Empty;
                 settingsCollection.AddOrUpdate(settingsKey, settings, (x,y) => settings);
