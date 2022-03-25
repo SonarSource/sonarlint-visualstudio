@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.Core.ETW
         public void ReportSuppressionsStart() => Write(ReportSuppressionsStartId);
         
         [Event(ReportSuppressionsStopId, Level = EventLevel.Informational, Keywords = Keywords.RoslynSuppression)]
-        public void ReportSuppressionsStop(string mode ,int suppressionCount) => Write(ReportSuppressionsStopId, mode, suppressionCount.ToString());
+        public void ReportSuppressionsStop(string mode, int suppressionCount) => Write(ReportSuppressionsStopId, mode, suppressionCount);
 
         [Event(FileStorageGetStartId, Level = EventLevel.Informational, Keywords = Keywords.RoslynSuppression)]
         public void FileStorageGetStart() => Write(FileStorageGetStartId);
@@ -179,14 +179,21 @@ namespace SonarLint.VisualStudio.Core.ETW
         }
 
         [NonEvent]
-        private void Write(int id, params string[] texts)
+        private void Write(int id, string text)
         {
             if (IsEnabled())
             {
-                WriteEvent(id, texts);
+                WriteEvent(id, text);
             }
         }
 
-
+        [NonEvent]
+        private void Write(int id, params object[] data)
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(id, data);
+            }
+        }
     }
 }
