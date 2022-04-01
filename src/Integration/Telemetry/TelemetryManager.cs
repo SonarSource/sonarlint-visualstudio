@@ -34,9 +34,11 @@ using SonarLint.VisualStudio.Integration.Telemetry.Payload;
 namespace SonarLint.VisualStudio.Integration
 {
     [Export(typeof(ITelemetryManager))]
+    [Export(typeof(IQuickFixesTelemetryManager))]
     //[Export(typeof(ICloudSecretsTelemetryManager))] 
     [PartCreationPolicy(CreationPolicy.Shared)]
     public sealed class TelemetryManager : ITelemetryManager, 
+        IQuickFixesTelemetryManager,
         //ICloudSecretsTelemetryManager,
         IDisposable
     {
@@ -211,10 +213,13 @@ namespace SonarLint.VisualStudio.Integration
             Debug.Assert(!string.IsNullOrEmpty(languageKey), "Supplied languageKey should not be null/empty");
             Debug.Assert(telemetryRepository.Data != null);
 
-            if (!telemetryRepository.Data.Analyses.Any(x => string.Equals(x.Language, languageKey, StringComparison.OrdinalIgnoreCase)))
+            lock (Lock)
             {
-                telemetryRepository.Data.Analyses.Add(new Analysis { Language = languageKey });
-                telemetryRepository.Save();
+                if (!telemetryRepository.Data.Analyses.Any(x => string.Equals(x.Language, languageKey, StringComparison.OrdinalIgnoreCase)))
+                {
+                    telemetryRepository.Data.Analyses.Add(new Analysis { Language = languageKey });
+                    telemetryRepository.Save();
+                }
             }
         }
 
@@ -246,16 +251,28 @@ namespace SonarLint.VisualStudio.Integration
         {
             var rulesUsage = telemetryRepository.Data.RulesUsage;
 
-            if (!rulesUsage.RulesThatRaisedIssues.Contains(ruleId))
+            lock (Lock)
             {
-                lock (Lock)
+                if (!rulesUsage.RulesThatRaisedIssues.Contains(ruleId))
                 {
-                    if (!rulesUsage.RulesThatRaisedIssues.Contains(ruleId))
-                    {
-                        rulesUsage.RulesThatRaisedIssues.Add(ruleId);
-                        rulesUsage.RulesThatRaisedIssues = rulesUsage.RulesThatRaisedIssues.Distinct().OrderBy(x => x).ToList();
-                        telemetryRepository.Save();
-                    }
+                    rulesUsage.RulesThatRaisedIssues.Add(ruleId);
+                    rulesUsage.RulesThatRaisedIssues = rulesUsage.RulesThatRaisedIssues.OrderBy(x => x).ToList();
+                    telemetryRepository.Save();
+                }
+            }
+        }
+
+        public void QuickFixApplied(string ruleId)
+        {
+            var rulesUsage = telemetryRepository.Data.RulesUsage;
+
+            lock (Lock)
+            {
+                if (!rulesUsage.RulesWithAppliedQuickFixes.Contains(ruleId))
+                {
+                    rulesUsage.RulesWithAppliedQuickFixes.Add(ruleId);
+                    rulesUsage.RulesWithAppliedQuickFixes = rulesUsage.RulesWithAppliedQuickFixes.OrderBy(x => x).ToList();
+                    telemetryRepository.Save();
                 }
             }
         }

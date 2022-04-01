@@ -44,9 +44,14 @@
     <NewtonsoftVersion>8.0.3</NewtonsoftVersion>
     <NewtonsoftVersion Condition=" $(VsTargetVersion) == '2022' " >13.0.1</NewtonsoftVersion>
   </PropertyGroup>
-  
-  <ItemGroup Label="Newtonsoft" Condition=" $(RequiresNewtonsoft)=='true' " >
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftVersion)" />
+
+  <!-- ******************************************************************************* -->
+  <!-- Additional external NuGet packages used by multiple projects. -->
+  <!-- They are defined here to make sure we reference the same version everywhere. -->
+  <!-- ******************************************************************************* -->
+  <ItemGroup Label="NuGet packages">
+    <PackageReference Include="Newtonsoft.Json" Condition=" $(RequiresNewtonsoft)=='true'" Version="$(NewtonsoftVersion)" />
+    <PackageReference Include="System.IO.Abstractions" Condition=" $(RequiresSystemIOAbstractions)=='true'" Version="9.0.4" />
   </ItemGroup>
 
 </Project>

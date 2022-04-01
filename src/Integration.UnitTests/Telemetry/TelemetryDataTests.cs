@@ -95,7 +95,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 {
                     DisabledByDefaultThatWereEnabled = new List<string>{"rule1", "rule2"},
                     EnabledByDefaultThatWereDisabled = new List<string> { "rule3", "rule4" },
-                    RulesThatRaisedIssues = new List<string> { "rule5", "rule6" }
+                    RulesThatRaisedIssues = new List<string> { "rule5", "rule6" },
+                    RulesWithAppliedQuickFixes = new List<string> { "rule7", "rule8" }
                 }
             };
 
@@ -150,6 +151,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             reloadedData.RulesUsage.DisabledByDefaultThatWereEnabled.Should().BeEquivalentTo("rule1", "rule2");
             reloadedData.RulesUsage.EnabledByDefaultThatWereDisabled.Should().BeEquivalentTo("rule3", "rule4");
             reloadedData.RulesUsage.RulesThatRaisedIssues.Should().BeEquivalentTo("rule5", "rule6");
+            reloadedData.RulesUsage.RulesWithAppliedQuickFixes.Should().BeEquivalentTo("rule7", "rule8");
         }
 
         [TestMethod]

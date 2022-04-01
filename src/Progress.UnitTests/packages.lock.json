@@ -1181,7 +1181,7 @@
         "dependencies": {
           "Newtonsoft.Json": "13.0.1",
           "SonarQube.Client": "1.0.0",
-          "System.IO.Abstractions": "7.1.10"
+          "System.IO.Abstractions": "9.0.4"
         }
       },
       "SonarLint.VisualStudio.Infrastructure.VS": {
@@ -1207,7 +1207,7 @@
           "SonarLint.VisualStudio.ProgressVS": "1.0.0",
           "SonarQube.Client": "1.0.0",
           "StrongNamer": "0.0.8",
-          "System.IO.Abstractions": "7.1.10"
+          "System.IO.Abstractions": "9.0.4"
         }
       },
       "SonarLint.VisualStudio.Integration.TestInfrastructure": {

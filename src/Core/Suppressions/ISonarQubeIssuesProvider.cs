@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core.Suppression
@@ -30,5 +31,10 @@ namespace SonarLint.VisualStudio.Core.Suppression
         /// Returns SonarQube suppressed issues for the specified project and file
         /// </summary>
         IEnumerable<SonarQubeIssue> GetSuppressedIssues(string projectGuid, string filePath);
+
+        /// <summary>
+        /// Returns all SonarQube suppressed issues
+        /// </summary>
+        Task<IEnumerable<SonarQubeIssue>> GetAllSuppressedIssuesAsync();
     }
 }

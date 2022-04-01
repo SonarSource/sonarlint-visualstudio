@@ -57,7 +57,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         /// 1) there is a control named "PART_SccStatusBarHost"
         /// 2) that control is hosted in a dock panel
         /// This approach is a bit ugly, but it's also the approach used in the extension -see https://github.com/github/VisualStudio/blob/824bab4ab2c3d8f6787cf38ff5ff9d4e9df00e98/src/GitHub.InlineReviews/Services/PullRequestStatusBarManager.cs#L171
-        /// Note: the visual tree of VS2019 is different from that of VS2015 and VS2017, but they all have contain this named PART control.See #1751.
         /// </remarks>
         private static void AddStatusBarIcon(Window window, UIElement statusBarIcon)
         {

@@ -201,8 +201,9 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 {
                     DisabledByDefaultThatWereEnabled = new List<string> { "rule1", "rule2" },
                     EnabledByDefaultThatWereDisabled = new List<string> { "rule3", "rule4" },
-                    RulesThatRaisedIssues = new List<string> { "rule5", "rule6" }
-                }
+                    RulesThatRaisedIssues = new List<string> { "rule5", "rule6" },
+                    RulesWithAppliedQuickFixes = new List<string> { "rule7", "rule8" }
+            }
             };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
 
@@ -227,6 +228,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             telemetryData.RulesUsage.DisabledByDefaultThatWereEnabled.Should().BeEmpty(); // should have cleared the value
             telemetryData.RulesUsage.EnabledByDefaultThatWereDisabled.Should().BeEmpty(); // should have cleared the value
             telemetryData.RulesUsage.RulesThatRaisedIssues.Should().BeEmpty(); // should have cleared the value
+            telemetryData.RulesUsage.RulesWithAppliedQuickFixes.Should().BeEmpty(); // should have cleared the value
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
             telemetryClientMock.Verify(x => x.SendPayloadAsync(It.IsAny<TelemetryPayload>()), Times.Once);
         }
@@ -729,6 +731,103 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 )), Times.Once);
 
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
+        }
+
+        [TestMethod]
+        public void QuickFixApplied_NoPreviousIssues_TelemetryUpdated()
+        {
+            var telemetryData = CreateRulesUsageTelemetryData();
+            SetupTelemetryRepository(telemetryData);
+
+            var testSubject = CreateManager();
+
+            telemetryRepositoryMock.Invocations.Clear();
+
+            testSubject.QuickFixApplied("rule1");
+
+            telemetryData.RulesUsage.RulesWithAppliedQuickFixes.Should().BeEquivalentTo("rule1");
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
+        }
+
+        [TestMethod]
+        public void QuickFixApplied_HasPreviousIssues_TelemetryUpdated()
+        {
+            var telemetryData = CreateRulesUsageTelemetryData();
+            SetupTelemetryRepository(telemetryData);
+
+            var testSubject = CreateManager();
+
+            telemetryRepositoryMock.Invocations.Clear();
+
+            testSubject.QuickFixApplied("rule1");
+            testSubject.QuickFixApplied("rule2");
+            testSubject.QuickFixApplied("rule3");
+
+            telemetryData.RulesUsage.RulesWithAppliedQuickFixes.Should().BeEquivalentTo("rule1", "rule2", "rule3");
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Exactly(3));
+        }
+
+        [TestMethod]
+        public void QuickFixApplied_DuplicatedIssuesAreIgnored()
+        {
+            var telemetryData = CreateRulesUsageTelemetryData();
+            SetupTelemetryRepository(telemetryData);
+
+            var testSubject = CreateManager();
+
+            telemetryRepositoryMock.Invocations.Clear();
+
+            testSubject.QuickFixApplied("rule1");
+            testSubject.QuickFixApplied("rule1");
+            testSubject.QuickFixApplied("rule1");
+
+            telemetryData.RulesUsage.RulesWithAppliedQuickFixes.Should().BeEquivalentTo("rule1");
+
+            // should be called only for the first time
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Exactly(1));
+        }
+
+        [TestMethod]
+        public void QuickFixApplied_RuleAlreadyInTheList_TelemetryNotUpdated()
+        {
+            var telemetryData = CreateRulesUsageTelemetryData();
+            SetupTelemetryRepository(telemetryData);
+
+            var testSubject = CreateManager();
+
+            telemetryRepositoryMock.Invocations.Clear();
+
+            testSubject.QuickFixApplied("rule1");
+
+            var oldList = telemetryData.RulesUsage.RulesWithAppliedQuickFixes;
+
+            testSubject.QuickFixApplied("rule1");
+
+            telemetryData.RulesUsage.RulesWithAppliedQuickFixes.Should().BeSameAs(oldList);
+            telemetryData.RulesUsage.RulesWithAppliedQuickFixes.Should().BeEquivalentTo("rule1");
+
+            // should be called only for the first time
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Exactly(1));
+        }
+
+        [TestMethod]
+        public void QuickFixApplied_ListIsOrdered()
+        {
+            var telemetryData = CreateRulesUsageTelemetryData();
+            SetupTelemetryRepository(telemetryData);
+
+            var testSubject = CreateManager();
+
+            testSubject.QuickFixApplied("cccc");
+            testSubject.QuickFixApplied("bbbb");
+            testSubject.QuickFixApplied("aaaa:456");
+            testSubject.QuickFixApplied("aaaa:123");
+
+            telemetryData.RulesUsage.RulesWithAppliedQuickFixes.Should().BeEquivalentTo(
+                "aaaa:123",
+                "aaaa:456",
+                "bbbb",
+                "cccc");
         }
 
         [TestMethod]
