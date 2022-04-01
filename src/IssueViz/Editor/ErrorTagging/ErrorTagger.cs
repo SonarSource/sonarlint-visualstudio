@@ -49,6 +49,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
             trackedTagSpans.Where(x => IsValidPrimaryLocation(x.Tag.Location));
 
         private static bool IsValidPrimaryLocation(IAnalysisIssueLocationVisualization locViz) =>
-            locViz is IAnalysisIssueVisualization && locViz.Span.HasValue;
+            locViz is IAnalysisIssueVisualization && locViz.Span.IsNavigable();
     }
 }

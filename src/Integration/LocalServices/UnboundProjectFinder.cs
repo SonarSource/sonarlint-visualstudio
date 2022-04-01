@@ -26,9 +26,9 @@ using System.Threading.Tasks;
 using EnvDTE;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ETW;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Binding;
-using SonarLint.VisualStudio.Integration.ETW;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
@@ -167,13 +167,13 @@ namespace SonarLint.VisualStudio.Integration
             var configProjectBinder = projectBinderFactory.Get(project);
 
             var projectName = project.Name;
-            ETW.CodeMarkers.Instance.CheckProjectBindingStart(projectName);
+            CodeMarkers.Instance.CheckProjectBindingStart(projectName);
 
             logger.LogDebug($"[Binding check] Checking binding for project '{projectName}'. Binder type: {configProjectBinder.GetType().Name}");
             var required = configProjectBinder.IsBindingRequired(binding, project);
             logger.LogDebug($"[Binding check] Is binding required: {required} (project: {projectName})");
 
-            ETW.CodeMarkers.Instance.CheckProjectBindingStop();
+            CodeMarkers.Instance.CheckProjectBindingStop();
 
             return required;
         }

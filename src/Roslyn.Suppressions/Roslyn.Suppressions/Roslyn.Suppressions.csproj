@@ -1,0 +1,58 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- NOTE: this assembly should NOT have any dependencies on Visual Studio assemblies
+       
+	   It could be loaded into the external Roslyn analysis process by VS, so it has a
+	   number of limitations about what it can reference / access
+	   
+	   * it can't use MEF to import any of our types.
+        * it can't access any instances/services running in the main VS instance.
+ 
+  -->
+
+  <Import Project="..\..\SonarLint.Product.props" />
+
+  <PropertyGroup>
+    <ProjectGuid>{082D5D8E-F914-4139-9AE3-3F48B679E3DA}</ProjectGuid>
+    <RootNamespace>SonarLint.VisualStudio.Roslyn.Suppressions</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.Roslyn.Suppressions</AssemblyName>
+    <RequiresNewtonsoft>true</RequiresNewtonsoft>
+    <RequiresSystemIOAbstractions>true</RequiresSystemIOAbstractions>
+  </PropertyGroup>
+    
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj" />
+    <ProjectReference Include="..\..\Core\Core.csproj" />
+    <ProjectReference Include="..\..\Infrastructure.VS\Infrastructure.VS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Label="Automatically added by VS">
+    <!-- Note: these settings relate to files in the SuppressorCodeGen.targets -->
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+    <Compile Update="SupportedSuppressionBuilder.g.cs">
+      <DesignTime>True</DesignTime>
+    </Compile>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Update="Resources\Strings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\Strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup Label="Framework references">
+    <Reference Include="System.ComponentModel.Composition" />
+  </ItemGroup>
+
+  <!-- Note: the code gen targets file imports Roslyn packages that are also required by this project at runtime. -->
+  <Import Project="SuppressorCodeGen.targets" />
+</Project>

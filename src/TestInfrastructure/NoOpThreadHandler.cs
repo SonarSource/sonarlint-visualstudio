@@ -29,11 +29,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     /// </summary>
     /// <remarks>All operations are performed synchronously and return immediately.
     /// No thread switches take place.</remarks>
-    internal class NoOpThreadHandler : IThreadHandling
+    public class NoOpThreadHandler : IThreadHandling
     {
         public bool CheckAccess() => true;
 
         public T Run<T>(Func<Task<T>> asyncMethod) => asyncMethod().Result;
+        public Task RunAsync(Func<Task> asyncMethod) => asyncMethod();
+
+        public Task RunAsync<T>(Func<Task<T>> asyncMethod) => asyncMethod();
 
         public Task RunOnUIThread(Action op)
         {
@@ -60,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             public void UnsafeOnCompleted(Action continuation) => continuation();
         }
 
-        private class NoOpAwaitable : IAwaitableWrapper
+        public class NoOpAwaitable : IAwaitableWrapper
         {
             public IAwaiterWrapper GetAwaiter() => new NoOpAwaiter();
         }

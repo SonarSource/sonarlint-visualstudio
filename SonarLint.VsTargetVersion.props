@@ -17,9 +17,9 @@
 
        Alternatively, you can explicitly specify the version of VS to target e.g.
 
-         msbuild.exe SonarLint.VisualStudio.Integration.sln /p:VsTargetVersion=2017   
+         msbuild.exe SonarLint.VisualStudio.Integration.sln /p:VsTargetVersion=2019  
 
-       The allowed values for VsTargetVersion are 2017, 2019 and 2022.
+       The allowed values for VsTargetVersion are 2019 and 2022.
 
   -->
 
@@ -30,7 +30,6 @@
   
   <!-- Set the VsTargetVersion based on the version of VS -->
   <PropertyGroup Condition=" $(VsTargetVersion) == '' " >
-    <VsTargetVersion Condition="$(VisualStudioVersion)=='15.0'">2017</VsTargetVersion>
     <VsTargetVersion Condition="$(VisualStudioVersion)=='16.0'">2019</VsTargetVersion>
     <VsTargetVersion Condition="$(VisualStudioVersion)=='17.0'">2022</VsTargetVersion>
   </PropertyGroup>
@@ -41,11 +40,11 @@
   <Target Name="CheckVsTargetVersionSetting" BeforeTargets="PrepareForBuild">
     <Error
       Condition=" $(BuildingInsideVisualStudio) != 'true' AND $(VsTargetVersion) == '' "
-      Text="Must set VsTargetVersion build property when building outside Visual Studio. Expected values: 2017, 2019, 2022"/>
+      Text="Must set VsTargetVersion build property when building outside Visual Studio. Expected values: 2019, 2022"/>
 
     <Error
-      Condition=" $(VsTargetVersion) != '2017' AND $(VsTargetVersion) != '2019' AND $(VsTargetVersion) != '2022' "
-      Text="Invalid value for VsTargetVersion. Expected values: 2017, 2019, 2022. Actual value: $(VsTargetVersion)"/>
+      Condition=" $(VsTargetVersion) != '2019' AND $(VsTargetVersion) != '2022' "
+      Text="Invalid value for VsTargetVersion. Expected values: 2019, 2022. Actual value: $(VsTargetVersion)"/>
 
     <Message Importance="high" Text="SonarLint VsTargetVersion: $(VsTargetVersion)" />
     

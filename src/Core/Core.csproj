@@ -10,11 +10,8 @@
     <AssemblyName>SonarLint.VisualStudio.Core</AssemblyName>
 
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
+    <RequiresSystemIOAbstractions>true</RequiresSystemIOAbstractions>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.IO.Abstractions" Version="7.1.10" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj" />
