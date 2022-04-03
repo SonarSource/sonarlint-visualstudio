@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideBindingPath]
     // Specify when to load the extension (GUID can be found in Microsoft.VisualStudio.VSConstants.UICONTEXT)
-    [ProvideAutoLoad(CommonGuids.PackageActivation, PackageAutoLoadFlags.BackgroundLoad)]
+    [ProvideAutoLoad(VSConstants.UICONTEXT.ShellInitialized_string, PackageAutoLoadFlags.BackgroundLoad)]
     // Register the information needed to show the package in the Help/About dialog of VS.
     // NB: The version is automatically updated by the ChangeVersion.proj
     [InstalledProductRegistration("#110", "#112", "5.5.0.0", IconResourceID = 400)]
