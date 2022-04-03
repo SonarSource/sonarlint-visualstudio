@@ -32,7 +32,7 @@
         </Strings>
       </Menu>
     </Menus>
-    
+
     <Buttons>
       <Button guid="guidCmdSet" id="cmdidManageConnections" type="Button">
         <Icon guid="guidIcons" id="bmpSonarQube"/>
@@ -68,10 +68,17 @@
           <ButtonText>&amp;Non-Test Project</ButtonText>
         </Strings>
       </Button>
+      <Button guid="guidCmdSet" id="cmdidAnalyzeCPP" type="Button">
+        <Icon guid="SonarLintIcons" id="bmpSonarLint"/>
+        <Strings>
+          <ButtonText>Run C and C++ analysis</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
-    
+
     <Bitmaps>
       <Bitmap guid="guidIcons" href="..\Resources\CommandIcons.png" usedList="bmpSonarQube"/>
+      <Bitmap guid="SonarLintIcons" href="..\Resources\sonarlint_16.png" usedList="bmpSonarLint"/>
     </Bitmaps>
   </Commands>
 
@@ -91,8 +98,12 @@
     <CommandPlacement guid="guidCmdSet" id="groupidProjectSonarLint" priority="0x100">
       <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_XPROJ_MULTIPROJ"/>
     </CommandPlacement>
+    <CommandPlacement guid="guidCmdSet" id="cmdidAnalyzeCPP" priority="0x900">
+	    <Parent guid="guidCodeAnalysisMenuGroup" id="IDG_CODEANALYSIS_TOPLEVEL"/>
+    </CommandPlacement>
+
   </CommandPlacements>
-  
+
   <Symbols>
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
@@ -100,29 +111,32 @@
       <IDSymbol name="groupidProjectSonarLint" value="0x800"/>
       <IDSymbol name="groupidProjectProperties" value="0x801"/>
       <IDSymbol name="groupidProjectTestPropertyOptions" value="0x802"/>
-      
+
       <!-- Menus -->
       <IDSymbol name="menuidProjectSonarLint" value="0x850"/>
       <IDSymbol name="menuidProjectTestProperty" value="0x851"/>
-      
+
       <!-- Commands -->
       <IDSymbol name="cmdidManageConnections" value="0x100"/>
       <IDSymbol name="cmdidProjectExcludePropertyToggle" value="0x101"/>
       <IDSymbol name="cmdidProjectTestPropertyAutoOption" value="0x102"/>
       <IDSymbol name="cmdidProjectTestPropertyTrueOption" value="0x103"/>
       <IDSymbol name="cmdidProjectTestPropertyFalseOption" value="0x104"/>
+      <IDSymbol name="cmdidAnalyzeCPP" value="0x105"/>
     </GuidSymbol>
 
     <!-- Menu command icons -->
     <GuidSymbol name="guidIcons" value="{216049B9-855E-4091-8781-186C91F0743F}">
       <IDSymbol name="bmpSonarQube" value="1"/>
     </GuidSymbol>
-
+    <GuidSymbol name="SonarLintIcons" value="{CD04EF2B-988B-453D-B344-CE117A65F6DA}">
+	    <IDSymbol name="bmpSonarLint" value="1"/>
+    </GuidSymbol>
     <!-- VS Code Analysis menu/group Guid:IDs -->
     <GuidSymbol name="guidCodeAnalysisMenuGroup" value="{FBC1A65B-A334-4EC8-8FBE-DB1C56335FB6}">
       <IDSymbol name="IDG_CODEANALYSIS_TOPLEVEL" value="0x208"/>
       <IDSymbol name="IDG_SOLUTION_ANALYZE" value="0x217"/>
     </GuidSymbol>
   </Symbols>
-  
+
 </CommandTable>
