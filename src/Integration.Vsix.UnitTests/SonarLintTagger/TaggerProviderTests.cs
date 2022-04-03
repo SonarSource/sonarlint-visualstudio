@@ -72,6 +72,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockSonarErrorDataSource = new Mock<ISonarErrorListDataSource>();
 
             mockAnalyzerController = new Mock<IAnalyzerController>();
+            mockAnalyzerController.Setup(m => m.ShouldExecuteAnalysis(It.IsAny<IAnalyzerOptions>(), It.IsAny<IEnumerable<AnalysisLanguage>>())).Returns(true);
 
             var mockProject = new Mock<Project>();
             mockProject.Setup(p => p.Name).Returns("MyProject");
@@ -124,13 +125,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             tagger.Should().NotBeNull();
 
             VerifyCheckedAnalysisIsSupported();
+            VerifyShouldExecuteAnalysis();
             VerifyAnalysisWasRequested();
             mockAnalyzerController.VerifyNoOtherCalls();
         }
 
         [TestMethod]
         public void CreateTagger_should_return_null_when_analysis_is_not_supported()
-        { 
+        {
             var doc = CreateMockedDocument("anyname", isDetectable: false);
             var tagger = CreateTaggerForDocument(doc);
 
@@ -452,11 +454,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockAnalyzerController.Verify(x => x.IsAnalysisSupported(It.IsAny<IEnumerable<AnalysisLanguage>>()), Times.Once);
         }
 
+        private void VerifyShouldExecuteAnalysis()
+        {
+            mockAnalyzerController.Verify(x => x.ShouldExecuteAnalysis(It.IsAny<IAnalyzerOptions>(), It.IsAny<IEnumerable<AnalysisLanguage>>()), Times.Once);
+        }
+
         private void VerifyAnalysisWasRequested()
         {
             mockAnalyzerController.Verify(
                 x => x.ExecuteAnalysis("anyname", "utf-8", It.IsAny<IEnumerable<AnalysisLanguage>>(),
-                    It.IsAny<IIssueConsumer>(), null, CancellationToken.None), Times.Once);
+                    It.IsAny<IIssueConsumer>(), It.IsAny<AnalyzerTriggerOption>(), CancellationToken.None), Times.Once);
         }
 
         private class DummyTextDocumentFactoryService : ITextDocumentFactoryService

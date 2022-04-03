@@ -70,6 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         {
             mockSonarErrorDataSource = new Mock<ISonarErrorListDataSource>();
             mockAnalyzerController = new Mock<IAnalyzerController>();
+            mockAnalyzerController.Setup(m => m.ShouldExecuteAnalysis(It.IsAny<IAnalyzerOptions>(), It.IsAny<IEnumerable<AnalysisLanguage>>())).Returns(true);
             issuesFilter = new Mock<IIssuesFilter>();
             taggerProvider = CreateTaggerProvider();
             mockDocumentTextBuffer = CreateTextBufferMock();
@@ -194,7 +195,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         {
             mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8",
                 new[] {AnalysisLanguage.Javascript}, It.IsAny<IIssueConsumer>(),
-                null /* no expecting any options when a new tagger is added */,
+                It.IsAny<AnalyzerTriggerOption>() /* no expecting any options when a new tagger is added */,
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
@@ -239,7 +240,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var args = new TextDocumentFileActionEventArgs(mockDocument.Object.FilePath, DateTime.UtcNow, FileActionTypes.ContentLoadedFromDisk);
             mockDocument.Raise(x => x.FileActionOccurred += null, args);
         }
-        
+
         private void CheckAnalysisWasNotRequested()
         {
             mockAnalyzerController.Verify(x => x.ExecuteAnalysis(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<AnalysisLanguage>>(),
@@ -262,7 +263,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Use the test version of the text buffer to bypass the span translation code
             testSubject = new TestableTextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
-                mockSonarErrorDataSource.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), 
+                mockSonarErrorDataSource.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(),
                 Mock.Of<IVsSolution5>(), logger);
 
             mockSonarErrorDataSource.Invocations.Clear();
@@ -442,7 +443,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var textDocFactoryServiceMock = new Mock<ITextDocumentFactoryService>();
 
             var languageRecognizer = Mock.Of<ISonarLanguageRecognizer>();
-                 
+
             // DTE object setup
             var mockProject = new Mock<Project>();
             mockProject.Setup(p => p.Name).Returns("MyProject");

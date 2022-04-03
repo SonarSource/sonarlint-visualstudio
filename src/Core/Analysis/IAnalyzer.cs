@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
         bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages);
 
 
-        // This is used to control when the analysis runs. Currently, only used by CFamily anakyzer.
+        // This is used to control when the analysis runs. Currently, only used by CFamily analyzer.
         bool ShouldExecuteAnalysis(IAnalyzerOptions analyzerOptions, IEnumerable<AnalysisLanguage> languages);
 
         void ExecuteAnalysis(string path,
