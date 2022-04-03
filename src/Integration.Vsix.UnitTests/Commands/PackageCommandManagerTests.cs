@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void PackageCommandManager_Ctor_NullArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new PackageCommandManager(null));
+            Exceptions.Expect<ArgumentNullException>(() => new PackageCommandManager((IMenuCommandService)null));
         }
 
         [TestMethod]
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             testSubject.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
                 serviceProvider.GetMefService<IProjectPropertyManager>(),
-                Mock.Of<IProjectToLanguageMapper>());
+                Mock.Of<IProjectToLanguageMapper>(), null, null, null);
 
             // Assert
             menuService.Commands.Should().HaveCount(allCommands.Count, "Unexpected number of commands");

@@ -28,6 +28,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         ProjectTestPropertyAuto = 0x102,
         ProjectTestPropertyTrue = 0x103,
         ProjectTestPropertyFalse = 0x104,
+        AnalyzeCPPFile = 0x105,
 
         // Menus
         ProjectSonarLintMenu = 0x850

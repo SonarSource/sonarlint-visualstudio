@@ -27,9 +27,13 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppression;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -92,9 +96,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 this.sonarAnalyzerManager = new SonarAnalyzerManager(activeSolutionBoundTracker, workspace, vsSolution, logger, sonarQubeIssuesProvider);
 
                 this.commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
+                var docLocator = await this.GetMefServiceAsync<IActiveDocumentLocator>();
+                var languageRecognizer = await this.GetMefServiceAsync<ISonarLanguageRecognizer>();
+                var requester = await this.GetMefServiceAsync<IAnalysisRequester>();
                 this.commandManager.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
                     serviceProvider.GetMefService<IProjectPropertyManager>(),
-                    serviceProvider.GetMefService<IProjectToLanguageMapper>());
+                    serviceProvider.GetMefService<IProjectToLanguageMapper>(), docLocator, languageRecognizer, requester);
 
                 logger.WriteLine(Resources.Strings.SL_InitializationComplete);
             }

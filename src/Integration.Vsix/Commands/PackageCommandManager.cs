@@ -21,14 +21,17 @@
 using System;
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal class PackageCommandManager
     {
         private readonly IMenuCommandService menuService;
-
         public PackageCommandManager(IMenuCommandService menuService)
         {
             if (menuService == null)
@@ -39,7 +42,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.menuService = menuService;
         }
 
-        public void Initialize(ITeamExplorerController teamExplorerController, IProjectPropertyManager projectPropertyManager, IProjectToLanguageMapper projectToLanguageMapper)
+        public void Initialize(
+            ITeamExplorerController teamExplorerController, IProjectPropertyManager projectPropertyManager,
+            IProjectToLanguageMapper projectToLanguageMapper, IActiveDocumentLocator activeDocumentLocator,
+            ISonarLanguageRecognizer sonarLanguageRecognizer, IAnalysisRequester analysisRequester)
         {
             // Buttons
             this.RegisterCommand((int)PackageCommandId.ManageConnections, new ManageConnectionsCommand(teamExplorerController));
@@ -47,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.RegisterCommand((int)PackageCommandId.ProjectTestPropertyAuto, new ProjectTestPropertySetCommand(projectPropertyManager, projectToLanguageMapper, null));
             this.RegisterCommand((int)PackageCommandId.ProjectTestPropertyTrue, new ProjectTestPropertySetCommand(projectPropertyManager, projectToLanguageMapper, true));
             this.RegisterCommand((int)PackageCommandId.ProjectTestPropertyFalse, new ProjectTestPropertySetCommand(projectPropertyManager, projectToLanguageMapper, false));
-
+            this.RegisterCommand((int)PackageCommandId.AnalyzeCPPFile, new CFamilyTriggerAnalysisCommand(activeDocumentLocator, sonarLanguageRecognizer, analysisRequester));
             // Menus
             this.RegisterCommand((int)PackageCommandId.ProjectSonarLintMenu, new ProjectSonarLintMenuCommand(projectPropertyManager, projectToLanguageMapper));
         }
