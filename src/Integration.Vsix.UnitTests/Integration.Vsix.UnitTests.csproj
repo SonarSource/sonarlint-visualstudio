@@ -5,6 +5,7 @@
   <PropertyGroup Label="Specify which VS-specific refs are required">
     <RequiresVCProjectEngine>true</RequiresVCProjectEngine>
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
+    <RequiresSystemIOAbstractions>true</RequiresSystemIOAbstractions>
   </PropertyGroup>
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
@@ -45,24 +46,14 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <!-- Suppress NuGet warning about the explicit downgrade to System.Collections.Immutable v1.1.37 -->
-    <NoWarn>NU1605</NoWarn>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
-    <PackageReference Include="System.Collections.Immutable" Version="1.1.37" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="1.3.2" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="1.3.2" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="1.3.2" />
-    <PackageReference Include="Microsoft.Composition" Version="1.0.30" />
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
-    <PackageReference Include="System.IO.Abstractions" Version="9.0.4" />
-    <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="9.0.4" />
-    <PackageReference Include="System.Reflection.Metadata" Version="1.2.0" />
   </ItemGroup>
 
   <!-- Only need to reference the analyzer common assembly for testing. -->
@@ -70,7 +61,6 @@
   <ItemGroup Label="Embedded SonarLint analyzers">
     <!-- Reference the packages we want to import, but we don't want to include them as analyzers for project -->
     <PackageReference Include="SonarAnalyzer.CSharp" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" />
-    <Reference Include="$(NuGetPackageRoot)SonarAnalyzer.CSharp\$(EmbeddedSonarAnalyzerVersion)\analyzers\SonarAnalyzer.dll" />
   </ItemGroup>
 
   <ItemGroup Label="Test framework">

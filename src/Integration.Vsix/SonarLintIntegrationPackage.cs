@@ -23,8 +23,6 @@ using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -34,6 +32,13 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
+using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
+using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
+
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -46,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [ProvideAutoLoad(VSConstants.UICONTEXT.ShellInitialized_string, PackageAutoLoadFlags.BackgroundLoad)]
     // Register the information needed to show the package in the Help/About dialog of VS.
     // NB: The version is automatically updated by the ChangeVersion.proj
-    [InstalledProductRegistration("#110", "#112", "5.5.0.0", IconResourceID = 400)]
+    [InstalledProductRegistration("#110", "#112", "6.1.0.0", IconResourceID = 400)]
     [ProvideOptionPage(typeof(GeneralOptionsDialogPage), "SonarLint", GeneralOptionsDialogPage.PageName, 901, 902, false, 903)]
     [ProvideOptionPage(typeof(OtherOptionsDialogPage), "SonarLint", OtherOptionsDialogPage.PageName, 901, 904, true)]
     [ProvideUIContextRule(CommonGuids.PackageActivation, "SonarLintIntegrationPackageActivation",
@@ -64,10 +69,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class SonarLintIntegrationPackage : AsyncPackage
     {
+        // Note: we don't currently have any tests for this class so we don't need to inject
+        // thread handling wrapper. However, we'll still use it so our threading code is
+        // consistent.
+        private readonly IThreadHandling threadHandling = new ThreadHandling();
+
         private PackageCommandManager commandManager;
-        private SonarAnalyzerManager sonarAnalyzerManager;
 
         private ILogger logger;
+        private IRoslynSettingsFileSynchronizer roslynSettingsFileSynchronizer;
 
         protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -78,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private async System.Threading.Tasks.Task InitOnUIThreadAsync()
         {
-            Debug.Assert(ThreadHelper.CheckAccess(), "SonarLint package - expecteding to be called in the UI thread");
+            threadHandling.ThrowIfNotOnUIThread();
 
             try
             {
@@ -88,13 +98,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 IServiceProvider serviceProvider = this;
 
-                var activeSolutionBoundTracker = await this.GetMefServiceAsync<IActiveSolutionBoundTracker>();
-                var sonarQubeIssuesProvider = await this.GetMefServiceAsync<ISonarQubeIssuesProvider>();
-                var workspace = await this.GetMefServiceAsync<VisualStudioWorkspace>();
-
-                var vsSolution = serviceProvider.GetService<SVsSolution, IVsSolution>();
-                this.sonarAnalyzerManager = new SonarAnalyzerManager(activeSolutionBoundTracker, workspace, vsSolution, logger, sonarQubeIssuesProvider);
-
                 this.commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
                 var docLocator = await this.GetMefServiceAsync<IActiveDocumentLocator>();
                 var languageRecognizer = await this.GetMefServiceAsync<ISonarLanguageRecognizer>();
@@ -102,6 +105,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 this.commandManager.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
                     serviceProvider.GetMefService<IProjectPropertyManager>(),
                     serviceProvider.GetMefService<IProjectToLanguageMapper>(), docLocator, languageRecognizer, requester);
+
+                this.roslynSettingsFileSynchronizer = await this.GetMefServiceAsync<IRoslynSettingsFileSynchronizer>();
+                roslynSettingsFileSynchronizer.UpdateFileStorageAsync().Forget(); // don't wait for it to finish
+                Debug.Assert(threadHandling.CheckAccess(), "Still expecting to be on the UI thread");
 
                 logger.WriteLine(Resources.Strings.SL_InitializationComplete);
             }
@@ -117,8 +124,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             base.Dispose(disposing);
             if (disposing)
             {
-                this.sonarAnalyzerManager?.Dispose();
-                this.sonarAnalyzerManager = null;
+                this.roslynSettingsFileSynchronizer?.Dispose();
+                this.roslynSettingsFileSynchronizer = null;
             }
         }
     }

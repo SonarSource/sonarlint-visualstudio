@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -123,6 +124,49 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             SimulateBindingEvent(eventType, bindingConfiguration);
 
             var actual = testSubject.GetSuppressedIssues("project guid", "file path");
+
+            actual.Should().BeEquivalentTo(expectedIssues);
+        }
+
+        [DataTestMethod]
+        [DataRow(SolutionBindingEventType.SolutionBindingUpdated)]
+        [DataRow(SolutionBindingEventType.SolutionBindingChanged)]
+        public async Task GetAllSuppressedIssues_SolutionBindingIsStandalone_EmptyList(SolutionBindingEventType eventType)
+        {
+            SimulateBindingEvent(eventType, BindingConfiguration.Standalone);
+
+            var actual = await testSubject.GetAllSuppressedIssuesAsync();
+
+            actual.Should().BeEmpty();
+        }
+
+        [DataTestMethod]
+        [DataRow(SolutionBindingEventType.SolutionBindingUpdated)]
+        [DataRow(SolutionBindingEventType.SolutionBindingChanged)]
+        public async Task GetAllSuppressedIssues_SolutionBindingIsStandalone_SonarQubeIssuesProviderNotCreated(SolutionBindingEventType eventType)
+        {
+            SimulateBindingEvent(eventType, BindingConfiguration.Standalone);
+
+            await testSubject.GetAllSuppressedIssuesAsync();
+
+            createProviderFunc.Verify(x =>
+                    x(It.IsAny<BindingConfiguration>()),
+                Times.Never);
+        }
+
+        [DataTestMethod]
+        [DataRow(SolutionBindingEventType.SolutionBindingUpdated, SonarLintMode.Connected)]
+        [DataRow(SolutionBindingEventType.SolutionBindingChanged, SonarLintMode.Connected)]
+        [DataRow(SolutionBindingEventType.SolutionBindingUpdated, SonarLintMode.LegacyConnected)]
+        [DataRow(SolutionBindingEventType.SolutionBindingChanged, SonarLintMode.LegacyConnected)]
+        public async Task GetAllSuppressedIssues_SolutionBindingIsConnected_ListFromSonarQubeIssuesProvider(SolutionBindingEventType eventType, SonarLintMode mode)
+        {
+            var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(), mode, null);
+            var expectedIssues = SetupExpectedIssues(bindingConfiguration);
+
+            SimulateBindingEvent(eventType, bindingConfiguration);
+
+            var actual = await testSubject.GetAllSuppressedIssuesAsync();
 
             actual.Should().BeEquivalentTo(expectedIssues);
         }
@@ -246,9 +290,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             }
         }
 
-        private List<SonarQubeIssue> SetupExpectedIssues(BindingConfiguration bindingConfiguration)
+        private IEnumerable<SonarQubeIssue> SetupExpectedIssues(BindingConfiguration bindingConfiguration)
         {
-            var expectedIssues = new List<SonarQubeIssue>
+            IEnumerable<SonarQubeIssue> expectedIssues = new List<SonarQubeIssue>
             {
                 new SonarQubeIssue("id1", "file path", "hash", "message", "module", "rule id", true, SonarQubeIssueSeverity.Critical,
                     DateTimeOffset.MinValue, DateTimeOffset.MinValue, new IssueTextRange(1, 2, 3, 4),  flows: null),
@@ -261,6 +305,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             issuesProvider
                 .Setup(x => x.GetSuppressedIssues("project guid", "file path"))
                 .Returns(expectedIssues);
+
+            issuesProvider
+                .Setup(x => x.GetAllSuppressedIssuesAsync())
+                .Returns(Task.FromResult(expectedIssues));
 
             createProviderFunc
                 .Setup(x => x(bindingConfiguration))

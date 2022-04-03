@@ -21,8 +21,8 @@
 using System.Linq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Core.ETW;
 using SonarLint.VisualStudio.Core.Helpers;
-using SonarLint.VisualStudio.Integration.ETW;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {

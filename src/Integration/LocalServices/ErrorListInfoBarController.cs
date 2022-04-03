@@ -31,6 +31,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ETW;
 using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Binding;
@@ -184,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             logger.LogDebug("[ErrorListInfoBarController] Processing solution binding...");
 
-            ETW.CodeMarkers.Instance.ErrorListControllerProcessStart();
+            CodeMarkers.Instance.ErrorListControllerProcessStart();
 
             await threadHandling.SwitchToBackgroundThread();
             
@@ -219,7 +220,7 @@ namespace SonarLint.VisualStudio.Integration
             }
             finally
             {
-                ETW.CodeMarkers.Instance.ErrorListControllerProcessStop();
+                CodeMarkers.Instance.ErrorListControllerProcessStop();
             }
         }
 

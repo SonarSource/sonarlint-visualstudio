@@ -30,7 +30,7 @@ using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Integration.ETW;
+using SonarLint.VisualStudio.Core.ETW;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 
 /* Instancing: a new issue converter should be created for each analysis run.
@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     internal interface ICFamilyIssueConverterFactory
     {
-        ICFamilyIssueToAnalysisIssueConverter Create();        
+        ICFamilyIssueToAnalysisIssueConverter Create();
     }
 
     [Export(typeof(ICFamilyIssueConverterFactory))]
@@ -122,10 +122,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             var defaultSeverity = rulesConfiguration.RulesMetadata[cFamilyIssue.RuleKey].DefaultSeverity;
             var defaultType = rulesConfiguration.RulesMetadata[cFamilyIssue.RuleKey].Type;
 
-            var fileContents = GetFileContentsOfReportedFiles(cFamilyIssue); 
+            var fileContents = GetFileContentsOfReportedFiles(cFamilyIssue);
 
             var locations = cFamilyIssue.Parts
-                .Select(x=> ToAnalysisIssueLocation(x, fileContents))
+                .Select(x => ToAnalysisIssueLocation(x, fileContents))
                 .ToArray();
 
             // If PartsMakeFlow is set to true the issues are expected to be in the reversed order
@@ -147,10 +147,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             var filePaths = cFamilyIssue.Parts
                 .Select(x => x.Filename)
-                .Union(new[] {cFamilyIssue.Filename})
+                .Union(new[] { cFamilyIssue.Filename })
                 .Distinct();
 
-            foreach(var filePath in filePaths)
+            foreach (var filePath in filePaths)
             {
                 if (pathToTextDocMap.ContainsKey(filePath))
                 {
@@ -180,7 +180,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return null;
         }
 
-        private IAnalysisIssue ToAnalysisIssue(Message cFamilyIssue, 
+        private IAnalysisIssue ToAnalysisIssue(Message cFamilyIssue,
             string sqLanguage,
             IssueSeverity defaultSeverity,
             IssueType defaultType,
@@ -203,8 +203,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 startLineOffset: cFamilyIssue.EndLine == 0 ? 0 : cFamilyIssue.Column - 1,
                 endLineOffset: cFamilyIssue.EndLine == 0 ? 0 : cFamilyIssue.EndColumn - 1,
 
-                flows: flows
+                flows: flows,
+                fixes: ToQuickFixes(cFamilyIssue)
             );
+        }
+
+        private static List<QuickFix> ToQuickFixes(Message cFamilyIssue)
+        {
+            return cFamilyIssue.Fixes.Select(f =>
+                    new QuickFix(
+                        message: f.Message,
+                        f.Edits?.Select(e =>
+                                new Core.Analysis.Edit(
+                                    startLine: e.StartLine,
+                                    startColumn: e.StartColumn - 1,
+                                    endLine: e.EndLine,
+                                    endColumn: e.EndColumn - 1,
+                                    text: e.Text))
+                            .ToList()))
+                .ToList();
         }
 
         private string CalculateLineHash(MessagePart cFamilyIssueLocation, IReadOnlyDictionary<string, ITextDocument> fileContents)
