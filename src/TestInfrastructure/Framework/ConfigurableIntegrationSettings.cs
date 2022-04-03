@@ -24,6 +24,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         public DaemonLogLevel DaemonLogLevel { get; set; }
 
+        public AnalyzeCFamilyOnSave AnalyzeCFamilyOnSave { get; set; }
+
         public bool IsActivateMoreEnabled { get; set; }
     }
 }

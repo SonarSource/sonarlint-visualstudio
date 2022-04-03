@@ -93,6 +93,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return languages.Contains(AnalysisLanguage.CFamily);
         }
 
+        public bool ShouldExecuteAnalysis(IAnalyzerOptions analyzerOptions, IEnumerable<AnalysisLanguage> languages)
+        {
+            if (analyzerOptions is AnalyzerTriggerOption analyzerTriggerOption &&
+            analyzerTriggerOption.AnalysisTrigger == AnalysisTrigger.Save &&
+            settings.AnalyzeCFamilyOnSave == AnalyzeCFamilyOnSave.Disabled)
+            {
+                return false;
+            }
+            return true;
+        }
+
         public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
             IIssueConsumer consumer, IAnalyzerOptions analyzerOptions,
             CancellationToken cancellationToken)

@@ -12,6 +12,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
@@ -46,6 +47,12 @@
                        Margin="5" TextWrapping="Wrap" />
 
             <ComboBox x:Name="DaemonVerbosity" SelectedIndex="2" HorizontalContentAlignment="Stretch" Margin="5" Padding="5,2.5"/>
+        </StackPanel>
+        <StackPanel x:Name="AnalysisControl" Grid.Row="3" Grid.ColumnSpan="2">
+            <TextBlock Text="Run C and C++ on save:"
+                       Margin="5" TextWrapping="Wrap" />
+
+            <ComboBox x:Name="AnalyzeCFamilyOnSave" SelectedIndex="0" HorizontalContentAlignment="Stretch" Margin="5" Padding="5,2.5"/>
         </StackPanel>
 
     </Grid>

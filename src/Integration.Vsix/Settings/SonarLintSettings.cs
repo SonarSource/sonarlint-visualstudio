@@ -148,5 +148,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             get { return (DaemonLogLevel)this.GetValueOrDefault(nameof(DaemonLogLevel), (int)DaemonLogLevel.Minimal); }
             set { this.SetValue(nameof(DaemonLogLevel), (int)value); }
         }
+
+        public AnalyzeCFamilyOnSave AnalyzeCFamilyOnSave
+        {
+            get { return (AnalyzeCFamilyOnSave)this.GetValueOrDefault(nameof(AnalyzeCFamilyOnSave), (int)AnalyzeCFamilyOnSave.Enabled); }
+            set { this.SetValue(nameof(AnalyzeCFamilyOnSave), (int)value); }
+        }
     }
 }

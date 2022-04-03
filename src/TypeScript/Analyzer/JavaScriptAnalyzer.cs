@@ -60,6 +60,8 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             return languages.Contains(AnalysisLanguage.Javascript);
         }
 
+        public bool ShouldExecuteAnalysis(IAnalyzerOptions analyzerOptions, IEnumerable<AnalysisLanguage> languages) => true;
+
         public void ExecuteAnalysis(string path,
             string charset,
             IEnumerable<AnalysisLanguage> detectedLanguages,

@@ -21,6 +21,7 @@
 namespace SonarLint.VisualStudio.Integration
 {
     public enum DaemonLogLevel { Verbose, Info, Minimal };
+    public enum AnalyzeCFamilyOnSave { Enabled, Disabled };
 
     public interface ISonarLintSettings
     {
@@ -33,5 +34,6 @@ namespace SonarLint.VisualStudio.Integration
         /// </remarks>
         bool IsActivateMoreEnabled { get; set; }
         DaemonLogLevel DaemonLogLevel { get; set; }
+        AnalyzeCFamilyOnSave AnalyzeCFamilyOnSave { get; set; }
     }
 }

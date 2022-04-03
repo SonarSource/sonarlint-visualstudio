@@ -63,6 +63,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             dialogControl.DaemonVerbosity.ItemsSource = Enum.GetValues(typeof(DaemonLogLevel)).Cast<DaemonLogLevel>();
             dialogControl.DaemonVerbosity.SelectedItem = Settings.DaemonLogLevel;
+
+            dialogControl.AnalyzeCFamilyOnSave.ItemsSource = Enum.GetValues(typeof(AnalyzeCFamilyOnSave)).Cast<AnalyzeCFamilyOnSave>();
+            dialogControl.AnalyzeCFamilyOnSave.SelectedItem = Settings.AnalyzeCFamilyOnSave;
         }
 
         protected override void OnApply(PageApplyEventArgs e)
@@ -70,6 +73,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (e.ApplyBehavior == ApplyKind.Apply)
             {
                 Settings.DaemonLogLevel = (DaemonLogLevel)dialogControl.DaemonVerbosity.SelectedItem;
+                Settings.AnalyzeCFamilyOnSave = (AnalyzeCFamilyOnSave)dialogControl.AnalyzeCFamilyOnSave.SelectedItem;
             }
 
             base.OnApply(e);

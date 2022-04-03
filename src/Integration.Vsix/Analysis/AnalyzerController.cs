@@ -57,6 +57,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             return isSupported;
         }
 
+        public bool ShouldExecuteAnalysis(IAnalyzerOptions analyzerOptions, IEnumerable<AnalysisLanguage> languages)
+        {
+            // Analysis should be executed when all the analyzer that are supported should execute the analysis.
+            bool isSupported = analyzers.All(a => !a.IsAnalysisSupported(languages) || (a.IsAnalysisSupported(languages) && a.ShouldExecuteAnalysis(analyzerOptions, languages)));
+            return isSupported;
+        }
+
         public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
             IIssueConsumer consumer, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
         {

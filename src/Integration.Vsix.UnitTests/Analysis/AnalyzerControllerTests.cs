@@ -137,6 +137,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
                 return supportedLanguages?.Intersect(languages).Count() > 0;
             }
 
+            public bool ShouldExecuteAnalysis(IAnalyzerOptions analyzerOptions, IEnumerable<AnalysisLanguage> languages) => true;
+
             public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
                 IIssueConsumer consumer, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
             {

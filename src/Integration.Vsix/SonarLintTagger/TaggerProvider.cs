@@ -240,5 +240,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 issueTrackers.Remove(issueTracker);
             }
         }
+
+        public bool ShouldExecuteAnalysis(IAnalyzerOptions analyzerOptions, IEnumerable<AnalysisLanguage> languages)
+        {
+            return analyzerController.ShouldExecuteAnalysis(analyzerOptions, languages);
+        }
     }
 }

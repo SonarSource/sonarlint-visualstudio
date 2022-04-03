@@ -83,6 +83,8 @@ namespace SonarLint.VisualStudio.CloudSecrets
             return true;
         }
 
+        public bool ShouldExecuteAnalysis(IAnalyzerOptions analyzerOptions, IEnumerable<AnalysisLanguage> languages) => true;
+
         public void ExecuteAnalysis(string filePath,
             string charset,
             IEnumerable<AnalysisLanguage> detectedLanguages,

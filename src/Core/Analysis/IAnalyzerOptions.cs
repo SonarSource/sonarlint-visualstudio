@@ -26,4 +26,12 @@ namespace SonarLint.VisualStudio.Core.Analysis
     public interface IAnalyzerOptions
     {
     }
+
+    // Currently only used by CFamily to control when the analysis runs
+    public enum AnalysisTrigger { Open, Save, Action };
+
+    public class AnalyzerTriggerOption : IAnalyzerOptions
+    {
+        public AnalysisTrigger AnalysisTrigger { get; set; }
+    }
 }

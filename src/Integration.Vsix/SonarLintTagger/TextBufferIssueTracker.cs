@@ -86,14 +86,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.FilePath = document.FilePath;
             this.charset = document.Encoding.WebName;
 
-            this.Factory = new IssuesSnapshotFactory(new IssuesSnapshot(GetProjectName(), GetProjectGuid(), FilePath, new List<IAnalysisIssueVisualization>()));
+            this.Factory = new IssuesSnapshotFactory(new IssuesSnapshot(GetProjectName(), GetProjectGuid(), FilePath,
+                new List<IAnalysisIssueVisualization>()));
 
             document.FileActionOccurred += SafeOnFileActionOccurred;
 
             sonarErrorDataSource.AddFactory(this.Factory);
             Provider.AddIssueTracker(this);
 
-            RequestAnalysis(null /* no options */);
+            RequestAnalysis(new AnalyzerTriggerOption
+            {
+                AnalysisTrigger = AnalysisTrigger.Open
+            });
         }
 
         private void SafeOnFileActionOccurred(object sender, TextDocumentFileActionEventArgs e)
@@ -104,7 +108,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 if (e.FileActionType == FileActionTypes.ContentSavedToDisk)
                 {
-                    RequestAnalysis(null /* no options */);
+                    RequestAnalysis(new AnalyzerTriggerOption
+                    {
+                        AnalysisTrigger = AnalysisTrigger.Save
+                    });
                 }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -142,6 +149,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void RequestAnalysis(IAnalyzerOptions options)
         {
+            // should be fone before clearing the issues
+            if (!Provider.ShouldExecuteAnalysis(options, detectedLanguages))
+            {
+                return;
+            }
             FilePath = document.FilePath; // Refresh the stored file path in case the document has been renamed
             var issueConsumer = new AccumulatingIssueConsumer(textBuffer.CurrentSnapshot, FilePath, HandleNewIssues, converter);
 
