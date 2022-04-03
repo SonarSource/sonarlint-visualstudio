@@ -70,6 +70,9 @@
       </Button>
       <Button guid="guidCmdSet" id="cmdidAnalyzeCPP" type="Button">
         <Icon guid="SonarLintIcons" id="bmpSonarLint"/>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <ButtonText>Run C and C++ analysis</ButtonText>
         </Strings>
