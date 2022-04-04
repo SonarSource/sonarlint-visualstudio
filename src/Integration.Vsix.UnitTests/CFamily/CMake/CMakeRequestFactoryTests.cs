@@ -31,7 +31,7 @@ using SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake;
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
 {
     [TestClass]
-    public class CompilationDatabaseRequestFactoryTests
+    public class CMakeRequestFactoryTests
     {
         private static readonly IEnvironmentVarsProvider ValidEnvVarsProvider = CreateEnvVarsProvider(new Dictionary<string, string> { { "key", "value" } }).Object;
         private static readonly ICFamilyRulesConfigProvider ValidRulesConfigProvider_Cpp = CreateRulesProvider(SonarLanguageKeys.CPlusPlus, new DummyCFamilyRulesConfig((SonarLanguageKeys.CPlusPlus))).Object;
@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<CompilationDatabaseRequestFactory, IRequestFactory>(null, new[]
+            MefTestHelpers.CheckTypeCanBeImported<CMakeRequestFactory, IRequestFactory>(null, new[]
             {
                 MefTestHelpers.CreateExport<ICompilationConfigProvider>(Mock.Of<ICompilationConfigProvider>()),
                 MefTestHelpers.CreateExport<ICFamilyRulesConfigProvider>(Mock.Of<ICFamilyRulesConfigProvider>()),
@@ -121,6 +121,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         }
 
         [TestMethod]
+        [Description("Check support for header files")]
+        [DataRow("c:\\file.h", true)]
+        [DataRow("c:\\file.c", false)]
+        public async Task TryGet_IsHeaderFileCalculatedCorrectly(string analyzedFilePath, bool expectedIsHeaderFile)
+        {
+            var compilationDatabaseEntry = CreateCompilationDatabaseEntry("file.c");
+            var compilationConfigProvider = CreateCompilationProvider(analyzedFilePath, compilationDatabaseEntry);
+            var rulesConfigProvider = new Mock<ICFamilyRulesConfigProvider>();
+
+            var testSubject = CreateTestSubject(compilationConfigProvider.Object, rulesConfigProvider.Object, ValidEnvVarsProvider);
+            var request = await testSubject.TryCreateAsync(analyzedFilePath, new CFamilyAnalyzerOptions());
+
+            // When analyzing header files, the analyzed file will be ".h" but the compilation entry is a ".c" file.
+            // We expected the property IsHeaderFile to be calculated based of the analyzed file, and not the compilation entry
+            request.Context.IsHeaderFile.Should().Be(expectedIsHeaderFile);
+        }
+
+        [TestMethod]
         public async Task TryGet_UnrecognizedLanguage_ReturnsNull()
         {
             const string fileName = "c:\\file.txt";
@@ -164,7 +182,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
             actual.Context.RulesConfiguration.Should().BeSameAs(rulesConfig);
         }
 
-        private static CompilationDatabaseRequestFactory CreateTestSubject(
+        private static CMakeRequestFactory CreateTestSubject(
             ICompilationConfigProvider compilationConfigProvider = null,
             ICFamilyRulesConfigProvider rulesConfigProvider = null,
             IEnvironmentVarsProvider envVarsProvider = null)
@@ -173,7 +191,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
             rulesConfigProvider ??= Mock.Of<ICFamilyRulesConfigProvider>();
             envVarsProvider ??= Mock.Of<IEnvironmentVarsProvider>();
 
-            return new CompilationDatabaseRequestFactory(compilationConfigProvider, rulesConfigProvider, envVarsProvider);
+            return new CMakeRequestFactory(compilationConfigProvider, rulesConfigProvider, envVarsProvider);
         }
 
         private static Mock<ICompilationConfigProvider> CreateCompilationProvider(string fileName, CompilationDatabaseEntry entryToReturn)

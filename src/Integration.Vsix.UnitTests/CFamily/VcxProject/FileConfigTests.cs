@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using EnvDTE;
 using FluentAssertions;
@@ -64,99 +63,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
         }
 
         [TestMethod]
-        public void GetPotentiallyUnsupportedPropertyValue_PropertySupported_ReturnsValue()
-        {
-            // Arrange
-            var settingsMock = new Mock<IVCRulePropertyStorage>();
-            settingsMock.Setup(x => x.GetEvaluatedPropertyValue("propertyName1"))
-                .Returns("propertyValue");
-
-            // Act
-            var result =
-                FileConfig.GetPotentiallyUnsupportedPropertyValue(settingsMock.Object, "propertyName1",
-                    "default xxx");
-
-            // Assert
-            result.Should().Be("propertyValue");
-        }
-
-        [TestMethod]
-        public void GetPotentiallyUnsupportedPropertyValue_PropertyUnsupported_ReturnsDefaultValue()
-        {
-            // Arrange
-            var settingsMock = new Mock<IVCRulePropertyStorage>();
-            var methodCalled = false;
-            settingsMock.Setup(x => x.GetEvaluatedPropertyValue(It.IsAny<string>()))
-                .Callback(() => methodCalled = true)
-                .Throws(new InvalidCastException("xxx"));
-
-            // Act - exception should be handled
-            var result =
-                FileConfig.GetPotentiallyUnsupportedPropertyValue(settingsMock.Object, "propertyName1",
-                    "default xxx");
-
-            // Assert
-            result.Should().Be("default xxx");
-            methodCalled.Should().BeTrue(); // Sanity check that the test mock was invoked
-        }
-
-        [TestMethod]
-        public void GetPotentiallyUnsupportedPropertyValue_CriticalException_IsNotSuppressed()
-        {
-            // Arrange
-            var settingsMock = new Mock<IVCRulePropertyStorage>();
-            settingsMock.Setup(x => x.GetEvaluatedPropertyValue(It.IsAny<string>()))
-                .Throws(new StackOverflowException("foo"));
-
-            // Act and Assert
-            Action act = () =>
-                FileConfig.GetPotentiallyUnsupportedPropertyValue(settingsMock.Object, "propertyName1",
-                    "default xxx");
-
-            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("foo");
-        }
-
-        [TestMethod]
-        public void GetCompilerVersion()
-        {
-            FileConfig.GetCompilerVersion("v90", "").Should().Be("15.00.00");
-
-            FileConfig.GetCompilerVersion("v100", "").Should().Be("16.00.00");
-
-            FileConfig.GetCompilerVersion("v110", "").Should().Be("17.00.00");
-            FileConfig.GetCompilerVersion("v110_xp", "").Should().Be("17.00.00");
-
-            FileConfig.GetCompilerVersion("v120", "").Should().Be("18.00.00");
-            FileConfig.GetCompilerVersion("v120_xp", "").Should().Be("18.00.00");
-
-            FileConfig.GetCompilerVersion("v140", "").Should().Be("19.00.00");
-            FileConfig.GetCompilerVersion("v140_xp", "").Should().Be("19.00.00");
-
-            FileConfig.GetCompilerVersion("v141", "14.10.00").Should().Be("19.10.00");
-            FileConfig.GetCompilerVersion("v141_xp", "14.10.50").Should().Be("19.10.50");
-
-            FileConfig.GetCompilerVersion("v142", "14.25.28612").Should().Be("19.25.28612");
-
-            FileConfig.GetCompilerVersion("v143", "14.30.30705").Should().Be("19.30.30705"); // default for VS2022
-
-            Action action = () => FileConfig.GetCompilerVersion("v142", "2132");
-            action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
-                .StartWith("Unsupported VCToolsVersion: 2132");
-
-            action = () => FileConfig.GetCompilerVersion("v144", "14.30.0000");
-            action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
-                .StartWith("Unsupported PlatformToolset: v144");
-
-            action = () => FileConfig.GetCompilerVersion("", "");
-            action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith
-                ("The file cannot be analyzed because the platform toolset has not been specified.");
-        }
-
-        [TestMethod]
         public void TryGet_UnsupportedItemType_ReturnsNull()
         {
             // Arrange
-            var projectItemConfig = new ProjectItemConfig {ItemType = "None"};
+            var projectItemConfig = new ProjectItemConfig { ItemType = "None" };
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
@@ -171,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
         public void TryGet_UnsupportedConfigurationType_ReturnsNull()
         {
             // Arrange
-            var projectItemConfig = new ProjectItemConfig {ConfigurationType = ConfigurationTypes.typeUnknown};
+            var projectItemConfig = new ProjectItemConfig { ConfigurationType = ConfigurationTypes.typeUnknown };
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
@@ -186,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
         public void TryGet_UnsupportedCustomBuild_ReturnsNull()
         {
             // Arrange
-            var projectItemConfig = new ProjectItemConfig {IsVCCLCompilerTool = false};
+            var projectItemConfig = new ProjectItemConfig { IsVCCLCompilerTool = false };
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
@@ -198,6 +108,43 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
         }
 
         [TestMethod]
+        public void TryGet_Full_Cmd()
+        {
+            // Arrange
+            var projectItemConfig = new ProjectItemConfig
+            {
+                ItemType = "ClCompile",
+                FileConfigProperties = new Dictionary<string, string>
+                {
+                    ["PrecompiledHeader"] = "NotUsing",
+                    ["CompileAs"] = "CompileAsCpp",
+                    ["CompileAsManaged"] = "false",
+                    ["EnableEnhancedInstructionSet"] = "AdvancedVectorExtensions512",
+                    ["RuntimeLibrary"] = "MultiThreaded",
+                    ["LanguageStandard"] = "stdcpp17",
+                    ["ExceptionHandling"] = "Sync",
+                    ["BasicRuntimeChecks"] = "UninitializedLocalUsageCheck",
+                    ["ConformanceMode"] = "true",
+                    ["StructMemberAlignment"] = "8Bytes",
+                    ["AdditionalOptions"] = "/DA",
+                }
+            };
+
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
+
+            // Act
+            var request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp");
+
+            // Assert
+            request.Should().NotBeNull();
+            Assert.AreEqual("\"C:\\path\\cl.exe\" /permissive- /std:c++17 /EHsc /arch:AVX512 /MT /RTCu /Zp8 /TP /DA \"c:\\dummy\\file.cpp\"", request.CDCommand);
+            Assert.AreEqual("", request.HeaderFileLanguage);
+            Assert.AreEqual("C:\\path\\includeDir1;C:\\path\\includeDir2;C:\\path\\includeDir3;", request.EnvInclude);
+            Assert.AreEqual("c:\\dummy\\file.cpp", request.CDFile);
+            Assert.AreEqual("c:\\foo", request.CDDirectory);
+        }
+
+        [TestMethod]
         public void TryGet_HeaderFileOptions_ReturnsValidConfig()
         {
             // Arrange
@@ -206,7 +153,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
                 ItemType = "ClInclude",
                 FileConfigProperties = new Dictionary<string, string>
                 {
-                    ["PrecompiledHeader"] = "NotUsing",
                     ["CompileAs"] = "Default",
                     ["CompileAsManaged"] = "false",
                     ["EnableEnhancedInstructionSet"] = "",
@@ -219,7 +165,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
                     ["PrecompiledHeaderFile"] = "pch.h",
                 }
             };
-         
+
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
@@ -227,8 +173,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
 
             // Assert
             request.Should().NotBeNull();
-            Assert.AreEqual("pch.h", request.ForcedIncludeFiles);
-            Assert.AreEqual("CompileAsCpp", request.CompileAs);
+            Assert.AreEqual("\"C:\\path\\cl.exe\" /Yu\"pch.h\" /FI\"pch.h\" /EHsc /RTCu \"c:\\dummy\\file.h\"", request.CDCommand);
+            Assert.AreEqual("cpp", request.HeaderFileLanguage);
 
             // Arrange
             projectItemConfig.FileConfigProperties["CompileAs"] = "CompileAsC";
@@ -238,8 +184,44 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h");
 
             // Assert
-            Assert.AreEqual("FHeader.h", request.ForcedIncludeFiles);
-            Assert.AreEqual("CompileAsC", request.CompileAs);
+            Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /EHsc /RTCu \"c:\\dummy\\file.h\"", request.CDCommand);
+            Assert.AreEqual("c", request.HeaderFileLanguage);
         }
+
+        [TestMethod]
+        public void TryGet_CompilerName_VS2017()
+        {
+            // Arrange
+            var projectItemConfig = new ProjectItemConfig
+            {
+                ProjectConfigProperties = new Dictionary<string, string>
+                {
+                    ["ClCompilerPath"] = null,
+                    ["IncludePath"] = "C:\\path\\includeDir1;C:\\path\\includeDir2;C:\\path\\includeDir3;",
+                    ["VC_ExecutablePath_x86"] = "C:\\path\\x86",
+                    ["VC_ExecutablePath_x64"] = "C:\\path\\x64",
+                }
+            };
+
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
+
+            // Act
+            var request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp");
+
+            // Assert
+            request.Should().NotBeNull();
+            Assert.IsTrue(request.CDCommand.StartsWith("\"C:\\path\\x86\\cl.exe\""));
+
+            // Arrange
+            projectItemConfig.PlatformName = "x64";
+            projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
+            // Act
+            request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp");
+
+            // Assert
+            request.Should().NotBeNull();
+            Assert.IsTrue(request.CDCommand.StartsWith("\"C:\\path\\x64\\cl.exe\""));
+        }
+
     }
 }

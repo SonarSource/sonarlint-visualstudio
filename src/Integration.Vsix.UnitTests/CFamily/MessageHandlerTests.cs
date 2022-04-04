@@ -152,26 +152,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void HandleMessage_InternalRule_FileDependency_IsIgnored()
-        {
-            var internalMessage = CreateMessage("internal.fileDependency", text: "c:\\file.txt");
-
-            var context = new MessageHandlerTestContext()
-                // The message file name matches the file being analyzed, but should be ignored anyway
-                // because of the rule key
-                .SetRequestFilePath("c:\\file.txt");
-
-            var testSubject = context.CreateTestSubject();
-
-            // Act
-            testSubject.HandleMessage(internalMessage);
-
-            testSubject.AnalysisSucceeded.Should().BeTrue();
-            context.Logger.AssertNoOutputMessages();
-            context.AssertNoIssuesProcessed();
-        }
-
-        [TestMethod]
         [DataRow("internal.InvalidInput", "MsgHandler_ReportInvalidInput")]
         [DataRow("internal.UnexpectedFailure", "MsgHandler_ReportUnexpectedFailure")]
         [DataRow("internal.UnsupportedConfig", "MsgHandler_ReportUnsupportedConfiguration")]
@@ -193,6 +173,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             testSubject.AnalysisSucceeded.Should().BeFalse();
             context.Logger.AssertOutputStringExists(expectedLogMessage);
+            context.AssertNoIssuesProcessed();
+        }
+
+        [TestMethod]
+        [DataRow("internal.fileDependency")] // real property
+        [DataRow("internal.something")] // fake property
+        [DataRow("internal.InvalidInputtttt")] // testing that it takes any starts with
+        public void HandleMessage_UnknownInternalRules_IsIgnored(string ruleId)
+        {
+            var internalMessage = CreateMessage(ruleId, text: "c:\\file.txt");
+
+            var context = new MessageHandlerTestContext()
+                // The message file name matches the file being analyzed, but should be ignored anyway
+                // because of the rule key
+                .SetRequestFilePath("c:\\file.txt");
+
+            var testSubject = context.CreateTestSubject();
+
+            // Act
+            testSubject.HandleMessage(internalMessage);
+
+            testSubject.AnalysisSucceeded.Should().BeTrue();
+            context.Logger.AssertNoOutputMessages();
             context.AssertNoIssuesProcessed();
         }
 
@@ -250,7 +253,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             private static IRequest CreateRequest(string file = null, string language = null, ICFamilyRulesConfig rulesConfiguration = null)
             {
                 var request = new Mock<IRequest>();
-                var context = new RequestContext(language, rulesConfiguration, file, null, null);
+                var context = new RequestContext(language, rulesConfiguration, file, null, null, CFamilyShared.IsHeaderFileExtension(file));
                 request.SetupGet(x => x.Context).Returns(context);
                 return request.Object;
             }

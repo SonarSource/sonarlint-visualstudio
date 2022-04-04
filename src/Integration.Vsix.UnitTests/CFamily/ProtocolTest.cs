@@ -33,37 +33,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         #region Protocol-level reading/writing tests
 
         [TestMethod]
-        public void Write_Empty_Request()
-        {
-            using (MemoryStream stream = new MemoryStream())
-            {
-                BinaryWriter writer = new BinaryWriter(stream);
-                Protocol.Write(writer, new Request());
-
-                byte[] result = stream.ToArray();
-                result.Length.Should().Be(112);
-            }
-        }
-
-        [TestMethod]
-        public void Write_Request_With_One_Empty_Option()
-        {
-            Request request = new Request
-            {
-                Options = new string[] { "" }
-            };
-
-            using (MemoryStream stream = new MemoryStream())
-            {
-                BinaryWriter writer = new BinaryWriter(stream);
-                Protocol.Write(writer, request);
-
-                byte[] result = stream.ToArray();
-                result.Length.Should().Be(116);
-            }
-        }
-
-        [TestMethod]
         public void Read_Empty_Response()
         {
             var response = CallProtocolRead(MockEmptyResponse());
@@ -186,26 +155,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void Write_Short()
-        {
-            WriteShort(0).Should().BeEquivalentTo(new byte[] { 0, 0 });
-            WriteShort(1).Should().BeEquivalentTo(new byte[] { 0, 1 });
-        }
-
-        [TestMethod]
         public void Write_Int()
         {
             WriteInt(0).Should().BeEquivalentTo(new byte[] { 0, 0, 0, 0 });
             WriteInt(1).Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1 });
             WriteInt(int.MaxValue).Should().BeEquivalentTo(new byte[] { 0x7F, 0xFF, 0xFF, 0xFF });
             WriteInt(int.MinValue).Should().BeEquivalentTo(new byte[] { 0x80, 0x00, 0x00, 0x00 });
-        }
-
-        [TestMethod]
-        public void Write_Long()
-        {
-            WriteLong(0).Should().BeEquivalentTo(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 });
-            WriteLong(long.MaxValue).Should().BeEquivalentTo(new byte[] { 127, 255, 255, 255, 255, 255, 255, 255 });
         }
 
         [TestMethod]
@@ -236,17 +191,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             }
         }
 
-        private byte[] WriteShort(ushort s)
-        {
-            using (MemoryStream stream = new MemoryStream())
-            {
-                BinaryWriter writer = new BinaryWriter(stream);
-                Protocol.WriteUShort(writer, s);
-
-                return stream.ToArray();
-            }
-        }
-
         private byte[] WriteInt(int i)
         {
             using (MemoryStream stream = new MemoryStream())
@@ -264,17 +208,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             {
                 BinaryReader reader = new BinaryReader(stream);
                 return Protocol.ReadInt(reader);
-            }
-        }
-
-        private byte[] WriteLong(long l)
-        {
-            using (MemoryStream stream = new MemoryStream())
-            {
-                BinaryWriter writer = new BinaryWriter(stream);
-                Protocol.WriteLong(writer, l);
-
-                return stream.ToArray();
             }
         }
 

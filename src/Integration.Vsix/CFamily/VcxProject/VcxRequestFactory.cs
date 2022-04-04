@@ -19,17 +19,18 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.CFamily.Analysis;
+using SonarLint.VisualStudio.CFamily.CMake;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Helpers;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily.CompilationDatabase;
 using VsShell = Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
@@ -39,7 +40,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
     internal class VcxRequestFactory : IRequestFactory
     {
         private readonly ICFamilyRulesConfigProvider cFamilyRulesConfigProvider;
-        private readonly IRulesConfigProtocolFormatter rulesConfigProtocolFormatter;
         private readonly IThreadHandling threadHandling;
         private readonly IFileConfigProvider fileConfigProvider;
         private readonly ILogger logger;
@@ -51,7 +51,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             ILogger logger)
             : this(serviceProvider,
                 cFamilyRulesConfigProvider,
-                new RulesConfigProtocolFormatter(),
                 new FileConfigProvider(logger),
                 logger,
                 new ThreadHandling())
@@ -60,14 +59,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
         internal VcxRequestFactory(IServiceProvider serviceProvider,
             ICFamilyRulesConfigProvider rulesConfigProvider,
-            IRulesConfigProtocolFormatter rulesConfigProtocolFormatter,
             IFileConfigProvider fileConfigProvider,
             ILogger logger,
             IThreadHandling threadHandling)
         {
             this.dte = serviceProvider.GetService<SDTE, DTE2>();
             this.cFamilyRulesConfigProvider = rulesConfigProvider;
-            this.rulesConfigProtocolFormatter = rulesConfigProtocolFormatter;
             this.threadHandling = threadHandling;
             this.fileConfigProvider = fileConfigProvider;
             this.logger = logger;
@@ -133,69 +130,41 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
         {
             threadHandling.ThrowIfOnUIThread();
 
-            var request = ToRequest(fileConfig, analyzedFilePath);
+            var dbEntry = new CompilationDatabaseEntry { 
+                Directory = fileConfig.CDDirectory,
+                Command = fileConfig.CDCommand,
+                File = fileConfig.CDFile,
+                Arguments = null
+            };
 
-            if (request.CFamilyLanguage == null)
+            var headerFileLang = fileConfig.HeaderFileLanguage == "cpp" ? SonarLanguageKeys.CPlusPlus : SonarLanguageKeys.C;
+            var isHeaderFile = !string.IsNullOrEmpty(fileConfig.HeaderFileLanguage);
+            var languageKey = isHeaderFile ? headerFileLang : CFamilyShared.FindLanguageFromExtension(dbEntry.File);
+
+            if (languageKey == null)
             {
                 return null;
             }
-
-            // TODO - remove File, PchFile and CFamilyLanguage from Request (both on RequestContext)
-            request.PchFile = SubProcessFilePaths.PchFilePath;
-            request.FileConfig = fileConfig;
-
-            bool isPCHBuild = false;
-
-            if (analyzerOptions is CFamilyAnalyzerOptions cFamilyAnalyzerOptions)
-            {
-                Debug.Assert(
-                    !(cFamilyAnalyzerOptions.CreateReproducer && cFamilyAnalyzerOptions.CreatePreCompiledHeaders),
-                    "Only one flag (CreateReproducer, CreatePreCompiledHeaders) can be set at a time");
-
-                if (cFamilyAnalyzerOptions.CreateReproducer)
-                {
-                    request.Flags |= Request.CreateReproducer;
-                }
-
-                if (cFamilyAnalyzerOptions.CreatePreCompiledHeaders)
-                {
-                    request.Flags |= Request.BuildPreamble;
-                    isPCHBuild = true;
-                }
-            }
-
             ICFamilyRulesConfig rulesConfig = null;
-            if (!isPCHBuild)
+
+            if (analyzerOptions == null || !analyzerOptions.CreatePreCompiledHeaders)
             {
-                rulesConfig = cFamilyRulesConfigProvider.GetRulesConfiguration(request.CFamilyLanguage);
-                Debug.Assert(rulesConfig != null, "RulesConfiguration should be have been retrieved");
-
-                // We don't need to calculate / set the rules configuration for PCH builds
-                var protocolFormat = rulesConfigProtocolFormatter.Format(rulesConfig);
-                protocolFormat.RuleParameters.Add("internal.qualityProfile", protocolFormat.QualityProfile);
-
-                request.Options = protocolFormat.RuleParameters.Select(kv => kv.Key + "=" + kv.Value).ToArray();
+                rulesConfig = cFamilyRulesConfigProvider.GetRulesConfiguration(languageKey);
             }
 
-            var context = new RequestContext(request.CFamilyLanguage, rulesConfig, request.File,
-                SubProcessFilePaths.PchFilePath, analyzerOptions);
+            var context = new RequestContext(
+                languageKey, 
+                rulesConfig, 
+                analyzedFilePath, 
+                SubProcessFilePaths.PchFilePath, 
+                analyzerOptions,
+                isHeaderFile);
 
-            request.Context = context;
+            var envVars = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>() { 
+                { "INCLUDE", fileConfig.EnvInclude } 
+            });
 
-            return request;
-        }
-
-        private static Request ToRequest(IFileConfig fileConfig, string path)
-        {
-            var c = CFamilyHelper.Capture.ToCaptures(fileConfig, path, out string cfamilyLanguage);
-            var request = MsvcDriver.ToRequest(c);
-            request.CFamilyLanguage = cfamilyLanguage;
-
-            if (fileConfig.ItemType == "ClInclude")
-            {
-                request.Flags |= Request.MainFileIsHeader;
-            }
-            return request;
+            return new CompilationDatabaseRequest(dbEntry, context, envVars);
         }
 
         private void LogDebug(string message)

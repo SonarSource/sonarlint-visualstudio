@@ -105,7 +105,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     logger.WriteLine(CFamilyStrings.MsgHandler_ReportUnexpectedFailure, message.Text);
                     break;
 
-                case "internal.fileDependency": // not currently handled. See https://github.com/SonarSource/sonarlint-visualstudio/issues/2611
+                // Rules that start with internal shouldn't be treated as issues.
+                // Some of them should be handled like `internal.fileDependency`. See: https://github.com/SonarSource/sonarlint-visualstudio/issues/2611
+                // Others should can simply ignored like `internal.z3RefutationRate`, which is used to log in the scanner how many issues are rejected by the Z3 solver 
+                case string s when s.StartsWith("internal."):
                     break;
 
                 default: // assume anything else is an analysis issue

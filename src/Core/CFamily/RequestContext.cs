@@ -25,13 +25,14 @@ namespace SonarLint.VisualStudio.Core.CFamily
     /// </summary>
     public class RequestContext
     {
-        public RequestContext(string language, ICFamilyRulesConfig rulesConfig, string file, string pchFile, CFamilyAnalyzerOptions analyzerOptions)
+        public RequestContext(string language, ICFamilyRulesConfig rulesConfig, string file, string pchFile, CFamilyAnalyzerOptions analyzerOptions, bool isHeaderFile)
         {
             CFamilyLanguage = language;
             RulesConfiguration = rulesConfig;
             File = file;
             PchFile = pchFile;
             AnalyzerOptions = analyzerOptions;
+            IsHeaderFile = isHeaderFile;
         }
 
         // Note: the language and RulesConfiguration aren't passed as part of the request to the
@@ -56,5 +57,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
         /// Additional analysis options
         /// </summary>
         public CFamilyAnalyzerOptions AnalyzerOptions { get; }
+
+        public bool IsHeaderFile { get; }
     }
 }

@@ -33,44 +33,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     internal static class Protocol
     {
-        /**
-          * This method does not close the provided stream.
-          */
-        public static void Write(BinaryWriter writer, Request request)
-        {
-            WriteUTF(writer, "IN");
-            Write(writer, request.Options);
-            WriteLong(writer, request.Flags);
-            WriteLong(writer, request.MsVersion);
-            Write(writer, request.IncludeDirs);
-            Write(writer, request.FrameworkDirs);
-            Write(writer, request.VfsOverlayFiles);
-            WriteUTF(writer, request.ModuleName);
-            WriteUTF(writer, request.Predefines);
-            Write(writer, request.Macros);
-            WriteUTF(writer, request.TargetTriple);
-            WriteUTF(writer, request.File);
-            writer.Write(/* withFileContent */ false);
-            WriteUTF(writer, /* fileContent */ "");
-            WriteUTF(writer, /* pchDir */ "");
-            WriteUTF(writer, /* pchThroughHeader */ "");
-            WriteUTF(writer, request.PchFile);
-            WriteUTF(writer, /* reportingCppStandardOverride */ "");
-            WriteInt(writer, /* sourceDirs */ 0);
-            WriteUTF(writer, "END");
-        }
-
-        internal /* for testing */ static void WriteLong(BinaryWriter writer, long l)
-        {
-            // Big endian conversion
-            byte[] temp = BitConverter.GetBytes(l);
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(temp);
-            }
-            writer.Write(temp);
-        }
-
         internal /* for testing */ static void WriteInt(BinaryWriter writer, int i)
         {
             // Big endian conversion
@@ -80,26 +42,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 Array.Reverse(temp);
             }
             writer.Write(temp);
-        }
-
-        internal /* for testing */ static void WriteUShort(BinaryWriter writer, ushort s)
-        {
-            // Big endian conversion
-            byte[] temp = BitConverter.GetBytes(s);
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(temp);
-            }
-            writer.Write(temp);
-        }
-
-        private static void Write(BinaryWriter writer, string[] strings)
-        {
-            WriteInt(writer, strings.Length);
-            foreach (string value in strings)
-            {
-                WriteUTF(writer, value);
-            }
         }
 
         internal /* for testing */ static void WriteUTF(BinaryWriter writer, string str)
