@@ -50,8 +50,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
             testsDataDirectory = new Uri(Path.Combine(
                 Path.GetDirectoryName(typeof(CFamily_CLangAnalyzer_IntegrationTests).Assembly.Location),
                 "CFamily\\IntegrationTests\\")).AbsolutePath;
-            // Subprocess.exe requirse a valid path to an executable named cl.exe that prints something similar to the real compiler
-            var code = "Console.Error.WriteLine(\"Microsoft(R) C / C++ Optimizing Compiler Version 19.32.31114.2 for x64\");";
+
+            // Subprocess.exe requires a valid path to an executable named cl.exe that prints something similar to the real compiler
+            const string code = "Console.Error.WriteLine(\"Microsoft(R) C / C++ Optimizing Compiler Version 19.32.31114.2 for x64\");";
             clExe = DummyExeHelper.CreateDummyExe(testsDataDirectory, "cl.exe", 0, code);
         }
 
@@ -75,17 +76,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
         private CompilationDatabaseRequest GetRequest(string testedFile)
         {
             var command = "\"" + clExe + "\" /TP " + testedFile;
-            var compilationDatabaseEntry = new CompilationDatabaseEntry { Directory = testsDataDirectory, Command = command, File = testedFile };
-            var envVars = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>() {
+            var compilationDatabaseEntry = new CompilationDatabaseEntry
+            {
+                Directory = testsDataDirectory,
+                Command = command,
+                File = testedFile
+            };
+
+            var envVars = new ReadOnlyDictionary<string, string>(new Dictionary<string, string> {
                 { "INCLUDE", "" }
             });
+
             var languageKey = SonarLanguageKeys.CPlusPlus;
 
             var config = new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory).GetRulesConfiguration("cpp");
-            var context = new RequestContext(languageKey, config, testedFile, "",
-                new CFamilyAnalyzerOptions(), false);
+            var context = new RequestContext(
+                languageKey, 
+                config, 
+                testedFile, 
+                "",
+                new CFamilyAnalyzerOptions(), 
+                false);
 
             var request = new CompilationDatabaseRequest(compilationDatabaseEntry, context, envVars);
+
             return request;
         }
 
@@ -93,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
         {
             var expectedResponseJson = File.ReadAllText(Path.Combine(testsDataDirectory, testFileName + "_response.json"));
             var expectedResponse = JsonConvert.DeserializeObject<Response>(expectedResponseJson);
-            var messages = expectedResponse.Messages.Where(m => !m.RuleKey.StartsWith("internal.")).ToArray();
+            var messages = expectedResponse.Messages;
             foreach (var expectedResponseMessage in messages)
             {
                 expectedResponseMessage.Filename = testedFile;
