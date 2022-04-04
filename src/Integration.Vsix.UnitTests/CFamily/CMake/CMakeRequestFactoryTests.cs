@@ -121,6 +121,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         }
 
         [TestMethod]
+        [Description("Check support for header files")]
+        [DataRow("c:\\file.h", true)]
+        [DataRow("c:\\file.c", false)]
+        public async Task TryGet_IsHeaderFileCalculatedCorrectly(string analyzedFilePath, bool expectedIsHeaderFile)
+        {
+            var compilationDatabaseEntry = CreateCompilationDatabaseEntry("file.c");
+            var compilationConfigProvider = CreateCompilationProvider(analyzedFilePath, compilationDatabaseEntry);
+            var rulesConfigProvider = new Mock<ICFamilyRulesConfigProvider>();
+
+            var testSubject = CreateTestSubject(compilationConfigProvider.Object, rulesConfigProvider.Object, ValidEnvVarsProvider);
+            var request = await testSubject.TryCreateAsync(analyzedFilePath, new CFamilyAnalyzerOptions());
+
+            // When analyzing header files, the analyzed file will be ".h" but the compilation entry is a ".c" file.
+            // We expected the property IsHeaderFile to be calculated based of the analyzed file, and not the compilation entry
+            request.Context.IsHeaderFile.Should().Be(expectedIsHeaderFile);
+        }
+
+        [TestMethod]
         public async Task TryGet_UnrecognizedLanguage_ReturnsNull()
         {
             const string fileName = "c:\\file.txt";
