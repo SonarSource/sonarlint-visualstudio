@@ -107,6 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         private static string GetDummyExeSource(int returnCode, string additionalCode)
         {
             string code = @"
+using System;
 using System.IO;
 
 namespace SonarQube.Bootstrapper.Tests.Dummy

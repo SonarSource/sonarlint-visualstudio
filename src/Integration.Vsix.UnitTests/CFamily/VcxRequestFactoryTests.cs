@@ -28,12 +28,12 @@ using Moq;
 using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 using static SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests.CFamilyTestUtility;
 using System.Threading.Tasks;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily.CompilationDatabase;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             request.Should().BeNull();
 
-            fileConfigProvider.Verify(x=> x.Get(DummyProjectItem, analyzedFilePath, DummyAnalyzerOptions), Times.Once);
+            fileConfigProvider.Verify(x => x.Get(DummyProjectItem, analyzedFilePath, DummyAnalyzerOptions), Times.Once);
         }
 
         [TestMethod]
@@ -113,15 +113,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var fileConfigProvider = SetupFileConfigProvider(DummyProjectItem, DummyAnalyzerOptions, analyzedFilePath, fileConfig.Object);
             var cFamilyRulesConfigProvider = new Mock<ICFamilyRulesConfigProvider>();
 
-            var testSubject = CreateTestSubject(DummyProjectItem, 
-                fileConfigProvider: fileConfigProvider.Object, 
+            var testSubject = CreateTestSubject(DummyProjectItem,
+                fileConfigProvider: fileConfigProvider.Object,
                 cFamilyRulesConfigProvider: cFamilyRulesConfigProvider.Object);
 
             var request = await testSubject.TryCreateAsync(analyzedFilePath, DummyAnalyzerOptions);
 
             request.Should().BeNull();
 
-            fileConfig.VerifyGet(x => x.AbsoluteFilePath, Times.Once);
+            fileConfig.VerifyGet(x => x.CDFile, Times.Once);
             cFamilyRulesConfigProvider.Invocations.Count.Should().Be(0);
         }
 
@@ -132,7 +132,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             var fileConfig = CreateDummyFileConfig(analyzedFilePath);
             var fileConfigProvider = SetupFileConfigProvider(DummyProjectItem, DummyAnalyzerOptions, analyzedFilePath, fileConfig.Object);
-           
+
             var cFamilyRulesConfigProvider = new Mock<ICFamilyRulesConfigProvider>();
             cFamilyRulesConfigProvider
                 .Setup(x => x.GetRulesConfiguration(SonarLanguageKeys.CPlusPlus))
@@ -195,16 +195,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var request = await GetSuccessfulRequest();
             request.Should().NotBeNull();
 
-            request.FileConfig.Should().NotBeNull();
+            request.DatabaseEntry.Should().NotBeNull();
         }
 
         [TestMethod]
         public async Task TryGet_NonHeaderFile_IsSupported()
         {
             var request = await GetSuccessfulRequest();
-            
+
             request.Should().NotBeNull();
-            (request.Flags & Request.MainFileIsHeader).Should().Be(0);
+            request.Context.IsHeaderFile.Should().Be(false);
         }
 
         [TestMethod]
@@ -214,13 +214,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             var fileConfig = CreateDummyFileConfig("c:\\dummy\\file.h");
-            fileConfig.Setup(x => x.CompileAs).Returns("CompileAsCpp");
-            fileConfig.Setup(x => x.ItemType).Returns("ClInclude");
+            fileConfig.Setup(x => x.HeaderFileLanguage).Returns("cpp");
 
             var request = await GetSuccessfulRequest(fileToAnalyze: "c:\\dummy\\file.h", projectItem: projectItemMock.Object, fileConfig: fileConfig);
 
             request.Should().NotBeNull();
-            (request.Flags & Request.MainFileIsHeader).Should().NotBe(0);
+            request.Context.IsHeaderFile.Should().Be(true);
         }
 
         [TestMethod]
@@ -229,10 +228,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var request = await GetSuccessfulRequest(analyzerOptions: null);
             request.Should().NotBeNull();
 
-            (request.Flags & Request.CreateReproducer).Should().Be(0);
-            (request.Flags & Request.BuildPreamble).Should().Be(0);
-            
-            request.Context.AnalyzerOptions.Should().BeNull();
+            (request.Context.AnalyzerOptions).Should().BeNull();
         }
 
         [TestMethod]
@@ -241,7 +237,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var request = await GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreateReproducer = true });
             request.Should().NotBeNull();
 
-            (request.Flags & Request.CreateReproducer).Should().NotBe(0);
+            (request.Context.AnalyzerOptions.CreateReproducer).Should().Be(true);
         }
 
         [TestMethod]
@@ -250,7 +246,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var request = await GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreateReproducer = false });
             request.Should().NotBeNull();
 
-            (request.Flags & Request.CreateReproducer).Should().Be(0);
+            (request.Context.AnalyzerOptions.CreateReproducer).Should().Be(false);
         }
 
         [TestMethod]
@@ -259,7 +255,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var request = await GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = true });
             request.Should().NotBeNull();
 
-            (request.Flags & Request.BuildPreamble).Should().NotBe(0);
+            (request.Context.AnalyzerOptions.CreatePreCompiledHeaders).Should().Be(true);
         }
 
         [TestMethod]
@@ -268,7 +264,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var request = await GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = false });
             request.Should().NotBeNull();
 
-            (request.Flags & Request.BuildPreamble).Should().Be(0);
+            (request.Context.AnalyzerOptions.CreatePreCompiledHeaders).Should().Be(false);
         }
 
         [TestMethod]
@@ -278,29 +274,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             request.Should().NotBeNull();
 
             request.Context.RulesConfiguration.Should().BeNull();
-            request.Options.Should().BeEmpty();
+            (request.Context.AnalyzerOptions.CreateReproducer).Should().Be(false);
+            (request.Context.AnalyzerOptions.CreatePreCompiledHeaders).Should().Be(true);
         }
 
-        [TestMethod]
-        public async Task TryGet_AnalyzerOptionsWithoutPCH_RequestOptionsAreSet()
-        {
-            var rulesProtocolFormat = new RuleConfigProtocolFormat("some profile", new Dictionary<string, string>
-            {
-                {"rule1", "param1"},
-                {"rule2", "param2"}
-            });
-            
-            var request = await GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = false }, protocolFormat: rulesProtocolFormat);
-            request.Should().NotBeNull();
-
-            request.Context.RulesConfiguration.Should().NotBeNull();
-            request.Options.Should().BeEquivalentTo(
-                "internal.qualityProfile=some profile",
-                "rule1=param1",
-                "rule2=param2");
-        }
-
-        private static Mock<IFileConfigProvider> SetupFileConfigProvider(ProjectItem projectItem, 
+        private static Mock<IFileConfigProvider> SetupFileConfigProvider(ProjectItem projectItem,
             CFamilyAnalyzerOptions analyzerOptions,
             string analyzedFilePath,
             IFileConfig fileConfigToReturn)
@@ -316,21 +294,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         private VcxRequestFactory CreateTestSubject(ProjectItem projectItem,
             ICFamilyRulesConfigProvider cFamilyRulesConfigProvider = null,
             IFileConfigProvider fileConfigProvider = null,
-            IRulesConfigProtocolFormatter rulesConfigProtocolFormatter = null,
             IThreadHandling threadHandling = null,
             ILogger logger = null)
         {
             var serviceProvider = CreateServiceProviderReturningProjectItem(projectItem);
 
             cFamilyRulesConfigProvider ??= Mock.Of<ICFamilyRulesConfigProvider>();
-            rulesConfigProtocolFormatter ??= Mock.Of<IRulesConfigProtocolFormatter>();
             fileConfigProvider ??= Mock.Of<IFileConfigProvider>();
             threadHandling ??= new NoOpThreadHandler();
             logger ??= Mock.Of<ILogger>();
 
-            return new VcxRequestFactory(serviceProvider.Object, 
+            return new VcxRequestFactory(serviceProvider.Object,
                 cFamilyRulesConfigProvider,
-                rulesConfigProtocolFormatter,
                 fileConfigProvider,
                 logger,
                 threadHandling);
@@ -350,7 +325,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             return mockServiceProvider;
         }
 
-        private async Task<Request> GetSuccessfulRequest(CFamilyAnalyzerOptions analyzerOptions = null,
+        private async Task<CompilationDatabaseRequest> GetSuccessfulRequest(CFamilyAnalyzerOptions analyzerOptions = null,
             string fileToAnalyze = "c:\\foo\\file.cpp",
             ICFamilyRulesConfig rulesConfig = null,
             ProjectItem projectItem = null,
@@ -372,41 +347,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             protocolFormat ??= new RuleConfigProtocolFormat("qp", new Dictionary<string, string>());
 
-            var rulesConfigProtocolFormatter = new Mock<IRulesConfigProtocolFormatter>();
-            rulesConfigProtocolFormatter
-                .Setup(x => x.Format(rulesConfig))
-                .Returns(protocolFormat);
 
-            var testSubject = CreateTestSubject(projectItem, 
-                rulesConfigProviderMock.Object, 
-                fileConfigProvider.Object,
-                rulesConfigProtocolFormatter.Object);
+            var testSubject = CreateTestSubject(projectItem,
+                rulesConfigProviderMock.Object,
+                fileConfigProvider.Object);
 
-            return await testSubject.TryCreateAsync(fileToAnalyze, analyzerOptions) as Request;
+            return await testSubject.TryCreateAsync(fileToAnalyze, analyzerOptions) as CompilationDatabaseRequest;
         }
 
         private Mock<IFileConfig> CreateDummyFileConfig(string filePath)
         {
             var fileConfig = new Mock<IFileConfig>();
 
-            fileConfig.SetupGet(x => x.PlatformName).Returns("Win32");
-            fileConfig.SetupGet(x => x.AdditionalIncludeDirectories).Returns("");
-            fileConfig.SetupGet(x => x.ForcedIncludeFiles).Returns("");
-            fileConfig.SetupGet(x => x.PrecompiledHeader).Returns("");
-            fileConfig.SetupGet(x => x.UndefinePreprocessorDefinitions).Returns("");
-            fileConfig.SetupGet(x => x.PreprocessorDefinitions).Returns("");
-            fileConfig.SetupGet(x => x.CompileAs).Returns("");
-            fileConfig.SetupGet(x => x.CompileAsManaged).Returns("");
-            fileConfig.SetupGet(x => x.RuntimeLibrary).Returns("");
-            fileConfig.SetupGet(x => x.ExceptionHandling).Returns("");
-            fileConfig.SetupGet(x => x.EnableEnhancedInstructionSet).Returns("");
-            fileConfig.SetupGet(x => x.BasicRuntimeChecks).Returns("");
-            fileConfig.SetupGet(x => x.LanguageStandard).Returns("");
-            fileConfig.SetupGet(x => x.AdditionalOptions).Returns("");
-            fileConfig.SetupGet(x => x.CompilerVersion).Returns("1.2.3.4");
-
-            fileConfig.SetupGet(x => x.AbsoluteProjectPath).Returns("c:\\test.vcxproj");
-            fileConfig.SetupGet(x => x.AbsoluteFilePath).Returns(filePath);
+            fileConfig.SetupGet(x => x.CDDirectory).Returns("c:\\");
+            fileConfig.SetupGet(x => x.CDCommand).Returns("cl.exe " + filePath);
+            fileConfig.SetupGet(x => x.CDFile).Returns(filePath);
+            fileConfig.SetupGet(x => x.EnvInclude).Returns("");
+            fileConfig.SetupGet(x => x.HeaderFileLanguage).Returns("");
 
             return fileConfig;
         }

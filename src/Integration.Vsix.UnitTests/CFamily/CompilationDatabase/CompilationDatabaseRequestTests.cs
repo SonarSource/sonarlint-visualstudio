@@ -29,14 +29,14 @@ using Moq;
 using SonarLint.VisualStudio.CFamily.CMake;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily.CompilationDatabase;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
+namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CompilationDatabase
 {
     [TestClass]
     public class CompilationDatabaseRequestTests
     {
-        private readonly RequestContext ValidContext = new RequestContext("cpp", Mock.Of<ICFamilyRulesConfig>(), "file.txt", "pchFile.txt", null);
+        private readonly RequestContext ValidContext = new RequestContext("cpp", Mock.Of<ICFamilyRulesConfig>(), "file.txt", "pchFile.txt", null, false);
         private readonly CompilationDatabaseEntry ValidDbEntry = new CompilationDatabaseEntry { File = "file.txt", Directory = "c:\\", Command = "a command" };
         private readonly IReadOnlyDictionary<string, string> ValidEnvVars = new Dictionary<string, string> { { "key1", "value1" } };
 
@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         public void WriteRequest_HeaderFile_WritesTheFileFromContext()
         {
             var dbEntry = new CompilationDatabaseEntry { File = "file.cpp", Directory = "c:\\aaa", Command = "any" };
-            var context = new RequestContext("any", Mock.Of<ICFamilyRulesConfig>(), "file.h", "d:\\preamble.txt", null);
+            var context = new RequestContext("any", Mock.Of<ICFamilyRulesConfig>(), "file.h", "d:\\preamble.txt", null, true);
 
             var tokens = WriteRequest(dbEntry, context);
 
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         public void WriteRequest_HeaderFile_WritesHeaderFileLanguage()
         {
             var dbEntry = new CompilationDatabaseEntry { File = "file.cpp", Directory = "c:\\aaa", Command = "any" };
-            var context = new RequestContext("any.language", Mock.Of<ICFamilyRulesConfig>(), "file.h", "d:\\preamble.txt", null);
+            var context = new RequestContext("any.language", Mock.Of<ICFamilyRulesConfig>(), "file.h", "d:\\preamble.txt", null, true);
 
             var tokens = WriteRequest(dbEntry, context);
 
@@ -123,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         public void WriteRequest_NotHeaderFile_HeaderFileLanguageIsNotWritten()
         {
             var dbEntry = new CompilationDatabaseEntry { File = "file.cpp", Directory = "c:\\aaa", Command = "any" };
-            var context = new RequestContext("any.language", Mock.Of<ICFamilyRulesConfig>(), "file.cpp", "d:\\preamble.txt", null);
+            var context = new RequestContext("any.language", Mock.Of<ICFamilyRulesConfig>(), "file.cpp", "d:\\preamble.txt", null, false);
 
             var tokens = WriteRequest(dbEntry, context);
 
@@ -134,7 +134,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         public void WriteRequest_ValidRequest_ExpectedHeaderFooterAndSimpleProperties()
         {
             var dbEntry = new CompilationDatabaseEntry { File = "file.txt", Directory = "c:\\aaa", Command = "any" };
-            var context = new RequestContext("any", Mock.Of<ICFamilyRulesConfig>(), "file.h", "d:\\preamble.txt", null);
+            var context = new RequestContext("any", Mock.Of<ICFamilyRulesConfig>(), "file.h", "d:\\preamble.txt", null, true);
 
             var tokens = WriteRequest(dbEntry, context);
 
@@ -346,7 +346,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
                 rulesConfig: rulesConfig ?? Mock.Of<ICFamilyRulesConfig>(),
                 file: file,
                 pchFile: pchFile,
-                analyzerOptions: analyzerOptions);
+                analyzerOptions: analyzerOptions, false);
         }
 
         /// <summary>

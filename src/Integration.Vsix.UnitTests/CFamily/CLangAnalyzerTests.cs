@@ -289,7 +289,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         private static IRequest CreateRequest(string file = null, string language = null, ICFamilyRulesConfig rulesConfiguration = null)
         {
             var request = new Mock<IRequest>();
-            var context = new RequestContext(language, rulesConfiguration, file, null, null);
+            var context = new RequestContext(language, rulesConfiguration, file, null, null, false);
             request.SetupGet(x => x.Context).Returns(context);
             return request.Object;
         }
