@@ -137,24 +137,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 Arguments = null
             };
 
-            string headerFileLang = fileConfig.HeaderFileLanguage == "cpp" ? SonarLanguageKeys.CPlusPlus : SonarLanguageKeys.C;
-
-            var languageKey =
-                string.IsNullOrEmpty(fileConfig.HeaderFileLanguage) ?
-                CFamilyShared.FindLanguageFromExtension(dbEntry.File) :
-                headerFileLang;
+            var headerFileLang = fileConfig.HeaderFileLanguage == "cpp" ? SonarLanguageKeys.CPlusPlus : SonarLanguageKeys.C;
+            var isHeaderFile = !string.IsNullOrEmpty(fileConfig.HeaderFileLanguage);
+            var languageKey = isHeaderFile ? headerFileLang : CFamilyShared.FindLanguageFromExtension(dbEntry.File);
 
             if (languageKey == null)
             {
                 return null;
             }
             ICFamilyRulesConfig rulesConfig = null;
+
             if (analyzerOptions == null || !analyzerOptions.CreatePreCompiledHeaders)
             {
                 rulesConfig = cFamilyRulesConfigProvider.GetRulesConfiguration(languageKey);
             }
-            var context = new RequestContext(languageKey, rulesConfig, analyzedFilePath, SubProcessFilePaths.PchFilePath, analyzerOptions, !string.IsNullOrEmpty(fileConfig.HeaderFileLanguage));
 
+            var context = new RequestContext(
+                languageKey, 
+                rulesConfig, 
+                analyzedFilePath, 
+                SubProcessFilePaths.PchFilePath, 
+                analyzerOptions,
+                isHeaderFile);
 
             var envVars = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>() { 
                 { "INCLUDE", fileConfig.EnvInclude } 
