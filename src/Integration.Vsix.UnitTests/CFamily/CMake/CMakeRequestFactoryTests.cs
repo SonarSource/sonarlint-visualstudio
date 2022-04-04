@@ -177,6 +177,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
             actual.Should().NotBeNull();
             actual.Context.File.Should().Be(fileName);
             actual.Context.PchFile.Should().Be(SubProcessFilePaths.PchFilePath);
+            actual.Context.PchFile.Should().EndWith("SonarLintForVisualStudio.PCH.preamble");
+            actual.Context.PchFile.Should().StartWith(SubProcessFilePaths.WorkingDirectory);
             actual.Context.CFamilyLanguage.Should().Be(SonarLanguageKeys.C);
             actual.Context.AnalyzerOptions.Should().BeSameAs(analyzerOptions);
             actual.Context.RulesConfiguration.Should().BeSameAs(rulesConfig);

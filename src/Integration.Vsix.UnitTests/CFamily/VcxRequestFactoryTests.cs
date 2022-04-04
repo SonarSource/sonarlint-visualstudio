@@ -185,6 +185,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             request.Context.File.Should().Be("d:\\xxx\\fileToAnalyze.cpp");
             request.Context.PchFile.Should().Be(SubProcessFilePaths.PchFilePath);
+            request.Context.PchFile.Should().EndWith("SonarLintForVisualStudio.PCH.preamble");
+            request.Context.PchFile.Should().StartWith(SubProcessFilePaths.WorkingDirectory);
             request.Context.AnalyzerOptions.Should().BeSameAs(analyzerOptions);
             request.Context.RulesConfiguration.Should().BeSameAs(rulesConfig);
         }

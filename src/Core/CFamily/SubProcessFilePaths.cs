@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
     public static class SubProcessFilePaths
     {
         public static string WorkingDirectory => Path.GetTempPath();
-        public static string PchFilePath => Path.Combine(WorkingDirectory, "SonarLintForVisualStudio.PCH.preamble");
+        public static string PchFilePath => Path.Combine(TempFileName, "SonarLintForVisualStudio.PCH.preamble");
         public static string RequestConfigFilePath => Path.Combine(WorkingDirectory, "sonar-cfamily.request.reproducer");
         public static string ReproducerFilePath => Path.Combine(WorkingDirectory, "sonar-cfamily.reproducer");
 
@@ -37,5 +37,6 @@ namespace SonarLint.VisualStudio.Core.CFamily
             "lib");
 
         public static readonly string AnalyzerExeFilePath = Path.Combine(CFamilyFilesDirectory, "subprocess.exe");
+        public static readonly string TempFileName = Path.GetTempFileName();
     }
 }
