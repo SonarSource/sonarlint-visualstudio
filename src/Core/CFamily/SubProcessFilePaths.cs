@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace SonarLint.VisualStudio.Core.CFamily
@@ -31,10 +32,19 @@ namespace SonarLint.VisualStudio.Core.CFamily
 
         static SubProcessFilePaths()
         {
-            Directory.CreateDirectory(PchFileDirectory);
+            
+            try
+            {
+                Directory.CreateDirectory(PchFileDirectory);
+                
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"PCH directory error: {ex.Message}");
+            }
         }
 
-        private static string PchFileName = Guid.NewGuid().ToString();
+        private static string PchFileName = Guid.NewGuid().ToString() + ".preamble";
         private static string PchFileDirectory = Path.Combine(WorkingDirectory, "SLVS", "PCH");
         public static string WorkingDirectory => Path.GetTempPath();
         public static string PchFilePath => Path.Combine(PchFileDirectory, PchFileName);
