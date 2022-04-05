@@ -31,12 +31,10 @@ namespace SonarLint.VisualStudio.Core.CFamily
     {
 
         static SubProcessFilePaths()
-        {
-            
+        {            
             try
             {
-                Directory.CreateDirectory(PchFileDirectory);
-                
+                Directory.CreateDirectory(PchFileDirectory);                
             }
             catch (Exception ex)
             {
