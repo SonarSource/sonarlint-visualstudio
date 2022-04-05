@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.IO;
 
 namespace SonarLint.VisualStudio.Core.CFamily
@@ -27,8 +28,16 @@ namespace SonarLint.VisualStudio.Core.CFamily
     /// </summary>
     public static class SubProcessFilePaths
     {
+
+        static SubProcessFilePaths()
+        {
+            Directory.CreateDirectory(PchFileDirectory);
+        }
+
+        private static string PchFileName = Guid.NewGuid().ToString();
+        private static string PchFileDirectory = Path.Combine(WorkingDirectory, "SLVS", "PCH");
         public static string WorkingDirectory => Path.GetTempPath();
-        public static string PchFilePath => Path.Combine(WorkingDirectory, "SonarLintForVisualStudio.PCH.preamble");
+        public static string PchFilePath => Path.Combine(PchFileDirectory, PchFileName);
         public static string RequestConfigFilePath => Path.Combine(WorkingDirectory, "sonar-cfamily.request.reproducer");
         public static string ReproducerFilePath => Path.Combine(WorkingDirectory, "sonar-cfamily.reproducer");
 
