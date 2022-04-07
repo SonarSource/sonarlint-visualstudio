@@ -32,32 +32,45 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Mod
     public class TaintIssueTests
     {
         [TestMethod]
+        public void Ctor_NullLocation_ArgumentNullException()
+        {
+            Action act = () => new TaintIssue("issue key", "rule key",
+                null,
+                AnalysisIssueSeverity.Major, DateTimeOffset.MinValue, DateTimeOffset.MinValue, null);
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("primaryLocation");
+        }
+
+        [TestMethod]
         public void Ctor_PropertiesSet()
         {
             var created = DateTimeOffset.Parse("2001-01-31T01:02:03+0200");
             var lastUpdated = DateTimeOffset.UtcNow;
-            var issue = new TaintIssue("issue key", "local-path.cpp", "rule key", "message", 1, 2, 3, 4, "hash",
+            var issue = new TaintIssue("issue key", "rule key",
+                new AnalysisIssueLocation("message", "local-path.cpp", 1, 2, 3, 4, "hash"),
                 AnalysisIssueSeverity.Major, created, lastUpdated, null);
 
             issue.IssueKey.Should().Be("issue key");
-            issue.FilePath.Should().Be("local-path.cpp");
             issue.RuleKey.Should().Be("rule key");
-            issue.Message.Should().Be("message");
-            issue.StartLine.Should().Be(1);
-            issue.EndLine.Should().Be(2);
-            issue.StartLineOffset.Should().Be(3);
-            issue.EndLineOffset.Should().Be(4);
-            issue.LineHash.Should().Be("hash");
             issue.Severity.Should().Be(AnalysisIssueSeverity.Major);
             issue.CreationTimestamp.Should().Be(created);
             issue.LastUpdateTimestamp.Should().Be(lastUpdated);
+
+            issue.PrimaryLocation.FilePath.Should().Be("local-path.cpp");
+            issue.PrimaryLocation.Message.Should().Be("message");
+            issue.PrimaryLocation.StartLine.Should().Be(1);
+            issue.PrimaryLocation.EndLine.Should().Be(2);
+            issue.PrimaryLocation.StartLineOffset.Should().Be(3);
+            issue.PrimaryLocation.EndLineOffset.Should().Be(4);
+            issue.PrimaryLocation.LineHash.Should().Be("hash");
         }
 
         [TestMethod]
         public void Ctor_NoFlows_EmptyFlows()
         {
             IReadOnlyList<IAnalysisIssueFlow> flows = null;
-            var issue = new TaintIssue("issue key", "local-path.cpp", "rule key", "message", 1, 2, 3, 4, "hash",
+            var issue = new TaintIssue("issue key", "rule key",
+                new AnalysisIssueLocation("message", "local-path.cpp", 1, 2, 3, 4, "hash"),
                 AnalysisIssueSeverity.Major, DateTimeOffset.MinValue, DateTimeOffset.MaxValue, flows);
 
             issue.Flows.Should().BeEmpty();
@@ -67,7 +80,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Mod
         public void Ctor_HasFlows_CorrectFlows()
         {
             var flows = new[] { Mock.Of<IAnalysisIssueFlow>(), Mock.Of<IAnalysisIssueFlow>() };
-            var issue = new TaintIssue("issue key", "local-path.cpp", "rule key", "message", 1, 2, 3, 4, "hash",
+            var issue = new TaintIssue("issue key", "rule key",
+                new AnalysisIssueLocation("message", "local-path.cpp", 1, 2, 3, 4, "hash"),
                 AnalysisIssueSeverity.Major, DateTimeOffset.MinValue, DateTimeOffset.MaxValue, flows);
 
             issue.Flows.Should().BeEquivalentTo(flows);

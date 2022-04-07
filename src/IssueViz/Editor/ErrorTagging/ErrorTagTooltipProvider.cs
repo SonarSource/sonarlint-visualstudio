@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
                 {
                     hyperLink,
                     ": ",
-                    analysisIssueBase.Message
+                    analysisIssueBase.PrimaryLocation.Message
                 },
                 Foreground = GetVsThemedColor(EnvironmentColors.SystemCaptionTextBrushKey)
             };

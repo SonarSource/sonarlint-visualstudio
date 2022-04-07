@@ -63,14 +63,16 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var convertedIssue = testSubject.Convert("some file", eslintBridgeIssue);
 
             convertedIssue.RuleKey.Should().Be("sonar rule key");
-            convertedIssue.StartLine.Should().Be(3);
-            convertedIssue.StartLineOffset.Should().Be(1);
-            convertedIssue.EndLine.Should().Be(4);
-            convertedIssue.EndLineOffset.Should().Be(2);
-            convertedIssue.Message.Should().Be("some message");
-            convertedIssue.LineHash.Should().BeNull();
             convertedIssue.Type.Should().Be(AnalysisIssueType.CodeSmell);
             convertedIssue.Severity.Should().Be(AnalysisIssueSeverity.Major);
+
+            convertedIssue.PrimaryLocation.FilePath.Should().Be("some file");
+            convertedIssue.PrimaryLocation.StartLine.Should().Be(3);
+            convertedIssue.PrimaryLocation.StartLineOffset.Should().Be(1);
+            convertedIssue.PrimaryLocation.EndLine.Should().Be(4);
+            convertedIssue.PrimaryLocation.EndLineOffset.Should().Be(2);
+            convertedIssue.PrimaryLocation.Message.Should().Be("some message");
+            convertedIssue.PrimaryLocation.LineHash.Should().BeNull();
         }
 
         [TestMethod]

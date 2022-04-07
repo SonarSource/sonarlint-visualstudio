@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         public void DisplayPath_IssueVizHasNoFilePath_ReturnsServerPath()
         {
             var issue = new Mock<IAnalysisIssue>();
-            issue.Setup(x => x.FilePath).Returns("\\some\\server\\path.cs");
+            issue.Setup(x => x.PrimaryLocation.FilePath).Returns("\\some\\server\\path.cs");
 
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.CurrentFilePath).Returns((string)null);

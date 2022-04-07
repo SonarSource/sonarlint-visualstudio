@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         public int Column => positionCalculator.GetColumn(TaintIssueViz);
 
         public string DisplayPath =>
-            Path.GetFileName(TaintIssueViz.CurrentFilePath ?? ((IAnalysisIssue)TaintIssueViz.Issue).FilePath);
+            Path.GetFileName(TaintIssueViz.CurrentFilePath ?? ((IAnalysisIssue)TaintIssueViz.Issue).PrimaryLocation.FilePath);
 
         private void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
         {

@@ -73,18 +73,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             if (sonarQubeIssue.TextRange == null)
             {
                 throw new ArgumentNullException(nameof(sonarQubeIssue.TextRange));
-            } 
+            }
 
             return new TaintIssue(
                 sonarQubeIssue.IssueKey,
-                sonarQubeIssue.FilePath,
                 sonarQubeIssue.RuleId,
-                sonarQubeIssue.Message,
-                sonarQubeIssue.TextRange.StartLine,
-                sonarQubeIssue.TextRange.EndLine,
-                sonarQubeIssue.TextRange.StartOffset,
-                sonarQubeIssue.TextRange.EndOffset,
-                sonarQubeIssue.Hash,
+                primaryLocation: new AnalysisIssueLocation(
+                    sonarQubeIssue.Message,
+                    sonarQubeIssue.FilePath,
+                    sonarQubeIssue.TextRange.StartLine,
+                    sonarQubeIssue.TextRange.EndLine,
+                    sonarQubeIssue.TextRange.StartOffset,
+                    sonarQubeIssue.TextRange.EndOffset,
+                    sonarQubeIssue.Hash),
                 Convert(sonarQubeIssue.Severity),
                 sonarQubeIssue.CreationTimestamp,
                 sonarQubeIssue.LastUpdateTimestamp,

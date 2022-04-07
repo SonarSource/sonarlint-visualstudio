@@ -45,28 +45,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
         private static readonly IReadOnlyList<IAnalysisIssueFlow> EmptyFlows = Array.Empty<IAnalysisIssueFlow>();
 
         public Hotspot(string hotspotKey,
-            string filePath,
             string serverFilePath,
-            string message,
-            int startLine,
-            int endLine,
-            int startLineOffset,
-            int endLineOffset,
-            string lineHash,
+            IAnalysisIssueLocation primaryLocation,
             IHotspotRule rule,
             DateTimeOffset createTimestamp,
             DateTimeOffset lastUpdateTimestamp,
             IReadOnlyList<IAnalysisIssueFlow> flows)
         {
             HotspotKey = hotspotKey;
-            FilePath = filePath;
             ServerFilePath = serverFilePath;
-            Message = message;
-            StartLine = startLine;
-            EndLine = endLine;
-            StartLineOffset = startLineOffset;
-            EndLineOffset = endLineOffset;
-            LineHash = lineHash;
+            PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
             Rule = rule;
             CreationTimestamp = createTimestamp;
             LastUpdateTimestamp = lastUpdateTimestamp;
@@ -74,16 +62,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
         }
 
         public string HotspotKey { get; }
-        public string FilePath { get; }
-        public string Message { get; }
-        public int StartLine { get; }
-        public int EndLine { get; }
-        public int StartLineOffset { get; }
-        public int EndLineOffset { get; }
-        public string LineHash { get; }
         public string RuleKey => Rule.RuleKey;
         public IHotspotRule Rule { get; }
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
+        public IAnalysisIssueLocation PrimaryLocation { get; }
         public string ServerFilePath { get;  }
         public DateTimeOffset CreationTimestamp { get; }
         public DateTimeOffset LastUpdateTimestamp { get; }

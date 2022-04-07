@@ -303,7 +303,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         public void Description_CurrentIssueHasAnalysisIssue_IssueMessage()
         {
             var issue = new Mock<IAnalysisIssue>();
-            issue.SetupGet(x => x.Message).Returns("test message");
+            issue.SetupGet(x => x.PrimaryLocation.Message).Returns("test message");
 
             var issueViz = CreateIssue(issue: issue.Object);
 

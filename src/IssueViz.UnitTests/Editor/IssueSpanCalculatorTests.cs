@@ -58,11 +58,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         public void CalculateSpan_IssueStartLineIsOutsideOfSnapshot_ReturnsEmptySpan(int issueStartLine, int bufferLineCount)
         {
             // Arrange
-            var issue = new DummyAnalysisIssue { StartLine = issueStartLine };
+            var issueLocation = new DummyAnalysisIssueLocation { StartLine = issueStartLine };
             var mockSnapshot = CreateSnapshotMock(bufferLineCount);
 
             // Act and assert
-            var result = testSubject.CalculateSpan(issue, mockSnapshot.Object);
+            var result = testSubject.CalculateSpan(issueLocation, mockSnapshot.Object);
             result.IsEmpty.Should().BeTrue();
 
             checksumCalculatorMock.VerifyNoOtherCalls();
@@ -71,13 +71,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         [TestMethod]
         public void CalculateSpan_IssueLineHashIsDifferent_ReturnsEmptySpan()
         {
-            var issue = new DummyAnalysisIssue { StartLine = 10, LineHash = "some hash" };
+            var issueLocation = new DummyAnalysisIssueLocation { StartLine = 10, LineHash = "some hash" };
 
             var startLine = new VSLineDescription
             {
                 LineLength = 34,
                 LineStartPosition = 103,
-                ZeroBasedLineNumber = issue.StartLine - 1,
+                ZeroBasedLineNumber = issueLocation.StartLine - 1,
                 Text = "unimportant"
             };
 
@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 
             checksumCalculatorMock.Setup(x => x.Calculate(startLine.Text)).Returns("some other hash");
 
-            var result = testSubject.CalculateSpan(issue, mockSnapshot.Object);
+            var result = testSubject.CalculateSpan(issueLocation, mockSnapshot.Object);
             result.IsEmpty.Should().BeTrue();
 
             checksumCalculatorMock.VerifyAll();
@@ -265,7 +265,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         [DataRow(null)]
         public void CalculateSpan_IssueDoesNotHaveLineHash_HashNotChecked(string lineHash)
         {
-            var issue = new DummyAnalysisIssue
+            var issueLocation = new DummyAnalysisIssueLocation
             {
                 StartLine = 1,
                 StartLineOffset = 0,
@@ -285,7 +285,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             var textSnapshotMock = CreateSnapshotMock(lines: new[] { firstLine });
 
             // Act
-            var result = testSubject.CalculateSpan(issue, textSnapshotMock.Object);
+            var result = testSubject.CalculateSpan(issueLocation, textSnapshotMock.Object);
 
             result.IsEmpty.Should().BeFalse();
 
