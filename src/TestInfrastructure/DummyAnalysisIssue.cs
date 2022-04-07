@@ -33,21 +33,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public AnalysisIssueType Type { get; set; }
 
-        public int StartLine { get; set; }
-
-        public int EndLine { get; set; }
-
-        public int StartLineOffset { get; set; }
-
-        public int EndLineOffset { get; set; }
-
-        public string LineHash { get; set; }
-
-        public string Message { get; set; }
-
-        public string FilePath { get; set; }
-
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; } = Array.Empty<IAnalysisIssueFlow>();
+
+        public IAnalysisIssueLocation PrimaryLocation { get; set; } = new DummyAnalysisIssueLocation();
 
         public IReadOnlyList<IQuickFix> Fixes { get; } = Array.Empty<IQuickFix>();
     }

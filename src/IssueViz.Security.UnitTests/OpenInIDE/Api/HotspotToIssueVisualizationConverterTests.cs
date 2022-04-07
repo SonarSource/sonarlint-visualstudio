@@ -64,17 +64,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                     It.Is((IHotspot hotspot) =>
                         hotspot.HotspotKey == "some key" &&
                         hotspot.Rule.Priority == HotspotPriority.High &&
-                        hotspot.LineHash == "hash-xxx" &&
                         hotspot.Flows.IsEmpty() &&
-                        hotspot.Message == "message" &&
                         hotspot.RuleKey == "rule key" &&
                         hotspot.Rule.RuleKey == "rule key" &&
-                        hotspot.FilePath== "some absolute path" &&
                         hotspot.ServerFilePath== "some path" &&
-                        hotspot.StartLine == 5 &&
-                        hotspot.EndLine == 10 &&
-                        hotspot.StartLineOffset == 15 &&
-                        hotspot.EndLineOffset == 20),
+                        hotspot.PrimaryLocation.LineHash == "hash-xxx" &&
+                        hotspot.PrimaryLocation.Message == "message" &&
+                        hotspot.PrimaryLocation.FilePath == "some absolute path" &&
+                        hotspot.PrimaryLocation.StartLine == 5 &&
+                        hotspot.PrimaryLocation.EndLine == 10 &&
+                        hotspot.PrimaryLocation.StartLineOffset == 15 &&
+                        hotspot.PrimaryLocation.EndLineOffset == 20),
                     It.IsAny<ITextSnapshot>()),
                 Times.Once);
         }
@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             issueVizConverter.Verify(x => x.Convert(
                     It.Is((IHotspot hotspot) => 
-                        hotspot.FilePath == null &&
+                        hotspot.PrimaryLocation.FilePath == null &&
                         hotspot.ServerFilePath == originalPath),
                     It.IsAny<ITextSnapshot>()),
                 Times.Once);

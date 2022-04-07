@@ -48,11 +48,13 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             var convertedIssue = testSubject.Convert(secret, secretsDetector, ValidFilePath, textSnapshot.Object);
 
             convertedIssue.RuleKey.Should().Be(ValidRuleKey);
-            convertedIssue.FilePath.Should().Be(ValidFilePath);
-            convertedIssue.Message.Should().Be(ValidRuleMessage);
             convertedIssue.Severity.Should().Be(AnalysisIssueSeverity.Major);
             convertedIssue.Type.Should().Be(AnalysisIssueType.Vulnerability);
-            convertedIssue.LineHash.Should().BeNull();
+
+            convertedIssue.PrimaryLocation.FilePath.Should().Be(ValidFilePath);
+            convertedIssue.PrimaryLocation.Message.Should().Be(ValidRuleMessage);
+            convertedIssue.PrimaryLocation.LineHash.Should().BeNull();
+
             convertedIssue.Flows.Should().BeEmpty();
         }
 
@@ -75,7 +77,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             var testSubject = CreateTestSubject();
             var convertedIssue = testSubject.Convert(secret, secretsDetector, originalPath, textSnapshot.Object);
 
-            convertedIssue.FilePath.Should().Be(expectedPath);
+            convertedIssue.PrimaryLocation.FilePath.Should().Be(expectedPath);
         }
 
         [TestMethod]
@@ -92,11 +94,11 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             var testSubject = CreateTestSubject();
             var convertedIssue = testSubject.Convert(secret, secretsDetector, ValidFilePath, textSnapshot.Object);
 
-            convertedIssue.StartLine.Should().Be(21);
-            convertedIssue.EndLine.Should().Be(21);
+            convertedIssue.PrimaryLocation.StartLine.Should().Be(21);
+            convertedIssue.PrimaryLocation.EndLine.Should().Be(21);
 
-            convertedIssue.StartLineOffset.Should().Be(50); // secret.StartIndex - vsLine.Start.Position
-            convertedIssue.EndLineOffset.Should().Be(150); // secret.EndIndex - vsLine.End.Position
+            convertedIssue.PrimaryLocation.StartLineOffset.Should().Be(50); // secret.StartIndex - vsLine.Start.Position
+            convertedIssue.PrimaryLocation.EndLineOffset.Should().Be(150); // secret.EndIndex - vsLine.End.Position
         }
 
         [TestMethod]
@@ -114,11 +116,11 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             var testSubject = CreateTestSubject();
             var convertedIssue = testSubject.Convert(secret, secretsDetector, ValidFilePath, textSnapshot.Object);
 
-            convertedIssue.StartLine.Should().Be(21);
-            convertedIssue.EndLine.Should().Be(22);
+            convertedIssue.PrimaryLocation.StartLine.Should().Be(21);
+            convertedIssue.PrimaryLocation.EndLine.Should().Be(22);
 
-            convertedIssue.StartLineOffset.Should().Be(50); // secret.StartIndex - vsLine.Start.Position
-            convertedIssue.EndLineOffset.Should().Be(50); // secret.EndIndex - vsLine.End.Position
+            convertedIssue.PrimaryLocation.StartLineOffset.Should().Be(50); // secret.StartIndex - vsLine.Start.Position
+            convertedIssue.PrimaryLocation.EndLineOffset.Should().Be(50); // secret.EndIndex - vsLine.End.Position
         }
 
         private ISecretsToAnalysisIssueConverter CreateTestSubject()

@@ -192,7 +192,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case StandardTableKeyNames.Text:
-                    content = issue.Message;
+                    content = issue.PrimaryLocation.Message;
                     return true;
 
                 case StandardTableKeyNames.ErrorSeverity:
@@ -272,7 +272,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public override bool TryCreateDetailsStringContent(int index, out string content)
         {
             // TODO use the detailed description
-            content = this.issues[index].Issue.Message;
+            content = this.issues[index].Issue.PrimaryLocation.Message;
             return true;
         }
 

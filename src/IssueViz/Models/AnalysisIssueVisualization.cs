@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         {
             Flows = flows;
             Issue = issue;
-            CurrentFilePath = issue.FilePath;
+            CurrentFilePath = issue.PrimaryLocation.FilePath;
             Span = span;
             QuickFixes = quickFixes;
         }
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         public IReadOnlyList<IQuickFixVisualization> QuickFixes { get; }
         public IAnalysisIssueBase Issue { get; }
         public int StepNumber => 0;
-        public IAnalysisIssueLocation Location => Issue;
+        public IAnalysisIssueLocation Location => Issue.PrimaryLocation;
 
         public SnapshotSpan? Span
         {
@@ -98,11 +98,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
 
         string IFilterableIssue.FilePath => CurrentFilePath;
 
-        string IFilterableIssue.LineHash => Issue.LineHash;
+        string IFilterableIssue.LineHash => Issue.PrimaryLocation.LineHash;
 
         string IFilterableIssue.ProjectGuid => null; // not used for non-Roslyn issues
 
-        int? IFilterableIssue.StartLine => Issue.StartLine;
+        int? IFilterableIssue.StartLine => Issue.PrimaryLocation.StartLine;
     }
 
     public static class AnalysisIssueVisualizationExtensions

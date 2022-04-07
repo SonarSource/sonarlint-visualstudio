@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         public void Convert_IssueHasNoQuickFixes_IssueVisualizationWithoutQuickFixes()
         {
             var issue = CreateIssue();
-            SetupSpanCalculator(issue, new SnapshotSpan());
+            SetupSpanCalculator(issue.PrimaryLocation, new SnapshotSpan());
 
             var result = testSubject.Convert(issue, textSnapshotMock);
 
@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         public void Convert_EmptySpan_IssueWithEmptySpan()
         {
             var issue = CreateIssue(Path.GetRandomFileName());
-            SetupSpanCalculator(issue, new SnapshotSpan());
+            SetupSpanCalculator(issue.PrimaryLocation, new SnapshotSpan());
 
             var result = testSubject.Convert(issue, textSnapshotMock);
 
@@ -156,7 +156,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             var flows = Array.Empty<IAnalysisIssueFlow>();
             var issueSpan = CreateNonEmptySpan();
             var issue = CreateIssue(Path.GetRandomFileName(), flows);
-            SetupSpanCalculator(issue, issueSpan);
+            SetupSpanCalculator(issue.PrimaryLocation, issueSpan);
 
             var expectedIssueVisualization = new AnalysisIssueVisualization(
                 Array.Empty<IAnalysisIssueFlowVisualization>(),
@@ -177,7 +177,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
 
             var issueSpan = CreateNonEmptySpan();
             var issue = CreateIssue(Path.GetRandomFileName(), flow);
-            SetupSpanCalculator(issue, issueSpan);
+            SetupSpanCalculator(issue.PrimaryLocation, issueSpan);
 
             var expectedLocationVisualization = new AnalysisIssueLocationVisualization(1, location);
             var expectedFlowVisualization = new AnalysisIssueFlowVisualization(1, new[] { expectedLocationVisualization }, flow);
@@ -206,7 +206,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
 
             var issueSpan = CreateNonEmptySpan();
             var issue = CreateIssue(Path.GetRandomFileName(), firstFlow, secondFlow);
-            SetupSpanCalculator(issue, issueSpan);
+            SetupSpanCalculator(issue.PrimaryLocation, issueSpan);
 
             var expectedFirstFlowFirstLocationVisualization = new AnalysisIssueLocationVisualization(1, firstFlowFirstLocation);
             var expectedFirstFlowSecondLocationVisualization = new AnalysisIssueLocationVisualization(2, firstFlowSecondLocation);
@@ -238,7 +238,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
 
             var issueSpan = CreateNonEmptySpan();
             var issue = CreateIssue(issueFilePath, flow);
-            SetupSpanCalculator(issue, issueSpan);
+            SetupSpanCalculator(issue.PrimaryLocation, issueSpan);
 
             var locationSpan = CreateNonEmptySpan();
             SetupSpanCalculator(locationInSameFile, locationSpan);
@@ -271,13 +271,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
                 Guid.NewGuid().ToString(),
                 AnalysisIssueSeverity.Blocker,
                 AnalysisIssueType.Bug,
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().GetHashCode(),
-                Guid.NewGuid().GetHashCode(),
-                Guid.NewGuid().GetHashCode(),
-                Guid.NewGuid().GetHashCode(),
-                Guid.NewGuid().ToString(),
+                CreateLocation(Guid.NewGuid().ToString()),
                 null,
                 quickFixes
             );
@@ -291,13 +285,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
                 Guid.NewGuid().ToString(),
                 AnalysisIssueSeverity.Blocker,
                 AnalysisIssueType.Bug,
-                Guid.NewGuid().ToString(),
-                filePath,
-                Guid.NewGuid().GetHashCode(),
-                Guid.NewGuid().GetHashCode(),
-                Guid.NewGuid().GetHashCode(),
-                Guid.NewGuid().GetHashCode(),
-                Guid.NewGuid().ToString(),
+                CreateLocation(filePath),
                 flows
             );
 

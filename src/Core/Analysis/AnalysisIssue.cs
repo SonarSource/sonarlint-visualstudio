@@ -29,11 +29,10 @@ namespace SonarLint.VisualStudio.Core.Analysis
         private static readonly IReadOnlyList<IQuickFix> EmptyFixes = Array.Empty<IQuickFix>();
 
         public AnalysisIssue(
-            string ruleKey, AnalysisIssueSeverity severity, AnalysisIssueType type,
-            string message, string filePath,
-            int startLine, int endLine,
-            int startLineOffset, int endLineOffset,
-            string lineHash,
+            string ruleKey, 
+            AnalysisIssueSeverity severity, 
+            AnalysisIssueType type,
+            IAnalysisIssueLocation primaryLocation,
             IReadOnlyList<IAnalysisIssueFlow> flows,
             IReadOnlyList<IQuickFix> fixes = null
             )
@@ -41,13 +40,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             RuleKey = ruleKey;
             Severity = severity;
             Type = type;
-            StartLine = startLine;
-            StartLineOffset = startLineOffset;
-            EndLine = endLine;
-            EndLineOffset = endLineOffset;
-            FilePath = filePath;
-            Message = message;
-            LineHash = lineHash;
+            PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
             Flows = flows ?? EmptyFlows;
             Fixes = fixes ?? EmptyFixes;
         }
@@ -58,21 +51,9 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
         public AnalysisIssueType Type { get; }
 
-        public int StartLine { get; }
-
-        public int EndLine { get; }
-
-        public int StartLineOffset { get; }
-
-        public int EndLineOffset { get; }
-
-        public string LineHash { get; }
-
-        public string Message { get; }
-
-        public string FilePath { get; }
-
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
+        
+        public IAnalysisIssueLocation PrimaryLocation { get; }
 
         public IReadOnlyList<IQuickFix> Fixes { get; }
     }

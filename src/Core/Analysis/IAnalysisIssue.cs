@@ -31,11 +31,16 @@ namespace SonarLint.VisualStudio.Core.Analysis
         IReadOnlyList<IQuickFix> Fixes { get; }
     }
 
-    public interface IAnalysisIssueBase : IAnalysisIssueLocation
+    public interface IAnalysisIssueBase
     {
         string RuleKey { get; }
 
         IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
+
+        /// <summary>
+        /// Should never be null
+        /// </summary>
+        IAnalysisIssueLocation PrimaryLocation { get; }
     }
 
     public interface IAnalysisIssueFlow

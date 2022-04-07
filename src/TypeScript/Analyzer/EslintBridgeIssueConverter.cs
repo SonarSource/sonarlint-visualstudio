@@ -51,13 +51,14 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                 sonarRuleKey,
                 Convert(ruleDefinition.Severity),
                 Convert(ruleDefinition.Type),
-                issue.Message,
-                filePath,
-                issue.Line,
-                issue.EndLine, // todo: do we need to handle EndLine=0?
-                issue.Column,
-                issue.EndColumn,
-                null,
+                primaryLocation: new AnalysisIssueLocation(
+                    issue.Message,
+                    filePath,
+                    issue.Line,
+                    issue.EndLine, // todo: do we need to handle EndLine=0?
+                    issue.Column,
+                    issue.EndColumn,
+                    null),
                 Convert(filePath, issue.SecondaryLocations));
         }
 
