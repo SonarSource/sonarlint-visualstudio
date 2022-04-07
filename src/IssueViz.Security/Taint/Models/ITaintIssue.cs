@@ -40,28 +40,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
         private static readonly IReadOnlyList<IAnalysisIssueFlow> EmptyFlows = Array.Empty<IAnalysisIssueFlow>();
 
         public TaintIssue(string issueKey,
-            string filePath,
             string ruleKey,
-            string message,
-            int startLine,
-            int endLine,
-            int startLineOffset,
-            int endLineOffset,
-            string lineHash,
+            IAnalysisIssueLocation primaryLocation,
             AnalysisIssueSeverity severity,
             DateTimeOffset creationTimestamp,
             DateTimeOffset lastUpdateTimestamp,
             IReadOnlyList<IAnalysisIssueFlow> flows)
         {
             IssueKey = issueKey;
-            FilePath = filePath;
             RuleKey = ruleKey;
-            Message = message;
-            StartLine = startLine;
-            EndLine = endLine;
-            StartLineOffset = startLineOffset;
-            EndLineOffset = endLineOffset;
-            LineHash = lineHash;
+            PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
             Severity = severity;
             CreationTimestamp = creationTimestamp;
             LastUpdateTimestamp = lastUpdateTimestamp;
@@ -69,17 +57,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
         }
 
         public string IssueKey { get; }
-        public string FilePath { get; }
-        public string Message { get; }
-        public int StartLine { get; }
-        public int EndLine { get; }
-        public int StartLineOffset { get; }
-        public int EndLineOffset { get; }
-        public string LineHash { get; }
         public string RuleKey { get; }
         public AnalysisIssueSeverity Severity { get; }
         public DateTimeOffset CreationTimestamp { get; }
         public DateTimeOffset LastUpdateTimestamp { get; }
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
+        public IAnalysisIssueLocation PrimaryLocation { get; }
     }
 }

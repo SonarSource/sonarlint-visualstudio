@@ -192,17 +192,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 ruleKey: sqLanguage + ":" + cFamilyIssue.RuleKey,
                 severity: Convert(defaultSeverity),
                 type: Convert(defaultType),
-
-                filePath: Path.IsPathRooted(cFamilyIssue.Filename) ? Path.GetFullPath(cFamilyIssue.Filename) : cFamilyIssue.Filename,
-                message: cFamilyIssue.Text,
-                lineHash: CalculateLineHash(cFamilyIssue, fileContents),
-                startLine: cFamilyIssue.Line,
-                endLine: cFamilyIssue.EndLine,
-
-                // We don't care about the columns in the special case EndLine=0
-                startLineOffset: cFamilyIssue.EndLine == 0 ? 0 : cFamilyIssue.Column - 1,
-                endLineOffset: cFamilyIssue.EndLine == 0 ? 0 : cFamilyIssue.EndColumn - 1,
-
+                primaryLocation: ToAnalysisIssueLocation(cFamilyIssue, fileContents),
                 flows: flows,
                 fixes: ToQuickFixes(cFamilyIssue)
             );
@@ -241,11 +231,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return textSnapshot == null ? null : lineHashCalculator.Calculate(textSnapshot, cFamilyIssueLocation.Line);
         }
 
-        private AnalysisIssueLocation ToAnalysisIssueLocation(MessagePart cFamilyIssueLocation, IReadOnlyDictionary<string, ITextDocument> fileContents)
-        {
-            return new AnalysisIssueLocation
+        private AnalysisIssueLocation ToAnalysisIssueLocation(MessagePart cFamilyIssueLocation, IReadOnlyDictionary<string, ITextDocument> fileContents) =>
+            new AnalysisIssueLocation
             (
-                filePath: Path.GetFullPath(cFamilyIssueLocation.Filename),
+                filePath: Path.IsPathRooted(cFamilyIssueLocation.Filename) ? Path.GetFullPath(cFamilyIssueLocation.Filename) : cFamilyIssueLocation.Filename,
                 message: cFamilyIssueLocation.Text,
                 lineHash: CalculateLineHash(cFamilyIssueLocation, fileContents),
                 startLine: cFamilyIssueLocation.Line,
@@ -255,7 +244,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 startLineOffset: cFamilyIssueLocation.EndLine == 0 ? 0 : cFamilyIssueLocation.Column - 1,
                 endLineOffset: cFamilyIssueLocation.EndLine == 0 ? 0 : cFamilyIssueLocation.EndColumn - 1
             );
-        }
 
         /// <summary>
         /// Converts from the CFamily issue severity enum to the standard AnalysisIssueSeverity

@@ -101,15 +101,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             issueVizConverter.Verify(x => x.Convert(
                     It.Is((TaintIssue taintIssue) =>
                         taintIssue.IssueKey == "issue key" &&
-                        taintIssue.FilePath == "path4" &&
                         taintIssue.RuleKey == "rule" &&
-                        taintIssue.LineHash == "hash" &&
-                        taintIssue.Message == "message4" &&
-                        taintIssue.StartLine == 13 &&
-                        taintIssue.EndLine == 14 &&
-                        taintIssue.StartLineOffset == 15 &&
-                        taintIssue.EndLineOffset == 16 &&
                         taintIssue.Severity == AnalysisIssueSeverity.Major &&
+
+                        taintIssue.PrimaryLocation.FilePath == "path4" &&
+                        taintIssue.PrimaryLocation.LineHash == "hash" &&
+                        taintIssue.PrimaryLocation.Message == "message4" &&
+                        taintIssue.PrimaryLocation.StartLine == 13 &&
+                        taintIssue.PrimaryLocation.EndLine == 14 &&
+                        taintIssue.PrimaryLocation.StartLineOffset == 15 &&
+                        taintIssue.PrimaryLocation.EndLineOffset == 16 &&
 
                         taintIssue.CreationTimestamp == created &&
                         taintIssue.LastUpdateTimestamp == lastUpdate &&

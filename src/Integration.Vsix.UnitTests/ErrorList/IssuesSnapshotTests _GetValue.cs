@@ -44,11 +44,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestInitialize]
         public void SetUp()
         {
-            var path = "foo.js";
+            const string path = "foo.js";
             issue = new DummyAnalysisIssue
             {
-                FilePath = path,
-                Message = "This is dangerous",
+                PrimaryLocation = new DummyAnalysisIssueLocation
+                {
+                    FilePath = path,
+                    Message = "This is dangerous",
+                },
                 RuleKey = "javascript:123",
                 Severity = AnalysisIssueSeverity.Blocker,
             };
@@ -143,13 +146,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void GetValue_Path()
         {
-            GetValue(StandardTableKeyNames.DocumentName).Should().Be(issue.FilePath);
+            GetValue(StandardTableKeyNames.DocumentName).Should().Be(issue.PrimaryLocation.FilePath);
         }
 
         [TestMethod]
         public void GetValue_Message()
         {
-            GetValue(StandardTableKeyNames.Text).Should().Be(issue.Message);
+            GetValue(StandardTableKeyNames.Text).Should().Be(issue.PrimaryLocation.Message);
         }
 
         [TestMethod]

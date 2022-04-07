@@ -324,11 +324,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return new SnapshotSpan(textSnapshot.Object, new Span(0, 1));
         }
 
-        private static IAnalysisIssueVisualization CreateIssueViz(string filePath, SnapshotSpan span, IAnalysisIssue issue, params IAnalysisIssueFlowVisualization[] flowVizs)
+        private static IAnalysisIssueVisualization CreateIssueViz(string filePath, SnapshotSpan span, IAnalysisIssueBase issue, params IAnalysisIssueFlowVisualization[] flowVizs)
         {
             var issueVizMock = new Mock<IAnalysisIssueVisualization>();
             issueVizMock.Setup(x => x.Issue).Returns(issue);
-            issueVizMock.Setup(x => x.Location).Returns(issue);
+            issueVizMock.Setup(x => x.Location).Returns(issue.PrimaryLocation);
             issueVizMock.Setup(x => x.Flows).Returns(flowVizs);
 
             issueVizMock.SetupProperty(x => x.CurrentFilePath);
