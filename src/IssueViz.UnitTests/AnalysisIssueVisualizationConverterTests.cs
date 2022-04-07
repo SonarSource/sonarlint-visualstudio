@@ -98,17 +98,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         [TestMethod]
         public void Convert_IssueHasQuickFixes_QuickFixesSpansAreCalculated()
         {
-            var edit1 = Mock.Of<IEdit>();
+            var textRange1 = Mock.Of<ITextRange>();
             var span1 = CreateNonEmptySpan();
-            SetupSpanCalculator(edit1, span1);
+            SetupSpanCalculator(textRange1, span1);
+            var edit1 = CreateEdit(textRange1);
 
-            var edit2 = Mock.Of<IEdit>();
+            var textRange2 = Mock.Of<ITextRange>();
             var span2 = CreateNonEmptySpan();
-            SetupSpanCalculator(edit2, span2);
+            SetupSpanCalculator(textRange2, span2);
+            var edit2 = CreateEdit(textRange2);
 
-            var edit3 = Mock.Of<IEdit>();
+            var textRange3 = Mock.Of<ITextRange>();
             var span3 = CreateNonEmptySpan();
-            SetupSpanCalculator(edit3, span3);
+            SetupSpanCalculator(textRange3, span3);
+            var edit3 = CreateEdit(textRange3);
 
             var fix1 = new QuickFix("fix1", new[] { edit1, edit2 });
             var fix2 = new QuickFix("fix2", new[] { edit3 });
@@ -330,6 +333,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         private void SetupSpanCalculator(ITextRange textRange, SnapshotSpan nonEmptySpan)
         {
             issueSpanCalculatorMock.Setup(x => x.CalculateSpan(textRange, textSnapshotMock)).Returns(nonEmptySpan);
+        }
+
+        private IEdit CreateEdit(ITextRange textRange)
+        {
+            var edit = new Mock<IEdit>();
+            edit.Setup(x => x.TextRange).Returns(textRange);
+
+            return edit.Object;
         }
     }
 }

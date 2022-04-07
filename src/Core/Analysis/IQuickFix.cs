@@ -28,8 +28,9 @@ namespace SonarLint.VisualStudio.Core.Analysis
         IReadOnlyList<IEdit> Edits { get; }
     }
 
-    public interface IEdit : ITextRange
+    public interface IEdit
     {
         string Text { get; }
+        ITextRange TextRange { get; }
     }
 }

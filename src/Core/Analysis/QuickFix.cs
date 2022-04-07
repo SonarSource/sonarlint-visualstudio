@@ -42,30 +42,13 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
     public class Edit : IEdit
     {
-        public Edit(int startLine,
-            int startColumn,
-            int endLine, 
-            int endColumn,
-            string text)
+        public Edit(string text, ITextRange textRange)
         {
-            StartLine = startLine;
-            StartLineOffset = startColumn;
-            EndLine = endLine;
-            EndLineOffset = endColumn;
             Text = text;
-            LineHash = null;
+            TextRange = textRange;
         }
 
-        public int StartLine { get; }
-
-        public int EndLine { get; }
-
-        public int StartLineOffset { get; }
-
-        public int EndLineOffset { get; }
-
-        public string LineHash { get; }
-
         public string Text { get; }
+        public ITextRange TextRange { get; }
     }
 }
