@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
         {
             var issue = new Mock<IAnalysisIssueBase>();
             issue.Setup(x => x.RuleKey).Returns("some rule");
-            issue.Setup(x => x.Message).Returns("some message");
+            issue.Setup(x => x.PrimaryLocation.Message).Returns("some message");
 
             var navigateCommand = Mock.Of<INavigateToRuleDescriptionCommand>();
             

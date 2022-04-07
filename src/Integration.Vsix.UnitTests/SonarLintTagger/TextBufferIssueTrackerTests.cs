@@ -370,13 +370,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var issue = new DummyAnalysisIssue
             {
                 RuleKey = ruleKey,
-                StartLine = startLine,
-                EndLine = endLine
+                PrimaryLocation = new DummyAnalysisIssueLocation
+                {
+                    StartLine = startLine,
+                    EndLine = endLine
+                }
             };
 
             var issueVizMock = new Mock<IAnalysisIssueVisualization>();
             issueVizMock.Setup(x => x.Issue).Returns(issue);
-            issueVizMock.Setup(x => x.Location).Returns(issue);
+            issueVizMock.Setup(x => x.Location).Returns(issue.PrimaryLocation);
             issueVizMock.Setup(x => x.Flows).Returns(Array.Empty<IAnalysisIssueFlowVisualization>());
             issueVizMock.SetupProperty(x => x.Span);
             issueVizMock.Object.Span = new SnapshotSpan(CreateMockTextSnapshot(1000, "any line text").Object, 0, 1);

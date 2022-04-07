@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 using SonarQube.Client.Models;
@@ -78,14 +79,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
             var hotspot = new Hotspot(
                 hotspotKey: sonarQubeHotspot.HotspotKey,
-                filePath: localFilePath,
                 serverFilePath: sonarQubeHotspot.FilePath,
-                message: sonarQubeHotspot.Message,
-                startLine: sonarQubeHotspot.TextRange.StartLine,
-                endLine: sonarQubeHotspot.TextRange.EndLine,
-                startLineOffset: sonarQubeHotspot.TextRange.StartOffset,
-                endLineOffset: sonarQubeHotspot.TextRange.EndOffset,
-                lineHash: sonarQubeHotspot.LineHash,
+                primaryLocation: new AnalysisIssueLocation(
+                    filePath: localFilePath,
+                    message: sonarQubeHotspot.Message,
+                    startLine: sonarQubeHotspot.TextRange.StartLine,
+                    endLine: sonarQubeHotspot.TextRange.EndLine,
+                    startLineOffset: sonarQubeHotspot.TextRange.StartOffset,
+                    endLineOffset: sonarQubeHotspot.TextRange.EndOffset,
+                    lineHash: sonarQubeHotspot.LineHash),
                 rule: rule,
                 createTimestamp: sonarQubeHotspot.CreationTimestamp,
                 lastUpdateTimestamp: sonarQubeHotspot.LastUpdateTimestamp,

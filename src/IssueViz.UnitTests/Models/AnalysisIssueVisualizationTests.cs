@@ -76,10 +76,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
         }
 
         [TestMethod]
-        public void Location_ReturnsUnderlyingIssue()
+        public void Location_ReturnsUnderlyingIssueLocation()
         {
             var testSubject = CreateTestSubject();
-            testSubject.Location.Should().Be(testSubject.Issue);
+            testSubject.Location.Should().Be(testSubject.Issue.PrimaryLocation);
         }
 
         [TestMethod]
@@ -195,9 +195,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
         {
             var issueMock = new Mock<IAnalysisIssue>();
             issueMock.SetupGet(x => x.RuleKey).Returns("my key");
-            issueMock.SetupGet(x => x.StartLine).Returns(999);
-            issueMock.SetupGet(x => x.FilePath).Returns("x:\\aaa.foo");
-            issueMock.SetupGet(x => x.LineHash).Returns("hash");
+            issueMock.SetupGet(x => x.PrimaryLocation.StartLine).Returns(999);
+            issueMock.SetupGet(x => x.PrimaryLocation.FilePath).Returns("x:\\aaa.foo");
+            issueMock.SetupGet(x => x.PrimaryLocation.LineHash).Returns("hash");
 
             var testSubject = new AnalysisIssueVisualization(null, issueMock.Object, new SnapshotSpan(), null);
 
@@ -206,9 +206,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
             var filterable = (IFilterableIssue)testSubject;
 
             filterable.RuleId.Should().Be(issueMock.Object.RuleKey);
-            filterable.StartLine.Should().Be(issueMock.Object.StartLine);
-            filterable.FilePath.Should().Be(issueMock.Object.FilePath);
-            filterable.LineHash.Should().Be(issueMock.Object.LineHash);
+            filterable.StartLine.Should().Be(issueMock.Object.PrimaryLocation.StartLine);
+            filterable.FilePath.Should().Be(issueMock.Object.PrimaryLocation.FilePath);
+            filterable.LineHash.Should().Be(issueMock.Object.PrimaryLocation.LineHash);
             filterable.ProjectGuid.Should().BeNull();
         }
 
@@ -223,7 +223,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
         private AnalysisIssueVisualization CreateTestSubject(string filePath = null, SnapshotSpan? span = null)
         {
             var issue = new Mock<IAnalysisIssue>();
-            issue.SetupGet(x => x.FilePath).Returns(filePath);
+            issue.SetupGet(x => x.PrimaryLocation.FilePath).Returns(filePath);
 
             return new AnalysisIssueVisualization(null, issue.Object, span, null);
         }

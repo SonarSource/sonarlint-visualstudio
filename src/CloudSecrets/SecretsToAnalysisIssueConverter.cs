@@ -47,13 +47,14 @@ namespace SonarLint.VisualStudio.CloudSecrets
             return new AnalysisIssue(ruleKey: secretDetector.RuleKey,
                 severity: AnalysisIssueSeverity.Major,
                 type: AnalysisIssueType.Vulnerability,
-                message: secretDetector.Message,
-                filePath: Path.IsPathRooted(filePath) ? Path.GetFullPath(filePath) : filePath,
-                startLine: startLine,
-                endLine: endLine,
-                startLineOffset: startLineOffset,
-                endLineOffset: endLineOffset,
-                lineHash: null, // suppressions are not yet supported 
+                primaryLocation: new AnalysisIssueLocation(
+                    message: secretDetector.Message,
+                    filePath: Path.IsPathRooted(filePath) ? Path.GetFullPath(filePath) : filePath,
+                    startLine: startLine,
+                    endLine: endLine,
+                    startLineOffset: startLineOffset,
+                    endLineOffset: endLineOffset,
+                    lineHash: null), // suppressions are not yet supported
                 flows: null);
         }
     }

@@ -118,7 +118,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         public string FileName => Path.GetFileName(CurrentIssue?.CurrentFilePath);
 
-        public string Description => CurrentIssue?.Issue?.Message;
+        public string Description => CurrentIssue?.Issue?.PrimaryLocation.Message;
 
         public string RuleKey => CurrentIssue?.Issue?.RuleKey;
 

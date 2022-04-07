@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         {
             var issueSpan = textSnapshot == null
                 ? (SnapshotSpan?) null
-                : issueSpanCalculator.CalculateSpan(issue, textSnapshot);
+                : issueSpanCalculator.CalculateSpan(issue.PrimaryLocation, textSnapshot);
 
             var flows = Convert(issue.Flows);
 

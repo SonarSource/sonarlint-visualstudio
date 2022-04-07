@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
     [TestClass]
     public class AccumulatingIssueConsumerTests
     {
-        private static readonly IAnalysisIssue ValidIssue = CreateIssue(startLine: 1, endline: 1);
+        private static readonly IAnalysisIssue ValidIssue = CreateIssue(startLine: 1, endLine: 1);
         private static readonly ITextSnapshot ValidTextSnapshot = CreateSnapshot(lineCount: 10);
         private static readonly IAnalysisIssueVisualizationConverter ValidConverter = Mock.Of<IAnalysisIssueVisualizationConverter>();
 
@@ -170,12 +170,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             return mockSnapshot.Object;
         }
 
-        private static IAnalysisIssue CreateIssue(int startLine, int endline) =>
+        private static IAnalysisIssue CreateIssue(int startLine, int endLine) =>
             new DummyAnalysisIssue
             {
-                StartLine = startLine,
-                EndLine = endline,
-                Message = "any message"
+                PrimaryLocation = new DummyAnalysisIssueLocation
+                {
+                    StartLine = startLine,
+                    EndLine = endLine,
+                    Message = "any message"
+                }
             };
 
         private static IAnalysisIssueVisualizationConverter CreatePassthroughConverter()
