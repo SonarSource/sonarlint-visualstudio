@@ -20,6 +20,7 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -265,9 +266,22 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             const string quote = "\"";
             // Quote the script path in case there are any spaces in it.
             // See #2347
+
+            var defaultParameters = GetDefaultParameters();
+
+
             Debug.Assert(!scriptPath.Contains(quote), "Not expecting the imported script path to be quoted");
 
-            return quote + scriptPath + quote;
+            return quote + scriptPath + quote + defaultParameters;
+        }
+
+        private static string GetDefaultParameters()
+        {
+            var workDir = Path.Combine(Path.GetTempPath(), "SLVS", "ESLintBridge", "workdir");
+
+            //To pass the sonarlint parameter we have to pass all the parameters before 
+            //Commandline interface for eslintbridge is not accepting named parameters  
+            return $" \"0\" \"127.0.0.1\" \"{workDir}\" \"true\" \"true\""; 
         }
 
         private void ClearProcessData()
