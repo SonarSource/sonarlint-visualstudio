@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 
             if (shouldCalculateSpan)
             {
-                locationVisualization.Span = spanCalculator.CalculateSpan(locationVisualization.Location, textView.TextBuffer.CurrentSnapshot);
+                locationVisualization.Span = spanCalculator.CalculateSpan(locationVisualization.Location.TextRange, textView.TextBuffer.CurrentSnapshot);
             }
 
             return locationVisualization.Span.Value;

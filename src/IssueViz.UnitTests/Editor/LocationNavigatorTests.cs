@@ -129,7 +129,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             SetupDocumentCanBeOpened("c:\\test.cpp");
 
             var calculateSpanException = new NotImplementedException("this is a test");
-            spanCalculatorMock.Setup(x => x.CalculateSpan(location.Location, textViewCurrentSnapshotMock)).Throws(calculateSpanException);
+            spanCalculatorMock.Setup(x => x.CalculateSpan(location.Location.TextRange, textViewCurrentSnapshotMock)).Throws(calculateSpanException);
 
             VerifyExceptionCaughtAndLogged(calculateSpanException, location);
             VerifyNoNavigation();
@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             var location = CreateLocation("c:\\test.cpp");
             SetupDocumentCanBeOpened("c:\\test.cpp");
 
-            spanCalculatorMock.Setup(x => x.CalculateSpan(location.Location, textViewCurrentSnapshotMock)).Throws<StackOverflowException>();
+            spanCalculatorMock.Setup(x => x.CalculateSpan(location.Location.TextRange, textViewCurrentSnapshotMock)).Throws<StackOverflowException>();
 
             Action act = () => testSubject.TryNavigate(location);
             act.Should().ThrowExactly<StackOverflowException>();
@@ -153,7 +153,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             var location = CreateLocation("c:\\test.cpp");
             SetupDocumentCanBeOpened("c:\\test.cpp");
 
-            spanCalculatorMock.Setup(x => x.CalculateSpan(location.Location, textViewCurrentSnapshotMock)).Throws<NotImplementedException>();
+            spanCalculatorMock.Setup(x => x.CalculateSpan(location.Location.TextRange, textViewCurrentSnapshotMock)).Throws<NotImplementedException>();
 
             testSubject.TryNavigate(location);
 
@@ -303,7 +303,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 
         private void SetupCalculatedSpan(IAnalysisIssueLocation analysisIssueLocation, SnapshotSpan span)
         {
-            spanCalculatorMock.Setup(x => x.CalculateSpan(analysisIssueLocation, textViewCurrentSnapshotMock)).Returns(span);
+            spanCalculatorMock.Setup(x => x.CalculateSpan(analysisIssueLocation.TextRange, textViewCurrentSnapshotMock)).Returns(span);
         }
 
         private void VerifyExceptionCaughtAndLogged(Exception setupException, IAnalysisIssueLocationVisualization location)

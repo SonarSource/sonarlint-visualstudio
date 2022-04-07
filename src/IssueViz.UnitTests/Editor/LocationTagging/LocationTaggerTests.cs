@@ -101,8 +101,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             var newSpan1 = new SnapshotSpan(bufferMock.Object.CurrentSnapshot, new Span(1, 10));
             var newSpan2 = new SnapshotSpan(bufferMock.Object.CurrentSnapshot, new Span(5, 3));
             var calculatorMock = new Mock<IIssueSpanCalculator>();
-            calculatorMock.Setup(x => x.CalculateSpan(locVizWithoutSpan.Location, It.IsAny<ITextSnapshot>())).Returns(newSpan1);
-            calculatorMock.Setup(x => x.CalculateSpan(locVizWithEmptySpan.Location, It.IsAny<ITextSnapshot>())).Returns(newSpan2);
+            calculatorMock.Setup(x => x.CalculateSpan(locVizWithoutSpan.Location.TextRange, It.IsAny<ITextSnapshot>())).Returns(newSpan1);
+            calculatorMock.Setup(x => x.CalculateSpan(locVizWithEmptySpan.Location.TextRange, It.IsAny<ITextSnapshot>())).Returns(newSpan2);
 
             var testSubject = new LocationTagger(bufferMock.Object, storeMock.Object, calculatorMock.Object, ValidLogger);
 
@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             storeMock.Setup(x => x.GetLocations(ValidBufferDocName)).Returns(new[] { locVizWithSpan, locVizWithoutSpan });
 
             var calculatorMock = new Mock<IIssueSpanCalculator>();
-            calculatorMock.Setup(x => x.CalculateSpan(locVizWithoutSpan.Location, It.IsAny<ITextSnapshot>())).Returns(new SnapshotSpan());
+            calculatorMock.Setup(x => x.CalculateSpan(locVizWithoutSpan.Location.TextRange, It.IsAny<ITextSnapshot>())).Returns(new SnapshotSpan());
 
             var testSubject = new LocationTagger(bufferMock.Object, storeMock.Object, calculatorMock.Object, ValidLogger);
 
@@ -157,7 +157,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             var newSpan = new SnapshotSpan(newBufferMock.Object.CurrentSnapshot, new Span(1, 10));
 
             var calculatorMock = new Mock<IIssueSpanCalculator>();
-            calculatorMock.Setup(x => x.CalculateSpan(location.Location, newBufferMock.Object.CurrentSnapshot)).Returns(newSpan);
+            calculatorMock.Setup(x => x.CalculateSpan(location.Location.TextRange, newBufferMock.Object.CurrentSnapshot)).Returns(newSpan);
 
             var testSubject = new LocationTagger(newBufferMock.Object, storeMock.Object, calculatorMock.Object, ValidLogger);
 

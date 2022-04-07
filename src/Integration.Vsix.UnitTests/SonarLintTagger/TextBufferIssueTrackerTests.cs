@@ -372,8 +372,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 RuleKey = ruleKey,
                 PrimaryLocation = new DummyAnalysisIssueLocation
                 {
-                    StartLine = startLine,
-                    EndLine = endLine
+                    TextRange = new DummyTextRange
+                    {
+                        StartLine = startLine,
+                        EndLine = endLine,
+                    }
                 }
             };
 

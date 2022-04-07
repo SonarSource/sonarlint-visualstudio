@@ -81,11 +81,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 primaryLocation: new AnalysisIssueLocation(
                     sonarQubeIssue.Message,
                     sonarQubeIssue.FilePath,
-                    sonarQubeIssue.TextRange.StartLine,
-                    sonarQubeIssue.TextRange.EndLine,
-                    sonarQubeIssue.TextRange.StartOffset,
-                    sonarQubeIssue.TextRange.EndOffset,
-                    sonarQubeIssue.Hash),
+                    textRange: new TextRange(
+                        sonarQubeIssue.TextRange.StartLine,
+                        sonarQubeIssue.TextRange.EndLine,
+                        sonarQubeIssue.TextRange.StartOffset,
+                        sonarQubeIssue.TextRange.EndOffset,
+                        sonarQubeIssue.Hash)),
                 Convert(sonarQubeIssue.Severity),
                 sonarQubeIssue.CreationTimestamp,
                 sonarQubeIssue.LastUpdateTimestamp,
@@ -106,11 +107,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
                 return new AnalysisIssueLocation(location.Message,
                     location.FilePath,
-                    location.TextRange.StartLine,
-                    location.TextRange.EndLine,
-                    location.TextRange.StartOffset,
-                    location.TextRange.EndOffset,
-                    null);
+                    textRange: new TextRange(
+                        location.TextRange.StartLine,
+                        location.TextRange.EndLine,
+                        location.TextRange.StartOffset,
+                        location.TextRange.EndOffset,
+                        null));
             }).ToArray();
 
         /// <summary>

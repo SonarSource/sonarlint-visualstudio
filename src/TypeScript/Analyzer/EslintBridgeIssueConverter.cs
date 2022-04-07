@@ -54,11 +54,12 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                 primaryLocation: new AnalysisIssueLocation(
                     issue.Message,
                     filePath,
-                    issue.Line,
-                    issue.EndLine, // todo: do we need to handle EndLine=0?
-                    issue.Column,
-                    issue.EndColumn,
-                    null),
+                    textRange: new TextRange(
+                        issue.Line,
+                        issue.EndLine, // todo: do we need to handle EndLine=0?
+                        issue.Column,
+                        issue.EndColumn,
+                        null)),
                 Convert(filePath, issue.SecondaryLocations));
         }
 
@@ -111,10 +112,11 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             new AnalysisIssueLocation(
                 issueLocation.Message,
                 filePath,
-                issueLocation.Line,
-                issueLocation.EndLine,
-                issueLocation.Column,
-                issueLocation.EndColumn,
-                null);
+                textRange: new TextRange(
+                    issueLocation.Line,
+                    issueLocation.EndLine,
+                    issueLocation.Column,
+                    issueLocation.EndColumn,
+                    null));
     }
 }
