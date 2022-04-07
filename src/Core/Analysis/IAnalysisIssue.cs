@@ -37,6 +37,9 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
         IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
 
+        /// <summary>
+        /// Should never be null
+        /// </summary>
         IAnalysisIssueLocation PrimaryLocation { get; }
     }
 
