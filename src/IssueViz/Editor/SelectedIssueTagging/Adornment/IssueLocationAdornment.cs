@@ -58,6 +58,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
 
         public void Update(IFormattedLineSource formattedLineSource)
         {
+            if (formattedLineSource == null)
+            {
+                return;
+            }
+
             var textBlock = Child as TextBlock;
 
             textBlock.Foreground = formattedLineSource.DefaultTextProperties.ForegroundBrush;
