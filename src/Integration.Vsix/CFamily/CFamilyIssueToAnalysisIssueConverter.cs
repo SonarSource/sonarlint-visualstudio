@@ -205,10 +205,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         message: f.Message,
                         f.Edits?.Select(e =>
                                 new Core.Analysis.Edit(
-                                    startLine: e.StartLine,
-                                    startColumn: e.StartColumn - 1,
-                                    endLine: e.EndLine,
-                                    endColumn: e.EndColumn - 1,
+                                    textRange: new TextRange(
+                                        startLine: e.StartLine,
+                                        startLineOffset: e.StartColumn - 1,
+                                        endLine: e.EndLine,
+                                        endLineOffset: e.EndColumn - 1,
+                                        lineHash: null),
                                     text: e.Text))
                             .ToList()))
                 .ToList();
