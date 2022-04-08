@@ -55,14 +55,29 @@ namespace SonarLint.VisualStudio.Core.Analysis
         string Message { get; }
     }
 
+    /// <summary>
+    /// Represents a Sonar text range
+    /// </summary>
     public interface ITextRange
     {
+        /// <summary>
+        /// 1-based line
+        /// </summary>
         int StartLine { get; }
 
+        /// <summary>
+        /// 1-based line
+        /// </summary>
         int EndLine { get; }
 
+        /// <summary>
+        /// 0-based column
+        /// </summary>
         int StartLineOffset { get; }
 
+        /// <summary>
+        /// 0-based column
+        /// </summary>
         int EndLineOffset { get; }
 
         string LineHash { get; }

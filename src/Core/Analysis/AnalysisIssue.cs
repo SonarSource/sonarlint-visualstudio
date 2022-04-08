@@ -99,4 +99,22 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
         public string LineHash { get; }
     }
+
+    public class TextRange : ITextRange
+    {
+        public TextRange(int startLine, int endLine, int startLineOffset, int endLineOffset, string lineHash)
+        {
+            StartLine = startLine;
+            EndLine = endLine;
+            StartLineOffset = startLineOffset;
+            EndLineOffset = endLineOffset;
+            LineHash = lineHash;
+        }
+
+        public int StartLine { get; }
+        public int EndLine { get; }
+        public int StartLineOffset { get; }
+        public int EndLineOffset { get; }
+        public string LineHash { get; }
+    }
 }
