@@ -296,7 +296,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         {
             var editVisualization = new Mock<IQuickFixEditVisualization>();
 
-            editVisualization.Setup(e => e.Edit.Text).Returns(text);
+            editVisualization.Setup(e => e.Edit.NewText).Returns(text);
             editVisualization.Setup(e => e.Span).Returns(snapshotSpan);
 
             return editVisualization;

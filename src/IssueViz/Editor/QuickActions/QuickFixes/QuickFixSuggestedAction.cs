@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
             {
                 var updatedSpan = spanTranslator.TranslateTo(edit.Span, textBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive);
                 
-                textEdit.Replace(updatedSpan, edit.Edit.Text);
+                textEdit.Replace(updatedSpan, edit.Edit.NewText);
             }
 
             issueViz.InvalidateSpan();
