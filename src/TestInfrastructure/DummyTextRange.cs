@@ -20,14 +20,15 @@
 
 using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests;
-
-// Properties are settable to simplify creating test instances
-public class DummyTextRange : ITextRange
+namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public int StartLine { get; set; }
-    public int EndLine { get; set; }
-    public int StartLineOffset { get; set; }
-    public int EndLineOffset { get; set; }
-    public string LineHash { get; set; }
+// Properties are settable to simplify creating test instances
+    public class DummyTextRange : ITextRange
+    {
+        public int StartLine { get; set; }
+        public int EndLine { get; set; }
+        public int StartLineOffset { get; set; }
+        public int EndLineOffset { get; set; }
+        public string LineHash { get; set; }
+    }
 }

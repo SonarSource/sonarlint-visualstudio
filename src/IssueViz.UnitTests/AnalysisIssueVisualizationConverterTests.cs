@@ -327,7 +327,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         private IEdit CreateEdit(ITextRange textRange)
         {
             var edit = new Mock<IEdit>();
-            edit.Setup(x => x.TextRange).Returns(textRange);
+            edit.Setup(x => x.RangeToReplace).Returns(textRange);
 
             return edit.Object;
         }

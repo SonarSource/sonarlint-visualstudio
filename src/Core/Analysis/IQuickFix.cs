@@ -30,7 +30,15 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
     public interface IEdit
     {
-        string Text { get; }
-        ITextRange TextRange { get; }
+        /// <summary>
+        /// The new text to insert. Can be empty if the edit is a deletion.
+        /// </summary>
+        string NewText { get; }
+
+        /// <summary>
+        /// The range of existing text to be replaced.
+        /// The range can have a zero-length if no existing text is being removed i.e. the range will indicate the insertion point.
+        /// </summary>
+        ITextRange RangeToReplace { get; }
     }
 }

@@ -44,11 +44,11 @@ namespace SonarLint.VisualStudio.Core.Analysis
     {
         public Edit(string text, ITextRange textRange)
         {
-            Text = text;
-            TextRange = textRange;
+            NewText = text;
+            RangeToReplace = textRange;
         }
 
-        public string Text { get; }
-        public ITextRange TextRange { get; }
+        public string NewText { get; }
+        public ITextRange RangeToReplace { get; }
     }
 }

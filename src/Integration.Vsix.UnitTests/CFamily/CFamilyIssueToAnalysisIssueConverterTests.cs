@@ -610,11 +610,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             
             for (int i = 0; i < fix.Edits.Length; i++)
             {
-                fix.Edits[i].StartColumn.Should().Be(quickFix.Edits[i].TextRange.StartLineOffset+1, $"because StartColumn was not equal in {fix.Message}, edit: {i} ");
-                fix.Edits[i].EndColumn.Should().Be(quickFix.Edits[i].TextRange.EndLineOffset+1, $"because EndColumn was not equal in {fix.Message}, edit: {i} ");
-                fix.Edits[i].StartLine.Should().Be(quickFix.Edits[i].TextRange.StartLine, $"because StartLine was not equal in {fix.Message}, edit: {i} ");
-                fix.Edits[i].EndLine.Should().Be(quickFix.Edits[i].TextRange.EndLine, $"because EndLine was not equal in {fix.Message}, edit: {i} ");
-                fix.Edits[i].Text.Should().Be(quickFix.Edits[i].Text, $"because Text was not equal in {fix.Message}, edit: {i} ");
+                fix.Edits[i].StartColumn.Should().Be(quickFix.Edits[i].RangeToReplace.StartLineOffset+1, $"because StartColumn was not equal in {fix.Message}, edit: {i} ");
+                fix.Edits[i].EndColumn.Should().Be(quickFix.Edits[i].RangeToReplace.EndLineOffset+1, $"because EndColumn was not equal in {fix.Message}, edit: {i} ");
+                fix.Edits[i].StartLine.Should().Be(quickFix.Edits[i].RangeToReplace.StartLine, $"because StartLine was not equal in {fix.Message}, edit: {i} ");
+                fix.Edits[i].EndLine.Should().Be(quickFix.Edits[i].RangeToReplace.EndLine, $"because EndLine was not equal in {fix.Message}, edit: {i} ");
+                fix.Edits[i].Text.Should().Be(quickFix.Edits[i].NewText, $"because NewText was not equal in {fix.Message}, edit: {i} ");
             }
         }
 
