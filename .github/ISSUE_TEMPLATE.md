@@ -7,8 +7,6 @@ The community forum already has answers to many common questions/problems and is
 
 * to report a false positive visit https://community.sonarsource.com/c/bug/fp/7
 
-* for bug reports visit https://community.sonarsource.com/c/bug/fault/6
-
 * to suggest new features visit https://community.sonarsource.com/c/suggestions/features/14
 
 
