@@ -56,8 +56,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
             Update(formattedLineSource);
         }
 
+        /// <summary>
+        /// Updates the adornment's color and font to match the VS theme.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="formattedLineSource"/> can be null if the adornment is created when the view is initialized.
+        /// If it is null, we will not apply VS theme colors and instead will rely on VS to call us again
+        /// when the view is initialized and <see cref="formattedLineSource"/> is no longer null.
+        /// </remarks>
         public void Update(IFormattedLineSource formattedLineSource)
         {
+            if (formattedLineSource == null)
+            {
+                return;
+            }
+
             var textBlock = Child as TextBlock;
 
             textBlock.Foreground = formattedLineSource.DefaultTextProperties.ForegroundBrush;
