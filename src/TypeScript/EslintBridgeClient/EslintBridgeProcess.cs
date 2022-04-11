@@ -20,10 +20,12 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
@@ -265,9 +267,31 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             const string quote = "\"";
             // Quote the script path in case there are any spaces in it.
             // See #2347
+
+            var defaultParameters = GetDefaultParameters();
+
+
             Debug.Assert(!scriptPath.Contains(quote), "Not expecting the imported script path to be quoted");
 
-            return quote + scriptPath + quote;
+            return quote + scriptPath + quote + defaultParameters;
+        }
+
+        private static string GetDefaultParameters()
+        {
+            var workDir = PathHelper.GetTempDirForTask(true , "ESLintBridge", "workdir");
+
+
+            /*
+            To pass the sonarlint parameter we have to pass all the parameters before 
+            Commandline interface for eslintbridge is not accepting named parameters  
+            port - port number on which server should listen
+            host - host address on which server should listen
+            workDir - working directory from SonarQube API
+            shouldUseTypeScriptParserForJS - whether TypeScript parser should be used for JS code (default true, can be set to false in case of perf issues)
+            sonarlint - when running in SonarLint (used to not compute metrics, highlighting, etc)
+            Source: https://github.com/SonarSource/SonarJS/blob/0e83c667fc6bc1687111db9343de73f725c992ca/eslint-bridge/bin/server#L4 
+            */
+            return $" \"0\" \"127.0.0.1\" \"{workDir}\" \"true\" \"true\""; 
         }
 
         private void ClearProcessData()

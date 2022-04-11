@@ -21,6 +21,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using SonarLint.VisualStudio.Core.Helpers;
 
 namespace SonarLint.VisualStudio.Core.CFamily
 {
@@ -42,8 +43,8 @@ namespace SonarLint.VisualStudio.Core.CFamily
             }
         }
 
-        private static string PchFileName = Guid.NewGuid().ToString() + ".preamble";
-        private static string PchFileDirectory = Path.Combine(WorkingDirectory, "SLVS", "PCH");
+        private static string PchFileName = "PCH.preamble";
+        private static string PchFileDirectory = PathHelper.GetTempDirForTask(true, "PCH");
         public static string WorkingDirectory => Path.GetTempPath();
         public static string PchFilePath => Path.Combine(PchFileDirectory, PchFileName);
         public static string RequestConfigFilePath => Path.Combine(WorkingDirectory, "sonar-cfamily.request.reproducer");
