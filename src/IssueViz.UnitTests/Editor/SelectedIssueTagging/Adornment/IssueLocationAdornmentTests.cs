@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Windows.Controls;
 using System.Windows.Media;
 using FluentAssertions;
@@ -49,6 +50,34 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
             textContent.FontSize.Should().Be(expectedFontSize);
             textContent.FontFamily.ToString().Should().Be("Times New Roman");
             textContent.Text.Should().Be("99");
+        }
+
+        [TestMethod]
+        [Description("Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/2977")]
+        public void Ctor_NoFormattedLineSource_AdornmentCreatedWithoutStyle()
+        {
+            var locViz = CreateLocationViz(CreateSnapshot(), new Span(0, 1), stepNumber: 99);
+            var testSubject = new IssueLocationAdornment(locViz, null);
+
+            testSubject.Should().NotBeNull();
+
+            var textContent = testSubject.Child as TextBlock;
+
+            textContent.Should().NotBeNull();
+            textContent.Text.Should().Be("99");
+        }
+
+        [TestMethod]
+        [Description("Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/2977")]
+        public void Update_NoFormattedLineSource_NoException()
+        {
+            var locViz = CreateLocationViz(CreateSnapshot(), new Span(0, 1), stepNumber: 99);
+            var testSubject = new IssueLocationAdornment(locViz, null);
+
+            testSubject.Should().NotBeNull();
+
+            Action act = () => testSubject.Update(null);
+            act.Should().NotThrow();
         }
 
         [TestMethod]
