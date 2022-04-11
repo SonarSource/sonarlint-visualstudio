@@ -25,6 +25,7 @@ using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
@@ -277,8 +278,9 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         private static string GetDefaultParameters()
         {
-            var workDir = Path.Combine(Path.GetTempPath(), "SLVS", "ESLintBridge", "workdir");
+            var workDir = PathHelper.GetTempDirForTask(true , "ESLintBridge", "workdir");
 
+            
             //To pass the sonarlint parameter we have to pass all the parameters before 
             //Commandline interface for eslintbridge is not accepting named parameters  
             return $" \"0\" \"127.0.0.1\" \"{workDir}\" \"true\" \"true\""; 

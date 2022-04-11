@@ -27,6 +27,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Threading;
 using Moq;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
@@ -357,7 +358,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
 
         private static string GetDefaultParameters()
         {
-            var workDir = Path.Combine(Path.GetTempPath(), "SLVS", "ESLintBridge", "workdir");
+            var workDir = PathHelper.GetTempDirForTask(true, "ESLintBridge", "workdir");
 
             //To pass the sonarlint parameter we have to pass all the parameters before 
             //Commandline interface for eslintbridge is not accepting named parameters  

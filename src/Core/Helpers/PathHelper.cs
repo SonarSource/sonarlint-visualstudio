@@ -29,6 +29,8 @@ namespace SonarLint.VisualStudio.Core.Helpers
 {
     public static class PathHelper
     {
+        private static readonly Guid perVSInstanceFolderName = Guid.NewGuid();
+
         /// <summary>
         /// Replace all invalid file path characters with the underscore ("_").
         /// </summary>
@@ -148,6 +150,39 @@ namespace SonarLint.VisualStudio.Core.Helpers
         {
             string escapedPath = uri.OriginalString.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
             return Uri.UnescapeDataString(escapedPath);
+        }
+
+
+        /// <summary>
+        /// Gets Temp Directory under SLVS folder under %Temp%
+        /// </summary>
+        /// <param name="perVSInstance">Determines if the path will be per VS Instance</param>
+        /// <param name="paths">Creates sub folder structure under SLVS folder</param>
+        public static string GetTempDirForTask(bool perVSInstance, params string[] paths)
+        {
+            var SLVSTempFolder = Path.Combine(Path.GetTempPath(), "SLVS");
+
+            var taskPaths = new List<string> { SLVSTempFolder };
+
+            if (paths != null)
+            {
+                foreach (var path in paths)
+                {
+                    if (!string.IsNullOrWhiteSpace(path))
+                    {
+                        taskPaths.Add(path);
+                    }
+                }
+            }          
+            
+            var taskFolder = Path.Combine(taskPaths.ToArray());
+
+            if(perVSInstance)
+            {
+                return Path.Combine(taskFolder, perVSInstanceFolderName.ToString());
+            }
+
+            return taskFolder;            
         }
     }
 }
