@@ -19,6 +19,8 @@
  */
 
 using System;
+using System.IO;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core.Helpers;
@@ -307,6 +309,83 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
             act.Should().Throw<ArgumentException>();
         }
 
+        [TestMethod]
+        public void GetTempDirForTask_IsEmpty_ReturnsBasePath()
+        {
+            var expectedPath = GetBasePath();
+
+            var actualPath = PathHelper.GetTempDirForTask(false);
+
+            actualPath.Should().Be(expectedPath);
+        }
+
+        [TestMethod]
+        public void GetTempDirForTask_HasOnePath_CombinesPaths()
+        {
+            var expectedPath = Path.Combine(GetBasePath(), "Path");
+
+            var actualPath = PathHelper.GetTempDirForTask(false, "Path");
+
+            actualPath.Should().Be(expectedPath);
+        }
+
+        [TestMethod]
+        public void GetTempDirForTask_PathsIsNull_Throws()
+        {
+            Action act = () => PathHelper.GetTempDirForTask(false, null);
+            act.Should().Throw<ArgumentException>();
+        }
+
+        [TestMethod]
+        public void GetTempDirForTask_HasMultiplePaths_CombinesPaths()
+        {
+            var expectedPath = Path.Combine(GetBasePath(), "Path1", "Path2");
+
+            var actualPath = PathHelper.GetTempDirForTask(false, "Path1", "Path2");
+
+            actualPath.Should().Be(expectedPath);
+        }
+
+        [TestMethod]
+        public void GetTempDirForTask_HasMultiplePathsWithNull_Throws()
+        {
+            Action act = () => PathHelper.GetTempDirForTask(false, "Path1", null, "Path2");
+            act.Should().Throw<ArgumentException>();
+        }
+
+        [TestMethod]
+        public void GetTempDirForTask_HasMultiplePathsWithEmpty_Ignores()
+        {
+            var expectedPath = Path.Combine(GetBasePath(), "Path1", "Path2");
+
+            var actualPath = PathHelper.GetTempDirForTask(false, "Path1", "", "Path2");
+
+            actualPath.Should().Be(expectedPath);
+        }
+
+        [TestMethod]
+        public void GetTempDirForTask_perVSInstanceTrue_AddsGuid()
+        {
+            var expectedPath = GetBasePath();
+
+            var actualPath = PathHelper.GetTempDirForTask(true);
+
+            actualPath.Should().Contain(expectedPath);
+            Guid.TryParse(actualPath.Split('\\').Last(), out _).Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void GetTempDirForTask_perVSInstanceTrueHasPath_AddsGuid()
+        {
+            var expectedPath = Path.Combine(GetBasePath(), "Path");
+
+            var actualPath = PathHelper.GetTempDirForTask(true, "Path");
+
+            actualPath.Should().Contain(expectedPath);
+            Guid.TryParse(actualPath.Split('\\').Last(), out _).Should().BeTrue();
+        }
+
+
         #region Helpers
 
         private static void VerifyCalculateRelativePath(string expected, string fromPath, string toPath)
@@ -321,6 +400,11 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
             string actual = PathHelper.ResolveRelativePath(relativePath, basePath);
 
             actual.Should().Be(expected);
+        }
+
+        private static string GetBasePath()
+        {
+            return Path.Combine(Path.GetTempPath(), "SLVS");
         }
 
         #endregion Helpers

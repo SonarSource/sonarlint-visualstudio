@@ -25,11 +25,12 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
 {
     internal static class RoslynSettingsFileInfo
     {
-        public static readonly string Directory = Path.Combine(Path.GetTempPath(), "SLVS", "Roslyn");
+        public static readonly string Directory = PathHelper.GetTempDirForTask(false, "Roslyn");
 
         /// <summary>
         /// Returns the full file path for the given project key
         /// </summary>
+        /// <remarks> File will be in a shared location and would be able to be accessed by multiple instances of VS simulateneously</remarks>
         public static string GetSettingsFilePath(string sonarProjectKey)
         {
             var escapedName = PathHelper.EscapeFileName(NormalizeKey(sonarProjectKey));

@@ -27,6 +27,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Threading;
 using Moq;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
@@ -62,7 +63,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
                 await testSubject.Start();
                 spawnedProcess = testSubject.Process;
 
-                spawnedProcess.StartInfo.Arguments.Should().Be("\"dummy path\"");
+                spawnedProcess.StartInfo.Arguments.Should().Be("\"dummy path\"" + GetDefaultParameters());
             }
             finally
             {
@@ -353,6 +354,15 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             {
                 // do nothing
             }
+        }
+
+        private static string GetDefaultParameters()
+        {
+            var workDir = PathHelper.GetTempDirForTask(true, "ESLintBridge", "workdir");
+
+            //To pass the sonarlint parameter we have to pass all the parameters before 
+            //Commandline interface for eslintbridge is not accepting named parameters  
+            return $" \"0\" \"127.0.0.1\" \"{workDir}\" \"true\" \"true\"";
         }
     }
 }
