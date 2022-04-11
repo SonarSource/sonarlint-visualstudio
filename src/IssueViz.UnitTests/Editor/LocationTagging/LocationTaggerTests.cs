@@ -429,6 +429,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             locVizMock.Object.Span = span;
 
             locVizMock.Setup(x => x.Location).Returns(Mock.Of<IAnalysisIssueLocation>());
+            locVizMock.Setup(x => x.Location.TextRange).Returns(Mock.Of<ITextRange>());
+            
             return locVizMock.Object;
         }
 
