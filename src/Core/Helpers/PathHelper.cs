@@ -157,32 +157,23 @@ namespace SonarLint.VisualStudio.Core.Helpers
         /// Gets Temp Directory under SLVS folder under %Temp%
         /// </summary>
         /// <param name="perVSInstance">Determines if the path will be per VS Instance</param>
-        /// <param name="paths">Creates sub folder structure under SLVS folder</param>
-        public static string GetTempDirForTask(bool perVSInstance, params string[] paths)
+        /// <param name="folders">Creates sub folder structure under SLVS folder</param>
+        public static string GetTempDirForTask(bool perVSInstance, params string[] folders)
         {
             var SLVSTempFolder = Path.Combine(Path.GetTempPath(), "SLVS");
 
-            var taskPaths = new List<string> { SLVSTempFolder };
+            var taskFolders = new List<string> { SLVSTempFolder };
 
-            if (paths != null)
-            {
-                foreach (var path in paths)
-                {
-                    if (!string.IsNullOrWhiteSpace(path))
-                    {
-                        taskPaths.Add(path);
-                    }
-                }
-            }          
+            taskFolders.AddRange(folders);  
             
-            var taskFolder = Path.Combine(taskPaths.ToArray());
+            var taskPath = Path.Combine(taskFolders.ToArray());
 
             if(perVSInstance)
             {
-                return Path.Combine(taskFolder, perVSInstanceFolderName.ToString());
+                return Path.Combine(taskPath, perVSInstanceFolderName.ToString());
             }
 
-            return taskFolder;            
+            return taskPath;            
         }
     }
 }

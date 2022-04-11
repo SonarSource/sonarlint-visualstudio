@@ -280,9 +280,17 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         {
             var workDir = PathHelper.GetTempDirForTask(true , "ESLintBridge", "workdir");
 
-            
-            //To pass the sonarlint parameter we have to pass all the parameters before 
-            //Commandline interface for eslintbridge is not accepting named parameters  
+
+            /*
+            To pass the sonarlint parameter we have to pass all the parameters before 
+            Commandline interface for eslintbridge is not accepting named parameters  
+            port - port number on which server should listen
+            host - host address on which server should listen
+            workDir - working directory from SonarQube API
+            shouldUseTypeScriptParserForJS - whether TypeScript parser should be used for JS code (default true, can be set to false in case of perf issues)
+            sonarlint - when running in SonarLint (used to not compute metrics, highlighting, etc)
+            Source: https://github.com/SonarSource/SonarJS/blob/0e83c667fc6bc1687111db9343de73f725c992ca/eslint-bridge/bin/server#L4 
+            */
             return $" \"0\" \"127.0.0.1\" \"{workDir}\" \"true\" \"true\""; 
         }
 

@@ -330,13 +330,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
         }
 
         [TestMethod]
-        public void GetTempDirForTask_PathsISNull_ReturnsBasePath()
+        public void GetTempDirForTask_PathsIsNull_Throws()
         {
-            var expectedPath = GetBasePath();
-
-            var actualPath = PathHelper.GetTempDirForTask(false, null);
-
-            actualPath.Should().Be(expectedPath);
+            Action act = () => PathHelper.GetTempDirForTask(false, null);
+            act.Should().Throw<ArgumentException>();
         }
 
         [TestMethod]
@@ -350,13 +347,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
         }
 
         [TestMethod]
-        public void GetTempDirForTask_HasMultiplePathsWithNull_Ignores()
+        public void GetTempDirForTask_HasMultiplePathsWithNull_Throws()
         {
-            var expectedPath = Path.Combine(GetBasePath(), "Path1", "Path2");
-
-            var actualPath = PathHelper.GetTempDirForTask(false, "Path1", null, "Path2");
-
-            actualPath.Should().Be(expectedPath);
+            Action act = () => PathHelper.GetTempDirForTask(false, "Path1", null, "Path2");
+            act.Should().Throw<ArgumentException>();
         }
 
         [TestMethod]
