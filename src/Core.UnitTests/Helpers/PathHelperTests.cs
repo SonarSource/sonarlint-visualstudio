@@ -20,6 +20,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core.Helpers;
@@ -366,6 +367,28 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
             var actualPath = PathHelper.GetTempDirForTask(false, "Path1", "", "Path2");
 
             actualPath.Should().Be(expectedPath);
+        }
+
+        [TestMethod]
+        public void GetTempDirForTask_perVSInstanceTrue_AddsGuid()
+        {
+            var expectedPath = GetBasePath();
+
+            var actualPath = PathHelper.GetTempDirForTask(true);
+
+            actualPath.Should().Contain(expectedPath);
+            Guid.TryParse(actualPath.Split('\\').Last(), out _).Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void GetTempDirForTask_perVSInstanceTrueHasPath_AddsGuid()
+        {
+            var expectedPath = Path.Combine(GetBasePath(), "Path");
+
+            var actualPath = PathHelper.GetTempDirForTask(true, "Path");
+
+            actualPath.Should().Contain(expectedPath);
+            Guid.TryParse(actualPath.Split('\\').Last(), out _).Should().BeTrue();
         }
 
 
