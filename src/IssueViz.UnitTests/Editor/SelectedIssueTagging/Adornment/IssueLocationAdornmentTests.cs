@@ -54,16 +54,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
 
         [TestMethod]
         [Description("Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/2977")]
-        public void Ctor_NoFormattedLineSource_NoException()
-        {
-            var locViz = CreateLocationViz(CreateSnapshot(), new Span(0, 1), stepNumber: 99);
-            Action act = () => new IssueLocationAdornment(locViz, null);
-
-            act.Should().NotThrow();
-        }
-
-        [TestMethod]
-        [Description("Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/2977")]
         public void Ctor_NoFormattedLineSource_AdornmentCreatedWithoutStyle()
         {
             var locViz = CreateLocationViz(CreateSnapshot(), new Span(0, 1), stepNumber: 99);
