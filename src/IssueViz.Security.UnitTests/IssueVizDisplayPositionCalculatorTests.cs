@@ -80,8 +80,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
         private static IAnalysisIssueVisualization CreateIssueVizWithoutSpan(bool spanIsNull, int originalLineNumber = 123, int originalColumnNumber = 456)
         {
             var issue = new Mock<IAnalysisIssueBase>();
-            issue.SetupGet(x => x.PrimaryLocation.StartLine).Returns(originalLineNumber);
-            issue.SetupGet(x => x.PrimaryLocation.StartLineOffset).Returns(originalColumnNumber);
+            issue.SetupGet(x => x.PrimaryLocation.TextRange.StartLine).Returns(originalLineNumber);
+            issue.SetupGet(x => x.PrimaryLocation.TextRange.StartLineOffset).Returns(originalColumnNumber);
 
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.Issue).Returns(issue.Object);

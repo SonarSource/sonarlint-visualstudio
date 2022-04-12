@@ -233,19 +233,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return textSnapshot == null ? null : lineHashCalculator.Calculate(textSnapshot, cFamilyIssueLocation.Line);
         }
 
-        private AnalysisIssueLocation ToAnalysisIssueLocation(MessagePart cFamilyIssueLocation, IReadOnlyDictionary<string, ITextDocument> fileContents) =>
+        private AnalysisIssueLocation ToAnalysisIssueLocation(MessagePart cFamilyIssueLocation,
+            IReadOnlyDictionary<string, ITextDocument> fileContents) =>
             new AnalysisIssueLocation
             (
-                filePath: Path.IsPathRooted(cFamilyIssueLocation.Filename) ? Path.GetFullPath(cFamilyIssueLocation.Filename) : cFamilyIssueLocation.Filename,
+                filePath: Path.IsPathRooted(cFamilyIssueLocation.Filename)
+                    ? Path.GetFullPath(cFamilyIssueLocation.Filename)
+                    : cFamilyIssueLocation.Filename,
                 message: cFamilyIssueLocation.Text,
-                lineHash: CalculateLineHash(cFamilyIssueLocation, fileContents),
-                startLine: cFamilyIssueLocation.Line,
-                endLine: cFamilyIssueLocation.EndLine,
+                textRange: new TextRange(
+                    lineHash: CalculateLineHash(cFamilyIssueLocation, fileContents),
+                    startLine: cFamilyIssueLocation.Line,
+                    endLine: cFamilyIssueLocation.EndLine,
 
-                // We don't care about the columns in the special case EndLine=0
-                startLineOffset: cFamilyIssueLocation.EndLine == 0 ? 0 : cFamilyIssueLocation.Column - 1,
-                endLineOffset: cFamilyIssueLocation.EndLine == 0 ? 0 : cFamilyIssueLocation.EndColumn - 1
-            );
+                    // We don't care about the columns in the special case EndLine=0
+                    startLineOffset: cFamilyIssueLocation.EndLine == 0 ? 0 : cFamilyIssueLocation.Column - 1,
+                    endLineOffset: cFamilyIssueLocation.EndLine == 0 ? 0 : cFamilyIssueLocation.EndColumn - 1
+                ));
 
         /// <summary>
         /// Converts from the CFamily issue severity enum to the standard AnalysisIssueSeverity

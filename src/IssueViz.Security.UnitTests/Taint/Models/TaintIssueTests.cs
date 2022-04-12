@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Mod
             var created = DateTimeOffset.Parse("2001-01-31T01:02:03+0200");
             var lastUpdated = DateTimeOffset.UtcNow;
             var issue = new TaintIssue("issue key", "rule key",
-                new AnalysisIssueLocation("message", "local-path.cpp", 1, 2, 3, 4, "hash"),
+                new AnalysisIssueLocation("message", "local-path.cpp", new TextRange(1, 2, 3, 4, "hash")),
                 AnalysisIssueSeverity.Major, created, lastUpdated, null);
 
             issue.IssueKey.Should().Be("issue key");
@@ -58,11 +58,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Mod
 
             issue.PrimaryLocation.FilePath.Should().Be("local-path.cpp");
             issue.PrimaryLocation.Message.Should().Be("message");
-            issue.PrimaryLocation.StartLine.Should().Be(1);
-            issue.PrimaryLocation.EndLine.Should().Be(2);
-            issue.PrimaryLocation.StartLineOffset.Should().Be(3);
-            issue.PrimaryLocation.EndLineOffset.Should().Be(4);
-            issue.PrimaryLocation.LineHash.Should().Be("hash");
+            issue.PrimaryLocation.TextRange.StartLine.Should().Be(1);
+            issue.PrimaryLocation.TextRange.EndLine.Should().Be(2);
+            issue.PrimaryLocation.TextRange.StartLineOffset.Should().Be(3);
+            issue.PrimaryLocation.TextRange.EndLineOffset.Should().Be(4);
+            issue.PrimaryLocation.TextRange.LineHash.Should().Be("hash");
         }
 
         [TestMethod]
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Mod
         {
             IReadOnlyList<IAnalysisIssueFlow> flows = null;
             var issue = new TaintIssue("issue key", "rule key",
-                new AnalysisIssueLocation("message", "local-path.cpp", 1, 2, 3, 4, "hash"),
+                new AnalysisIssueLocation("message", "local-path.cpp", new TextRange(1, 2, 3, 4, "hash")),
                 AnalysisIssueSeverity.Major, DateTimeOffset.MinValue, DateTimeOffset.MaxValue, flows);
 
             issue.Flows.Should().BeEmpty();
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Mod
         {
             var flows = new[] { Mock.Of<IAnalysisIssueFlow>(), Mock.Of<IAnalysisIssueFlow>() };
             var issue = new TaintIssue("issue key", "rule key",
-                new AnalysisIssueLocation("message", "local-path.cpp", 1, 2, 3, 4, "hash"),
+                new AnalysisIssueLocation("message", "local-path.cpp", new TextRange(1, 2, 3, 4, "hash")),
                 AnalysisIssueSeverity.Major, DateTimeOffset.MinValue, DateTimeOffset.MaxValue, flows);
 
             issue.Flows.Should().BeEquivalentTo(flows);

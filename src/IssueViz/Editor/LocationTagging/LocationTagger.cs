@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
             {
                 if (!locViz.Span.HasValue || locViz.Span.Value.IsEmpty || locViz.Span.Value.Snapshot.TextBuffer != currentSnapshot.TextBuffer)
                 {
-                    locViz.Span = spanCalculator.CalculateSpan(locViz.Location, currentSnapshot);
+                    locViz.Span = spanCalculator.CalculateSpan(locViz.Location.TextRange, currentSnapshot);
                 }
             }
         }

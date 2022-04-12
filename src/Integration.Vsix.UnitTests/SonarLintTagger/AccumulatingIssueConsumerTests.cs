@@ -175,8 +175,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             {
                 PrimaryLocation = new DummyAnalysisIssueLocation
                 {
-                    StartLine = startLine,
-                    EndLine = endLine,
+                    TextRange = new DummyTextRange
+                    {
+                        StartLine = startLine,
+                        EndLine = endLine,
+                    },
                     Message = "any message"
                 }
             };

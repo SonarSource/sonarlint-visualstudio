@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
 
             convertedIssue.PrimaryLocation.FilePath.Should().Be(ValidFilePath);
             convertedIssue.PrimaryLocation.Message.Should().Be(ValidRuleMessage);
-            convertedIssue.PrimaryLocation.LineHash.Should().BeNull();
+            convertedIssue.PrimaryLocation.TextRange.LineHash.Should().BeNull();
 
             convertedIssue.Flows.Should().BeEmpty();
         }
@@ -94,11 +94,11 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             var testSubject = CreateTestSubject();
             var convertedIssue = testSubject.Convert(secret, secretsDetector, ValidFilePath, textSnapshot.Object);
 
-            convertedIssue.PrimaryLocation.StartLine.Should().Be(21);
-            convertedIssue.PrimaryLocation.EndLine.Should().Be(21);
+            convertedIssue.PrimaryLocation.TextRange.StartLine.Should().Be(21);
+            convertedIssue.PrimaryLocation.TextRange.EndLine.Should().Be(21);
 
-            convertedIssue.PrimaryLocation.StartLineOffset.Should().Be(50); // secret.StartIndex - vsLine.Start.Position
-            convertedIssue.PrimaryLocation.EndLineOffset.Should().Be(150); // secret.EndIndex - vsLine.End.Position
+            convertedIssue.PrimaryLocation.TextRange.StartLineOffset.Should().Be(50); // secret.StartIndex - vsLine.Start.Position
+            convertedIssue.PrimaryLocation.TextRange.EndLineOffset.Should().Be(150); // secret.EndIndex - vsLine.End.Position
         }
 
         [TestMethod]
@@ -116,11 +116,11 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             var testSubject = CreateTestSubject();
             var convertedIssue = testSubject.Convert(secret, secretsDetector, ValidFilePath, textSnapshot.Object);
 
-            convertedIssue.PrimaryLocation.StartLine.Should().Be(21);
-            convertedIssue.PrimaryLocation.EndLine.Should().Be(22);
+            convertedIssue.PrimaryLocation.TextRange.StartLine.Should().Be(21);
+            convertedIssue.PrimaryLocation.TextRange.EndLine.Should().Be(22);
 
-            convertedIssue.PrimaryLocation.StartLineOffset.Should().Be(50); // secret.StartIndex - vsLine.Start.Position
-            convertedIssue.PrimaryLocation.EndLineOffset.Should().Be(50); // secret.EndIndex - vsLine.End.Position
+            convertedIssue.PrimaryLocation.TextRange.StartLineOffset.Should().Be(50); // secret.StartIndex - vsLine.Start.Position
+            convertedIssue.PrimaryLocation.TextRange.EndLineOffset.Should().Be(50); // secret.EndIndex - vsLine.End.Position
         }
 
         private ISecretsToAnalysisIssueConverter CreateTestSubject()

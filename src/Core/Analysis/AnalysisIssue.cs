@@ -70,34 +70,18 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
     public class AnalysisIssueLocation : IAnalysisIssueLocation
     {
-        public AnalysisIssueLocation(
-            string message, string filePath,
-            int startLine, int endLine,
-            int startLineOffset, int endLineOffset,
-            string lineHash)
+        public AnalysisIssueLocation(string message, string filePath, ITextRange textRange)
         {
             Message = message;
             FilePath = filePath;
-            StartLine = startLine;
-            EndLine = endLine;
-            StartLineOffset = startLineOffset;
-            EndLineOffset = endLineOffset;
-            LineHash = lineHash;
+            TextRange = textRange;
         }
 
         public string FilePath { get; }
 
         public string Message { get; }
 
-        public int StartLine { get; }
-
-        public int EndLine { get; }
-
-        public int StartLineOffset { get; }
-
-        public int EndLineOffset { get; }
-
-        public string LineHash { get; }
+        public ITextRange TextRange { get; }
     }
 
     public class TextRange : ITextRange

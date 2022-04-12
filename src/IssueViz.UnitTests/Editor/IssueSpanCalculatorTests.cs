@@ -58,11 +58,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         public void CalculateSpan_IssueStartLineIsOutsideOfSnapshot_ReturnsEmptySpan(int issueStartLine, int bufferLineCount)
         {
             // Arrange
-            var issueLocation = new DummyAnalysisIssueLocation { StartLine = issueStartLine };
+            var issueLocation = new DummyAnalysisIssueLocation
+            {
+                TextRange = new DummyTextRange
+                {
+                    StartLine = issueStartLine
+                }
+            };
             var mockSnapshot = CreateSnapshotMock(bufferLineCount);
 
             // Act and assert
-            var result = testSubject.CalculateSpan(issueLocation, mockSnapshot.Object);
+            var result = testSubject.CalculateSpan(issueLocation.TextRange, mockSnapshot.Object);
             result.IsEmpty.Should().BeTrue();
 
             checksumCalculatorMock.VerifyNoOtherCalls();
@@ -71,13 +77,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         [TestMethod]
         public void CalculateSpan_IssueLineHashIsDifferent_ReturnsEmptySpan()
         {
-            var issueLocation = new DummyAnalysisIssueLocation { StartLine = 10, LineHash = "some hash" };
+            var issueLocation = new DummyAnalysisIssueLocation
+            {
+                TextRange = new DummyTextRange {StartLine = 10, LineHash = "some hash"}
+            };
 
             var startLine = new VSLineDescription
             {
                 LineLength = 34,
                 LineStartPosition = 103,
-                ZeroBasedLineNumber = issueLocation.StartLine - 1,
+                ZeroBasedLineNumber = issueLocation.TextRange.StartLine - 1,
                 Text = "unimportant"
             };
 
@@ -85,7 +94,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 
             checksumCalculatorMock.Setup(x => x.Calculate(startLine.Text)).Returns("some other hash");
 
-            var result = testSubject.CalculateSpan(issueLocation, mockSnapshot.Object);
+            var result = testSubject.CalculateSpan(issueLocation.TextRange, mockSnapshot.Object);
             result.IsEmpty.Should().BeTrue();
 
             checksumCalculatorMock.VerifyAll();
@@ -95,13 +104,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         public void CalculateSpan_IssueLinesInsideSnapshot_ReturnsSpanWithCorrectPositions()
         {
             // Arrange
-            var issue = new DummyAnalysisIssueLocation
+            var issueLocation = new DummyAnalysisIssueLocation
             {
-                StartLine = 3,
-                StartLineOffset = 10,
-                EndLine = 4,
-                EndLineOffset = 20,
-                LineHash = "some hash"
+                TextRange = new DummyTextRange
+                {
+                    StartLine = 3,
+                    StartLineOffset = 10,
+                    EndLine = 4,
+                    EndLineOffset = 20,
+                    LineHash = "some hash"
+                }
             };
 
             var firstLine = new VSLineDescription
@@ -119,12 +131,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
                 LineStartPosition = 47
             };
 
-            checksumCalculatorMock.Setup(x => x.Calculate(firstLine.Text)).Returns(issue.LineHash);
+            checksumCalculatorMock.Setup(x => x.Calculate(firstLine.Text)).Returns(issueLocation.TextRange.LineHash);
 
             var textSnapshotMock = CreateSnapshotMock(lines: new[] {firstLine, secondLine});
 
             // Act
-            var result = testSubject.CalculateSpan(issue, textSnapshotMock.Object);
+            var result = testSubject.CalculateSpan(issueLocation.TextRange, textSnapshotMock.Object);
 
             // Assert
             result.IsEmpty.Should().BeFalse();
@@ -138,13 +150,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             // If issue.EndLine is zero the whole of the start line should be selected
 
             // Arrange
-            var issue = new DummyAnalysisIssueLocation
+            var issueLocation = new DummyAnalysisIssueLocation
             {
-                StartLine = 22,
-                StartLineOffset = 2,
-                EndLine = 0,
-                EndLineOffset = 0,
-                LineHash = "some hash"
+                TextRange = new DummyTextRange
+                {
+                    StartLine = 22,
+                    StartLineOffset = 2,
+                    EndLine = 0,
+                    EndLineOffset = 0,
+                    LineHash = "some hash"
+                }
             };
 
             var firstLine = new VSLineDescription
@@ -163,12 +178,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
                 LineStartPosition = 1010
             };
 
-            checksumCalculatorMock.Setup(x => x.Calculate(firstLine.Text)).Returns(issue.LineHash);
+            checksumCalculatorMock.Setup(x => x.Calculate(firstLine.Text)).Returns(issueLocation.TextRange.LineHash);
 
             var textSnapshotMock = CreateSnapshotMock(lines: new[] {firstLine, secondLine});
 
             // Act
-            var result = testSubject.CalculateSpan(issue, textSnapshotMock.Object);
+            var result = testSubject.CalculateSpan(issueLocation.TextRange, textSnapshotMock.Object);
 
             // Assert
             result.IsEmpty.Should().BeFalse();
@@ -183,13 +198,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             // Rule "cpp:S113 - no newline at end of file" returns an offset after the end of the file.
 
             // Arrange
-            var issue = new DummyAnalysisIssueLocation
+            var issueLocation = new DummyAnalysisIssueLocation
             {
-                StartLine = 53,
-                StartLineOffset = 2,
-                EndLine = 53,
-                EndLineOffset = 3,
-                LineHash = "some hash"
+                TextRange = new DummyTextRange
+                {
+                    StartLine = 53,
+                    StartLineOffset = 2,
+                    EndLine = 53,
+                    EndLineOffset = 3,
+                    LineHash = "some hash"
+                }
             };
 
             var firstLine = new VSLineDescription
@@ -208,12 +226,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
                 LineStartPosition = -999
             };
 
-            checksumCalculatorMock.Setup(x => x.Calculate(firstLine.Text)).Returns(issue.LineHash);
+            checksumCalculatorMock.Setup(x => x.Calculate(firstLine.Text)).Returns(issueLocation.TextRange.LineHash);
 
             var textSnapshotMock = CreateSnapshotMock(snapShotLength: 1600, lines: new[] {firstLine, secondLine});
 
             // Act
-            var result = testSubject.CalculateSpan(issue, textSnapshotMock.Object);
+            var result = testSubject.CalculateSpan(issueLocation.TextRange, textSnapshotMock.Object);
 
             // Assert
             result.IsEmpty.Should().BeFalse();
@@ -228,13 +246,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             // (we have not seen this in practice so far)
 
             // Arrange
-            var issue = new DummyAnalysisIssueLocation
+            var issueLocation = new DummyAnalysisIssueLocation
             {
-                StartLine = 53,
-                StartLineOffset = 2,
-                EndLine = 53,
-                EndLineOffset = 12,
-                LineHash = "some hash"
+                TextRange = new DummyTextRange
+                {
+                    StartLine = 53,
+                    StartLineOffset = 2,
+                    EndLine = 53,
+                    EndLineOffset = 12,
+                    LineHash = "some hash"
+                }
             };
 
             // The issue is on a single line in this case, but the issue end position
@@ -249,10 +270,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 
             var textSnapshotMock = CreateSnapshotMock(lines: vsLine, snapShotLength: 1602);
 
-            checksumCalculatorMock.Setup(x => x.Calculate(vsLine.Text)).Returns(issue.LineHash);
+            checksumCalculatorMock.Setup(x => x.Calculate(vsLine.Text)).Returns(issueLocation.TextRange.LineHash);
 
             // Act
-            var result = testSubject.CalculateSpan(issue, textSnapshotMock.Object);
+            var result = testSubject.CalculateSpan(issueLocation.TextRange, textSnapshotMock.Object);
 
             // Assert
             result.IsEmpty.Should().BeFalse();
@@ -267,11 +288,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         {
             var issueLocation = new DummyAnalysisIssueLocation
             {
-                StartLine = 1,
-                StartLineOffset = 0,
-                EndLine = 0,
-                EndLineOffset = 0,
-                LineHash = lineHash
+                TextRange = new DummyTextRange
+                {
+                    StartLine = 1,
+                    StartLineOffset = 0,
+                    EndLine = 0,
+                    EndLineOffset = 0,
+                    LineHash = lineHash
+                }
             };
 
             var firstLine = new VSLineDescription
@@ -285,7 +309,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             var textSnapshotMock = CreateSnapshotMock(lines: new[] { firstLine });
 
             // Act
-            var result = testSubject.CalculateSpan(issueLocation, textSnapshotMock.Object);
+            var result = testSubject.CalculateSpan(issueLocation.TextRange, textSnapshotMock.Object);
 
             result.IsEmpty.Should().BeFalse();
 

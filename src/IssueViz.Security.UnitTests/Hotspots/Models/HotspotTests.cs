@@ -60,11 +60,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
                 primaryLocation: new AnalysisIssueLocation(
                     "message",
                     "local-path.cpp",
-                    1,
-                    2,
-                    3,
-                    4,
-                    "hash"),
+                    textRange: new TextRange(
+                        1,
+                        2,
+                        3,
+                        4,
+                        "hash")),
                 ValidRule,
                 creationDate,
                 lastUpdated,
@@ -79,29 +80,30 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
 
             hotspot.PrimaryLocation.FilePath.Should().Be("local-path.cpp");
             hotspot.PrimaryLocation.Message.Should().Be("message");
-            hotspot.PrimaryLocation.StartLine.Should().Be(1);
-            hotspot.PrimaryLocation.EndLine.Should().Be(2);
-            hotspot.PrimaryLocation.StartLineOffset.Should().Be(3);
-            hotspot.PrimaryLocation.EndLineOffset.Should().Be(4);
-            hotspot.PrimaryLocation.LineHash.Should().Be("hash");
+            hotspot.PrimaryLocation.TextRange.StartLine.Should().Be(1);
+            hotspot.PrimaryLocation.TextRange.EndLine.Should().Be(2);
+            hotspot.PrimaryLocation.TextRange.StartLineOffset.Should().Be(3);
+            hotspot.PrimaryLocation.TextRange.EndLineOffset.Should().Be(4);
+            hotspot.PrimaryLocation.TextRange.LineHash.Should().Be("hash");
         }
 
         [TestMethod]
         public void Ctor_NoFlows_EmptyFlows()
         {
             IReadOnlyList<IAnalysisIssueFlow> flows = null;
-            var hotspot = new Hotspot("hotspot key", 
+            var hotspot = new Hotspot("hotspot key",
                 "server-path",
                 new AnalysisIssueLocation(
-                    "message", 
-                    "local-path.cpp", 
-                    1, 
-                    2, 
-                    3, 
-                    4, 
-                    "hash"), 
+                    "message",
+                    "local-path.cpp",
+                    textRange: new TextRange(
+                        1,
+                        2,
+                        3,
+                        4,
+                        "hash")),
                 ValidRule,
-                DateTimeOffset.MinValue, 
+                DateTimeOffset.MinValue,
                 DateTimeOffset.MinValue,
                 flows);
 
@@ -117,11 +119,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
                 new AnalysisIssueLocation(
                     "message",
                     "local-path.cpp",
-                    1,
-                    2,
-                    3,
-                    4,
-                    "hash"),
+                    textRange: new TextRange(
+                        1,
+                        2,
+                        3,
+                        4,
+                        "hash")),
                 ValidRule,
                 DateTimeOffset.MinValue,
                 DateTimeOffset.MinValue,

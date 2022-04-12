@@ -68,8 +68,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             var expectedLocations = new List<AnalysisIssueLocation>
             {
-                new AnalysisIssueLocation("this is a test 1", "c:\\test1.cpp", 1, 3, 1, 3, null),
-                new AnalysisIssueLocation("this is a test 2", "c:\\test2.cpp", 5, 7, 5, 7, null),
+                new AnalysisIssueLocation("this is a test 1", "c:\\test1.cpp", new TextRange(1, 3, 1, 3, null)),
+                new AnalysisIssueLocation("this is a test 2", "c:\\test2.cpp", new TextRange(5, 7, 5, 7, null)),
             };
 
             var expectedFlows = new List<AnalysisIssueFlow>
@@ -97,8 +97,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             var expectedLocations = new List<AnalysisIssueLocation>
             {
-                new AnalysisIssueLocation("this is a test 2", "c:\\test2.cpp", 5, 7, 5, 7, null),
-                new AnalysisIssueLocation("this is a test 1", "c:\\test1.cpp", 1, 3, 1, 3, null),
+                new AnalysisIssueLocation("this is a test 2", "c:\\test2.cpp", new TextRange(5, 7, 5, 7, null)),
+                new AnalysisIssueLocation("this is a test 1", "c:\\test1.cpp", new TextRange(1, 3, 1, 3, null)),
             };
 
             var expectedFlows = new List<AnalysisIssueFlow>
@@ -120,11 +120,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var issue = Convert(testSubject, message);
 
             // Assert
-            issue.PrimaryLocation.StartLine.Should().Be(4);
-            issue.PrimaryLocation.StartLineOffset.Should().Be(3 - 1);
+            issue.PrimaryLocation.TextRange.StartLine.Should().Be(4);
+            issue.PrimaryLocation.TextRange.StartLineOffset.Should().Be(3 - 1);
 
-            issue.PrimaryLocation.EndLine.Should().Be(2);
-            issue.PrimaryLocation.EndLineOffset.Should().Be(1 - 1);
+            issue.PrimaryLocation.TextRange.EndLine.Should().Be(2);
+            issue.PrimaryLocation.TextRange.EndLineOffset.Should().Be(1 - 1);
         }
 
         [TestMethod]
@@ -138,11 +138,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var issue = Convert(testSubject, message);
 
             // Assert
-            issue.PrimaryLocation.StartLine.Should().Be(101);
-            issue.PrimaryLocation.StartLineOffset.Should().Be(0);
+            issue.PrimaryLocation.TextRange.StartLine.Should().Be(101);
+            issue.PrimaryLocation.TextRange.StartLineOffset.Should().Be(0);
 
-            issue.PrimaryLocation.EndLine.Should().Be(0);
-            issue.PrimaryLocation.EndLineOffset.Should().Be(0);
+            issue.PrimaryLocation.TextRange.EndLine.Should().Be(0);
+            issue.PrimaryLocation.TextRange.EndLineOffset.Should().Be(0);
         }
 
         [TestMethod]
@@ -155,11 +155,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var issue = Convert(testSubject, message);
             var convertedLocation = issue.Flows.First().Locations.First();
 
-            convertedLocation.StartLine.Should().Be(10);
-            convertedLocation.StartLineOffset.Should().Be(1);
+            convertedLocation.TextRange.StartLine.Should().Be(10);
+            convertedLocation.TextRange.StartLineOffset.Should().Be(1);
 
-            convertedLocation.EndLine.Should().Be(30);
-            convertedLocation.EndLineOffset.Should().Be(3);
+            convertedLocation.TextRange.EndLine.Should().Be(30);
+            convertedLocation.TextRange.EndLineOffset.Should().Be(3);
         }
 
         [TestMethod]
@@ -172,11 +172,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var issue = Convert(testSubject, message);
             var convertedLocation = issue.Flows.First().Locations.First();
 
-            convertedLocation.StartLine.Should().Be(10);
-            convertedLocation.StartLineOffset.Should().Be(0);
+            convertedLocation.TextRange.StartLine.Should().Be(10);
+            convertedLocation.TextRange.StartLineOffset.Should().Be(0);
 
-            convertedLocation.EndLine.Should().Be(0);
-            convertedLocation.EndLineOffset.Should().Be(0);
+            convertedLocation.TextRange.EndLine.Should().Be(0);
+            convertedLocation.TextRange.EndLineOffset.Should().Be(0);
         }
 
         [TestMethod]
@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
             var issue = Convert(testSubject, message);
 
-            issue.PrimaryLocation.LineHash.Should().Be(issueHash);
+            issue.PrimaryLocation.TextRange.LineHash.Should().Be(issueHash);
         }
 
         [TestMethod]
@@ -229,13 +229,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
             var issue = Convert(testSubject, message);
 
-            issue.PrimaryLocation.LineHash.Should().Be(issueHash);
+            issue.PrimaryLocation.TextRange.LineHash.Should().Be(issueHash);
 
             var firstLocation = issue.Flows[0].Locations[0];
             var secondLocation = issue.Flows[0].Locations[1];
 
-            secondLocation.LineHash.Should().Be(secondLocationHash);
-            firstLocation.LineHash.Should().Be(firstLocationHash);
+            secondLocation.TextRange.LineHash.Should().Be(secondLocationHash);
+            firstLocation.TextRange.LineHash.Should().Be(firstLocationHash);
         }
 
         [TestMethod]
@@ -260,13 +260,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
             var issue = Convert(testSubject, fileLevelIssue);
 
-            issue.PrimaryLocation.LineHash.Should().BeNull();
+            issue.PrimaryLocation.TextRange.LineHash.Should().BeNull();
 
             var nonFileLevelLocation = issue.Flows[0].Locations[0];
             var fileLevelLocation = issue.Flows[0].Locations[1];
 
-            fileLevelLocation.LineHash.Should().BeNull();
-            nonFileLevelLocation.LineHash.Should().Be(nonFileLevelLocationHash);
+            fileLevelLocation.TextRange.LineHash.Should().BeNull();
+            nonFileLevelLocation.TextRange.LineHash.Should().Be(nonFileLevelLocationHash);
         }
 
         [TestMethod]
@@ -290,13 +290,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
             var issue = Convert(testSubject, message);
-            issue.PrimaryLocation.LineHash.Should().BeNull();
+            issue.PrimaryLocation.TextRange.LineHash.Should().BeNull();
 
             var firstLocation = issue.Flows[0].Locations[0];
             var secondLocation = issue.Flows[0].Locations[1];
 
-            secondLocation.LineHash.Should().BeNull();
-            firstLocation.LineHash.Should().Be(expectedHash);
+            secondLocation.TextRange.LineHash.Should().BeNull();
+            firstLocation.TextRange.LineHash.Should().Be(expectedHash);
 
             // verify that the mock was called only for firstLocationPath
             textDocumentFactoryService.Verify(x => x.CreateAndLoadTextDocument(existingFilePath, DummyContentType), Times.Once);
@@ -320,7 +320,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
 
             var issue = Convert(testSubject, message);
-            issue.PrimaryLocation.LineHash.Should().BeNull();
+            issue.PrimaryLocation.TextRange.LineHash.Should().BeNull();
             lineHashCalculator.Invocations.Should().BeEmpty();
         }
 
@@ -342,7 +342,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
 
             var issue = Convert(testSubject, message);
-            issue.PrimaryLocation.LineHash.Should().BeNull();
+            issue.PrimaryLocation.TextRange.LineHash.Should().BeNull();
             lineHashCalculator.Invocations.Should().BeEmpty();
         }
 
@@ -365,7 +365,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
 
             var issue = Convert(testSubject, message);
-            issue.PrimaryLocation.LineHash.Should().BeNull();
+            issue.PrimaryLocation.TextRange.LineHash.Should().BeNull();
             lineHashCalculator.Invocations.Should().BeEmpty();
         }
 
