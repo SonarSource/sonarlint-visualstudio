@@ -67,12 +67,12 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             convertedIssue.Severity.Should().Be(AnalysisIssueSeverity.Major);
 
             convertedIssue.PrimaryLocation.FilePath.Should().Be("some file");
-            convertedIssue.PrimaryLocation.StartLine.Should().Be(3);
-            convertedIssue.PrimaryLocation.StartLineOffset.Should().Be(1);
-            convertedIssue.PrimaryLocation.EndLine.Should().Be(4);
-            convertedIssue.PrimaryLocation.EndLineOffset.Should().Be(2);
             convertedIssue.PrimaryLocation.Message.Should().Be("some message");
-            convertedIssue.PrimaryLocation.LineHash.Should().BeNull();
+            convertedIssue.PrimaryLocation.TextRange.StartLine.Should().Be(3);
+            convertedIssue.PrimaryLocation.TextRange.StartLineOffset.Should().Be(1);
+            convertedIssue.PrimaryLocation.TextRange.EndLine.Should().Be(4);
+            convertedIssue.PrimaryLocation.TextRange.EndLineOffset.Should().Be(2);
+            convertedIssue.PrimaryLocation.TextRange.LineHash.Should().BeNull();
         }
 
         [TestMethod]
@@ -195,8 +195,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 
             var expectedLocations = new List<AnalysisIssueLocation>
             {
-                new AnalysisIssueLocation("message1", "some file", 3, 4, 1, 2, null),
-                new AnalysisIssueLocation("message2", "some file", 7, 8, 5, 6, null),
+                new AnalysisIssueLocation("message1", "some file", new TextRange(3, 4, 1, 2, null)),
+                new AnalysisIssueLocation("message2", "some file", new TextRange(7, 8, 5, 6, null)),
             };
 
             var expectedFlows = new List<AnalysisIssueFlow>

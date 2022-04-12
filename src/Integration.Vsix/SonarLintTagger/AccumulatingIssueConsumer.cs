@@ -108,6 +108,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private bool IsIssueInAnalysisSnapshot(IAnalysisIssue issue) =>
             // Sonar issues line numbers are 1-based; 0 = file-level issue
             // Spans lines are 0-based
-            1 <= issue.PrimaryLocation.StartLine && issue.PrimaryLocation.EndLine <= analysisSnapshot.LineCount;
+            1 <= issue.PrimaryLocation.TextRange.StartLine && issue.PrimaryLocation.TextRange.EndLine <= analysisSnapshot.LineCount;
     }
 }

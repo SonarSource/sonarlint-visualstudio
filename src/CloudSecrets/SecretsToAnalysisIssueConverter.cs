@@ -50,11 +50,12 @@ namespace SonarLint.VisualStudio.CloudSecrets
                 primaryLocation: new AnalysisIssueLocation(
                     message: secretDetector.Message,
                     filePath: Path.IsPathRooted(filePath) ? Path.GetFullPath(filePath) : filePath,
-                    startLine: startLine,
-                    endLine: endLine,
-                    startLineOffset: startLineOffset,
-                    endLineOffset: endLineOffset,
-                    lineHash: null), // suppressions are not yet supported
+                    textRange: new TextRange(
+                        startLine: startLine,
+                        endLine: endLine,
+                        startLineOffset: startLineOffset,
+                        endLineOffset: endLineOffset,
+                        lineHash: null)), // suppressions are not yet supported
                 flows: null);
         }
     }

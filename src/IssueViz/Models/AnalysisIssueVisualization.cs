@@ -98,11 +98,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
 
         string IFilterableIssue.FilePath => CurrentFilePath;
 
-        string IFilterableIssue.LineHash => Issue.PrimaryLocation.LineHash;
+        string IFilterableIssue.LineHash => Issue.PrimaryLocation.TextRange.LineHash;
 
         string IFilterableIssue.ProjectGuid => null; // not used for non-Roslyn issues
 
-        int? IFilterableIssue.StartLine => Issue.PrimaryLocation.StartLine;
+        int? IFilterableIssue.StartLine => Issue.PrimaryLocation.TextRange.StartLine;
     }
 
     public static class AnalysisIssueVisualizationExtensions

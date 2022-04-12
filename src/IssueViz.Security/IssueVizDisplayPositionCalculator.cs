@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
 
             if (!CanUseSpan(issueViz))
             {
-                zeroBasedColumn = issueViz.Issue.PrimaryLocation.StartLineOffset;
+                zeroBasedColumn = issueViz.Issue.PrimaryLocation.TextRange.StartLineOffset;
             }
             else
             {
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
                 // VS spans are zero-based, Sonar line numbers are one-based
                 // The editor displays lines and columns as one-based.
                 ? issueViz.Span.Value.Start.GetContainingLine().LineNumber + 1
-                : issueViz.Issue.PrimaryLocation.StartLine;
+                : issueViz.Issue.PrimaryLocation.TextRange.StartLine;
 
         private bool CanUseSpan(IAnalysisIssueVisualization issueViz) =>
             issueViz.Span.HasValue && !issueViz.Span.Value.IsEmpty;

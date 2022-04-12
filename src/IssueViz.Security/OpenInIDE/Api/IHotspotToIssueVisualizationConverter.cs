@@ -83,11 +83,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
                 primaryLocation: new AnalysisIssueLocation(
                     filePath: localFilePath,
                     message: sonarQubeHotspot.Message,
-                    startLine: sonarQubeHotspot.TextRange.StartLine,
-                    endLine: sonarQubeHotspot.TextRange.EndLine,
-                    startLineOffset: sonarQubeHotspot.TextRange.StartOffset,
-                    endLineOffset: sonarQubeHotspot.TextRange.EndOffset,
-                    lineHash: sonarQubeHotspot.LineHash),
+                    textRange: new TextRange(
+                        startLine: sonarQubeHotspot.TextRange.StartLine,
+                        endLine: sonarQubeHotspot.TextRange.EndLine,
+                        startLineOffset: sonarQubeHotspot.TextRange.StartOffset,
+                        endLineOffset: sonarQubeHotspot.TextRange.EndOffset,
+                        lineHash: sonarQubeHotspot.LineHash)),
                 rule: rule,
                 createTimestamp: sonarQubeHotspot.CreationTimestamp,
                 lastUpdateTimestamp: sonarQubeHotspot.LastUpdateTimestamp,

@@ -68,13 +68,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                         hotspot.RuleKey == "rule key" &&
                         hotspot.Rule.RuleKey == "rule key" &&
                         hotspot.ServerFilePath== "some path" &&
-                        hotspot.PrimaryLocation.LineHash == "hash-xxx" &&
                         hotspot.PrimaryLocation.Message == "message" &&
                         hotspot.PrimaryLocation.FilePath == "some absolute path" &&
-                        hotspot.PrimaryLocation.StartLine == 5 &&
-                        hotspot.PrimaryLocation.EndLine == 10 &&
-                        hotspot.PrimaryLocation.StartLineOffset == 15 &&
-                        hotspot.PrimaryLocation.EndLineOffset == 20),
+                        hotspot.PrimaryLocation.TextRange.LineHash == "hash-xxx" &&
+                        hotspot.PrimaryLocation.TextRange.StartLine == 5 &&
+                        hotspot.PrimaryLocation.TextRange.EndLine == 10 &&
+                        hotspot.PrimaryLocation.TextRange.StartLineOffset == 15 &&
+                        hotspot.PrimaryLocation.TextRange.EndLineOffset == 20),
                     It.IsAny<ITextSnapshot>()),
                 Times.Once);
         }

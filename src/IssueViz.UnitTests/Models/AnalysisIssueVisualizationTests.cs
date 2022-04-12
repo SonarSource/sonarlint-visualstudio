@@ -195,9 +195,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
         {
             var issueMock = new Mock<IAnalysisIssue>();
             issueMock.SetupGet(x => x.RuleKey).Returns("my key");
-            issueMock.SetupGet(x => x.PrimaryLocation.StartLine).Returns(999);
             issueMock.SetupGet(x => x.PrimaryLocation.FilePath).Returns("x:\\aaa.foo");
-            issueMock.SetupGet(x => x.PrimaryLocation.LineHash).Returns("hash");
+            issueMock.SetupGet(x => x.PrimaryLocation.TextRange.StartLine).Returns(999);
+            issueMock.SetupGet(x => x.PrimaryLocation.TextRange.LineHash).Returns("hash");
 
             var testSubject = new AnalysisIssueVisualization(null, issueMock.Object, new SnapshotSpan(), null);
 
@@ -206,9 +206,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
             var filterable = (IFilterableIssue)testSubject;
 
             filterable.RuleId.Should().Be(issueMock.Object.RuleKey);
-            filterable.StartLine.Should().Be(issueMock.Object.PrimaryLocation.StartLine);
             filterable.FilePath.Should().Be(issueMock.Object.PrimaryLocation.FilePath);
-            filterable.LineHash.Should().Be(issueMock.Object.PrimaryLocation.LineHash);
+            filterable.StartLine.Should().Be(issueMock.Object.PrimaryLocation.TextRange.StartLine);
+            filterable.LineHash.Should().Be(issueMock.Object.PrimaryLocation.TextRange.LineHash);
             filterable.ProjectGuid.Should().BeNull();
         }
 

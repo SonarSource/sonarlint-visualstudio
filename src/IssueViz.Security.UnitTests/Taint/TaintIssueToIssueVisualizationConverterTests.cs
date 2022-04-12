@@ -105,12 +105,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                         taintIssue.Severity == AnalysisIssueSeverity.Major &&
 
                         taintIssue.PrimaryLocation.FilePath == "path4" &&
-                        taintIssue.PrimaryLocation.LineHash == "hash" &&
                         taintIssue.PrimaryLocation.Message == "message4" &&
-                        taintIssue.PrimaryLocation.StartLine == 13 &&
-                        taintIssue.PrimaryLocation.EndLine == 14 &&
-                        taintIssue.PrimaryLocation.StartLineOffset == 15 &&
-                        taintIssue.PrimaryLocation.EndLineOffset == 16 &&
+                        taintIssue.PrimaryLocation.TextRange.LineHash == "hash" &&
+                        taintIssue.PrimaryLocation.TextRange.StartLine == 13 &&
+                        taintIssue.PrimaryLocation.TextRange.EndLine == 14 &&
+                        taintIssue.PrimaryLocation.TextRange.StartLineOffset == 15 &&
+                        taintIssue.PrimaryLocation.TextRange.EndLineOffset == 16 &&
 
                         taintIssue.CreationTimestamp == created &&
                         taintIssue.LastUpdateTimestamp == lastUpdate &&
@@ -119,29 +119,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                         taintIssue.Flows[0].Locations.Count == 2 &&
                         taintIssue.Flows[1].Locations.Count == 1 &&
 
-                        taintIssue.Flows[0].Locations[0].LineHash == null &&
                         taintIssue.Flows[0].Locations[0].Message == "message2" &&
                         taintIssue.Flows[0].Locations[0].FilePath == "path2" &&
-                        taintIssue.Flows[0].Locations[0].StartLine == 5 &&
-                        taintIssue.Flows[0].Locations[0].EndLine == 6 &&
-                        taintIssue.Flows[0].Locations[0].StartLineOffset == 7 &&
-                        taintIssue.Flows[0].Locations[0].EndLineOffset == 8 &&
+                        taintIssue.Flows[0].Locations[0].TextRange.LineHash == null &&
+                        taintIssue.Flows[0].Locations[0].TextRange.StartLine == 5 &&
+                        taintIssue.Flows[0].Locations[0].TextRange.EndLine == 6 &&
+                        taintIssue.Flows[0].Locations[0].TextRange.StartLineOffset == 7 &&
+                        taintIssue.Flows[0].Locations[0].TextRange.EndLineOffset == 8 &&
 
-                        taintIssue.Flows[0].Locations[1].LineHash == null &&
                         taintIssue.Flows[0].Locations[1].Message == "message1" &&
                         taintIssue.Flows[0].Locations[1].FilePath == "path1" &&
-                        taintIssue.Flows[0].Locations[1].StartLine == 1 &&
-                        taintIssue.Flows[0].Locations[1].EndLine == 2 &&
-                        taintIssue.Flows[0].Locations[1].StartLineOffset == 3 &&
-                        taintIssue.Flows[0].Locations[1].EndLineOffset == 4 &&
+                        taintIssue.Flows[0].Locations[1].TextRange.LineHash == null &&
+                        taintIssue.Flows[0].Locations[1].TextRange.StartLine == 1 &&
+                        taintIssue.Flows[0].Locations[1].TextRange.EndLine == 2 &&
+                        taintIssue.Flows[0].Locations[1].TextRange.StartLineOffset == 3 &&
+                        taintIssue.Flows[0].Locations[1].TextRange.EndLineOffset == 4 &&
 
-                        taintIssue.Flows[1].Locations[0].LineHash == null &&
                         taintIssue.Flows[1].Locations[0].Message == "message3" &&
                         taintIssue.Flows[1].Locations[0].FilePath == "path3" &&
-                        taintIssue.Flows[1].Locations[0].StartLine == 9 &&
-                        taintIssue.Flows[1].Locations[0].EndLine == 10 &&
-                        taintIssue.Flows[1].Locations[0].StartLineOffset == 11 &&
-                        taintIssue.Flows[1].Locations[0].EndLineOffset == 12
+                        taintIssue.Flows[1].Locations[0].TextRange.LineHash == null &&
+                        taintIssue.Flows[1].Locations[0].TextRange.StartLine == 9 &&
+                        taintIssue.Flows[1].Locations[0].TextRange.EndLine == 10 &&
+                        taintIssue.Flows[1].Locations[0].TextRange.StartLineOffset == 11 &&
+                        taintIssue.Flows[1].Locations[0].TextRange.EndLineOffset == 12
                     ),
                     It.IsAny<ITextSnapshot>()),
                 Times.Once);
