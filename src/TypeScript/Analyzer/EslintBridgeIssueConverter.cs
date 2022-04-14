@@ -24,6 +24,8 @@ using System.Linq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 using SonarLint.VisualStudio.TypeScript.Rules;
+using QuickFix = SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract.QuickFix;
+using TextRange = SonarLint.VisualStudio.Core.Analysis.TextRange;
 
 namespace SonarLint.VisualStudio.TypeScript.Analyzer
 {
@@ -60,7 +62,22 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                         issue.Column,
                         issue.EndColumn,
                         null)),
-                Convert(filePath, issue.SecondaryLocations));
+                flows: Convert(filePath, issue.SecondaryLocations),
+                fixes: ConvertQuickFixes(issue.QuickFixes));
+        }
+
+        private IReadOnlyList<IQuickFix> ConvertQuickFixes(IEnumerable<QuickFix> issueQuickFixes)
+        {
+            return issueQuickFixes.Select(x =>
+                new Core.Analysis.QuickFix(x.Message,
+                    x.Edits.Select(edit => new Core.Analysis.Edit(edit.Text,
+                        new Core.Analysis.TextRange(
+                            edit.TextRange.Line,
+                            edit.TextRange.EndLine,
+                            edit.TextRange.Column,
+                            edit.TextRange.EndColumn,
+                            null))).ToList()
+                )).ToList();
         }
 
         internal static /* for testing */ AnalysisIssueSeverity Convert(RuleSeverity ruleSeverity)
