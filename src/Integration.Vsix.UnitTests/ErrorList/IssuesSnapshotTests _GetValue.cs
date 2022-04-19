@@ -105,26 +105,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             AssertGetValueReturnsFalse(index);
         }
 
+        [DataRow(StandardTableKeyNames.Line)]
+        [DataRow(StandardTableKeyNames.Column)]
         [TestMethod]
-        public void GetValue_IssueHasNoSpanKeyIsLine_Null()
+        public void GetValue_IssueHasNoSpan_ContentIsNull(string keyName)
         {
             issueViz.Span = null;
 
             object content;
-            snapshot.TryGetValue(0, StandardTableKeyNames.Line, out content).Should().BeTrue();
+            snapshot.TryGetValue(0, keyName, out content).Should().BeTrue();
             content.Should().BeNull();
         }
-
-        [TestMethod]
-        public void GetValue_IssueHasNoSpanKeyIsColumn_Null()
-        {
-            issueViz.Span = null;
-
-            object content;
-            snapshot.TryGetValue(0, StandardTableKeyNames.Column, out content).Should().BeTrue();
-            content.Should().BeNull();
-        }
-
 
         [TestMethod]
         public void GetValue_IssueHasEmptySpan_Null()
