@@ -90,10 +90,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return;
             }
 
-            Debug.Assert(issues.All(IsIssueInAnalysisSnapshot), "Not all reported issues could be mapped to the analysis snapshot");
+            Debug.Assert(issues.All(IsIssueFileLevelOrInAnalysisSnapshot), "Not all reported issues could be mapped to the analysis snapshot");
 
             var newIssues = issues
-                .Where(IsIssueInAnalysisSnapshot)
+                .Where(IsIssueFileLevelOrInAnalysisSnapshot)
                 .Select(x => issueToIssueVisualizationConverter.Convert(x, analysisSnapshot))
                 .ToArray();
 
@@ -105,9 +105,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// <summary>
         /// Checks that the analysis issue can be mapped to location in the text snapshot.
         /// </summary>
-        private bool IsIssueInAnalysisSnapshot(IAnalysisIssue issue) =>
-            // Sonar issues line numbers are 1-based; 0 = file-level issue
+        private bool IsIssueFileLevelOrInAnalysisSnapshot(IAnalysisIssue issue)
+        {
+            // Sonar issues line numbers are 1-based
             // Spans lines are 0-based
-            1 <= issue.PrimaryLocation.TextRange.StartLine && issue.PrimaryLocation.TextRange.EndLine <= analysisSnapshot.LineCount;
+            return issue.IsFileLevel() ||
+            (1 <= issue.PrimaryLocation.TextRange.StartLine && issue.PrimaryLocation.TextRange.EndLine <= analysisSnapshot.LineCount);
+        }
     }
 }

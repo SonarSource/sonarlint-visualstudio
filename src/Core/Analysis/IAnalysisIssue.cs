@@ -100,4 +100,12 @@ namespace SonarLint.VisualStudio.Core.Analysis
         Bug,
         Vulnerability
     }
+
+    public static class IAnalysisIssueExtensions
+    {
+        public static bool IsFileLevel(this IAnalysisIssue issue)
+        {
+            return issue.PrimaryLocation.TextRange == null;
+        }
+    }
 }

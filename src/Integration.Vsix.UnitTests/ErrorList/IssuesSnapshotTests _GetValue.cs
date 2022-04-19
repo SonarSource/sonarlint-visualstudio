@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void GetValue_UnknownColumn_Null()
         {
-            AssertGetValueReturnsNull(columnName: "asdsdgdsgrgddfgfg");
+            AssertGetValueReturnsFalse(columnName: "asdsdgdsgrgddfgfg");
         }
 
         [TestMethod]
@@ -102,7 +102,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [DataRow(999)]
         public void GetValue_IndexOutOfRange_Null(int index)
         {
-            AssertGetValueReturnsNull(index);
+            AssertGetValueReturnsFalse(index);
         }
 
         [TestMethod]
@@ -110,7 +110,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             issueViz.Span = null;
 
-            AssertGetValueReturnsNull();
+            object content;
+            snapshot.TryGetValue(0, StandardTableKeyNames.Line, out content).Should().BeTrue();
+            content.Should().BeNull();
         }
 
         [TestMethod]
@@ -118,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             issueViz.InvalidateSpan();
 
-            AssertGetValueReturnsNull();
+            AssertGetValueReturnsFalse();
         }
 
         [TestMethod]
@@ -236,7 +238,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return content;
         }
 
-        private void AssertGetValueReturnsNull(int index = 0, string columnName = StandardTableKeyNames.Line)
+        private void AssertGetValueReturnsFalse(int index = 0, string columnName = StandardTableKeyNames.Line)
         {
             object content;
             snapshot.TryGetValue(index, columnName, out content).Should().BeFalse();

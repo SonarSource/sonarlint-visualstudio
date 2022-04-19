@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         public IAnalysisIssueVisualization Convert(IAnalysisIssueBase issue, ITextSnapshot textSnapshot = null)
         {
             var issueSpan = textSnapshot == null
-                ? (SnapshotSpan?) null
+                ? null
                 : issueSpanCalculator.CalculateSpan(issue.PrimaryLocation.TextRange, textSnapshot);
 
             var flows = Convert(issue.Flows);
@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             {
                 var editVisualizations = fix.Edits.Select(edit =>
                 {
-                    var editSpan = issueSpanCalculator.CalculateSpan(edit.RangeToReplace, textSnapshot);
+                    var editSpan = issueSpanCalculator.CalculateSpan(edit.RangeToReplace, textSnapshot) ?? new SnapshotSpan();
 
                     return new QuickFixEditVisualization(edit, editSpan);
                 });

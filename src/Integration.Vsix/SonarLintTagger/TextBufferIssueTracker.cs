@@ -125,6 +125,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return x;
                 })
                 .Where(x => x.Span.HasValue)
+                .Union(issues.Where(i => !i.Span.HasValue)) //File level issues
                 .ToArray();
 
             return issuesWithTranslatedSpans;

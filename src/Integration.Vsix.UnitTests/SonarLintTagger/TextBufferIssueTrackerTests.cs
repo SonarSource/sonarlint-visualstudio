@@ -165,6 +165,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             mockedJavascriptDocumentFooJs.VerifyRemove(x => x.FileActionOccurred -= It.IsAny<EventHandler<TextDocumentFileActionEventArgs>>(), Times.Once);
         }
 
+        //public void TranslateSpans_FileLevelIssue
+
         private static void VerifySingletonManagerDoesNotExist(ITextBuffer buffer) =>
             FindSingletonManagerInPropertyCollection(buffer).Should().BeNull();
 
@@ -332,6 +334,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         }
 
         [TestMethod]
+        public void WhenNewFileLevelIssuesAreFound_IssueNotFiltered_ListenersAreUpdated()
+        {
+            mockSonarErrorDataSource.Invocations.Clear();
+
+            // Arrange
+            var issues = new[] { CreateFileLevelIssue("File Level Issue") };
+
+            SetupIssuesFilter(out var capturedFilterInput, issues);
+
+            // Act
+            testSubject.HandleNewIssues(issues);
+
+            // Assert
+            // Check the expected issues were passed to the filter
+            capturedFilterInput.Count.Should().Be(1);
+            capturedFilterInput.Should().BeEquivalentTo(issues);
+
+            CheckErrorListRefreshWasRequestedOnce(testSubject.Factory);
+
+            // Check there are no issues
+            testSubject.Factory.CurrentSnapshot.Issues.Count().Should().Be(1);
+        }
+
+        [TestMethod]
         public void WhenNoIssuesAreFound_ListenersAreUpdated()
         {
             mockSonarErrorDataSource.Invocations.Clear();
@@ -389,6 +415,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             return issueVizMock.Object;
         }
+
+        private static IAnalysisIssueVisualization CreateFileLevelIssue(string ruleKey)
+        {
+            var issue = new DummyAnalysisIssue
+            {
+                RuleKey = ruleKey,
+                PrimaryLocation = new DummyAnalysisIssueLocation()                
+            };
+
+            var issueVizMock = new Mock<IAnalysisIssueVisualization>();
+            issueVizMock.Setup(x => x.Issue).Returns(issue);
+            issueVizMock.Setup(x => x.Location).Returns(issue.PrimaryLocation);
+            issueVizMock.Setup(x => x.Flows).Returns(Array.Empty<IAnalysisIssueFlowVisualization>());
+
+            return issueVizMock.Object;
+        }
+
 
         #endregion
 

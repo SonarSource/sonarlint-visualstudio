@@ -113,6 +113,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         }
 
         [TestMethod]
+        public void Accept_HasFileLevelIssues_NotIgnored()
+        {
+            var snapshot = CreateSnapshot(10);
+            var issues = new[] { CreateFileLevelIssue() };
+
+            var callbackSpy = new OnIssuesChangedCallbackSpy();
+            var converter = CreatePassthroughConverter();
+
+            var testSubject = new AccumulatingIssueConsumer(snapshot, ValidFilePath, callbackSpy.Callback, converter);
+
+            testSubject.Accept(ValidFilePath, issues);
+
+            callbackSpy.CallCount.Should().Be(1);
+            callbackSpy.LastSuppliedIssues.Should().BeEquivalentTo(issues);
+        }
+
+        [TestMethod]
         public void Accept_MultipleCallsToAccept_IssuesAreAccumulated()
         {
             var callbackSpy = new OnIssuesChangedCallbackSpy();
@@ -183,6 +200,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                     Message = "any message"
                 }
             };
+
+        private static IAnalysisIssue CreateFileLevelIssue()
+        {
+          return new DummyAnalysisIssue
+            {
+                PrimaryLocation = new DummyAnalysisIssueLocation()
+
+            };
+        }
 
         private static IAnalysisIssueVisualizationConverter CreatePassthroughConverter()
         {
