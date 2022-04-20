@@ -103,12 +103,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         /// <summary>
-        /// Checks that the analysis issue can be mapped to location in the text snapshot.
+        /// Checks that the analysis issue can be mapped to location in the text snapshot or file level.
         /// </summary>
         private bool IsIssueFileLevelOrInAnalysisSnapshot(IAnalysisIssue issue)
         {
-            // Sonar issues line numbers are 1-based
-            // Spans lines are 0-based
             return issue.IsFileLevel() ||
             (1 <= issue.PrimaryLocation.TextRange.StartLine && issue.PrimaryLocation.TextRange.EndLine <= analysisSnapshot.LineCount);
         }

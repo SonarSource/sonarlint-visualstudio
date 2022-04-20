@@ -181,21 +181,27 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     // Note: the line and column numbers are taken from the SnapshotSpan, not the Issue.
                     // The SnapshotSpan represents the live document, so the text positions could have
                     // changed from those reported from the Issue.
-                    // If Span is null it means file level issue and would not have a line. 
-                    content = issueViz.Span?.Start.GetContainingLine().LineNumber;
+                    if (issueViz.IsFileLevel())
+                    {
+                        content = null;
+                    }
+                    else
+                    {
+                        content = issueViz.Span.Value.Start.GetContainingLine().LineNumber;
+                    }                    
                     return true;
 
                 case StandardTableKeyNames.Column:
                     // Use the span, not the issue. See comment immediately above.
-                    if (issueViz.Span.HasValue) // If Span is null it means file level issue and would not have a column.
+                    if (issueViz.IsFileLevel())
+                    {
+                        content = null;                       
+                    }
+                    else
                     {
                         var position = issueViz.Span.Value.Start;
                         var line = position.GetContainingLine();
                         content = position.Position - line.Start.Position;
-                    }
-                    else
-                    {
-                        content = null;
                     }
                     return true;
 
@@ -254,10 +260,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// Returns true/false if the ErrorList should hide the requested issue.
         /// </summary>
         /// <returns>Returns true if the issue doesn't have a valid span.</returns>
-        /// <remarks>Span would be null for file level issues.</remarks>
         private bool ShouldHideIssue(IAnalysisIssueVisualization issue)
         {
-            return issue.Span?.IsEmpty ?? false;
+            if (issue.IsFileLevel())
+            {
+                return false;
+            }
+
+            return !issue.Span.HasValue || issue.Span.Value.IsEmpty;
         }
 
         private object ToString(AnalysisIssueType type)

@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
     public static class IAnalysisIssueExtensions
     {
-        public static bool IsFileLevel(this IAnalysisIssue issue)
+        public static bool IsFileLevel(this IAnalysisIssueBase issue)
         {
             return issue.PrimaryLocation.TextRange == null;
         }

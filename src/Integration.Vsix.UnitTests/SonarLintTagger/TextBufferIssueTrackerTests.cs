@@ -165,8 +165,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             mockedJavascriptDocumentFooJs.VerifyRemove(x => x.FileActionOccurred -= It.IsAny<EventHandler<TextDocumentFileActionEventArgs>>(), Times.Once);
         }
 
-        //public void TranslateSpans_FileLevelIssue
-
         private static void VerifySingletonManagerDoesNotExist(ITextBuffer buffer) =>
             FindSingletonManagerInPropertyCollection(buffer).Should().BeNull();
 
@@ -352,8 +350,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             capturedFilterInput.Should().BeEquivalentTo(issues);
 
             CheckErrorListRefreshWasRequestedOnce(testSubject.Factory);
-
-            // Check there are no issues
+            
             testSubject.Factory.CurrentSnapshot.Issues.Count().Should().Be(1);
         }
 
@@ -421,7 +418,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var issue = new DummyAnalysisIssue
             {
                 RuleKey = ruleKey,
-                PrimaryLocation = new DummyAnalysisIssueLocation()                
+                PrimaryLocation = new DummyAnalysisIssueLocation { TextRange = null }
             };
 
             var issueVizMock = new Mock<IAnalysisIssueVisualization>();

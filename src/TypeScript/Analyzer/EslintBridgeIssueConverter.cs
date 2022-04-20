@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             var sonarRuleKey = ruleDefinition.RuleKey;
             ITextRange textRange = null;
 
-            if(issue.Line != 0)
+            if(issue.Line != 0) // if the line is 0 than it means a file level issue.  
             {
                 textRange = new TextRange(
                         issue.Line,

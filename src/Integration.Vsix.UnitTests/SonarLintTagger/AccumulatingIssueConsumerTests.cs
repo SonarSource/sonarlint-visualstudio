@@ -205,8 +205,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         {
           return new DummyAnalysisIssue
             {
-                PrimaryLocation = new DummyAnalysisIssueLocation()
-
+                PrimaryLocation = new DummyAnalysisIssueLocation { TextRange = null }
             };
         }
 

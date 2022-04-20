@@ -30,7 +30,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
     {
         /// <summary>
         /// Returns the text span corresponding to the supplied analysis issue location.
-        /// Returns null if the location line hash is different from the snapshot line hash
+        /// Returns empty if the location line hash is different from the snapshot line hash
+        /// Returns null if no textRange is passed
         /// </summary>
         SnapshotSpan? CalculateSpan(ITextRange range, ITextSnapshot currentSnapshot);
     }
