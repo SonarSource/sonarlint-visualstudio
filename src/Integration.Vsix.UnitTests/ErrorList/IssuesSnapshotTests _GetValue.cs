@@ -40,21 +40,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private DummyAnalysisIssue issue;
         private IAnalysisIssueVisualization issueViz;
         private Guid projectGuid;
+        
+
 
         [TestInitialize]
         public void SetUp()
         {
             const string path = "foo.js";
-            issue = new DummyAnalysisIssue
-            {
-                PrimaryLocation = new DummyAnalysisIssueLocation
-                {
-                    FilePath = path,
-                    Message = "This is dangerous",
-                },
-                RuleKey = "javascript:123",
-                Severity = AnalysisIssueSeverity.Blocker,
-            };
+            issue = CreateIssue(path);
             projectGuid = Guid.NewGuid();
 
             var mockTextSnap = new Mock<ITextSnapshot>();
@@ -68,9 +61,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var textSnap = mockTextSnap.Object;
 
             issueViz = CreateIssueViz(issue, new SnapshotSpan(new SnapshotPoint(textSnap, 25), new SnapshotPoint(textSnap, 27)));
-
-            snapshot = new IssuesSnapshot("MyProject", projectGuid, path, new List<IAnalysisIssueVisualization> { issueViz });
+            snapshot = CreateIssueSnapshot("MyProject", projectGuid, path, new List<IAnalysisIssueVisualization> { issueViz });
         }
+
+        
 
         [TestMethod]
         [DataRow(0)]
@@ -92,40 +86,67 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void GetValue_UnknownColumn_Null()
+        public void GetValue_UnknownColumn_False()
         {
-            AssertGetValueReturnsNull(columnName: "asdsdgdsgrgddfgfg");
+            AssertGetValueReturnsFalse(columnName: "asdsdgdsgrgddfgfg");
         }
 
         [TestMethod]
         [DataRow(-1)]
         [DataRow(999)]
-        public void GetValue_IndexOutOfRange_Null(int index)
+        public void GetValue_IndexOutOfRange_False(int index)
         {
-            AssertGetValueReturnsNull(index);
+            AssertGetValueReturnsFalse(index);
+        }
+
+        [DataRow(StandardTableKeyNames.Line)]
+        [DataRow(StandardTableKeyNames.Column)]
+        [TestMethod]
+        public void GetValue_IssueFileLevel_ContentIsNull(string keyName)
+        {
+            string path = "foo.js";
+
+            var analysisIssue = CreateIssue(path, true);
+
+            var analysisIssueViz = CreateIssueViz(analysisIssue, new SnapshotSpan());
+
+            var issueSnapshot = CreateIssueSnapshot("FileLevel", Guid.NewGuid(), path, new[] { analysisIssueViz });
+
+            object content;
+            issueSnapshot.TryGetValue(0, keyName, out content).Should().BeTrue();
+            content.Should().BeNull();
         }
 
         [TestMethod]
-        public void GetValue_IssueHasNoSpan_Null()
+        public void GetValue_IssueHasNoSpan_False()
         {
             issueViz.Span = null;
 
-            AssertGetValueReturnsNull();
+            AssertGetValueReturnsFalse();
         }
 
         [TestMethod]
-        public void GetValue_IssueHasEmptySpan_Null()
+        public void GetValue_IssueHasEmptySpan_False()
         {
             issueViz.InvalidateSpan();
 
-            AssertGetValueReturnsNull();
+            AssertGetValueReturnsFalse();
         }
 
         [TestMethod]
         public void Ctor_BaseIssueIsNotAnalysisIssue_InvalidCastException()
         {
+            
+            var issue = new Mock<IAnalysisIssueBase>();
+            issue.Setup(i=> i.PrimaryLocation).Returns(() => {
+                return new DummyAnalysisIssueLocation
+                {
+                    TextRange = new DummyTextRange()
+                };
+            });
+
             var issueViz = new Mock<IAnalysisIssueVisualization>();
-            issueViz.SetupGet(x => x.Issue).Returns(Mock.Of<IAnalysisIssueBase>());
+            issueViz.SetupGet(x => x.Issue).Returns(issue.Object);
 
             Action act = () => new IssuesSnapshot("test", projectGuid, "test.cpp", new[] {issueViz.Object});
             act.Should().Throw<InvalidCastException>();
@@ -236,7 +257,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return content;
         }
 
-        private void AssertGetValueReturnsNull(int index = 0, string columnName = StandardTableKeyNames.Line)
+        private void AssertGetValueReturnsFalse(int index = 0, string columnName = StandardTableKeyNames.Line)
         {
             object content;
             snapshot.TryGetValue(index, columnName, out content).Should().BeFalse();
@@ -253,6 +274,38 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             issueVizMock.Object.Span = snapshotSpan;
 
             return issueVizMock.Object;
+        }
+
+        private DummyAnalysisIssue CreateIssue(string path, bool isFileLevel = false)
+        {
+            var analysisIssue = new DummyAnalysisIssue
+            {
+                PrimaryLocation = CreateIssueLocation(path, !isFileLevel),
+                RuleKey = "javascript:123",
+                Severity = AnalysisIssueSeverity.Blocker,
+            };
+
+            return analysisIssue;
+        }
+
+        private static DummyAnalysisIssueLocation CreateIssueLocation(string path, bool hasTextRange = true)
+        {
+            var issueLocation = new DummyAnalysisIssueLocation
+            {
+                FilePath = path,
+                Message = "This is dangerous"
+            };
+
+            if (hasTextRange)
+            {
+                issueLocation.TextRange = new DummyTextRange();
+            }
+            return issueLocation;
+        }
+
+        private static IssuesSnapshot CreateIssueSnapshot(string projectName, Guid projectGuid, string filePath, IEnumerable<IAnalysisIssueVisualization> issues)
+        {
+            return new IssuesSnapshot(projectName, projectGuid, filePath, issues);
         }
     }
 }

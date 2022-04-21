@@ -130,5 +130,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
 
             return secondaryLocations;
         }
+
+        public static bool IsFileLevel(this IAnalysisIssueVisualization issueVisualization)
+        {
+            return issueVisualization.Issue.IsFileLevel();
+        }
     }
 }

@@ -77,6 +77,42 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
+        public void Convert_IssueFileLevel_Converted()
+        {
+            var eslintBridgeIssue = new Issue
+            {
+                RuleId = "eslint rule id",
+                Column = 1,
+                EndColumn = 2,
+                Line = 0,
+                EndLine = 4,
+                Message = "some message"
+            };
+
+            var ruleDefinitions = new[]
+            {
+                new RuleDefinition
+                {
+                    EslintKey = "eslint rule id",
+                    RuleKey = "sonar rule key",
+                    Type = RuleType.CODE_SMELL,
+                    Severity = RuleSeverity.MAJOR
+                }
+            };
+
+            var testSubject = CreateTestSubject(ruleDefinitions);
+            var convertedIssue = testSubject.Convert("some file", eslintBridgeIssue);
+
+            convertedIssue.RuleKey.Should().Be("sonar rule key");
+            convertedIssue.Type.Should().Be(AnalysisIssueType.CodeSmell);
+            convertedIssue.Severity.Should().Be(AnalysisIssueSeverity.Major);
+
+            convertedIssue.PrimaryLocation.FilePath.Should().Be("some file");
+            convertedIssue.PrimaryLocation.Message.Should().Be("some message");
+            convertedIssue.PrimaryLocation.TextRange.Should().BeNull();
+        }
+
+        [TestMethod]
         [DataRow("aaa", "aaa")]
         [DataRow("aaa", "AAA")]
         [DataRow("AAA", "aaa")]
