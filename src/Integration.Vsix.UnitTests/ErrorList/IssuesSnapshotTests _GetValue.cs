@@ -40,13 +40,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private DummyAnalysisIssue issue;
         private IAnalysisIssueVisualization issueViz;
         private Guid projectGuid;
-        private const string path = "foo.js";
+        
 
 
         [TestInitialize]
         public void SetUp()
         {
-            issue = CreateIssue();
+            const string path = "foo.js";
+            issue = CreateIssue(path);
             projectGuid = Guid.NewGuid();
 
             var mockTextSnap = new Mock<ITextSnapshot>();
@@ -103,7 +104,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void GetValue_IssueFileLevel_ContentIsNull(string keyName)
         {
-            var analysisIssue = CreateIssue(true);
+            string path = "foo.js";
+
+            var analysisIssue = CreateIssue(path, true);
 
             var analysisIssueViz = CreateIssueViz(analysisIssue, new SnapshotSpan());
 
@@ -273,11 +276,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return issueVizMock.Object;
         }
 
-        private DummyAnalysisIssue CreateIssue(bool isFileLevel = false)
+        private DummyAnalysisIssue CreateIssue(string path, bool isFileLevel = false)
         {
             var analysisIssue = new DummyAnalysisIssue
             {
-                PrimaryLocation = CreateIssueLocation(!isFileLevel),
+                PrimaryLocation = CreateIssueLocation(path, !isFileLevel),
                 RuleKey = "javascript:123",
                 Severity = AnalysisIssueSeverity.Blocker,
             };
@@ -285,7 +288,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return analysisIssue;
         }
 
-        private static DummyAnalysisIssueLocation CreateIssueLocation(bool hasTextRange = true)
+        private static DummyAnalysisIssueLocation CreateIssueLocation(string path, bool hasTextRange = true)
         {
             var issueLocation = new DummyAnalysisIssueLocation
             {
