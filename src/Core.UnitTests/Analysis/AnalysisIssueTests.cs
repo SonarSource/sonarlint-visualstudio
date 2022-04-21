@@ -45,9 +45,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Analysis
             analysisIssue.IsFileLevel().Should().BeTrue();
         }
 
-        private IAnalysisIssue CreateTestSubject(bool primaryLocationHasTextRange)
+        private IAnalysisIssueBase CreateTestSubject(bool primaryLocationHasTextRange)
         {
-            var analysisIssue = new Mock<IAnalysisIssue>();
+            var analysisIssue = new Mock<IAnalysisIssueBase>();
             var primaryLocation = new Mock<IAnalysisIssueLocation>();
 
             if(primaryLocationHasTextRange)
