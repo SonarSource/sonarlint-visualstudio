@@ -30,9 +30,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
     {
         /// <summary>
         /// Returns the text span corresponding to the supplied analysis issue location.
-        /// Returns null if the location line hash is different from the snapshot line hash
+        /// Returns empty if the location line hash is different from the snapshot line hash
+        /// Returns null if no textRange is passed
         /// </summary>
-        SnapshotSpan CalculateSpan(ITextRange range, ITextSnapshot currentSnapshot);
+        SnapshotSpan? CalculateSpan(ITextRange range, ITextSnapshot currentSnapshot);
     }
 
     [Export(typeof(IIssueSpanCalculator))]
@@ -53,8 +54,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             this.checksumCalculator = checksumCalculator;
         }
 
-        public SnapshotSpan CalculateSpan(ITextRange range, ITextSnapshot currentSnapshot)
+        public SnapshotSpan? CalculateSpan(ITextRange range, ITextSnapshot currentSnapshot)
         {
+            if (range == null)
+            {
+                return null;
+            }
+
             if (range.StartLine > currentSnapshot.LineCount)
             {
                 // Race condition: the line reported in the diagnostic is beyond the end of the file, so presumably

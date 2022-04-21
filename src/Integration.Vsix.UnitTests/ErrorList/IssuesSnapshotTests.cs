@@ -310,8 +310,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return (T)content;
         }
 
-        private static IAnalysisIssueVisualization CreateIssue(string ruleKey = "rule key") =>
-            CreateIssueViz("filePath", CreateNonEmptySpan(), new DummyAnalysisIssue { RuleKey = ruleKey });
+        private static IAnalysisIssueVisualization CreateIssue(string ruleKey = "rule key")
+        {
+            var analysisIssue = new DummyAnalysisIssue
+            { 
+                PrimaryLocation = new DummyAnalysisIssueLocation { TextRange = new DummyTextRange()},
+                RuleKey = ruleKey 
+            };           
+
+            return CreateIssueViz("filePath", CreateNonEmptySpan(), analysisIssue);
+        }
 
         private static IAnalysisIssueVisualization CreateIssueWithSpecificsPaths(string primaryFilePath, params IAnalysisIssueFlowVisualization[] flowVizs) =>
             CreateIssueViz(primaryFilePath, CreateNonEmptySpan(), Mock.Of<IAnalysisIssue>(), flowVizs);
