@@ -46,6 +46,17 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             var ruleDefinitions = rulesProvider.GetDefinitions();
             var ruleDefinition = ruleDefinitions.Single(x => x.EslintKey != null && x.EslintKey.Equals(issue.RuleId, StringComparison.OrdinalIgnoreCase));
             var sonarRuleKey = ruleDefinition.RuleKey;
+            ITextRange textRange = null;
+
+            if(issue.Line != 0) // if the line is 0 than it means a file level issue.  
+            {
+                textRange = new TextRange(
+                        issue.Line,
+                        issue.EndLine, // todo: do we need to handle EndLine=0?
+                        issue.Column,
+                        issue.EndColumn,
+                        null);
+            }
 
             return new AnalysisIssue(
                 sonarRuleKey,
@@ -54,12 +65,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                 primaryLocation: new AnalysisIssueLocation(
                     issue.Message,
                     filePath,
-                    textRange: new TextRange(
-                        issue.Line,
-                        issue.EndLine, // todo: do we need to handle EndLine=0?
-                        issue.Column,
-                        issue.EndColumn,
-                        null)),
+                    textRange),
                 Convert(filePath, issue.SecondaryLocations));
         }
 
