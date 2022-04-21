@@ -257,7 +257,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             return new TypeScript.EslintBridgeClient.EslintBridgeClient(AnalyzeEndpoint, eslintBridgeProcess, httpWrapper, analysisConfiguration);
         }
 
-        private static Mock<IEslintBridgeHttpWrapper> SetupHttpWrapper(string endpoint, string response = null, Action<object> assertReceivedRequest = null)
+        private static Mock<IEslintBridgeHttpWrapper> SetupHttpWrapper(string endpoint, string response = "OK!", Action<object> assertReceivedRequest = null)
         {
             var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
 

@@ -67,19 +67,15 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                 primaryLocation: new AnalysisIssueLocation(
                     issue.Message,
                     filePath,
-                    textRange: new TextRange(
-                        issue.Line,
-                        issue.EndLine, // todo: do we need to handle EndLine=0?
-                        issue.Column,
-                        issue.EndColumn,
-                        null)),
+                    textRange: textRange
+                    ),
                 flows: Convert(filePath, issue.SecondaryLocations),
                 fixes: ConvertQuickFixes(issue.QuickFixes));
         }
 
         private IReadOnlyList<IQuickFix> ConvertQuickFixes(IEnumerable<QuickFix> issueQuickFixes)
         {
-            return issueQuickFixes.Select(x =>
+            return issueQuickFixes?.Select(x =>
                 new Core.Analysis.QuickFix(x.Message,
                     x.Edits.Select(edit => new Core.Analysis.Edit(edit.Text,
                         new Core.Analysis.TextRange(
