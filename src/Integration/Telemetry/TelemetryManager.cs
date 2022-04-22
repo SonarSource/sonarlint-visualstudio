@@ -23,7 +23,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.Shell;
-//using SonarLint.VisualStudio.CloudSecrets; __secrets
+using SonarLint.VisualStudio.CloudSecrets;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
@@ -35,11 +35,11 @@ namespace SonarLint.VisualStudio.Integration
 {
     [Export(typeof(ITelemetryManager))]
     [Export(typeof(IQuickFixesTelemetryManager))]
-    //[Export(typeof(ICloudSecretsTelemetryManager))] 
+    [Export(typeof(ICloudSecretsTelemetryManager))] 
     [PartCreationPolicy(CreationPolicy.Shared)]
     public sealed class TelemetryManager : ITelemetryManager, 
         IQuickFixesTelemetryManager,
-        //ICloudSecretsTelemetryManager,
+        ICloudSecretsTelemetryManager,
         IDisposable
     {
         private const string SecretsRepositoryKey = "secrets:";
