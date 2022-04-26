@@ -159,7 +159,9 @@ namespace SonarLint.VisualStudio.Integration.Tests
   ""taint_vulnerabilities"": null,
   ""server_notifications"": null,
   ""cfamily_project_types"": null,
-  ""rules"": null
+  ""rules"": null,
+  ""nodejs"": null,
+  ""max_nodejs_version"": null
 }";
 
             httpHandlerMock.VerifyAll();

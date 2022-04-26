@@ -313,6 +313,63 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.ServerNotifications.ServerNotificationCounters["NEW_ISSUES"].ReceivedCount.Should().Be(44);
         }
 
+        [TestMethod]
+        public void Create_NoCompatibleNodeVersion_NullCompatibleVersion()
+        {
+            var testSubject = CreateTestSubject(compatibleNodeVersion: null);
+
+            var result = testSubject.Create(new TelemetryData());
+
+            result.CompatibleNodeJsVersion.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void Create_HasCompatibleNodeVersion_CompatibleVersion()
+        {
+            var version = new NodeVersionInfo("some exe", new Version(1, 2, 3, 4));
+            var testSubject = CreateTestSubject(compatibleNodeVersion: version);
+
+            var result = testSubject.Create(new TelemetryData());
+
+            result.CompatibleNodeJsVersion.Should().Be("1.2.3.4");
+        }
+
+        [TestMethod]
+        public void Create_NoDetectedNodeVersion_NullMaxVersion()
+        {
+            var testSubject = CreateTestSubject(allNodeVersions: null);
+
+            var result = testSubject.Create(new TelemetryData());
+
+            result.MaxNodeJsVersion.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void Create_HasOneNodeVersion_VersionSetAsMaxVersion()
+        {
+            var version = new NodeVersionInfo("some exe", new Version(1, 2, 3, 4));
+            var testSubject = CreateTestSubject(allNodeVersions: new[] { version });
+
+            var result = testSubject.Create(new TelemetryData());
+
+            result.MaxNodeJsVersion.Should().Be("1.2.3.4");
+        }
+
+        [TestMethod]
+        public void Create_HasMultipleNodeVersions_TakesMaxVersion()
+        {
+            var version1 = new NodeVersionInfo("some exe2", new Version(0, 9, 9, 9)); // 4th
+            var version2 = new NodeVersionInfo("some exe2", new Version(1, 2, 3, 4)); // 3rd
+            var version3 = new NodeVersionInfo("some exe1", new Version(2, 0, 0, 1)); // 1st
+            var version4 = new NodeVersionInfo("some exe2", new Version(1, 2, 3, 6)); // 2nd
+
+            var testSubject = CreateTestSubject(allNodeVersions: new[] { version1, version2, version3, version4 });
+
+            var result = testSubject.Create(new TelemetryData());
+
+            result.MaxNodeJsVersion.Should().Be("2.0.0.1");
+        }
+
         private static BindingConfiguration CreateConfiguration(SonarLintMode mode, string serverUri)
         {
             if (mode == SonarLintMode.Standalone)
@@ -339,7 +396,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         private TelemetryPayloadCreator CreateTestSubject(BindingConfiguration bindingConfiguration = null,
-            IVsVersion visualStudioVersion = null)
+            IVsVersion visualStudioVersion = null,
+            NodeVersionInfo compatibleNodeVersion = null,
+            NodeVersionInfo[] allNodeVersions = null)
         {
             bindingConfiguration ??= CreateConfiguration(SonarLintMode.LegacyConnected, "http://localhost");
 
@@ -352,8 +411,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var currentTimeProvider = new Mock<ICurrentTimeProvider>();
             currentTimeProvider.Setup(x => x.Now).Returns(new DateTimeOffset(Now));
 
+            var compatibleNodeLocator = new Mock<ICompatibleNodeLocator>();
+            compatibleNodeLocator.Setup(x => x.Locate()).Returns(compatibleNodeVersion);
+
+            allNodeVersions ??= Array.Empty<NodeVersionInfo>();
+
+            var nodeVersionInfoProvider = new Mock<INodeVersionInfoProvider>();
+            nodeVersionInfoProvider.Setup(x => x.GetAllNodeVersions()).Returns(allNodeVersions);
+
             return new TelemetryPayloadCreator(solutionBindingTracker.Object,
                 vsVersionProvider.Object,
+                nodeVersionInfoProvider.Object,
+                compatibleNodeLocator.Object,
                 currentTimeProvider.Object);
         }
     }

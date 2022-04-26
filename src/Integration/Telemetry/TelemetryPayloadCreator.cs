@@ -21,7 +21,9 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Linq;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.JsTs;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Core.VsVersion;
 using SonarLint.VisualStudio.Integration.Telemetry.Payload;
@@ -39,31 +41,35 @@ namespace SonarLint.VisualStudio.Integration
     {
         private readonly ICurrentTimeProvider currentTimeProvider;
         private readonly IActiveSolutionBoundTracker solutionBindingTracker;
+        private readonly INodeVersionInfoProvider nodeVersionInfoProvider;
+        private readonly ICompatibleNodeLocator compatibleNodeLocator;
         private readonly IVsVersion vsVersion;
 
         [ImportingConstructor]
         public TelemetryPayloadCreator(IActiveSolutionBoundTracker solutionBindingTracker,
-            IVsVersionProvider vsVersionProvider)
-            : this(solutionBindingTracker, vsVersionProvider, DefaultCurrentTimeProvider.Instance)
+            IVsVersionProvider vsVersionProvider,
+            INodeVersionInfoProvider nodeVersionInfoProvider,
+            ICompatibleNodeLocator compatibleNodeLocator)
+            : this(solutionBindingTracker,
+                vsVersionProvider,
+                nodeVersionInfoProvider,
+                compatibleNodeLocator,
+                DefaultCurrentTimeProvider.Instance)
         {
         }
 
         internal TelemetryPayloadCreator(IActiveSolutionBoundTracker solutionBindingTracker,
             IVsVersionProvider vsVersionProvider,
+            INodeVersionInfoProvider nodeVersionInfoProvider,
+            ICompatibleNodeLocator compatibleNodeLocator,
             ICurrentTimeProvider currentTimeProvider)
         {
             this.solutionBindingTracker = solutionBindingTracker;
+            this.nodeVersionInfoProvider = nodeVersionInfoProvider;
+            this.compatibleNodeLocator = compatibleNodeLocator;
             this.currentTimeProvider = currentTimeProvider;
 
             vsVersion = vsVersionProvider.Version;
-        }
-
-        public TelemetryPayload Create(TelemetryData telemetryData)
-        {
-            return CreatePayload(telemetryData,
-                currentTimeProvider.Now,
-                solutionBindingTracker.CurrentConfiguration,
-                vsVersion);
         }
 
         private static readonly string SonarLintVersion = GetSonarLintVersion();
@@ -84,23 +90,18 @@ namespace SonarLint.VisualStudio.Integration
                    sonarqubeUri.Equals("https://www.sonarcloud.io/");
         }
 
-        internal static TelemetryPayload CreatePayload(TelemetryData telemetryData, DateTimeOffset now,
-            BindingConfiguration bindingConfiguration, IVsVersion vsVersion)
+        public TelemetryPayload Create(TelemetryData telemetryData)
         {
             if (telemetryData == null)
             {
                 throw new ArgumentNullException(nameof(telemetryData));
             }
 
-            if (bindingConfiguration == null)
-            {
-                throw new ArgumentNullException(nameof(bindingConfiguration));
-            }
-
             // Note: we are capturing the data about the connected mode at the point
             // the data is about to be sent. This seems weird, as it depends entirely
             // on the solution the user happens to have open at the time, if any.
             // However, this is what was spec-ed in the MMF.
+            var bindingConfiguration = solutionBindingTracker.CurrentConfiguration;
             var isConnected = bindingConfiguration?.Mode != SonarLintMode.Standalone;
             var isLegacyConnected = bindingConfiguration?.Mode == SonarLintMode.LegacyConnected;
             var isSonarCloud = IsSonarCloud(bindingConfiguration?.Project?.ServerUri);
@@ -111,19 +112,21 @@ namespace SonarLint.VisualStudio.Integration
                 SonarLintVersion = SonarLintVersion,
                 VisualStudioVersion = VisualStudioHelpers.VisualStudioVersion,
                 VisualStudioVersionInformation = GetVsVersion(vsVersion),
-                NumberOfDaysSinceInstallation = now.DaysPassedSince(telemetryData.InstallationDate),
+                NumberOfDaysSinceInstallation = currentTimeProvider.Now.DaysPassedSince(telemetryData.InstallationDate),
                 NumberOfDaysOfUse = telemetryData.NumberOfDaysOfUse,
                 IsUsingConnectedMode = isConnected,
                 IsUsingLegacyConnectedMode = isLegacyConnected,
                 IsUsingSonarCloud = isSonarCloud,
-                SystemDate = now,
+                SystemDate = currentTimeProvider.Now,
                 InstallDate = telemetryData.InstallationDate,
                 Analyses = telemetryData.Analyses,
                 ShowHotspot = telemetryData.ShowHotspot,
                 TaintVulnerabilities = telemetryData.TaintVulnerabilities,
                 ServerNotifications = isConnected ? telemetryData.ServerNotifications : null,
                 CFamilyProjectTypes = telemetryData.CFamilyProjectTypes,
-                RulesUsage = telemetryData.RulesUsage
+                RulesUsage = telemetryData.RulesUsage,
+                CompatibleNodeJsVersion = compatibleNodeLocator.Locate()?.Version.ToString(),
+                MaxNodeJsVersion = nodeVersionInfoProvider.GetAllNodeVersions().Max(x => x.Version)?.ToString()
             };
         }
 
