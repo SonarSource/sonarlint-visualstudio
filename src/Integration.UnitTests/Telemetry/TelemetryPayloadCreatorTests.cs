@@ -26,6 +26,8 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.JsTs;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Core.VsVersion;
 using SonarLint.VisualStudio.Integration.Telemetry.Payload;
 
@@ -34,35 +36,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class TelemetryPayloadCreatorTests
     {
+        private static DateTime Now = new DateTime(2017, 7, 25, 0, 0, 0, DateTimeKind.Local).AddHours(2);
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<TelemetryPayloadCreator, ITelemetryPayloadCreator>(null, new[]
             {
                 MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(Mock.Of<IActiveSolutionBoundTracker>()),
+                MefTestHelpers.CreateExport<INodeVersionInfoProvider>(Mock.Of<INodeVersionInfoProvider>()),
+                MefTestHelpers.CreateExport<ICompatibleNodeLocator>(Mock.Of<ICompatibleNodeLocator>()),
                 MefTestHelpers.CreateExport<IVsVersionProvider>(Mock.Of<IVsVersionProvider>())
             });
         }
 
         [TestMethod]
-        public void CreatePayload_InvalidArg_Throws()
+        public void Create_NullTelemetryData_ArgumentNullException()
         {
-            Action action = () => TelemetryPayloadCreator.CreatePayload(null, DateTimeOffset.Now, BindingConfiguration.Standalone, null);
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("telemetryData");
+            var testSubject = CreateTestSubject();
 
-            action = () => TelemetryPayloadCreator.CreatePayload(new TelemetryData(), DateTimeOffset.Now, null, null);
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingConfiguration");
+            Action action = () => testSubject.Create(null);
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("telemetryData");
         }
 
         [TestMethod]
-        public void CreatePayload_Creates_Payload_ReturnsCorrectProductAndDates()
+        public void Create_ReturnsCorrectProductAndDates()
         {
-            // Arrange
-            var now = new DateTime(2017, 7, 25, 0, 0, 0, DateTimeKind.Local).AddHours(2);
-
             var telemetryData = new TelemetryData
             {
-                InstallationDate = now.AddDays(-10),
+                InstallationDate = Now.AddDays(-10),
                 IsAnonymousDataShared = true,
                 NumberOfDaysOfUse = 5,
                 ShowHotspot = new ShowHotspot { NumberOfRequests = 11 },
@@ -88,11 +90,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VisualStudioHelpers.VisualStudioVersion = "1.2.3.4";
 
             // Act
-            var result = TelemetryPayloadCreator.CreatePayload(
-                telemetryData,
-                new DateTimeOffset(now),
-                binding,
-                null);
+            var testSubject = CreateTestSubject(bindingConfiguration: binding);
+
+            var result = testSubject.Create(telemetryData);
 
             // Assert
             result.NumberOfDaysOfUse.Should().Be(5);
@@ -101,8 +101,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.SonarLintVersion.Should().Be(
                 typeof(TelemetryData).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version);
             result.VisualStudioVersion.Should().Be("1.2.3.4");
-            result.InstallDate.Should().Be(new DateTimeOffset(now.AddDays(-10)));
-            result.SystemDate.Should().Be(new DateTimeOffset(now));
+            result.InstallDate.Should().Be(new DateTimeOffset(Now.AddDays(-10)));
+            result.SystemDate.Should().Be(new DateTimeOffset(Now));
 
             result.ShowHotspot.NumberOfRequests.Should().Be(11);
 
@@ -126,63 +126,52 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [DataRow(SonarLintMode.Connected, "https://sonarcloud.io/", true, false, true)]
         [DataRow(SonarLintMode.LegacyConnected, "http://anotherlocalhost", true, true, false)]
         [DataRow(SonarLintMode.LegacyConnected, "https://sonarcloud.io/", true, true, true)]
-        public void CreatePayload_ReturnsCorrectConnectionData(SonarLintMode mode, string serverUrl,
+        public void Create_ReturnsCorrectConnectionData(SonarLintMode mode, string serverUrl,
             bool expectedIsConnected, bool expectedIsLegacyConnected, bool expectedIsSonarCloud)
         {
-            // Arrange
-            var now = new DateTime(2017, 7, 25);
-            var telemetryData = new TelemetryData
-            {
-                InstallationDate = now.Subtract(new TimeSpan(10, 0, 0))
-            };
-
             var binding = CreateConfiguration(mode, serverUrl);
 
-            // Act
-            var result = TelemetryPayloadCreator.CreatePayload(telemetryData, now, binding, null);
+            var testSubject = CreateTestSubject(bindingConfiguration: binding);
 
-            // Assert
+            var result = testSubject.Create(new TelemetryData());
+
             result.IsUsingConnectedMode.Should().Be(expectedIsConnected);
             result.IsUsingLegacyConnectedMode.Should().Be(expectedIsLegacyConnected);
             result.IsUsingSonarCloud.Should().Be(expectedIsSonarCloud);
         }
 
         [TestMethod]
-        public void CreatePayload_NumberOfDaysSinceInstallation_On_InstallationDate()
+        public void Create_NumberOfDaysSinceInstallation_On_InstallationDate()
         {
-            var now = new DateTime(2017, 7, 25);
-
             var telemetryData = new TelemetryData
             {
-                InstallationDate = now.Subtract(new TimeSpan(23, 59, 59)) // Less than a day
+                InstallationDate = Now.Subtract(new TimeSpan(23, 59, 59)) // Less than a day
             };
 
-            var binding = CreateConfiguration(SonarLintMode.LegacyConnected, "http://localhost");
+            var testSubject = CreateTestSubject();
 
-            var result = TelemetryPayloadCreator.CreatePayload(telemetryData, now, binding, null);
+            var result = testSubject.Create(telemetryData);
 
             result.NumberOfDaysSinceInstallation.Should().Be(0);
         }
 
         [TestMethod]
-        public void CreatePayload_NumberOfDaysSinceInstallation_Day_After_InstallationDate()
+        public void Create_NumberOfDaysSinceInstallation_Day_After_InstallationDate()
         {
-            var now = new DateTime(2017, 7, 25);
-
             var telemetryData = new TelemetryData
             {
-                InstallationDate = now.AddDays(-1)
+                InstallationDate = Now.AddDays(-1)
             };
 
-            var binding = CreateConfiguration(SonarLintMode.Connected, "http://localhost");
+            var testSubject = CreateTestSubject();
 
-            var result = TelemetryPayloadCreator.CreatePayload(telemetryData, now, binding, null);
+            var result = testSubject.Create(telemetryData);
 
             result.NumberOfDaysSinceInstallation.Should().Be(1);
         }
 
         [TestMethod]
-        public void CreatePayload_IncludesAnalyses()
+        public void Create_IncludesAnalyses()
         {
             var telemetryData = new TelemetryData
             {
@@ -193,9 +182,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 }.ToList()
             };
 
-            var binding = CreateConfiguration(SonarLintMode.Connected, "http://localhost");
+            var testSubject = CreateTestSubject();
 
-            var result = TelemetryPayloadCreator.CreatePayload(telemetryData, new DateTime(2017, 7, 25), binding, null);
+            var result = testSubject.Create(telemetryData);
 
             result.Analyses.Count.Should().Be(2);
             result.Analyses[0].Language.Should().Be("cs");
@@ -211,7 +200,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void IsSonarCloud_InvalidUri_Relative()
         {
-            UriBuilder builder = new UriBuilder
+            var builder = new UriBuilder
             {
                 Scheme = "file",
                 Path = "..\\..\\foo\\file.txt"
@@ -244,35 +233,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void CreatePayload_VsVersionIsNull_NullVsVersionInformation()
+        public void Create_VsVersionIsNull_NullVsVersionInformation()
         {
-            var binding = CreateConfiguration(SonarLintMode.Connected, "https://sonarcloud.io");
+            var testSubject = CreateTestSubject(visualStudioVersion:null);
 
-            var result = TelemetryPayloadCreator.CreatePayload(
-                new TelemetryData(),
-                new DateTimeOffset(),
-                binding,
-                null);
+            var result = testSubject.Create(new TelemetryData());
 
             result.VisualStudioVersionInformation.Should().BeNull();
         }
 
         [TestMethod]
-        public void CreatePayload_VsVersionIsNotNull_VsVersionInformation()
+        public void Create_VsVersionIsNotNull_VsVersionInformation()
         {
             var vsVersion = new Mock<IVsVersion>();
             vsVersion.Setup(x => x.DisplayName).Returns("Visual Studio Enterprise 2019");
             vsVersion.Setup(x => x.InstallationVersion).Returns("16.9.30914.41");
             vsVersion.Setup(x => x.DisplayVersion).Returns("16.9.0 Preview 3.0");
 
-            var binding = CreateConfiguration(SonarLintMode.Connected, "https://sonarcloud.io");
+            var testSubject = CreateTestSubject(visualStudioVersion: vsVersion.Object);
 
-            // Act
-            var result = TelemetryPayloadCreator.CreatePayload(
-                new TelemetryData(),
-                new DateTimeOffset(),
-                binding,
-                vsVersion.Object);
+            var result = testSubject.Create(new TelemetryData());
 
             result.VisualStudioVersionInformation.Should().NotBeNull();
             result.VisualStudioVersionInformation.DisplayName.Should().Be("Visual Studio Enterprise 2019");
@@ -281,7 +261,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void CreatePayload_StandaloneMode_ServerNotificationsAreNotSent()
+        public void Create_StandaloneMode_ServerNotificationsAreNotSent()
         {
             var binding = BindingConfiguration.Standalone;
 
@@ -290,13 +270,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ServerNotifications = new ServerNotifications { IsDisabled = false }
             };
 
-            var result = TelemetryPayloadCreator.CreatePayload(telemetryData, new DateTimeOffset(), binding, null);
+            var testSubject = CreateTestSubject(bindingConfiguration: binding);
+            var result = testSubject.Create(telemetryData);
 
             result.ServerNotifications.Should().BeNull();
         }
 
         [TestMethod]
-        public void CreatePayload_ConnectedMode_ServerNotificationsAreSent()
+        public void Create_ConnectedMode_ServerNotificationsAreSent()
         {
             var binding = CreateConfiguration(SonarLintMode.Connected, "https://sonarcloud.io");
 
@@ -321,7 +302,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 }
             };
 
-            var result = TelemetryPayloadCreator.CreatePayload(telemetryData, new DateTimeOffset(), binding, null);
+            var testSubject = CreateTestSubject(bindingConfiguration: binding);
+            var result = testSubject.Create(telemetryData);
 
             result.ServerNotifications.Should().NotBeNull();
             result.ServerNotifications.IsDisabled.Should().BeTrue();
@@ -354,6 +336,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private static void CheckIsSonarCloud(string uri)
         {
             TelemetryPayloadCreator.IsSonarCloud(new Uri(uri)).Should().BeTrue();
+        }
+
+        private TelemetryPayloadCreator CreateTestSubject(BindingConfiguration bindingConfiguration = null,
+            IVsVersion visualStudioVersion = null)
+        {
+            bindingConfiguration ??= CreateConfiguration(SonarLintMode.LegacyConnected, "http://localhost");
+
+            var solutionBindingTracker = new Mock<IActiveSolutionBoundTracker>();
+            solutionBindingTracker.Setup(x => x.CurrentConfiguration).Returns(bindingConfiguration);
+
+            var vsVersionProvider = new Mock<IVsVersionProvider>();
+            vsVersionProvider.Setup(x => x.Version).Returns(visualStudioVersion);
+
+            var currentTimeProvider = new Mock<ICurrentTimeProvider>();
+            currentTimeProvider.Setup(x => x.Now).Returns(new DateTimeOffset(Now));
+
+            return new TelemetryPayloadCreator(solutionBindingTracker.Object,
+                vsVersionProvider.Object,
+                currentTimeProvider.Object);
         }
     }
 }
