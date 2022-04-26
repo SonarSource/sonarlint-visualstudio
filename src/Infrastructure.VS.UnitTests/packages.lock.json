@@ -897,6 +897,11 @@
         "resolved": "3.3.0",
         "contentHash": "ZVBJ43/IxaAl5iX+OuuDLQ9tSNJaRlP85SUMAdiGoqEbyK/ZPfQmPfqSMZMFpucRlf8HgsEK/hR73DwpCmqcLA=="
       },
+      "SonarLint.Secrets.DotNet": {
+        "type": "Transitive",
+        "resolved": "1.0.1",
+        "contentHash": "+2maYYrOeM+WeaAtH3JvMQ+zLAqzXvS4aGM3/LwRSUPfu7MZ5zY9F3RTwt/SfXWiClxA7z4RsnbPF4bjMOf8Fw=="
+      },
       "stdole": {
         "type": "Transitive",
         "resolved": "17.0.0-previews-4-31709-430",
@@ -1196,6 +1201,15 @@
           "Microsoft.VisualStudio.Interop": "17.0.0-previews-4-31709-430"
         }
       },
+      "SonarLint.VisualStudio.CloudSecrets": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.VisualStudio.Interop": "17.0.0-previews-4-31709-430",
+          "Microsoft.VisualStudio.Sdk": "17.0.0-previews-4-31709-430",
+          "SonarLint.Secrets.DotNet": "1.0.1",
+          "SonarLint.VisualStudio.Core": "1.0.0"
+        }
+      },
       "SonarLint.VisualStudio.Core": {
         "type": "Project",
         "dependencies": {
@@ -1221,6 +1235,7 @@
           "Newtonsoft.Json": "13.0.1",
           "NuGet.Core": "2.12.0",
           "NuGet.VisualStudio": "3.3.0",
+          "SonarLint.VisualStudio.CloudSecrets": "1.0.0",
           "SonarLint.VisualStudio.Core": "1.0.0",
           "SonarLint.VisualStudio.Infrastructure.VS": "1.0.0",
           "SonarLint.VisualStudio.Progress": "1.0.0",
