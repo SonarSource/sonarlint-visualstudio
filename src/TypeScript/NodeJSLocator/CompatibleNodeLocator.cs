@@ -20,8 +20,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.IO.Abstractions;
 using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
@@ -38,47 +36,28 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class CompatibleNodeLocator : ICompatibleNodeLocator
     {
-        private readonly INodeLocationsProvider nodeLocationsProvider;
+        private readonly INodeVersionInfoProvider nodeVersionInfoProvider;
         private readonly ILogger logger;
-        private readonly IFileSystem fileSystem;
-        private readonly Func<string, Version> getNodeExeVersion;
 
         [ImportingConstructor]
-        public CompatibleNodeLocator(INodeLocationsProvider nodeLocationsProvider, ILogger logger)
-            : this(nodeLocationsProvider, logger, new FileSystem(), GetNodeVersion)
+        public CompatibleNodeLocator(INodeVersionInfoProvider nodeVersionInfoProvider, ILogger logger)
         {
-        }
-
-        internal CompatibleNodeLocator(INodeLocationsProvider nodeLocationsProvider,
-            ILogger logger,
-            IFileSystem fileSystem,
-            Func<string, Version> getNodeExeVersion)
-        {
-            this.nodeLocationsProvider = nodeLocationsProvider;
+            this.nodeVersionInfoProvider = nodeVersionInfoProvider;
             this.logger = logger;
-            this.fileSystem = fileSystem;
-            this.getNodeExeVersion = getNodeExeVersion;
         }
 
         public string Locate()
         {
-            foreach (var nodeExePath in nodeLocationsProvider.Get())
+            foreach (var nodeVersionInfo in nodeVersionInfoProvider.GetAllNodeVersions())
             {
-                if (string.IsNullOrEmpty(nodeExePath) || !fileSystem.File.Exists(nodeExePath))
+                if (!IsCompatibleVersion(nodeVersionInfo.Version))
                 {
+                    logger.WriteLine(Resources.ERR_IncompatibleVersion, nodeVersionInfo.Version, nodeVersionInfo.NodeExePath);
                     continue;
                 }
 
-                var nodeVersion = getNodeExeVersion(nodeExePath);
-
-                if (!IsCompatibleVersion(nodeVersion))
-                {
-                    logger.WriteLine(Resources.ERR_IncompatibleVersion, nodeVersion, nodeExePath);
-                    continue;
-                }
-
-                logger.WriteLine(Resources.INFO_FoundCompatibleVersion, nodeVersion, nodeExePath);
-                return nodeExePath;
+                logger.WriteLine(Resources.INFO_FoundCompatibleVersion, nodeVersionInfo.Version, nodeVersionInfo.NodeExePath);
+                return nodeVersionInfo.NodeExePath;
             }
 
             logger.WriteLine(Resources.ERR_NoCompatibleVersion);
@@ -88,16 +67,6 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
         internal static bool IsCompatibleVersion(Version nodeVersion)
         {
             return nodeVersion.Major >= 10 && nodeVersion.Major != 11;
-        }
-
-        /// <summary>
-        /// Based on MS nodejstools https://github.com/microsoft/nodejstools/blob/275e85d5cd95cad9122f59a76f9e49bead66101b/Nodejs/Product/Nodejs/Nodejs.cs#L22
-        /// </summary>
-        internal static Version GetNodeVersion(string path)
-        {
-            var version = FileVersionInfo.GetVersionInfo(path);
-
-            return new Version(version.ProductMajorPart, version.ProductMinorPart, version.ProductBuildPart);
         }
     }
 }
