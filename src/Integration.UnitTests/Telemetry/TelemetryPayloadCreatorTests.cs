@@ -35,6 +35,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class TelemetryPayloadCreatorTests
     {
         [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<TelemetryPayloadCreator, ITelemetryPayloadCreator>(null, new[]
+            {
+                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(Mock.Of<IActiveSolutionBoundTracker>()),
+                MefTestHelpers.CreateExport<IVsVersionProvider>(Mock.Of<IVsVersionProvider>())
+            });
+        }
+
+        [TestMethod]
         public void CreatePayload_InvalidArg_Throws()
         {
             Action action = () => TelemetryPayloadCreator.CreatePayload(null, DateTimeOffset.Now, BindingConfiguration.Standalone, null);
