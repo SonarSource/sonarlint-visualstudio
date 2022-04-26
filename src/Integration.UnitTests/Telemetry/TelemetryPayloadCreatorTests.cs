@@ -32,15 +32,15 @@ using SonarLint.VisualStudio.Integration.Telemetry.Payload;
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class TelemetryHelper_CreatePayload
+    public class TelemetryPayloadCreatorTests
     {
         [TestMethod]
         public void CreatePayload_InvalidArg_Throws()
         {
-            Action action = () => TelemetryHelper.CreatePayload(null, DateTimeOffset.Now, BindingConfiguration.Standalone, null);
+            Action action = () => TelemetryPayloadCreator.CreatePayload(null, DateTimeOffset.Now, BindingConfiguration.Standalone, null);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("telemetryData");
 
-            action = () => TelemetryHelper.CreatePayload(new TelemetryData(), DateTimeOffset.Now, null, null);
+            action = () => TelemetryPayloadCreator.CreatePayload(new TelemetryData(), DateTimeOffset.Now, null, null);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingConfiguration");
         }
 
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 TaintVulnerabilities = new TaintVulnerabilities { NumberOfIssuesInvestigatedRemotely = 44, NumberOfIssuesInvestigatedLocally = 55 },
                 CFamilyProjectTypes = new CFamilyProjectTypes
                 {
-                    IsCMakeNonAnalyzable = true, 
+                    IsCMakeNonAnalyzable = true,
                     IsCMakeAnalyzable = true,
                     IsVcxNonAnalyzable = true,
                     IsVcxAnalyzable = true
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VisualStudioHelpers.VisualStudioVersion = "1.2.3.4";
 
             // Act
-            var result = TelemetryHelper.CreatePayload(
+            var result = TelemetryPayloadCreator.CreatePayload(
                 telemetryData,
                 new DateTimeOffset(now),
                 binding,
@@ -129,7 +129,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var binding = CreateConfiguration(mode, serverUrl);
 
             // Act
-            var result = TelemetryHelper.CreatePayload(telemetryData, now, binding, null);
+            var result = TelemetryPayloadCreator.CreatePayload(telemetryData, now, binding, null);
 
             // Assert
             result.IsUsingConnectedMode.Should().Be(expectedIsConnected);
@@ -149,7 +149,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var binding = CreateConfiguration(SonarLintMode.LegacyConnected, "http://localhost");
 
-            var result = TelemetryHelper.CreatePayload(telemetryData, now, binding, null);
+            var result = TelemetryPayloadCreator.CreatePayload(telemetryData, now, binding, null);
 
             result.NumberOfDaysSinceInstallation.Should().Be(0);
         }
@@ -166,7 +166,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var binding = CreateConfiguration(SonarLintMode.Connected, "http://localhost");
 
-            var result = TelemetryHelper.CreatePayload(telemetryData, now, binding, null);
+            var result = TelemetryPayloadCreator.CreatePayload(telemetryData, now, binding, null);
 
             result.NumberOfDaysSinceInstallation.Should().Be(1);
         }
@@ -185,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var binding = CreateConfiguration(SonarLintMode.Connected, "http://localhost");
 
-            var result = TelemetryHelper.CreatePayload(telemetryData, new DateTime(2017, 7, 25), binding, null);
+            var result = TelemetryPayloadCreator.CreatePayload(telemetryData, new DateTime(2017, 7, 25), binding, null);
 
             result.Analyses.Count.Should().Be(2);
             result.Analyses[0].Language.Should().Be("cs");
@@ -195,7 +195,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void IsSonarCloud_InvalidUri_Null()
         {
-            TelemetryHelper.IsSonarCloud(null).Should().BeFalse();
+            TelemetryPayloadCreator.IsSonarCloud(null).Should().BeFalse();
         }
 
         [TestMethod]
@@ -207,7 +207,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Path = "..\\..\\foo\\file.txt"
             };
 
-            TelemetryHelper.IsSonarCloud(builder.Uri).Should().BeFalse();
+            TelemetryPayloadCreator.IsSonarCloud(builder.Uri).Should().BeFalse();
         }
 
         [TestMethod]
@@ -238,7 +238,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var binding = CreateConfiguration(SonarLintMode.Connected, "https://sonarcloud.io");
 
-            var result = TelemetryHelper.CreatePayload(
+            var result = TelemetryPayloadCreator.CreatePayload(
                 new TelemetryData(),
                 new DateTimeOffset(),
                 binding,
@@ -258,8 +258,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var binding = CreateConfiguration(SonarLintMode.Connected, "https://sonarcloud.io");
 
             // Act
-            var result = TelemetryHelper.CreatePayload(
-                new TelemetryData(), 
+            var result = TelemetryPayloadCreator.CreatePayload(
+                new TelemetryData(),
                 new DateTimeOffset(),
                 binding,
                 vsVersion.Object);
@@ -277,10 +277,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var telemetryData = new TelemetryData
             {
-                ServerNotifications = new ServerNotifications {IsDisabled = false}
+                ServerNotifications = new ServerNotifications { IsDisabled = false }
             };
 
-            var result = TelemetryHelper.CreatePayload(telemetryData, new DateTimeOffset(), binding, null);
+            var result = TelemetryPayloadCreator.CreatePayload(telemetryData, new DateTimeOffset(), binding, null);
 
             result.ServerNotifications.Should().BeNull();
         }
@@ -311,7 +311,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 }
             };
 
-            var result = TelemetryHelper.CreatePayload(telemetryData, new DateTimeOffset(), binding, null);
+            var result = TelemetryPayloadCreator.CreatePayload(telemetryData, new DateTimeOffset(), binding, null);
 
             result.ServerNotifications.Should().NotBeNull();
             result.ServerNotifications.IsDisabled.Should().BeTrue();
@@ -338,12 +338,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private static void CheckIsNotSonarCloud(string uri)
         {
-            TelemetryHelper.IsSonarCloud(new Uri(uri)).Should().BeFalse();
+            TelemetryPayloadCreator.IsSonarCloud(new Uri(uri)).Should().BeFalse();
         }
 
         private static void CheckIsSonarCloud(string uri)
         {
-            TelemetryHelper.IsSonarCloud(new Uri(uri)).Should().BeTrue();
+            TelemetryPayloadCreator.IsSonarCloud(new Uri(uri)).Should().BeTrue();
         }
     }
 }

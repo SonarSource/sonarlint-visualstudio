@@ -20,22 +20,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 // __secrets using SonarLint.VisualStudio.CloudSecrets;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
-using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Core.VsVersion;
 using SonarLint.VisualStudio.Integration.Telemetry.Payload;
-using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.Integration.Tests
 {
@@ -68,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             knownUIContexts = new Mock<IKnownUIContexts>();
             vsVersionProvider = new Mock<IVsVersionProvider>();
             userSettingsProvider = new Mock<IUserSettingsProvider>();
-            
+
             SetupUserSettingsProvider(new RulesSettings());
 
             activeSolutionTrackerMock.Setup(x => x.CurrentConfiguration).Returns(BindingConfiguration.Standalone);
@@ -203,7 +198,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
                     EnabledByDefaultThatWereDisabled = new List<string> { "rule3", "rule4" },
                     RulesThatRaisedIssues = new List<string> { "rule5", "rule6" },
                     RulesWithAppliedQuickFixes = new List<string> { "rule7", "rule8" }
-            }
+                }
             };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
 
@@ -371,9 +366,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Never);
         }
 
-        private TelemetryManager CreateManager(ICurrentTimeProvider mockTimeProvider = null) => 
-            new(activeSolutionTrackerMock.Object,
-            telemetryRepositoryMock.Object, vsVersionProvider.Object, userSettingsProvider.Object, loggerMock.Object, telemetryClientMock.Object,
+        private TelemetryManager CreateManager(ICurrentTimeProvider mockTimeProvider = null) =>
+            new(telemetryRepositoryMock.Object, userSettingsProvider.Object, new TelemetryPayloadCreator(activeSolutionTrackerMock.Object, vsVersionProvider.Object, mockTimeProvider ?? currentTimeProvider), loggerMock.Object, telemetryClientMock.Object,
             telemetryTimerMock.Object, knownUIContexts.Object, mockTimeProvider ?? currentTimeProvider);
 
         #region Languages analyzed tests
@@ -433,7 +427,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
 
             // 1. Create -> initial values set
             var testSubject = CreateManager(mockTimeProvider.Object);
-        
+
             telemetryData.NumberOfDaysOfUse.Should().Be(0);
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
 
@@ -568,7 +562,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         [DataRow(100)]
         public void ShowHotspotRequested_CounterIncremented(int previousCounter)
         {
-            var telemetryData = new TelemetryData {ShowHotspot = new ShowHotspot {NumberOfRequests = previousCounter}};
+            var telemetryData = new TelemetryData { ShowHotspot = new ShowHotspot { NumberOfRequests = previousCounter } };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
             var testSubject = CreateManager();
 
@@ -578,7 +572,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             testSubject.ShowHotspotRequested();
 
             telemetryData.ShowHotspot.NumberOfRequests.Should().Be(previousCounter + 1);
-            telemetryRepositoryMock.Verify(x=> x.Save(), Times.Once);
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
         }
 
         [TestMethod]
@@ -624,7 +618,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         [DataRow(false)]
         public void SendPayload_SendsVsVersion(bool isVersionNull)
         {
-            telemetryRepositoryMock.Setup(x => x.Data).Returns(new TelemetryData{IsAnonymousDataShared = true});
+            telemetryRepositoryMock.Setup(x => x.Data).Returns(new TelemetryData { IsAnonymousDataShared = true });
 
             var vsVersion = isVersionNull ? null : Mock.Of<IVsVersion>();
             vsVersionProvider.Setup(x => x.Version).Returns(vsVersion);
@@ -663,7 +657,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             TriggerTimerElapsed();
 
             telemetryClientMock.Verify(x => x.SendPayloadAsync(
-                It.Is((TelemetryPayload payload) => 
+                It.Is((TelemetryPayload payload) =>
                     payload.RulesUsage.EnabledByDefaultThatWereDisabled.Count == 2 &&
                     payload.RulesUsage.EnabledByDefaultThatWereDisabled.Contains("secrets:rule3") &&
                     payload.RulesUsage.EnabledByDefaultThatWereDisabled.Contains("secrets:rule6"))), Times.Once);
@@ -684,10 +678,10 @@ namespace SonarLint.VisualStudio.Integration.Tests
             var telemetryData = CreateRulesUsageTelemetryData();
             SetupTelemetryRepository(telemetryData);
 
-            telemetryData.RulesUsage.EnabledByDefaultThatWereDisabled = new List<string> { "secrets:rule4",  "secrets:rule5"};
+            telemetryData.RulesUsage.EnabledByDefaultThatWereDisabled = new List<string> { "secrets:rule4", "secrets:rule5" };
 
             CreateManager();
-            
+
             telemetryRepositoryMock.Invocations.Clear();
 
             TriggerTimerElapsed();

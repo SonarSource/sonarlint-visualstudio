@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             var request = new HttpRequestMessage(method, "sonarlint")
             {
-                Content = new StringContent(TelemetryHelper.Serialize(payload), Encoding.UTF8, "application/json")
+                Content = new StringContent(TelemetrySerializer.Serialize(payload), Encoding.UTF8, "application/json")
             };
 
             return await this.client.SendAsync(request).ConfigureAwait(false);

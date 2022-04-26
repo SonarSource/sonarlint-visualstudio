@@ -25,10 +25,8 @@ using System.Linq;
 using Microsoft.VisualStudio.Shell;
 //using SonarLint.VisualStudio.CloudSecrets; __secrets
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Core.Telemetry;
-using SonarLint.VisualStudio.Core.VsVersion;
 using SonarLint.VisualStudio.Integration.Telemetry.Payload;
 
 namespace SonarLint.VisualStudio.Integration
@@ -44,41 +42,37 @@ namespace SonarLint.VisualStudio.Integration
     {
         private const string SecretsRepositoryKey = "secrets:";
 
-        private readonly IActiveSolutionBoundTracker solutionBindingTracker;
         private readonly ITelemetryClient telemetryClient;
         private readonly ILogger logger;
         private readonly ITelemetryTimer telemetryTimer;
         private readonly ITelemetryDataRepository telemetryRepository;
         private readonly IKnownUIContexts knownUIContexts;
         private readonly ICurrentTimeProvider currentTimeProvider;
-        private readonly IVsVersion vsVersion;
         private readonly IUserSettingsProvider userSettingsProvider;
+        private readonly ITelemetryPayloadCreator telemetryPayloadCreator;
 
         private static readonly object Lock = new object();
 
         [ImportingConstructor]
-        public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker, 
-            ITelemetryDataRepository telemetryRepository,
-            IVsVersionProvider vsVersionProvider,
+        public TelemetryManager(ITelemetryDataRepository telemetryRepository,
             IUserSettingsProvider userSettingsProvider,
+            ITelemetryPayloadCreator telemetryPayloadCreator,
             ILogger logger)
-            : this(solutionBindingTracker, telemetryRepository, vsVersionProvider, userSettingsProvider, logger,
+            : this(telemetryRepository, userSettingsProvider, telemetryPayloadCreator, logger,
                   new TelemetryClient(), new TelemetryTimer(telemetryRepository, new TimerFactory()),
                   new KnownUIContextsWrapper(), DefaultCurrentTimeProvider.Instance)
         {
         }
 
-        public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker,
-            ITelemetryDataRepository telemetryRepository, 
-            IVsVersionProvider vsVersionProvider,
+        public TelemetryManager(ITelemetryDataRepository telemetryRepository,
             IUserSettingsProvider userSettingsProvider,
+            ITelemetryPayloadCreator telemetryPayloadCreator,
             ILogger logger,
-            ITelemetryClient telemetryClient, 
+            ITelemetryClient telemetryClient,
             ITelemetryTimer telemetryTimer,
             IKnownUIContexts knownUIContexts,
             ICurrentTimeProvider currentTimeProvider)
         {
-            this.solutionBindingTracker = solutionBindingTracker;
             this.telemetryRepository = telemetryRepository;
             this.logger = logger;
             this.telemetryClient = telemetryClient;
@@ -86,8 +80,8 @@ namespace SonarLint.VisualStudio.Integration
             this.knownUIContexts = knownUIContexts;
             this.currentTimeProvider = currentTimeProvider;
             this.userSettingsProvider = userSettingsProvider;
+            this.telemetryPayloadCreator = telemetryPayloadCreator;
 
-            vsVersion = vsVersionProvider.Version;
 
             if (this.telemetryRepository.Data.InstallationDate == DateTimeOffset.MinValue)
             {
@@ -127,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration
 
             DisableAllEvents();
 
-            await telemetryClient.OptOutAsync(GetPayload(telemetryRepository.Data));
+            await telemetryClient.OptOutAsync(telemetryPayloadCreator.Create(telemetryRepository.Data));
         }
 
         private void DisableAllEvents()
@@ -166,14 +160,6 @@ namespace SonarLint.VisualStudio.Integration
             {
                 LanguageAnalyzed(SonarLanguageKeys.VBNet);
             }
-        }
-
-        private TelemetryPayload GetPayload(TelemetryData telemetryData)
-        {
-            return TelemetryHelper.CreatePayload(telemetryData,
-                currentTimeProvider.Now,
-                solutionBindingTracker.CurrentConfiguration,
-                vsVersion);
         }
 
         private void OnAnalysisRun(object sender, UIContextChangedEventArgs e)
@@ -291,7 +277,7 @@ namespace SonarLint.VisualStudio.Integration
 
                 telemetryRepository.Data.RulesUsage.EnabledByDefaultThatWereDisabled = disabledSecretRules;
 
-                await telemetryClient.SendPayloadAsync(GetPayload(telemetryRepository.Data));
+                await telemetryClient.SendPayloadAsync(telemetryPayloadCreator.Create(telemetryRepository.Data));
 
                 // Reset daily data
                 telemetryRepository.Data.Analyses = new System.Collections.Generic.List<Analysis>();
