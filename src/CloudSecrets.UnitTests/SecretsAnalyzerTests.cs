@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         private const string ValidFilePath = "c:\\test";
         private const string ValidFileContent = "this is a content";
 
-        [TestMethod, Ignore("Secrets not yet supported")] // __secrets
+        [TestMethod]
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<SecretsAnalyzer, IAnalyzer>(null, new[]

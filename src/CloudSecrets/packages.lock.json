@@ -82,9 +82,9 @@
       },
       "SonarLint.Secrets.DotNet": {
         "type": "Direct",
-        "requested": "[0.0.6, )",
-        "resolved": "0.0.6",
-        "contentHash": "IcptAGwYCkOa2wi6lI/nDx3x148ztUzc4mRLjo7ysrOd4pntaLQBdVurUxhA/vmOoZEjhd63o7bmzLbf4gYcng=="
+        "requested": "[1.0.1, )",
+        "resolved": "1.0.1",
+        "contentHash": "+2maYYrOeM+WeaAtH3JvMQ+zLAqzXvS4aGM3/LwRSUPfu7MZ5zY9F3RTwt/SfXWiClxA7z4RsnbPF4bjMOf8Fw=="
       },
       "BouncyCastle": {
         "type": "Transitive",
