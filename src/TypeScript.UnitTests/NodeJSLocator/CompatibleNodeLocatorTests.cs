@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
             var testSubject = CreateTestSubject(versions);
 
             var result = testSubject.Locate();
-            result.Should().Be("compatible1");
+            result.Should().Be(versions[1]);
         }
 
         [TestMethod]

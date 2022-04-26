@@ -18,18 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
+using System;
 
 namespace SonarLint.VisualStudio.Core.JsTs
 {
-    public interface INodeVersionInfoProvider
+    public class NodeVersionInfo
     {
+        public NodeVersionInfo(string nodeExePath, Version version)
+        {
+            NodeExePath = nodeExePath;
+            Version = version;
+        }
+
         /// <summary>
-        /// Returns <see cref="NodeVersionInfo"/> of all detected `node.exe` installations found on the user's machine.
+        /// Absolute file path of `node.exe`
         /// </summary>
-        /// <remarks>
-        /// Uses yield for lazy evaluation of node versions.
-        /// </remarks>
-        IEnumerable<NodeVersionInfo> GetAllNodeVersions();
+        public string NodeExePath { get; }
+
+        /// <summary>
+        /// File version of `node.exe`
+        /// </summary>
+        public Version Version { get; }
     }
 }
