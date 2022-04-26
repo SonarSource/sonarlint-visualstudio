@@ -82,5 +82,11 @@ namespace SonarLint.VisualStudio.Integration
 
         [JsonProperty("rules")]
         public RulesUsage RulesUsage { get; set; }
+
+        [JsonProperty("nodejs")]
+        public string CompatibleNodeJsVersion { get; set; }
+
+        [JsonProperty("max_nodejs_version")]
+        public string MaxNodeJsVersion { get; set; }
     }
 }
