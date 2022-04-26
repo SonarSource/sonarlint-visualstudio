@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
             if (!"OK!".Equals(responseString))
             {
-                throw new InvalidOperationException(Resources.ERR_InvalidResponse);
+                throw new InvalidOperationException(string.Format(Resources.ERR_InvalidResponse, responseString));
             }
         }
 
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
             if (string.IsNullOrEmpty(responseString))
             {
-                throw new InvalidOperationException(Resources.ERR_InvalidResponse);
+                throw new InvalidOperationException(string.Format(Resources.ERR_InvalidResponse, responseString));
             }
 
             return JsonConvert.DeserializeObject<AnalysisResponse>(responseString);
