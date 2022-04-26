@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core.JsTs;
 using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator

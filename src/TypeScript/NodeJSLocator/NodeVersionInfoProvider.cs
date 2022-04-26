@@ -23,14 +23,10 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO.Abstractions;
+using SonarLint.VisualStudio.Core.JsTs;
 
 namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
 {
-    internal interface INodeVersionInfoProvider
-    {
-        IEnumerable<NodeVersionInfo> GetAllNodeVersions();
-    }
-
     [Export(typeof(INodeVersionInfoProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class NodeVersionInfoProvider : INodeVersionInfoProvider
@@ -78,18 +74,5 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
 
             return new Version(version.ProductMajorPart, version.ProductMinorPart, version.ProductBuildPart);
         }
-    }
-
-    internal class NodeVersionInfo
-    {
-        public NodeVersionInfo(string nodeExePath, Version version)
-        {
-            NodeExePath = nodeExePath;
-            Version = version;
-        }
-
-        public string NodeExePath { get; }
-
-        public Version Version { get; }
     }
 }
