@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             this.analysisConfiguration = analysisConfiguration;
         }
 
-        public Task InitLinter(IEnumerable<Rule> rules, CancellationToken cancellationToken)
+        public async Task InitLinter(IEnumerable<Rule> rules, CancellationToken cancellationToken)
         {
             var initLinterRequest = new InitLinterRequest
             {
@@ -86,7 +86,12 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 Environments = analysisConfiguration.GetEnvironments()
             };
 
-            return MakeCall("init-linter", initLinterRequest, cancellationToken);
+            var responseString = await MakeCall("init-linter", initLinterRequest, cancellationToken);
+
+            if (!"OK!".Equals(responseString))
+            {
+                throw new InvalidOperationException(string.Format(Resources.ERR_InvalidResponse, responseString));
+            }
         }
 
         public async Task<AnalysisResponse> Analyze(string filePath, string tsConfigFilePath, CancellationToken cancellationToken)
@@ -104,7 +109,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
             if (string.IsNullOrEmpty(responseString))
             {
-                throw new InvalidOperationException(Resources.ERR_InvalidResponse);
+                throw new InvalidOperationException(string.Format(Resources.ERR_InvalidResponse, responseString));
             }
 
             return JsonConvert.DeserializeObject<AnalysisResponse>(responseString);

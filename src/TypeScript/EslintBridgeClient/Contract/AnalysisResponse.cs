@@ -20,6 +20,7 @@
 
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract
 {
@@ -81,6 +82,9 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract
 
         [JsonProperty("cost")]
         public int? Cost { get; set; }
+
+        [JsonProperty("quickFixes")]
+        public QuickFix[] QuickFixes { get; set; }
     }
 
     internal class IssueLocation
@@ -99,5 +103,38 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract
 
         [JsonProperty("message")]
         public string Message { get; set; }
+    }
+
+    internal class QuickFix
+    {
+        [JsonProperty("message")]
+        public string Message { get; set; }
+
+        [JsonProperty("edits")]
+        public Edit[] Edits { get; set; }
+    }
+
+    internal class Edit
+    {
+        [JsonProperty("text")]
+        public string Text { get; set; }
+
+        [JsonProperty("loc")]
+        public TextRange TextRange { get; set; }
+    }
+
+    internal class TextRange
+    {
+        [JsonProperty("line")]
+        public int Line { get; set; }
+
+        [JsonProperty("column")]
+        public int Column { get; set; }
+
+        [JsonProperty("endLine")]
+        public int EndLine { get; set; }
+
+        [JsonProperty("endColumn")]
+        public int EndColumn { get; set; }
     }
 }

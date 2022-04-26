@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
             if (!responseString.Equals("OK!", StringComparison.OrdinalIgnoreCase))
             {
-                throw new InvalidOperationException(Resources.ERR_InvalidResponse);
+                throw new InvalidOperationException(string.Format(Resources.ERR_InvalidResponse, responseString));
             }
         }
 
@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
             if (string.IsNullOrEmpty(responseString))
             {
-                throw new InvalidOperationException(Resources.ERR_InvalidResponse);
+                throw new InvalidOperationException(string.Format(Resources.ERR_InvalidResponse, responseString));
             }
 
             return JsonConvert.DeserializeObject<TSConfigResponse>(responseString);
