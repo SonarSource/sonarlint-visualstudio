@@ -34,12 +34,12 @@ using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
 {
     [TestClass]
-    public class NodeLocatorTests
+    public class CompatibleNodeLocatorTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<NodeLocator, INodeLocator>(null, new[]
+            MefTestHelpers.CheckTypeCanBeImported<CompatibleNodeLocator, ICompatibleNodeLocator>(null, new[]
             {
                 MefTestHelpers.CreateExport<INodeLocationsProvider>(Mock.Of<INodeLocationsProvider>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         public void IsCompatibleVersion_ReturnsTrueFalse(int majorVersion, bool expectedResult)
         {
             var version = new Version(majorVersion, 0);
-            var result = NodeLocator.IsCompatibleVersion(version);
+            var result = CompatibleNodeLocator.IsCompatibleVersion(version);
 
             result.Should().Be(expectedResult);
         }
@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
                 assemblyVersion.ProductBuildPart);
 
             // The implementation relies on checking a file in the file system, so we pass a file that we know already exists and has a product version
-            var result = NodeLocator.GetNodeVersion(assemblyPath);
+            var result = CompatibleNodeLocator.GetNodeVersion(assemblyPath);
 
             result.Should().BeEquivalentTo(expectedVersion);
         }
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
             fileSystem.Setup(x => x.File.Exists(path)).Returns(exists);
         }
 
-        private NodeLocator CreateTestSubject(IFileSystem fileSystem = null, Func<string, Version> getNodeExeVersion = null, IReadOnlyCollection<string> candidateLocations = null)
+        private CompatibleNodeLocator CreateTestSubject(IFileSystem fileSystem = null, Func<string, Version> getNodeExeVersion = null, IReadOnlyCollection<string> candidateLocations = null)
         {
             candidateLocations ??= Array.Empty<string>();
             var locationsPovider = new Mock<INodeLocationsProvider>();
@@ -134,7 +134,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
 
             var logger = Mock.Of<ILogger>();
 
-            return new NodeLocator(locationsPovider.Object, logger, fileSystem, getNodeExeVersion);
+            return new CompatibleNodeLocator(locationsPovider.Object, logger, fileSystem, getNodeExeVersion);
         }
     }
 }

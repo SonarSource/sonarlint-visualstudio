@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         private static readonly object Lock = new object();
 
         private readonly string eslintBridgeStartupScriptPath;
-        private readonly INodeLocator nodeLocator;
+        private readonly ICompatibleNodeLocator compatibleNodeLocator;
         private readonly IFileSystem fileSystem;
         private readonly ILogger logger;
         private TaskCompletionSource<int> startTask;
@@ -76,19 +76,19 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         int processId = NO_PROCESS;
 
         internal EslintBridgeProcess(string eslintBridgeStartupScriptPath,
-            INodeLocator nodeLocator,
+            ICompatibleNodeLocator compatibleNodeLocator,
             ILogger logger)
-            : this(eslintBridgeStartupScriptPath, nodeLocator, new FileSystem(), logger)
+            : this(eslintBridgeStartupScriptPath, compatibleNodeLocator, new FileSystem(), logger)
         {
         }
 
         internal EslintBridgeProcess(string eslintBridgeStartupScriptPath,
-            INodeLocator nodeLocator,
+            ICompatibleNodeLocator compatibleNodeLocator,
             IFileSystem fileSystem,
             ILogger logger)
         {
             this.eslintBridgeStartupScriptPath = eslintBridgeStartupScriptPath;
-            this.nodeLocator = nodeLocator;
+            this.compatibleNodeLocator = compatibleNodeLocator;
             this.fileSystem = fileSystem;
             this.logger = logger;
         }
@@ -242,7 +242,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         private string FindNodePath()
         {
-            var nodePath = nodeLocator.Locate();
+            var nodePath = compatibleNodeLocator.Locate();
 
             if (string.IsNullOrEmpty(nodePath))
             {

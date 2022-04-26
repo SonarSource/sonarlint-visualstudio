@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
 {
-    internal interface INodeLocator
+    internal interface ICompatibleNodeLocator
     {
         /// <summary>
         /// Returns the absolute file path of a compatible `node.exe`, or null if no compatible version was found.
@@ -34,9 +34,9 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
         string Locate();
     }
 
-    [Export(typeof(INodeLocator))]
+    [Export(typeof(ICompatibleNodeLocator))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class NodeLocator : INodeLocator
+    internal class CompatibleNodeLocator : ICompatibleNodeLocator
     {
         private readonly INodeLocationsProvider nodeLocationsProvider;
         private readonly ILogger logger;
@@ -44,12 +44,12 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
         private readonly Func<string, Version> getNodeExeVersion;
 
         [ImportingConstructor]
-        public NodeLocator(INodeLocationsProvider nodeLocationsProvider, ILogger logger)
+        public CompatibleNodeLocator(INodeLocationsProvider nodeLocationsProvider, ILogger logger)
             : this(nodeLocationsProvider, logger, new FileSystem(), GetNodeVersion)
         {
         }
 
-        internal NodeLocator(INodeLocationsProvider nodeLocationsProvider,
+        internal CompatibleNodeLocator(INodeLocationsProvider nodeLocationsProvider,
             ILogger logger,
             IFileSystem fileSystem,
             Func<string, Version> getNodeExeVersion)
