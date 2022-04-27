@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         {
             var nodeLocator = SetupNodeLocator(null);
 
-            var testSubject = CreateTestSubject(nodeLocator: nodeLocator.Object);
+            var testSubject = CreateTestSubject(compatibleNodeLocator: nodeLocator.Object);
             Func<Task> act = async () => await testSubject.Start();
 
             act.Should().ThrowExactly<EslintBridgeProcessLaunchException>().And.Message.Should().Contain("node.exe");
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var startupScriptPath = "dummy path";
 
             var nodeLocator = SetupNodeLocator(fakeNodeExePath);
-            var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
+            var testSubject = CreateTestSubject(startupScriptPath, compatibleNodeLocator: nodeLocator.Object);
 
             Process spawnedProcess = null;
             try
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var startupScriptPath = "dummy path";
 
             var nodeLocator = SetupNodeLocator(fakeNodeExePath);
-            var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
+            var testSubject = CreateTestSubject(startupScriptPath, compatibleNodeLocator: nodeLocator.Object);
 
             Process lastSpawnedProcess = null;
             try
@@ -113,7 +113,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var startupScriptPath = "dummy path";
 
             var nodeLocator = SetupNodeLocator(fakeNodeExePath);
-            var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
+            var testSubject = CreateTestSubject(startupScriptPath, compatibleNodeLocator: nodeLocator.Object);
 
             Process lastSpawnedProcess = null;
             try
@@ -158,7 +158,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var startupScriptPath = "dummy path";
 
             var nodeLocator = SetupNodeLocator(fakeNodeExePath);
-            var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
+            var testSubject = CreateTestSubject(startupScriptPath, compatibleNodeLocator: nodeLocator.Object);
 
             var result = await testSubject.Start();
             result.Should().Be(123);
@@ -171,7 +171,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var startupScriptPath = "dummy path";
 
             var nodeLocator = SetupNodeLocator(fakeNodeExePath);
-            var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
+            var testSubject = CreateTestSubject(startupScriptPath, compatibleNodeLocator: nodeLocator.Object);
 
             var result = await testSubject.Start();
             result.Should().Be(123);
@@ -188,12 +188,12 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var fakeNodeExePath = CreateScriptThatPrintsPortNumber(123);
             var startupScriptPath = "dummy path";
 
-            var nodeLocator = new Mock<INodeLocator>();
+            var nodeLocator = new Mock<ICompatibleNodeLocator>();
             nodeLocator.SetupSequence(x => x.Locate())
                 .Throws(new NotImplementedException("some exception"))
                 .Returns(fakeNodeExePath);
 
-            var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
+            var testSubject = CreateTestSubject(startupScriptPath, compatibleNodeLocator: nodeLocator.Object);
 
             Func<Task> act = async () => await testSubject.Start();
             act.Should().Throw<NotImplementedException>().And.Message.Should().Be("some exception");
@@ -209,7 +209,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var startupScriptPath = "dummy path";
 
             var nodeLocator = SetupNodeLocator(fakeNodeExePath);
-            var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
+            var testSubject = CreateTestSubject(startupScriptPath, compatibleNodeLocator: nodeLocator.Object);
 
             await testSubject.Start();
 
@@ -238,7 +238,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var startupScriptPath = "dummy path";
 
             var nodeLocator = SetupNodeLocator(fakeNodeExePath);
-            var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
+            var testSubject = CreateTestSubject(startupScriptPath, compatibleNodeLocator: nodeLocator.Object);
 
             await testSubject.Start();
             testSubject.Process.HasExited.Should().BeFalse();
@@ -277,7 +277,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var startupScriptPath = "dummy path";
 
             var nodeLocator = SetupNodeLocator(fakeNodeExePath);
-            var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
+            var testSubject = CreateTestSubject(startupScriptPath, compatibleNodeLocator: nodeLocator.Object);
 
             Process spawnedProcess = null;
             try
@@ -301,22 +301,22 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             }
         }
 
-        private static Mock<INodeLocator> SetupNodeLocator(string nodePath)
+        private static Mock<ICompatibleNodeLocator> SetupNodeLocator(string nodePath)
         {
-            var nodeLocator = new Mock<INodeLocator>();
+            var nodeLocator = new Mock<ICompatibleNodeLocator>();
             nodeLocator.Setup(x => x.Locate()).Returns(nodePath);
 
             return nodeLocator;
         }
 
-        private EslintBridgeProcess CreateTestSubject(string startupScriptPath = null, INodeLocator nodeLocator = null, IFileSystem fileSystem = null, ILogger logger = null)
+        private EslintBridgeProcess CreateTestSubject(string startupScriptPath = null, ICompatibleNodeLocator compatibleNodeLocator = null, IFileSystem fileSystem = null, ILogger logger = null)
         {
             startupScriptPath ??= "somefile.txt";
-            nodeLocator ??= SetupNodeLocator("some path").Object;
+            compatibleNodeLocator ??= SetupNodeLocator("some path").Object;
             fileSystem ??= SetupStartupScriptFile(startupScriptPath, true).Object;
             logger ??= Mock.Of<ILogger>();
 
-            return new EslintBridgeProcess(startupScriptPath, nodeLocator, fileSystem, logger);
+            return new EslintBridgeProcess(startupScriptPath, compatibleNodeLocator, fileSystem, logger);
         }
 
         private static Mock<IFileSystem> SetupStartupScriptFile(string startupScriptPath, bool exists)

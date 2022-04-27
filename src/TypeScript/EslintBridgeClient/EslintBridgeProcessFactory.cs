@@ -36,19 +36,19 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         internal const string EslintBridgeDirectoryMefContractName = "SonarLint.TypeScript.EsLintBridgeServerPath";
 
         private readonly string eslintBridgeStartupScriptPath;
-        private readonly INodeLocator nodeLocator;
+        private readonly ICompatibleNodeLocator compatibleNodeLocator;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public EslintBridgeProcessFactory([Import(EslintBridgeDirectoryMefContractName)] string eslintBridgeStartupScriptPath,
-            INodeLocator nodeLocator,
+            ICompatibleNodeLocator compatibleNodeLocator,
             ILogger logger)
         {
             this.eslintBridgeStartupScriptPath = eslintBridgeStartupScriptPath;
-            this.nodeLocator = nodeLocator;
+            this.compatibleNodeLocator = compatibleNodeLocator;
             this.logger = logger;
         }
 
-        public IEslintBridgeProcess Create() => new EslintBridgeProcess(eslintBridgeStartupScriptPath, nodeLocator, logger);
+        public IEslintBridgeProcess Create() => new EslintBridgeProcess(eslintBridgeStartupScriptPath, compatibleNodeLocator, logger);
     }
 }
