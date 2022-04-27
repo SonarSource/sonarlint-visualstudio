@@ -36,5 +36,8 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract
 
         [JsonProperty("tsConfigs")]
         public string[] TSConfigFilePaths { get; set; }
+
+        [JsonProperty("fileType")]
+        public string FileType { get; set; }
     }
 }

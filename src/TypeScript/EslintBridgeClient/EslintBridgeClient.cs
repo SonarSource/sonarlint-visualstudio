@@ -102,7 +102,8 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             {
                 FilePath = filePath,
                 IgnoreHeaderComments = true,
-                TSConfigFilePaths = tsConfigFilePaths
+                TSConfigFilePaths = tsConfigFilePaths,
+                FileType = "MAIN"
             };
 
             var responseString = await MakeCall(analyzeEndpoint, analysisRequest, cancellationToken);
