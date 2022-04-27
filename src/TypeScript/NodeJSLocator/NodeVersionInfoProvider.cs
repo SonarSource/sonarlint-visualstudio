@@ -61,6 +61,7 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
 
                 var nodeVersion = getNodeExeVersion(nodeExePath);
 
+                // Perf optimization: we we're using yield to allow the caller to early-out once a suitable node version has been found
                 yield return new NodeVersionInfo(nodeExePath, nodeVersion);
             }
         }

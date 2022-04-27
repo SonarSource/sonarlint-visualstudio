@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.TypeScript.Analyzer;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 using SonarLint.VisualStudio.TypeScript.Rules;
+using TextRange = SonarLint.VisualStudio.Core.Analysis.TextRange;
 
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 {
@@ -231,13 +232,13 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 
             var expectedLocations = new List<AnalysisIssueLocation>
             {
-                new AnalysisIssueLocation("message1", "some file", new TextRange(3, 4, 1, 2, null)),
-                new AnalysisIssueLocation("message2", "some file", new TextRange(7, 8, 5, 6, null)),
+                new("message1", "some file", new TextRange(3, 4, 1, 2, null)),
+                new("message2", "some file", new TextRange(7, 8, 5, 6, null)),
             };
 
             var expectedFlows = new List<AnalysisIssueFlow>
             {
-                new AnalysisIssueFlow(expectedLocations)
+                new(expectedLocations)
             };
 
             convertedIssue.Flows.Count.Should().Be(1);

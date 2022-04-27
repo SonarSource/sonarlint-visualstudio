@@ -64,6 +64,27 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         }
 
         [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow("not ok")]
+        [DataRow("ok!")] // wrong case
+        public void InitLinter_InvalidResponse_InvalidOperationException(string response)
+        {
+            var analysisConfiguration = new Mock<IAnalysisConfiguration>();
+            analysisConfiguration.Setup(x => x.GetEnvironments()).Returns(new[] { "env1", "env2" });
+            analysisConfiguration.Setup(x => x.GetGlobals()).Returns(new[] { "global1", "global2" });
+
+            var rules = new[] { new Rule { Key = "test1" }, new Rule { Key = "test2" } };
+
+            var httpWrapper = SetupHttpWrapper("init-linter", response);
+            var testSubject = CreateTestSubject(httpWrapper.Object, analysisConfiguration.Object);
+
+            Func<Task> act = async () => await testSubject.InitLinter(rules, CancellationToken.None);
+
+            act.Should().ThrowExactly<InvalidOperationException>();
+        }
+
+        [TestMethod]
         public async Task Analyze_HttpWrapperCalledWithCorrectArguments()
         {
             var httpWrapper = SetupHttpWrapper(AnalyzeEndpoint, JsonConvert.SerializeObject(new AnalysisResponse()), assertReceivedRequest: receivedRequest =>
@@ -257,7 +278,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             return new TypeScript.EslintBridgeClient.EslintBridgeClient(AnalyzeEndpoint, eslintBridgeProcess, httpWrapper, analysisConfiguration);
         }
 
-        private static Mock<IEslintBridgeHttpWrapper> SetupHttpWrapper(string endpoint, string response = null, Action<object> assertReceivedRequest = null)
+        private static Mock<IEslintBridgeHttpWrapper> SetupHttpWrapper(string endpoint, string response = "OK!", Action<object> assertReceivedRequest = null)
         {
             var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
 
