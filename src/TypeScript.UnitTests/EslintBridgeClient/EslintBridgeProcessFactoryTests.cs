@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             MefTestHelpers.CheckTypeCanBeImported<EslintBridgeProcessFactory, IEslintBridgeProcessFactory>(null, new[]
             {
                 MefTestHelpers.CreateExport<string>("some path", EslintBridgeProcessFactory.EslintBridgeDirectoryMefContractName),
-                MefTestHelpers.CreateExport<INodeLocator>(Mock.Of<INodeLocator>()),
+                MefTestHelpers.CreateExport<ICompatibleNodeLocator>(Mock.Of<ICompatibleNodeLocator>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         public void Create_CreatesEslintBridgeProcess()
         {
-            var testSubject = new EslintBridgeProcessFactory("some path", Mock.Of<INodeLocator>(), Mock.Of<ILogger>());
+            var testSubject = new EslintBridgeProcessFactory("some path", Mock.Of<ICompatibleNodeLocator>(), Mock.Of<ILogger>());
             var eslintBridgeProcess = testSubject.Create();
 
             eslintBridgeProcess.Should().NotBeNull();

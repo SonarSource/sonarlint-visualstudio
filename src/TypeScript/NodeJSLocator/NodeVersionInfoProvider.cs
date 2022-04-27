@@ -19,48 +19,42 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO.Abstractions;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
 {
-    internal interface INodeLocator
+    internal interface INodeVersionInfoProvider
     {
-        /// <summary>
-        /// Returns the absolute file path of a compatible `node.exe`, or null if no compatible version was found.
-        /// </summary>
-        string Locate();
+        IEnumerable<NodeVersionInfo> GetAllNodeVersions();
     }
 
-    [Export(typeof(INodeLocator))]
+    [Export(typeof(INodeVersionInfoProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class NodeLocator : INodeLocator
+    internal class NodeVersionInfoProvider : INodeVersionInfoProvider
     {
         private readonly INodeLocationsProvider nodeLocationsProvider;
-        private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
         private readonly Func<string, Version> getNodeExeVersion;
 
         [ImportingConstructor]
-        public NodeLocator(INodeLocationsProvider nodeLocationsProvider, ILogger logger)
-            : this(nodeLocationsProvider, logger, new FileSystem(), GetNodeVersion)
+        public NodeVersionInfoProvider(INodeLocationsProvider nodeLocationsProvider)
+            : this(nodeLocationsProvider, new FileSystem(), GetNodeVersion)
         {
         }
 
-        internal NodeLocator(INodeLocationsProvider nodeLocationsProvider,
-            ILogger logger,
+        internal NodeVersionInfoProvider(INodeLocationsProvider nodeLocationsProvider,
             IFileSystem fileSystem,
             Func<string, Version> getNodeExeVersion)
         {
             this.nodeLocationsProvider = nodeLocationsProvider;
-            this.logger = logger;
             this.fileSystem = fileSystem;
             this.getNodeExeVersion = getNodeExeVersion;
         }
 
-        public string Locate()
+        public IEnumerable<NodeVersionInfo> GetAllNodeVersions()
         {
             foreach (var nodeExePath in nodeLocationsProvider.Get())
             {
@@ -71,23 +65,9 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
 
                 var nodeVersion = getNodeExeVersion(nodeExePath);
 
-                if (!IsCompatibleVersion(nodeVersion))
-                {
-                    logger.WriteLine(Resources.ERR_IncompatibleVersion, nodeVersion, nodeExePath);
-                    continue;
-                }
-
-                logger.WriteLine(Resources.INFO_FoundCompatibleVersion, nodeVersion, nodeExePath);
-                return nodeExePath;
+                // Perf optimization: we we're using yield to allow the caller to early-out once a suitable node version has been found
+                yield return new NodeVersionInfo(nodeExePath, nodeVersion);
             }
-
-            logger.WriteLine(Resources.ERR_NoCompatibleVersion);
-            return null;
-        }
-
-        internal static bool IsCompatibleVersion(Version nodeVersion)
-        {
-            return nodeVersion.Major >= 10 && nodeVersion.Major != 11;
         }
 
         /// <summary>
@@ -99,5 +79,18 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
 
             return new Version(version.ProductMajorPart, version.ProductMinorPart, version.ProductBuildPart);
         }
+    }
+
+    internal class NodeVersionInfo
+    {
+        public NodeVersionInfo(string nodeExePath, Version version)
+        {
+            NodeExePath = nodeExePath;
+            Version = version;
+        }
+
+        public string NodeExePath { get; }
+
+        public Version Version { get; }
     }
 }
