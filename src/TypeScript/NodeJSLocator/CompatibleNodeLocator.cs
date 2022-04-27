@@ -20,18 +20,11 @@
 
 using System;
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core.JsTs;
 using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
 {
-    internal interface ICompatibleNodeLocator
-    {
-        /// <summary>
-        /// Returns the absolute file path of a compatible `node.exe`, or null if no compatible version was found.
-        /// </summary>
-        string Locate();
-    }
-
     [Export(typeof(ICompatibleNodeLocator))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class CompatibleNodeLocator : ICompatibleNodeLocator
@@ -46,7 +39,7 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
             this.logger = logger;
         }
 
-        public string Locate()
+        public NodeVersionInfo Locate()
         {
             foreach (var nodeVersionInfo in nodeVersionInfoProvider.GetAllNodeVersions())
             {
@@ -57,7 +50,7 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
                 }
 
                 logger.WriteLine(Resources.INFO_FoundCompatibleVersion, nodeVersionInfo.Version, nodeVersionInfo.NodeExePath);
-                return nodeVersionInfo.NodeExePath;
+                return nodeVersionInfo;
             }
 
             logger.WriteLine(Resources.ERR_NoCompatibleVersion);

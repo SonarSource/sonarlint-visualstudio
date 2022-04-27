@@ -21,10 +21,10 @@
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core.JsTs;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
-using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
 
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
 {
