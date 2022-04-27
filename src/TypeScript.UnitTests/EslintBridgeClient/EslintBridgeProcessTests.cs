@@ -28,9 +28,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Threading;
 using Moq;
 using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.Core.JsTs;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
-using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
 
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
 {
@@ -191,7 +191,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var nodeLocator = new Mock<ICompatibleNodeLocator>();
             nodeLocator.SetupSequence(x => x.Locate())
                 .Throws(new NotImplementedException("some exception"))
-                .Returns(fakeNodeExePath);
+                .Returns(new NodeVersionInfo(fakeNodeExePath, new Version()));
 
             var testSubject = CreateTestSubject(startupScriptPath, compatibleNodeLocator: nodeLocator.Object);
 
@@ -303,8 +303,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
 
         private static Mock<ICompatibleNodeLocator> SetupNodeLocator(string nodePath)
         {
+            var version = string.IsNullOrEmpty(nodePath) ? null : new NodeVersionInfo(nodePath, new Version());
             var nodeLocator = new Mock<ICompatibleNodeLocator>();
-            nodeLocator.Setup(x => x.Locate()).Returns(nodePath);
+            nodeLocator.Setup(x => x.Locate()).Returns(version);
 
             return nodeLocator;
         }

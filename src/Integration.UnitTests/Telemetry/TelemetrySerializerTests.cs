@@ -93,7 +93,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     EnabledByDefaultThatWereDisabled = new List<string> { "rule3", "rule4" },
                     RulesThatRaisedIssues = new List<string> { "rule5", "rule6" },
                     RulesWithAppliedQuickFixes = new List<string> { "rule7", "rule8" }
-                }
+                },
+                CompatibleNodeJsVersion = "some version",
+                MaxNodeJsVersion = "some max version"
             };
 
             var serialized = TelemetrySerializer.Serialize(payload);
@@ -168,7 +170,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
       ""rule7"",
       ""rule8""
     ]
-  }
+  },
+  ""nodejs"": ""some version"",
+  ""max_nodejs_version"": ""some max version""
 }";
             serialized.Should().Be(expected);
         }

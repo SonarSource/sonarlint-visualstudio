@@ -20,15 +20,14 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.Core.JsTs;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Helpers;
-using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
 
 namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 {
@@ -242,14 +241,14 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         private string FindNodePath()
         {
-            var nodePath = compatibleNodeLocator.Locate();
+            var nodeVersionInfo = compatibleNodeLocator.Locate();
 
-            if (string.IsNullOrEmpty(nodePath))
+            if (nodeVersionInfo == null)
             {
                 throw new EslintBridgeProcessLaunchException("Could not find node.exe");
             }
 
-            return nodePath;
+            return nodeVersionInfo.NodeExePath;
         }
 
         private string FindServerScriptFile()
