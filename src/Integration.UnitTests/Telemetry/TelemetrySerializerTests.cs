@@ -28,7 +28,7 @@ using SonarLint.VisualStudio.Integration.Telemetry.Payload;
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class TelemetryHelper_Serialize
+    public class TelemetrySerializerTests
     {
         [TestMethod]
         public void Serialize()
@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 }
             };
 
-            var serialized = TelemetryHelper.Serialize(payload);
+            var serialized = TelemetrySerializer.Serialize(payload);
 
             var expected = @"{
   ""sonarlint_product"": ""my product"",

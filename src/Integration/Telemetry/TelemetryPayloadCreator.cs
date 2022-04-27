@@ -19,16 +19,53 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Core.VsVersion;
 using SonarLint.VisualStudio.Integration.Telemetry.Payload;
-using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public static class TelemetryHelper
+    public interface ITelemetryPayloadCreator
     {
+        TelemetryPayload Create(TelemetryData telemetryData);
+    }
+
+    [Export(typeof(ITelemetryPayloadCreator))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    public class TelemetryPayloadCreator : ITelemetryPayloadCreator
+    {
+        private readonly ICurrentTimeProvider currentTimeProvider;
+        private readonly IActiveSolutionBoundTracker solutionBindingTracker;
+        private readonly IVsVersion vsVersion;
+
+        [ImportingConstructor]
+        public TelemetryPayloadCreator(IActiveSolutionBoundTracker solutionBindingTracker,
+            IVsVersionProvider vsVersionProvider)
+            : this(solutionBindingTracker, vsVersionProvider, DefaultCurrentTimeProvider.Instance)
+        {
+        }
+
+        internal TelemetryPayloadCreator(IActiveSolutionBoundTracker solutionBindingTracker,
+            IVsVersionProvider vsVersionProvider,
+            ICurrentTimeProvider currentTimeProvider)
+        {
+            this.solutionBindingTracker = solutionBindingTracker;
+            this.currentTimeProvider = currentTimeProvider;
+
+            vsVersion = vsVersionProvider.Version;
+        }
+
+        public TelemetryPayload Create(TelemetryData telemetryData)
+        {
+            return CreatePayload(telemetryData,
+                currentTimeProvider.Now,
+                solutionBindingTracker.CurrentConfiguration,
+                vsVersion);
+        }
+
         private static readonly string SonarLintVersion = GetSonarLintVersion();
 
         private static string GetSonarLintVersion()
@@ -36,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration
             return FileVersionInfo.GetVersionInfo(typeof(TelemetryTimer).Assembly.Location).FileVersion;
         }
 
-        public static bool IsSonarCloud(Uri sonarqubeUri)
+        internal static bool IsSonarCloud(Uri sonarqubeUri)
         {
             if (sonarqubeUri == null)
             {
@@ -44,10 +81,10 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             return sonarqubeUri.Equals("https://sonarcloud.io/") ||
-                sonarqubeUri.Equals("https://www.sonarcloud.io/");
+                   sonarqubeUri.Equals("https://www.sonarcloud.io/");
         }
 
-        public static TelemetryPayload CreatePayload(TelemetryData telemetryData, DateTimeOffset now,
+        internal static TelemetryPayload CreatePayload(TelemetryData telemetryData, DateTimeOffset now,
             BindingConfiguration bindingConfiguration, IVsVersion vsVersion)
         {
             if (telemetryData == null)
@@ -103,11 +140,6 @@ namespace SonarLint.VisualStudio.Integration
                 InstallationVersion = vsVersion.InstallationVersion,
                 DisplayVersion = vsVersion.DisplayVersion
             };
-        }
-
-        public static string Serialize(TelemetryPayload payload)
-        {
-            return JsonHelper.Serialize(payload);
         }
     }
 }
