@@ -89,7 +89,9 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
                 Key = ruleDefinition.EslintKey,
 
                 // TODO: handle parameterised rules #2284
-                Configurations = ruleDefinition.DefaultParams
+                Configurations = ruleDefinition.DefaultParams,
+
+                FileTypeTarget = new []{"MAIN"}
             };
         }
     }

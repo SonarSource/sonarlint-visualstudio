@@ -35,6 +35,23 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         private static readonly IUserSettingsProvider EmptyUserSettingsProvider = new UserSettingsBuilder();
 
         [TestMethod]
+        public void Get_ReturnsRulesWithCorrectFileTargetType()
+        {
+            var ruleDefns = new RuleDefinitionsBuilder()
+                .AddRule("active 1", activeByDefault: true)
+                .AddRule("inactive AAA", activeByDefault: false)
+                .AddRule("active 2", activeByDefault: true);
+
+            var testSubject = CreateTestSubject(ruleDefns, EmptyUserSettingsProvider);
+
+            var result = testSubject.Calculate().ToArray();
+
+            result.Length.Should().Be(2);
+            result[0].FileTypeTarget.Should().BeEquivalentTo("MAIN");
+            result[1].FileTypeTarget.Should().BeEquivalentTo("MAIN");
+        }
+
+        [TestMethod]
         public void Get_NoUserOverrides_InactiveRulesAreNotReturned()
         {
             var ruleDefns = new RuleDefinitionsBuilder()

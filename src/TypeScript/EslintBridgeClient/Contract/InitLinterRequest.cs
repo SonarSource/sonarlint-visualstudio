@@ -38,7 +38,11 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract
     {
         [JsonProperty("key")]
         public string Key { get; set; }
+
         [JsonProperty("configurations")]
         public object[] Configurations { get; set; }
+
+        [JsonProperty("fileTypeTarget")]
+        public string[] FileTypeTarget { get; set; }
     }
 }
