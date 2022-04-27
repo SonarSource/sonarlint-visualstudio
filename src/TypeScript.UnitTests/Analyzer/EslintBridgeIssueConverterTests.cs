@@ -28,6 +28,8 @@ using SonarLint.VisualStudio.TypeScript.Analyzer;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 using SonarLint.VisualStudio.TypeScript.Rules;
 using TextRange = SonarLint.VisualStudio.Core.Analysis.TextRange;
+using QuickFix = SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract.QuickFix;
+using Edit = SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract.Edit;
 
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 {
@@ -37,28 +39,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         private const string ValidEsLintKey = "rule id";
 
         [TestMethod]
-        public void Convert_IssueConverted()
+        public void Convert_IssueWithoutQuickFixes_Converted()
         {
-            var eslintBridgeIssue = new Issue
-            {
-                RuleId = "eslint rule id",
-                Column = 1,
-                EndColumn = 2,
-                Line = 3,
-                EndLine = 4,
-                Message = "some message"
-            };
-
-            var ruleDefinitions = new[]
-            {
-                new RuleDefinition
-                {
-                    EslintKey = "eslint rule id",
-                    RuleKey = "sonar rule key",
-                    Type = RuleType.CODE_SMELL,
-                    Severity = RuleSeverity.MAJOR
-                }
-            };
+            var eslintBridgeIssue = CreateIssue("eslint rule id");
+            var ruleDefinitions = CreateRuleDefinition("eslint rule id", "sonar rule key");
 
             var testSubject = CreateTestSubject(ruleDefinitions);
             var convertedIssue = testSubject.Convert("some file", eslintBridgeIssue);
@@ -68,37 +52,92 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             convertedIssue.Severity.Should().Be(AnalysisIssueSeverity.Major);
 
             convertedIssue.PrimaryLocation.FilePath.Should().Be("some file");
-            convertedIssue.PrimaryLocation.Message.Should().Be("some message");
-            convertedIssue.PrimaryLocation.TextRange.StartLine.Should().Be(3);
-            convertedIssue.PrimaryLocation.TextRange.StartLineOffset.Should().Be(1);
-            convertedIssue.PrimaryLocation.TextRange.EndLine.Should().Be(4);
-            convertedIssue.PrimaryLocation.TextRange.EndLineOffset.Should().Be(2);
+            convertedIssue.PrimaryLocation.Message.Should().Be(eslintBridgeIssue.Message);
+            convertedIssue.PrimaryLocation.TextRange.StartLine.Should().Be(eslintBridgeIssue.Line);
+            convertedIssue.PrimaryLocation.TextRange.StartLineOffset.Should().Be(eslintBridgeIssue.Column);
+            convertedIssue.PrimaryLocation.TextRange.EndLine.Should().Be(eslintBridgeIssue.EndLine);
+            convertedIssue.PrimaryLocation.TextRange.EndLineOffset.Should().Be(eslintBridgeIssue.EndColumn);
             convertedIssue.PrimaryLocation.TextRange.LineHash.Should().BeNull();
+            convertedIssue.Fixes.Should().BeEmpty();
         }
+
+        [TestMethod]
+        public void Convert_IssueWithQuickFix_Converted()
+        {
+            var quickFix = CreateQuickFix();
+
+            var eslintBridgeIssue = CreateIssue("eslint rule id", new[] {quickFix});
+            var ruleDefinitions = CreateRuleDefinition("eslint rule id", "sonar rule key");
+            
+            var testSubject = CreateTestSubject(ruleDefinitions);
+            var convertedIssue = testSubject.Convert("some file", eslintBridgeIssue);
+
+            convertedIssue.Fixes.Count.Should().Be(1);
+            convertedIssue.Fixes[0].Message.Should().Be(quickFix.Message);
+            convertedIssue.Fixes[0].Edits.Count.Should().Be(1);
+            convertedIssue.Fixes[0].Edits[0].NewText.Should().Be(quickFix.Edits[0].Text);
+            convertedIssue.Fixes[0].Edits[0].RangeToReplace.StartLine.Should().Be(quickFix.Edits[0].TextRange.Line);
+            convertedIssue.Fixes[0].Edits[0].RangeToReplace.EndLine.Should().Be(quickFix.Edits[0].TextRange.EndLine);
+            convertedIssue.Fixes[0].Edits[0].RangeToReplace.StartLineOffset.Should().Be(quickFix.Edits[0].TextRange.Column);
+            convertedIssue.Fixes[0].Edits[0].RangeToReplace.EndLineOffset.Should().Be(quickFix.Edits[0].TextRange.EndColumn);
+        }
+
+        [TestMethod]
+        public void Convert_IssueWithMultipleQuickFixes_Converted()
+        {
+            var quickFix1 = CreateQuickFix("Quick Fix 1");
+            var quickFix2 = CreateQuickFix("Quick Fix 2");
+
+            var eslintBridgeIssue = CreateIssue("eslint rule id", new[] { quickFix1, quickFix2 });
+            var ruleDefinitions = CreateRuleDefinition("eslint rule id", "sonar rule key");
+
+            var testSubject = CreateTestSubject(ruleDefinitions);
+            var convertedIssue = testSubject.Convert("some file", eslintBridgeIssue);
+
+            convertedIssue.Fixes.Count.Should().Be(2);
+            convertedIssue.Fixes[0].Message.Should().Be("Quick Fix 1");
+            convertedIssue.Fixes[1].Message.Should().Be("Quick Fix 2");
+        }
+
+        [TestMethod]
+        public void Convert_IssueWithQuickFix_WithMultipleEdits_Converted()
+        {
+            var edit1 = CreateEdit("edit 1", CreateTextRange(1, 2, 3, 4));
+            var edit2 = CreateEdit("edit 2", CreateTextRange(5, 6, 7, 8));
+
+            var quickFix = CreateQuickFix("Quick Fix", new[] {edit1, edit2});
+
+            var eslintBridgeIssue = CreateIssue("eslint rule id", new[] { quickFix });
+            var ruleDefinitions = CreateRuleDefinition("eslint rule id", "sonar rule key");
+
+            var testSubject = CreateTestSubject(ruleDefinitions);
+            var convertedIssue = testSubject.Convert("some file", eslintBridgeIssue);
+
+            convertedIssue.Fixes.Count.Should().Be(1);
+            convertedIssue.Fixes[0].Message.Should().Be(quickFix.Message);
+            convertedIssue.Fixes[0].Edits.Count.Should().Be(2);
+
+            convertedIssue.Fixes[0].Edits[0].NewText.Should().Be(quickFix.Edits[0].Text);
+            convertedIssue.Fixes[0].Edits[0].RangeToReplace.StartLine.Should().Be(quickFix.Edits[0].TextRange.Line);
+            convertedIssue.Fixes[0].Edits[0].RangeToReplace.EndLine.Should().Be(quickFix.Edits[0].TextRange.EndLine);
+            convertedIssue.Fixes[0].Edits[0].RangeToReplace.StartLineOffset.Should().Be(quickFix.Edits[0].TextRange.Column);
+            convertedIssue.Fixes[0].Edits[0].RangeToReplace.EndLineOffset.Should().Be(quickFix.Edits[0].TextRange.EndColumn);
+
+            convertedIssue.Fixes[0].Edits[1].NewText.Should().Be(quickFix.Edits[1].Text);
+            convertedIssue.Fixes[0].Edits[1].RangeToReplace.StartLine.Should().Be(quickFix.Edits[1].TextRange.Line);
+            convertedIssue.Fixes[0].Edits[1].RangeToReplace.EndLine.Should().Be(quickFix.Edits[1].TextRange.EndLine);
+            convertedIssue.Fixes[0].Edits[1].RangeToReplace.StartLineOffset.Should().Be(quickFix.Edits[1].TextRange.Column);
+            convertedIssue.Fixes[0].Edits[1].RangeToReplace.EndLineOffset.Should().Be(quickFix.Edits[1].TextRange.EndColumn);
+        }
+
 
         [TestMethod]
         public void Convert_IssueFileLevel_Converted()
         {
-            var eslintBridgeIssue = new Issue
-            {
-                RuleId = "eslint rule id",
-                Column = 1,
-                EndColumn = 2,
-                Line = 0,
-                EndLine = 4,
-                Message = "some message"
-            };
+            Issue eslintBridgeIssue = CreateIssue("eslint rule id");
+            eslintBridgeIssue.Line = 0; //makes issue file level
 
-            var ruleDefinitions = new[]
-            {
-                new RuleDefinition
-                {
-                    EslintKey = "eslint rule id",
-                    RuleKey = "sonar rule key",
-                    Type = RuleType.CODE_SMELL,
-                    Severity = RuleSeverity.MAJOR
-                }
-            };
+            RuleDefinition[] ruleDefinitions = CreateRuleDefinition("eslint rule id", "sonar rule key");
 
             var testSubject = CreateTestSubject(ruleDefinitions);
             var convertedIssue = testSubject.Convert("some file", eslintBridgeIssue);
@@ -108,7 +147,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             convertedIssue.Severity.Should().Be(AnalysisIssueSeverity.Major);
 
             convertedIssue.PrimaryLocation.FilePath.Should().Be("some file");
-            convertedIssue.PrimaryLocation.Message.Should().Be("some message");
+            convertedIssue.PrimaryLocation.Message.Should().Be(eslintBridgeIssue.Message);
             convertedIssue.PrimaryLocation.TextRange.Should().BeNull();
         }
 
@@ -293,6 +332,64 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             rulesProvider.Setup(x => x.GetDefinitions()).Returns(ruleDefinitions);
 
             return new EslintBridgeIssueConverter(rulesProvider.Object);
+        }
+
+        private static RuleDefinition[] CreateRuleDefinition(string ruleId, string ruleKey)
+        {
+            return new[]
+            {
+                new RuleDefinition
+                {
+                    EslintKey = ruleId,
+                    RuleKey = ruleKey,
+                    Type = RuleType.CODE_SMELL,
+                    Severity = RuleSeverity.MAJOR
+                }
+            };
+        }
+
+        private static Issue CreateIssue(string ruleId, QuickFix[] quickFixes = null)
+        {
+            return new Issue
+            {
+                RuleId = ruleId,
+                Column = 1,
+                EndColumn = 2,
+                Line = 3,
+                EndLine = 4,
+                Message = "some message",
+                QuickFixes = quickFixes
+            };
+        }
+
+        private static QuickFix CreateQuickFix(string message = "QuickFix", Edit[] edits = null)
+        {
+            
+            return new QuickFix
+            {
+                Message = message,
+                Edits = edits ?? new[] {CreateEdit()}
+            };
+        }
+
+        private static Edit CreateEdit(string text = "edit", TypeScript.EslintBridgeClient.Contract.TextRange textRange = null)
+        {
+            return new Edit
+            {
+                Text = text,
+                TextRange = textRange ?? CreateTextRange(1,2,3,4)
+            };
+        }
+
+        private static TypeScript.EslintBridgeClient.Contract.TextRange CreateTextRange(int column, int endColumn, int line, int endLine)
+        {
+            return new TypeScript.EslintBridgeClient.Contract.TextRange
+            {
+                Column = column,
+                EndColumn = endColumn,
+                Line = line,
+                EndLine = endLine
+            };
         }
     }
 }
