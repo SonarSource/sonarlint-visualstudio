@@ -94,6 +94,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
                 analysisRequest.IgnoreHeaderComments.Should().BeTrue();
                 analysisRequest.FilePath.Should().Be("some path");
                 analysisRequest.TSConfigFilePaths.Should().BeEquivalentTo("some config");
+                analysisRequest.FileType.Should().Be("MAIN");
             });
 
             var testSubject = CreateTestSubject(httpWrapper.Object);
