@@ -52,6 +52,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         new string[] { "SolutionHasProjectCapability:CSharp",
                        "SolutionHasProjectCapability:VB" }
     )]
+    // The secrets assemblies are in a sub-folder so we need to add it to the probing path
+    // to make sure it can be loaded reliably.
+    // See https://github.com/SonarSource/sonarlint-visualstudio/issues/3008
+    [ProvideBindingPath(SubPath = "secrets")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
         "S2931:Classes with \"IDisposable\" members should implement \"IDisposable\"",
         Justification = "By-Design. The base class exposes a Dispose override in which the disposable instances will be disposed",
