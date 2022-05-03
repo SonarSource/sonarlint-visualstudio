@@ -25,7 +25,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-// __secrets using SonarLint.VisualStudio.CloudSecrets;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Telemetry.Payload;
