@@ -118,10 +118,10 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Hotspot.Issue.Message" Header="Description" Width="*" MinWidth="150">
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Hotspot.Issue.PrimaryLocation.Message" Header="Description" Width="*" MinWidth="150">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Hotspot.Issue.Message}" 
+                            <TextBlock Text="{Binding Hotspot.Issue.PrimaryLocation.Message}" 
                                        Style="{StaticResource CellTextBlockStyle}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
