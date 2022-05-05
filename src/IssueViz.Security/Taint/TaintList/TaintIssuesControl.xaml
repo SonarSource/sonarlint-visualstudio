@@ -171,10 +171,10 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn CanUserSort="True" SortMemberPath="TaintIssueViz.Issue.Message" Header="Description" Width="*" MinWidth="150">
+                        <DataGridTemplateColumn CanUserSort="True" SortMemberPath="TaintIssueViz.Issue.PrimaryLocation.Message" Header="Description" Width="*" MinWidth="150">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding TaintIssueViz.Issue.Message}" 
+                                    <TextBlock Text="{Binding TaintIssueViz.Issue.PrimaryLocation.Message}" 
                                        Style="{StaticResource CellTextBlockStyle}"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
