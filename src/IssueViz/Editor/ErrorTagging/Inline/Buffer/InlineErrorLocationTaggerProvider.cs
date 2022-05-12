@@ -21,43 +21,33 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline
+namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline.Buffer
 {
-    [Export(typeof(IViewTaggerProvider))]
+    [Export(typeof(ITaggerProvider))]
     [ContentType("code")]
-    [TextViewRole(PredefinedTextViewRoles.PrimaryDocument)]
-    [TagType(typeof(IntraTextAdornmentTag))]
-    internal class InlineErrorViewTaggerProvider : IViewTaggerProvider
+    [TagType(typeof(IInlineErrorTag))]
+    internal class InlineErrorLocationTaggerProvider : ITaggerProvider
     {
         private readonly IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService;
         private readonly ITaggableBufferIndicator taggableBufferIndicator;
 
         [ImportingConstructor]
-        public InlineErrorViewTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, ITaggableBufferIndicator taggableBufferIndicator)
+        public InlineErrorLocationTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, 
+            ITaggableBufferIndicator taggableBufferIndicator)
         {
             this.bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
             this.taggableBufferIndicator = taggableBufferIndicator;
         }
 
-        public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
+        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            if (textView == null)
-            {
-                throw new ArgumentNullException(nameof(textView));
-            }
-
             if (buffer == null)
             {
                 throw new ArgumentNullException(nameof(buffer));
-            }
-
-            if (buffer != textView.TextBuffer)
-            {
-                return null;
             }
 
             if (!taggableBufferIndicator.IsTaggable(buffer))
@@ -65,14 +55,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline
                 return null;
             }
 
-            var tagger = Create(textView as IWpfTextView);
+            // Tip when debugging/developing: a buffer tagger won't be created until there is something that can consume the tags. In our case,
+            // it means until one of our view tagger providers is created, because they create a tag aggregator that consumes the those
+            // buffer tags.
+            var tagger = Create(buffer);
             return tagger as ITagger<T>;
         }
 
-        private InlineErrorTagger Create(IWpfTextView textView)
+        private InlineErrorLocationTagger Create(ITextBuffer buffer)
         {
-            var aggregator = bufferTagAggregatorFactoryService.CreateTagAggregator<IInlineErrorTag>(textView.TextBuffer);
-            return new InlineErrorTagger(aggregator, textView);
+            var aggregator = bufferTagAggregatorFactoryService.CreateTagAggregator<IIssueLocationTag>(buffer);
+            return new InlineErrorLocationTagger(aggregator, buffer);
         }
     }
 }

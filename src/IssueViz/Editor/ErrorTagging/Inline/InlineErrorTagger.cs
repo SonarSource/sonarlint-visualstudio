@@ -18,27 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline
 {
-    internal sealed class InlineErrorTagger : FilteringTaggerBase<IIssueLocationTag, IntraTextAdornmentTag>
+    internal sealed class InlineErrorTagger : FilteringTaggerBase<IInlineErrorTag, IntraTextAdornmentTag>
     {
         private readonly IWpfTextView wpfTextView;
 
-        public InlineErrorTagger(ITagAggregator<IIssueLocationTag> tagAggregator, IWpfTextView wpfTextView)
+        public InlineErrorTagger(ITagAggregator<IInlineErrorTag> tagAggregator, IWpfTextView wpfTextView)
             : base(tagAggregator, wpfTextView)
         {
             this.wpfTextView = wpfTextView;
         }
 
-        protected override TagSpan<IntraTextAdornmentTag> CreateTagSpan(IIssueLocationTag trackedTag, NormalizedSnapshotSpanCollection spans)
+        protected override TagSpan<IntraTextAdornmentTag> CreateTagSpan(IInlineErrorTag trackedTag, NormalizedSnapshotSpanCollection spans)
         {
             // To produce adornments that don't obscure the text, the adornment tags
             // should have zero length spans. Overriding this method allows control
@@ -52,11 +49,5 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline
 
             return new TagSpan<IntraTextAdornmentTag>(adornmentSpan, new IntraTextAdornmentTag(adornment, null, PositionAffinity.Predecessor));
         }
-
-        protected override IEnumerable<IMappingTagSpan<IIssueLocationTag>> Filter(IEnumerable<IMappingTagSpan<IIssueLocationTag>> trackedTagSpans) =>
-            trackedTagSpans.Where(x => IsValidPrimaryLocation(x.Tag.Location));
-
-        private static bool IsValidPrimaryLocation(IAnalysisIssueLocationVisualization locViz) =>
-            locViz is IAnalysisIssueVisualization && locViz.Span.IsNavigable();
     }
 }

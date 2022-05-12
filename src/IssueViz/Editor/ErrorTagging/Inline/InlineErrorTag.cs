@@ -23,16 +23,24 @@ using System.Windows.Media;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline
 {
-    internal class InlineErrorTag : TextMarkerTag
+    internal interface IInlineErrorTag : ITag
     {
-        public InlineErrorTag()
+        IAnalysisIssueLocationVisualization Location { get; }
+    }
+
+    internal class InlineErrorTag : TextMarkerTag, IInlineErrorTag
+    {
+        public InlineErrorTag(IAnalysisIssueLocationVisualization location)
             : base(InlineErrorTagFormatDefinition.FormatName)
         {
+            Location = location;
         }
+
+        public IAnalysisIssueLocationVisualization Location { get; }
     }
 
     [Export(typeof(EditorFormatDefinition))]
