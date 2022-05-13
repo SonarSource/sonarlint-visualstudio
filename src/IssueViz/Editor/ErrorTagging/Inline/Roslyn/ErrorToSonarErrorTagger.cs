@@ -30,27 +30,28 @@ using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline.Roslyn
 {
     internal sealed class ErrorToSonarErrorTagger : ITagger<ISonarErrorTag>, IDisposable
     {
         private readonly ITextBuffer buffer;
-        private readonly IRoslynSonarErrorTagsProvider roslynSonarErrorTagsProvider;
+        private readonly ISonarAndRoslynErrorsProvider sonarAndRoslynErrorsProvider;
         private readonly ILogger logger;
 
         internal IList<ITagSpan<ISonarErrorTag>> TagSpans { get; private set; }
 
-        public ErrorToSonarErrorTagger(ITextBuffer buffer, IRoslynSonarErrorTagsProvider roslynSonarErrorTagsProvider, ILogger logger)
+        public ErrorToSonarErrorTagger(ITextBuffer buffer, ISonarAndRoslynErrorsProvider sonarAndRoslynErrorsProvider, ILogger logger)
         {
             this.buffer = buffer;
-            this.roslynSonarErrorTagsProvider = roslynSonarErrorTagsProvider;
+            this.sonarAndRoslynErrorsProvider = sonarAndRoslynErrorsProvider;
             this.logger = logger;
 
             // todo: need to call UpdateTags but we don't have yet the table entries
             TagSpans = new List<ITagSpan<ISonarErrorTag>>();;
 
-            roslynSonarErrorTagsProvider.RoslynIssuesChanged += OnIssuesChanged;
+            sonarAndRoslynErrorsProvider.IssuesChanged += OnIssuesChanged;
             buffer.ChangedLowPriority += SafeOnBufferChange;
         }
 
@@ -60,7 +61,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline.R
         /// </summary>
         internal /* for testing */ string GetCurrentFilePath() => buffer.GetFilePath();
 
-        private void OnIssuesChanged(object sender, RoslynIssuesChanged e)
+        private void OnIssuesChanged(object sender, IssuesChanged e)
         {
             var filePath = buffer.GetFilePath();
             var entries = e.Factory.GetCurrentSnapshot();
@@ -272,7 +273,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline.R
 
         public void Dispose()
         {
-            roslynSonarErrorTagsProvider.RoslynIssuesChanged -= OnIssuesChanged;
+            sonarAndRoslynErrorsProvider.IssuesChanged -= OnIssuesChanged;
             buffer.ChangedLowPriority -= SafeOnBufferChange;
         }
 
@@ -284,8 +285,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline.R
 
         private static bool IsSonarError(ITableEntriesSnapshot entries, int i)
         {
-            return entries.TryGetValue(i, StandardTableKeyNames.ErrorCode, out var errorCode) &&
-                   Regex.IsMatch(errorCode as string, "^S.+?");
+            var isRoslynIssue = entries.TryGetValue(i, StandardTableKeyNames.ErrorCode, out var errorCode) &&
+                                Regex.IsMatch(errorCode as string, "^S.+?");
+
+            var isSonarIssue = entries.TryGetValue(i, SonarLintTableControlConstants.IssueVizColumnName, out _);
+
+            return isRoslynIssue || isSonarIssue;
         }
     }
 }

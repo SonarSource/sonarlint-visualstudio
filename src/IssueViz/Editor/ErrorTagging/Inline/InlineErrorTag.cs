@@ -9,12 +9,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline
         IMappingTagSpan<ISonarErrorTag>[] LocationTagSpans { get; }
     }
 
-    internal class InlineErrorTag : TextMarkerTag, IInlineErrorTag
+    internal class InlineErrorTag : IInlineErrorTag
     {
         public InlineErrorTag(
             SnapshotSpan lineExtent,
             IMappingTagSpan<ISonarErrorTag>[] locationTagSpans)
-            : base("SLVS_INNOVATION_INLINE_TAG")
         {
             LineExtent = lineExtent;
             LocationTagSpans = locationTagSpans;

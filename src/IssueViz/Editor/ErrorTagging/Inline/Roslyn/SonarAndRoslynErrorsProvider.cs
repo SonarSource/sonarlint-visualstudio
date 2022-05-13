@@ -3,33 +3,35 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.VisualStudio.Shell.TableManager;
+using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline.Roslyn
 {
-    public interface IRoslynSonarErrorTagsProvider
+    public interface ISonarAndRoslynErrorsProvider
     {
-        event EventHandler<RoslynIssuesChanged> RoslynIssuesChanged;
+        event EventHandler<IssuesChanged> IssuesChanged;
     }
 
-    public class RoslynIssuesChanged
+    public class IssuesChanged
     {
         public ITableEntriesSnapshotFactory Factory { get; }
 
-        public RoslynIssuesChanged(ITableEntriesSnapshotFactory factory)
+        public IssuesChanged(ITableEntriesSnapshotFactory factory)
         {
             Factory = factory;
         }
     }
 
-    [Export(typeof(IRoslynSonarErrorTagsProvider))]
+    [Export(typeof(ISonarAndRoslynErrorsProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class RoslynSonarErrorTagsProvider : IRoslynSonarErrorTagsProvider, ITableDataSink, IDisposable
+    internal class SonarAndRoslynErrorsProvider : ISonarAndRoslynErrorsProvider, ITableDataSink, IDisposable
     {
         private readonly ITableManager tableManager;
-        private IDisposable sinkHandle;
+        private IDisposable roslynSinkHandle;
+        private IDisposable sonarSinkHandle;
 
         [ImportingConstructor]
-        public RoslynSonarErrorTagsProvider(ITableManagerProvider tableManagerProvider)
+        public SonarAndRoslynErrorsProvider(ITableManagerProvider tableManagerProvider)
         {
             tableManager = tableManagerProvider.GetTableManager(StandardTables.ErrorsTable);
             tableManager.SourcesChanged += TableManager_SourcesChanged;
@@ -40,8 +42,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline.R
         private void FetchSources()
         {
             var roslynDataSource = tableManager.Sources.FirstOrDefault(x => x.DisplayName == "C#/VB Diagnostics Table Data Source");
-            sinkHandle?.Dispose();
-            sinkHandle = roslynDataSource?.Subscribe(this);
+            roslynSinkHandle?.Dispose();
+            roslynSinkHandle = roslynDataSource?.Subscribe(this);
+
+            var sonarDataSource = tableManager.Sources.FirstOrDefault(x => x.DisplayName == SonarLintTableControlConstants.ErrorListDataSourceIdentifier);
+            sonarSinkHandle?.Dispose();
+            sonarSinkHandle = sonarDataSource?.Subscribe(this);
         }
 
         private void TableManager_SourcesChanged(object sender, EventArgs e)
@@ -100,7 +106,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline.R
 
         public void FactorySnapshotChanged(ITableEntriesSnapshotFactory factory)
         {
-            RoslynIssuesChanged?.Invoke(this, new RoslynIssuesChanged(factory));
+            IssuesChanged?.Invoke(this, new IssuesChanged(factory));
         }
 
         public void RemoveAllFactories()
@@ -108,6 +114,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline.R
         }
 
         public bool IsStable { get; set; } = true;
-        public event EventHandler<RoslynIssuesChanged> RoslynIssuesChanged;
+        public event EventHandler<IssuesChanged> IssuesChanged;
     }
 }

@@ -32,16 +32,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline.R
     [TagType(typeof(ISonarErrorTag))]
     internal class ErrorToSonarErrorTaggerProvider : ITaggerProvider
     {
-        private readonly IRoslynSonarErrorTagsProvider roslynSonarErrorTagsProvider;
+        private readonly ISonarAndRoslynErrorsProvider sonarAndRoslynErrorsProvider;
         private readonly ITaggableBufferIndicator taggableBufferIndicator;
         private ILogger logger;
 
         [ImportingConstructor]
-        public ErrorToSonarErrorTaggerProvider(IRoslynSonarErrorTagsProvider roslynSonarErrorTagsProvider,
+        public ErrorToSonarErrorTaggerProvider(ISonarAndRoslynErrorsProvider sonarAndRoslynErrorsProvider,
             ITaggableBufferIndicator taggableBufferIndicator, 
             ILogger logger)
         {
-            this.roslynSonarErrorTagsProvider = roslynSonarErrorTagsProvider;
+            this.sonarAndRoslynErrorsProvider = sonarAndRoslynErrorsProvider;
             this.taggableBufferIndicator = taggableBufferIndicator;
             this.logger = logger;
         }
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline.R
 
         private ErrorToSonarErrorTagger Create(ITextBuffer textBuffer)
         {
-            return new ErrorToSonarErrorTagger(textBuffer, roslynSonarErrorTagsProvider, logger);
+            return new ErrorToSonarErrorTagger(textBuffer, sonarAndRoslynErrorsProvider, logger);
         }
     }
 }
