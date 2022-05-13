@@ -22,25 +22,23 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline.Buffer
 {
-    internal class InlineErrorLocationTagger: TranslatingTaggerBase<IIssueLocationTag, IInlineErrorTag>
+    internal class InlineErrorLocationTagger: TranslatingTaggerBase<ISonarErrorTag, IInlineErrorTag>
     {
-        public InlineErrorLocationTagger(ITagAggregator<IIssueLocationTag> tagAggregator, ITextBuffer textBuffer)
+        public InlineErrorLocationTagger(ITagAggregator<ISonarErrorTag> tagAggregator, ITextBuffer textBuffer)
             : base(tagAggregator, textBuffer)
         {
         }
 
         #region ITagger methods
 
-        protected override IEnumerable<IMappingTagSpan<IInlineErrorTag>> Translate(IEnumerable<IMappingTagSpan<IIssueLocationTag>> trackedTagSpans)
+        protected override IEnumerable<IMappingTagSpan<IInlineErrorTag>> Translate(IEnumerable<IMappingTagSpan<ISonarErrorTag>> trackedTagSpans)
         {
-            var primaryLocations = trackedTagSpans.Where(x => IsValidPrimaryLocation(x.Tag.Location))
-                .GroupBy(x => x.Tag.Location.Span.Value.Snapshot.GetLineNumberFromPosition(x.Tag.Location.Span.Value.End));
-
+            var primaryLocations = trackedTagSpans.Where(x => IsValidPrimaryLocation(x.Tag.IssueViz))
+                .GroupBy(x => x.Tag.IssueViz.Span.Value.Snapshot.GetLineNumberFromPosition(x.Tag.IssueViz.Span.Value.End));
 
             var translated = new List<IMappingTagSpan<IInlineErrorTag>>();
 
@@ -50,7 +48,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline.B
                 var items = primaryLocation.ToArray();
 
                 // Assume that all locations in the group are in the same snapshot
-                var firstSpan = items[0].Tag.Location.Span.Value;
+                var firstSpan = items[0].Tag.IssueViz.Span.Value;
                 var textLine = firstSpan.Snapshot.GetLineFromPosition(firstSpan.Start);
                 var lineExtent = textLine.Extent;
                 var endPosition = lineExtent.End.Position;

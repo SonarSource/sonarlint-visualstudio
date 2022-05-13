@@ -23,23 +23,27 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline.Buffer
+namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline.Roslyn
 {
     [Export(typeof(ITaggerProvider))]
-    [ContentType("code")]
-    [TagType(typeof(IInlineErrorTag))]
-    internal class InlineErrorLocationTaggerProvider : ITaggerProvider
+    [ContentType("text")]
+    [TagType(typeof(ISonarErrorTag))]
+    internal class ErrorToSonarErrorTaggerProvider : ITaggerProvider
     {
-        private readonly IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService;
+        private readonly IRoslynSonarErrorTagsProvider roslynSonarErrorTagsProvider;
         private readonly ITaggableBufferIndicator taggableBufferIndicator;
+        private ILogger logger;
 
         [ImportingConstructor]
-        public InlineErrorLocationTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, 
-            ITaggableBufferIndicator taggableBufferIndicator)
+        public ErrorToSonarErrorTaggerProvider(IRoslynSonarErrorTagsProvider roslynSonarErrorTagsProvider,
+            ITaggableBufferIndicator taggableBufferIndicator, 
+            ILogger logger)
         {
-            this.bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
+            this.roslynSonarErrorTagsProvider = roslynSonarErrorTagsProvider;
             this.taggableBufferIndicator = taggableBufferIndicator;
+            this.logger = logger;
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
@@ -54,17 +58,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline.B
                 return null;
             }
 
-            // Tip when debugging/developing: a buffer tagger won't be created until there is something that can consume the tags. In our case,
-            // it means until one of our view tagger providers is created, because they create a tag aggregator that consumes the those
-            // buffer tags.
             var tagger = Create(buffer);
             return tagger as ITagger<T>;
         }
 
-        private InlineErrorLocationTagger Create(ITextBuffer buffer)
+        private ErrorToSonarErrorTagger Create(ITextBuffer textBuffer)
         {
-            var aggregator = bufferTagAggregatorFactoryService.CreateTagAggregator<ISonarErrorTag>(buffer);
-            return new InlineErrorLocationTagger(aggregator, buffer);
+            return new ErrorToSonarErrorTagger(textBuffer, roslynSonarErrorTagsProvider, logger);
         }
     }
 }

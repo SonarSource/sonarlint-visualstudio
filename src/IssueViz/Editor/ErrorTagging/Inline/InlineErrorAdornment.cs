@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline
             CornerRadius = new CornerRadius(1);
 
             // Visible content of the adornment
-            var issueViz = inlineErrorTag.LocationTagSpans[0].Tag.Location as IAnalysisIssueVisualization;
+            var issueViz = inlineErrorTag.LocationTagSpans[0].Tag.IssueViz;
 
             var text = issueViz.RuleId + ": " + issueViz.Issue.PrimaryLocation.Message;
             if (inlineErrorTag.LocationTagSpans.Length > 1)
