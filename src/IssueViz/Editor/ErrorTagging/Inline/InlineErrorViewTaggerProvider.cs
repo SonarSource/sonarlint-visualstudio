@@ -24,7 +24,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline
 {
@@ -72,7 +71,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline
 
         private InlineErrorTagger Create(IWpfTextView textView)
         {
-            var aggregator = bufferTagAggregatorFactoryService.CreateTagAggregator<IIssueLocationTag>(textView.TextBuffer);
+            var aggregator = bufferTagAggregatorFactoryService.CreateTagAggregator<ISonarErrorTag>(textView.TextBuffer);
             return new InlineErrorTagger(aggregator, textView);
         }
     }

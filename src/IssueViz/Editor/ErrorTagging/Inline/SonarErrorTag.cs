@@ -18,37 +18,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using System.Windows.Media;
-using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Utilities;
-using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline
 {
-    internal class InlineErrorTag : TextMarkerTag
+    internal interface ISonarErrorTag : ITag
     {
-        public InlineErrorTag()
-            : base(InlineErrorTagFormatDefinition.FormatName)
-        {
-        }
+        IAnalysisIssueVisualization IssueViz { get; }
     }
 
-    [Export(typeof(EditorFormatDefinition))]
-    [Name(FormatName)]
-    [UserVisible(true)]
-    internal class InlineErrorTagFormatDefinition : MarkerFormatDefinition
+    internal class SonarErrorTag : ISonarErrorTag
     {
-        public const string FormatName = "MarkerFormatDefinition/SLVS_InlineErrorFormatDefinition";
-        protected InlineErrorTagFormatDefinition()
+        public IAnalysisIssueVisualization IssueViz { get; }
+
+        public SonarErrorTag(IAnalysisIssueVisualization issueViz)
         {
-            Fill = new SolidColorBrush(Colors.GreenYellow);
-            ForegroundColor = Colors.Transparent;
-            DisplayName = "Inline Issue";
-            BackgroundCustomizable = true;
-            ForegroundCustomizable = true;
-            ZOrder = 5;
+            IssueViz = issueViz;
         }
     }
 }
