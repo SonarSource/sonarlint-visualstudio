@@ -18,9 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Formatting;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
@@ -52,12 +56,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline
                 text = $"[{inlineErrorTag.LocationTagSpans.Length} issues] " + text;
             }
 
-            Child = new TextBlock
-            {
-                Text = text,
-                FontWeight = FontWeights.SemiBold,
-                Padding = new Thickness(4, 0, 4, 0)
-            };
+            var firstFix = issueViz.QuickFixes?.FirstOrDefault(fix => fix.CanBeApplied(formattedLineSource.SourceTextSnapshot));
+
+            Child = firstFix == null
+                ? new TextBlock
+                {
+                    Text = text,
+                    FontWeight = FontWeights.SemiBold,
+                    Padding = new Thickness(4, 0, 4, 0)
+                }
+                : (UIElement) new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    Children =
+                    {
+                        GetQuickFixButton(),
+                        new TextBlock
+                        {
+                            Text = text,
+                            FontWeight = FontWeights.SemiBold,
+                            Padding = new Thickness(4, 0, 4, 0)
+                        }
+                    }
+                };
 
             ToolTip = new TextBlock
             {
@@ -65,6 +86,27 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline
             };
 
             Update(formattedLineSource);
+
+            UIElement GetQuickFixButton()
+            {
+                var icon = new CrispImage { Moniker = KnownMonikers.Checkmark };
+                icon.MouseLeftButtonDown += (sender, e) =>
+                {
+                    var textEdit = formattedLineSource.SourceTextSnapshot.TextBuffer.CreateEdit();
+
+                    foreach (var edit in firstFix.EditVisualizations)
+                    {
+                        var updatedSpan = new SpanTranslator().TranslateTo(edit.Span, formattedLineSource.SourceTextSnapshot, SpanTrackingMode.EdgeExclusive);
+
+                        textEdit.Replace(updatedSpan, edit.Edit.NewText);
+                    }
+
+                    issueViz.InvalidateSpan();
+                    textEdit.Apply();
+                };
+
+                return icon;
+            }
         }
 
         /// <summary>
@@ -82,7 +124,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline
                 return;
             }
 
-            var textBlock = Child as TextBlock;
+            var textBlock = Child as TextBlock ?? (Child as StackPanel).Children[1] as TextBlock;
 
             textBlock.Foreground = formattedLineSource.DefaultTextProperties.ForegroundBrush;
             textBlock.FontSize = formattedLineSource.DefaultTextProperties.FontRenderingEmSize - 2;

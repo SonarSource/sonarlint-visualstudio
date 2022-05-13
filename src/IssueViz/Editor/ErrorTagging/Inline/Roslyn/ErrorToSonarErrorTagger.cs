@@ -108,30 +108,40 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline.R
 
         private static ITagSpan<ISonarErrorTag> CreateTagSpan(ITableEntriesSnapshot entries, int index, ITextSnapshot textSnapshot)
         {
-            entries.TryGetValue(index, StandardTableKeyNames.ErrorCode, out var errorCode);
-            entries.TryGetValue(index, StandardTableKeyNames.DocumentName, out var fileName);
-            entries.TryGetValue(index, StandardTableKeyNames.Text, out var message);
-            entries.TryGetValue(index, StandardTableKeyNames.Line, out var startLineObj);
-            var startLine = Convert.ToInt32(startLineObj);
+            var hasIssueViz = entries.TryGetValue(index, SonarLintTableControlConstants.IssueVizColumnName, out var existingIssueViz);
 
-            var issue = new AnalysisIssue(errorCode as string,
-                AnalysisIssueSeverity.Info,
-                AnalysisIssueType.CodeSmell,
-                new AnalysisIssueLocation(message as string, fileName as string,
-                    new TextRange(startLine,
-                        startLine,
-                        0,
-                        0,
-                        null)),
-                null, null);
+            if (hasIssueViz)
+            {
+                var issueViz = existingIssueViz as IAnalysisIssueVisualization;
+                return new TagSpan<ISonarErrorTag>(issueViz.Span.Value, new SonarErrorTag(issueViz));
+            }
+            else
+            {
+                entries.TryGetValue(index, StandardTableKeyNames.ErrorCode, out var errorCode);
+                entries.TryGetValue(index, StandardTableKeyNames.DocumentName, out var fileName);
+                entries.TryGetValue(index, StandardTableKeyNames.Text, out var message);
+                entries.TryGetValue(index, StandardTableKeyNames.Line, out var startLineObj);
+                var startLine = Convert.ToInt32(startLineObj);
 
-            var issueLine = textSnapshot.GetLineFromLineNumber(startLine);
-            var span = new Span(issueLine.Start, issueLine.Length);
-            var snapshotSpan = new SnapshotSpan(textSnapshot, span);
+                var issue = new AnalysisIssue(errorCode as string,
+                    AnalysisIssueSeverity.Info,
+                    AnalysisIssueType.CodeSmell,
+                    new AnalysisIssueLocation(message as string, fileName as string,
+                        new TextRange(startLine,
+                            startLine,
+                            0,
+                            0,
+                            null)),
+                    null, null);
 
-            var issueViz = new AnalysisIssueVisualization(null, issue, snapshotSpan, null);
-            
-            return new TagSpan<ISonarErrorTag>(snapshotSpan, new SonarErrorTag(issueViz));
+                var issueLine = textSnapshot.GetLineFromLineNumber(startLine);
+                var span = new Span(issueLine.Start, issueLine.Length);
+                var snapshotSpan = new SnapshotSpan(textSnapshot, span);
+
+                var issueViz = new AnalysisIssueVisualization(null, issue, snapshotSpan, null);
+
+                return new TagSpan<ISonarErrorTag>(snapshotSpan, new SonarErrorTag(issueViz));
+            }
         }
 
         #region ITagger implementation
