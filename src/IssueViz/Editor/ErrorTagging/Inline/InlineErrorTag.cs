@@ -11,7 +11,7 @@
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * Lesser General Public License for more details.  
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software Foundation,
@@ -20,27 +20,34 @@
 
 using System.ComponentModel.Composition;
 using System.Windows.Media;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline
 {
     internal interface IInlineErrorTag : ITag
     {
-        IAnalysisIssueLocationVisualization Location { get; }
+        SnapshotSpan LineExtent { get; }
+        IMappingTagSpan<IIssueLocationTag>[] LocationTagSpans { get; }
     }
 
     internal class InlineErrorTag : TextMarkerTag, IInlineErrorTag
     {
-        public InlineErrorTag(IAnalysisIssueLocationVisualization location)
+        public InlineErrorTag(
+            SnapshotSpan lineExtent,
+            IMappingTagSpan<IIssueLocationTag>[] locationTagSpans)
             : base(InlineErrorTagFormatDefinition.FormatName)
         {
-            Location = location;
+            LineExtent = lineExtent;
+            LocationTagSpans = locationTagSpans;
         }
 
-        public IAnalysisIssueLocationVisualization Location { get; }
+        public SnapshotSpan LineExtent { get; }
+
+        public IMappingTagSpan<IIssueLocationTag>[] LocationTagSpans { get; }
     }
 
     [Export(typeof(EditorFormatDefinition))]

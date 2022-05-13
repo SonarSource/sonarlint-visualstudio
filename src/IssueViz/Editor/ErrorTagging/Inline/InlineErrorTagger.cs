@@ -21,7 +21,6 @@
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline
 {
@@ -40,9 +39,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline
             // To produce adornments that don't obscure the text, the adornment tags
             // should have zero length spans. Overriding this method allows control
             // over the tag spans.
-            var vsLine = wpfTextView.GetTextViewLineContainingBufferPosition(trackedTag.Location.Span.Value.End);
+            var translatedPosition = trackedTag.LineExtent.TranslateTo(wpfTextView.TextSnapshot, SpanTrackingMode.EdgeInclusive);
+            var vsLine = wpfTextView.GetTextViewLineContainingBufferPosition(translatedPosition.End);
+
             var adornmentSpan = new SnapshotSpan(vsLine.End, 0);
-            var adornment = new InlineErrorAdornment(trackedTag.Location as IAnalysisIssueVisualization, wpfTextView.FormattedLineSource);
+            
+            var adornment = new InlineErrorAdornment(trackedTag, wpfTextView.FormattedLineSource);
 
             // If we don't call Measure here the tag is positioned incorrectly
             adornment.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));

@@ -38,16 +38,32 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline.B
 
         protected override IEnumerable<IMappingTagSpan<IInlineErrorTag>> Translate(IEnumerable<IMappingTagSpan<IIssueLocationTag>> trackedTagSpans)
         {
-            IEnumerable<IMappingTagSpan<IInlineErrorTag>> translated = trackedTagSpans
-                .Where(x => IsValidPrimaryLocation(x.Tag.Location))
-                .Select(x => new MappingTagSpan<IInlineErrorTag>(x.Span, new InlineErrorTag(x.Tag.Location)));
+            var primaryLocations = trackedTagSpans.Where(x => IsValidPrimaryLocation(x.Tag.Location))
+                .GroupBy(x => x.Tag.Location.Span.Value.Snapshot.GetLineNumberFromPosition(x.Tag.Location.Span.Value.End));
 
-            return translated.ToArray();
+
+            var translated = new List<IMappingTagSpan<IInlineErrorTag>>();
+
+            foreach (var primaryLocation in primaryLocations)
+            {
+                var lineNumber = primaryLocation.Key;
+                var items = primaryLocation.ToArray();
+
+                // Assume that all locations in the group are in the same snapshot
+                var firstSpan = items[0].Tag.Location.Span.Value;
+                var textLine = firstSpan.Snapshot.GetLineFromPosition(firstSpan.Start);
+                var lineExtent = textLine.Extent;
+                var endPosition = lineExtent.End.Position;
+
+                translated.Add(new MappingTagSpan<IInlineErrorTag>(items[0].Span, new InlineErrorTag(lineExtent, items)));
+            }
+
+            return translated;
         }
 
         protected override TagSpan<IInlineErrorTag> CreateTagSpan(IInlineErrorTag trackedTag, NormalizedSnapshotSpanCollection spans)
         {
-            return new TagSpan<IInlineErrorTag>(trackedTag.Location.Span.Value, new InlineErrorTag(trackedTag.Location));
+            return new TagSpan<IInlineErrorTag>(trackedTag.LineExtent, trackedTag);
         }
 
         #endregion
