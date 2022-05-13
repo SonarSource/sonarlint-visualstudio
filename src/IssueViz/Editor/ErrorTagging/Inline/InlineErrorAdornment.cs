@@ -28,13 +28,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline
 {
     internal class InlineErrorAdornment : Border
     {
-        public IAnalysisIssueVisualization IssueViz { get; }
+        public IInlineErrorTag InlineErrorTag { get; }
 
-        public InlineErrorAdornment(IAnalysisIssueVisualization issueViz, IFormattedLineSource formattedLineSource) 
+        public InlineErrorAdornment(IInlineErrorTag inlineErrorTag, IFormattedLineSource formattedLineSource) 
         {
             // We can't store the formatted line source since it might change
             // e.g. if the user changes the font size
-            IssueViz = issueViz;
+            InlineErrorTag = inlineErrorTag;
+
+            //IssueViz = issueViz;
 
             Margin = new Thickness(3, 0, 3, 0); // Space between this UI element and the editor text
             Padding = new Thickness(0);  // Space between the side of the control and its content    
@@ -42,16 +44,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline
             CornerRadius = new CornerRadius(1);
 
             // Visible content of the adornment
+            var issueViz = inlineErrorTag.LocationTagSpans[0].Tag.IssueViz;
+
+            var text = issueViz.RuleId + ": " + issueViz.Issue.PrimaryLocation.Message;
+            if (inlineErrorTag.LocationTagSpans.Length > 1)
+            {
+                text = $"[{inlineErrorTag.LocationTagSpans.Length} issues] " + text;
+            }
+
             Child = new TextBlock
             {
-                Text = IssueViz.RuleId + ": " + IssueViz.Issue.PrimaryLocation.Message,
+                Text = text,
                 FontWeight = FontWeights.SemiBold,
                 Padding = new Thickness(4, 0, 4, 0)
             };
 
             ToolTip = new TextBlock
             {
-                Text = IssueViz.Issue.PrimaryLocation.Message
+                Text = issueViz.Issue.PrimaryLocation.Message
             };
 
             Update(formattedLineSource);

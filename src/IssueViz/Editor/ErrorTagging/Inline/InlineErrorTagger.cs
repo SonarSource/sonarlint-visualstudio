@@ -24,28 +24,32 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging.Inline
 {
-    internal sealed class InlineErrorTagger : FilteringTaggerBase<ISonarErrorTag, IntraTextAdornmentTag>
+    internal sealed class InlineErrorTagger : FilteringTaggerBase<IInlineErrorTag, IntraTextAdornmentTag>
     {
         private readonly IWpfTextView wpfTextView;
 
-        public InlineErrorTagger(ITagAggregator<ISonarErrorTag> tagAggregator, IWpfTextView wpfTextView)
+        public InlineErrorTagger(ITagAggregator<IInlineErrorTag> tagAggregator, IWpfTextView wpfTextView)
             : base(tagAggregator, wpfTextView)
         {
             this.wpfTextView = wpfTextView;
         }
 
-        protected override TagSpan<IntraTextAdornmentTag> CreateTagSpan(ISonarErrorTag trackedTag, NormalizedSnapshotSpanCollection spans)
+        protected override TagSpan<IntraTextAdornmentTag> CreateTagSpan(IInlineErrorTag trackedTag, NormalizedSnapshotSpanCollection spans)
         {
             // To produce adornments that don't obscure the text, the adornment tags
             // should have zero length spans. Overriding this method allows control
             // over the tag spans.
-            var vsLine = wpfTextView.GetTextViewLineContainingBufferPosition(trackedTag.IssueViz.Span.Value.End);
+            var translatedPosition = trackedTag.LineExtent.TranslateTo(wpfTextView.TextSnapshot, SpanTrackingMode.EdgeInclusive);
+            var vsLine = wpfTextView.GetTextViewLineContainingBufferPosition(translatedPosition.End);
+
             var adornmentSpan = new SnapshotSpan(vsLine.End, 0);
-            var adornment = new InlineErrorAdornment(trackedTag.IssueViz, wpfTextView.FormattedLineSource);
+            
+            var adornment = new InlineErrorAdornment(trackedTag, wpfTextView.FormattedLineSource);
 
             // If we don't call Measure here the tag is positioned incorrectly
             adornment.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
 
             return new TagSpan<IntraTextAdornmentTag>(adornmentSpan, new IntraTextAdornmentTag(adornment, null, PositionAffinity.Predecessor));
-        } }
+        }
+    }
 }
