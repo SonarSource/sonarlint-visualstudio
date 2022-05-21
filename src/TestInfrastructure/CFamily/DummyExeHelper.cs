@@ -18,6 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+// TODO: 21/0/5/2022 - this class can be moved to the CFamily.UnitTests once CLangAnalyzer has
+// been moved from Integration.Vsix to CFamily.
+
 using System;
 using System.CodeDom.Compiler;
 using System.IO;
