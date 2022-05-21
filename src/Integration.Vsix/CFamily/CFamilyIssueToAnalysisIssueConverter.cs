@@ -48,11 +48,6 @@ using SonarLint.VisualStudio.IssueVisualization.Editor;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
-    internal interface ICFamilyIssueConverterFactory
-    {
-        ICFamilyIssueToAnalysisIssueConverter Create();
-    }
-
     [Export(typeof(ICFamilyIssueConverterFactory))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class CFamilyIssueConverterFactory : ICFamilyIssueConverterFactory
@@ -72,12 +67,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return new CFamilyIssueToAnalysisIssueConverter(textDocumentFactoryService, contentTypeRegistryService);
         }
     }
-
-    internal interface ICFamilyIssueToAnalysisIssueConverter
-    {
-        IAnalysisIssue Convert(Message cFamilyIssue, string sqLanguage, ICFamilyRulesConfig rulesConfiguration);
-    }
-
 
     // Short-lived class - one instance per analysis
     internal class CFamilyIssueToAnalysisIssueConverter : ICFamilyIssueToAnalysisIssueConverter
