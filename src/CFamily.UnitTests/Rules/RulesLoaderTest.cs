@@ -141,7 +141,7 @@ type: 'xxx bad type'
         {
             var resourcesPath = Path.Combine(
                 Path.GetDirectoryName(typeof(RulesLoaderTest).Assembly.Location),
-                "CFamily", "TestResources", "RulesLoader");
+                "Rules", "TestResources", "RulesLoader");
             Directory.Exists(resourcesPath).Should().BeTrue($"Test setup error: expected test resources directory does not exist: {resourcesPath}");
 
             var rulesLoader = new RulesLoader(resourcesPath);
