@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         }
     }
 
-    internal class MessagePart
+    public class MessagePart
     {
         public string Filename;
         public int Line { get; }
@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         }
     }
 
-    internal class Message : MessagePart
+    public class Message : MessagePart
     {
         public string RuleKey { get; }
         public bool PartsMakeFlow { get; }
@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
     }
 
-    internal class Fix
+    public class Fix
     {
         public string Message { get; }
         public Edit[] Edits { get; }
@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         }
     }
 
-    internal class Edit
+    public class Edit
     {
         public int StartLine { get; }
         public int StartColumn { get; }

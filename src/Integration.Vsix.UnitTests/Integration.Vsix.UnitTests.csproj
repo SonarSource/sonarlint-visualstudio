@@ -23,18 +23,6 @@
 
   </PropertyGroup>
   
-  <ItemGroup Label="HACK to make the C++ rule loader tests work">
-    <!-- We need all of the json files in the lib subfolder to be copied under the test assembly folder.
-         The files are marked as content files in the Integration project, but since this project was
-         converted to be an SDK-style project the files are being deleted when before the tests are run,
-         causing them to fail. 
-    -->
-    <Content Include="..\Integration.Vsix\lib\**\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>lib\%(Filename)%(Extension)</Link>
-    </Content>
-  </ItemGroup>
-  
   <ItemGroup Label="Framework references">
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
@@ -86,33 +74,6 @@
     <ProjectReference Include="..\Integration.Vsix\Integration.Vsix.csproj" />
     <ProjectReference Include="..\Integration\Integration.csproj" />
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_NoIssues_EmptyFile.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_NoIssues_EmptyFile_response.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue_HasSecondaryLocations_response.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue_HasSecondaryLocations.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue_response.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_TwoIssues.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_TwoIssues_response.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>
