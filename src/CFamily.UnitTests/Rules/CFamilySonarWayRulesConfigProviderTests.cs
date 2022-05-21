@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
     [TestClass]
     public class CFamilySonarWayRulesConfigProviderTests
     {
-        // Rule data for files in CFamily\TestResources\RulesMetadataCache
+        // Rule data for files in Rules\TestResources\RulesMetadataCache
         private const int Active_C_Rules = 3;
         private const int Inactive_C_Rules = 3;
 
@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         {
             var resourcesPath = Path.Combine(
                 Path.GetDirectoryName(typeof(CFamilySonarWayRulesConfigProvider).Assembly.Location),
-                "CFamily", "TestResources", "RulesMetadataCache");
+                "Rules", "TestResources", "RulesMetadataCache");
             Directory.Exists(resourcesPath).Should().BeTrue($"Test setup error: expected test resources directory does not exist: {resourcesPath}");
 
             var testSubject = new CFamilySonarWayRulesConfigProvider(resourcesPath);
