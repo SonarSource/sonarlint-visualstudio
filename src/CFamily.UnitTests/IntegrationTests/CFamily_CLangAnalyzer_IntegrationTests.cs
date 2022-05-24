@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
             // Uri absolute path is used to make issues filename slashes consistent between expected and actual 
             testsDataDirectory = new Uri(Path.Combine(
                 Path.GetDirectoryName(typeof(CFamily_CLangAnalyzer_IntegrationTests).Assembly.Location),
-                "CFamily\\IntegrationTests\\")).AbsolutePath;
+                "IntegrationTests\\")).AbsolutePath;
 
             // Subprocess.exe requires a valid path to an executable named cl.exe that prints something similar to the real compiler
             const string code = "Console.Error.WriteLine(\"Microsoft(R) C / C++ Optimizing Compiler Version 19.32.31114.2 for x64\");";
@@ -65,12 +65,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
         {
             var testedFile = Path.Combine(testsDataDirectory, testCaseFileName + ".txt");
 
+            // Sanity checks to help with debugging on the CI machine
+            CheckFileExists(testedFile);
+            CheckRulesMetadataFilesExist();
+
             var request = GetRequest(testedFile);
             var expectedMessages = GetExpectedMessages(testCaseFileName, testedFile);
 
             var messages = InvokeAnalyzer(request);
 
             messages.Should().BeEquivalentTo(expectedMessages, e => e.WithStrictOrdering());
+        }
+
+        private static void CheckRulesMetadataFilesExist()
+        {
+            var libDirectory = CFamilyShared.CFamilyFilesDirectory;
+            Console.WriteLine($"[TEST SETUP] Checking CFamily lib directory exists: {libDirectory}");
+            Directory.Exists(libDirectory).Should().BeTrue($"[TEST SETUP ERROR] CFamily lib directory could not be found: {libDirectory}");
+
+            CheckFileExists(Path.Combine(libDirectory, "Sonar_way_profile.json"));
+            CheckFileExists(Path.Combine(libDirectory, "RulesList.json"));
+        }
+
+        private static void CheckFileExists(string fileName)
+        {
+            Console.WriteLine($"[TEST SETUP] Checking for required file: {fileName}");
+            File.Exists(fileName).Should().BeTrue($"[TEST SETUP ERROR] Could not find required test input file: {fileName}");
         }
 
         private CompilationDatabaseRequest GetRequest(string testedFile)

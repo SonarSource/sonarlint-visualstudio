@@ -30,5 +30,35 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  
+
+  <!-- **************************************************************** -->
+  <!-- HACK to make the C++ rule loader tests work -->
+  <!-- **************************************************************** -->
+  <!-- We need all of the json files in the lib subfolder to be copied under the test assembly folder.
+         The files are marked as content files in the Integration project, but since this project was
+         converted to be an SDK-style project the files are being deleted when before the tests are run,
+         causing them to fail. 
+    -->
+  <ItemGroup>
+    <!-- The Integration.Vsix project contains targets to copy the file to the lib directory so we need
+         to build this project after the Integration.Vsix project (otherwise there will be no files to copy). -->
+    <ProjectReference Include="..\Integration.Vsix\Integration.Vsix.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\Integration.Vsix\lib\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>lib\%(Filename)%(Extension)</Link>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="IntegrationTests\*.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="IntegrationTests\*.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <!-- **************************************************************** -->
+
 </Project>
