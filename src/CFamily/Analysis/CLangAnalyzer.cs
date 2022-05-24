@@ -36,7 +36,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
-    internal interface ICFamilyAnalyzer : IAnalyzer
+    public interface ICFamilyAnalyzer : IAnalyzer
     {
         void ExecuteAnalysis(string path,
             IEnumerable<AnalysisLanguage> detectedLanguages,

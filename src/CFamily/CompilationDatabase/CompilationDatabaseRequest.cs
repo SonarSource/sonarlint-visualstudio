@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CompilationDatabase
     /// Encapsulates a low-level analysis request for the CFamily compilation database entry protocol
     /// Used for both CMake and Vcx projects
     /// </summary>
-    internal class CompilationDatabaseRequest : IRequest
+    public class CompilationDatabaseRequest : IRequest
     {
         private readonly CompilationDatabaseEntry databaseEntry;
         private readonly IRulesConfigProtocolFormatter rulesConfigProtocolFormatter;
