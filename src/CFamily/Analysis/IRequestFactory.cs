@@ -36,6 +36,6 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
     /// <see cref="IRequestFactory.TryCreateAsync"/> will return the first non-nullable request,
     /// or null if no factory was able to create one.
     /// </summary>
-    public interface IRequestFactoryAggregate : IRequestFactory
+    internal interface IRequestFactoryAggregate : IRequestFactory
     {}
 }
