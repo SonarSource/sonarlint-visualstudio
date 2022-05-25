@@ -25,6 +25,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 
+// TODO: once this test is no longer required (i.e. when the CFamily rules handling has been refactored so
+// the rule files are not individually embedded in the VSIX), the InternalsVisibleTo in the CFamily assembly
+// can be updated to remove the reference to this assembly.
+
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 {
     [TestClass]

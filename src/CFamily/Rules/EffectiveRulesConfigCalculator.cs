@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
     /// </summary>
     /// <remarks>The calculator has an internal cache to reduce unnecessary re-calculations of
     /// the effective settings (and the associated object allocations).</remarks>
-    public class EffectiveRulesConfigCalculator
+    internal class EffectiveRulesConfigCalculator
     {
         private readonly ILogger logger;
         private readonly RulesConfigCache configCache;

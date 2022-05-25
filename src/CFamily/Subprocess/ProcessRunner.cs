@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     /// <summary>
     /// Helper class to run an executable and capture the output
     /// </summary>
-    public sealed class ProcessRunner : IProcessRunner
+    internal sealed class ProcessRunner : IProcessRunner
     {
         public const int ErrorCode = 1;
 

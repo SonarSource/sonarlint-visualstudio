@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     /// <summary>
     /// Data class containing parameters required to execute a new process
     /// </summary>
-    public class ProcessRunnerArguments
+    internal class ProcessRunnerArguments
     {
         // NOTE: the list of sensitive keys is hard-coded in the S4MSB. 
         // We've made it a property here to limit the amount of refactoring required to use the
