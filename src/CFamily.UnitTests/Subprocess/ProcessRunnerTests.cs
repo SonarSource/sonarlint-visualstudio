@@ -26,9 +26,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
+namespace SonarLint.VisualStudio.CFamily.SubProcess.UnitTests
 {
     [TestClass]
     public class ProcessRunnerTests

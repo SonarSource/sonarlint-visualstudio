@@ -25,7 +25,7 @@ using System.IO;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace SonarLint.VisualStudio.Core.CFamily
+namespace SonarLint.VisualStudio.CFamily.Rules
 {
     internal class RulesLoader
     {

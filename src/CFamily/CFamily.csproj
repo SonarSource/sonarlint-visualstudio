@@ -29,7 +29,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Update="Subprocess\CFamilyStrings.Designer.cs">
+    <Compile Update="SubProcess\CFamilyStrings.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>CFamilyStrings.resx</DependentUpon>
@@ -45,10 +45,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Update="Subprocess\CFamilyStrings.resx">
+    <EmbeddedResource Update="SubProcess\CFamilyStrings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CFamilyStrings.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>SonarLint.VisualStudio.Integration.Vsix.CFamily</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
 

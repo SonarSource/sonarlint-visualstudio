@@ -27,9 +27,11 @@ using System.IO.Abstractions;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
+using SonarLint.VisualStudio.CFamily.Analysis;
+using SonarLint.VisualStudio.CFamily.Rules;
+using SonarLint.VisualStudio.CFamily.SubProcess;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.ETW;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 

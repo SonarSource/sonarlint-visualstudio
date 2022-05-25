@@ -28,10 +28,11 @@ using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.CFamily.SubProcess;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
+namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
 {
     [TestClass]
     public class CFamily_CLangAnalyzerTests

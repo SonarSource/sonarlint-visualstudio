@@ -24,7 +24,7 @@ using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
+namespace SonarLint.VisualStudio.CFamily.SubProcess.UnitTests
 {
     [TestClass]
     public class ProtocolTest

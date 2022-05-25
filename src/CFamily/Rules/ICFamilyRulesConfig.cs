@@ -20,8 +20,9 @@
 
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Core.CFamily
+namespace SonarLint.VisualStudio.CFamily.Rules
 {
     public interface ICFamilyRulesConfig
     {

@@ -24,9 +24,9 @@ using System.IO;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.CFamily.CMake;
-using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.CFamily.SubProcess;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CompilationDatabase
+namespace SonarLint.VisualStudio.CFamily.CompilationDatabase
 {
     /// <summary>
     /// Encapsulates a low-level analysis request for the CFamily compilation database entry protocol

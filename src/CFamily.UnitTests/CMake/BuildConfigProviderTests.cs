@@ -22,14 +22,12 @@ using System;
 using System.IO;
 using System.IO.Abstractions;
 using FluentAssertions;
-using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.CFamily.CMake;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
-namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
+namespace SonarLint.VisualStudio.CFamily.CMake.UnitTests
 {
     [TestClass]
     public class BuildConfigProviderTests

@@ -25,7 +25,7 @@ using System.Linq;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Infrastructure.VS;
 
-namespace SonarLint.VisualStudio.CFamily
+namespace SonarLint.VisualStudio.CFamily.CMake
 {
     [Export(typeof(ICMakeProjectTypeIndicator))]
     [PartCreationPolicy(CreationPolicy.Shared)]

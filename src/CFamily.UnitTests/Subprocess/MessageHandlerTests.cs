@@ -24,11 +24,13 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.CFamily.Analysis;
+using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
+using SonarLint.VisualStudio.CFamily.Rules;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+using SonarLint.VisualStudio.Integration.UnitTests;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
+namespace SonarLint.VisualStudio.CFamily.SubProcess.UnitTests
 {
     [TestClass]
     public class MessageHandlerTests

@@ -18,12 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily;
-using System;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
+namespace SonarLint.VisualStudio.CFamily.SubProcess.UnitTests
 {
     [TestClass]
     public class NoOpMessageHandlerTests

@@ -24,9 +24,8 @@ using System.IO;
 using System.IO.Abstractions.TestingHelpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.PreCompiledHeaders
+namespace SonarLint.VisualStudio.CFamily.PreCompiledHeaders.UnitTests
 {
     [TestClass]
     public class PchCacheCleanerTests

@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 
 /* The calculator implements simple cache to reduce the number of times the effective settings
@@ -45,7 +46,7 @@ using SonarLint.VisualStudio.Integration;
  * 
  */
 
-namespace SonarLint.VisualStudio.Core.CFamily
+namespace SonarLint.VisualStudio.CFamily.Rules
 {
     /// <summary>
     /// Returns the effective rules configuration to use i.e. overrides the defaults with

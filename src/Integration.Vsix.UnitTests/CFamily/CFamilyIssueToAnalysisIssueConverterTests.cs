@@ -27,12 +27,13 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
+using SonarLint.VisualStudio.CFamily.Rules;
+using SonarLint.VisualStudio.CFamily.SubProcess;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
-using Edit = SonarLint.VisualStudio.Integration.Vsix.CFamily.Edit;
+using Edit = SonarLint.VisualStudio.CFamily.SubProcess.Edit;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {

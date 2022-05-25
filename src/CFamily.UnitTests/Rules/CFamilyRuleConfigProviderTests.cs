@@ -24,14 +24,12 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.CFamily.Rules;
+using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.UnitTests;
-using SonarLint.VisualStudio.Integration.UnitTests.CFamily;
 
-namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
+namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
 {
     [TestClass]
     public class CFamilyRuleConfigProviderTests

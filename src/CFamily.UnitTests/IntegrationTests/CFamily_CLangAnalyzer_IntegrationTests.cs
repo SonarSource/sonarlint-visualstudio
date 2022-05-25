@@ -28,14 +28,16 @@ using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.CFamily.CMake;
+using SonarLint.VisualStudio.CFamily.CompilationDatabase;
+using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
+using SonarLint.VisualStudio.CFamily.Rules;
+using SonarLint.VisualStudio.CFamily.SubProcess;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily.CompilationDatabase;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests;
+using SonarLint.VisualStudio.Integration.UnitTests;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
+namespace SonarLint.VisualStudio.CFamily.IntegrationTests
 {
     [TestClass]
     public class CFamily_CLangAnalyzer_IntegrationTests

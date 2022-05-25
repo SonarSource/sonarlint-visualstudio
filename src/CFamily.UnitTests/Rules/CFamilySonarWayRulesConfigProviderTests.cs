@@ -22,9 +22,9 @@ using System.IO;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
+namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
 {
     [TestClass]
     public class CFamilySonarWayRulesConfigProviderTests
