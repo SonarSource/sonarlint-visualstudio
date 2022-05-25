@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.CFamily.Helpers.UnitTests
     /// Creates dummy executables that log the input parameters and return a specified
     /// exit code
     /// </summary>
-    public static class DummyExeHelper
+    internal static class DummyExeHelper
     {
         private const string DummyExeName = "dummy.exe";
 

@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.CFamily.SubProcess
 {
-    public interface IProcessRunner
+    internal interface IProcessRunner
     {
         void Execute(ProcessRunnerArguments runnerArgs);
     }

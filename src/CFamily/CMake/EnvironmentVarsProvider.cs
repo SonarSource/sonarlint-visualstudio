@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
     /// Returns the environment settings to be passed to the subprocess
     /// for an analysis request.
     /// </summary>
-    public interface IEnvironmentVarsProvider
+    internal interface IEnvironmentVarsProvider
     {
         Task<IReadOnlyDictionary<string, string>> GetAsync();
     }
