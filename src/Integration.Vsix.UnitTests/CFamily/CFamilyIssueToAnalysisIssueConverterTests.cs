@@ -621,22 +621,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
         private static ICFamilyRulesConfig GetDummyRulesConfiguration()
         {
-            var config = new DummyCFamilyRulesConfig("any")
-                .AddRule("rule1", IssueSeverity.Blocker, isActive: false,
-                    parameters: new Dictionary<string, string>
-                        {{"rule1 Param1", "rule1 Value1"}, {"rule1 Param2", "rule1 Value2"}})
-                .AddRule("rule2", IssueSeverity.Info, isActive: true,
-                    parameters: new Dictionary<string, string>
-                        {{"rule2 Param1", "rule2 Value1"}, {"rule2 Param2", "rule2 Value2"}})
-                .AddRule("rule3", IssueSeverity.Critical, isActive: true,
-                    parameters: new Dictionary<string, string>
-                        {{"rule3 Param1", "rule3 Value1"}, {"rule3 Param2", "rule3 Value2"}});
+            var config = new Mock<ICFamilyRulesConfig>();
+            config.Setup(x => x.LanguageKey).Returns("any");
 
-            config.RulesMetadata["rule1"].Type = IssueType.Bug;
-            config.RulesMetadata["rule2"].Type = IssueType.CodeSmell;
-            config.RulesMetadata["rule3"].Type = IssueType.Vulnerability;
+            var keyToMetadataMap = new Dictionary<string, RuleMetadata>
+            {
+                { "rule1", new RuleMetadata { DefaultSeverity = IssueSeverity.Blocker, Type = IssueType.Bug } },
+                { "rule2", new RuleMetadata { DefaultSeverity = IssueSeverity.Info, Type = IssueType.CodeSmell } },
+                { "rule3", new RuleMetadata { DefaultSeverity = IssueSeverity.Critical, Type = IssueType.Vulnerability} },
+            };
 
-            return config;
+            config.Setup(x => x.RulesMetadata).Returns(keyToMetadataMap);
+
+            return config.Object;
         }
 
         private static string SetupLineHash(Mock<IFileSystem> fileSystemMock,
