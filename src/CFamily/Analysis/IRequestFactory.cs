@@ -20,7 +20,7 @@
 
 using System.Threading.Tasks;
 
-namespace SonarLint.VisualStudio.Core.CFamily
+namespace SonarLint.VisualStudio.CFamily.Analysis
 {
     public interface IRequestFactory
     {

@@ -21,8 +21,9 @@
 using System;
 using System.IO;
 using System.Linq;
+using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Core.CFamily
+namespace SonarLint.VisualStudio.CFamily
 {
     public static class CFamilyShared
     {

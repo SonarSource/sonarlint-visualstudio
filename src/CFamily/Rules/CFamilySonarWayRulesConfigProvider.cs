@@ -21,8 +21,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Core.CFamily
+namespace SonarLint.VisualStudio.CFamily.Rules
 {
     /// <summary>
     /// Loads all of the json files shipped with VSIX that contain the metadata for SonarWay

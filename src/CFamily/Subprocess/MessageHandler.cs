@@ -19,12 +19,14 @@
  */
 
 using System.Linq;
+using SonarLint.VisualStudio.CFamily.Analysis;
+using SonarLint.VisualStudio.CFamily.Rules;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.ETW;
 using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
+namespace SonarLint.VisualStudio.CFamily.SubProcess
 {
     /// <summary>
     /// Handles messages returned by the CFamily subprocess.exe

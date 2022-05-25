@@ -28,13 +28,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.CFamily.SubProcess;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
+namespace SonarLint.VisualStudio.CFamily.Analysis
 {
     public interface ICFamilyAnalyzer : IAnalyzer
     {

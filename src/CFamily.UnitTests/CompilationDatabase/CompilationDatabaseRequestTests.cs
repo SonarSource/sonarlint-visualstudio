@@ -26,12 +26,13 @@ using System.Text;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.CFamily.CMake;
-using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily.CompilationDatabase;
+using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
+using SonarLint.VisualStudio.CFamily.Rules;
+using SonarLint.VisualStudio.CFamily.SubProcess;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CompilationDatabase
+namespace SonarLint.VisualStudio.CFamily.CompilationDatabase.UnitTests
 {
     [TestClass]
     public class CompilationDatabaseRequestTests

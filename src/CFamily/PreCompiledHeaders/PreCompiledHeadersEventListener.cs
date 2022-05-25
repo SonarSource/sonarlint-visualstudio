@@ -22,12 +22,14 @@ using System;
 using System.ComponentModel.Composition;
 using System.IO.Abstractions;
 using System.Linq;
+using SonarLint.VisualStudio.CFamily.Analysis;
+using SonarLint.VisualStudio.CFamily.SubProcess;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
+namespace SonarLint.VisualStudio.CFamily.PreCompiledHeaders
 {
     public interface IPreCompiledHeadersEventListener : IDisposable
     {

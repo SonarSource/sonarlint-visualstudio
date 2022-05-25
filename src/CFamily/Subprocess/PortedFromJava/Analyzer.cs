@@ -22,7 +22,7 @@
  * This is a port of the protocol implemented between Java and C++
  * https://github.com/SonarSource/sonar-cpp/blob/master/sonar-cfamily-plugin/src/main/java/com/sonar/cpp/analyzer/Analyzer.java
  */
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
+namespace SonarLint.VisualStudio.CFamily.SubProcess
 {
     internal class Response
     {

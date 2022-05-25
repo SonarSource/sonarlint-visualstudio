@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.CFamily
+using SonarLint.VisualStudio.CFamily.Rules;
+
+namespace SonarLint.VisualStudio.CFamily.Analysis
 {
     /// <summary>
     /// Data class containing information about an analysis request

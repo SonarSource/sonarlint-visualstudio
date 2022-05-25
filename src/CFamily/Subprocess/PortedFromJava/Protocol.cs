@@ -29,7 +29,7 @@ using System.Text;
  * Note: the ported code also needs to deal with the fact that the Java DataOutputStream/DataInputStreams are big-endian whereas
  *       the C# BinaryWriter/Reader are little-endian.
  */
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
+namespace SonarLint.VisualStudio.CFamily.SubProcess
 {
     internal static class Protocol
     {

@@ -24,8 +24,9 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
+namespace SonarLint.VisualStudio.CFamily.SubProcess
 {
     /// <summary>
     /// Helper class to run an executable and capture the output

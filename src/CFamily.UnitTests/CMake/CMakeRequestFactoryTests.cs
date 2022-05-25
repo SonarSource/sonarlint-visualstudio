@@ -23,12 +23,14 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.CFamily.CMake;
+using SonarLint.VisualStudio.CFamily.Analysis;
+using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
+using SonarLint.VisualStudio.CFamily.Rules;
+using SonarLint.VisualStudio.CFamily.SubProcess;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake;
+using SonarLint.VisualStudio.Integration.UnitTests;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
+namespace SonarLint.VisualStudio.CFamily.CMake.UnitTests
 {
     [TestClass]
     public class CMakeRequestFactoryTests

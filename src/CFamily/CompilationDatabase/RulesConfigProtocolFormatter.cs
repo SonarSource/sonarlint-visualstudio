@@ -20,9 +20,9 @@
 
 using System;
 using System.Collections.Generic;
-using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.CFamily.Rules;
 
-namespace SonarLint.VisualStudio.CFamily.Analysis
+namespace SonarLint.VisualStudio.CFamily.CompilationDatabase
 {
     public interface IRulesConfigProtocolFormatter
     {
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
         private static Dictionary<string, string> GetRuleParameters(ICFamilyRulesConfig rulesConfiguration)
         {
             var ruleParameters = new Dictionary<string, string>();
-            
+
             foreach (var ruleKey in rulesConfiguration.ActivePartialRuleKeys)
             {
                 if (rulesConfiguration.RulesParameters.TryGetValue(ruleKey, out var ruleParams))

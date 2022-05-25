@@ -24,7 +24,7 @@ using System.IO.Abstractions;
 using System.Linq;
 using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
+namespace SonarLint.VisualStudio.CFamily.PreCompiledHeaders
 {
     internal interface IPchCacheCleaner
     {

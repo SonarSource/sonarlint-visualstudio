@@ -25,11 +25,9 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.CFamily.Analysis;
-using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
-namespace SonarLint.VisualStudio.CFamily.UnitTests.Analysis
+namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
 {
     [TestClass]
     public class RequestFactoryAggregateTests

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
+namespace SonarLint.VisualStudio.CFamily.SubProcess {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarLint.VisualStudio.CFamily.Subprocess.CFamilyStrings", typeof(CFamilyStrings).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarLint.VisualStudio.CFamily.SubProcess.CFamilyStrings", typeof(CFamilyStrings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

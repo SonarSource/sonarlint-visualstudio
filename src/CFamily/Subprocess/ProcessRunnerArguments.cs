@@ -26,7 +26,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
+namespace SonarLint.VisualStudio.CFamily.SubProcess
 {
     /// <summary>
     /// Data class containing parameters required to execute a new process
