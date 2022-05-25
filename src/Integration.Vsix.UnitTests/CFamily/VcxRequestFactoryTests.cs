@@ -20,20 +20,21 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using EnvDTE;
+using EnvDTE80;
 using FluentAssertions;
-using VsShell = Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.CFamily.Analysis;
+using SonarLint.VisualStudio.CFamily.CompilationDatabase;
+using SonarLint.VisualStudio.CFamily.Rules;
+using SonarLint.VisualStudio.CFamily.SubProcess;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 using static SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests.CFamilyTestUtility;
-using System.Threading.Tasks;
-using EnvDTE80;
-using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily.CompilationDatabase;
+using VsShell = Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {

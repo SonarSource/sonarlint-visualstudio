@@ -25,12 +25,15 @@ using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.CFamily;
+using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.CFamily.CMake;
+using SonarLint.VisualStudio.CFamily.CompilationDatabase;
+using SonarLint.VisualStudio.CFamily.Rules;
+using SonarLint.VisualStudio.CFamily.SubProcess;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Helpers;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily.CompilationDatabase;
 using VsShell = Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject

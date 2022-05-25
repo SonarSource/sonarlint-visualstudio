@@ -22,10 +22,9 @@ using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.CFamily.Analysis;
-using SonarLint.VisualStudio.Integration.UnitTests.CFamily;
+using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
 
-namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
+namespace SonarLint.VisualStudio.CFamily.CompilationDatabase.UnitTests
 {
     [TestClass]
     public class RulesConfigProtocolFormatterTests

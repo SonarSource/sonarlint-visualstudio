@@ -23,7 +23,7 @@ using System.Diagnostics;
 using System.IO;
 using SonarLint.VisualStudio.Core.Helpers;
 
-namespace SonarLint.VisualStudio.Core.CFamily
+namespace SonarLint.VisualStudio.CFamily.SubProcess
 {
     /// <summary>
     /// Returns file paths for various CFamily directories/files

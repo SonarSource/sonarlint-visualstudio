@@ -20,7 +20,7 @@
 
 using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.Core.CFamily
+namespace SonarLint.VisualStudio.CFamily.Analysis
 {
     public class CFamilyAnalyzerOptions : IAnalyzerOptions
     {

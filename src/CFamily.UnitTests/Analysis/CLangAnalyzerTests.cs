@@ -26,13 +26,15 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
+using SonarLint.VisualStudio.CFamily.Rules;
+using SonarLint.VisualStudio.CFamily.SubProcess;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
-using SonarLint.VisualStudio.Integration.UnitTests.CFamily;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
+namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
 {
     [TestClass]
     public class CLangAnalyzerTests

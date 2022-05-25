@@ -20,7 +20,7 @@
 
 using System;
 using EnvDTE;
-using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject

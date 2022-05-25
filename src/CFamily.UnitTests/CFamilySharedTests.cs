@@ -19,9 +19,9 @@
  */
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
+namespace SonarLint.VisualStudio.CFamily.UnitTests
 {
     [TestClass]
     public class CFamilySharedTests

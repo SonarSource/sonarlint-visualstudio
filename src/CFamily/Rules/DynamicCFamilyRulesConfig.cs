@@ -22,9 +22,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.Core.CFamily
+namespace SonarLint.VisualStudio.CFamily.Rules
 {
     /// <summary>
     /// Wrapper that handles applying customised rules settings on top of the default config

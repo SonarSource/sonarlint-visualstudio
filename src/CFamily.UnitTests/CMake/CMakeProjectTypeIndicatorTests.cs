@@ -28,7 +28,7 @@ using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
-namespace SonarLint.VisualStudio.CFamily.UnitTests
+namespace SonarLint.VisualStudio.CFamily.CMake.UnitTests
 {
     [TestClass]
     public class CMakeProjectTypeIndicatorTests

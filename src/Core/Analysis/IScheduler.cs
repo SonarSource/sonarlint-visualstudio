@@ -21,7 +21,7 @@
 using System;
 using System.Threading;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Core.Analysis
 {
     public interface IScheduler
     {

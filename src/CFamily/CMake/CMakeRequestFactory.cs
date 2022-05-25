@@ -20,11 +20,12 @@
 
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
-using SonarLint.VisualStudio.CFamily.CMake;
-using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily.CompilationDatabase;
+using SonarLint.VisualStudio.CFamily.Analysis;
+using SonarLint.VisualStudio.CFamily.CompilationDatabase;
+using SonarLint.VisualStudio.CFamily.Rules;
+using SonarLint.VisualStudio.CFamily.SubProcess;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
+namespace SonarLint.VisualStudio.CFamily.CMake
 {
     [Export(typeof(IRequestFactory))]
     internal class CMakeRequestFactory : IRequestFactory

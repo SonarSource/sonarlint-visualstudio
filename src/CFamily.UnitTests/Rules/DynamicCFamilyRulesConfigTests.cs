@@ -22,11 +22,11 @@ using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.UnitTests;
-using SonarLint.VisualStudio.Integration.UnitTests.CFamily;
 
-namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
+namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
 {
     [TestClass]
     public class DynamicCFamilyRulesConfigTests

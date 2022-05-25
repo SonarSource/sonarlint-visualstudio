@@ -21,7 +21,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace SonarLint.VisualStudio.Core.CFamily
+namespace SonarLint.VisualStudio.CFamily.Analysis
 {
     /// <summary>
     /// Encapsulates a low-level request to be sent to the CFamily subprocess
