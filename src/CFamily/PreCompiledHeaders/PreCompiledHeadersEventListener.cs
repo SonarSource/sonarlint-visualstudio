@@ -29,7 +29,7 @@ using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
-    interface IPreCompiledHeadersEventListener : IDisposable
+    public interface IPreCompiledHeadersEventListener : IDisposable
     {
     }
 
