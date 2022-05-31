@@ -64,6 +64,7 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Api.V7_20.GetIssuesRequestWrapper for 7.2",
                     "Registered SonarQube.Client.Api.V8_6.GetHotspotRequest for 8.6",
                     "Registered SonarQube.Client.Api.V8_6.GetTaintVulnerabilitiesRequest for 8.6",
+                    "Registered SonarQube.Client.Api.V7_20.GetExclusionsRequest for 7.2",
                 };
 
             DefaultConfiguration.ConfigureSonarQube(new RequestFactory(logger));
@@ -100,6 +101,7 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Api.V7_20.GetIssuesRequestWrapper",
                     "Registered SonarQube.Client.Api.V8_6.GetHotspotRequest",
                     "Registered SonarQube.Client.Api.V8_6.GetTaintVulnerabilitiesRequest",
+                    "Registered SonarQube.Client.Api.V7_20.GetExclusionsRequest",
                 };
 
             DefaultConfiguration.ConfigureSonarCloud(new UnversionedRequestFactory(logger));
@@ -135,6 +137,7 @@ namespace SonarQube.Client.Tests.Requests
             testSubject.Create<IValidateCredentialsRequest>(serverInfo).Should().NotBeNull();
             testSubject.Create<IGetSourceCodeRequest>(serverInfo).Should().NotBeNull();
             testSubject.Create<IGetProjectBranchesRequest>(serverInfo).Should().NotBeNull();
+            testSubject.Create<IGetExclusionsRequest>(serverInfo).Should().NotBeNull();
         }
 
         [TestMethod]
@@ -162,6 +165,7 @@ namespace SonarQube.Client.Tests.Requests
             testSubject.Create<IValidateCredentialsRequest>(serverInfo).Should().NotBeNull();
             testSubject.Create<IGetSourceCodeRequest>(serverInfo).Should().NotBeNull();
             testSubject.Create<IGetProjectBranchesRequest>(serverInfo).Should().NotBeNull();
+            testSubject.Create<IGetExclusionsRequest>(serverInfo).Should().NotBeNull();
         }
 
         private static void DumpDebugMessages(TestLogger logger)
