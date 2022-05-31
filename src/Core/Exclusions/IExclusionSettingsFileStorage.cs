@@ -18,11 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarQube.Client.Models;
+
 namespace SonarLint.VisualStudio.Core.Exclusions
 {
     public interface IExclusionSettingsFileStorage
     {
-        void SaveSettings(string sonarProjectKey, ExclusionSettings settings);
-        ExclusionSettings GetSettings(string sonarProjectKey);
+        void SaveSettings(string sonarProjectKey, ServerExclusions settings);
+        ServerExclusions GetSettings(string sonarProjectKey);
     }
 }

@@ -27,6 +27,7 @@ using Moq;
 using SonarLint.VisualStudio.Core.Exclusions;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration.Exclusions;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
 {
@@ -34,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
     public class ExclusionSettingsFileStorageTests
     {
         private const string NotFoundMessage = "Error loading settings for project {0}. File exclusions on the server will not be excluded in the IDE. Error: Settings File was not found";
-        private const string objectJson = "{\"Inclusions\":[\"inclusion1\",\"inclusion2\"],\"Exclusions\":[\"exclusion\"],\"GlobalInclusions\":[\"globalInclusion\"],\"GlobalExclusions\":[\"globalExclusion\"]}";
+        private const string objectJson = "{\"Exclusions\":[\"exclusion\"],\"GlobalExclusions\":[\"globalExclusion\"],\"Inclusions\":[\"inclusion1\",\"inclusion2\"],\"GlobalInclusions\":[\"globalInclusion\"]}";
 
         [TestMethod]
         public void GetSettings_HaveSettings_ReadsSettings()
@@ -120,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
 
             var testSubject = CreateTestSubject(fileSystem, logger);
 
-            var settings = new ExclusionSettings
+            var settings = new ServerExclusions
             {
                 Inclusions = new string[] { "inclusion1", "inclusion2" },
                 Exclusions = new string[] { "exclusion" },
@@ -149,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
 
             var testSubject = CreateTestSubject(fileSystem, logger);
 
-            var settings = new ExclusionSettings();          
+            var settings = new ServerExclusions();          
 
             testSubject.SaveSettings(projectKey, settings);
 

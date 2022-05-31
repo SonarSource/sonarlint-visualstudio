@@ -24,6 +24,7 @@ using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Exclusions;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration.Resources;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Exclusions
 {
@@ -41,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
             fileSystem.Directory.CreateDirectory(exclusionPath);
         }
 
-        public ExclusionSettings GetSettings(string sonarProjectKey)
+        public ServerExclusions GetSettings(string sonarProjectKey)
         {
             try
             {
@@ -54,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
                 }
 
                 var fileContent = fileSystem.File.ReadAllText(filePath);
-                return JsonConvert.DeserializeObject<ExclusionSettings>(fileContent);
+                return JsonConvert.DeserializeObject<ServerExclusions>(fileContent);
             }
             catch(Exception ex)
             {
@@ -64,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
             return null;
         }
 
-        public void SaveSettings(string sonarProjectKey, ExclusionSettings settings)
+        public void SaveSettings(string sonarProjectKey, ServerExclusions settings)
         {
             try
             {
