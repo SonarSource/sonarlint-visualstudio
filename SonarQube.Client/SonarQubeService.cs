@@ -396,6 +396,13 @@ namespace SonarQube.Client
                     request.ProjectKey = projectKey;
                 }, token);
 
+        public async Task<ServerExclusions> GetServerExclusions(string projectKey, CancellationToken token) =>
+            await InvokeRequestAsync<IGetExclusionsRequest, ServerExclusions>(
+                request =>
+                {
+                    request.ProjectKey = projectKey;
+                }, token);
+
         #region IDisposable Support
         private bool disposedValue; // To detect redundant calls
 
