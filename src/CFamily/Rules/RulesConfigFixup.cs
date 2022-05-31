@@ -121,9 +121,9 @@ namespace SonarLint.VisualStudio.CFamily.Rules
             { "PPBadIncludeForm", "S956" }
         };
 
-        private static readonly IReadOnlyDictionary<string, string> fullLegacyToNewKeyMap;
+        private static readonly IReadOnlyDictionary<string, string> fullLegacyToNewKeyMap = CalculateFullKeyMap();
 
-        static RulesConfigFixup()
+        private static IReadOnlyDictionary<string, string> CalculateFullKeyMap()
         {
             var mapWithLanguagePrefixes = new Dictionary<string, string>();
             foreach (var partial in partialLegacyToNewKeyMap)
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules
                 mapWithLanguagePrefixes[$"{SonarLanguageKeys.C}:{partial.Key}"] = $"{SonarLanguageKeys.C}:{partial.Value}";
                 mapWithLanguagePrefixes[$"{SonarLanguageKeys.CPlusPlus}:{partial.Key}"] = $"{SonarLanguageKeys.CPlusPlus}:{partial.Value}";
             }
-            fullLegacyToNewKeyMap = mapWithLanguagePrefixes;
+            return mapWithLanguagePrefixes;
         }
 
         /// <summary>
