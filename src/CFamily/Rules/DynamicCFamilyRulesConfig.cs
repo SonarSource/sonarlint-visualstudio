@@ -63,11 +63,15 @@ namespace SonarLint.VisualStudio.CFamily.Rules
         };
 
         public DynamicCFamilyRulesConfig(ICFamilyRulesConfig defaultRulesConfig, RulesSettings customRulesSettings, ILogger logger)
-            :this(defaultRulesConfig, customRulesSettings, logger, ExcludedRulesKeys)
+            :this(defaultRulesConfig, customRulesSettings, logger, ExcludedRulesKeys, new RulesConfigFixup())
         {
         }
 
-        internal /* for testing */ DynamicCFamilyRulesConfig(ICFamilyRulesConfig defaultRulesConfig, RulesSettings customRulesSettings, ILogger logger, IEnumerable<string> excludedRuleKeys)
+        internal /* for testing */ DynamicCFamilyRulesConfig(ICFamilyRulesConfig defaultRulesConfig,
+            RulesSettings customRulesSettings,
+            ILogger logger,
+            IEnumerable<string> excludedRuleKeys,
+            IRulesConfigFixup fixup)
         {
             this.defaultRulesConfig = defaultRulesConfig ?? throw new ArgumentNullException(nameof(defaultRulesConfig));
             if (customRulesSettings == null)
@@ -84,7 +88,8 @@ namespace SonarLint.VisualStudio.CFamily.Rules
                 logger.WriteLine(CoreStrings.CFamily_NoCustomRulesSettings);
             }
 
-            var modifiedCustomRules = DisableExcludedRules(customRulesSettings, excludedRuleKeys, logger);
+            var modifiedCustomRules = fixup.Apply(customRulesSettings);
+            modifiedCustomRules = DisableExcludedRules(modifiedCustomRules, excludedRuleKeys, logger);
 
             ActivePartialRuleKeys = CalculateActiveRules(defaultRulesConfig, modifiedCustomRules);
             RulesMetadata = new Dictionary<string, RuleMetadata>();
