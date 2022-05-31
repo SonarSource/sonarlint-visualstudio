@@ -151,7 +151,6 @@ namespace SonarLint.VisualStudio.CFamily.Rules
                 {
                     var inputConfig = input.Rules[inputKey];
                     input.Rules.Remove(inputKey);
-                    logger.LogDebug($"[CFamily] Translating legacy rule key: {inputKey} -> {newKey}");
 
                     // There might already be a setting with the new key. If so, we'll keep it and drop the legacy key setting.
                     if (input.Rules.ContainsKey(newKey))
@@ -160,6 +159,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules
                     }
                     else
                     {
+                        logger.LogDebug($"[CFamily] Translating legacy rule key: {inputKey} -> {newKey}");
                         input.Rules[newKey] = inputConfig;
                     }
                 }

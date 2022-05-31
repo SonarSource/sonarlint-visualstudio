@@ -105,6 +105,27 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
             logger.AssertPartialOutputStringExists(legacyKey, newKey);
         }
 
+        [TestMethod]
+        public void Apply_NoLegacyKeys_NothingLogged()
+        {
+            var config1 = new RuleConfig { Level = RuleLevel.On, Severity = IssueSeverity.Major };
+
+            var emptySettings = new RulesSettings
+            {
+                Rules =
+                {
+                    { "any non-legacy rule key", config1 }
+                }
+            };
+            var logger = new TestLogger();
+            var testSubject = CreateTestSubject(logger);
+
+            var result = testSubject.Apply(emptySettings);
+
+            result.Rules.Count.Should().Be(1);
+            logger.AssertNoOutputMessages();
+        }
+
         private static RulesConfigFixup CreateTestSubject(ILogger logger = null)
             => new RulesConfigFixup(logger ?? new TestLogger());
     }
