@@ -22,6 +22,8 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.CFamily.Rules;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
 {
@@ -32,7 +34,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
         public void Apply_EmptySettings_NoError()
         {
             var emptySettings = new RulesSettings();
-            var testSubject = new RulesConfigFixup();
+            var testSubject = CreateTestSubject();
 
             var result = testSubject.Apply(emptySettings);
 
@@ -61,7 +63,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
                 }
             };
 
-            var testSubject = new RulesConfigFixup();
+            var testSubject = CreateTestSubject();
 
             var result = testSubject.Apply(emptySettings);
 
@@ -90,13 +92,20 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
                 }
             };
 
-            var testSubject = new RulesConfigFixup();
+            var logger = new TestLogger(logToConsole: true);
+
+            var testSubject = CreateTestSubject(logger);
 
             var result = testSubject.Apply(emptySettings);
 
             result.Rules[newKey].Should().BeSameAs(newKeyConfig);
             result.Rules.TryGetValue(legacyKey, out var _).Should().BeFalse();
             result.Rules.Count.Should().Be(1);
+
+            logger.AssertPartialOutputStringExists(legacyKey, newKey);
         }
+
+        private static RulesConfigFixup CreateTestSubject(ILogger logger = null)
+            => new RulesConfigFixup(logger ?? new TestLogger());
     }
 }

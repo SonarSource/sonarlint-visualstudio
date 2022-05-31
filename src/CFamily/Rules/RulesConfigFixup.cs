@@ -21,6 +21,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.CFamily.Rules
 {
@@ -134,6 +136,10 @@ namespace SonarLint.VisualStudio.CFamily.Rules
             return mapWithLanguagePrefixes;
         }
 
+        private readonly ILogger logger;
+
+        public RulesConfigFixup(ILogger logger) => this.logger = logger ?? throw new System.ArgumentNullException(nameof(logger));
+
         /// <summary>
         /// Translates any legacy rule keys in the input to new Sxxx rule keys
         /// </summary>
@@ -145,10 +151,14 @@ namespace SonarLint.VisualStudio.CFamily.Rules
                 {
                     var inputConfig = input.Rules[inputKey];
                     input.Rules.Remove(inputKey);
+                    logger.LogDebug($"[CFamily] Translating legacy rule key: {inputKey} -> {newKey}");
 
-                    // There might already be a setting with the new key. If so,
-                    // we'll keep it and drop the legacy key setting.
-                    if (!input.Rules.ContainsKey(newKey))
+                    // There might already be a setting with the new key. If so, we'll keep it and drop the legacy key setting.
+                    if (input.Rules.ContainsKey(newKey))
+                    {
+                        logger.WriteLine(Resources.CFamily_DuplicateLegacyAndNewRuleKey, inputKey, newKey);
+                    }
+                    else
                     {
                         input.Rules[newKey] = inputConfig;
                     }

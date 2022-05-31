@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules
         };
 
         public DynamicCFamilyRulesConfig(ICFamilyRulesConfig defaultRulesConfig, RulesSettings customRulesSettings, ILogger logger)
-            :this(defaultRulesConfig, customRulesSettings, logger, ExcludedRulesKeys, new RulesConfigFixup())
+            :this(defaultRulesConfig, customRulesSettings, logger, ExcludedRulesKeys, new RulesConfigFixup(logger))
         {
         }
 
