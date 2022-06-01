@@ -63,36 +63,63 @@ namespace SonarLint.VisualStudio.CFamily.Rules {
         /// <summary>
         ///   Looks up a localized string similar to [CFamily] Rule settings contain entries for both legacy rule key and new rule keys. The legacy value will be ignored. Legacy key: {0}, new key: {1}.
         /// </summary>
-        internal static string CFamily_DuplicateLegacyAndNewRuleKey {
+        internal static string DuplicateLegacyAndNewRuleKey {
             get {
-                return ResourceManager.GetString("CFamily_DuplicateLegacyAndNewRuleKey", resourceCulture);
+                return ResourceManager.GetString("DuplicateLegacyAndNewRuleKey", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Note: the following CFamily rules are not available in SonarLint: {0}.
+        ///   Looks up a localized string similar to [CFamily] Using cached rule settings.
         /// </summary>
-        internal static string CFamily_RulesUnavailableInSonarLint {
+        internal static string EffectiveRules_CacheHit {
             get {
-                return ResourceManager.GetString("CFamily_RulesUnavailableInSonarLint", resourceCulture);
+                return ResourceManager.GetString("EffectiveRules_CacheHit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CFamily] Calculating effective rule settings....
+        /// </summary>
+        internal static string EffectiveRules_CacheMiss {
+            get {
+                return ResourceManager.GetString("EffectiveRules_CacheMiss", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CFamily] No custom rules settings - using defaults.
+        /// </summary>
+        internal static string NoCustomRulesSettings {
+            get {
+                return ResourceManager.GetString("NoCustomRulesSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CFamily] Note: the following CFamily rules are not available in SonarLint: {0}.
+        /// </summary>
+        internal static string RulesUnavailableInSonarLint {
+            get {
+                return ResourceManager.GetString("RulesUnavailableInSonarLint", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to [CFamily] Unable to load/locate connected mode settings. Falling back on standalone mode settings..
         /// </summary>
-        internal static string CFamily_UnableToLoadConnectedModeSettings {
+        internal static string UnableToLoadConnectedModeSettings {
             get {
-                return ResourceManager.GetString("CFamily_UnableToLoadConnectedModeSettings", resourceCulture);
+                return ResourceManager.GetString("UnableToLoadConnectedModeSettings", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to [CFamily] Using connected mode settings. User-specified settings in settings.json will be ignored..
         /// </summary>
-        internal static string CFamily_UsingConnectedModeSettings {
+        internal static string UsingConnectedModeSettings {
             get {
-                return ResourceManager.GetString("CFamily_UsingConnectedModeSettings", resourceCulture);
+                return ResourceManager.GetString("UsingConnectedModeSettings", resourceCulture);
             }
         }
     }
