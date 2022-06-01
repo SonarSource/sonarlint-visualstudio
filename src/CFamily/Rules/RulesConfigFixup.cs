@@ -145,27 +145,54 @@ namespace SonarLint.VisualStudio.CFamily.Rules
         /// </summary>
         public RulesSettings Apply(RulesSettings input)
         {
-            foreach (var inputKey in input.Rules.Keys.ToArray())
+            /*
+
+            We're making a shallow copy of the list of rules. If we modify the original list, any exclusions we 
+            add could end up be saved in the user settings.json file(if that is where the custom rules
+            came from).
+            
+            Modifying the saved user settings.json would be a problem in the following scenario:
+                * the file has a legacy key settings e.g.cpp:C99CommentUsage
+                * the user has multiple VS instances with "old" and "new" SonarLint instances installed
+            e.g.they still have an instance oF VS2015 / 2017 they need to use
+                
+            In that case, we don't want to update the legacy keys in the settings file since it would
+            re - enable the rules in the "old" version.
+
+            However, _not_ updating the legacy keys in the file has a different issue: the file could
+            contain both old and new keys e.g.
+                * settings file has legacy rule key e.g.cpp:C99CommentUsage(set to "On")
+                * user disables the corresponding "new" rule S787.
+            In that case, we'll warn in the output window that the legacy setting is being ignored.
+
+             */
+            
+            var modifiedSettings = new RulesSettings
+            {
+                Rules = new Dictionary<string, RuleConfig>(input.Rules, input.Rules.Comparer)
+            };
+
+            foreach (var inputKey in modifiedSettings.Rules.Keys.ToArray())
             {
                 if (fullLegacyToNewKeyMap.TryGetValue(inputKey, out var newKey))
                 {
-                    var inputConfig = input.Rules[inputKey];
-                    input.Rules.Remove(inputKey);
+                    var inputConfig = modifiedSettings.Rules[inputKey];
+                    modifiedSettings.Rules.Remove(inputKey);
 
                     // There might already be a setting with the new key. If so, we'll keep it and drop the legacy key setting.
-                    if (input.Rules.ContainsKey(newKey))
+                    if (modifiedSettings.Rules.ContainsKey(newKey))
                     {
                         logger.WriteLine(Resources.CFamily_DuplicateLegacyAndNewRuleKey, inputKey, newKey);
                     }
                     else
                     {
                         logger.LogDebug($"[CFamily] Translating legacy rule key: {inputKey} -> {newKey}");
-                        input.Rules[newKey] = inputConfig;
+                        modifiedSettings.Rules[newKey] = inputConfig;
                     }
                 }
             }
 
-            return input;
+            return modifiedSettings;
         }
     }
 }

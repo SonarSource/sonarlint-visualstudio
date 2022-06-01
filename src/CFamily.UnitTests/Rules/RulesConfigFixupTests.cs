@@ -39,6 +39,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
             var result = testSubject.Apply(emptySettings);
 
             result.Rules.Should().BeEmpty();
+            CheckInstanceIsDifferent(emptySettings, result);
         }
 
         [TestMethod]
@@ -53,7 +54,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
             var config2 = new RuleConfig { Level = RuleLevel.Off, Severity = IssueSeverity.Minor };
             var config3 = new RuleConfig { Level = RuleLevel.On, Severity = IssueSeverity.Critical };
 
-            var emptySettings = new RulesSettings
+            var originalSettings = new RulesSettings
             {
                 Rules =
                 {
@@ -65,7 +66,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
 
             var testSubject = CreateTestSubject();
 
-            var result = testSubject.Apply(emptySettings);
+            var result = testSubject.Apply(originalSettings);
 
             result.Rules.Count.Should().Be(3);
             result.Rules["any"].Should().BeSameAs(config1);
@@ -73,6 +74,8 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
 
             result.Rules.TryGetValue(expectedRuleKey, out var outputConfig).Should().BeTrue();
             outputConfig.Should().BeSameAs(config2);
+
+            CheckInstanceIsDifferent(originalSettings, result);
         }
 
         [TestMethod]
@@ -83,7 +86,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
             var legacyKeyConfig = new RuleConfig { Level = RuleLevel.On, Severity = IssueSeverity.Major };
             var newKeyConfig = new RuleConfig { Level = RuleLevel.Off, Severity = IssueSeverity.Minor };
 
-            var emptySettings = new RulesSettings
+            var originalSettings = new RulesSettings
             {
                 Rules =
                 {
@@ -96,13 +99,14 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
 
             var testSubject = CreateTestSubject(logger);
 
-            var result = testSubject.Apply(emptySettings);
+            var result = testSubject.Apply(originalSettings);
 
             result.Rules[newKey].Should().BeSameAs(newKeyConfig);
             result.Rules.TryGetValue(legacyKey, out var _).Should().BeFalse();
             result.Rules.Count.Should().Be(1);
 
             logger.AssertPartialOutputStringExists(legacyKey, newKey);
+            CheckInstanceIsDifferent(originalSettings, result);
         }
 
         [TestMethod]
@@ -110,7 +114,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
         {
             var config1 = new RuleConfig { Level = RuleLevel.On, Severity = IssueSeverity.Major };
 
-            var emptySettings = new RulesSettings
+            var originalSettings = new RulesSettings
             {
                 Rules =
                 {
@@ -120,13 +124,21 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
             var logger = new TestLogger();
             var testSubject = CreateTestSubject(logger);
 
-            var result = testSubject.Apply(emptySettings);
+            var result = testSubject.Apply(originalSettings);
 
             result.Rules.Count.Should().Be(1);
             logger.AssertNoOutputMessages();
+
+            CheckInstanceIsDifferent(originalSettings, result);
         }
 
         private static RulesConfigFixup CreateTestSubject(ILogger logger = null)
             => new RulesConfigFixup(logger ?? new TestLogger());
+
+        // Checks that the changes have been made to a copy of the settings,
+        // not the original settings.
+        private static void CheckInstanceIsDifferent(RulesSettings original, RulesSettings modified) =>
+            modified.Should().NotBeSameAs(original);
+    
     }
 }
