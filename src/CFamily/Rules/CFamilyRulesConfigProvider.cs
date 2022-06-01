@@ -76,11 +76,11 @@ namespace SonarLint.VisualStudio.CFamily.Rules
                 settings = FindConnectedModeSettings(languageKey, binding);
                 if (settings == null)
                 {
-                    logger.WriteLine(Resources.CFamily_UnableToLoadConnectedModeSettings);
+                    logger.WriteLine(Resources.UnableToLoadConnectedModeSettings);
                 }
                 else
                 {
-                    logger.WriteLine(Resources.CFamily_UsingConnectedModeSettings);
+                    logger.WriteLine(Resources.UsingConnectedModeSettings);
                 }
             }
 

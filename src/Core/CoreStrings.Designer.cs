@@ -61,15 +61,6 @@ namespace SonarLint.VisualStudio.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No custom rules settings - using defaults.
-        /// </summary>
-        public static string CFamily_NoCustomRulesSettings {
-            get {
-                return ResourceManager.GetString("CFamily_NoCustomRulesSettings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to C++.
         /// </summary>
         public static string CppLanguageName {
@@ -93,24 +84,6 @@ namespace SonarLint.VisualStudio.Core {
         public static string CSharpLanguageName {
             get {
                 return ResourceManager.GetString("CSharpLanguageName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Using cached rule settings.
-        /// </summary>
-        public static string EffectiveRules_CacheHit {
-            get {
-                return ResourceManager.GetString("EffectiveRules_CacheHit", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Calculating effective rule settings....
-        /// </summary>
-        public static string EffectiveRules_CacheMiss {
-            get {
-                return ResourceManager.GetString("EffectiveRules_CacheMiss", resourceCulture);
             }
         }
         

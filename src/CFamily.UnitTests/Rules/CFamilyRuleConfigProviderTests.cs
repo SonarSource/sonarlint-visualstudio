@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             result.RulesMetadata["rule4"].DefaultSeverity.Should().Be(IssueSeverity.Blocker); // ConnectedModeSetting should override the default
 
             builder.AssertStandaloneSettingsNotAccessed();
-            builder.Logger.AssertOutputStringExists(Resources.CFamily_UsingConnectedModeSettings);
+            builder.Logger.AssertOutputStringExists(Resources.UsingConnectedModeSettings);
         }
 
         [TestMethod]
@@ -173,7 +173,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             result.ActivePartialRuleKeys.Should().BeEquivalentTo("rule1", "rule3", "rule4");
             result.AllPartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2", "rule3", "rule4");
 
-            builder.Logger.AssertOutputStringExists(Resources.CFamily_UnableToLoadConnectedModeSettings);
+            builder.Logger.AssertOutputStringExists(Resources.UnableToLoadConnectedModeSettings);
         }
 
         private class TestEnvironmentBuilder

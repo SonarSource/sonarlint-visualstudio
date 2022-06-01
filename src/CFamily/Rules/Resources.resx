@@ -117,19 +117,28 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="CFamily_DuplicateLegacyAndNewRuleKey" xml:space="preserve">
+  <data name="DuplicateLegacyAndNewRuleKey" xml:space="preserve">
     <value>[CFamily] Rule settings contain entries for both legacy rule key and new rule keys. The legacy value will be ignored. Legacy key: {0}, new key: {1}</value>
     <comment>Output window message when settings file contains both legacy and new rule keys e.g. c:C99CommentUsage and c:S787</comment>
   </data>
-  <data name="CFamily_RulesUnavailableInSonarLint" xml:space="preserve">
-    <value>Note: the following CFamily rules are not available in SonarLint: {0}</value>
+  <data name="EffectiveRules_CacheHit" xml:space="preserve">
+    <value>[CFamily] Using cached rule settings</value>
+  </data>
+  <data name="EffectiveRules_CacheMiss" xml:space="preserve">
+    <value>[CFamily] Calculating effective rule settings...</value>
+  </data>
+  <data name="NoCustomRulesSettings" xml:space="preserve">
+    <value>[CFamily] No custom rules settings - using defaults</value>
+  </data>
+  <data name="RulesUnavailableInSonarLint" xml:space="preserve">
+    <value>[CFamily] Note: the following CFamily rules are not available in SonarLint: {0}</value>
     <comment>Output window messge</comment>
   </data>
-  <data name="CFamily_UnableToLoadConnectedModeSettings" xml:space="preserve">
+  <data name="UnableToLoadConnectedModeSettings" xml:space="preserve">
     <value>[CFamily] Unable to load/locate connected mode settings. Falling back on standalone mode settings.</value>
     <comment>Output window message if in connected mode but couldn't find or load the connected mode settings file</comment>
   </data>
-  <data name="CFamily_UsingConnectedModeSettings" xml:space="preserve">
+  <data name="UsingConnectedModeSettings" xml:space="preserve">
     <value>[CFamily] Using connected mode settings. User-specified settings in settings.json will be ignored.</value>
     <comment>Output window message</comment>
   </data>
