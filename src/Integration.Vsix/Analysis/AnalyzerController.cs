@@ -38,15 +38,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         // the config monitor so that it is created, and the lifetimes of the analyzer controller and
         // config monitor should be the same so it is convenient to create it here.
         private readonly IAnalysisConfigMonitor analysisConfigMonitor;
+        private readonly IAnalyzableFileIndicator analyzableFileIndicator;
 
         [ImportingConstructor]
         public AnalyzerController(ILogger logger,
             [ImportMany]IEnumerable<IAnalyzer> analyzers,
-            IAnalysisConfigMonitor analysisConfigMonitor)
+            IAnalysisConfigMonitor analysisConfigMonitor,
+            IAnalyzableFileIndicator analyzableFileIndicator)
         {
             this.logger = logger;
             this.analyzers = analyzers;
             this.analysisConfigMonitor = analysisConfigMonitor;
+            this.analyzableFileIndicator = analyzableFileIndicator;
         }
 
         #region IAnalyzerController implementation
@@ -63,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             bool handled = false;
             foreach(var analyzer in analyzers)
             {
-                if (analyzer.IsAnalysisSupported(detectedLanguages))
+                if (analyzer.IsAnalysisSupported(detectedLanguages) && analyzableFileIndicator.ShouldAnalyze(path))
                 {
                     handled = true;
                     analyzer.ExecuteAnalysis(path, charset, detectedLanguages, consumer, analyzerOptions, cancellationToken);

@@ -26,7 +26,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 {
@@ -37,14 +36,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void IsAnalysisSupported()
         {
             // Arrange
-            var analyzers = new IAnalyzer[]
+            var analyzers = new[]
             {
                 new DummyAnalyzer(),
                 new DummyAnalyzer(AnalysisLanguage.CFamily),
                 new DummyAnalyzer(),
             };
 
-            var controller = new AnalyzerController(new TestLogger(), analyzers, null);
+            var controller = CreateTestSubject(analyzers);
 
             // Act and Assert
             controller.IsAnalysisSupported(new[] { AnalysisLanguage.CFamily }).Should().BeTrue();
@@ -52,17 +51,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         }
 
         [TestMethod]
-        public void RequestAnalysis_NotSupported_RequestAnalysisNotCalled()
+        public void RequestAnalysis_LanguageIsNotSupported_RequestAnalysisNotCalled()
         {
             // Arrange
-            var analyzers = new DummyAnalyzer[]
+            var analyzers = new[]
             {
                 new DummyAnalyzer(),
                 new DummyAnalyzer(AnalysisLanguage.CFamily),
                 new DummyAnalyzer(),
             };
 
-            var controller = new AnalyzerController(new TestLogger(), analyzers, null);
+            var controller = CreateTestSubject(analyzers);
 
             // Act
             controller.ExecuteAnalysis("c:\\file.cpp", "charset1", new[] { AnalysisLanguage.Javascript }, null, null, CancellationToken.None);
@@ -71,10 +70,31 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         }
 
         [TestMethod]
-        public void RequestAnalysis_Supported_RequestAnalysisNotCalled()
+        public void RequestAnalysis_LanguageIsSupported_FileShouldNotBeAnalyzed_RequestAnalysisNotCalled()
         {
             // Arrange
-            var analyzers = new DummyAnalyzer[]
+            var analyzers = new[]
+            {
+                new DummyAnalyzer(AnalysisLanguage.CFamily),
+            };
+
+            var analyzableFileIndicator = new Mock<IAnalyzableFileIndicator>();
+            analyzableFileIndicator.Setup(x => x.ShouldAnalyze("c:\\file.cpp")).Returns(false);
+
+            var controller = CreateTestSubject(analyzers, analyzableFileIndicator: analyzableFileIndicator.Object);
+
+            // Act
+            controller.ExecuteAnalysis("c:\\file.cpp", "charset1",
+                new[] { AnalysisLanguage.CFamily, AnalysisLanguage.Javascript }, null, null, CancellationToken.None);
+
+            analyzers[0].RequestAnalysisCalled.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void RequestAnalysis_LanguageIsSupported_FileShouldBeAnalyzed_RequestAnalysisIsCalled()
+        {
+            // Arrange
+            var analyzers = new[]
             {
                 new DummyAnalyzer(),
                 new DummyAnalyzer(AnalysisLanguage.CFamily),
@@ -82,7 +102,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
                 new DummyAnalyzer(AnalysisLanguage.CFamily),
             };
 
-            var controller = new AnalyzerController(new TestLogger(), analyzers, null);
+            var analyzableFileIndicator = new Mock<IAnalyzableFileIndicator>();
+            analyzableFileIndicator.Setup(x => x.ShouldAnalyze("c:\\file.cpp")).Returns(true);
+
+            var controller = CreateTestSubject(analyzers, analyzableFileIndicator: analyzableFileIndicator.Object);
 
             // Act
             controller.ExecuteAnalysis("c:\\file.cpp", "charset1",
@@ -102,7 +125,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void CleanUp_MonitorDisposed()
         {
             // Arrange
-            var analyzers = new DummyAnalyzer[]
+            var analyzers = new[]
             {
                 new DummyAnalyzer()
             };
@@ -110,7 +133,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var monitorMock = new Mock<IAnalysisConfigMonitor>();
             var disposableMock = monitorMock.As<IDisposable>();
 
-            var controller = new AnalyzerController(new TestLogger(), analyzers, monitorMock.Object);
+            var controller = CreateTestSubject(analyzers, monitorMock.Object);
 
             // Act - Dispose multiple times
             controller.Dispose();
@@ -120,6 +143,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             // Assert
             disposableMock.Verify(x => x.Dispose(), Times.Once);
         }
+
+        private static AnalyzerController CreateTestSubject(IEnumerable<IAnalyzer> analyzers,
+            IAnalysisConfigMonitor analysisConfigMonitor = null,
+            IAnalyzableFileIndicator analyzableFileIndicator = null) =>
+            new(Mock.Of<ILogger>(), analyzers, analysisConfigMonitor, analyzableFileIndicator);
 
         private class DummyAnalyzer : IAnalyzer
         {
