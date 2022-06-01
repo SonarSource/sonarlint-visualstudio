@@ -36,38 +36,15 @@ namespace SonarLint.VisualStudio.CFamily.Rules
     {
         private readonly ICFamilyRulesConfig defaultRulesConfig;
 
-        internal static readonly string[] ExcludedRulesKeys = new string[] {
-            // Project-level:
-            "cpp:S5536", "c:S5536",
-            "cpp:S4830", "c:S4830",
-            "cpp:S5527", "c:S5527",
-            // Security hotspots:
-            "cpp:S5801", "c:S5801",
-            "cpp:S5814", "c:S5814",
-            "cpp:S5815", "c:S5815",
-            "cpp:S5816", "c:S5816",
-            "cpp:S5824", "c:S5824",
-            "cpp:S2612", "c:S2612",
-            "cpp:S5802", "c:S5802",
-            "cpp:S5849", "c:S5849",
-            "cpp:S5982", "c:S5982",
-            "cpp:S5813", "c:S5813",
-            "cpp:S5332", "c:S5332",
-            "cpp:S2068", "c:S2068",
-            "cpp:S2245", "c:S2245",
-            "cpp:S5443", "c:S5443",
-            "cpp:S5042", "c:S5042",
-            "cpp:S4790", "c:S4790",
-            "cpp:S1313", "c:S1313",
-            "cpp:S6069", "c:S6069",
-        };
-
         public DynamicCFamilyRulesConfig(ICFamilyRulesConfig defaultRulesConfig, RulesSettings customRulesSettings, ILogger logger)
-            :this(defaultRulesConfig, customRulesSettings, logger, ExcludedRulesKeys)
+            :this(defaultRulesConfig, customRulesSettings, logger, new RulesConfigFixup(logger))
         {
         }
 
-        internal /* for testing */ DynamicCFamilyRulesConfig(ICFamilyRulesConfig defaultRulesConfig, RulesSettings customRulesSettings, ILogger logger, IEnumerable<string> excludedRuleKeys)
+        internal /* for testing */ DynamicCFamilyRulesConfig(ICFamilyRulesConfig defaultRulesConfig,
+            RulesSettings customRulesSettings,
+            ILogger logger,
+            IRulesConfigFixup fixup)
         {
             this.defaultRulesConfig = defaultRulesConfig ?? throw new ArgumentNullException(nameof(defaultRulesConfig));
             if (customRulesSettings == null)
@@ -81,10 +58,10 @@ namespace SonarLint.VisualStudio.CFamily.Rules
 
             if (customRulesSettings.Rules.Count == 0)
             {
-                logger.WriteLine(CoreStrings.CFamily_NoCustomRulesSettings);
+                logger.WriteLine(Resources.NoCustomRulesSettings);
             }
 
-            var modifiedCustomRules = DisableExcludedRules(customRulesSettings, excludedRuleKeys, logger);
+            var modifiedCustomRules = fixup.Apply(customRulesSettings);
 
             ActivePartialRuleKeys = CalculateActiveRules(defaultRulesConfig, modifiedCustomRules);
             RulesMetadata = new Dictionary<string, RuleMetadata>();
@@ -189,30 +166,6 @@ namespace SonarLint.VisualStudio.CFamily.Rules
                 effectiveParams[userParam.Key] = userParam.Value;
             }
             return effectiveParams;
-        }
-
-        /// <summary>
-        /// Returns a copy of the custom rules unioned with the config to disable the
-        /// list of excluded rules
-        /// </summary>
-        internal /* for testing */ static RulesSettings DisableExcludedRules(RulesSettings customRules, IEnumerable<string> excludedRuleKeys, ILogger logger)
-        {
-            logger.WriteLine(CoreStrings.CFamily_RulesUnavailableInSonarLint, string.Join(", ", excludedRuleKeys));
-
-            // We're making a shallow copy of the list of rules. If we modify the original list, any exclusions we 
-            // add could end up be saved in the user settings.json file (if that is where the custom rules
-            // came from). That doesn't cause a functional problem but it could be confusing.
-            var modifiedSettings = new RulesSettings
-            {
-                Rules = new Dictionary<string, RuleConfig>(customRules.Rules, customRules.Rules.Comparer)
-            };
-
-            foreach (var key in excludedRuleKeys)
-            {
-                modifiedSettings.Rules[key] = new RuleConfig { Level = RuleLevel.Off };
-            }
-
-            return modifiedSettings;
         }
 
         private static string GetFullRuleKey(string language, string partialRuleKey)

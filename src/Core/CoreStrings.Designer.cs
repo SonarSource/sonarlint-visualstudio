@@ -19,7 +19,7 @@ namespace SonarLint.VisualStudio.Core {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class CoreStrings {
@@ -61,24 +61,6 @@ namespace SonarLint.VisualStudio.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No custom rules settings - using defaults.
-        /// </summary>
-        public static string CFamily_NoCustomRulesSettings {
-            get {
-                return ResourceManager.GetString("CFamily_NoCustomRulesSettings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Note: the following CFamily rules are not available in SonarLint: {0}.
-        /// </summary>
-        public static string CFamily_RulesUnavailableInSonarLint {
-            get {
-                return ResourceManager.GetString("CFamily_RulesUnavailableInSonarLint", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to C++.
         /// </summary>
         public static string CppLanguageName {
@@ -102,24 +84,6 @@ namespace SonarLint.VisualStudio.Core {
         public static string CSharpLanguageName {
             get {
                 return ResourceManager.GetString("CSharpLanguageName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Using cached rule settings.
-        /// </summary>
-        public static string EffectiveRules_CacheHit {
-            get {
-                return ResourceManager.GetString("EffectiveRules_CacheHit", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Calculating effective rule settings....
-        /// </summary>
-        public static string EffectiveRules_CacheMiss {
-            get {
-                return ResourceManager.GetString("EffectiveRules_CacheMiss", resourceCulture);
             }
         }
         

@@ -19,7 +19,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -61,20 +61,65 @@ namespace SonarLint.VisualStudio.CFamily.Rules {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to load/locate connected mode settings. Falling back on standalone mode settings..
+        ///   Looks up a localized string similar to [CFamily] Rule settings contain entries for both legacy rule key and new rule keys. The legacy value will be ignored. Legacy key: {0}, new key: {1}.
         /// </summary>
-        internal static string CFamily_UnableToLoadConnectedModeSettings {
+        internal static string DuplicateLegacyAndNewRuleKey {
             get {
-                return ResourceManager.GetString("CFamily_UnableToLoadConnectedModeSettings", resourceCulture);
+                return ResourceManager.GetString("DuplicateLegacyAndNewRuleKey", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using connected mode settings. User-specified settings in settings.json will be ignored..
+        ///   Looks up a localized string similar to [CFamily] Using cached rule settings.
         /// </summary>
-        internal static string CFamily_UsingConnectedModeSettings {
+        internal static string EffectiveRules_CacheHit {
             get {
-                return ResourceManager.GetString("CFamily_UsingConnectedModeSettings", resourceCulture);
+                return ResourceManager.GetString("EffectiveRules_CacheHit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CFamily] Calculating effective rule settings....
+        /// </summary>
+        internal static string EffectiveRules_CacheMiss {
+            get {
+                return ResourceManager.GetString("EffectiveRules_CacheMiss", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CFamily] No custom rules settings - using defaults.
+        /// </summary>
+        internal static string NoCustomRulesSettings {
+            get {
+                return ResourceManager.GetString("NoCustomRulesSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CFamily] Note: the following CFamily rules are not available in SonarLint: {0}.
+        /// </summary>
+        internal static string RulesUnavailableInSonarLint {
+            get {
+                return ResourceManager.GetString("RulesUnavailableInSonarLint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CFamily] Unable to load/locate connected mode settings. Falling back on standalone mode settings..
+        /// </summary>
+        internal static string UnableToLoadConnectedModeSettings {
+            get {
+                return ResourceManager.GetString("UnableToLoadConnectedModeSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CFamily] Using connected mode settings. User-specified settings in settings.json will be ignored..
+        /// </summary>
+        internal static string UsingConnectedModeSettings {
+            get {
+                return ResourceManager.GetString("UsingConnectedModeSettings", resourceCulture);
             }
         }
     }

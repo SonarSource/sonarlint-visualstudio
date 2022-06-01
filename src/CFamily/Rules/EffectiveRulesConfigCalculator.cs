@@ -92,11 +92,11 @@ namespace SonarLint.VisualStudio.CFamily.Rules
             var effectiveConfig = configCache.FindConfig(languageKey, defaultRulesConfig, customSettings);
             if (effectiveConfig != null)
             {
-                logger.WriteLine(CoreStrings.EffectiveRules_CacheHit);
+                logger.WriteLine(Resources.EffectiveRules_CacheHit);
                 return effectiveConfig;
             }
 
-            logger.WriteLine(CoreStrings.EffectiveRules_CacheMiss);
+            logger.WriteLine(Resources.EffectiveRules_CacheMiss);
 
             effectiveConfig = new DynamicCFamilyRulesConfig(defaultRulesConfig, customSettings, logger);
 

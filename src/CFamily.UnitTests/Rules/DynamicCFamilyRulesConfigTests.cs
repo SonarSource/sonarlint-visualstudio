@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.UnitTests;
@@ -31,8 +32,6 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
     [TestClass]
     public class DynamicCFamilyRulesConfigTests
     {
-        private static readonly string[] NoExcludedRules = Array.Empty<string>();
-
         [TestMethod]
         public void Ctor_NullArguments_Throws()
         {
@@ -68,8 +67,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             // Act
             using (new AssertIgnoreScope())
             {
-                var testSubject =
-                    new DynamicCFamilyRulesConfig(defaultConfig, settings, new TestLogger(), NoExcludedRules);
+                var testSubject = CreateTestSubject(defaultConfig, settings);
 
                 // Assert
                 testSubject.AllPartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2", "rule3");
@@ -82,6 +80,35 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
                 testSubject.RulesParameters.Should().BeEquivalentTo(defaultConfig.RulesParameters);
                 testSubject.RulesMetadata.Should().BeEquivalentTo(defaultConfig.RulesMetadata);
             }
+        }
+
+        [TestMethod]
+        public void RuleConfigFixup_IsCalled()
+        {
+            // Arrange
+            var defaultConfig = new DummyCFamilyRulesConfig("123")
+                .AddRule("rule1", isActive: true, null)
+                .AddRule("rule2", isActive: true, null);
+
+            var inputSettings = new RulesSettings();
+
+            // Fixup that should disable rule1
+            var fixedUpSettings = new RulesSettings
+            {
+                Rules = { { "123:rule1", new RuleConfig { Level = RuleLevel.Off } } }
+            };
+            var fixup = new Mock<IRulesConfigFixup>();
+            fixup.Setup(x => x.Apply(inputSettings)).Returns(fixedUpSettings);
+
+            // Act
+            var testSubject = CreateTestSubject(defaultConfig, inputSettings,
+                fixup: fixup.Object);
+
+            // Assert
+            fixup.VerifyAll();
+
+            testSubject.AllPartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2");
+            testSubject.ActivePartialRuleKeys.Should().BeEquivalentTo("rule2");
         }
 
         [TestMethod]
@@ -115,33 +142,10 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             };
 
             // Act
-            var testSubject = new DynamicCFamilyRulesConfig(defaultConfig, settings, new TestLogger(), NoExcludedRules);
+            var testSubject = CreateTestSubject(defaultConfig, settings);
 
             // Assert
             testSubject.ActivePartialRuleKeys.Should().BeEquivalentTo("rule1", "rule3");
-        }
-
-        [TestMethod]
-        public void ActiveRules_ExcludedRulesOverrideCustomAndDefaults()
-        {
-            // Arrange
-            const string ExcludedRuleKey = "S9876";
-
-            // Enabled the disabled rule in the default confing...
-            var defaultConfig = new DummyCFamilyRulesConfig("c")
-                .AddRule(ExcludedRuleKey, isActive: true)
-                .AddRule("rule2", isActive: true);
-
-            // ... and in the custom settings
-            var settings = new RulesSettings()
-                .AddRule("c:" + ExcludedRuleKey, RuleLevel.On);
-
-            // Act
-            var testSubject = new DynamicCFamilyRulesConfig(defaultConfig, settings, new TestLogger(), new string[] { "c:" + ExcludedRuleKey, "WRONGLANGUAGE:rule2" });
-
-            // Assert
-            testSubject.AllPartialRuleKeys.Should().BeEquivalentTo(ExcludedRuleKey, "rule2"); // excluded rule is included
-            testSubject.ActivePartialRuleKeys.Should().BeEquivalentTo("rule2");               // ... but not active
         }
 
         [TestMethod]
@@ -169,7 +173,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             settings.Rules["c:missingRule"] = new RuleConfig { Severity = IssueSeverity.Critical };
 
             // Act
-            var dynamicConfig = new DynamicCFamilyRulesConfig(defaultConfig, settings, new TestLogger(), NoExcludedRules);
+            var dynamicConfig = CreateTestSubject(defaultConfig, settings);
 
             // Assert
             dynamicConfig.RulesMetadata.Count.Should().Be(3);
@@ -235,7 +239,8 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             };
 
             // Act
-            var dynamicConfig = new DynamicCFamilyRulesConfig(defaultConfig, settings, new TestLogger(), NoExcludedRules);
+            var dynamicConfig = CreateTestSubject(defaultConfig, settings);
+            
 
             // Assert
             dynamicConfig.RulesParameters.Count.Should().Be(3);
@@ -309,82 +314,21 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             effectiveParams["NonDefaultParam"].Should().Be("non-default param value");
         }
 
-        [TestMethod]
-        public void DisableExcludedRules_NoExcludedRules_CustomRulesReturned()
-        {
-            // Arrange
-            var testLogger = new TestLogger();
-
-            var excluded = Array.Empty<string>();
-            var custom = new RulesSettings()
-                .AddRule("custom1", RuleLevel.On)
-                .AddRule("custom2", RuleLevel.On);
-
-            // Act
-            var result = DynamicCFamilyRulesConfig.DisableExcludedRules(custom, excluded, testLogger);
-
-            // Assert
-            result.Should().NotBeSameAs(custom);
-
-            result.Rules.Keys.Should().BeEquivalentTo("custom1", "custom2");
-            result.Rules["custom1"].Level.Should().Be(RuleLevel.On);
-            result.Rules["custom2"].Level.Should().Be(RuleLevel.On);
-        }
-
-        [TestMethod]
-        public void DisableExcludedRules_NoCustomRules_ExcludedRulesAreDisabled()
-        {
-            // Arrange
-            var testLogger = new TestLogger();
-
-            var excluded = new string[] { "excluded" };
-            var custom = new RulesSettings();
-
-            // Act
-            var result = DynamicCFamilyRulesConfig.DisableExcludedRules(custom, excluded, testLogger);
-
-            // Assert
-            result.Should().NotBeSameAs(custom);
-            custom.Rules.Count.Should().Be(0);
-
-            result.Rules.Keys.Should().BeEquivalentTo("excluded");
-            result.Rules["excluded"].Level.Should().Be(RuleLevel.Off);
-         
-            testLogger.AssertPartialOutputStringExists("excluded");
-        }
-
-        [TestMethod]
-        public void DisableExcludedRules_CustomRulesAndExcludedRulesExist_CustomRulesAreUnchangedExcludedRulesAreDisabled()
-        {
-            // Arrange
-            var testLogger = new TestLogger();
-
-            var excluded = new string[] { "excluded1", "excluded2", "excluded3", "excluded4" };
-            var custom = new RulesSettings()
-                .AddRule("xxx", RuleLevel.On)
-                .AddRule("excluded1", RuleLevel.On)
-                .AddRule("yyy", RuleLevel.Off)
-                .AddRule("excluded2", RuleLevel.Off)
-                .AddRule("excluded4", RuleLevel.On);
-
-            // Act
-            var result = DynamicCFamilyRulesConfig.DisableExcludedRules(custom, excluded, testLogger);
-
-            // Assert
-            result.Should().NotBeSameAs(custom);
-            custom.Rules.Count.Should().BeLessThan(result.Rules.Count);
-
-            result.Rules.Keys.Should().BeEquivalentTo("xxx", "excluded1", "yyy", "excluded2", "excluded3", "excluded4");
-            result.Rules["xxx"].Level.Should().Be(RuleLevel.On);
-            result.Rules["excluded1"].Level.Should().Be(RuleLevel.Off); // changed from On to Off
-            result.Rules["yyy"].Level.Should().Be(RuleLevel.Off);
-            result.Rules["excluded2"].Level.Should().Be(RuleLevel.Off); // unchanged - still Off
-            result.Rules["excluded4"].Level.Should().Be(RuleLevel.Off); // changed from On to Off
-
-            testLogger.AssertPartialOutputStringExists("excluded1", "excluded2", "excluded3", "excluded4");
-        }
-
         #endregion Static method tests
+
+        private static DynamicCFamilyRulesConfig CreateTestSubject(ICFamilyRulesConfig defaultConfig,
+            RulesSettings customSettings,
+            IRulesConfigFixup fixup = null)
+        {
+            fixup ??= new NoOpRulesConfigFixup();
+            return new DynamicCFamilyRulesConfig(defaultConfig, customSettings, new TestLogger(), fixup);
+        }
+
+        private class NoOpRulesConfigFixup : IRulesConfigFixup
+        {
+            public RulesSettings Apply(RulesSettings input) => input;
+        }
+
     }
 
     internal static class RulesSettingsExtensions
