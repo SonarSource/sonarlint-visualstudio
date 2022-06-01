@@ -18,28 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.CFamily.Rules;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
-namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
+namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
 {
     [TestClass]
     public class RulesConfigFixupTests
     {
         [TestMethod]
-        public void Apply_EmptySettings_NoError()
+        public void Sanity_NoOverlapBetweenExludedAndLegacyRuleKeys()
         {
-            var emptySettings = new RulesSettings();
-            var testSubject = CreateTestSubject();
+            // The logic in the fixup class assumes that there legacy rules keys and 
+            // excluded rules are disjoint sets. Check this is actually the case.
+            RulesConfigFixup.fullLegacyToNewKeyMap.Keys.Intersect(RulesConfigFixup.ExcludedRulesKeys)
+                .Should().BeEmpty();
 
-            var result = testSubject.Apply(emptySettings);
-
-            result.Rules.Should().BeEmpty();
-            CheckInstanceIsDifferent(emptySettings, result);
+            RulesConfigFixup.fullLegacyToNewKeyMap.Values.Intersect(RulesConfigFixup.ExcludedRulesKeys)
+                .Should().BeEmpty();
         }
 
         [TestMethod]
@@ -64,16 +64,20 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
                 }
             };
 
-            var testSubject = CreateTestSubject();
+            var logger = new TestLogger();
+            var testSubject = CreateTestSubject(logger);
 
             var result = testSubject.Apply(originalSettings);
 
-            result.Rules.Count.Should().Be(3);
             result.Rules["any"].Should().BeSameAs(config1);
             result.Rules["cpp:S123"].Should().BeSameAs(config3);
 
             result.Rules.TryGetValue(expectedRuleKey, out var outputConfig).Should().BeTrue();
             outputConfig.Should().BeSameAs(config2);
+
+            // Not expecting any messages for the non-legacy rule keys
+            logger.AssertPartialOutputStringDoesNotExist("any");
+            logger.AssertPartialOutputStringDoesNotExist("cpp:S123");
 
             CheckInstanceIsDifferent(originalSettings, result);
         }
@@ -103,33 +107,72 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
 
             result.Rules[newKey].Should().BeSameAs(newKeyConfig);
             result.Rules.TryGetValue(legacyKey, out var _).Should().BeFalse();
-            result.Rules.Count.Should().Be(1);
 
             logger.AssertPartialOutputStringExists(legacyKey, newKey);
             CheckInstanceIsDifferent(originalSettings, result);
         }
-
+        
         [TestMethod]
-        public void Apply_NoLegacyKeys_NothingLogged()
+        public void Apply_NoCustomRules_ExcludedRulesAreDisabled()
         {
-            var config1 = new RuleConfig { Level = RuleLevel.On, Severity = IssueSeverity.Major };
-
-            var originalSettings = new RulesSettings
-            {
-                Rules =
-                {
-                    { "any non-legacy rule key", config1 }
-                }
-            };
             var logger = new TestLogger();
+            var emptySettings = new RulesSettings();
             var testSubject = CreateTestSubject(logger);
 
-            var result = testSubject.Apply(originalSettings);
+            var result = testSubject.Apply(emptySettings);
 
-            result.Rules.Count.Should().Be(1);
-            logger.AssertNoOutputMessages();
+            CheckInstanceIsDifferent(emptySettings, result);
+            emptySettings.Rules.Count.Should().Be(0); // original settings should not have changed
 
-            CheckInstanceIsDifferent(originalSettings, result);
+            result.Rules.Keys.Should().BeEquivalentTo(RulesConfigFixup.ExcludedRulesKeys);
+            result.Rules.Values.Select(x => x.Level)
+                .All(x => x == RuleLevel.Off)
+                .Should().BeTrue();
+
+            foreach(string excludedKey in RulesConfigFixup.ExcludedRulesKeys)
+            {
+                logger.AssertPartialOutputStringExists(excludedKey);
+            }
+        }
+
+        [TestMethod]
+        public void Apply_CustomRulesAndExcludedRulesExist_CustomRulesAreUnchangedExcludedRulesAreDisabled()
+        {
+            // Arrange
+            var logger = new TestLogger();
+
+            string excludedKey1 = RulesConfigFixup.ExcludedRulesKeys[0];
+            string excludedKey2 = RulesConfigFixup.ExcludedRulesKeys[1];
+            string excludedKey3 = RulesConfigFixup.ExcludedRulesKeys[2];
+
+            var custom = new RulesSettings()
+                .AddRule("xxx", RuleLevel.On)
+                .AddRule(excludedKey1, RuleLevel.On)
+                .AddRule("yyy", RuleLevel.Off)
+                .AddRule(excludedKey2, RuleLevel.Off)
+                .AddRule(excludedKey3, RuleLevel.On);
+
+            var testSubject = CreateTestSubject(logger);
+
+            // Act
+            var result = testSubject.Apply(custom);
+
+            // Assert
+            CheckInstanceIsDifferent(custom, result);
+            custom.Rules.Count.Should().Be(5);
+
+            var expectedKeys = RulesConfigFixup.ExcludedRulesKeys.Union(new string[]  { "xxx", "yyy"});
+
+            result.Rules.Keys.Should().BeEquivalentTo(expectedKeys);
+
+            // Non-excluded rules should be unchanged
+            result.Rules["xxx"].Level.Should().Be(RuleLevel.On);
+            result.Rules["yyy"].Level.Should().Be(RuleLevel.Off);
+
+            // All excluded rules that were in the custom settings should be "Off"
+            result.Rules[excludedKey1].Level.Should().Be(RuleLevel.Off);
+            result.Rules[excludedKey2].Level.Should().Be(RuleLevel.Off);
+            result.Rules[excludedKey3].Level.Should().Be(RuleLevel.Off);
         }
 
         private static RulesConfigFixup CreateTestSubject(ILogger logger = null)
@@ -139,6 +182,5 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
         // not the original settings.
         private static void CheckInstanceIsDifferent(RulesSettings original, RulesSettings modified) =>
             modified.Should().NotBeSameAs(original);
-    
     }
 }
