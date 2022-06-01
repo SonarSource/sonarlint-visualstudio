@@ -19,7 +19,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -61,7 +61,16 @@ namespace SonarLint.VisualStudio.CFamily.Rules {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to load/locate connected mode settings. Falling back on standalone mode settings..
+        ///   Looks up a localized string similar to [CFamily] Rule settings contain entries for both legacy rule key and new rule keys. The legacy value will be ignored. Legacy key: {0}, new key: {1}.
+        /// </summary>
+        internal static string CFamily_DuplicateLegacyAndNewRuleKey {
+            get {
+                return ResourceManager.GetString("CFamily_DuplicateLegacyAndNewRuleKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CFamily] Unable to load/locate connected mode settings. Falling back on standalone mode settings..
         /// </summary>
         internal static string CFamily_UnableToLoadConnectedModeSettings {
             get {
@@ -70,7 +79,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using connected mode settings. User-specified settings in settings.json will be ignored..
+        ///   Looks up a localized string similar to [CFamily] Using connected mode settings. User-specified settings in settings.json will be ignored..
         /// </summary>
         internal static string CFamily_UsingConnectedModeSettings {
             get {
