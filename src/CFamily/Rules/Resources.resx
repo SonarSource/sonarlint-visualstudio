@@ -121,6 +121,10 @@
     <value>[CFamily] Rule settings contain entries for both legacy rule key and new rule keys. The legacy value will be ignored. Legacy key: {0}, new key: {1}</value>
     <comment>Output window message when settings file contains both legacy and new rule keys e.g. c:C99CommentUsage and c:S787</comment>
   </data>
+  <data name="CFamily_RulesUnavailableInSonarLint" xml:space="preserve">
+    <value>Note: the following CFamily rules are not available in SonarLint: {0}</value>
+    <comment>Output window messge</comment>
+  </data>
   <data name="CFamily_UnableToLoadConnectedModeSettings" xml:space="preserve">
     <value>[CFamily] Unable to load/locate connected mode settings. Falling back on standalone mode settings.</value>
     <comment>Output window message if in connected mode but couldn't find or load the connected mode settings file</comment>

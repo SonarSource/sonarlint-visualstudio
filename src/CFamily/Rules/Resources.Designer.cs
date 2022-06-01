@@ -70,6 +70,15 @@ namespace SonarLint.VisualStudio.CFamily.Rules {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Note: the following CFamily rules are not available in SonarLint: {0}.
+        /// </summary>
+        internal static string CFamily_RulesUnavailableInSonarLint {
+            get {
+                return ResourceManager.GetString("CFamily_RulesUnavailableInSonarLint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [CFamily] Unable to load/locate connected mode settings. Falling back on standalone mode settings..
         /// </summary>
         internal static string CFamily_UnableToLoadConnectedModeSettings {
