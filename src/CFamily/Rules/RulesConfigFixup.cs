@@ -39,6 +39,13 @@ namespace SonarLint.VisualStudio.CFamily.Rules
     /// 1) the user is using a version of SonarQube that has a pre-v6.2 version of the CFamily analyzer,
     ///    so that in Connected Mode the Quality Gate will return legacy keys; and
     /// 2) the user's settings.json file contains entries using a legacy key
+    /// 
+    /// Excluded rule keys
+    /// ------------------
+    /// There are some rules we don't want to run in SonarLint:
+    /// * rules that need all of the files in the project to produce accurate results, and
+    /// * security hotspots.
+    /// These should never be run, even if they are explicitly enabled in custom settings.
     /// </remarks>
     internal interface IRulesConfigFixup
     {
@@ -47,6 +54,32 @@ namespace SonarLint.VisualStudio.CFamily.Rules
 
     internal class RulesConfigFixup : IRulesConfigFixup
     {
+        internal static readonly string[] ExcludedRulesKeys = new string[] {
+            // Project-level:
+            "cpp:S5536", "c:S5536",
+            "cpp:S4830", "c:S4830",
+            "cpp:S5527", "c:S5527",
+            // Security hotspots:
+            "cpp:S5801", "c:S5801",
+            "cpp:S5814", "c:S5814",
+            "cpp:S5815", "c:S5815",
+            "cpp:S5816", "c:S5816",
+            "cpp:S5824", "c:S5824",
+            "cpp:S2612", "c:S2612",
+            "cpp:S5802", "c:S5802",
+            "cpp:S5849", "c:S5849",
+            "cpp:S5982", "c:S5982",
+            "cpp:S5813", "c:S5813",
+            "cpp:S5332", "c:S5332",
+            "cpp:S2068", "c:S2068",
+            "cpp:S2245", "c:S2245",
+            "cpp:S5443", "c:S5443",
+            "cpp:S5042", "c:S5042",
+            "cpp:S4790", "c:S4790",
+            "cpp:S1313", "c:S1313",
+            "cpp:S6069", "c:S6069",
+        };
+
         private static readonly IReadOnlyDictionary<string, string> partialLegacyToNewKeyMap = new Dictionary<string, string>
         {
             // Permalink to v6.32 mapping: https://github.com/SonarSource/sonar-cpp/blob/c51c7ccb23e32f587a543a2e4b08f10e92daf2a7/sonar-cfamily-plugin/src/main/java/com/sonar/cpp/plugin/AbstractRulesDefinition.java#L35
@@ -123,7 +156,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules
             { "PPBadIncludeForm", "S956" }
         };
 
-        private static readonly IReadOnlyDictionary<string, string> fullLegacyToNewKeyMap = CalculateFullKeyMap();
+        internal static readonly IReadOnlyDictionary<string, string> fullLegacyToNewKeyMap = CalculateFullKeyMap();
 
         private static IReadOnlyDictionary<string, string> CalculateFullKeyMap()
         {
@@ -165,34 +198,54 @@ namespace SonarLint.VisualStudio.CFamily.Rules
                 * user disables the corresponding "new" rule S787.
             In that case, we'll warn in the output window that the legacy setting is being ignored.
 
-             */
+            */
             
             var modifiedSettings = new RulesSettings
             {
                 Rules = new Dictionary<string, RuleConfig>(input.Rules, input.Rules.Comparer)
             };
 
-            foreach (var inputKey in modifiedSettings.Rules.Keys.ToArray())
+            TranslateLegacyRuleKeys(modifiedSettings);
+            DisableExcludedRules(modifiedSettings);
+
+            return modifiedSettings;
+        }
+
+        private void TranslateLegacyRuleKeys(RulesSettings settings)
+        {
+            foreach (var inputKey in settings.Rules.Keys.ToArray())
             {
                 if (fullLegacyToNewKeyMap.TryGetValue(inputKey, out var newKey))
                 {
-                    var inputConfig = modifiedSettings.Rules[inputKey];
-                    modifiedSettings.Rules.Remove(inputKey);
+                    var inputConfig = settings.Rules[inputKey];
+                    settings.Rules.Remove(inputKey);
 
                     // There might already be a setting with the new key. If so, we'll keep it and drop the legacy key setting.
-                    if (modifiedSettings.Rules.ContainsKey(newKey))
+                    if (settings.Rules.ContainsKey(newKey))
                     {
                         logger.WriteLine(Resources.CFamily_DuplicateLegacyAndNewRuleKey, inputKey, newKey);
                     }
                     else
                     {
                         logger.LogDebug($"[CFamily] Translating legacy rule key: {inputKey} -> {newKey}");
-                        modifiedSettings.Rules[newKey] = inputConfig;
+                        settings.Rules[newKey] = inputConfig;
                     }
                 }
             }
-
-            return modifiedSettings;
         }
+
+        /// <summary>
+        /// Marks all excluded rules as disabled, adding them to the settings if necessary
+        /// </summary>
+        private void DisableExcludedRules(RulesSettings settings)
+        {
+            logger.WriteLine(Resources.CFamily_RulesUnavailableInSonarLint, string.Join(", ", ExcludedRulesKeys));
+
+            foreach (var key in ExcludedRulesKeys)
+            {
+                settings.Rules[key] = new RuleConfig { Level = RuleLevel.Off };
+            }
+        }
+
     }
 }
