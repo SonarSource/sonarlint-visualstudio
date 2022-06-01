@@ -63,10 +63,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
             IIssueConsumer consumer, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
         {
+            if (!analyzableFileIndicator.ShouldAnalyze(path))
+            {
+                return;
+            }
+
             bool handled = false;
             foreach(var analyzer in analyzers)
             {
-                if (analyzer.IsAnalysisSupported(detectedLanguages) && analyzableFileIndicator.ShouldAnalyze(path))
+                if (analyzer.IsAnalysisSupported(detectedLanguages))
                 {
                     handled = true;
                     analyzer.ExecuteAnalysis(path, charset, detectedLanguages, consumer, analyzerOptions, cancellationToken);

@@ -51,30 +51,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         }
 
         [TestMethod]
-        public void RequestAnalysis_LanguageIsNotSupported_RequestAnalysisNotCalled()
+        public void RequestAnalysis_FileIsNotAnalyzable_RequestAnalysisNotCalled()
         {
             // Arrange
             var analyzers = new[]
             {
-                new DummyAnalyzer(),
                 new DummyAnalyzer(AnalysisLanguage.CFamily),
-                new DummyAnalyzer(),
-            };
-
-            var controller = CreateTestSubject(analyzers);
-
-            // Act
-            controller.ExecuteAnalysis("c:\\file.cpp", "charset1", new[] { AnalysisLanguage.Javascript }, null, null, CancellationToken.None);
-
-            analyzers.Any(x => x.RequestAnalysisCalled).Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void RequestAnalysis_LanguageIsSupported_FileShouldNotBeAnalyzed_RequestAnalysisNotCalled()
-        {
-            // Arrange
-            var analyzers = new[]
-            {
+                new DummyAnalyzer(AnalysisLanguage.CFamily),
                 new DummyAnalyzer(AnalysisLanguage.CFamily),
             };
 
@@ -87,11 +70,36 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             controller.ExecuteAnalysis("c:\\file.cpp", "charset1",
                 new[] { AnalysisLanguage.CFamily, AnalysisLanguage.Javascript }, null, null, CancellationToken.None);
 
-            analyzers[0].RequestAnalysisCalled.Should().BeFalse();
+            analyzers.Any(x => x.RequestAnalysisCalled).Should().BeFalse();
+
+            // Verify that the file was checked only once, regardless of number of analyzers
+            analyzableFileIndicator.Verify(x=> x.ShouldAnalyze(It.IsAny<string>()), Times.Once);
         }
 
         [TestMethod]
-        public void RequestAnalysis_LanguageIsSupported_FileShouldBeAnalyzed_RequestAnalysisIsCalled()
+        public void RequestAnalysis_FileIsAnalyzable_LanguageIsNotSupported_RequestAnalysisNotCalled()
+        {
+            // Arrange
+            var analyzers = new[]
+            {
+                new DummyAnalyzer(),
+                new DummyAnalyzer(AnalysisLanguage.CFamily),
+                new DummyAnalyzer(),
+            };
+
+            var analyzableFileIndicator = new Mock<IAnalyzableFileIndicator>();
+            analyzableFileIndicator.Setup(x => x.ShouldAnalyze("c:\\file.cpp")).Returns(true);
+
+            var controller = CreateTestSubject(analyzers, analyzableFileIndicator: analyzableFileIndicator.Object);
+
+            // Act
+            controller.ExecuteAnalysis("c:\\file.cpp", "charset1", new[] { AnalysisLanguage.Javascript }, null, null, CancellationToken.None);
+
+            analyzers.Any(x => x.RequestAnalysisCalled).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void RequestAnalysis_FileIsAnalyzable_LanguageIsSupported_RequestAnalysisIsCalled()
         {
             // Arrange
             var analyzers = new[]
