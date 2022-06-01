@@ -36,17 +36,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         // Note: how to find the expected number of active/inactive rules in SonarWay by language:
         // 1. Start a local SQ instance with the correct plugin version installed
         // 2. Browse to "Rules" e.g. http://localhost:9000/
+        //    or:
+        //    SonarCloud: C: https://sonarcloud.io/organizations/sonarsource/quality_profiles/show?name=Sonar+way&language=c
+        //    SonarCloud: C++: https://sonarcloud.io/organizations/sonarsource/quality_profiles/show?name=Sonar+way&language=cpp
         // 3. Filter by Repository = SonarAnalyzer C
         // 4. Filter by Quality Profile = Sonar way C
         // The QP filter has "active/inactive" tabs. The number of rules is shown in the top-right of the screen.
         // 5. Repeat for C++.
 
-        // Rule data for C-Family plugin v6.31 (build 44497)
-        private const int Active_C_Rules = 205;
+        // Rule data for C-Family plugin v6.34 (build 48468)
+        private const int Active_C_Rules = 206;
         private const int Inactive_C_Rules = 104;
 
-        private const int Active_CPP_Rules = 405;
-        private const int Inactive_CPP_Rules = 169;
+        private const int Active_CPP_Rules = 407;
+        private const int Inactive_CPP_Rules = 168;
 
         private readonly CFamilySonarWayRulesConfigProvider rulesMetadataCache = new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory);
 
@@ -73,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void Read_Rules_Params()
         {
-            rulesMetadataCache.GetRulesConfiguration("cpp").RulesParameters.TryGetValue("ClassComplexity", out var parameters);
+            rulesMetadataCache.GetRulesConfiguration("cpp").RulesParameters.TryGetValue("S1311", out var parameters);
             parameters.Should()
                 .Contain(new System.Collections.Generic.KeyValuePair<string, string>("maximumClassComplexityThreshold", "80"));
         }
@@ -81,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void Read_Rules_Metadata()
         {
-            rulesMetadataCache.GetRulesConfiguration("cpp").RulesMetadata.TryGetValue("ClassComplexity", out var metadata);
+            rulesMetadataCache.GetRulesConfiguration("cpp").RulesMetadata.TryGetValue("S1311", out var metadata);
             using (new AssertionScope())
             {
                 metadata.Type.Should().Be(IssueType.CodeSmell);
