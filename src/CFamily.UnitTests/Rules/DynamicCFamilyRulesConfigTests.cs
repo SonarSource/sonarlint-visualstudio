@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.UnitTests;
@@ -68,8 +69,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             // Act
             using (new AssertIgnoreScope())
             {
-                var testSubject =
-                    new DynamicCFamilyRulesConfig(defaultConfig, settings, new TestLogger(), NoExcludedRules);
+                var testSubject = CreateTestSubject(defaultConfig, settings);
 
                 // Assert
                 testSubject.AllPartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2", "rule3");
@@ -82,6 +82,35 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
                 testSubject.RulesParameters.Should().BeEquivalentTo(defaultConfig.RulesParameters);
                 testSubject.RulesMetadata.Should().BeEquivalentTo(defaultConfig.RulesMetadata);
             }
+        }
+
+        [TestMethod]
+        public void RuleConfigFixup_IsCalled()
+        {
+            // Arrange
+            var defaultConfig = new DummyCFamilyRulesConfig("123")
+                .AddRule("rule1", isActive: true, null)
+                .AddRule("rule2", isActive: true, null);
+
+            var inputSettings = new RulesSettings();
+
+            // Fixup that should disable rule1
+            var fixedUpSettings = new RulesSettings
+            {
+                Rules = { { "123:rule1", new RuleConfig { Level = RuleLevel.Off } } }
+            };
+            var fixup = new Mock<IRulesConfigFixup>();
+            fixup.Setup(x => x.Apply(inputSettings)).Returns(fixedUpSettings);
+
+            // Act
+            var testSubject = CreateTestSubject(defaultConfig, inputSettings,
+                fixup: fixup.Object);
+
+            // Assert
+            fixup.VerifyAll();
+
+            testSubject.AllPartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2");
+            testSubject.ActivePartialRuleKeys.Should().BeEquivalentTo("rule2");
         }
 
         [TestMethod]
@@ -115,7 +144,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             };
 
             // Act
-            var testSubject = new DynamicCFamilyRulesConfig(defaultConfig, settings, new TestLogger(), NoExcludedRules);
+            var testSubject = CreateTestSubject(defaultConfig, settings);
 
             // Assert
             testSubject.ActivePartialRuleKeys.Should().BeEquivalentTo("rule1", "rule3");
@@ -137,7 +166,8 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
                 .AddRule("c:" + ExcludedRuleKey, RuleLevel.On);
 
             // Act
-            var testSubject = new DynamicCFamilyRulesConfig(defaultConfig, settings, new TestLogger(), new string[] { "c:" + ExcludedRuleKey, "WRONGLANGUAGE:rule2" });
+            var testSubject = CreateTestSubject(defaultConfig, settings,
+                excludedRules: new string[] { "c:" + ExcludedRuleKey, "WRONGLANGUAGE:rule2" });
 
             // Assert
             testSubject.AllPartialRuleKeys.Should().BeEquivalentTo(ExcludedRuleKey, "rule2"); // excluded rule is included
@@ -169,7 +199,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             settings.Rules["c:missingRule"] = new RuleConfig { Severity = IssueSeverity.Critical };
 
             // Act
-            var dynamicConfig = new DynamicCFamilyRulesConfig(defaultConfig, settings, new TestLogger(), NoExcludedRules);
+            var dynamicConfig = CreateTestSubject(defaultConfig, settings);
 
             // Assert
             dynamicConfig.RulesMetadata.Count.Should().Be(3);
@@ -235,7 +265,8 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             };
 
             // Act
-            var dynamicConfig = new DynamicCFamilyRulesConfig(defaultConfig, settings, new TestLogger(), NoExcludedRules);
+            var dynamicConfig = CreateTestSubject(defaultConfig, settings);
+            
 
             // Assert
             dynamicConfig.RulesParameters.Count.Should().Be(3);
@@ -385,6 +416,22 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
         }
 
         #endregion Static method tests
+
+        private static DynamicCFamilyRulesConfig CreateTestSubject(ICFamilyRulesConfig defaultConfig,
+            RulesSettings customSettings,
+            string[] excludedRules = null,
+            IRulesConfigFixup fixup = null)
+        {
+            excludedRules ??= NoExcludedRules;
+            fixup ??= new NoOpRulesConfigFixup();
+            return new DynamicCFamilyRulesConfig(defaultConfig, customSettings, new TestLogger(), excludedRules, fixup);
+        }
+
+        private class NoOpRulesConfigFixup : IRulesConfigFixup
+        {
+            public RulesSettings Apply(RulesSettings input) => input;
+        }
+
     }
 
     internal static class RulesSettingsExtensions
