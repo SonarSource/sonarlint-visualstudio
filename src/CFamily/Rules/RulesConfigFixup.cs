@@ -223,7 +223,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules
                     // There might already be a setting with the new key. If so, we'll keep it and drop the legacy key setting.
                     if (settings.Rules.ContainsKey(newKey))
                     {
-                        logger.WriteLine(Resources.CFamily_DuplicateLegacyAndNewRuleKey, inputKey, newKey);
+                        logger.WriteLine(Resources.DuplicateLegacyAndNewRuleKey, inputKey, newKey);
                     }
                     else
                     {
@@ -239,7 +239,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules
         /// </summary>
         private void DisableExcludedRules(RulesSettings settings)
         {
-            logger.WriteLine(Resources.CFamily_RulesUnavailableInSonarLint, string.Join(", ", ExcludedRulesKeys));
+            logger.WriteLine(Resources.RulesUnavailableInSonarLint, string.Join(", ", ExcludedRulesKeys));
 
             foreach (var key in ExcludedRulesKeys)
             {

@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             result.LanguageKey.Should().Be("language1");
             result.AllPartialRuleKeys.Should().BeEquivalentTo(defaultRulesConfig.AllPartialRuleKeys);
 
-            testLogger.AssertOutputStringExists(CoreStrings.CFamily_NoCustomRulesSettings);
+            testLogger.AssertOutputStringExists(Resources.NoCustomRulesSettings);
         }
 
         [TestMethod]
@@ -118,21 +118,21 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
 
             result1.Should().NotBeNull();
             result1.Should().NotBeSameAs(defaultRulesConfig);
-            testLogger.AssertOutputStringExists(CoreStrings.EffectiveRules_CacheMiss);
+            testLogger.AssertOutputStringExists(Resources.EffectiveRules_CacheMiss);
 
             // 2. Second call with same settings -> cache hit
             testLogger.Reset();
             var result2 = testSubject.GetEffectiveRulesConfig("language1", defaultRulesConfig, sourcesSettings);
 
             result2.Should().BeSameAs(result1);
-            testLogger.AssertOutputStringExists(CoreStrings.EffectiveRules_CacheHit);
+            testLogger.AssertOutputStringExists(Resources.EffectiveRules_CacheHit);
 
             // 3. Call with different key -> cache miss
             testLogger.Reset();
             var result3 = testSubject.GetEffectiveRulesConfig("another language", defaultRulesConfig, sourcesSettings);
 
             result3.Should().NotBeSameAs(result2);
-            testLogger.AssertOutputStringExists(CoreStrings.EffectiveRules_CacheMiss);
+            testLogger.AssertOutputStringExists(Resources.EffectiveRules_CacheMiss);
         }
 
         internal const string WellKnownPartialRuleKey1_Active = "rule1";

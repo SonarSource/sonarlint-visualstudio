@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules
 
             if (customRulesSettings.Rules.Count == 0)
             {
-                logger.WriteLine(CoreStrings.CFamily_NoCustomRulesSettings);
+                logger.WriteLine(Resources.NoCustomRulesSettings);
             }
 
             var modifiedCustomRules = fixup.Apply(customRulesSettings);
