@@ -42,7 +42,6 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
             this.fileSystem = fileSystem;
             
             bindingConfiguration = configurationProviderService.GetConfiguration();
-            settingsFilePath = Path.Combine(bindingConfiguration.BindingConfigDirectory, "sonar.settings.json");
         }
 
         public ServerExclusions GetSettings(string sonarProjectKey)
