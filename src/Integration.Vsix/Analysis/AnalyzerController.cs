@@ -24,6 +24,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
@@ -38,15 +39,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         // the config monitor so that it is created, and the lifetimes of the analyzer controller and
         // config monitor should be the same so it is convenient to create it here.
         private readonly IAnalysisConfigMonitor analysisConfigMonitor;
+        private readonly IAnalyzableFileIndicator analyzableFileIndicator;
 
         [ImportingConstructor]
         public AnalyzerController(ILogger logger,
             [ImportMany]IEnumerable<IAnalyzer> analyzers,
-            IAnalysisConfigMonitor analysisConfigMonitor)
+            IAnalysisConfigMonitor analysisConfigMonitor,
+            IAnalyzableFileIndicator analyzableFileIndicator)
         {
             this.logger = logger;
             this.analyzers = analyzers;
             this.analysisConfigMonitor = analysisConfigMonitor;
+            this.analyzableFileIndicator = analyzableFileIndicator;
         }
 
         #region IAnalyzerController implementation
@@ -60,19 +64,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
             IIssueConsumer consumer, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
         {
-            bool handled = false;
-            foreach(var analyzer in analyzers)
+            var supportedAnalyzers = analyzers.Where(x => x.IsAnalysisSupported(detectedLanguages)).ToList();
+            var handled = false;
+
+            if (supportedAnalyzers.Any() && analyzableFileIndicator.ShouldAnalyze(path))
             {
-                if (analyzer.IsAnalysisSupported(detectedLanguages))
+                handled = true;
+
+                foreach (var analyzer in supportedAnalyzers)
                 {
-                    handled = true;
                     analyzer.ExecuteAnalysis(path, charset, detectedLanguages, consumer, analyzerOptions, cancellationToken);
                 }
             }
 
             if (!handled)
             {
-                logger.WriteLine($"No analyzer supported analysis of {path}");
+                logger.LogDebug($"[AnalyzerController] No analyzer supported analysis of {path}");
             }
         }
 
