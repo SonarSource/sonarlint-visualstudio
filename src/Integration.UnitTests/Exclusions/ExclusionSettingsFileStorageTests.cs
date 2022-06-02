@@ -252,10 +252,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         private IFileSystem CreateFileSystem(IFile file)
         {
             var fileSystem = new Mock<IFileSystem>();
-            var directory = Mock.Of<IDirectory>();
 
             fileSystem.SetupGet(fs => fs.File).Returns(file);
-            fileSystem.SetupGet(fs => fs.Directory).Returns(directory);
 
             return fileSystem.Object;
         }
