@@ -612,6 +612,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to File exclusions are not supported in Standalone mode. To use file exclusions you need connected mode. .
+        /// </summary>
+        public static string ExclusionOnStandaloneNotSupported {
+            get {
+                return ResourceManager.GetString("ExclusionOnStandaloneNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error writing settings for project {0}. File exclusions on the server may not be excluded in the IDE. Error: {1}.
         /// </summary>
         public static string ExclusionSaveError {

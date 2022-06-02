@@ -775,4 +775,7 @@ This is the general format to use when writing errors to output window or when t
   <data name="ExclusionSaveError" xml:space="preserve">
     <value>Error writing settings for project {0}. File exclusions on the server may not be excluded in the IDE. Error: {1}</value>
   </data>
+  <data name="ExclusionOnStandaloneNotSupported" xml:space="preserve">
+    <value>File exclusions are not supported in Standalone mode. To use file exclusions you need connected mode. </value>
+  </data>
 </root>

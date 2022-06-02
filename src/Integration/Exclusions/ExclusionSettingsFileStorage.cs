@@ -21,8 +21,10 @@ using System;
 using System.IO;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Exclusions;
 using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client.Models;
 
@@ -30,22 +32,30 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
 {
     internal class ExclusionSettingsFileStorage : IExclusionSettingsFileStorage
     {
-        private readonly string exclusionPath = PathHelper.GetTempDirForTask(false, "Exclusions");
+        private readonly BindingConfiguration bindingConfiguration;
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
+        private readonly string settingsFilePath;
 
-        public ExclusionSettingsFileStorage(ILogger logger, IFileSystem fileSystem)
+        public ExclusionSettingsFileStorage(ILogger logger, IFileSystem fileSystem, IConfigurationProviderService configurationProviderService)
         {
             this.logger = logger;
             this.fileSystem = fileSystem;
-
-            fileSystem.Directory.CreateDirectory(exclusionPath);
+            
+            bindingConfiguration = configurationProviderService.GetConfiguration();
+            settingsFilePath = Path.Combine(bindingConfiguration.BindingConfigDirectory, "sonar.settings.json");
         }
 
         public ServerExclusions GetSettings(string sonarProjectKey)
         {
             try
             {
+                if(bindingConfiguration.Mode == SonarLintMode.Standalone)
+                {
+                    logger.WriteLine(Strings.ExclusionOnStandaloneNotSupported);
+                    return null;
+                }
+
                 string filePath = GetFilePath(sonarProjectKey);
 
                 if (!fileSystem.File.Exists(filePath))
@@ -69,6 +79,12 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
         {
             try
             {
+                if (bindingConfiguration.Mode == SonarLintMode.Standalone)
+                {
+                    logger.WriteLine(Strings.ExclusionOnStandaloneNotSupported);
+                    return;
+                }
+
                 string filePath = GetFilePath(sonarProjectKey);
                 var fileContent = JsonConvert.SerializeObject(settings);
                 
@@ -85,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
             var escapedName = PathHelper.EscapeFileName(sonarProjectKey.ToLowerInvariant());
             var fileName = escapedName + ".json";
 
-            var filePath = Path.Combine(exclusionPath, fileName);
+            var filePath = Path.Combine(bindingConfiguration.BindingConfigDirectory, "sonar.settings.json");
             return filePath;
         }
     }
