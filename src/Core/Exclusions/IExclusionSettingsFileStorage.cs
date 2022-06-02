@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Core.Exclusions
 {
     public interface IExclusionSettingsFileStorage
     {
-        void SaveSettings(string sonarProjectKey, ServerExclusions settings);
-        ServerExclusions GetSettings(string sonarProjectKey);
+        void SaveSettings(ServerExclusions settings);
+        ServerExclusions GetSettings();
     }
 }

@@ -603,7 +603,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error loading settings for project {0}. File exclusions on the server will not be excluded in the IDE. Error: {1}.
+        ///   Looks up a localized string similar to Error loading settings for project. File exclusions on the server will not be excluded in the IDE. Error: {0}.
         /// </summary>
         public static string ExclusionGetError {
             get {
@@ -621,7 +621,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error writing settings for project {0}. File exclusions on the server may not be excluded in the IDE. Error: {1}.
+        ///   Looks up a localized string similar to Error writing settings for project. File exclusions on the server may not be excluded in the IDE. Error: {0}.
         /// </summary>
         public static string ExclusionSaveError {
             get {

@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
     [TestClass]
     public class ExclusionSettingsFileStorageTests
     {
-        private const string NotFoundMessage = "Error loading settings for project {0}. File exclusions on the server will not be excluded in the IDE. Error: Settings File was not found";
+        private const string NotFoundMessage = "Error loading settings for project. File exclusions on the server will not be excluded in the IDE. Error: Settings File was not found";
         private const string objectJson = "{\"Exclusions\":[\"exclusion\"],\"GlobalExclusions\":[\"globalExclusion\"],\"Inclusions\":[\"inclusion1\",\"inclusion2\"],\"GlobalInclusions\":[\"globalInclusion\"]}";
         private const string filePath = "C:\\SolutionPath\\sonar.settings.json";
 
@@ -53,8 +53,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         [TestMethod]
         public void GetSettings_HaveSettings_ReadsSettings()
         {
-            var projectKey = "projectKey";
-
             var file = new Mock<IFile>();
             file.Setup(f => f.ReadAllText(filePath)).Returns(objectJson);
             file.Setup(f => f.Exists(filePath)).Returns(true);
@@ -63,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             
             var testSubject = CreateTestSubject(file.Object, logger);
 
-            var settings = testSubject.GetSettings(projectKey);
+            var settings = testSubject.GetSettings();
 
             settings.Should().NotBeNull();
             settings.Inclusions.Count().Should().Be(2);
@@ -83,8 +81,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         [TestMethod]
         public void GetSettings_SettingFileDoesNotExist_ReturnsNull()
         {
-            var projectKey = "projectKey";
-
             var file = new Mock<IFile>();
             file.Setup(f => f.Exists(filePath)).Returns(false);
 
@@ -92,18 +88,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
 
             var testSubject = CreateTestSubject(file.Object, logger);
 
-            var settings = testSubject.GetSettings(projectKey);
+            var settings = testSubject.GetSettings();
 
             settings.Should().BeNull();
             logger.AssertOutputStrings(1);
-            logger.AssertOutputStringExists(string.Format(NotFoundMessage, projectKey));
+            logger.AssertOutputStringExists(NotFoundMessage);
         }
 
         [TestMethod]
         public void GetSettings_FileReadError_ReturnsNull()
         {
-            var projectKey = "projectKey";
-
             var file = new Mock<IFile>();
             file.Setup(f => f.Exists(filePath)).Returns(true);
             file.Setup(f => f.ReadAllText(filePath)).Throws(new Exception("File Read Error"));
@@ -112,19 +106,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
 
             var testSubject = CreateTestSubject(file.Object, logger);
 
-            var settings = testSubject.GetSettings(projectKey);
+            var settings = testSubject.GetSettings();
 
             settings.Should().BeNull();
             logger.AssertOutputStrings(1);
-            logger.AssertOutputStringDoesNotExist(string.Format(NotFoundMessage, projectKey));
+            logger.AssertOutputStringDoesNotExist(NotFoundMessage);
             logger.AssertPartialOutputStringExists("File Read Error");
         }
 
         [TestMethod]
         public void GetSettings_SerializationError_ReturnsNull()
         {
-            var projectKey = "projectKey";
-
             var file = new Mock<IFile>();
             file.Setup(f => f.Exists(filePath)).Returns(true);
             file.Setup(f => f.ReadAllText(filePath)).Returns("Wrong String");
@@ -133,19 +125,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
 
             var testSubject = CreateTestSubject(file.Object, logger);
 
-            var settings = testSubject.GetSettings(projectKey);
+            var settings = testSubject.GetSettings();
 
             settings.Should().BeNull();
             logger.AssertOutputStrings(1);
-            logger.AssertOutputStringDoesNotExist(string.Format(NotFoundMessage, projectKey));
+            logger.AssertOutputStringDoesNotExist(NotFoundMessage);
             logger.AssertPartialOutputStringExists("Unexpected character encountered while parsing value");
         }
 
         [TestMethod]
         public void GetSettings_StandaloneMode_ReturnsNull()
         {
-            var projectKey = "projectKey";
-
             var file = new Mock<IFile>();
             file.Setup(f => f.ReadAllText(filePath)).Returns(objectJson);
             file.Setup(f => f.Exists(filePath)).Returns(true);
@@ -156,7 +146,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
 
             var testSubject = CreateTestSubject(file.Object, logger, bindingConfiguration);
 
-            var settings = testSubject.GetSettings(projectKey);
+            var settings = testSubject.GetSettings();
 
             settings.Should().BeNull();
             logger.AssertOutputStrings(1);
@@ -166,8 +156,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         [TestMethod]
         public void SaveSettings_NoError_SavesSettings()
         {
-            var projectKey = "projectKey";
-
             var file = new Mock<IFile>();
 
             var logger = new TestLogger();
@@ -182,7 +170,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
                 GlobalExclusions = new string[] { "globalExclusion" }
             };
 
-            testSubject.SaveSettings(projectKey, settings);
+            testSubject.SaveSettings(settings);
 
             file.Verify(f => f.WriteAllText(filePath, objectJson));
             logger.AssertOutputStrings(0);            
@@ -191,8 +179,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         [TestMethod]
         public void SaveSettings_StandAloneMode_Logs()
         {
-            var projectKey = "projectKey";
-
             var file = new Mock<IFile>();
 
             var logger = new TestLogger();
@@ -209,7 +195,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
                 GlobalExclusions = new string[] { "globalExclusion" }
             };
 
-            testSubject.SaveSettings(projectKey, settings);
+            testSubject.SaveSettings(settings);
 
             file.Verify(f => f.WriteAllText(filePath, objectJson), Times.Never);
             logger.AssertOutputStrings(1);
@@ -219,8 +205,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         [TestMethod]
         public void SaveSettings_Error_LogsError()
         {
-            var projectKey = "projectKey";
-
             var file = new Mock<IFile>();
             file.Setup(f => f.WriteAllText(filePath, It.IsAny<string>())).Throws(new Exception());
 
@@ -230,7 +214,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
 
             var settings = new ServerExclusions();          
 
-            testSubject.SaveSettings(projectKey, settings);
+            testSubject.SaveSettings(settings);
 
             logger.AssertOutputStrings(1);
             logger.AssertPartialOutputStringExists("Error writing settings for project");

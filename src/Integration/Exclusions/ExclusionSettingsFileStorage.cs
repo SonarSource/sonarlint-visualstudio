@@ -35,6 +35,7 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
         private readonly BindingConfiguration bindingConfiguration;
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
+        private readonly string filePath;
 
         public ExclusionSettingsFileStorage(ILogger logger, IFileSystem fileSystem, IConfigurationProviderService configurationProviderService)
         {
@@ -42,9 +43,10 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
             this.fileSystem = fileSystem;
             
             bindingConfiguration = configurationProviderService.GetConfiguration();
+            filePath = Path.Combine(bindingConfiguration.BindingConfigDirectory, "sonar.settings.json");
         }
 
-        public ServerExclusions GetSettings(string sonarProjectKey)
+        public ServerExclusions GetSettings()
         {
             try
             {
@@ -54,11 +56,9 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
                     return null;
                 }
 
-                string filePath = GetFilePath(sonarProjectKey);
-
                 if (!fileSystem.File.Exists(filePath))
                 {
-                    logger.WriteLine(String.Format(Strings.ExclusionGetError, sonarProjectKey, Strings.ExclusionFileNotFound));
+                    logger.WriteLine(String.Format(Strings.ExclusionGetError, Strings.ExclusionFileNotFound));
                     return null;
                 }
 
@@ -67,13 +67,13 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
             }
             catch(Exception ex)
             {
-                logger.WriteLine(String.Format(Strings.ExclusionGetError, sonarProjectKey, ex.Message));
+                logger.WriteLine(String.Format(Strings.ExclusionGetError, ex.Message));
             }
 
             return null;
         }
 
-        public void SaveSettings(string sonarProjectKey, ServerExclusions settings)
+        public void SaveSettings(ServerExclusions settings)
         {
             try
             {
@@ -82,24 +82,14 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
                     logger.WriteLine(Strings.ExclusionOnStandaloneNotSupported);
                     return;
                 }
-
-                string filePath = GetFilePath(sonarProjectKey);
                 var fileContent = JsonConvert.SerializeObject(settings);
                 
                 fileSystem.File.WriteAllText(filePath, fileContent);
             } catch (Exception ex)
             {
-                logger.WriteLine(String.Format(Strings.ExclusionSaveError, sonarProjectKey, ex.Message));
+                logger.WriteLine(String.Format(Strings.ExclusionSaveError, ex.Message));
             }
            
-        }
-
-        private string GetFilePath(string sonarProjectKey)
-        {
-            var escapedName = PathHelper.EscapeFileName(sonarProjectKey.ToLowerInvariant());
-
-            var filePath = Path.Combine(bindingConfiguration.BindingConfigDirectory, "sonar.settings.json");
-            return filePath;
         }
     }
 }
