@@ -35,7 +35,6 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
         private readonly BindingConfiguration bindingConfiguration;
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
-        private readonly string settingsFilePath;
 
         public ExclusionSettingsFileStorage(ILogger logger, IFileSystem fileSystem, IConfigurationProviderService configurationProviderService)
         {
@@ -99,7 +98,6 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
         private string GetFilePath(string sonarProjectKey)
         {
             var escapedName = PathHelper.EscapeFileName(sonarProjectKey.ToLowerInvariant());
-            var fileName = escapedName + ".json";
 
             var filePath = Path.Combine(bindingConfiguration.BindingConfigDirectory, "sonar.settings.json");
             return filePath;
