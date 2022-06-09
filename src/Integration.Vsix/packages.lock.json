@@ -194,6 +194,14 @@
           "Microsoft.VisualStudio.Interop": "17.0.0-previews-4-31709-430"
         }
       },
+      "Glob": {
+        "type": "Transitive",
+        "resolved": "1.1.9",
+        "contentHash": "AfK5+ECWYTP7G3AAdnU8IfVj+QpGjrh9GC2mpdcJzCvtQ4pnerAGwHsxJ9D4/RnhDUz2DSzd951O/lQjQby2Sw==",
+        "dependencies": {
+          "System.IO.FileSystem": "4.3.0"
+        }
+      },
       "Google.Protobuf": {
         "type": "Transitive",
         "resolved": "3.6.1",
@@ -1146,16 +1154,16 @@
       },
       "System.IO.FileSystem": {
         "type": "Transitive",
-        "resolved": "4.0.1",
-        "contentHash": "IBErlVq5jOggAD69bg1t0pJcHaDbJbWNUZTPI96fkYWzwYbN6D9wRHMULLDd9dHsl7C2YsxXL31LMfPI1SWt8w==",
+        "resolved": "4.3.0",
+        "contentHash": "3wEMARTnuio+ulnvi+hkRNROYwa1kylvYahhcLk4HSoVdl+xxTFVeVlYOfLwrDPImGls0mDqbMhrza8qnWPTdA==",
         "dependencies": {
-          "System.IO.FileSystem.Primitives": "4.0.1"
+          "System.IO.FileSystem.Primitives": "4.3.0"
         }
       },
       "System.IO.FileSystem.Primitives": {
         "type": "Transitive",
-        "resolved": "4.0.1",
-        "contentHash": "kWkKD203JJKxJeE74p8aF8y4Qc9r9WQx4C0cHzHPrY3fv/L/IhWnyCHaFJ3H1QPOH6A93whlQ2vG5nHlBDvzWQ=="
+        "resolved": "4.3.0",
+        "contentHash": "6QOb2XFLch7bEc4lIcJH49nJN2HV+OC3fHDgsLVsBVBk3Y4hFAnOBGzJ2lUu7CyDDFo9IBWkSsnbkT6IBwwiMw=="
       },
       "System.IO.Pipelines": {
         "type": "Transitive",
@@ -1516,6 +1524,7 @@
       "SonarLint.VisualStudio.Core": {
         "type": "Project",
         "dependencies": {
+          "Glob": "1.1.9",
           "Newtonsoft.Json": "13.0.1",
           "SonarQube.Client": "1.0.0",
           "System.IO.Abstractions": "9.0.4"

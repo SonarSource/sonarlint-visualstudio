@@ -14,6 +14,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Glob" Version="1.1.9" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj" />
   </ItemGroup>
 
