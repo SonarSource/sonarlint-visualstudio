@@ -13,6 +13,11 @@
         "resolved": "1.8.6.1",
         "contentHash": "rkqpuKmJkdcfTMBkIj1b5nMdBAWKwAyh+I/BQYeqqSD2jkIlhwc9qBNKmSbnpmmm5c29qHZGLpvBSTNWvDLtQA=="
       },
+      "DotNet.Glob": {
+        "type": "Transitive",
+        "resolved": "3.1.3",
+        "contentHash": "hOfHw7MLJw/tbXaFwR1oiDb+dIXDp8URTxp5Pco42OOhiw77wrUNx6v6syNygHZbWwYdXQocL2Mo1l5FnfDVjg=="
+      },
       "envdte": {
         "type": "Transitive",
         "resolved": "17.0.0-previews-4-31709-430",
@@ -51,14 +56,6 @@
         "contentHash": "qwiOztw1yyhdJQtT0gYfAdA4Z4P+q9fqxPI6q/+3Y6gCts8ogn8AESkZHC8DTYqbY3J78CemaAYIZt69heeppg==",
         "dependencies": {
           "Microsoft.VisualStudio.Interop": "17.0.0-previews-4-31709-430"
-        }
-      },
-      "Glob": {
-        "type": "Transitive",
-        "resolved": "1.1.9",
-        "contentHash": "AfK5+ECWYTP7G3AAdnU8IfVj+QpGjrh9GC2mpdcJzCvtQ4pnerAGwHsxJ9D4/RnhDUz2DSzd951O/lQjQby2Sw==",
-        "dependencies": {
-          "System.IO.FileSystem": "4.3.0"
         }
       },
       "Google.Protobuf": {
@@ -888,19 +885,6 @@
         "resolved": "9.0.4",
         "contentHash": "1h4krG51ZiW/CGzM8gtqrRW2oeG6WZDfPaj27suexL8PxBVahsUlUKMJrqI4kkh6ggHLSDd7MFeU8orpk6COZg=="
       },
-      "System.IO.FileSystem": {
-        "type": "Transitive",
-        "resolved": "4.3.0",
-        "contentHash": "3wEMARTnuio+ulnvi+hkRNROYwa1kylvYahhcLk4HSoVdl+xxTFVeVlYOfLwrDPImGls0mDqbMhrza8qnWPTdA==",
-        "dependencies": {
-          "System.IO.FileSystem.Primitives": "4.3.0"
-        }
-      },
-      "System.IO.FileSystem.Primitives": {
-        "type": "Transitive",
-        "resolved": "4.3.0",
-        "contentHash": "6QOb2XFLch7bEc4lIcJH49nJN2HV+OC3fHDgsLVsBVBk3Y4hFAnOBGzJ2lUu7CyDDFo9IBWkSsnbkT6IBwwiMw=="
-      },
       "System.IO.Pipelines": {
         "type": "Transitive",
         "resolved": "5.0.1",
@@ -1124,7 +1108,7 @@
       "SonarLint.VisualStudio.Core": {
         "type": "Project",
         "dependencies": {
-          "Glob": "1.1.9",
+          "DotNet.Glob": "3.1.3",
           "Newtonsoft.Json": "13.0.1",
           "SonarQube.Client": "1.0.0",
           "System.IO.Abstractions": "9.0.4"
