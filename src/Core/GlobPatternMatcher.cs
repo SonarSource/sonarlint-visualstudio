@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Core
     {
         public bool IsMatch(string pattern, string input)
         {
-            var match = new WildcardPattern(pattern, "/").match(input);
+            var match = WildcardPattern.create(pattern).match(input);
 
             return match;
         }
@@ -45,13 +45,10 @@ namespace SonarLint.VisualStudio.Core
         {
             private static readonly ConcurrentDictionary<string, WildcardPattern> CACHE = new ConcurrentDictionary<string, WildcardPattern>();
             private static readonly string SPECIAL_CHARS = "()[]^$.{}+|";
+            private readonly Regex pattern;
 
-            private Regex pattern;
-            private string stringRepresentation;
-
-            public WildcardPattern(string pattern, string directorySeparator)
+            private WildcardPattern(string pattern, string directorySeparator)
             {
-                this.stringRepresentation = pattern;
                 this.pattern = new Regex(toRegexp(pattern, directorySeparator));
             }
 
@@ -126,16 +123,6 @@ namespace SonarLint.VisualStudio.Core
             }
 
             /**
-             * Returns string representation of this pattern.
-             * 
-             * @since 2.5
-             */
-            public override string ToString()
-            {
-                return stringRepresentation;
-            }
-
-            /**
              * Returns true if specified value matches this pattern.
              */
             public bool match(string value)
@@ -144,24 +131,7 @@ namespace SonarLint.VisualStudio.Core
                 value = value.TrimEnd('/');
                 return pattern.IsMatch(value);
             }
-
-            /**
-             * Returns true if specified value matches one of specified patterns.
-             * 
-             * @since 2.4
-             */
-            public static bool match(WildcardPattern[] patterns, string value)
-            {
-                foreach (var pattern in patterns)
-                {
-                    if (pattern.match(value))
-                    {
-                        return true;
-                    }
-                }
-                return false;
-            }
-
+     
             /**
              * Creates pattern with "/" as a directory separator.
              * 
@@ -170,25 +140,6 @@ namespace SonarLint.VisualStudio.Core
             public static WildcardPattern create(string pattern)
             {
                 return create(pattern, "/");
-            }
-
-            /**
-             * Creates array of patterns with "/" as a directory separator.
-             * 
-             * @see #create(string, string)
-             */
-            public static WildcardPattern[] create(string[] patterns)
-            {
-                if (patterns == null)
-                {
-                    return new WildcardPattern[0];
-                }
-                WildcardPattern[] exclusionPAtterns = new WildcardPattern[patterns.Length];
-                for (int i = 0; i < patterns.Length; i++)
-                {
-                    exclusionPAtterns[i] = create(patterns[i]);
-                }
-                return exclusionPAtterns;
             }
 
             /**
