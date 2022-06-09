@@ -31,8 +31,8 @@ namespace SonarLint.VisualStudio.Core
     {
         public bool IsMatch(string pattern, string input)
         {
-            // input = input.TrimStart('/', '\\');
-            // pattern = pattern.TrimStart('/', '\\');
+            input = input.TrimStart('/', '\\');
+            pattern = pattern.TrimStart('/', '\\');
 
             var glob = Glob.Parse(pattern, new GlobOptions{Evaluation = new EvaluationOptions{CaseInsensitive = true}});
             var match = glob.IsMatch(input);

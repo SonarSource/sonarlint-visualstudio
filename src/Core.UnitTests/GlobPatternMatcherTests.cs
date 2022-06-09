@@ -31,79 +31,77 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         /// </summary>
         [TestMethod]
 
-        // [DataRow("Foo", "Foo", true)]
-        // [DataRow("foo", "FOO", true)]
-        //
-        // [DataRow("Foo", "Foot", false)]
-        // [DataRow("Foo", "Bar", false)]
-        //
-        // [DataRow("org/T?st.java", "org/Test.java", true)]
-        // [DataRow("org/T?st.java", "org/Tost.java", true)]
-        // [DataRow("org/T?st.java", "org/Teeest.java", false)]
-        //
-        // [DataRow("org/*.java", "org/Foo.java", true)]
-        // [DataRow("org/*.java", "org/Bar.java", true)]
-        //
-        // [DataRow("org/**", "org/Foo.java", true)]
-        // [DataRow("org/**", "org/foo/bar.jsp", true)]
-        //
-        // [DataRow("org/**/Test.java", "org/Test.java", true)]
-        // [DataRow("org/**/Test.java", "org/foo/Test.java", true)]
-        // [DataRow("org/**/Test.java", "org/foo/bar/Test.java", true)]
-        //
-        // [DataRow("org/**/*.java", "org/Foo.java", true)]
-        // [DataRow("org/**/*.java", "org/foo/Bar.java", true)]
-        // [DataRow("org/**/*.java", "org/foo/bar/Baz.java", true)]
-        //
-        // [DataRow("o?/**/*.java", "org/test.java", false)]
-        // [DataRow("o?/**/*.java", "o/test.java", false)]
-        // [DataRow("o?/**/*.java", "og/test.java", true)]
-        // [DataRow("o?/**/*.java", "og/foo/bar/test.java", true)]
-        // [DataRow("o?/**/*.java", "og/foo/bar/test.jav", false)]
-        //
-        // [DataRow("org/sonar/**", "org/sonar/commons/Foo", true)]
-        // [DataRow("org/sonar/**", "org/sonar/Foo.java", true)]
-        //
-        // [DataRow("xxx/org/sonar/**", "org/sonar/Foo", false)]
-        //
-        // [DataRow("org/sonar/**/**", "org/sonar/commons/Foo", true)]
-        // [DataRow("org/sonar/**/**", "org/sonar/commons/sub/Foo.java", true)]
-        //
-        // [DataRow("org/sonar/**/Foo", "org/sonar/commons/sub/Foo", true)]
-        // [DataRow("org/sonar/**/Foo", "org/sonar/Foo", true)]
-        //
-        //
-        // [DataRow("*/foo/*", "org/foo/Bar", true)]
-        // [DataRow("*/foo/*", "foo/Bar", false)]
-        // [DataRow("*/foo/*", "foo", false)]
-        // [DataRow("*/foo/*", "org/foo/bar/Hello", false)]
-        //
-        // [DataRow("hell?", "hell", false)]
-        // [DataRow("hell?", "hello", true)]
-        // [DataRow("hell?", "helloworld", false)]
-        //
-        // [DataRow("**/Reader", "java/io/Reader", true)]
-        // [DataRow("**/Reader", "org/sonar/channel/CodeReader", false)]
-        //
-        // [DataRow("**", "java/io/Reader", true)]
-        //
-        // [DataRow("**/app/**", "com/app/Utils", true)]
-        // [DataRow("**/app/**", "com/application/MyService", false)]
-        //
-        // [DataRow("**/*$*", "foo/bar", false)]
-        // [DataRow("**/*$*", "foo/bar$baz", true)]
-        // [DataRow("a+", "aa", false)]
-        // [DataRow("a+", "a+", true)]
+        [DataRow("Foo", "Foo", true)]
+        [DataRow("foo", "FOO", true)]
+
+        [DataRow("Foo", "Foot", false)]
+        [DataRow("Foo", "Bar", false)]
+
+        [DataRow("org/T?st.java", "org/Test.java", true)]
+        [DataRow("org/T?st.java", "org/Tost.java", true)]
+        [DataRow("org/T?st.java", "org/Teeest.java", false)]
+
+        [DataRow("org/*.java", "org/Foo.java", true)]
+        [DataRow("org/*.java", "org/Bar.java", true)]
+
+        [DataRow("org/**", "org/Foo.java", true)]
+        [DataRow("org/**", "org/foo/bar.jsp", true)]
+
+        [DataRow("org/**/Test.java", "org/Test.java", true)]
+        [DataRow("org/**/Test.java", "org/foo/Test.java", true)]
+        [DataRow("org/**/Test.java", "org/foo/bar/Test.java", true)]
+
+        [DataRow("org/**/*.java", "org/Foo.java", true)]
+        [DataRow("org/**/*.java", "org/foo/Bar.java", true)]
+        [DataRow("org/**/*.java", "org/foo/bar/Baz.java", true)]
+
+        [DataRow("o?/**/*.java", "org/test.java", false)]
+        [DataRow("o?/**/*.java", "o/test.java", false)]
+        [DataRow("o?/**/*.java", "og/test.java", true)]
+        [DataRow("o?/**/*.java", "og/foo/bar/test.java", true)]
+        [DataRow("o?/**/*.java", "og/foo/bar/test.jav", false)]
+
+        [DataRow("org/sonar/**", "org/sonar/commons/Foo", true)]
+        [DataRow("org/sonar/**", "org/sonar/Foo.java", true)]
+
+        [DataRow("xxx/org/sonar/**", "org/sonar/Foo", false)]
+
+        [DataRow("org/sonar/**/**", "org/sonar/commons/Foo", true)]
+        [DataRow("org/sonar/**/**", "org/sonar/commons/sub/Foo.java", true)]
+
+        [DataRow("org/sonar/**/Foo", "org/sonar/commons/sub/Foo", true)]
+        [DataRow("org/sonar/**/Foo", "org/sonar/Foo", true)]
+
+
+        [DataRow("*/foo/*", "org/foo/Bar", true)]
+        [DataRow("*/foo/*", "foo/Bar", false)]
+        [DataRow("*/foo/*", "foo", false)]
+        [DataRow("*/foo/*", "org/foo/bar/Hello", false)]
+
+        [DataRow("hell?", "hell", false)]
+        [DataRow("hell?", "hello", true)]
+        [DataRow("hell?", "helloworld", false)]
+
+        [DataRow("**/Reader", "java/io/Reader", true)]
+        [DataRow("**/Reader", "org/sonar/channel/CodeReader", false)]
+
+        [DataRow("**", "java/io/Reader", true)]
+
+        [DataRow("**/app/**", "com/app/Utils", true)]
+        [DataRow("**/app/**", "com/application/MyService", false)]
+
+        [DataRow("**/*$*", "foo/bar", false)]
+        [DataRow("**/*$*", "foo/bar$baz", true)]
+        [DataRow("a+", "aa", false)]
+        [DataRow("a+", "a+", true)]
         [DataRow("[[]ab[]]", "a", false)]
         [DataRow("[[]ab[]]", "[ab]", true)]
-        // [DataRow("[ab]", "[ab]", true)]
-        // [DataRow("[ab]", "[ab]", true)]
-        //
-        // [DataRow("\\n", "\n", false)]
-        // [DataRow("foo\\bar", "foo/bar", true)]
-        //
-        // [DataRow("/foo", "foo", true)]
-        // [DataRow("\\foo", "foo", true)]
+
+        [DataRow("\\n", "\n", false)]
+        [DataRow("foo\\bar", "foo/bar", true)]
+
+        [DataRow("/foo", "foo", true)]
+        [DataRow("\\foo", "foo", true)]
 
         public void IsMatch_ReturnsIfInputMatchesGlobPattern(string pattern, string input, bool expectedResult)
         {
