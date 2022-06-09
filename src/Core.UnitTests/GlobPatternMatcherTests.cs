@@ -32,8 +32,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [TestMethod]
 
         [DataRow("Foo", "Foo", true)]
-        [DataRow("foo", "FOO", true)]
-
+        [DataRow("foo", "FOO", false)]
         [DataRow("Foo", "Foot", false)]
         [DataRow("Foo", "Bar", false)]
 

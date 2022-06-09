@@ -18,6 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Concurrent;
+using System.Text;
+using System.Text.RegularExpressions;
+
 namespace SonarLint.VisualStudio.Core
 {
     public interface IGlobPatternMatcher
@@ -29,10 +33,182 @@ namespace SonarLint.VisualStudio.Core
     {
         public bool IsMatch(string pattern, string input)
         {
-            input = input.TrimStart('/', '\\');
-            pattern = pattern.TrimStart('/', '\\');
+            var match = new WildcardPattern(pattern, "/").match(input);
 
-            return false;
+            return match;
+        }
+
+        /// <summary>
+        /// Copied as-is from https://github.com/SonarSource/sonar-plugin-api/blob/a9bd7ff48f0f77811ed909070030678c443c975a/sonar-plugin-api/src/main/java/org/sonar/api/utils/WildcardPattern.java
+        /// </summary>
+        private class WildcardPattern
+        {
+            private static readonly ConcurrentDictionary<string, WildcardPattern> CACHE = new ConcurrentDictionary<string, WildcardPattern>();
+            private static readonly string SPECIAL_CHARS = "()[]^$.{}+|";
+
+            private Regex pattern;
+            private string stringRepresentation;
+
+            public WildcardPattern(string pattern, string directorySeparator)
+            {
+                this.stringRepresentation = pattern;
+                this.pattern = new Regex(toRegexp(pattern, directorySeparator));
+            }
+
+            private static string toRegexp(string antPattern, string directorySeparator)
+            {
+                var escapedDirectorySeparator = '\\' + directorySeparator;
+                var sb = new StringBuilder(antPattern.Length);
+
+                sb.Append('^');
+
+                int i = antPattern.StartsWith("/") || antPattern.StartsWith("\\") ? 1 : 0;
+                while (i < antPattern.Length)
+                {
+                    var ch = antPattern[i];
+
+                    if (SPECIAL_CHARS.IndexOf(ch) != -1)
+                    {
+                        // Escape regexp-specific characters
+                        sb.Append('\\').Append(ch);
+                    }
+                    else if (ch == '*')
+                    {
+                        if (i + 1 < antPattern.Length && antPattern[i + 1] == '*')
+                        {
+                            // Double asterisk
+                            // Zero or more directories
+                            if (i + 2 < antPattern.Length && isSlash(antPattern[i + 2]))
+                            {
+                                sb.Append("(?:.*").Append(escapedDirectorySeparator).Append("|)");
+                                i += 2;
+                            }
+                            else
+                            {
+                                sb.Append(".*");
+                                i += 1;
+                            }
+                        }
+                        else
+                        {
+                            // Single asterisk
+                            // Zero or more characters excluding directory separator
+                            sb.Append("[^").Append(escapedDirectorySeparator).Append("]*?");
+                        }
+                    }
+                    else if (ch == '?')
+                    {
+                        // Any single character excluding directory separator
+                        sb.Append("[^").Append(escapedDirectorySeparator).Append("]");
+                    }
+                    else if (isSlash(ch))
+                    {
+                        // Directory separator
+                        sb.Append(escapedDirectorySeparator);
+                    }
+                    else
+                    {
+                        // Single character
+                        sb.Append(ch);
+                    }
+
+                    i++;
+                }
+
+                sb.Append('$');
+
+                return sb.ToString();
+            }
+
+            private static bool isSlash(char ch)
+            {
+                return ch == '/' || ch == '\\';
+            }
+
+            /**
+             * Returns string representation of this pattern.
+             * 
+             * @since 2.5
+             */
+            public override string ToString()
+            {
+                return stringRepresentation;
+            }
+
+            /**
+             * Returns true if specified value matches this pattern.
+             */
+            public bool match(string value)
+            {
+                value = value.TrimStart('/');
+                value = value.TrimEnd('/');
+                return pattern.IsMatch(value);
+            }
+
+            /**
+             * Returns true if specified value matches one of specified patterns.
+             * 
+             * @since 2.4
+             */
+            public static bool match(WildcardPattern[] patterns, string value)
+            {
+                foreach (var pattern in patterns)
+                {
+                    if (pattern.match(value))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            /**
+             * Creates pattern with "/" as a directory separator.
+             * 
+             * @see #create(string, string)
+             */
+            public static WildcardPattern create(string pattern)
+            {
+                return create(pattern, "/");
+            }
+
+            /**
+             * Creates array of patterns with "/" as a directory separator.
+             * 
+             * @see #create(string, string)
+             */
+            public static WildcardPattern[] create(string[] patterns)
+            {
+                if (patterns == null)
+                {
+                    return new WildcardPattern[0];
+                }
+                WildcardPattern[] exclusionPAtterns = new WildcardPattern[patterns.Length];
+                for (int i = 0; i < patterns.Length; i++)
+                {
+                    exclusionPAtterns[i] = create(patterns[i]);
+                }
+                return exclusionPAtterns;
+            }
+
+            /**
+             * Creates pattern with specified separator for directories.
+             * <p>
+             * This is used to match Java-classes, i.e. <code>org.foo.Bar</code> against <code>org/**</code>.
+             * <b>However usage of character other than "/" as a directory separator is misleading and should be avoided,
+             * so method {@link #create(string)} is preferred over this one.</b>
+             * 
+             * <p>
+             * Also note that no matter whether forward or backward slashes were used in the <code>antPattern</code>
+             * the returned pattern will use <code>directorySeparator</code>.
+             * Thus to match Windows-style path "dir\file.ext" against pattern "dir/file.ext" normalization should be performed.
+             * 
+             */
+            public static WildcardPattern create(string pattern, string directorySeparator)
+            {
+                string key = pattern + directorySeparator;
+                return CACHE.GetOrAdd(key, k=> new WildcardPattern(pattern, directorySeparator));
+            }
         }
     }
 }
