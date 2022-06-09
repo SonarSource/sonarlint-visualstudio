@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using DotNet.Globbing;
-
 namespace SonarLint.VisualStudio.Core
 {
     public interface IGlobPatternMatcher
@@ -34,10 +32,7 @@ namespace SonarLint.VisualStudio.Core
             input = input.TrimStart('/', '\\');
             pattern = pattern.TrimStart('/', '\\');
 
-            var glob = Glob.Parse(pattern, new GlobOptions{Evaluation = new EvaluationOptions{CaseInsensitive = true}});
-            var match = glob.IsMatch(input);
-
-            return match;
+            return false;
         }
     }
 }

@@ -154,11 +154,6 @@
         "resolved": "1.8.6.1",
         "contentHash": "rkqpuKmJkdcfTMBkIj1b5nMdBAWKwAyh+I/BQYeqqSD2jkIlhwc9qBNKmSbnpmmm5c29qHZGLpvBSTNWvDLtQA=="
       },
-      "DotNet.Glob": {
-        "type": "Transitive",
-        "resolved": "3.1.3",
-        "contentHash": "hOfHw7MLJw/tbXaFwR1oiDb+dIXDp8URTxp5Pco42OOhiw77wrUNx6v6syNygHZbWwYdXQocL2Mo1l5FnfDVjg=="
-      },
       "envdte": {
         "type": "Transitive",
         "resolved": "17.0.0-previews-4-31709-430",
@@ -1521,7 +1516,6 @@
       "SonarLint.VisualStudio.Core": {
         "type": "Project",
         "dependencies": {
-          "DotNet.Glob": "3.1.3",
           "Newtonsoft.Json": "13.0.1",
           "SonarQube.Client": "1.0.0",
           "System.IO.Abstractions": "9.0.4"

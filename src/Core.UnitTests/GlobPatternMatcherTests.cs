@@ -94,8 +94,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [DataRow("**/*$*", "foo/bar$baz", true)]
         [DataRow("a+", "aa", false)]
         [DataRow("a+", "a+", true)]
-        [DataRow("[[]ab[]]", "a", false)]
-        [DataRow("[[]ab[]]", "[ab]", true)]
+        [DataRow("[ab]", "a", false)]
+        [DataRow("[ab]", "[ab]", true)]
 
         [DataRow("\\n", "\n", false)]
         [DataRow("foo\\bar", "foo/bar", true)]
