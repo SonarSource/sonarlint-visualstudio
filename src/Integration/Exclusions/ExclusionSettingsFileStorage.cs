@@ -35,15 +35,12 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
         private readonly BindingConfiguration bindingConfiguration;
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
-        private readonly string filePath;
 
-        public ExclusionSettingsFileStorage(ILogger logger, IFileSystem fileSystem, IConfigurationProviderService configurationProviderService)
+        public ExclusionSettingsFileStorage(ILogger logger, IFileSystem fileSystem, BindingConfiguration bindingConfiguration)
         {
             this.logger = logger;
-            this.fileSystem = fileSystem;
-            
-            bindingConfiguration = configurationProviderService.GetConfiguration();
-            filePath = Path.Combine(bindingConfiguration.BindingConfigDirectory, "sonar.settings.json");
+            this.fileSystem = fileSystem;         
+            this.bindingConfiguration = bindingConfiguration;            
         }
 
         public ServerExclusions GetSettings()
@@ -56,13 +53,13 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
                     return null;
                 }
 
-                if (!fileSystem.File.Exists(filePath))
+                if (!fileSystem.File.Exists(FilePath))
                 {
                     logger.WriteLine(String.Format(Strings.ExclusionGetError, Strings.ExclusionFileNotFound));
                     return null;
                 }
 
-                var fileContent = fileSystem.File.ReadAllText(filePath);
+                var fileContent = fileSystem.File.ReadAllText(FilePath);
                 return JsonConvert.DeserializeObject<ServerExclusions>(fileContent);
             }
             catch(Exception ex)
@@ -84,12 +81,20 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
                 }
                 var fileContent = JsonConvert.SerializeObject(settings);
                 
-                fileSystem.File.WriteAllText(filePath, fileContent);
+                fileSystem.File.WriteAllText(FilePath, fileContent);
             } catch (Exception ex)
             {
                 logger.WriteLine(String.Format(Strings.ExclusionSaveError, ex.Message));
             }
            
+        }
+
+        private string FilePath
+        {
+            get
+            {
+                return Path.Combine(bindingConfiguration.BindingConfigDirectory, "sonar.settings.json");
+            }
         }
     }
 }

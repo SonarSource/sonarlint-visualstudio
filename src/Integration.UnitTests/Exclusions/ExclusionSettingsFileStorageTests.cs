@@ -38,19 +38,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         private const string filePath = "C:\\SolutionPath\\sonar.settings.json";
 
         [TestMethod]
-        public void Ctor_GetConfigurationIsCalled()
-        {
-            var bindingConfiguration = new BindingConfiguration(null, SonarLintMode.Connected, "C:\\SolutionPath");
-
-            var configurationProviderService = new Mock<IConfigurationProviderService>();
-            configurationProviderService.Setup(p => p.GetConfiguration()).Returns(bindingConfiguration);
-
-            _ = new ExclusionSettingsFileStorage(Mock.Of<ILogger>(), Mock.Of<IFileSystem>(), configurationProviderService.Object);
-
-            configurationProviderService.Verify(c => c.GetConfiguration(), Times.Once);
-        }
-
-        [TestMethod]
         public void GetSettings_HaveSettings_ReadsSettings()
         {
             var file = new Mock<IFile>();
@@ -140,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             file.Setup(f => f.ReadAllText(filePath)).Returns(objectJson);
             file.Setup(f => f.Exists(filePath)).Returns(true);
 
-            var bindingConfiguration = new BindingConfiguration(null, SonarLintMode.Standalone, "C:\\SolutionPath");
+            var bindingConfiguration = BindingConfiguration.Standalone;
 
             var logger = new TestLogger();
 
@@ -183,7 +170,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
 
             var logger = new TestLogger();
 
-            var bindingConfiguration = new BindingConfiguration(null, SonarLintMode.Standalone, "C:\\SolutionPath");
+            var bindingConfiguration = BindingConfiguration.Standalone;
 
             var testSubject = CreateTestSubject(file.Object, logger, bindingConfiguration);
 
@@ -226,11 +213,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
 
             bindingConfiguration = bindingConfiguration ?? new BindingConfiguration(null, SonarLintMode.Connected, "C:\\SolutionPath");
 
-            var configurationProviderService = new Mock<IConfigurationProviderService>();
-            configurationProviderService.Setup(p => p.GetConfiguration()).Returns(bindingConfiguration);
-
-
-            return new ExclusionSettingsFileStorage(logger, fileSystem, configurationProviderService.Object);
+            return new ExclusionSettingsFileStorage(logger, fileSystem, bindingConfiguration);
         }
 
         private IFileSystem CreateFileSystem(IFile file)
