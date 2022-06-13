@@ -56,24 +56,33 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         }
 
         [TestMethod]
-        [DataRow(true, false)]
-        [DataRow(false, true)]
-        public void ShouldAnalyze_NoInclusions_HasExclusions_ReturnsIfExcluded(bool exclusionsApply, bool expectedResult)
+        [DataRow(true, true, false)]
+        [DataRow(true, false, false)]
+        [DataRow(false, true, false)]
+        [DataRow(false, false, true)]
+        public void ShouldAnalyze_NoInclusions_HasExclusions_ReturnsIfExcluded(
+            bool projectExclusionsApply,
+            bool globalExclusionsApply,
+            bool expectedResult)
         {
-            var exclusions = new[] { "exclusion1", "exclusion2" };
-            var exclusionConfig = CreateServerExclusions(inclusions: null, exclusions: exclusions);
+            var projectExclusions = new[] { "exclusion1", "exclusion2" };
+            var globalExclusions = new[] { "exclusion3", "exclusion4" };
+            var exclusionConfig = CreateServerExclusions(
+                inclusions: null,
+                exclusions: projectExclusions,
+                globalExclusions: globalExclusions);
 
             var patternMatcher = new Mock<IGlobPatternMatcher>();
-            patternMatcher.Setup(x => x.IsMatch(exclusions[0], TestedFilePath)).Returns(false);
-            patternMatcher.Setup(x => x.IsMatch(exclusions[1], TestedFilePath)).Returns(exclusionsApply);
+            patternMatcher.Setup(x => x.IsMatch(projectExclusions[0], TestedFilePath)).Returns(false);
+            patternMatcher.Setup(x => x.IsMatch(projectExclusions[1], TestedFilePath)).Returns(projectExclusionsApply);
+            patternMatcher.Setup(x => x.IsMatch(globalExclusions[0], TestedFilePath)).Returns(false);
+            patternMatcher.Setup(x => x.IsMatch(globalExclusions[1], TestedFilePath)).Returns(globalExclusionsApply);
 
             var testSubject = CreateTestSubject(exclusionConfig, patternMatcher.Object);
 
             var result = testSubject.ShouldAnalyze(TestedFilePath);
 
             result.Should().Be(expectedResult);
-            patternMatcher.VerifyAll();
-            patternMatcher.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -82,7 +91,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         public void ShouldAnalyze_HasInclusions_NoExclusions_ReturnsIfIncluded(bool inclusionsApply, bool expectedResult)
         {
             var inclusions = new[] { "inclusion1", "inclusion2" };
-            var exclusionConfig = CreateServerExclusions(inclusions: inclusions, exclusions: null);
+            var exclusionConfig = CreateServerExclusions(
+                inclusions: inclusions, 
+                exclusions: null,
+                globalExclusions: null);
 
             var patternMatcher = new Mock<IGlobPatternMatcher>();
             patternMatcher.Setup(x => x.IsMatch(inclusions[0], TestedFilePath)).Returns(false);
@@ -98,28 +110,37 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         }
 
         [TestMethod]
-        [DataRow(true, false)]
-        [DataRow(false, true)]
+        [DataRow(true, true, false)]
+        [DataRow(true, false, false)]
+        [DataRow(false, true, false)]
+        [DataRow(false, false, true)]
 
-        public void ShouldAnalyze_FileIncluded_ReturnsIfExcluded(bool exclusionsApply, bool expectedResult)
+        public void ShouldAnalyze_FileIncluded_ReturnsIfExcluded(
+            bool projectExclusionsApply, 
+            bool globalExclusionsApply,
+            bool expectedResult)
         {
             var inclusions = new[] { "inclusion1", "inclusion2" };
-            var exclusions = new[] { "exclusion1", "exclusion2" };
-            var exclusionConfig = CreateServerExclusions(inclusions: inclusions, exclusions: exclusions);
+            var projectExclusions = new[] { "exclusion1", "exclusion2" };
+            var globalExclusions = new[] { "exclusion3", "exclusion4" };
+            var exclusionConfig = CreateServerExclusions(
+                inclusions: inclusions,
+                exclusions: projectExclusions,
+                globalExclusions: globalExclusions);
 
             var patternMatcher = new Mock<IGlobPatternMatcher>();
             patternMatcher.Setup(x => x.IsMatch(inclusions[0], TestedFilePath)).Returns(false);
             patternMatcher.Setup(x => x.IsMatch(inclusions[1], TestedFilePath)).Returns(true);
-            patternMatcher.Setup(x => x.IsMatch(exclusions[0], TestedFilePath)).Returns(false);
-            patternMatcher.Setup(x => x.IsMatch(exclusions[1], TestedFilePath)).Returns(exclusionsApply);
+            patternMatcher.Setup(x => x.IsMatch(projectExclusions[0], TestedFilePath)).Returns(false);
+            patternMatcher.Setup(x => x.IsMatch(projectExclusions[1], TestedFilePath)).Returns(projectExclusionsApply);
+            patternMatcher.Setup(x => x.IsMatch(globalExclusions[0], TestedFilePath)).Returns(false);
+            patternMatcher.Setup(x => x.IsMatch(globalExclusions[1], TestedFilePath)).Returns(globalExclusionsApply);
 
             var testSubject = CreateTestSubject(exclusionConfig, patternMatcher.Object);
 
             var result = testSubject.ShouldAnalyze(TestedFilePath);
 
             result.Should().Be(expectedResult);
-            patternMatcher.VerifyAll();
-            patternMatcher.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -128,7 +149,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         {
             var inclusions = new[] { "inclusion1" };
             var exclusions = new[] { "exclusion1" };
-            var exclusionConfig = CreateServerExclusions(inclusions: inclusions, exclusions: exclusions);
+            var exclusionConfig = CreateServerExclusions(
+                inclusions: inclusions, 
+                exclusions: exclusions, 
+                globalExclusions: exclusions);
 
             var patternMatcher = new Mock<IGlobPatternMatcher>();
             patternMatcher.Setup(x => x.IsMatch(inclusions[0], TestedFilePath)).Returns(false);
@@ -144,6 +168,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             patternMatcher.VerifyNoOtherCalls();
         }
 
+        [TestMethod]
+
+        public void ShouldAnalyze_FileExcludedInProjectSettings_GlobalExclusionsAreNotChecked()
+        {
+            var projectExclusions = new[] { "exclusion1" };
+            var globalExclusions = new[] { "exclusion2" };
+            var exclusionConfig = CreateServerExclusions(
+                inclusions: null,
+                exclusions: projectExclusions,
+                globalExclusions: globalExclusions);
+
+            var patternMatcher = new Mock<IGlobPatternMatcher>();
+            patternMatcher.Setup(x => x.IsMatch(projectExclusions[0], TestedFilePath)).Returns(true);
+            patternMatcher.Setup(x => x.IsMatch(globalExclusions[0], TestedFilePath)).Returns(true);
+
+            var testSubject = CreateTestSubject(exclusionConfig, patternMatcher.Object);
+
+            var result = testSubject.ShouldAnalyze(TestedFilePath);
+
+            result.Should().Be(false);
+            patternMatcher.Verify(x => x.IsMatch(projectExclusions[0], TestedFilePath), Times.Once);
+            patternMatcher.Verify(x => x.IsMatch(globalExclusions[0], TestedFilePath), Times.Never);
+            patternMatcher.VerifyNoOtherCalls();
+        }
+
         private AnalyzableFileIndicator CreateTestSubject(ServerExclusions exclusions, IGlobPatternMatcher patternMatcher)
         {
             var exclusionsFileStorage = new Mock<IExclusionSettingsFileStorage>();
@@ -152,10 +201,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             return new AnalyzableFileIndicator(exclusionsFileStorage.Object, patternMatcher);
         }
 
-        private ServerExclusions CreateServerExclusions(string[] inclusions, string[] exclusions)
+        private ServerExclusions CreateServerExclusions(
+            string[] inclusions, 
+            string[] exclusions,
+            string[] globalExclusions)
         {
             return new ServerExclusions(exclusions: exclusions,
-                globalExclusions: null,
+                globalExclusions: globalExclusions,
                 inclusions: inclusions,
                 globalInclusions: null);
         }

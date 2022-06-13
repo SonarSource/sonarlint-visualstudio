@@ -54,18 +54,24 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
                 return true;
             }
 
-            var shouldAnalyze = IsIncluded() && !IsExcluded();
+            var shouldAnalyze = IsIncluded() && !IsExcludedInProjectOrGlobally();
 
             return shouldAnalyze;
 
             bool IsIncluded() =>
                 serverExclusions.Inclusions == null ||
                 serverExclusions.Inclusions.Length == 0 ||
-                serverExclusions.Inclusions.Any(x => globPatternMatcher.IsMatch(x, filePath));
+                serverExclusions.Inclusions.Any(IsMatch);
 
-            bool IsExcluded() =>
-                serverExclusions.Exclusions != null &&
-                serverExclusions.Exclusions.Any(x => globPatternMatcher.IsMatch(x, filePath));
+            bool IsExcludedInProjectOrGlobally() =>
+                IsExcluded(serverExclusions.Exclusions) ||
+                IsExcluded(serverExclusions.GlobalExclusions);
+
+            bool IsExcluded(string[] exclusions) =>
+                exclusions != null &&
+                exclusions.Any(IsMatch);
+
+            bool IsMatch(string pattern) => globPatternMatcher.IsMatch(pattern, filePath);
         }
     }
 }
