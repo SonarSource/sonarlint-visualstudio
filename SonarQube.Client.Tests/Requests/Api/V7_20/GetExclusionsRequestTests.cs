@@ -51,7 +51,7 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
                 BaseAddress = new Uri(ValidBaseAddress)
             };
 
-            var request = $"api/settings/values?component={projectKey}&keys=sonar.exclusions%2Csonar.global.exclusions%2Csonar.inclusions%2Csonar.global.inclusions";
+            var request = $"api/settings/values?component={projectKey}&keys=sonar.exclusions%2Csonar.global.exclusions%2Csonar.inclusions";
 
             SetupHttpRequest(handlerMock, request, response);
 
@@ -61,7 +61,6 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
             result.Exclusions.Should().BeEmpty();
             result.GlobalExclusions.Should().BeEmpty();
             result.Inclusions.Should().BeEmpty();
-            result.GlobalInclusions.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -78,11 +77,11 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
                 BaseAddress = new Uri(ValidBaseAddress)
             };
 
-            var request = $"api/settings/values?component={projectKey}&keys=sonar.exclusions%2Csonar.global.exclusions%2Csonar.inclusions%2Csonar.global.inclusions";
+            var request = $"api/settings/values?component={projectKey}&keys=sonar.exclusions%2Csonar.global.exclusions%2Csonar.inclusions";
             var response = @"{
 	""settings"": [
 		{
-			""key"": ""sonar.global.inclusions"",
+			""key"": ""sonar.global.exclusions"",
 			""values"": [
 				""**/build-wrapper-dump.json""
 			]
@@ -96,9 +95,8 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
             result.Should().NotBeNull();
 
             result.Exclusions.Should().BeEmpty();
-            result.GlobalExclusions.Should().BeEmpty();
+            result.GlobalExclusions.Should().BeEquivalentTo("**/build-wrapper-dump.json");
             result.Inclusions.Should().BeEmpty();
-            result.GlobalInclusions.Should().BeEquivalentTo("**/build-wrapper-dump.json");
         }
 
         [TestMethod]
@@ -114,7 +112,7 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
                 BaseAddress = new Uri(ValidBaseAddress)
             };
 
-            var request = $"api/settings/values?component={projectKey}&keys=sonar.exclusions%2Csonar.global.exclusions%2Csonar.inclusions%2Csonar.global.inclusions";
+            var request = $"api/settings/values?component={projectKey}&keys=sonar.exclusions%2Csonar.global.exclusions%2Csonar.inclusions";
             var response = @"{
 	""settings"": [
 		{
@@ -136,13 +134,6 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
 			""values"": [
                 ""**/111""
             ]
-		},
-		{
-			""key"": ""sonar.global.inclusions"",
-			""values"": [
-				""**/value/5/6/7"",
-				""value/**/8"",
-			]
 		}
 	]
 }";
@@ -155,7 +146,6 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
             result.Exclusions.Should().BeEquivalentTo("**/value1", "value2", "some/value/3");
             result.GlobalExclusions.Should().BeEquivalentTo("some/value/4");
             result.Inclusions.Should().BeEquivalentTo("**/111");
-            result.GlobalInclusions.Should().BeEquivalentTo("**/value/5/6/7", "value/**/8");
         }
         
 

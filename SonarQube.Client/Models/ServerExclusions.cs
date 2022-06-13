@@ -27,24 +27,21 @@ namespace SonarQube.Client.Models
         private static readonly string[] EmptyValues = Array.Empty<string>();
 
         public ServerExclusions()
-            : this(null, null, null, null)
+            : this(null, null, null)
         {
         }
 
         public ServerExclusions(string[] exclusions,
             string[] globalExclusions,
-            string[] inclusions,
-            string[] globalInclusions)
+            string[] inclusions)
         {
             Exclusions = exclusions ?? EmptyValues;
             GlobalExclusions = globalExclusions ?? EmptyValues;
             Inclusions = inclusions ?? EmptyValues;
-            GlobalInclusions = globalInclusions ?? EmptyValues;
         }
 
         public string[] Exclusions { get; set; }
         public string[] GlobalExclusions { get; set; }
         public string[] Inclusions { get; set; }
-        public string[] GlobalInclusions { get; set; }
     }
 }

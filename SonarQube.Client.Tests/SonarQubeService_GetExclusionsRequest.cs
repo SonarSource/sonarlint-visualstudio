@@ -52,7 +52,7 @@ namespace SonarQube.Client.Tests
         {
             await ConnectToSonarQube("7.2.0.0");
 
-            const string request = "api/settings/values?component=my_project&keys=sonar.exclusions%2Csonar.global.exclusions%2Csonar.inclusions%2Csonar.global.inclusions";
+            const string request = "api/settings/values?component=my_project&keys=sonar.exclusions%2Csonar.global.exclusions%2Csonar.inclusions";
 
             SetupRequest(request, "", HttpStatusCode.NotFound);
 
@@ -71,7 +71,7 @@ namespace SonarQube.Client.Tests
             await ConnectToSonarQube("7.2.0.0");
 
             const string response = "{\"settings\":[{\"key\":\"sonar.global.exclusions\",\"values\":[\"**/build-wrapper-dump.json\"],\"inherited\":true}]}";
-            const string request = "api/settings/values?component=my_project&keys=sonar.exclusions%2Csonar.global.exclusions%2Csonar.inclusions%2Csonar.global.inclusions";
+            const string request = "api/settings/values?component=my_project&keys=sonar.exclusions%2Csonar.global.exclusions%2Csonar.inclusions";
 
             SetupRequest(request, response);
 
@@ -81,7 +81,6 @@ namespace SonarQube.Client.Tests
 
             result.Inclusions.Should().BeEmpty();
             result.Exclusions.Should().BeEmpty();
-            result.GlobalInclusions.Should().BeEmpty();
             result.GlobalExclusions.Should().BeEquivalentTo("**/build-wrapper-dump.json");
         }
     }
