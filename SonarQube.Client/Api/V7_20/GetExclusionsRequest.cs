@@ -32,14 +32,13 @@ namespace SonarQube.Client.Api.V7_20
         internal const string ExclusionsKey = "sonar.exclusions";
         internal const string GlobalExclusionsKey = "sonar.global.exclusions";
         internal const string InclusionsKey = "sonar.inclusions";
-        internal const string GlobalInclusionsKey = "sonar.global.inclusions";
 
         [JsonProperty("component")]
         public virtual string ProjectKey { get; set; }
 
         [JsonProperty("keys")]
         public virtual string Keys { get; } =
-            string.Join(",", ExclusionsKey, GlobalExclusionsKey, InclusionsKey, GlobalInclusionsKey);
+            string.Join(",", ExclusionsKey, GlobalExclusionsKey, InclusionsKey);
 
         protected override string Path => "api/settings/values";
 
@@ -62,13 +61,11 @@ namespace SonarQube.Client.Api.V7_20
             var exclusions = GetValues(settings, ExclusionsKey);
             var globalExclusions = GetValues(settings, GlobalExclusionsKey);
             var inclusions = GetValues(settings, InclusionsKey);
-            var globalInclusions = GetValues(settings, GlobalInclusionsKey);
 
             return new ServerExclusions(
                 exclusions: exclusions,
                 globalExclusions: globalExclusions,
-                inclusions: inclusions,
-                globalInclusions: globalInclusions);
+                inclusions: inclusions);
         }
 
         private static string[] GetValues(IEnumerable<Setting> settings, string key)
