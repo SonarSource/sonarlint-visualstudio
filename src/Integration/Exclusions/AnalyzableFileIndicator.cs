@@ -19,7 +19,10 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Linq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Exclusions
 {
@@ -27,9 +30,63 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class AnalyzableFileIndicator : IAnalyzableFileIndicator
     {
+        private readonly IExclusionSettingsFileStorage exclusionSettingsFileStorage;
+        private readonly IGlobPatternMatcher globPatternMatcher;
+
+        [ImportingConstructor]
+        public AnalyzableFileIndicator(IExclusionSettingsFileStorage exclusionSettingsFileStorage)
+            : this(exclusionSettingsFileStorage, new GlobPatternMatcher())
+        {
+        }
+
+        internal AnalyzableFileIndicator(IExclusionSettingsFileStorage exclusionSettingsFileStorage, 
+            IGlobPatternMatcher globPatternMatcher)
+        {
+            this.exclusionSettingsFileStorage = exclusionSettingsFileStorage;
+            this.globPatternMatcher = globPatternMatcher;
+        }
+
         public bool ShouldAnalyze(string filePath)
         {
-            return true;
+            var serverExclusions = exclusionSettingsFileStorage.GetSettings();
+
+            if (serverExclusions == null)
+            {
+                return true;
+            }
+
+            var shouldAnalyze = IsIncluded(serverExclusions, filePath) && !IsExcluded(serverExclusions, filePath);
+
+            return shouldAnalyze;
         }
+
+        /// <summary>
+        /// Returns true/false if the file is considered included according to the specified pattern.
+        /// </summary>
+        /// <remarks>
+        /// If there is no defined pattern, it means everything is included.
+        /// Hence, we check if the array is empty OR if it contains a matching pattern.
+        /// </remarks>
+        private bool IsIncluded(ServerExclusions serverExclusions, string filePath) =>
+            serverExclusions.Inclusions == null ||
+            serverExclusions.Inclusions.Length == 0 ||
+            serverExclusions.Inclusions.Any(x => IsMatch(x, filePath));
+
+        /// <summary>
+        /// Returns true/false if the file is considered excluded according to the specified patterns.
+        /// </summary>
+        /// <remarks>
+        /// The file is considered excluded only if there is a defined pattern AND the file matches the pattern.
+        /// Project-level exclusions take precedence over global exclusions.
+        /// </remarks>
+        private bool IsExcluded(ServerExclusions serverExclusions, string filePath) =>
+            IsExcluded(serverExclusions.Exclusions, filePath) ||
+            IsExcluded(serverExclusions.GlobalExclusions, filePath);
+
+        private bool IsExcluded(string[] exclusions, string filePath) =>
+            exclusions != null &&
+            exclusions.Any(x => IsMatch(x, filePath));
+
+        private bool IsMatch(string pattern, string filePath) => globPatternMatcher.IsMatch(pattern, filePath);
     }
 }
