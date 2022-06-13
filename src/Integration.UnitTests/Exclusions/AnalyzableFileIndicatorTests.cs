@@ -114,7 +114,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         [DataRow(true, false, false)]
         [DataRow(false, true, false)]
         [DataRow(false, false, true)]
-
         public void ShouldAnalyze_FileIncluded_ReturnsIfExcluded(
             bool projectExclusionsApply, 
             bool globalExclusionsApply,
@@ -144,8 +143,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         }
 
         [TestMethod]
-
-        public void ShouldAnalyze_HasInclusions_FileNotIncluded_ExclusionsAreNotChecked()
+        public void Perf_ShouldAnalyze_HasInclusions_FileNotIncluded_ExclusionsAreNotChecked()
         {
             var inclusions = new[] { "inclusion1" };
             var exclusions = new[] { "exclusion1" };
@@ -169,8 +167,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         }
 
         [TestMethod]
-
-        public void ShouldAnalyze_FileExcludedInProjectSettings_GlobalExclusionsAreNotChecked()
+        public void Perf_ShouldAnalyze_FileExcludedInProjectSettings_GlobalExclusionsAreNotChecked()
         {
             var projectExclusions = new[] { "exclusion1" };
             var globalExclusions = new[] { "exclusion2" };
@@ -208,8 +205,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         {
             return new ServerExclusions(exclusions: exclusions,
                 globalExclusions: globalExclusions,
-                inclusions: inclusions,
-                globalInclusions: null);
+                inclusions: inclusions);
         }
     }
 }
