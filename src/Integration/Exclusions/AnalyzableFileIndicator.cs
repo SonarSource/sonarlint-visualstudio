@@ -19,6 +19,8 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Linq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Exclusions
@@ -27,9 +29,43 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class AnalyzableFileIndicator : IAnalyzableFileIndicator
     {
+        private readonly IExclusionSettingsFileStorage exclusionSettingsFileStorage;
+        private readonly IGlobPatternMatcher globPatternMatcher;
+
+        [ImportingConstructor]
+        public AnalyzableFileIndicator(IExclusionSettingsFileStorage exclusionSettingsFileStorage)
+            : this(exclusionSettingsFileStorage, new GlobPatternMatcher())
+        {
+        }
+
+        internal AnalyzableFileIndicator(IExclusionSettingsFileStorage exclusionSettingsFileStorage, 
+            IGlobPatternMatcher globPatternMatcher)
+        {
+            this.exclusionSettingsFileStorage = exclusionSettingsFileStorage;
+            this.globPatternMatcher = globPatternMatcher;
+        }
+
         public bool ShouldAnalyze(string filePath)
         {
-            return true;
+            var serverExclusions = exclusionSettingsFileStorage.GetSettings();
+
+            if (serverExclusions == null)
+            {
+                return true;
+            }
+
+            var shouldAnalyze = IsIncluded() && !IsExcluded();
+
+            return shouldAnalyze;
+
+            bool IsIncluded() =>
+                serverExclusions.Inclusions == null ||
+                serverExclusions.Inclusions.Length == 0 ||
+                serverExclusions.Inclusions.Any(x => globPatternMatcher.IsMatch(x, filePath));
+
+            bool IsExcluded() =>
+                serverExclusions.Exclusions != null &&
+                serverExclusions.Exclusions.Any(x => globPatternMatcher.IsMatch(x, filePath));
         }
     }
 }
