@@ -196,7 +196,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 Inclusions = new string[] { "inclusion1", "inclusion2" },
                 Exclusions = new string[] { "exclusion" },
-                GlobalInclusions = new string[] { "globalInclusion" },
                 GlobalExclusions = new string[] { "globalExclusion" }
             };
         }
