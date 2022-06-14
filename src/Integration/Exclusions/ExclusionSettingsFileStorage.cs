@@ -18,48 +18,52 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 using System;
+using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.Exclusions;
-using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Exclusions
 {
+    [Export(typeof(IExclusionSettingsFileStorage))]
     internal class ExclusionSettingsFileStorage : IExclusionSettingsFileStorage
     {
-        private readonly BindingConfiguration bindingConfiguration;
+        private readonly IConfigurationProviderService configurationProviderService;
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
 
-        public ExclusionSettingsFileStorage(ILogger logger, IFileSystem fileSystem, BindingConfiguration bindingConfiguration)
+        public ExclusionSettingsFileStorage(ILogger logger, IFileSystem fileSystem, IConfigurationProviderService configurationProviderService)
         {
             this.logger = logger;
             this.fileSystem = fileSystem;         
-            this.bindingConfiguration = bindingConfiguration;            
+            this.configurationProviderService = configurationProviderService;            
         }
 
         public ServerExclusions GetSettings()
         {
             try
             {
-                if(bindingConfiguration.Mode == SonarLintMode.Standalone)
+                var bindingConfiguration = configurationProviderService.GetConfiguration();
+
+                if (bindingConfiguration.Mode == SonarLintMode.Standalone)
                 {
                     logger.WriteLine(Strings.ExclusionOnStandaloneNotSupported);
                     return null;
                 }
 
-                if (!fileSystem.File.Exists(FilePath))
+                if (!fileSystem.File.Exists(GetFilePath(bindingConfiguration.BindingConfigDirectory)))
                 {
                     logger.WriteLine(String.Format(Strings.ExclusionGetError, Strings.ExclusionFileNotFound));
                     return null;
                 }
 
-                var fileContent = fileSystem.File.ReadAllText(FilePath);
+                var fileContent = fileSystem.File.ReadAllText(GetFilePath(bindingConfiguration.BindingConfigDirectory));
                 return JsonConvert.DeserializeObject<ServerExclusions>(fileContent);
             }
             catch(Exception ex)
@@ -70,18 +74,14 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
             return null;
         }
 
-        public void SaveSettings(ServerExclusions settings)
+        // File directory added because configurationProviderService cannot be used reliably during the save in first binding.
+        public void SaveSettings(ServerExclusions settings, string fileDirectory)
         {
             try
-            {
-                if (bindingConfiguration.Mode == SonarLintMode.Standalone)
-                {
-                    logger.WriteLine(Strings.ExclusionOnStandaloneNotSupported);
-                    return;
-                }
+            {                
                 var fileContent = JsonConvert.SerializeObject(settings);
                 
-                fileSystem.File.WriteAllText(FilePath, fileContent);
+                fileSystem.File.WriteAllText(GetFilePath(fileDirectory), fileContent);
             } catch (Exception ex)
             {
                 logger.WriteLine(String.Format(Strings.ExclusionSaveError, ex.Message));
@@ -89,12 +89,9 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
            
         }
 
-        private string FilePath
+        private string GetFilePath(string fileDirectory)
         {
-            get
-            {
-                return Path.Combine(bindingConfiguration.BindingConfigDirectory, "sonar.settings.json");
-            }
+            return Path.Combine(fileDirectory, "sonar.settings.json");            
         }
     }
 }

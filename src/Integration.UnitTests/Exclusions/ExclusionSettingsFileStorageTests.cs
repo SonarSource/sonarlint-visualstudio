@@ -36,6 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         private const string NotFoundMessage = "Error loading settings for project. File exclusions on the server will not be excluded in the IDE. Error: Settings File was not found";
         private const string objectJson = "{\"Exclusions\":[\"exclusion\"],\"GlobalExclusions\":[\"globalExclusion\"],\"Inclusions\":[\"inclusion1\",\"inclusion2\"]}";
         private const string filePath = "C:\\SolutionPath\\sonar.settings.json";
+        private const string fileFolder = "C:\\SolutionPath";
 
         [TestMethod]
         public void GetSettings_HaveSettings_ReadsSettings()
@@ -154,36 +155,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
                 GlobalExclusions = new string[] { "globalExclusion" }
             };
 
-            testSubject.SaveSettings(settings);
+            testSubject.SaveSettings(settings, fileFolder);
 
             file.Verify(f => f.WriteAllText(filePath, objectJson));
             logger.AssertOutputStrings(0);            
         }
 
-        [TestMethod]
-        public void SaveSettings_StandAloneMode_Logs()
-        {
-            var file = new Mock<IFile>();
-
-            var logger = new TestLogger();
-
-            var bindingConfiguration = BindingConfiguration.Standalone;
-
-            var testSubject = CreateTestSubject(file.Object, logger, bindingConfiguration);
-
-            var settings = new ServerExclusions
-            {
-                Inclusions = new string[] { "inclusion1", "inclusion2" },
-                Exclusions = new string[] { "exclusion" },
-                GlobalExclusions = new string[] { "globalExclusion" }
-            };
-
-            testSubject.SaveSettings(settings);
-
-            file.Verify(f => f.WriteAllText(filePath, objectJson), Times.Never);
-            logger.AssertOutputStrings(1);
-            logger.AssertPartialOutputStringExists("File exclusions are not supported in Standalone mode.");
-        }
 
         [TestMethod]
         public void SaveSettings_Error_LogsError()
@@ -197,7 +174,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
 
             var settings = new ServerExclusions();          
 
-            testSubject.SaveSettings(settings);
+            testSubject.SaveSettings(settings, fileFolder);
 
             logger.AssertOutputStrings(1);
             logger.AssertPartialOutputStringExists("Error writing settings for project");
@@ -207,10 +184,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         {
             IFileSystem fileSystem = CreateFileSystem(file);
 
-            bindingConfiguration = bindingConfiguration ?? new BindingConfiguration(null, SonarLintMode.Connected, "C:\\SolutionPath");
+            bindingConfiguration = bindingConfiguration ?? new BindingConfiguration(null, SonarLintMode.Connected, fileFolder);
 
-            return new ExclusionSettingsFileStorage(logger, fileSystem, bindingConfiguration);
+            var configurationProviderService = CreateConfigurationProviderService(bindingConfiguration);
+
+            return new ExclusionSettingsFileStorage(logger, fileSystem, configurationProviderService);
         }
+
+        private static IConfigurationProviderService CreateConfigurationProviderService(BindingConfiguration bindingConfiguration)
+        {
+            var configurationProviderService = new Mock<IConfigurationProviderService>();
+            configurationProviderService.Setup(c => c.GetConfiguration()).Returns(bindingConfiguration);
+            return configurationProviderService.Object;
+        }
+
 
         private IFileSystem CreateFileSystem(IFile file)
         {
