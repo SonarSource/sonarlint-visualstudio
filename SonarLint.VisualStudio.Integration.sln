@@ -126,7 +126,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Roslyn.Suppressions", "Rosl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.Suppressions", "src\Roslyn.Suppressions\Roslyn.Suppressions\Roslyn.Suppressions.csproj", "{082D5D8E-F914-4139-9AE3-3F48B679E3DA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roslyn.Suppressions.UnitTests", "src\Roslyn.Suppressions\Roslyn.Suppressions.UnitTests\Roslyn.Suppressions.UnitTests.csproj", "{C478DAE7-58BC-4D02-929E-E413B40F2517}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.Suppressions.UnitTests", "src\Roslyn.Suppressions\Roslyn.Suppressions.UnitTests\Roslyn.Suppressions.UnitTests.csproj", "{C478DAE7-58BC-4D02-929E-E413B40F2517}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
