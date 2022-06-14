@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
     public class ExclusionSettingsFileStorageTests
     {
         private const string NotFoundMessage = "Error loading settings for project. File exclusions on the server will not be excluded in the IDE. Error: Settings File was not found";
-        private const string objectJson = "{\"Exclusions\":[\"exclusion\"],\"GlobalExclusions\":[\"globalExclusion\"],\"Inclusions\":[\"inclusion1\",\"inclusion2\"],\"GlobalInclusions\":[\"globalInclusion\"]}";
+        private const string objectJson = "{\"Exclusions\":[\"exclusion\"],\"GlobalExclusions\":[\"globalExclusion\"],\"Inclusions\":[\"inclusion1\",\"inclusion2\"]}";
         private const string filePath = "C:\\SolutionPath\\sonar.settings.json";
 
         [TestMethod]
@@ -53,13 +53,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             settings.Should().NotBeNull();
             settings.Inclusions.Count().Should().Be(2);
             settings.Exclusions.Count().Should().Be(1);
-            settings.GlobalInclusions.Count().Should().Be(1);
             settings.GlobalExclusions.Count().Should().Be(1);
 
             settings.Inclusions.Contains("inclusion1").Should().BeTrue();
             settings.Inclusions.Contains("inclusion2").Should().BeTrue();
             settings.Exclusions[0].Should().Be("exclusion");
-            settings.GlobalInclusions[0].Should().Be("globalInclusion");
             settings.GlobalExclusions[0].Should().Be("globalExclusion");
 
             logger.AssertOutputStrings(0);
@@ -153,7 +151,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             {
                 Inclusions = new string[] { "inclusion1", "inclusion2" },
                 Exclusions = new string[] { "exclusion" },
-                GlobalInclusions = new string[] { "globalInclusion" },
                 GlobalExclusions = new string[] { "globalExclusion" }
             };
 
@@ -178,7 +175,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             {
                 Inclusions = new string[] { "inclusion1", "inclusion2" },
                 Exclusions = new string[] { "exclusion" },
-                GlobalInclusions = new string[] { "globalInclusion" },
                 GlobalExclusions = new string[] { "globalExclusion" }
             };
 
