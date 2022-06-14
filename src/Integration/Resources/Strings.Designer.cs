@@ -1028,6 +1028,24 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to save exclusion file to the disk. Server Side exclusions may fail. Error: {0}.
+        /// </summary>
+        public static string SaveExclusionsFailed {
+            get {
+                return ResourceManager.GetString("SaveExclusionsFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Getting file exclusions from server. .
+        /// </summary>
+        public static string SaveServerExclusionsMessage {
+            get {
+                return ResourceManager.GetString("SaveServerExclusionsMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to check out files for editing. Error flags: {0}.
         /// </summary>
         public static string SCCFS_FailedToCheckOutFilesForEditing {

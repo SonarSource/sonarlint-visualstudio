@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -28,7 +29,9 @@ using System.Threading.Tasks;
 using EnvDTE;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Exclusions;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration.Exclusions;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -48,6 +51,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly SonarLintMode bindingMode;
         private readonly IProjectToLanguageMapper projectToLanguageMapper;
         private readonly IThreadHandling threadHandling;
+        private readonly IFileSystem fileSystem;
+        private readonly IExclusionSettingsFileStorage exclusionSettingsFileStorage;
 
         internal /*for testing*/ INuGetBindingOperation NuGetBindingOperation { get; }
 
@@ -59,7 +64,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
             IBindingConfigProvider bindingConfigProvider,
             SonarLintMode bindingMode,
             bool isFirstBinding = false,
-            IThreadHandling threadHandling = null /* overrideable for testing */)
+            IThreadHandling threadHandling = null /* overrideable for testing */,
+            IFileSystem fileSystem = null,
+            IExclusionSettingsFileStorage exclusionSettingsFileStorage = null
+            )
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
             this.bindingArgs = bindingArgs ?? throw new ArgumentNullException(nameof(bindingArgs));
@@ -70,6 +78,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.bindingMode = bindingMode;
             projectToLanguageMapper = host.GetMefService<IProjectToLanguageMapper>();
             this.threadHandling = threadHandling ?? new ThreadHandling();
+            this.fileSystem = fileSystem ?? new FileSystem();
+
+            this.exclusionSettingsFileStorage = exclusionSettingsFileStorage ?? new ExclusionSettingsFileStorage(host.Logger, fileSystem, BindingConfiguration.Standalone);
 
             Debug.Assert(bindingArgs.ProjectKey != null);
             Debug.Assert(bindingArgs.ProjectName != null);
@@ -194,6 +205,27 @@ namespace SonarLint.VisualStudio.Integration.Binding
         public void PrepareToInstallPackages()
         {
             this.NuGetBindingOperation.PrepareOnUIThread();
+        }
+
+        public async Task<bool> SaveServerExclusionsAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var configurationProviderService = host.GetService<IConfigurationProviderService>();
+                var sonarQubeService = host.SonarQubeService;
+                var projectKey = configurationProviderService.GetConfiguration().Project.ProjectKey;
+
+                var exclusions = await sonarQubeService.GetServerExclusions(projectKey, cancellationToken);
+
+                exclusionSettingsFileStorage.SaveSettings(exclusions);
+            }
+            catch (Exception ex)
+            {
+                host.Logger.WriteLine(string.Format(Strings.SaveExclusionsFailed, ex.Message));
+                return false;
+            }
+
+            return true;
         }
 
         public void InstallPackages(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)

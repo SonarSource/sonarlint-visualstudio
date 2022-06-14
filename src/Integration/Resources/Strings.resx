@@ -778,4 +778,10 @@ This is the general format to use when writing errors to output window or when t
   <data name="ExclusionOnStandaloneNotSupported" xml:space="preserve">
     <value>File exclusions are not supported in Standalone mode. To use file exclusions you need connected mode. </value>
   </data>
+  <data name="SaveExclusionsFailed" xml:space="preserve">
+    <value>Failed to save exclusion file to the disk. Server Side exclusions may fail. Error: {0}</value>
+  </data>
+  <data name="SaveServerExclusionsMessage" xml:space="preserve">
+    <value>Getting file exclusions from server. </value>
+  </data>
 </root>

@@ -21,6 +21,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -135,6 +136,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 new ProgressStepDefinition(null, StepAttributes.Hidden | StepAttributes.Indeterminate,
                         (token, notifications) => this.FinishSolutionBindingOnUIThread(controller, token)),
 
+                new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread | StepAttributes.Indeterminate,
+                        (token, notifications) => this.SaveServerExclusionsAsync(controller, notifications, token).GetAwaiter().GetResult()),
+
                 //*****************************************************************
                 // Finalization
                 //*****************************************************************
@@ -171,7 +175,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        internal /*for testing purposes*/ async System.Threading.Tasks.Task DownloadQualityProfileAsync(
+        internal /*for testing purposes*/ async Task DownloadQualityProfileAsync(
             IProgressController controller, IProgressStepExecutionEvents notificationEvents,
             CancellationToken cancellationToken)
         {
@@ -184,6 +188,21 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 this.AbortWorkflow(controller, cancellationToken);
             }
         }
+
+        internal /*for testing purposes*/ async Task SaveServerExclusionsAsync(
+            IProgressController controller, IProgressStepExecutionEvents notificationEvents,
+            CancellationToken cancellationToken)
+        {
+            Debug.Assert(controller != null);
+            Debug.Assert(notificationEvents != null);
+
+            notificationEvents.ProgressChanged(Strings.SaveServerExclusionsMessage);
+            if (!await bindingProcess.SaveServerExclusionsAsync(cancellationToken).ConfigureAwait(false))
+            {
+                this.AbortWorkflow(controller, cancellationToken);
+            }
+        }
+
 
         internal /* for testing */ void InitializeSolutionBindingOnBackgroundThread(IProgressStepExecutionEvents notificationEvents)
         {

@@ -20,11 +20,13 @@
 
 using System;
 using System.Diagnostics;
+using System.IO.Abstractions;
 using System.Linq;
 using Microsoft.VisualStudio.OLE.Interop;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration.Exclusions;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Progress;
@@ -174,7 +176,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var cppConfigProvider = new CFamilyBindingConfigProvider(host.SonarQubeService, host.Logger);
            
             var ruleConfigProvider = new CompositeBindingConfigProvider(cSharpVBBindingConfigProvider, cppConfigProvider);
-            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, unboundProjectFinder, ruleConfigProvider, modeToBind, isFirstBinding);
+
+            var exclusionSettingsFileStorage = new ExclusionSettingsFileStorage(host.Logger, new FileSystem(), currentConfiguration);
+
+            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, unboundProjectFinder, ruleConfigProvider, modeToBind, isFirstBinding, exclusionSettingsFileStorage: exclusionSettingsFileStorage);
 
             return bindingProcess;
         }
