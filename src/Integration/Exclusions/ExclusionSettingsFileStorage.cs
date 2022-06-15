@@ -18,22 +18,80 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
+using System.IO;
+using System.IO.Abstractions;
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration.Helpers;
+using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client.Models;
+using static System.String;
 
 namespace SonarLint.VisualStudio.Integration.Exclusions
 {
     [Export(typeof(IExclusionSettingsFileStorage))]
     internal class ExclusionSettingsFileStorage : IExclusionSettingsFileStorage
     {
+        private readonly IConfigurationProvider bindingConfigProvider;
+        private readonly ILogger logger;
+        private readonly IFileSystem fileSystem;
+
+        [ImportingConstructor]
+        public ExclusionSettingsFileStorage(IConfigurationProvider bindingConfigProvider, ILogger logger)
+            : this(bindingConfigProvider, logger, new FileSystem())
+        {
+        }
+
+        internal ExclusionSettingsFileStorage(IConfigurationProvider bindingConfigProvider, 
+            ILogger logger,
+            IFileSystem fileSystem)
+        {
+            this.bindingConfigProvider = bindingConfigProvider;
+            this.logger = logger;
+            this.fileSystem = fileSystem;
+        }
+
         public void SaveSettings(ServerExclusions settings)
         {
         }
 
         public ServerExclusions GetSettings()
         {
+            try
+            {
+                var bindingConfiguration = bindingConfigProvider.GetConfiguration();
+
+                if (bindingConfiguration.Mode == SonarLintMode.Standalone)
+                {
+                    logger.LogDebug("[ExclusionSettingsFileStorage] Standalone mode, exclusions are not supported.");
+                    return null;
+                }
+
+                var exclusionsFilePath = GetFilePath(bindingConfiguration);
+
+                if (!fileSystem.File.Exists(exclusionsFilePath))
+                {
+                    logger.WriteLine(Strings.ExclusionGetError, Format(Strings.ExclusionFileNotFound, exclusionsFilePath));
+                    return null;
+                }
+
+                var fileContent = fileSystem.File.ReadAllText(exclusionsFilePath);
+                
+                return JsonConvert.DeserializeObject<ServerExclusions>(fileContent);
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug("[ExclusionSettingsFileStorage] GetSettings error: {0}", ex.ToString());
+                logger.WriteLine(Strings.ExclusionGetError, ex.Message);
+            }
+
             return null;
         }
+
+        private static string GetFilePath(BindingConfiguration bindingConfiguration) => 
+            Path.Combine(bindingConfiguration.BindingConfigDirectory, "sonar.settings.json");
     }
 }

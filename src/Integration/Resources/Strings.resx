@@ -766,4 +766,10 @@ This is the general format to use when writing errors to output window or when t
     <value>Ruleset file does not exist: {0}</value>
     <comment>Output window message for a ruleset that does not exist on disc</comment>
   </data>
+  <data name="ExclusionFileNotFound" xml:space="preserve">
+    <value>No file was not found under '{0}'</value>
+  </data>
+  <data name="ExclusionGetError" xml:space="preserve">
+    <value>Error loading exclusion settings. File exclusions on the server will not be excluded in the IDE. Error: {0}</value>
+  </data>
 </root>
