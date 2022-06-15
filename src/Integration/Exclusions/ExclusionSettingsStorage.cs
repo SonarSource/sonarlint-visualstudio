@@ -32,20 +32,20 @@ using static System.String;
 
 namespace SonarLint.VisualStudio.Integration.Exclusions
 {
-    [Export(typeof(IExclusionSettingsFileStorage))]
-    internal class ExclusionSettingsFileStorage : IExclusionSettingsFileStorage
+    [Export(typeof(IExclusionSettingsStorage))]
+    internal class ExclusionSettingsStorage : IExclusionSettingsStorage
     {
         private readonly IConfigurationProvider bindingConfigProvider;
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
 
         [ImportingConstructor]
-        public ExclusionSettingsFileStorage(IConfigurationProvider bindingConfigProvider, ILogger logger)
+        public ExclusionSettingsStorage(IConfigurationProvider bindingConfigProvider, ILogger logger)
             : this(bindingConfigProvider, logger, new FileSystem())
         {
         }
 
-        internal ExclusionSettingsFileStorage(IConfigurationProvider bindingConfigProvider, 
+        internal ExclusionSettingsStorage(IConfigurationProvider bindingConfigProvider, 
             ILogger logger,
             IFileSystem fileSystem)
         {
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
 
                 if (bindingConfiguration.Mode == SonarLintMode.Standalone)
                 {
-                    logger.LogDebug("[ExclusionSettingsFileStorage] Standalone mode, exclusions are not supported.");
+                    logger.LogDebug("[ExclusionSettingsStorage] Standalone mode, exclusions are not supported.");
                     return null;
                 }
 
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
             }
             catch (Exception ex)
             {
-                logger.LogDebug("[ExclusionSettingsFileStorage] GetSettings error: {0}", ex.ToString());
+                logger.LogDebug("[ExclusionSettingsStorage] GetSettings error: {0}", ex.ToString());
                 logger.WriteLine(Strings.ExclusionGetError, ex.Message);
             }
 
