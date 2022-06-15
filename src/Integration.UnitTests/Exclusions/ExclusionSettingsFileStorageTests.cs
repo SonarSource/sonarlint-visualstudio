@@ -26,7 +26,7 @@ using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Exclusions;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
 {
@@ -126,6 +126,63 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             settings.Should().BeNull();
             file.VerifyAll();
             file.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void SaveSettings_StandAloneMode_ThrowsInvalidOperationException()
+        {
+            var file = new Mock<IFile>();
+            var bindingConfiguration = BindingConfiguration.Standalone;
+
+            var testSubject = CreateTestSubject(file.Object, bindingConfiguration);
+
+            var settings = new ServerExclusions
+            {
+                Inclusions = new[] { "inclusion1", "inclusion2" },
+                Exclusions = new[] { "exclusion" },
+                GlobalExclusions = new[] { "globalExclusion" }
+            };
+
+            Action act = () => testSubject.SaveSettings(settings);
+
+            act.Should().Throw<InvalidOperationException>();
+            file.Invocations.Count.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void SaveSettings_ErrorWritingSettings_ExceptionIsThrown()
+        {
+            var file = new Mock<IFile>();
+            file
+                .Setup(f => f.WriteAllText(It.IsAny<string>(), It.IsAny<string>()))
+                .Throws(new NotImplementedException("this is a test"));
+
+            var testSubject = CreateTestSubject(file.Object);
+
+            var settings = new ServerExclusions();
+
+            Action act = () => testSubject.SaveSettings(settings);
+
+            act.Should().Throw<NotImplementedException>().And.Message.Should().Be("this is a test");
+        }
+
+        [TestMethod]
+        public void SaveSettings_NoError_SavesSettings()
+        {
+            var file = new Mock<IFile>();
+
+            var testSubject = CreateTestSubject(file.Object);
+
+            var settings = new ServerExclusions
+            {
+                Inclusions = new[] { "inclusion1", "inclusion2" },
+                Exclusions = new[] { "exclusion" },
+                GlobalExclusions = new[] { "globalExclusion" }
+            };
+
+            testSubject.SaveSettings(settings);
+
+            file.Verify(f => f.WriteAllText(ExpectedExclusionsFilePath, SerializedExclusions));
         }
 
         private ExclusionSettingsFileStorage CreateTestSubject(IFile file, BindingConfiguration bindingConfiguration = null)
