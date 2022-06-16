@@ -783,5 +783,9 @@ This is the general format to use when writing errors to output window or when t
   </data>
   <data name="SaveServerExclusionsMessage" xml:space="preserve">
     <value>Getting file exclusions from server. </value>
+    <value>No file was found under '{0}'</value>
+  </data>
+  <data name="ExclusionGetError" xml:space="preserve">
+    <value>Error loading server settings. Analysis settings from the server (e.g. inclusions/exclusions) will not be applied in the IDE. Error: {0}</value>
   </data>
 </root>
