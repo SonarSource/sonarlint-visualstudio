@@ -767,7 +767,7 @@ This is the general format to use when writing errors to output window or when t
     <comment>Output window message for a ruleset that does not exist on disc</comment>
   </data>
   <data name="ExclusionFileNotFound" xml:space="preserve">
-    <value>Settings File was not found</value>
+    <value>No file was found under '{0}'</value>
   </data>
   <data name="ExclusionGetError" xml:space="preserve">
     <value>Error loading server settings. Analysis settings from the server (e.g. inclusions/exclusions) will not be applied in the IDE. Error: {0}</value>
