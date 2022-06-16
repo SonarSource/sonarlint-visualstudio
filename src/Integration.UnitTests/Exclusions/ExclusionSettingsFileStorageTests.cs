@@ -157,6 +157,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
                 GlobalExclusions = new[] { "globalExclusion" }
             };
 
+            using var scope = new AssertIgnoreScope();
+
             Action act = () => testSubject.SaveSettings(settings);
 
             act.Should().Throw<InvalidOperationException>();

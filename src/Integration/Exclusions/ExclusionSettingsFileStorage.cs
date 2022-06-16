@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
@@ -61,8 +62,8 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
 
             if (bindingConfiguration.Mode == SonarLintMode.Standalone)
             {
+                Debug.Fail("Not expecting to be called in Standalone mode");
                 throw new InvalidOperationException("Cannot save exclusions in Standalone mode.");
-
             }
 
             var fileContent = JsonConvert.SerializeObject(settings);
