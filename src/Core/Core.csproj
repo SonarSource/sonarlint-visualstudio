@@ -34,5 +34,9 @@
       <LastGenOutput>CoreStrings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Exclusions\" />
+  </ItemGroup>
   
 </Project>

@@ -177,9 +177,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
            
             var ruleConfigProvider = new CompositeBindingConfigProvider(cSharpVBBindingConfigProvider, cppConfigProvider);
 
-            var exclusionSettingsFileStorage = new ExclusionSettingsFileStorage(host.Logger, new FileSystem(), currentConfiguration);
+            var exclusionSettingsStorage = new ExclusionSettingsStorage(configProvider, host.Logger);
 
-            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, unboundProjectFinder, ruleConfigProvider, modeToBind, isFirstBinding, exclusionSettingsFileStorage: exclusionSettingsFileStorage);
+            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, unboundProjectFinder, ruleConfigProvider, modeToBind, isFirstBinding, exclusionSettingsStorage: exclusionSettingsStorage);
 
             return bindingProcess;
         }

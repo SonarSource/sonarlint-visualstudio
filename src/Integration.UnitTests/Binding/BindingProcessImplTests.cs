@@ -34,9 +34,9 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NuGet;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Core.Exclusions;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -136,37 +136,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var sonarQubeService = new Mock<ISonarQubeService>();
             sonarQubeService.Setup(s => s.GetServerExclusions("projectKey", It.IsAny<CancellationToken>())).Returns(Task.FromResult(settings));
 
-            var exclusionSettingsFileStorage = new Mock<IExclusionSettingsFileStorage>();
+            var exclusionSettingsStorage = new Mock<IExclusionSettingsStorage>();
 
-            var testSubject = CreateTestSubject(mode: SonarLintMode.Connected, sonarQubeService: sonarQubeService.Object, exclusionSettingsFileStorage: exclusionSettingsFileStorage.Object);
+            var testSubject = CreateTestSubject(mode: SonarLintMode.Connected, sonarQubeService: sonarQubeService.Object, exclusionSettingsStorage: exclusionSettingsStorage.Object);
             
             var result = await testSubject.SaveServerExclusionsAsync(CancellationToken.None);
 
             result.Should().BeTrue();
-            exclusionSettingsFileStorage.Verify(fs => fs.SaveSettings(settings), Times.Once);
+            exclusionSettingsStorage.Verify(fs => fs.SaveSettings(settings), Times.Once);
             this.outputWindowPane.AssertOutputStrings(0);
-        }
-
-        [TestMethod]
-        public async Task SaveServerExclusionsAsync_NoFileStoragePassed_RunsAsStandalone()
-        {
-            var sonarQubeProject = CreateProject("projectKey");
-
-            CreateConfigurationProviderService("C:\\SolutionPath", sonarQubeProject);
-
-            ServerExclusions settings = CreateSettings();
-
-            var sonarQubeService = new Mock<ISonarQubeService>();
-            sonarQubeService.Setup(s => s.GetServerExclusions("projectKey", It.IsAny<CancellationToken>())).Returns(Task.FromResult(settings));
-            
-
-            var testSubject = CreateTestSubject(mode: SonarLintMode.Standalone, sonarQubeService: sonarQubeService.Object);
-
-            var result = await testSubject.SaveServerExclusionsAsync(CancellationToken.None);
-
-            result.Should().BeTrue();
-            this.outputWindowPane.AssertOutputStrings(1);
-            this.outputWindowPane.AssertPartialOutputStrings("File exclusions are not supported in Standalone mode.");
         }
 
         [TestMethod]
@@ -179,9 +157,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var sonarQubeService = new Mock<ISonarQubeService>();
             sonarQubeService.Setup(s => s.GetServerExclusions("projectKey", It.IsAny<CancellationToken>())).Throws(new Exception("Expected Error"));
 
-            var exclusionSettingsFileStorage = new Mock<IExclusionSettingsFileStorage>();
+            var exclusionSettingsStorage = new Mock<IExclusionSettingsStorage>();
 
-            var testSubject = CreateTestSubject(mode: SonarLintMode.Connected, sonarQubeService: sonarQubeService.Object, exclusionSettingsFileStorage: exclusionSettingsFileStorage.Object);
+            var testSubject = CreateTestSubject(mode: SonarLintMode.Connected, sonarQubeService: sonarQubeService.Object, exclusionSettingsStorage: exclusionSettingsStorage.Object);
 
             var result = await testSubject.SaveServerExclusionsAsync(CancellationToken.None);
 
@@ -487,8 +465,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 It.IsAny<CancellationToken>())).Returns(true);
             var finder = new ConfigurableUnboundProjectFinder();
             var configProvider = new Mock<IBindingConfigProvider>();
+            var exclusionSettingsStorage = Mock.Of<IExclusionSettingsStorage>();
 
-            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, finder, configProvider.Object, SonarLintMode.Connected);
+            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, finder, configProvider.Object, SonarLintMode.Connected, exclusionSettingsStorage: exclusionSettingsStorage);
 
             ProjectMock project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
             testSubject.InternalState.BindingProjects.Clear();
@@ -520,8 +499,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 It.IsAny<CancellationToken>())).Returns(false);
             var finder = new ConfigurableUnboundProjectFinder();
             var configProvider = new Mock<IBindingConfigProvider>();
+            var exclusionSettingsStorage = Mock.Of<IExclusionSettingsStorage>();
 
-            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, finder, configProvider.Object, SonarLintMode.Connected);
+            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, finder, configProvider.Object, SonarLintMode.Connected, exclusionSettingsStorage: exclusionSettingsStorage);
 
             ProjectMock project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
             testSubject.InternalState.BindingProjects.Clear();
@@ -830,20 +810,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             IBindingConfigProvider configProvider = null,
             SonarLintMode mode = SonarLintMode.Connected,
             ISonarQubeService sonarQubeService = null,
-            IExclusionSettingsFileStorage exclusionSettingsFileStorage = null
+            IExclusionSettingsStorage exclusionSettingsStorage = null
             )
         {
             bindingArgs = bindingArgs ?? new BindCommandArgs("key", "name", new ConnectionInformation(new Uri("http://connected")));
             nuGetBindingOperation = nuGetBindingOperation ?? new NoOpNuGetBindingOperation(this.host.Logger);
             configProvider = configProvider ?? new Mock<IBindingConfigProvider>().Object;
-            //exclusionSettingsFileStorage = exclusionSettingsFileStorage ?? Mock.Of<IExclusionSettingsFileStorage>();
+            exclusionSettingsStorage = exclusionSettingsStorage ?? Mock.Of<IExclusionSettingsStorage>();
 
             this.host.SonarQubeService = sonarQubeService ?? this.sonarQubeServiceMock.Object;
 
             var slnBindOperation = new SolutionBindingOperation(this.host, SonarLintMode.LegacyConnected, this.host.Logger);
             var finder = new ConfigurableUnboundProjectFinder();
 
-            return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, nuGetBindingOperation, finder, configProvider, mode, exclusionSettingsFileStorage: exclusionSettingsFileStorage);
+            return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, nuGetBindingOperation, finder, configProvider, mode, exclusionSettingsStorage: exclusionSettingsStorage);
         }
 
         private void ConfigureSupportedBindingProject(BindingProcessImpl.BindingProcessState internalState, Language language)

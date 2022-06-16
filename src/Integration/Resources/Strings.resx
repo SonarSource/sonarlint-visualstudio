@@ -770,7 +770,7 @@ This is the general format to use when writing errors to output window or when t
     <value>Settings File was not found</value>
   </data>
   <data name="ExclusionGetError" xml:space="preserve">
-    <value>Error loading settings for project. File exclusions on the server will not be excluded in the IDE. Error: {0}</value>
+    <value>Error loading server settings. Analysis settings from the server (e.g. inclusions/exclusions) will not be applied in the IDE. Error: {0}</value>
   </data>
   <data name="ExclusionSaveError" xml:space="preserve">
     <value>Error writing settings for project. File exclusions on the server may not be excluded in the IDE. Error: {0}</value>
@@ -782,10 +782,6 @@ This is the general format to use when writing errors to output window or when t
     <value>Failed to save exclusion file to the disk. Server Side exclusions may fail. Error: {0}</value>
   </data>
   <data name="SaveServerExclusionsMessage" xml:space="preserve">
-    <value>Getting file exclusions from server. </value>
     <value>No file was found under '{0}'</value>
-  </data>
-  <data name="ExclusionGetError" xml:space="preserve">
-    <value>Error loading server settings. Analysis settings from the server (e.g. inclusions/exclusions) will not be applied in the IDE. Error: {0}</value>
   </data>
 </root>

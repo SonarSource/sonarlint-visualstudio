@@ -594,7 +594,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No file was found under &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Settings File was not found.
         /// </summary>
         public static string ExclusionFileNotFound {
             get {
@@ -608,6 +608,24 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string ExclusionGetError {
             get {
                 return ResourceManager.GetString("ExclusionGetError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File exclusions are not supported in Standalone mode. To use file exclusions you need connected mode. .
+        /// </summary>
+        public static string ExclusionOnStandaloneNotSupported {
+            get {
+                return ResourceManager.GetString("ExclusionOnStandaloneNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error writing settings for project. File exclusions on the server may not be excluded in the IDE. Error: {0}.
+        /// </summary>
+        public static string ExclusionSaveError {
+            get {
+                return ResourceManager.GetString("ExclusionSaveError", resourceCulture);
             }
         }
         
@@ -1006,6 +1024,24 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string RulesetSerializer_RulesetDoesNotExist {
             get {
                 return ResourceManager.GetString("RulesetSerializer_RulesetDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to save exclusion file to the disk. Server Side exclusions may fail. Error: {0}.
+        /// </summary>
+        public static string SaveExclusionsFailed {
+            get {
+                return ResourceManager.GetString("SaveExclusionsFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No file was found under &apos;{0}&apos;.
+        /// </summary>
+        public static string SaveServerExclusionsMessage {
+            get {
+                return ResourceManager.GetString("SaveServerExclusionsMessage", resourceCulture);
             }
         }
         
