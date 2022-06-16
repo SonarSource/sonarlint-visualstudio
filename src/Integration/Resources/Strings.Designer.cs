@@ -19,7 +19,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -590,6 +590,24 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string ExceptionInsecureSchemesIsNotSubset {
             get {
                 return ResourceManager.GetString("ExceptionInsecureSchemesIsNotSubset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No file was found under &apos;{0}&apos;.
+        /// </summary>
+        public static string ExclusionFileNotFound {
+            get {
+                return ResourceManager.GetString("ExclusionFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error loading exclusion settings. File exclusions on the server will not be excluded in the IDE. Error: {0}.
+        /// </summary>
+        public static string ExclusionGetError {
+            get {
+                return ResourceManager.GetString("ExclusionGetError", resourceCulture);
             }
         }
         
