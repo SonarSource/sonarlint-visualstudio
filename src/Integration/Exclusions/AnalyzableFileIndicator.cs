@@ -30,25 +30,25 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class AnalyzableFileIndicator : IAnalyzableFileIndicator
     {
-        private readonly IExclusionSettingsFileStorage exclusionSettingsFileStorage;
+        private readonly IExclusionSettingsStorage exclusionSettingsStorage;
         private readonly IGlobPatternMatcher globPatternMatcher;
 
         [ImportingConstructor]
-        public AnalyzableFileIndicator(IExclusionSettingsFileStorage exclusionSettingsFileStorage)
-            : this(exclusionSettingsFileStorage, new GlobPatternMatcher())
+        public AnalyzableFileIndicator(IExclusionSettingsStorage exclusionSettingsStorage)
+            : this(exclusionSettingsStorage, new GlobPatternMatcher())
         {
         }
 
-        internal AnalyzableFileIndicator(IExclusionSettingsFileStorage exclusionSettingsFileStorage, 
+        internal AnalyzableFileIndicator(IExclusionSettingsStorage exclusionSettingsStorage, 
             IGlobPatternMatcher globPatternMatcher)
         {
-            this.exclusionSettingsFileStorage = exclusionSettingsFileStorage;
+            this.exclusionSettingsStorage = exclusionSettingsStorage;
             this.globPatternMatcher = globPatternMatcher;
         }
 
         public bool ShouldAnalyze(string filePath)
         {
-            var serverExclusions = exclusionSettingsFileStorage.GetSettings();
+            var serverExclusions = exclusionSettingsStorage.GetSettings();
 
             if (serverExclusions == null)
             {
