@@ -22,7 +22,7 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core.Analysis
 {
-    public interface IExclusionSettingsFileStorage
+    public interface IExclusionSettingsStorage
     {
         void SaveSettings(ServerExclusions settings);
         ServerExclusions GetSettings();

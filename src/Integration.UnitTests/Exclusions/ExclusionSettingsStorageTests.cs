@@ -31,7 +31,7 @@ using SonarQube.Client.Models;
 namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
 {
     [TestClass]
-    public class ExclusionSettingsFileStorageTests
+    public class ExclusionSettingsStorageTests
     {
         private const string BindingFolder = "C:\\SolutionPath";
         private const string ExpectedExclusionsFilePath = "C:\\SolutionPath\\sonar.settings.json";
@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<ExclusionSettingsFileStorage, IExclusionSettingsFileStorage>(null, new[]
+            MefTestHelpers.CheckTypeCanBeImported<ExclusionSettingsStorage, IExclusionSettingsStorage>(null, new[]
             {
                 MefTestHelpers.CreateExport<IConfigurationProvider>(Mock.Of<IConfigurationProvider>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>()),
@@ -201,14 +201,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             file.Verify(f => f.WriteAllText(ExpectedExclusionsFilePath, SerializedExclusions));
         }
 
-        private ExclusionSettingsFileStorage CreateTestSubject(IFile file, BindingConfiguration bindingConfiguration = null)
+        private ExclusionSettingsStorage CreateTestSubject(IFile file, BindingConfiguration bindingConfiguration = null)
         {
             var fileSystem = CreateFileSystem(file);
 
             bindingConfiguration ??= new BindingConfiguration(null, SonarLintMode.Connected, BindingFolder);
             var configurationProviderService = CreateConfigurationProvider(bindingConfiguration);
 
-            return new ExclusionSettingsFileStorage(configurationProviderService, Mock.Of<ILogger>(), fileSystem);
+            return new ExclusionSettingsStorage(configurationProviderService, Mock.Of<ILogger>(), fileSystem);
         }
 
         private static IConfigurationProvider CreateConfigurationProvider(BindingConfiguration bindingConfiguration)
