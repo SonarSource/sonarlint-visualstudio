@@ -128,6 +128,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             file.VerifyNoOtherCalls();
         }
 
+        [TestMethod]
+        public void GetSettings_CriticalException_NotSuppressed()
+        {
+            var file = new Mock<IFile>();
+            file.Setup(f => f.Exists(ExpectedExclusionsFilePath)).Returns(true);
+            file.Setup(f => f.ReadAllText(ExpectedExclusionsFilePath)).Throws(new StackOverflowException());
+
+            var testSubject = CreateTestSubject(file.Object);
+
+            Action act = () => testSubject.GetSettings();
+
+            act.Should().Throw<StackOverflowException>();
+        }
+
         private ExclusionSettingsFileStorage CreateTestSubject(IFile file, BindingConfiguration bindingConfiguration = null)
         {
             var fileSystem = CreateFileSystem(file);

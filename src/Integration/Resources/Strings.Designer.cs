@@ -594,7 +594,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No file was not found under &apos;{0}&apos;.
+        ///   Looks up a localized string similar to No file was found under &apos;{0}&apos;.
         /// </summary>
         public static string ExclusionFileNotFound {
             get {

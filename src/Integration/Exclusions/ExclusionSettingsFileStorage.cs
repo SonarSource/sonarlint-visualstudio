@@ -23,6 +23,7 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Helpers;
@@ -82,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
                 
                 return JsonConvert.DeserializeObject<ServerExclusions>(fileContent);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.LogDebug("[ExclusionSettingsFileStorage] GetSettings error: {0}", ex.ToString());
                 logger.WriteLine(Strings.ExclusionGetError, ex.Message);
