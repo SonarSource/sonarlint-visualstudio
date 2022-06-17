@@ -59,8 +59,12 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
         public void SaveSettings(ServerExclusions settings)
         {
             var bindingConfiguration = bindingConfigProvider.GetConfiguration();
-            
-            VerifyConnectedMode(bindingConfiguration);
+
+            if (bindingConfiguration.Mode == SonarLintMode.Standalone)
+            {
+                Debug.Fail("Not expecting to be called in Standalone mode");
+                throw new InvalidOperationException("Cannot save exclusions in Standalone mode.");
+            }
 
             var fileContent = JsonConvert.SerializeObject(settings);
             var exclusionsFilePath = GetFilePath(bindingConfiguration);
@@ -105,7 +109,11 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
         {
             var bindingConfiguration = bindingConfigProvider.GetConfiguration();
 
-            VerifyConnectedMode(bindingConfiguration);
+            if (bindingConfiguration.Mode == SonarLintMode.Standalone)
+            {
+                logger.LogDebug("[ExclusionSettingsStorage] Standalone mode, cannot check if settings exist.");
+                return false;
+            }
 
             var exclusionsFilePath = GetFilePath(bindingConfiguration);
 
@@ -114,14 +122,5 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
 
         private static string GetFilePath(BindingConfiguration bindingConfiguration) => 
             Path.Combine(bindingConfiguration.BindingConfigDirectory, "sonar.settings.json");
-
-        private static void VerifyConnectedMode(BindingConfiguration bindingConfiguration)
-        {
-            if (bindingConfiguration.Mode == SonarLintMode.Standalone)
-            {
-                Debug.Fail("Not expecting to be called in Standalone mode");
-                throw new InvalidOperationException("Cannot save exclusions in Standalone mode.");
-            }
-        }
     }
 }

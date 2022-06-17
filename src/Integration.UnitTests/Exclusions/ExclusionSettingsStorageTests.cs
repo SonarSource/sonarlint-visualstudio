@@ -202,18 +202,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         }
 
         [TestMethod]
-        public void SettingsExist_StandAloneMode_ThrowsInvalidOperationException()
+        public void SettingsExist_StandAloneMode_False()
         {
             var file = new Mock<IFile>();
             var bindingConfiguration = BindingConfiguration.Standalone;
 
             var testSubject = CreateTestSubject(file.Object, bindingConfiguration);
 
-            using var scope = new AssertIgnoreScope();
+            var result = testSubject.SettingsExist();
 
-            Action act = () => testSubject.SettingsExist();
-
-            act.Should().Throw<InvalidOperationException>();
+            result.Should().BeFalse();
             file.Invocations.Count.Should().Be(0);
         }
 
