@@ -201,6 +201,48 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             file.Verify(f => f.WriteAllText(ExpectedExclusionsFilePath, SerializedExclusions));
         }
 
+        [TestMethod]
+        public void SettingsExist_StandAloneMode_ThrowsInvalidOperationException()
+        {
+            var file = new Mock<IFile>();
+            var bindingConfiguration = BindingConfiguration.Standalone;
+
+            var testSubject = CreateTestSubject(file.Object, bindingConfiguration);
+
+            using var scope = new AssertIgnoreScope();
+
+            Action act = () => testSubject.SettingsExist();
+
+            act.Should().Throw<InvalidOperationException>();
+            file.Invocations.Count.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void SettingsExist_ConnectedMode_FileDoesNotExist_False()
+        {
+            var file = new Mock<IFile>();
+            file.Setup(f => f.Exists(ExpectedExclusionsFilePath)).Returns(false);
+
+            var testSubject = CreateTestSubject(file.Object);
+
+            var result = testSubject.SettingsExist();
+
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void SettingsExist_ConnectedMode_FileExists_True()
+        {
+            var file = new Mock<IFile>();
+            file.Setup(f => f.Exists(ExpectedExclusionsFilePath)).Returns(true);
+
+            var testSubject = CreateTestSubject(file.Object);
+
+            var result = testSubject.SettingsExist();
+
+            result.Should().BeTrue();
+        }
+
         private ExclusionSettingsStorage CreateTestSubject(IFile file, BindingConfiguration bindingConfiguration = null)
         {
             var fileSystem = CreateFileSystem(file);
