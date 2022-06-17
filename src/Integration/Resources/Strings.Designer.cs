@@ -233,6 +233,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Binding check] Failed to check bound project settings file: {0}.
+        /// </summary>
+        public static string BindingUpdateFailedToCheckSettings {
+            get {
+                return ResourceManager.GetString("BindingUpdateFailedToCheckSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Bound project with key &apos;{0}&apos; was not found on the connected server. Select a different SonarQube project, or use [a different login]() that has access to the desired project..
         /// </summary>
         public static string BoundProjectNotFound {

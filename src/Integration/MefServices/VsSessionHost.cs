@@ -27,6 +27,7 @@ using System.Windows.Threading;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration.Exclusions;
 using SonarLint.VisualStudio.Integration.LocalServices.TestProjectIndicators;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
@@ -328,8 +329,14 @@ namespace SonarLint.VisualStudio.Integration
 
                 return new ProjectSystemFilter(this, testProjectIndicator);
             }));
-            this.localServices.Add(typeof(IErrorListInfoBarController), new Lazy<ILocalService>(() => new ErrorListInfoBarController(this, 
-                new BindingChecker(new UnboundSolutionChecker(), new UnboundProjectFinder(this, Logger), Logger), Logger)));
+            this.localServices.Add(typeof(IErrorListInfoBarController), new Lazy<ILocalService>(() =>
+                new ErrorListInfoBarController(this,
+                    new BindingChecker(
+                        new UnboundSolutionChecker(
+                            new ExclusionSettingsStorage(this.GetService<IConfigurationProviderService>(), Logger),
+                            Logger),
+                        new UnboundProjectFinder(this, Logger), Logger),
+                    Logger)));
 
             // Use Lazy<object> to avoid creating instances needlessly, since the interfaces are serviced by the same instance
             var sccFs = new Lazy<ILocalService>(() => new SourceControlledFileSystem(this, Logger));
