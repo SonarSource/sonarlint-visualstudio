@@ -772,4 +772,8 @@ This is the general format to use when writing errors to output window or when t
   <data name="ExclusionGetError" xml:space="preserve">
     <value>Error loading server settings. Analysis settings from the server (e.g. inclusions/exclusions) will not be applied in the IDE. Error: {0}</value>
   </data>
+  <data name="SonarLintFoundUnboundSolution" xml:space="preserve">
+    <value>Some binding configuration is missing. Please rebind the solution.</value>
+    <comment>Output window message</comment>
+  </data>
 </root>
