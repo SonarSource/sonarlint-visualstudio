@@ -61,10 +61,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             IUnboundProjectFinder unboundProjectFinder,
             IBindingConfigProvider bindingConfigProvider,
             SonarLintMode bindingMode,
+            IExclusionSettingsStorage exclusionSettingsStorage,
             bool isFirstBinding = false,
-            IThreadHandling threadHandling = null /* overrideable for testing */,
-            IFileSystem fileSystem = null,
-            IExclusionSettingsStorage exclusionSettingsStorage = null
+            IThreadHandling threadHandling = null /* overrideable for testing */            
             )
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
@@ -77,9 +76,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.bindingMode = bindingMode;
             projectToLanguageMapper = host.GetMefService<IProjectToLanguageMapper>();
             this.threadHandling = threadHandling ?? new ThreadHandling();
-            this.fileSystem = fileSystem ?? new FileSystem();
-
-            
 
             Debug.Assert(bindingArgs.ProjectKey != null);
             Debug.Assert(bindingArgs.ProjectName != null);
@@ -210,20 +206,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             try
             {
-                var configurationProviderService = host.GetService<IConfigurationProviderService>();
-                var sonarQubeService = host.SonarQubeService;
-                var projectKey = configurationProviderService.GetConfiguration().Project.ProjectKey;
-
-                var exclusions = await sonarQubeService.GetServerExclusions(projectKey, cancellationToken);
-
+                var exclusions = await host.SonarQubeService.GetServerExclusions(bindingArgs.ProjectKey, cancellationToken);
                 exclusionSettingsStorage.SaveSettings(exclusions);
             }
-            catch (Exception ex)
+            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 host.Logger.WriteLine(string.Format(Strings.SaveExclusionsFailed, ex.Message));
                 return false;
             }
-
             return true;
         }
 

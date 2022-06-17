@@ -772,16 +772,10 @@ This is the general format to use when writing errors to output window or when t
   <data name="ExclusionGetError" xml:space="preserve">
     <value>Error loading server settings. Analysis settings from the server (e.g. inclusions/exclusions) will not be applied in the IDE. Error: {0}</value>
   </data>
-  <data name="ExclusionSaveError" xml:space="preserve">
-    <value>Error writing settings for project. File exclusions on the server may not be excluded in the IDE. Error: {0}</value>
-  </data>
-  <data name="ExclusionOnStandaloneNotSupported" xml:space="preserve">
-    <value>File exclusions are not supported in Standalone mode. To use file exclusions you need connected mode. </value>
-  </data>
   <data name="SaveExclusionsFailed" xml:space="preserve">
-    <value>Failed to save exclusion file to the disk. Server Side exclusions may fail. Error: {0}</value>
+    <value>Failed to retrieve/process server settings. Error: {0}</value>
   </data>
   <data name="SaveServerExclusionsMessage" xml:space="preserve">
-    <value>No file was found under '{0}'</value>
+    <value>Downloading Server Exclusions</value>
   </data>
 </root>

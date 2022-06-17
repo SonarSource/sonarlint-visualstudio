@@ -179,7 +179,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             var exclusionSettingsStorage = new ExclusionSettingsStorage(configProvider, host.Logger);
 
-            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, unboundProjectFinder, ruleConfigProvider, modeToBind, isFirstBinding, exclusionSettingsStorage: exclusionSettingsStorage);
+            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, unboundProjectFinder, ruleConfigProvider, modeToBind, exclusionSettingsStorage, isFirstBinding);
 
             return bindingProcess;
         }
