@@ -777,6 +777,7 @@ This is the general format to use when writing errors to output window or when t
   </data>
   <data name="SaveServerExclusionsMessage" xml:space="preserve">
     <value>Downloading Server Exclusions</value>
+    </data>
   <data name="SonarLintFoundUnboundSolution" xml:space="preserve">
     <value>Some binding configuration is missing. Please rebind the solution.</value>
     <comment>Output window message</comment>
