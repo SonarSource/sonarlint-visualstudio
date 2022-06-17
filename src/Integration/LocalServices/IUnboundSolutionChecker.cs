@@ -18,14 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Client.Models;
-
-namespace SonarLint.VisualStudio.Core.Analysis
+namespace SonarLint.VisualStudio.Integration
 {
-    public interface IExclusionSettingsStorage
+    internal interface IUnboundSolutionChecker
     {
-        void SaveSettings(ServerExclusions settings);
-        ServerExclusions GetSettings();
-        bool SettingsExist();
+        /// <summary>
+        /// Returns true/false if the currently opened solution/folder is bound and requires re-binding
+        /// </summary>
+        bool IsBindingUpdateRequired();
     }
+
+    internal class UnboundSolutionChecker : IUnboundSolutionChecker
+    {
+        public bool IsBindingUpdateRequired()
+        {
+            return false;
+        }
+    }
+
 }

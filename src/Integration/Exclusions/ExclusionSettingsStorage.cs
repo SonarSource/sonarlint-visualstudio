@@ -105,6 +105,21 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
             return null;
         }
 
+        public bool SettingsExist()
+        {
+            var bindingConfiguration = bindingConfigProvider.GetConfiguration();
+
+            if (bindingConfiguration.Mode == SonarLintMode.Standalone)
+            {
+                logger.LogDebug("[ExclusionSettingsStorage] Standalone mode, cannot check if settings exist.");
+                return false;
+            }
+
+            var exclusionsFilePath = GetFilePath(bindingConfiguration);
+
+            return fileSystem.File.Exists(exclusionsFilePath);
+        }
+
         private static string GetFilePath(BindingConfiguration bindingConfiguration) => 
             Path.Combine(bindingConfiguration.BindingConfigDirectory, "sonar.settings.json");
     }
