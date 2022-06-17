@@ -23,23 +23,26 @@ using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    interface IBindingRequiredIndicator
+    interface IBindingChecker
     {
-        bool IsBindingRequired();
+        /// <summary>
+        /// Returns true/false if the currently opened solution/folder is bound and requires re-binding
+        /// </summary>
+        bool IsBindingUpdateRequired();
     }
 
-    internal class BindingRequiredIndicator : IBindingRequiredIndicator
+    internal class BindingChecker : IBindingChecker
     {
         private readonly IUnboundProjectFinder unboundProjectFinder;
         private readonly ILogger logger;
 
-        public BindingRequiredIndicator(IUnboundProjectFinder unboundProjectFinder, ILogger logger)
+        public BindingChecker(IUnboundProjectFinder unboundProjectFinder, ILogger logger)
         {
             this.unboundProjectFinder = unboundProjectFinder;
             this.logger = logger;
         }
 
-        public bool IsBindingRequired()
+        public bool IsBindingUpdateRequired()
         {
             var unboundProjects = unboundProjectFinder.GetUnboundProjects().ToArray();
             var hasUnboundProjects = unboundProjects.Length > 0;

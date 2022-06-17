@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration
         internal /*for testing purposes*/ static readonly Guid ErrorListToolWindowGuid = new Guid(ToolWindowGuids80.ErrorList);
 
         private readonly IHost host;
-        private readonly IBindingRequiredIndicator bindingRequiredIndicator;
+        private readonly IBindingChecker bindingChecker;
         private readonly ILogger logger;
         private readonly IKnownUIContexts knownUIContexts;
         private readonly IThreadHandling threadHandling;
@@ -59,16 +59,16 @@ namespace SonarLint.VisualStudio.Integration
         private BoundSonarQubeProject infoBarBinding;
         private bool isDisposed;
 
-        public ErrorListInfoBarController(IHost host, IBindingRequiredIndicator bindingRequiredIndicator, ILogger logger)
-            : this(host, bindingRequiredIndicator, logger, new KnownUIContextsWrapper(), new ThreadHandling())
+        public ErrorListInfoBarController(IHost host, IBindingChecker bindingChecker, ILogger logger)
+            : this(host, bindingChecker, logger, new KnownUIContextsWrapper(), new ThreadHandling())
         {
         }
 
-        internal /* for testing */ ErrorListInfoBarController(IHost host, IBindingRequiredIndicator bindingRequiredIndicator, ILogger logger,
+        internal /* for testing */ ErrorListInfoBarController(IHost host, IBindingChecker bindingChecker, ILogger logger,
             IKnownUIContexts knownUIContexts, IThreadHandling threadHandling)
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
-            this.bindingRequiredIndicator = bindingRequiredIndicator ?? throw new ArgumentNullException(nameof(bindingRequiredIndicator));
+            this.bindingChecker = bindingChecker ?? throw new ArgumentNullException(nameof(bindingChecker));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.knownUIContexts = knownUIContexts;
             this.threadHandling = threadHandling ?? throw new ArgumentNullException(nameof(threadHandling));
@@ -229,7 +229,7 @@ namespace SonarLint.VisualStudio.Integration
 
             this.OutputMessage(Strings.SonarLintCheckingForUnboundProjects);
 
-            var isBindingRequired = bindingRequiredIndicator.IsBindingRequired();
+            var isBindingRequired = bindingChecker.IsBindingUpdateRequired();
 
             if (isBindingRequired)
             {

@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableHost host;
         private ConfigurableTeamExplorerController teamExplorerController;
         private ConfigurableInfoBarManager infoBarManager;
-        private Mock<IBindingRequiredIndicator> bindingRequiredIndicator;
+        private Mock<IBindingChecker> bindingRequiredIndicator;
         private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableConfigurationProvider configProvider;
         private ConfigurableStateManager stateManager;
@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 });
             this.serviceProvider.RegisterService(typeof(SComponentModel), componentModel);
 
-            this.bindingRequiredIndicator = new Mock<IBindingRequiredIndicator>();
+            this.bindingRequiredIndicator = new Mock<IBindingChecker>();
 
             var outputWindow = new ConfigurableVsOutputWindow();
             this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ErrorListInfoBarController_Ctor_NullBindingProvider_Throws()
         {
             Action act = () => new ErrorListInfoBarController(this.host, null, this.logger);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingRequiredIndicator");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingChecker");
         }
 
         [TestMethod]
@@ -149,7 +149,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SetBindingMode(SonarLintMode.LegacyConnected);
             SetSolutionExistsAndFullyLoadedContextState(isActive: true);
 
-            bindingRequiredIndicator.Setup(x => x.IsBindingRequired()).Returns(true);
+            bindingRequiredIndicator.Setup(x => x.IsBindingUpdateRequired()).Returns(true);
 
             var testSubject = CreateTestSubject();
 
@@ -170,7 +170,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SetBindingMode(SonarLintMode.Connected);
             SetSolutionExistsAndFullyLoadedContextState(isActive: true);
 
-            bindingRequiredIndicator.Setup(x => x.IsBindingRequired()).Returns(true);
+            bindingRequiredIndicator.Setup(x => x.IsBindingUpdateRequired()).Returns(true);
             
             var testSubject = CreateTestSubject();
 
@@ -1001,7 +1001,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void ConfigureLoadedSolution(bool hasUnboundProject = true)
         {
-            bindingRequiredIndicator.Setup(x => x.IsBindingRequired()).Returns(hasUnboundProject);
+            bindingRequiredIndicator.Setup(x => x.IsBindingUpdateRequired()).Returns(hasUnboundProject);
 
             SetSolutionExistsAndFullyLoadedContextState(isActive: true);
         }
