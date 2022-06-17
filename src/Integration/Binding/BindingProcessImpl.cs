@@ -50,7 +50,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly SonarLintMode bindingMode;
         private readonly IProjectToLanguageMapper projectToLanguageMapper;
         private readonly IThreadHandling threadHandling;
-        private readonly IFileSystem fileSystem;
         private readonly IExclusionSettingsStorage exclusionSettingsStorage;
 
         internal /*for testing*/ INuGetBindingOperation NuGetBindingOperation { get; }
