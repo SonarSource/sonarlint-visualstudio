@@ -20,8 +20,12 @@
 
 namespace SonarLint.VisualStudio.Integration
 {
-    internal interface IUnboundSolutionChecker : IBindingChecker
+    internal interface IUnboundSolutionChecker
     {
+        /// <summary>
+        /// Returns true/false if the currently opened solution/folder is bound and requires re-binding
+        /// </summary>
+        bool IsBindingUpdateRequired();
     }
 
     internal class UnboundSolutionChecker : IUnboundSolutionChecker

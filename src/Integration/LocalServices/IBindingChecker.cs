@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Integration
     internal interface IBindingChecker
     {
         /// <summary>
-        /// Returns true/false if the currently opened solution/folder is bound and requires re-binding
+        /// Returns true/false if the currently opened solution/folder and all the projects in it are properly bound
         /// </summary>
         bool IsBindingUpdateRequired();
     }
