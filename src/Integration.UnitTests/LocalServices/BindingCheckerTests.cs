@@ -29,7 +29,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
     public class BindingCheckerTests
     {
         [TestMethod]
-        public void IsBindingUpdateRequired_NoUnboundProjects_False()
+        public void IsBindingUpdateRequired_SolutionIsUnbound_True()
+        {
+            var unboundSolutionChecker = CreateUnboundSolutionChecker(isSolutionBound: false);
+            var testSubject = CreateTestSubject(unboundSolutionChecker.Object);
+
+            var result = testSubject.IsBindingUpdateRequired();
+
+            result.Should().BeTrue();
+            unboundSolutionChecker.VerifyAll();
+        }
+
+        [TestMethod]
+        public void IsBindingUpdateRequired_SolutionIsUnbound_ProjectBindingIsNotChecked()
+        {
+            var projectBinder = new Mock<IUnboundProjectFinder>();
+            var unboundSolutionChecker = CreateUnboundSolutionChecker(isSolutionBound: false);
+            var testSubject = CreateTestSubject(unboundSolutionChecker.Object, projectBinder.Object);
+
+            testSubject.IsBindingUpdateRequired();
+
+            projectBinder.Invocations.Should().BeEmpty();
+            unboundSolutionChecker.VerifyAll();
+        }
+
+        [TestMethod]
+        public void IsBindingUpdateRequired_SolutionIsBound_NoUnboundProjects_False()
         {
             var unboundProjects = Array.Empty<EnvDTE.Project>();
 
@@ -41,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public void IsBindingUpdateRequired_NoUnboundProjects_NoLogs()
+        public void IsBindingUpdateRequired_SolutionIsBound_NoUnboundProjects_NoLogs()
         {
             var unboundProjects = Array.Empty<EnvDTE.Project>();
             var logger = new TestLogger();
@@ -54,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public void IsBindingUpdateRequired_HasUnboundProjects_True()
+        public void IsBindingUpdateRequired_SolutionIsBound_HasUnboundProjects_True()
         {
             var unboundProjects = new[] { new ProjectMock("unbound.csproj") };
 
@@ -66,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public void IsBindingUpdateRequired_HasUnboundProjects_UnboundProjectsWrittenToLog()
+        public void IsBindingUpdateRequired_SolutionIsBound_HasUnboundProjects_UnboundProjectsWrittenToLog()
         {
             var unboundProjects = new[] { new ProjectMock("unbound.csproj") };
             var logger = new TestLogger();
@@ -79,14 +104,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             logger.AssertPartialOutputStringExists("unbound.csproj");
         }
 
+        private Mock<IUnboundSolutionChecker> CreateUnboundSolutionChecker(bool isSolutionBound)
+        {
+            var unboundSolutionChecker = new Mock<IUnboundSolutionChecker>();
+            unboundSolutionChecker.Setup(x => x.IsBindingUpdateRequired()).Returns(!isSolutionBound);
+
+            return unboundSolutionChecker;
+        }
+
+        private BindingChecker CreateTestSubject(IUnboundSolutionChecker unboundSolutionChecker, IUnboundProjectFinder unboundProjectFinder = null, ILogger logger = null)
+        {
+            logger ??= new TestLogger();
+
+            return new BindingChecker(unboundSolutionChecker, unboundProjectFinder, logger);
+        }
+
         private BindingChecker CreateTestSubject(EnvDTE.Project[] unboundProjects, ILogger logger = null)
         {
             var unboundProjectFinder = new Mock<IUnboundProjectFinder>();
             unboundProjectFinder.Setup(x => x.GetUnboundProjects()).Returns(unboundProjects);
 
-            logger ??= new TestLogger();
+            var unboundSolutionChecker = CreateUnboundSolutionChecker(isSolutionBound:true);
 
-            return new BindingChecker(unboundProjectFinder.Object, logger);
+            return CreateTestSubject(unboundSolutionChecker.Object, unboundProjectFinder.Object, logger);
         }
     }
 }
