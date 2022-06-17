@@ -25,7 +25,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Threading;
-using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Imaging;
@@ -53,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableHost host;
         private ConfigurableTeamExplorerController teamExplorerController;
         private ConfigurableInfoBarManager infoBarManager;
-        private ConfigurableUnboundProjectFinder unboundProjectFinder;
+        private Mock<IBindingRequiredIndicator> bindingRequiredIndicator;
         private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableConfigurationProvider configProvider;
         private ConfigurableStateManager stateManager;
@@ -81,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 });
             this.serviceProvider.RegisterService(typeof(SComponentModel), componentModel);
 
-            this.unboundProjectFinder = new ConfigurableUnboundProjectFinder();
+            this.bindingRequiredIndicator = new Mock<IBindingRequiredIndicator>();
 
             var outputWindow = new ConfigurableVsOutputWindow();
             this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
@@ -105,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ErrorListInfoBarController_Ctor_NullHost_Throws()
         {
-            Action act = () => new ErrorListInfoBarController(null, this.unboundProjectFinder, this.logger);
+            Action act = () => new ErrorListInfoBarController(null, bindingRequiredIndicator.Object, this.logger);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
         }
 
@@ -113,13 +112,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ErrorListInfoBarController_Ctor_NullBindingProvider_Throws()
         {
             Action act = () => new ErrorListInfoBarController(this.host, null, this.logger);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("unboundProjectFinder");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingRequiredIndicator");
         }
 
         [TestMethod]
         public void ErrorListInfoBarController_Ctor_NullLogger_Throws()
         {
-            Action act = () => new ErrorListInfoBarController(this.host, this.unboundProjectFinder, null);
+            Action act = () => new ErrorListInfoBarController(this.host, bindingRequiredIndicator.Object, null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
@@ -149,7 +148,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             this.SetBindingMode(SonarLintMode.LegacyConnected);
             SetSolutionExistsAndFullyLoadedContextState(isActive: true);
-            this.unboundProjectFinder.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
+
+            bindingRequiredIndicator.Setup(x => x.IsBindingRequired()).Returns(true);
+
             var testSubject = CreateTestSubject();
 
             // Act
@@ -157,8 +158,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RunAsyncAction();
 
             // Assert
-            this.outputWindowPane.AssertOutputStrings(2);
-            this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(1, new[] { "unbound.csproj" }, splitter: "\r\n\t ()".ToArray());
+            this.outputWindowPane.AssertOutputStrings(1);
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
             VerifyInfoBar(infoBar);
         }
@@ -169,7 +169,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             this.SetBindingMode(SonarLintMode.Connected);
             SetSolutionExistsAndFullyLoadedContextState(isActive: true);
-            this.unboundProjectFinder.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
+
+            bindingRequiredIndicator.Setup(x => x.IsBindingRequired()).Returns(true);
+            
             var testSubject = CreateTestSubject();
 
             // Act
@@ -177,8 +179,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RunAsyncAction();
 
             // Assert
-            this.outputWindowPane.AssertOutputStrings(2);
-            this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(1, new[] { "unbound.csproj" }, splitter: "\r\n\t ()".ToArray());
+            this.outputWindowPane.AssertOutputStrings(1);
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
             VerifyInfoBar(infoBar);
         }
@@ -212,8 +213,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Action should not have been queued because the context is active
             uiContext.Verify(x => x.WhenActivated(It.IsAny<Action>()), Times.Never);
 
-            this.outputWindowPane.AssertOutputStrings(2);
-            this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(1, new[] { "unbound.csproj" }, splitter: "\r\n\t ()".ToArray());
+            this.outputWindowPane.AssertOutputStrings(1);
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
             VerifyInfoBar(infoBar);
         }
@@ -881,7 +881,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ErrorListInfoBarController CreateTestSubject(IHost host = null)
         {
             host ??= this.host;
-            var testSubject = new ErrorListInfoBarController(host, unboundProjectFinder, logger, knownUIContexts.Object, new NoOpThreadHandler());
+            var testSubject = new ErrorListInfoBarController(host, bindingRequiredIndicator.Object, logger, knownUIContexts.Object, new NoOpThreadHandler());
             return testSubject;
         }
 
@@ -1001,10 +1001,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void ConfigureLoadedSolution(bool hasUnboundProject = true)
         {
-            if (hasUnboundProject)
-            {
-                this.unboundProjectFinder.UnboundProjects = new[] { new ProjectMock("unbound.csproj") };
-            }
+            bindingRequiredIndicator.Setup(x => x.IsBindingRequired()).Returns(hasUnboundProject);
 
             SetSolutionExistsAndFullyLoadedContextState(isActive: true);
         }
