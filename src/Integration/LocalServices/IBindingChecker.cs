@@ -23,7 +23,7 @@ using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    interface IBindingChecker
+    internal interface IBindingChecker
     {
         /// <summary>
         /// Returns true/false if the currently opened solution/folder is bound and requires re-binding
@@ -33,17 +33,27 @@ namespace SonarLint.VisualStudio.Integration
 
     internal class BindingChecker : IBindingChecker
     {
+        private readonly IUnboundSolutionChecker unboundSolutionChecker;
         private readonly IUnboundProjectFinder unboundProjectFinder;
         private readonly ILogger logger;
 
-        public BindingChecker(IUnboundProjectFinder unboundProjectFinder, ILogger logger)
+        public BindingChecker(IUnboundSolutionChecker unboundSolutionChecker, 
+            IUnboundProjectFinder unboundProjectFinder, 
+            ILogger logger)
         {
+            this.unboundSolutionChecker = unboundSolutionChecker;
             this.unboundProjectFinder = unboundProjectFinder;
             this.logger = logger;
         }
 
         public bool IsBindingUpdateRequired()
         {
+            if (unboundSolutionChecker.IsBindingUpdateRequired())
+            {
+                logger.WriteLine(Strings.SonarLintFoundUnboundSolution);
+                return true;
+            }
+
             var unboundProjects = unboundProjectFinder.GetUnboundProjects().ToArray();
             var hasUnboundProjects = unboundProjects.Length > 0;
 

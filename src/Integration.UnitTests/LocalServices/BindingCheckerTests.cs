@@ -29,7 +29,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
     public class BindingCheckerTests
     {
         [TestMethod]
-        public void IsBindingUpdateRequired_NoUnboundProjects_False()
+        public void IsBindingUpdateRequired_SolutionIsUnbound_True()
+        {
+            var testSubject = CreateTestSubject(isSolutionBound: false);
+
+            var result = testSubject.IsBindingUpdateRequired();
+
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void IsBindingUpdateRequired_SolutionIsUnbound_ProjectBindingIsNotChecked()
+        {
+            var projectBinder = new Mock<IUnboundProjectFinder>();
+            var testSubject = CreateTestSubject(isSolutionBound: false, projectBinder.Object);
+
+            testSubject.IsBindingUpdateRequired();
+
+            projectBinder.Invocations.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void IsBindingUpdateRequired_SolutionIsBound_NoUnboundProjects_False()
         {
             var unboundProjects = Array.Empty<EnvDTE.Project>();
 
@@ -41,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public void IsBindingUpdateRequired_NoUnboundProjects_NoLogs()
+        public void IsBindingUpdateRequired_SolutionIsBound_NoUnboundProjects_NoLogs()
         {
             var unboundProjects = Array.Empty<EnvDTE.Project>();
             var logger = new TestLogger();
@@ -54,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public void IsBindingUpdateRequired_HasUnboundProjects_True()
+        public void IsBindingUpdateRequired_SolutionIsBound_HasUnboundProjects_True()
         {
             var unboundProjects = new[] { new ProjectMock("unbound.csproj") };
 
@@ -66,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public void IsBindingUpdateRequired_HasUnboundProjects_UnboundProjectsWrittenToLog()
+        public void IsBindingUpdateRequired_SolutionIsBound_HasUnboundProjects_UnboundProjectsWrittenToLog()
         {
             var unboundProjects = new[] { new ProjectMock("unbound.csproj") };
             var logger = new TestLogger();
@@ -79,14 +100,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             logger.AssertPartialOutputStringExists("unbound.csproj");
         }
 
+        private BindingChecker CreateTestSubject(bool isSolutionBound, IUnboundProjectFinder unboundProjectFinder = null, ILogger logger = null)
+        {
+            var unboundSolutionChecker = new Mock<IUnboundSolutionChecker>();
+            unboundSolutionChecker.Setup(x => x.IsBindingUpdateRequired()).Returns(!isSolutionBound);
+
+            logger ??= new TestLogger();
+
+            return new BindingChecker(unboundSolutionChecker.Object, unboundProjectFinder, logger);
+        }
+
         private BindingChecker CreateTestSubject(EnvDTE.Project[] unboundProjects, ILogger logger = null)
         {
             var unboundProjectFinder = new Mock<IUnboundProjectFinder>();
             unboundProjectFinder.Setup(x => x.GetUnboundProjects()).Returns(unboundProjects);
 
-            logger ??= new TestLogger();
-
-            return new BindingChecker(unboundProjectFinder.Object, logger);
+            return CreateTestSubject(true, unboundProjectFinder.Object, logger);
         }
     }
 }

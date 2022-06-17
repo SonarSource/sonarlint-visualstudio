@@ -1118,6 +1118,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Some binding configuration is missing. Please rebind the solution..
+        /// </summary>
+        public static string SonarLintFoundUnboundSolution {
+            get {
+                return ResourceManager.GetString("SonarLintFoundUnboundSolution", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarLint can now tell you when the quality profile in SonarQube project is updated. Press Update to enable this feature now..
         /// </summary>
         public static string SonarLintInfoBarOldBindingFile {
