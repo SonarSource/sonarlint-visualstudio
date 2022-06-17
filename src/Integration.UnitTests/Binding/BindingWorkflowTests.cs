@@ -117,6 +117,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             controller.NumberOfAbortRequests.Should().Be(0);
+            mockBindingProcess.Verify(bp => bp.SaveServerExclusionsAsync(CancellationToken.None), Times.Once);
         }
 
         [TestMethod]
@@ -134,6 +135,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             controller.NumberOfAbortRequests.Should().Be(1);
+            mockBindingProcess.Verify(bp => bp.SaveServerExclusionsAsync(CancellationToken.None), Times.Once);
         }
 
         private void SetSaveServerExclusionsResult(bool result)
