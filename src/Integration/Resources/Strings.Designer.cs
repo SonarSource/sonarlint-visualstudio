@@ -233,7 +233,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Binding check] Failed to check bound project settings file: {0}.
+        ///   Looks up a localized string similar to [Binding check] Error checking bound project settings file: {0}.
         /// </summary>
         public static string BindingUpdateFailedToCheckSettings {
             get {

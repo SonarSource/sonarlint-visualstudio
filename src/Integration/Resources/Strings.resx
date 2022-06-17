@@ -777,6 +777,6 @@ This is the general format to use when writing errors to output window or when t
     <comment>Output window message</comment>
   </data>
   <data name="BindingUpdateFailedToCheckSettings" xml:space="preserve">
-    <value>[Binding check] Failed to check bound project settings file: {0}</value>
+    <value>[Binding check] Error checking bound project settings file: {0}</value>
   </data>
 </root>
