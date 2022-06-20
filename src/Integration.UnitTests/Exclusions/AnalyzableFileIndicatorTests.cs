@@ -142,7 +142,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             result.Should().Be(expectedResult);
         }
 
-        [TestMethod]
+        [TestMethod, Description("Regression test for #3075")]
         public void ShouldAnalyze_HasWindowsPathWithBackSlash_ReplacesWithForwardSlash()
         {
             var filePath = "C:\\FooBar\\foo.bar";
