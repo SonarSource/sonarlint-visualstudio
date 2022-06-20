@@ -21,7 +21,6 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -175,7 +174,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        internal /*for testing purposes*/ async Task DownloadQualityProfileAsync(
+        internal /*for testing purposes*/ async System.Threading.Tasks.Task DownloadQualityProfileAsync(
             IProgressController controller, IProgressStepExecutionEvents notificationEvents,
             CancellationToken cancellationToken)
         {
@@ -189,7 +188,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        internal /*for testing purposes*/ async Task SaveServerExclusionsAsync(
+        internal /*for testing purposes*/ async System.Threading.Tasks.Task SaveServerExclusionsAsync(
             IProgressController controller, IProgressStepExecutionEvents notificationEvents,
             CancellationToken cancellationToken)
         {

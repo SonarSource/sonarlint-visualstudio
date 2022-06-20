@@ -171,7 +171,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public async Task SaveServerExclusionsAsync_HasCriticalError_Throws()
+        public void SaveServerExclusionsAsync_HasCriticalError_Throws()
         {
             var bindingArgs = CreateBindCommandArgs(projectKey: "projectKey");
 
