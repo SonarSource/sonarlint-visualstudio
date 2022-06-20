@@ -103,6 +103,48 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public async Task BindingWorkflow_SaveServerExclusions_Success()
+        {
+            // Arrange
+            ConfigurableProgressController controller = new ConfigurableProgressController();
+            var notifications = new ConfigurableProgressStepExecutionEvents();
+
+            SetSaveServerExclusionsResult(true);
+
+            // Act
+            await testSubject.SaveServerExclusionsAsync(controller, notifications, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            // Assert
+            controller.NumberOfAbortRequests.Should().Be(0);
+            mockBindingProcess.Verify(bp => bp.SaveServerExclusionsAsync(CancellationToken.None), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task BindingWorkflow_SaveServerExclusions_Fails_WorkflowAborted()
+        {
+            // Arrange
+            ConfigurableProgressController controller = new ConfigurableProgressController();
+            var notifications = new ConfigurableProgressStepExecutionEvents();
+
+            SetSaveServerExclusionsResult(false);
+
+            // Act
+            await testSubject.SaveServerExclusionsAsync(controller, notifications, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            // Assert
+            controller.NumberOfAbortRequests.Should().Be(1);
+            mockBindingProcess.Verify(bp => bp.SaveServerExclusionsAsync(CancellationToken.None), Times.Once);
+        }
+
+        private void SetSaveServerExclusionsResult(bool result)
+        {
+            mockBindingProcess.Setup(x => x.SaveServerExclusionsAsync(
+                It.IsAny<CancellationToken>())).Returns(Task.FromResult(result));
+        }
+
+        [TestMethod]
         public void BindingWorkflow_InstallPackages_NoError()
         {
             // Arrange
