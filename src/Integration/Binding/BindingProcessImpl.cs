@@ -21,12 +21,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
@@ -48,6 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly SonarLintMode bindingMode;
         private readonly IProjectToLanguageMapper projectToLanguageMapper;
         private readonly IThreadHandling threadHandling;
+        private readonly IExclusionSettingsStorage exclusionSettingsStorage;
 
         internal /*for testing*/ INuGetBindingOperation NuGetBindingOperation { get; }
 
@@ -58,8 +61,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
             IUnboundProjectFinder unboundProjectFinder,
             IBindingConfigProvider bindingConfigProvider,
             SonarLintMode bindingMode,
+            IExclusionSettingsStorage exclusionSettingsStorage,
             bool isFirstBinding = false,
-            IThreadHandling threadHandling = null /* overrideable for testing */)
+            IThreadHandling threadHandling = null /* overrideable for testing */            
+            )
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
             this.bindingArgs = bindingArgs ?? throw new ArgumentNullException(nameof(bindingArgs));
@@ -67,6 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.NuGetBindingOperation = nugetBindingOperation ?? throw new ArgumentNullException(nameof(nugetBindingOperation));
             this.unboundProjectFinder = unboundProjectFinder ?? throw new ArgumentNullException(nameof(unboundProjectFinder));
             this.bindingConfigProvider = bindingConfigProvider ?? throw new ArgumentNullException(nameof(bindingConfigProvider));
+            this.exclusionSettingsStorage = exclusionSettingsStorage ?? throw new ArgumentNullException(nameof(exclusionSettingsStorage));
             this.bindingMode = bindingMode;
             projectToLanguageMapper = host.GetMefService<IProjectToLanguageMapper>();
             this.threadHandling = threadHandling ?? new ThreadHandling();
@@ -194,6 +200,21 @@ namespace SonarLint.VisualStudio.Integration.Binding
         public void PrepareToInstallPackages()
         {
             this.NuGetBindingOperation.PrepareOnUIThread();
+        }
+
+        public async Task<bool> SaveServerExclusionsAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var exclusions = await host.SonarQubeService.GetServerExclusions(bindingArgs.ProjectKey, cancellationToken);
+                exclusionSettingsStorage.SaveSettings(exclusions);
+            }
+            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                host.Logger.WriteLine(string.Format(Strings.SaveExclusionsFailed, ex.Message));
+                return false;
+            }
+            return true;
         }
 
         public void InstallPackages(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)

@@ -135,6 +135,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 new ProgressStepDefinition(null, StepAttributes.Hidden | StepAttributes.Indeterminate,
                         (token, notifications) => this.FinishSolutionBindingOnUIThread(controller, token)),
 
+                new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread | StepAttributes.Indeterminate,
+                        (token, notifications) => this.SaveServerExclusionsAsync(controller, notifications, token).GetAwaiter().GetResult()),
+
                 //*****************************************************************
                 // Finalization
                 //*****************************************************************
@@ -184,6 +187,21 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 this.AbortWorkflow(controller, cancellationToken);
             }
         }
+
+        internal /*for testing purposes*/ async System.Threading.Tasks.Task SaveServerExclusionsAsync(
+            IProgressController controller, IProgressStepExecutionEvents notificationEvents,
+            CancellationToken cancellationToken)
+        {
+            Debug.Assert(controller != null);
+            Debug.Assert(notificationEvents != null);
+
+            notificationEvents.ProgressChanged(Strings.SaveServerExclusionsMessage);
+            if (!await bindingProcess.SaveServerExclusionsAsync(cancellationToken).ConfigureAwait(false))
+            {
+                this.AbortWorkflow(controller, cancellationToken);
+            }
+        }
+
 
         internal /* for testing */ void InitializeSolutionBindingOnBackgroundThread(IProgressStepExecutionEvents notificationEvents)
         {
