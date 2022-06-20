@@ -143,6 +143,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         }
 
         [TestMethod]
+        public void ShouldAnalyze_HasBackSlash_ReplacesWithForwardSlash()
+        {
+            var filePath = "C:\\FooBar\\foo.bar";
+
+            var projectExclusions = new[] { "exclusion" };
+            var exclusionConfig = CreateServerExclusions(
+                inclusions: null,
+                exclusions: projectExclusions,
+                globalExclusions: null);
+
+            var patternMatcher = new Mock<IGlobPatternMatcher>();
+
+            var testSubject = CreateTestSubject(exclusionConfig, patternMatcher.Object);
+
+            _ = testSubject.ShouldAnalyze(filePath);
+
+            patternMatcher.Verify(x => x.IsMatch(projectExclusions[0], "C:\\FooBar\\foo.bar"), Times.Never);
+            patternMatcher.Verify(x => x.IsMatch(projectExclusions[0], "C:/FooBar/foo.bar"), Times.Once);
+
+        }
+
+        [TestMethod]
         public void Perf_ShouldAnalyze_HasInclusions_FileNotIncluded_ExclusionsAreNotChecked()
         {
             var inclusions = new[] { "inclusion1" };
@@ -190,6 +212,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             patternMatcher.VerifyNoOtherCalls();
         }
 
+
+
         private AnalyzableFileIndicator CreateTestSubject(ServerExclusions exclusions, IGlobPatternMatcher patternMatcher)
         {
             var exclusionsSettingsStorage = new Mock<IExclusionSettingsStorage>();
@@ -197,6 +221,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
 
             return new AnalyzableFileIndicator(exclusionsSettingsStorage.Object, patternMatcher);
         }
+
+
 
         private ServerExclusions CreateServerExclusions(
             string[] inclusions, 

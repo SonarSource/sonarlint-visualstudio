@@ -87,6 +87,10 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
             exclusions != null &&
             exclusions.Any(x => IsMatch(x, filePath));
 
-        private bool IsMatch(string pattern, string filePath) => globPatternMatcher.IsMatch(pattern, filePath);
+        private bool IsMatch(string pattern, string filePath)
+        {
+            filePath = filePath.Replace("\\", "/");
+            return globPatternMatcher.IsMatch(pattern, filePath);
+        }
     }
 }
