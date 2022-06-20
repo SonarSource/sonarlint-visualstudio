@@ -159,9 +159,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var sonarQubeService = new Mock<ISonarQubeService>();
             sonarQubeService.Setup(s => s.GetServerExclusions("projectKey", It.IsAny<CancellationToken>())).Throws(new Exception("Expected Error"));
 
-            var exclusionSettingsStorage = new Mock<IExclusionSettingsStorage>();
-
-            var testSubject = CreateTestSubject(bindingArgs: bindingArgs, mode: SonarLintMode.Connected, sonarQubeService: sonarQubeService.Object, exclusionSettingsStorage: exclusionSettingsStorage.Object);
+            var testSubject = CreateTestSubject(bindingArgs: bindingArgs, mode: SonarLintMode.Connected, sonarQubeService: sonarQubeService.Object);
 
             var result = await testSubject.SaveServerExclusionsAsync(CancellationToken.None);
 
@@ -180,9 +178,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var sonarQubeService = new Mock<ISonarQubeService>();
             sonarQubeService.Setup(s => s.GetServerExclusions("projectKey", It.IsAny<CancellationToken>())).Throws(new StackOverflowException("Critical Error"));
 
-            var exclusionSettingsStorage = new Mock<IExclusionSettingsStorage>();
-
-            var testSubject = CreateTestSubject(bindingArgs: bindingArgs, mode: SonarLintMode.Connected, sonarQubeService: sonarQubeService.Object, exclusionSettingsStorage: exclusionSettingsStorage.Object);
+            var testSubject = CreateTestSubject(bindingArgs: bindingArgs, mode: SonarLintMode.Connected, sonarQubeService: sonarQubeService.Object);
 
             Func<Task<bool>> act = async () =>  await testSubject.SaveServerExclusionsAsync(CancellationToken.None);
 
