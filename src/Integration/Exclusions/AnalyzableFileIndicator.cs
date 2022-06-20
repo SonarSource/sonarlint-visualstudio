@@ -54,7 +54,8 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
             {
                 return true;
             }
-
+            //Sonarqube uses unix-style directory seperators, so we should replace windows style seperators. 
+            filePath = filePath.Replace("\\", "/");
             var shouldAnalyze = IsIncluded(serverExclusions, filePath) && !IsExcluded(serverExclusions, filePath);
 
             return shouldAnalyze;
@@ -87,6 +88,9 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
             exclusions != null &&
             exclusions.Any(x => IsMatch(x, filePath));
 
-        private bool IsMatch(string pattern, string filePath) => globPatternMatcher.IsMatch(pattern, filePath);
+        private bool IsMatch(string pattern, string filePath)
+        {
+            return globPatternMatcher.IsMatch(pattern, filePath);
+        }
     }
 }
