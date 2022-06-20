@@ -1019,6 +1019,24 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to retrieve/process server settings. Error: {0}.
+        /// </summary>
+        public static string SaveExclusionsFailed {
+            get {
+                return ResourceManager.GetString("SaveExclusionsFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Downloading Server Exclusions.
+        /// </summary>
+        public static string SaveServerExclusionsMessage {
+            get {
+                return ResourceManager.GetString("SaveServerExclusionsMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to check out files for editing. Error flags: {0}.
         /// </summary>
         public static string SCCFS_FailedToCheckOutFilesForEditing {

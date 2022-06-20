@@ -20,6 +20,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -37,7 +38,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         bool DiscoverProjects();
 
-        System.Threading.Tasks.Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken);
+        Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken);
+
+        Task<bool> SaveServerExclusionsAsync(CancellationToken cancellationToken);
 
         void PrepareToInstallPackages();
 

@@ -143,6 +143,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             result.Should().Be(expectedResult);
         }
 
+        [TestMethod, Description("Regression test for #3075")]
+        public void ShouldAnalyze_HasWindowsPathWithBackSlash_ReplacesWithForwardSlash()
+        {
+            var filePath = "C:\\FooBar\\foo.bar";
+
+            var projectExclusions = new[] { "exclusion" };
+            var exclusionConfig = CreateServerExclusions(
+                inclusions: null,
+                exclusions: projectExclusions,
+                globalExclusions: null);
+
+            var patternMatcher = new Mock<IGlobPatternMatcher>();
+
+            var testSubject = CreateTestSubject(exclusionConfig, patternMatcher.Object);
+
+            _ = testSubject.ShouldAnalyze(filePath);
+
+            patternMatcher.Verify(x => x.IsMatch(projectExclusions[0], "C:\\FooBar\\foo.bar"), Times.Never);
+            patternMatcher.Verify(x => x.IsMatch(projectExclusions[0], "C:/FooBar/foo.bar"), Times.Once);
+
+        }
+
         [TestMethod]
         public void Perf_ShouldAnalyze_HasInclusions_FileNotIncluded_ExclusionsAreNotChecked()
         {
