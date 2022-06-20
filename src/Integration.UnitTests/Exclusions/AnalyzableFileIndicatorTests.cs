@@ -143,7 +143,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         }
 
         [TestMethod]
-        public void ShouldAnalyze_HasBackSlash_ReplacesWithForwardSlash()
+        public void ShouldAnalyze_HasWindowsPathWithBackSlash_ReplacesWithForwardSlash()
         {
             var filePath = "C:\\FooBar\\foo.bar";
 

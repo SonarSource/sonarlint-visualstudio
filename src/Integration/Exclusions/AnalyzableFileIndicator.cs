@@ -55,6 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
                 return true;
             }
 
+            filePath = filePath.Replace("\\", "/");
             var shouldAnalyze = IsIncluded(serverExclusions, filePath) && !IsExcluded(serverExclusions, filePath);
 
             return shouldAnalyze;
@@ -89,7 +90,6 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
 
         private bool IsMatch(string pattern, string filePath)
         {
-            filePath = filePath.Replace("\\", "/");
             return globPatternMatcher.IsMatch(pattern, filePath);
         }
     }
