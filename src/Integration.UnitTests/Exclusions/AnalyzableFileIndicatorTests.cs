@@ -212,8 +212,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             patternMatcher.VerifyNoOtherCalls();
         }
 
-
-
         private AnalyzableFileIndicator CreateTestSubject(ServerExclusions exclusions, IGlobPatternMatcher patternMatcher)
         {
             var exclusionsSettingsStorage = new Mock<IExclusionSettingsStorage>();
@@ -221,8 +219,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
 
             return new AnalyzableFileIndicator(exclusionsSettingsStorage.Object, patternMatcher);
         }
-
-
 
         private ServerExclusions CreateServerExclusions(
             string[] inclusions, 
