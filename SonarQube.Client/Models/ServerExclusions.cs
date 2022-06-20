@@ -19,6 +19,7 @@
  */
 
 using System;
+using Newtonsoft.Json;
 
 namespace SonarQube.Client.Models
 {
@@ -40,8 +41,21 @@ namespace SonarQube.Client.Models
             Inclusions = inclusions ?? EmptyValues;
         }
 
+        [JsonProperty("sonar.exclusions")]
         public string[] Exclusions { get; set; }
+
+        [JsonProperty("sonar.global.exclusions")]
         public string[] GlobalExclusions { get; set; }
+
+        [JsonProperty("sonar.inclusions")]
         public string[] Inclusions { get; set; }
+
+        public override string ToString()
+        {
+            return "Server Exclusions: " +
+                   "\n    Inclusions: " + string.Join(",", Inclusions) +
+                   "\n    Exclusions: " + string.Join(",", Exclusions) +
+                   "\n    Global Exclusions: " + string.Join(",", GlobalExclusions);
+        }
     }
 }
