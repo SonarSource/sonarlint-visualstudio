@@ -20,6 +20,8 @@
 
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Core.UnitTests
 {
@@ -104,7 +106,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 
         public void IsMatch_ReturnsIfInputMatchesGlobPattern(string pattern, string input, bool expectedResult)
         {
-            var result = new GlobPatternMatcher().IsMatch(pattern, input);
+            var result = new GlobPatternMatcher(Mock.Of<ILogger>()).IsMatch(pattern, input);
             result.Should().Be(expectedResult);
         }
     }

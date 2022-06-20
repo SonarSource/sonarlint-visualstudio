@@ -39,6 +39,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             MefTestHelpers.CheckTypeCanBeImported<AnalyzableFileIndicator, IAnalyzableFileIndicator>(null, new []
             {
                 MefTestHelpers.CreateExport<IExclusionSettingsStorage>(Mock.Of<IExclusionSettingsStorage>()),
+                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
 
@@ -195,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             var exclusionsSettingsStorage = new Mock<IExclusionSettingsStorage>();
             exclusionsSettingsStorage.Setup(x => x.GetSettings()).Returns(exclusions);
 
-            return new AnalyzableFileIndicator(exclusionsSettingsStorage.Object, patternMatcher);
+            return new AnalyzableFileIndicator(exclusionsSettingsStorage.Object, patternMatcher, Mock.Of<ILogger>());
         }
 
         private ServerExclusions CreateServerExclusions(

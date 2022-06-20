@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Exclusions
@@ -32,18 +33,21 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
     {
         private readonly IExclusionSettingsStorage exclusionSettingsStorage;
         private readonly IGlobPatternMatcher globPatternMatcher;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
-        public AnalyzableFileIndicator(IExclusionSettingsStorage exclusionSettingsStorage)
-            : this(exclusionSettingsStorage, new GlobPatternMatcher())
+        public AnalyzableFileIndicator(IExclusionSettingsStorage exclusionSettingsStorage, ILogger logger)
+            : this(exclusionSettingsStorage, new GlobPatternMatcher(logger), logger)
         {
         }
 
         internal AnalyzableFileIndicator(IExclusionSettingsStorage exclusionSettingsStorage, 
-            IGlobPatternMatcher globPatternMatcher)
+            IGlobPatternMatcher globPatternMatcher,
+            ILogger logger)
         {
             this.exclusionSettingsStorage = exclusionSettingsStorage;
             this.globPatternMatcher = globPatternMatcher;
+            this.logger = logger;
         }
 
         public bool ShouldAnalyze(string filePath)
@@ -52,10 +56,16 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
 
             if (serverExclusions == null)
             {
+                logger.LogDebug("[AnalyzableFileIndicator] No server settings were found.");
                 return true;
             }
 
             var shouldAnalyze = IsIncluded(serverExclusions, filePath) && !IsExcluded(serverExclusions, filePath);
+
+            logger.LogDebug($"[AnalyzableFileIndicator]" +
+                            $"\n  {serverExclusions}" +
+                            $"\n  file: '{filePath}'" +
+                            $"\n  should analyze: {shouldAnalyze} ");
 
             return shouldAnalyze;
         }

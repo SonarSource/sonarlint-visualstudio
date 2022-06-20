@@ -93,7 +93,9 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
                 }
 
                 var fileContent = fileSystem.File.ReadAllText(exclusionsFilePath);
-                
+
+                logger.LogDebug("[ExclusionSettingsStorage] File content: {0}", fileContent);
+
                 return JsonConvert.DeserializeObject<ServerExclusions>(fileContent);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
