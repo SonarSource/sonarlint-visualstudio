@@ -782,4 +782,7 @@ This is the general format to use when writing errors to output window or when t
     <value>Some binding configuration is missing. Please rebind the solution.</value>
     <comment>Output window message</comment>
   </data>
+  <data name="BindingUpdateFailedToCheckSettings" xml:space="preserve">
+    <value>[Binding check] Error checking bound project settings file: {0}</value>
+  </data>
 </root>

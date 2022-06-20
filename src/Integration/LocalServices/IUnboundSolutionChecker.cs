@@ -18,6 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration.Helpers;
+using SonarLint.VisualStudio.Integration.Resources;
+
 namespace SonarLint.VisualStudio.Integration
 {
     internal interface IUnboundSolutionChecker
@@ -30,10 +36,28 @@ namespace SonarLint.VisualStudio.Integration
 
     internal class UnboundSolutionChecker : IUnboundSolutionChecker
     {
+        private readonly IExclusionSettingsStorage exclusionSettingsStorage;
+        private readonly ILogger logger;
+
+        public UnboundSolutionChecker(IExclusionSettingsStorage exclusionSettingsStorage, ILogger logger)
+        {
+            this.exclusionSettingsStorage = exclusionSettingsStorage;
+            this.logger = logger;
+        }
+
         public bool IsBindingUpdateRequired()
         {
-            return false;
+            try
+            {
+                return !exclusionSettingsStorage.SettingsExist();
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.LogDebug("[UnboundSolutionChecker] Failed to check for settings: {0}", ex.ToString());
+                logger.WriteLine(Strings.BindingUpdateFailedToCheckSettings, ex.Message);
+
+                return false;
+            }
         }
     }
-
 }
