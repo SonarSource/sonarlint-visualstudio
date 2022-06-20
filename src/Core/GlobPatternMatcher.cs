@@ -21,6 +21,8 @@
 using System.Collections.Concurrent;
 using System.Text;
 using System.Text.RegularExpressions;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.Core
 {
@@ -31,11 +33,25 @@ namespace SonarLint.VisualStudio.Core
 
     public class GlobPatternMatcher : IGlobPatternMatcher
     {
+        private readonly ILogger logger;
+
+        public GlobPatternMatcher(ILogger logger)
+        {
+            this.logger = logger;
+        }
+
         public bool IsMatch(string pattern, string input)
         {
-            var match = WildcardPattern.create(pattern).match(input);
+            var wildcardPattern = WildcardPattern.create(pattern);
+            var isMatch = wildcardPattern.match(input);
 
-            return match;
+            logger.LogDebug("[GlobPatternMatcher]" +
+                            $"\n  Pattern: {pattern}" +
+                            $"\n  Regex: {wildcardPattern.pattern}" +
+                            $"\n  Input: {input}" +
+                            $"\n  Is match: {isMatch}");
+
+            return isMatch;
         }
 
         /// <summary>
@@ -45,7 +61,7 @@ namespace SonarLint.VisualStudio.Core
         {
             private static readonly ConcurrentDictionary<string, WildcardPattern> CACHE = new ConcurrentDictionary<string, WildcardPattern>();
             private static readonly string SPECIAL_CHARS = "()[]^$.{}+|";
-            private readonly Regex pattern;
+            internal readonly Regex pattern;
 
             private WildcardPattern(string pattern, string directorySeparator)
             {
