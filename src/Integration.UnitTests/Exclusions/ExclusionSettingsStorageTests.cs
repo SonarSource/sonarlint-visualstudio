@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
     {
         private const string BindingFolder = "C:\\SolutionPath";
         private const string ExpectedExclusionsFilePath = "C:\\SolutionPath\\sonar.settings.json";
-        private const string SerializedExclusions = "{\"Exclusions\":[\"exclusion\"],\"GlobalExclusions\":[\"globalExclusion\"],\"Inclusions\":[\"inclusion1\",\"inclusion2\"]}";
+        private const string SerializedExclusions = "{\"sonar.exclusions\":[\"exclusion\"],\"sonar.global.exclusions\":[\"globalExclusion\"],\"sonar.inclusions\":[\"inclusion1\",\"inclusion2\"]}";
        
         [TestMethod]
         public void MefCtor_CheckIsExported()
