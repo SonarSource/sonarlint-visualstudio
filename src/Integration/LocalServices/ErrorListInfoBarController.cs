@@ -229,7 +229,7 @@ namespace SonarLint.VisualStudio.Integration
 
             this.OutputMessage(Strings.SonarLintCheckingForUnboundProjects);
 
-            var isBindingRequired = bindingChecker.IsBindingUpdateRequired();
+            var isBindingRequired = await bindingChecker.IsBindingUpdateRequired(CancellationToken.None);
 
             if (isBindingRequired)
             {
