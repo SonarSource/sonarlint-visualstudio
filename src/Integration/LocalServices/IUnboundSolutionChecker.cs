@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
@@ -68,6 +69,9 @@ namespace SonarLint.VisualStudio.Integration
                 }
 
                 var bindingConfiguration = bindingConfigProvider.GetConfiguration();
+
+                Debug.Assert(bindingConfiguration.Mode != SonarLintMode.Standalone, "Not expecting to be called in standalone mode.");
+
                 var serverExclusions = await sonarQubeService.GetServerExclusions(bindingConfiguration.Project.ProjectKey, token);
 
                 return !savedExclusions.Equals(serverExclusions);
