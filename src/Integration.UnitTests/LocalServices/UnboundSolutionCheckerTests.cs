@@ -19,46 +19,104 @@
  */
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarQube.Client;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 {
     [TestClass]
     public class UnboundSolutionCheckerTests
     {
+        private const string ServerProjectKey = "my proj";
+
         [TestMethod]
-        [DataRow(true, false)]
-        [DataRow(false, true)]
-        public void IsBindingUpdateRequired_ReturnsIfSettingsExist(bool settingsExist, bool expectedResult)
+        public async Task IsBindingUpdateRequired_SettingsDoNotExist_True()
         {
-            var exclusionsSettingStorage = new Mock<IExclusionSettingsStorage>();
-            exclusionsSettingStorage.Setup(x => x.SettingsExist()).Returns(settingsExist);
+            var exclusionsSettingStorage = SetupLocalExclusions(null);
 
             var testSubject = CreateTestSubject(exclusionsSettingStorage.Object);
 
-            var result = testSubject.IsBindingUpdateRequired();
+            var result = await testSubject.IsBindingUpdateRequired(CancellationToken.None);
 
-            result.Should().Be(expectedResult);
+            result.Should().BeTrue();
             exclusionsSettingStorage.VerifyAll();
             exclusionsSettingStorage.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public void IsBindingUpdateRequired_FailedToFetchServerSettings_False()
+        public async Task IsBindingUpdateRequired_SettingsExist_ServerSettingsAreDifferent_True()
+        {
+            var localExclusions = new ServerExclusions(
+                exclusions: new[] { "1" },
+                globalExclusions: new[] { "2" },
+                inclusions: new[] { "3" });
+
+            var serverExclusions = new ServerExclusions(
+                exclusions: new[] { "4" },
+                globalExclusions: new[] { "5" },
+                inclusions: new[] { "6" });
+
+            var exclusionsSettingStorage = SetupLocalExclusions(localExclusions);
+            var sonarQubeServer = SetupServerExclusions(serverExclusions);
+
+            var testSubject = CreateTestSubject(exclusionsSettingStorage.Object, sonarQubeServer.Object);
+
+            var result = await testSubject.IsBindingUpdateRequired(CancellationToken.None);
+
+            result.Should().BeTrue();
+            exclusionsSettingStorage.VerifyAll();
+            exclusionsSettingStorage.VerifyNoOtherCalls();
+            sonarQubeServer.VerifyAll();
+            sonarQubeServer.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public async Task IsBindingUpdateRequired_SettingsExist_ServerSettingsAreTheSame_False()
+        {
+            var localExclusions = new ServerExclusions(
+                exclusions: new[] { "1" },
+                globalExclusions: new[] { "2" },
+                inclusions: new[] { "3" });
+
+            var serverExclusions = new ServerExclusions(
+                exclusions: new[] { "1" },
+                globalExclusions: new[] { "2" },
+                inclusions: new[] { "3" });
+
+            var exclusionsSettingStorage = SetupLocalExclusions(localExclusions);
+            var sonarQubeServer = SetupServerExclusions(serverExclusions);
+
+            var testSubject = CreateTestSubject(exclusionsSettingStorage.Object, sonarQubeServer.Object);
+
+            var result = await testSubject.IsBindingUpdateRequired(CancellationToken.None);
+
+            result.Should().BeFalse();
+            exclusionsSettingStorage.VerifyAll();
+            exclusionsSettingStorage.VerifyNoOtherCalls();
+            sonarQubeServer.VerifyAll();
+            sonarQubeServer.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public async Task IsBindingUpdateRequired_FailedToFetchServerSettings_False()
         {
             var exclusionsSettingStorage = new Mock<IExclusionSettingsStorage>();
             exclusionsSettingStorage
-                .Setup(x => x.SettingsExist())
+                .Setup(x => x.GetSettings())
                 .Throws(new NotImplementedException("this is a test"));
 
             var logger = new TestLogger();
 
-            var testSubject = CreateTestSubject(exclusionsSettingStorage.Object, logger);
+            var testSubject = CreateTestSubject(exclusionsSettingStorage.Object, logger:logger);
 
-            var result = testSubject.IsBindingUpdateRequired();
+            var result = await testSubject.IsBindingUpdateRequired(CancellationToken.None);
 
             result.Should().BeFalse();
             logger.AssertPartialOutputStringExists("this is a test");
@@ -69,21 +127,55 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         {
             var exclusionsSettingStorage = new Mock<IExclusionSettingsStorage>();
             exclusionsSettingStorage
-                .Setup(x => x.SettingsExist())
+                .Setup(x => x.GetSettings())
                 .Throws(new StackOverflowException());
 
             var testSubject = CreateTestSubject(exclusionsSettingStorage.Object);
 
-            Action act = () => testSubject.IsBindingUpdateRequired();
+            Func<Task> act = async () => await testSubject.IsBindingUpdateRequired(CancellationToken.None);
 
             act.Should().Throw<StackOverflowException>();
         }
 
-        private UnboundSolutionChecker CreateTestSubject(IExclusionSettingsStorage exclusionsSettingStorage, ILogger logger = null)
+        private UnboundSolutionChecker CreateTestSubject(IExclusionSettingsStorage exclusionsSettingStorage,
+            ISonarQubeService sonarQubeService = null,
+            ILogger logger = null)
         {
             logger ??= Mock.Of<ILogger>();
+            var bindingConfigurationProvider = SetupBindingConfiguration();
 
-            return new UnboundSolutionChecker(exclusionsSettingStorage, logger);
+            return new UnboundSolutionChecker(exclusionsSettingStorage, bindingConfigurationProvider.Object, sonarQubeService, logger);
+        }
+
+        private static Mock<IExclusionSettingsStorage> SetupLocalExclusions(ServerExclusions localExclusions)
+        {
+            var exclusionsSettingStorage = new Mock<IExclusionSettingsStorage>();
+            exclusionsSettingStorage.Setup(x => x.GetSettings()).Returns(localExclusions);
+            
+            return exclusionsSettingStorage;
+        }
+
+        private static Mock<ISonarQubeService> SetupServerExclusions(ServerExclusions serverExclusions)
+        {
+            var sonarQubeServer = new Mock<ISonarQubeService>();
+            sonarQubeServer.Setup(x => x.GetServerExclusions(ServerProjectKey, CancellationToken.None))
+                .ReturnsAsync(serverExclusions);
+           
+            return sonarQubeServer;
+        }
+
+        private Mock<IConfigurationProvider> SetupBindingConfiguration()
+        {
+            var bindingConfiguration =
+                new BindingConfiguration(
+                    new BoundSonarQubeProject(new Uri("http://localhost"), ServerProjectKey, null),
+                    SonarLintMode.Connected,
+                    null);
+
+            var bindingConfigProvider = new Mock<IConfigurationProvider>();
+            bindingConfigProvider.Setup(x => x.GetConfiguration()).Returns(bindingConfiguration);
+
+            return bindingConfigProvider;
         }
     }
 }

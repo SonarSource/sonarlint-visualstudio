@@ -19,6 +19,8 @@
  */
 
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration
@@ -28,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// Returns true/false if the currently opened solution/folder and all the projects in it are properly bound
         /// </summary>
-        bool IsBindingUpdateRequired();
+        Task<bool> IsBindingUpdateRequired(CancellationToken token);
     }
 
     internal class BindingChecker : IBindingChecker
@@ -46,9 +48,11 @@ namespace SonarLint.VisualStudio.Integration
             this.logger = logger;
         }
 
-        public bool IsBindingUpdateRequired()
+        public async Task<bool> IsBindingUpdateRequired(CancellationToken token)
         {
-            if (unboundSolutionChecker.IsBindingUpdateRequired())
+            var solutionBindingRequired = await unboundSolutionChecker.IsBindingUpdateRequired(token);
+
+            if (solutionBindingRequired)
             {
                 logger.WriteLine(Strings.SonarLintFoundUnboundSolution);
                 return true;

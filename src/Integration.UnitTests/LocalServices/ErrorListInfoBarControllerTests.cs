@@ -21,8 +21,8 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition.Primitives;
-using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using FluentAssertions;
@@ -149,7 +149,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SetBindingMode(SonarLintMode.LegacyConnected);
             SetSolutionExistsAndFullyLoadedContextState(isActive: true);
 
-            bindingRequiredIndicator.Setup(x => x.IsBindingUpdateRequired()).Returns(true);
+            bindingRequiredIndicator.Setup(x => x.IsBindingUpdateRequired(It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
             var testSubject = CreateTestSubject();
 
@@ -170,7 +170,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SetBindingMode(SonarLintMode.Connected);
             SetSolutionExistsAndFullyLoadedContextState(isActive: true);
 
-            bindingRequiredIndicator.Setup(x => x.IsBindingUpdateRequired()).Returns(true);
+            bindingRequiredIndicator.Setup(x => x.IsBindingUpdateRequired(It.IsAny<CancellationToken>())).ReturnsAsync(true);
             
             var testSubject = CreateTestSubject();
 
@@ -1001,7 +1001,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void ConfigureLoadedSolution(bool hasUnboundProject = true)
         {
-            bindingRequiredIndicator.Setup(x => x.IsBindingUpdateRequired()).Returns(hasUnboundProject);
+            bindingRequiredIndicator.Setup(x => x.IsBindingUpdateRequired(It.IsAny<CancellationToken>())).ReturnsAsync(hasUnboundProject);
 
             SetSolutionExistsAndFullyLoadedContextState(isActive: true);
         }
