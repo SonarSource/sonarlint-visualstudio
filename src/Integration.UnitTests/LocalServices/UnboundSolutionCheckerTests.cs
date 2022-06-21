@@ -19,6 +19,8 @@
  */
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -32,14 +34,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         [TestMethod]
         [DataRow(true, false)]
         [DataRow(false, true)]
-        public void IsBindingUpdateRequired_ReturnsIfSettingsExist(bool settingsExist, bool expectedResult)
+        public async Task IsBindingUpdateRequired_ReturnsIfSettingsExist(bool settingsExist, bool expectedResult)
         {
             var exclusionsSettingStorage = new Mock<IExclusionSettingsStorage>();
             exclusionsSettingStorage.Setup(x => x.SettingsExist()).Returns(settingsExist);
 
             var testSubject = CreateTestSubject(exclusionsSettingStorage.Object);
 
-            var result = testSubject.IsBindingUpdateRequired();
+            var result = await testSubject.IsBindingUpdateRequired(CancellationToken.None);
 
             result.Should().Be(expectedResult);
             exclusionsSettingStorage.VerifyAll();
@@ -47,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public void IsBindingUpdateRequired_FailedToFetchServerSettings_False()
+        public async Task IsBindingUpdateRequired_FailedToFetchServerSettings_False()
         {
             var exclusionsSettingStorage = new Mock<IExclusionSettingsStorage>();
             exclusionsSettingStorage
@@ -58,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
             var testSubject = CreateTestSubject(exclusionsSettingStorage.Object, logger);
 
-            var result = testSubject.IsBindingUpdateRequired();
+            var result = await testSubject.IsBindingUpdateRequired(CancellationToken.None);
 
             result.Should().BeFalse();
             logger.AssertPartialOutputStringExists("this is a test");
@@ -74,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
             var testSubject = CreateTestSubject(exclusionsSettingStorage.Object);
 
-            Action act = () => testSubject.IsBindingUpdateRequired();
+            Func<Task> act = async () => await testSubject.IsBindingUpdateRequired(CancellationToken.None);
 
             act.Should().Throw<StackOverflowException>();
         }

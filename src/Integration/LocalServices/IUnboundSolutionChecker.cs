@@ -19,6 +19,8 @@
  */
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Helpers;
@@ -31,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// Returns true/false if the currently opened solution/folder is bound and requires re-binding
         /// </summary>
-        bool IsBindingUpdateRequired();
+        Task<bool> IsBindingUpdateRequired(CancellationToken token);
     }
 
     internal class UnboundSolutionChecker : IUnboundSolutionChecker
@@ -45,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration
             this.logger = logger;
         }
 
-        public bool IsBindingUpdateRequired()
+        public async Task<bool> IsBindingUpdateRequired(CancellationToken token)
         {
             try
             {
