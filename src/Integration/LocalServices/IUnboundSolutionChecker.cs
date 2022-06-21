@@ -19,10 +19,15 @@
  */
 
 using System;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Resources;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -31,25 +36,45 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// Returns true/false if the currently opened solution/folder is bound and requires re-binding
         /// </summary>
-        bool IsBindingUpdateRequired();
+        Task<bool> IsBindingUpdateRequired(CancellationToken token);
     }
 
     internal class UnboundSolutionChecker : IUnboundSolutionChecker
     {
         private readonly IExclusionSettingsStorage exclusionSettingsStorage;
+        private readonly IConfigurationProvider bindingConfigProvider;
+        private readonly ISonarQubeService sonarQubeService;
         private readonly ILogger logger;
 
-        public UnboundSolutionChecker(IExclusionSettingsStorage exclusionSettingsStorage, ILogger logger)
+        public UnboundSolutionChecker(IExclusionSettingsStorage exclusionSettingsStorage,
+            IConfigurationProvider bindingConfigProvider,
+            ISonarQubeService sonarQubeService,
+            ILogger logger)
         {
             this.exclusionSettingsStorage = exclusionSettingsStorage;
+            this.bindingConfigProvider = bindingConfigProvider;
+            this.sonarQubeService = sonarQubeService;
             this.logger = logger;
         }
 
-        public bool IsBindingUpdateRequired()
+        public async Task<bool> IsBindingUpdateRequired(CancellationToken token)
         {
             try
             {
-                return !exclusionSettingsStorage.SettingsExist();
+                var savedExclusions = exclusionSettingsStorage.GetSettings();
+
+                if (savedExclusions == null)
+                {
+                    return true;
+                }
+
+                var bindingConfiguration = bindingConfigProvider.GetConfiguration();
+
+                Debug.Assert(bindingConfiguration.Mode != SonarLintMode.Standalone, "Not expecting to be called in standalone mode.");
+
+                var serverExclusions = await sonarQubeService.GetServerExclusions(bindingConfiguration.Project.ProjectKey, token);
+
+                return !savedExclusions.Equals(serverExclusions);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {

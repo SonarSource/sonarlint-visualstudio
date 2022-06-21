@@ -19,6 +19,8 @@
  */
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -29,76 +31,76 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
     public class BindingCheckerTests
     {
         [TestMethod]
-        public void IsBindingUpdateRequired_SolutionIsUnbound_True()
+        public async Task IsBindingUpdateRequired_SolutionIsUnbound_True()
         {
             var unboundSolutionChecker = CreateUnboundSolutionChecker(isSolutionBound: false);
             var testSubject = CreateTestSubject(unboundSolutionChecker.Object);
 
-            var result = testSubject.IsBindingUpdateRequired();
+            var result = await testSubject.IsBindingUpdateRequired(CancellationToken.None);
 
             result.Should().BeTrue();
             unboundSolutionChecker.VerifyAll();
         }
 
         [TestMethod]
-        public void IsBindingUpdateRequired_SolutionIsUnbound_ProjectBindingIsNotChecked()
+        public async Task IsBindingUpdateRequired_SolutionIsUnbound_ProjectBindingIsNotChecked()
         {
             var projectBinder = new Mock<IUnboundProjectFinder>();
             var unboundSolutionChecker = CreateUnboundSolutionChecker(isSolutionBound: false);
             var testSubject = CreateTestSubject(unboundSolutionChecker.Object, projectBinder.Object);
 
-            testSubject.IsBindingUpdateRequired();
+            await testSubject.IsBindingUpdateRequired(CancellationToken.None);
 
             projectBinder.Invocations.Should().BeEmpty();
             unboundSolutionChecker.VerifyAll();
         }
 
         [TestMethod]
-        public void IsBindingUpdateRequired_SolutionIsBound_NoUnboundProjects_False()
+        public async Task IsBindingUpdateRequired_SolutionIsBound_NoUnboundProjects_False()
         {
             var unboundProjects = Array.Empty<EnvDTE.Project>();
 
             var testSubject = CreateTestSubject(unboundProjects);
 
-            var result = testSubject.IsBindingUpdateRequired();
+            var result = await testSubject.IsBindingUpdateRequired(CancellationToken.None);
 
             result.Should().BeFalse();
         }
 
         [TestMethod]
-        public void IsBindingUpdateRequired_SolutionIsBound_NoUnboundProjects_NoLogs()
+        public async Task IsBindingUpdateRequired_SolutionIsBound_NoUnboundProjects_NoLogs()
         {
             var unboundProjects = Array.Empty<EnvDTE.Project>();
             var logger = new TestLogger();
 
             var testSubject = CreateTestSubject(unboundProjects, logger);
 
-            testSubject.IsBindingUpdateRequired();
+            await testSubject.IsBindingUpdateRequired(CancellationToken.None);
 
             logger.OutputStrings.Should().BeEmpty();
         }
 
         [TestMethod]
-        public void IsBindingUpdateRequired_SolutionIsBound_HasUnboundProjects_True()
+        public async Task IsBindingUpdateRequired_SolutionIsBound_HasUnboundProjects_True()
         {
             var unboundProjects = new[] { new ProjectMock("unbound.csproj") };
 
             var testSubject = CreateTestSubject(unboundProjects);
 
-            var result = testSubject.IsBindingUpdateRequired();
+            var result = await testSubject.IsBindingUpdateRequired(CancellationToken.None);
 
             result.Should().BeTrue();
         }
 
         [TestMethod]
-        public void IsBindingUpdateRequired_SolutionIsBound_HasUnboundProjects_UnboundProjectsWrittenToLog()
+        public async Task IsBindingUpdateRequired_SolutionIsBound_HasUnboundProjects_UnboundProjectsWrittenToLog()
         {
             var unboundProjects = new[] { new ProjectMock("unbound.csproj") };
             var logger = new TestLogger();
 
             var testSubject = CreateTestSubject(unboundProjects, logger);
 
-            testSubject.IsBindingUpdateRequired();
+            await testSubject.IsBindingUpdateRequired(CancellationToken.None);
 
             logger.AssertOutputStrings(1);
             logger.AssertPartialOutputStringExists("unbound.csproj");
@@ -107,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         private Mock<IUnboundSolutionChecker> CreateUnboundSolutionChecker(bool isSolutionBound)
         {
             var unboundSolutionChecker = new Mock<IUnboundSolutionChecker>();
-            unboundSolutionChecker.Setup(x => x.IsBindingUpdateRequired()).Returns(!isSolutionBound);
+            unboundSolutionChecker.Setup(x => x.IsBindingUpdateRequired(CancellationToken.None)).ReturnsAsync(!isSolutionBound);
 
             return unboundSolutionChecker;
         }

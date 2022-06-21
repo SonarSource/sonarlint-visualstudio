@@ -334,6 +334,8 @@ namespace SonarLint.VisualStudio.Integration
                     new BindingChecker(
                         new UnboundSolutionChecker(
                             new ExclusionSettingsStorage(this.GetService<IConfigurationProviderService>(), Logger),
+                            this.GetService<IConfigurationProviderService>(),
+                            SonarQubeService,
                             Logger),
                         new UnboundProjectFinder(this, Logger), Logger),
                     Logger)));
