@@ -117,48 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ERROR_ProcessRunner_ExeNotFound" xml:space="preserve">
-    <value>Execution failed. The specified executable does not exist: {0}</value>
-  </data>
-  <data name="MSG_CmdLine_SensitiveCmdLineArgsAlternativeText" xml:space="preserve">
-    <value>&lt;sensitive data removed&gt;</value>
-  </data>
-  <data name="MSG_ProessRunner_ProcessKilled" xml:space="preserve">
-    <value>Process {0} was killed.</value>
-  </data>
-  <data name="MSG_ExecutingFile" xml:space="preserve">
-    <value>Executing file {0}
-  Args: {1}
-  Working directory: {2}
-  Process id: {3}</value>
-  </data>
-  <data name="MSG_ExecutionCancelled" xml:space="preserve">
-    <value>Execution cancelled.</value>
-  </data>
-  <data name="MSG_ExecutionExitCode" xml:space="preserve">
-    <value>Process returned exit code {0}</value>
-  </data>
-  <data name="MSG_Prefix_DEBUG" xml:space="preserve">
-    <value>DEBUG: </value>
-  </data>
-  <data name="MSG_Prefix_ERROR" xml:space="preserve">
-    <value>ERROR: </value>
-  </data>
-  <data name="MSG_Prefix_WARN" xml:space="preserve">
-    <value>WARNING: </value>
-  </data>
-  <data name="MSG_ReproducerSaved" xml:space="preserve">
-    <value>Reproducer file saved at: {0} </value>
-  </data>
-  <data name="MSG_RequestConfigSaved" xml:space="preserve">
-    <value>Request config saved at: {0} </value>
-  </data>
-  <data name="MSG_Runner_OverwritingEnvVar" xml:space="preserve">
-    <value>Overwriting the value of environment variable '{0}'. Old value: {1}, new value: {2}</value>
-  </data>
-  <data name="MSG_Runner_SettingEnvVar" xml:space="preserve">
-    <value>Setting environment variable '{0}'. Value: {1}</value>
-  </data>
   <data name="ReproCmd_DocumentIsAnalyzable" xml:space="preserve">
     <value>Active document can be analyzed by the CFamily analyzer: {0}</value>
   </data>
@@ -179,37 +137,10 @@
   <data name="ReproCmd_NoActiveDocument" xml:space="preserve">
     <value>Cannot run SonarLint CFamily reproducer - no active document.</value>
   </data>
-  <data name="MSG_PchSaved" xml:space="preserve">
-    <value>Refreshing PCH file for {0}. PCH file location: {1}</value>
-  </data>
   <data name="ERROR_CreatingConfig" xml:space="preserve">
     <value>[CFamily Analysis] Error retrieving VCX configuration. File: {0}, Error: {1}</value>
   </data>
-  <data name="MSG_UnableToCreateConfig" xml:space="preserve">
-    <value>Unable to retrieve the configuration for file '{0}'.
-    Check the file is part of a supported project type in the current solution.</value>
-  </data>
-  <data name="MSG_UnableToLocateSubProcessExe" xml:space="preserve">
-    <value>Unable to locate the CFamily analyzer exe</value>
-  </data>
-  <data name="ERROR_InvalidCompilationEntry" xml:space="preserve">
-    <value>Invalid compilation database entry. Either Command or Arguments must be supplied, but not both.</value>
-  </data>
   <data name="ERROR_CreatingVcxRequest" xml:space="preserve">
     <value>[CFamily Analysis] Error creating VCX request. File: {0}, Error: {1}</value>
-  </data>
-  <data name="MsgHandler_ReportInvalidInput" xml:space="preserve">
-    <value>[CFamily Analysis] Internal error calling the analysis subprocess: {0}</value>
-  </data>
-  <data name="MsgHandler_ReportUnexpectedFailure" xml:space="preserve">
-    <value>[CFamily Analysis] Internal error in the analysis subprocess: {0}</value>
-  </data>
-  <data name="MsgHandler_ReportUnsupportedConfiguration" xml:space="preserve">
-    <value>[CFamily Analysis] Unsupported configuration: {0}</value>
-  </data>
-  <data name="MSG_GenericAnalysisFailed" xml:space="preserve">
-    <value>See above for more information.</value>
-    <comment>Generic failure message logged by the CLangAnalyzer. Assumes more detailed information will already have been logged e.g. by the MessageHandler.
-This message is only displayed in the Output Window (not the status bar).</comment>
   </data>
 </root>

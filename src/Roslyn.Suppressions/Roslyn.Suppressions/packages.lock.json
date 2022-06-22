@@ -25,15 +25,15 @@
       },
       "SonarAnalyzer.CSharp": {
         "type": "Direct",
-        "requested": "[8.38.0.46746, )",
-        "resolved": "8.38.0.46746",
-        "contentHash": "5y/P1+TTqjJRhKWeXLpVt5VFUXYuhS38V/f48gHloK6g84KyCEmbGNIyg6sQlQmS0gg6AiOvOkiC372soFkyXg=="
+        "requested": "[8.40.0.48530, )",
+        "resolved": "8.40.0.48530",
+        "contentHash": "ZxON0c0ZUF7snuaEmGWczPQ5OHyYRzCHHwZ5FlRoK4kVwqH0CawAxto8Xx8iJXb9vBX1kbVK4t14+WP4hJcuVg=="
       },
       "SonarAnalyzer.VisualBasic": {
         "type": "Direct",
-        "requested": "[8.38.0.46746, )",
-        "resolved": "8.38.0.46746",
-        "contentHash": "tTLaB22VcUBgz7F3ID9/kxzGJxWvU5yAC/1AyPyaW29+0wDKQQSj3lgrGjkAfV/II4ECCUxvklJ4ZI3Wld3wcA=="
+        "requested": "[8.40.0.48530, )",
+        "resolved": "8.40.0.48530",
+        "contentHash": "//Z5Jg2viB1Ijl5SEFmmczww3czeNJMq62/hvApRco2sX3+XsZ6P8Vgt5dME3GWODXObU6EbP6y2apI2nZwN3w=="
       },
       "System.IO.Abstractions": {
         "type": "Direct",

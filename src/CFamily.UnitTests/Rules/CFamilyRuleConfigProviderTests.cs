@@ -24,14 +24,12 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.CFamily.Rules;
+using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.UnitTests;
-using SonarLint.VisualStudio.Integration.UnitTests.CFamily;
 
-namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
+namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
 {
     [TestClass]
     public class CFamilyRuleConfigProviderTests
@@ -135,7 +133,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
             result.RulesMetadata["rule4"].DefaultSeverity.Should().Be(IssueSeverity.Blocker); // ConnectedModeSetting should override the default
 
             builder.AssertStandaloneSettingsNotAccessed();
-            builder.Logger.AssertOutputStringExists(Resources.CFamily_UsingConnectedModeSettings);
+            builder.Logger.AssertOutputStringExists(Resources.UsingConnectedModeSettings);
         }
 
         [TestMethod]
@@ -175,7 +173,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
             result.ActivePartialRuleKeys.Should().BeEquivalentTo("rule1", "rule3", "rule4");
             result.AllPartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2", "rule3", "rule4");
 
-            builder.Logger.AssertOutputStringExists(Resources.CFamily_UnableToLoadConnectedModeSettings);
+            builder.Logger.AssertOutputStringExists(Resources.UnableToLoadConnectedModeSettings);
         }
 
         private class TestEnvironmentBuilder
