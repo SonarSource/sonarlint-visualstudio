@@ -1163,7 +1163,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to One or more rule sets are out of date or not linked to the SonarQube quality profile rule set. See output window (SonarLint) for affected projects..
+        ///   Looks up a localized string similar to SonarLint: a binding update is required. See output window (SonarLint) for more information..
         /// </summary>
         public static string SonarLintInfoBarUnboundProjectsMessage {
             get {
