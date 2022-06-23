@@ -26,6 +26,5 @@ namespace SonarLint.VisualStudio.Core.Analysis
     {
         void SaveSettings(ServerExclusions settings);
         ServerExclusions GetSettings();
-        bool SettingsExist();
     }
 }
