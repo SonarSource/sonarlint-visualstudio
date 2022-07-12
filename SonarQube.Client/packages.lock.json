@@ -4,9 +4,9 @@
     ".NETFramework,Version=v4.6": {
       "BouncyCastle": {
         "type": "Direct",
-        "requested": "[1.8.6.1, )",
-        "resolved": "1.8.6.1",
-        "contentHash": "rkqpuKmJkdcfTMBkIj1b5nMdBAWKwAyh+I/BQYeqqSD2jkIlhwc9qBNKmSbnpmmm5c29qHZGLpvBSTNWvDLtQA=="
+        "requested": "[1.8.9, )",
+        "resolved": "1.8.9",
+        "contentHash": "axnBgvdD5n+FnEG6efk/tfKuMFru7R/EoISH9zjh319yb3HD24TEHSAbNN/lTRT2ulOGRxDgOsCjkuk08iwWPg=="
       },
       "Google.Protobuf": {
         "type": "Direct",
