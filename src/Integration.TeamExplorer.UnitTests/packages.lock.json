@@ -146,8 +146,8 @@
       },
       "BouncyCastle": {
         "type": "Transitive",
-        "resolved": "1.8.6.1",
-        "contentHash": "rkqpuKmJkdcfTMBkIj1b5nMdBAWKwAyh+I/BQYeqqSD2jkIlhwc9qBNKmSbnpmmm5c29qHZGLpvBSTNWvDLtQA=="
+        "resolved": "1.8.9",
+        "contentHash": "axnBgvdD5n+FnEG6efk/tfKuMFru7R/EoISH9zjh319yb3HD24TEHSAbNN/lTRT2ulOGRxDgOsCjkuk08iwWPg=="
       },
       "Castle.Core": {
         "type": "Transitive",
@@ -1272,7 +1272,7 @@
       "sonarqube.client": {
         "type": "Project",
         "dependencies": {
-          "BouncyCastle": "1.8.6.1",
+          "BouncyCastle": "1.8.9",
           "Google.Protobuf": "3.6.1",
           "Grpc.Tools": "1.4.1",
           "Newtonsoft.Json": "13.0.1",
