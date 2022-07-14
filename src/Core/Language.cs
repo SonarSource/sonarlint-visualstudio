@@ -47,6 +47,8 @@ namespace SonarLint.VisualStudio.Core
         public readonly static Language VBNET = new Language("VB", CoreStrings.VBNetLanguageName, "vb.ruleset", SonarQubeLanguage.VbNet);
         public readonly static Language Cpp = new Language("C++", CoreStrings.CppLanguageName, "_cpp_settings.json", SonarQubeLanguage.Cpp);
         public readonly static Language C = new Language("C", "C", "_c_settings.json", SonarQubeLanguage.C);
+        public readonly static Language Js = new Language("Js", "JavaScript", "_js_settings.json", SonarQubeLanguage.Js);
+        public readonly static Language Ts = new Language("Ts", "TypeScript", "_ts_settings.json", SonarQubeLanguage.Ts);
 
         /// <summary>
         /// Returns the language for the specified language key, or null if it does not match a known language

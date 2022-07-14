@@ -172,9 +172,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var unboundProjectFinder = new UnboundProjectFinder(host, host.Logger);
 
             var cSharpVBBindingConfigProvider = new CSharpVBBindingConfigProvider(host.SonarQubeService, nugetBindingOp, host.Logger);
-            var cppConfigProvider = new NonRoslynBindingConfigProvider(new []{Language.C, Language.Cpp}, host.SonarQubeService, host.Logger);
+            var nonRoslynBindingConfigProvider = new NonRoslynBindingConfigProvider(
+                new[]
+                {
+                    Language.C,
+                    Language.Cpp,
+                    Language.Js,
+                    Language.Ts
+                }, host.SonarQubeService, host.Logger);
            
-            var ruleConfigProvider = new CompositeBindingConfigProvider(cSharpVBBindingConfigProvider, cppConfigProvider);
+            var ruleConfigProvider = new CompositeBindingConfigProvider(cSharpVBBindingConfigProvider, nonRoslynBindingConfigProvider);
 
             var exclusionSettingsStorage = new ExclusionSettingsStorage(configProvider, host.Logger);
 
