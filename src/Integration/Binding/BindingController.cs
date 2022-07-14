@@ -20,11 +20,10 @@
 
 using System;
 using System.Diagnostics;
-using System.IO.Abstractions;
 using System.Linq;
 using Microsoft.VisualStudio.OLE.Interop;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Exclusions;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
@@ -173,7 +172,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var unboundProjectFinder = new UnboundProjectFinder(host, host.Logger);
 
             var cSharpVBBindingConfigProvider = new CSharpVBBindingConfigProvider(host.SonarQubeService, nugetBindingOp, host.Logger);
-            var cppConfigProvider = new CFamilyBindingConfigProvider(host.SonarQubeService, host.Logger);
+            var cppConfigProvider = new NonRoslynBindingConfigProvider(new []{Language.C, Language.Cpp}, host.SonarQubeService, host.Logger);
            
             var ruleConfigProvider = new CompositeBindingConfigProvider(cSharpVBBindingConfigProvider, cppConfigProvider);
 
