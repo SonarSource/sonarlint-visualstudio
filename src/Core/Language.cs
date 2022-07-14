@@ -83,18 +83,7 @@ namespace SonarLint.VisualStudio.Core
         /// <summary>
         /// Returns whether or not this language is a supported project language.
         /// </summary>
-        public bool IsSupported => SupportedLanguages.Contains(this);
-
-        /// <summary>
-        /// All languages which are supported for project binding.
-        /// </summary>
-        public static IEnumerable<Language> SupportedLanguages
-        {
-            get
-            {
-                return new[] { CSharp, VBNET, Cpp, C };
-            }
-        }
+        public bool IsSupported => KnownLanguages.Contains(this);
 
         /// <summary>
         /// All known languages.
@@ -103,7 +92,7 @@ namespace SonarLint.VisualStudio.Core
         {
             get
             {
-                return new[] { CSharp, VBNET, Cpp, C };
+                return new[] { CSharp, VBNET, Cpp, C, Js, Ts };
             }
         }
 

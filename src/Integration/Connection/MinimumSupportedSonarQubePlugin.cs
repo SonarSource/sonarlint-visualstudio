@@ -35,7 +35,10 @@ namespace SonarLint.VisualStudio.Integration.Connection
         // i.e. the analysis rules implementations should be similar so the issues shown in the IDE should be
         // similar to those reported on the server.
         public static readonly MinimumSupportedSonarQubePlugin CFamily = new MinimumSupportedSonarQubePlugin(SonarPluginKeys.SonarCFamily, "SonarCFamily", "6.0", Language.Cpp, Language.C);
-        public static readonly IEnumerable<MinimumSupportedSonarQubePlugin> All = new[] { CSharp, VbNet, CFamily };
+
+        public static readonly MinimumSupportedSonarQubePlugin JsTs = new MinimumSupportedSonarQubePlugin(SonarPluginKeys.SonarJs, "SonarJS", "8.6", Language.Js, Language.Ts);
+
+        public static readonly IEnumerable<MinimumSupportedSonarQubePlugin> All = new[] { CSharp, VbNet, CFamily, JsTs };
 
         private MinimumSupportedSonarQubePlugin(string key, string pluginName, string minimumVersion, params Language[] languages)
         {
