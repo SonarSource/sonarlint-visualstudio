@@ -27,21 +27,30 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
+namespace SonarLint.VisualStudio.Core.UnitTests.Binding
 {
     [TestClass]
-    public class CFamilyBindingConfigProviderTests
+    public class NonRoslynBindingConfigProviderTests
     {
+        private static readonly Language[] SupportedLanguages = { Language.C, Language.Cpp };
+
+        [TestMethod]
+        public void Ctor_NullSupportedLanguages_ArgumentNullException()
+        {
+            Action act = () => new NonRoslynBindingConfigProvider(null, Mock.Of<ISonarQubeService>(), Mock.Of<ILogger>());
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("supportedLanguages");
+        }
+
         [TestMethod]
         public void Ctor_NullService_ArgumentNullException()
         {
-            Action act = () => new CFamilyBindingConfigProvider(null, Mock.Of<ILogger>());
+            Action act = () => new NonRoslynBindingConfigProvider(SupportedLanguages, null, Mock.Of<ILogger>());
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
         }
@@ -49,7 +58,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         [TestMethod]
         public void Ctor_NullLogger_ArgumentNullException()
         {
-            Action act = () => new CFamilyBindingConfigProvider(Mock.Of<ISonarQubeService>(), null);
+            Action act = () => new NonRoslynBindingConfigProvider(SupportedLanguages, Mock.Of<ISonarQubeService>(), null);
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
@@ -63,7 +72,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         [DataRow(SonarQubeIssueSeverity.Unknown, null)]
         public void SeverityEnumConversion_NotUnknown(SonarQubeIssueSeverity sqSeverity, IssueSeverity? expected)
         {
-            CFamilyBindingConfigProvider.Convert(sqSeverity).Should().Be(expected);
+            NonRoslynBindingConfigProvider.Convert(sqSeverity).Should().Be(expected);
         }
 
         [TestMethod]
@@ -85,7 +94,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             };
 
             // Act
-            var settings = CFamilyBindingConfigProvider.CreateRulesSettingsFromQPRules(qpRules);
+            var settings = NonRoslynBindingConfigProvider.CreateRulesSettingsFromQPRules(qpRules);
 
             // Assert
             settings.Rules.Count.Should().Be(3);
@@ -133,16 +142,16 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
 
             var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject { ProjectKey = "test" }, SonarLintMode.Connected, "c:\\");
 
-            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, testLogger);
+            var testSubject = CreateTestSubject(serviceMock, testLogger);
 
             // Act
             var result = await testSubject.GetConfigurationAsync(CreateQp(), Language.Cpp, bindingConfiguration, CancellationToken.None);
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<CFamilyBindingConfig>();
+            result.Should().BeOfType<NonRoslynBindingConfigFile>();
 
-            var cfamilyConfigFile = (CFamilyBindingConfig)result;
+            var cfamilyConfigFile = (NonRoslynBindingConfigFile)result;
             cfamilyConfigFile.RuleSettings.Should().NotBeNull();
 
             var slvsRules = cfamilyConfigFile.RuleSettings.Rules;
@@ -178,18 +187,18 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             serviceMock.Setup(x => x.GetRulesAsync(It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new List<SonarQubeRule>());
 
-            var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject {ProjectKey = "test"}, SonarLintMode.Connected, "c:\\");
+            var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject { ProjectKey = "test" }, SonarLintMode.Connected, "c:\\");
 
-            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, testLogger);
+            var testSubject = CreateTestSubject(serviceMock, testLogger);
 
             // Act
             var result = await testSubject.GetConfigurationAsync(CreateQp(), Language.Cpp, bindingConfiguration, CancellationToken.None);
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<CFamilyBindingConfig>();
+            result.Should().BeOfType<NonRoslynBindingConfigFile>();
 
-            var cfamilyConfigFile = (CFamilyBindingConfig)result;
+            var cfamilyConfigFile = (NonRoslynBindingConfigFile)result;
             cfamilyConfigFile.RuleSettings.Should().NotBeNull();
             cfamilyConfigFile.RuleSettings.Rules.Should().NotBeNull();
             cfamilyConfigFile.RuleSettings.Rules.Count.Should().Be(0);
@@ -207,7 +216,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             serviceMock.Setup(x => x.GetRulesAsync(It.IsAny<bool>(), It.IsAny<string>(), CancellationToken.None))
                 .ThrowsAsync(new InvalidOperationException("invalid op"));
 
-            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, testLogger);
+            var testSubject = CreateTestSubject(serviceMock, testLogger);
 
             // Act
             var result = await testSubject.GetConfigurationAsync(CreateQp(), Language.Cpp, BindingConfiguration.Standalone, CancellationToken.None);
@@ -231,9 +240,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
                     {
                         cts.Cancel();
                         return new List<SonarQubeRule>();
-                    }) ;
+                    });
 
-            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, testLogger);
+            var testSubject = CreateTestSubject(serviceMock, testLogger);
 
             // Act
             var result = await testSubject.GetConfigurationAsync(CreateQp(), Language.Cpp, BindingConfiguration.Standalone, cts.Token);
@@ -252,7 +261,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             CancellationTokenSource cts = new CancellationTokenSource();
             var serviceMock = new Mock<ISonarQubeService>();
 
-            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, testLogger);
+            var testSubject = CreateTestSubject(serviceMock, testLogger);
 
             // Act
             Action act = () => testSubject.GetConfigurationAsync(CreateQp(), Language.VBNET, BindingConfiguration.Standalone, cts.Token).Wait();
@@ -267,7 +276,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             // Arrange
             var testLogger = new TestLogger();
             var serviceMock = new Mock<ISonarQubeService>();
-            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, testLogger);
+            var testSubject = CreateTestSubject(serviceMock, testLogger);
 
             // 1. Supported languages
             testSubject.IsLanguageSupported(Language.C).Should().BeTrue();
@@ -283,5 +292,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         private static SonarQubeRule CreateRule(string ruleKey, string repoKey, bool isActive,
             SonarQubeIssueSeverity severity, IDictionary<string, string> parameters = null) =>
             new SonarQubeRule(ruleKey, repoKey, isActive, severity, parameters, SonarQubeIssueType.Unknown);
+
+        private static NonRoslynBindingConfigProvider CreateTestSubject(Mock<ISonarQubeService> serviceMock, TestLogger testLogger)
+        {
+            return new NonRoslynBindingConfigProvider(SupportedLanguages, serviceMock.Object, testLogger);
+        }
     }
 }

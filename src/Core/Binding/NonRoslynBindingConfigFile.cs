@@ -22,20 +22,19 @@ using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Core.Binding;
 
-namespace SonarLint.VisualStudio.Core.CFamily
+namespace SonarLint.VisualStudio.Core.Binding
 {
-    public class CFamilyBindingConfig : IBindingConfig
+    public class NonRoslynBindingConfigFile : IBindingConfig
     {
         private readonly IFileSystem fileSystem;
 
-        public CFamilyBindingConfig(RulesSettings ruleSettings, string filePath)
-            : this (ruleSettings, filePath, new FileSystem())
+        public NonRoslynBindingConfigFile(RulesSettings ruleSettings, string filePath)
+            : this(ruleSettings, filePath, new FileSystem())
         {
         }
 
-        public CFamilyBindingConfig(RulesSettings rulesSettings, string filePath, IFileSystem fileSystem)
+        public NonRoslynBindingConfigFile(RulesSettings rulesSettings, string filePath, IFileSystem fileSystem)
         {
             RuleSettings = rulesSettings ?? throw new ArgumentNullException(nameof(rulesSettings));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
