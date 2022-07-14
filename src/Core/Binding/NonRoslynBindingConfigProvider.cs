@@ -23,30 +23,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Core.CFamily
+namespace SonarLint.VisualStudio.Core.Binding
 {
-    public class CFamilyBindingConfigProvider : IBindingConfigProvider
+    public class NonRoslynBindingConfigProvider : IBindingConfigProvider
     {
+        private readonly IEnumerable<Language> supportedLanguages;
         private readonly ISonarQubeService sonarQubeService;
         private readonly ILogger logger;
 
-        public CFamilyBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger)
+        public NonRoslynBindingConfigProvider(IEnumerable<Language> supportedLanguages, ISonarQubeService sonarQubeService, ILogger logger)
         {
+            this.supportedLanguages = supportedLanguages ?? throw new ArgumentNullException(nameof(supportedLanguages));
             this.sonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         #region IBindingConfigProvider implementation
 
-        public bool IsLanguageSupported(Language language)
-        {
-            return Language.Cpp.Equals(language) || Language.C.Equals(language);
-        }
+        public bool IsLanguageSupported(Language language) => supportedLanguages.Contains(language);
 
         public async Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, BindingConfiguration bindingConfiguration, CancellationToken cancellationToken)
         {
@@ -68,7 +66,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
             var settings = CreateRulesSettingsFromQPRules(result);
             var settingsFilePath = bindingConfiguration.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
 
-            var configFile = new CFamilyBindingConfig(settings, settingsFilePath);
+            var configFile = new NonRoslynBindingConfigFile(settings, settingsFilePath);
 
             return configFile;
         }
@@ -110,7 +108,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
 
         internal /* for testing */ static IssueSeverity? Convert(SonarQubeIssueSeverity sonarQubeIssueSeverity)
         {
-            switch(sonarQubeIssueSeverity)
+            switch (sonarQubeIssueSeverity)
             {
                 case SonarQubeIssueSeverity.Blocker:
                     return IssueSeverity.Blocker;
