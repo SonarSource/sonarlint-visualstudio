@@ -24,6 +24,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using EnvDTE;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Core.JsTs;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration
@@ -47,34 +48,25 @@ namespace SonarLint.VisualStudio.Integration
     public class ProjectToLanguageMapper : IProjectToLanguageMapper
     {
         private readonly ICMakeProjectTypeIndicator cmakeProjectTypeIndicator;
+        private readonly IJsTsProjectTypeIndicator jsTsProjectTypeIndicator;
 
         internal static readonly IDictionary<Guid, Language> KnownProjectTypes = new Dictionary<Guid, Language>()
         {
-            { new Guid(ProjectSystemHelper.CSharpProjectKind), Language.CSharp },
-            { new Guid(ProjectSystemHelper.VbProjectKind), Language.VBNET },
-            { new Guid(ProjectSystemHelper.CSharpCoreProjectKind),  Language.CSharp },
-            { new Guid(ProjectSystemHelper.VbCoreProjectKind), Language.VBNET },
-            { new Guid(ProjectSystemHelper.CppProjectKind), Language.Cpp }
+            {new Guid(ProjectSystemHelper.CSharpProjectKind), Language.CSharp},
+            {new Guid(ProjectSystemHelper.VbProjectKind), Language.VBNET},
+            {new Guid(ProjectSystemHelper.CSharpCoreProjectKind), Language.CSharp},
+            {new Guid(ProjectSystemHelper.VbCoreProjectKind), Language.VBNET}
         };
 
         [ImportingConstructor]
-        public ProjectToLanguageMapper(ICMakeProjectTypeIndicator cmakeProjectTypeIndicator)
+        public ProjectToLanguageMapper(ICMakeProjectTypeIndicator cmakeProjectTypeIndicator,
+            IJsTsProjectTypeIndicator jsTsProjectTypeIndicator)
         {
             this.cmakeProjectTypeIndicator = cmakeProjectTypeIndicator;
+            this.jsTsProjectTypeIndicator = jsTsProjectTypeIndicator;
         }
 
-        /// <summary>
-        /// Returns the supported Sonar language for the specified project or Unknown
-        /// if no languages are supported
-        /// </summary>
-        /// <returns>
-        /// Previously the code assumed a one-to-one mapping between project types and languages.
-        /// The worked when the only supported languages were C# and VB. It doesn't work now that
-        /// connected mode is supported for C++ projects (which can have both C++ and C files).
-        /// New code should call <see cref="GetAllBindingLanguagesForProject(EnvDTE.Project)"/> instead
-        /// and handle the fact that there could be multiple supported languages.
-        /// </returns>
-        private Language GetLanguageForProject(Project dteProject)
+        public IEnumerable<Language> GetAllBindingLanguagesForProject(Project dteProject)
         {
             if (dteProject == null)
             {
@@ -83,32 +75,34 @@ namespace SonarLint.VisualStudio.Integration
 
             if (!Guid.TryParse(dteProject.Kind, out var projectKind))
             {
-                return Language.Unknown;
+                return new[] { Language.Unknown };
             }
+
+            var languages = new List<Language>();
 
             if (KnownProjectTypes.TryGetValue(projectKind, out var language))
             {
-                return language;
+                languages.Add(language);
             }
 
-            if (cmakeProjectTypeIndicator.IsCMake())
+            if (IsCFamilyProject(projectKind))
             {
-                return Language.Cpp;
+                languages.Add(Language.Cpp);
+                languages.Add(Language.C);
             }
 
-            return Language.Unknown;
-        }
-
-        public IEnumerable<Language> GetAllBindingLanguagesForProject(Project dteProject)
-        {
-            var language = GetLanguageForProject(dteProject);
-
-            if (Language.Cpp.Equals(language))
+            if (jsTsProjectTypeIndicator.IsJsTs())
             {
-                return new[] { Language.Cpp, Language.C };
+                languages.Add(Language.Js);
+                languages.Add(Language.Ts);
             }
 
-            return new[] { language };
+            if (languages.Any())
+            {
+                return languages;
+            }
+
+            return new[] { Language.Unknown };
         }
 
         public bool HasSupportedLanguage(Project project)
@@ -116,6 +110,11 @@ namespace SonarLint.VisualStudio.Integration
             var languages = GetAllBindingLanguagesForProject(project);
 
             return languages.Any(x => x.IsSupported);
+        }
+
+        private bool IsCFamilyProject(Guid projectKind)
+        {
+            return projectKind == new Guid(ProjectSystemHelper.CppProjectKind) || cmakeProjectTypeIndicator.IsCMake();
         }
     }
 }
