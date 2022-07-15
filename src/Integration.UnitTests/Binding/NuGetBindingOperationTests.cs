@@ -30,6 +30,7 @@ using NuGet;
 using NuGet.VisualStudio;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.CSharpVB;
+using SonarLint.VisualStudio.Core.JsTs;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -268,7 +269,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var packageInstaller = new ConfigurablePackageInstaller(nugetPackagesByLanguage.Values.SelectMany(x => x));
 
-            var projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>());
+            var projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), Mock.Of<IJsTsProjectTypeIndicator>());
 
             this.serviceProvider.RegisterService(typeof(SComponentModel),
                 ConfigurableComponentModel.CreateWithExports(

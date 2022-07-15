@@ -18,25 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Connection;
-
-namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
+namespace SonarLint.VisualStudio.Core.JsTs
 {
-    [TestClass]
-    public class MinimumSupportedSonarQubePluginTests
+    public interface IJsTsProjectTypeIndicator
     {
-        [TestMethod]
-        public void AllSupportedLanguages()
-        {
-            MinimumSupportedSonarQubePlugin.All.Should().Contain(MinimumSupportedSonarQubePlugin.VbNet);
-            MinimumSupportedSonarQubePlugin.All.Should().Contain(MinimumSupportedSonarQubePlugin.CSharp);
-            MinimumSupportedSonarQubePlugin.All.Should().Contain(MinimumSupportedSonarQubePlugin.CFamily);
-            MinimumSupportedSonarQubePlugin.All.Should().Contain(MinimumSupportedSonarQubePlugin.JsTs);
-
-            MinimumSupportedSonarQubePlugin.All.Count().Should().Be(4);
-        }
+        /// <summary>
+        /// Returns true if the currently open solution has a JS/TS file.
+        /// Returns false if the solution has no JS/TS files, or if there is no open solution.
+        /// </summary>
+        bool IsJsTs();
     }
 }
