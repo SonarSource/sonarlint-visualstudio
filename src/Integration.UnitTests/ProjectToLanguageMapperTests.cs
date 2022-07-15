@@ -23,6 +23,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Core.JsTs;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -35,7 +36,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             MefTestHelpers.CheckTypeCanBeImported<ProjectToLanguageMapper, IProjectToLanguageMapper>(null, new[]
             {
-                MefTestHelpers.CreateExport<ICMakeProjectTypeIndicator>(Mock.Of<ICMakeProjectTypeIndicator>())
+                MefTestHelpers.CreateExport<ICMakeProjectTypeIndicator>(Mock.Of<ICMakeProjectTypeIndicator>()),
+                MefTestHelpers.CreateExport<IJsTsProjectTypeIndicator>(Mock.Of<IJsTsProjectTypeIndicator>())
             });
         }
 
@@ -98,6 +100,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var actualLanguage = testSubject.GetAllBindingLanguagesForProject(project);
 
             actualLanguage.Should().BeEquivalentTo(Language.Cpp, Language.C);
+        }
+
+        [TestMethod]
+        public void GetAllBindingLanguagesForProject_JsTsProject_JsTsLanguages()
+        {
+            var jsTsProjectTypeIndicator = SetupJsTsProject(true);
+
+            var project = new ProjectMock("any.xxx") { ProjectKind = Guid.NewGuid().ToString() };
+
+            var testSubject = CreateTestSubject(jsTsProjectTypeIndicator: jsTsProjectTypeIndicator.Object);
+
+            var actualLanguage = testSubject.GetAllBindingLanguagesForProject(project);
+
+            actualLanguage.Should().BeEquivalentTo(Language.Js, Language.Ts);
+        }
+
+        [TestMethod]
+        public void GetAllBindingLanguagesForProject_CSharpAndJsTsProject_JsTsLanguages()
+        {
+            var jsTsProjectTypeIndicator = SetupJsTsProject(true);
+
+            var project = new ProjectMock("any.xxx") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
+
+            var testSubject = CreateTestSubject(jsTsProjectTypeIndicator: jsTsProjectTypeIndicator.Object);
+
+            var actualLanguage = testSubject.GetAllBindingLanguagesForProject(project);
+
+            actualLanguage.Should().BeEquivalentTo(Language.Js, Language.Ts, Language.CSharp);
         }
 
         [TestMethod]
@@ -192,11 +222,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actualLanguage.Should().BeEquivalentTo(expectedLanguages);
         }
 
-        private static IProjectToLanguageMapper CreateTestSubject(ICMakeProjectTypeIndicator cmakeProjectTypeIndicator = null)
+        private static IProjectToLanguageMapper CreateTestSubject(ICMakeProjectTypeIndicator cmakeProjectTypeIndicator = null, IJsTsProjectTypeIndicator jsTsProjectTypeIndicator = null)
         {
             cmakeProjectTypeIndicator ??= Mock.Of<ICMakeProjectTypeIndicator>();
+            jsTsProjectTypeIndicator ??= Mock.Of<IJsTsProjectTypeIndicator>();
 
-            return new ProjectToLanguageMapper(cmakeProjectTypeIndicator);
+            return new ProjectToLanguageMapper(cmakeProjectTypeIndicator, jsTsProjectTypeIndicator);
         }
 
         private static Mock<ICMakeProjectTypeIndicator> SetupCMakeProject(bool isCMake)
@@ -208,6 +239,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Returns(isCMake);
 
             return cmakeProjectTypeIndicator;
+        }
+
+        private static Mock<IJsTsProjectTypeIndicator> SetupJsTsProject(bool isJsTs)
+        {
+            var jsTsProjectTypeIndicator = new Mock<IJsTsProjectTypeIndicator>();
+
+            jsTsProjectTypeIndicator
+                .Setup(x => x.IsJsTs())
+                .Returns(isJsTs);
+
+            return jsTsProjectTypeIndicator;
         }
     }
 }

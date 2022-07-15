@@ -57,6 +57,7 @@ namespace SonarLint.VisualStudio.Core
         public const string SonarCSharp = "csharp";
         public const string SonarVBNet = "vbnet";
         public const string SonarCFamily = "cpp";
+        public const string SonarJs = "javascript";
     }
 
     public static class SonarRuleRepoKeys

@@ -18,25 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Connection;
+using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core.JsTs;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
+namespace SonarLint.VisualStudio.TypeScript
 {
-    [TestClass]
-    public class MinimumSupportedSonarQubePluginTests
+    [Export(typeof(IJsTsProjectTypeIndicator))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class JsTsProjectTypeIndicator : IJsTsProjectTypeIndicator
     {
-        [TestMethod]
-        public void AllSupportedLanguages()
+        public bool IsJsTs()
         {
-            MinimumSupportedSonarQubePlugin.All.Should().Contain(MinimumSupportedSonarQubePlugin.VbNet);
-            MinimumSupportedSonarQubePlugin.All.Should().Contain(MinimumSupportedSonarQubePlugin.CSharp);
-            MinimumSupportedSonarQubePlugin.All.Should().Contain(MinimumSupportedSonarQubePlugin.CFamily);
-            MinimumSupportedSonarQubePlugin.All.Should().Contain(MinimumSupportedSonarQubePlugin.JsTs);
-
-            MinimumSupportedSonarQubePlugin.All.Count().Should().Be(4);
+            return false;
         }
     }
 }
