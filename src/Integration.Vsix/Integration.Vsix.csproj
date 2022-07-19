@@ -2,7 +2,7 @@
 
   <Import Project="..\SonarLint.Product.props" />
   <Import Project="..\SonarLint.VsPkgRefs.props" />
-  
+
   <!-- The VSSDK targets need to be imported after the Net.Sdk targets which means we  have to import the
        .NET.Sdk targets using Import rather than specifying it as the Sdk in the Project element. -->
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
@@ -134,7 +134,7 @@
     </PackageReference>
   </ItemGroup>
 
-    
+
   <ItemGroup>
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
@@ -364,19 +364,22 @@
     <!-- Hook the target that fetches the CFamily files into to the build process. 
          This needs to be set after the SDK targets have been imported.
     -->
-    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);GetCFamilyFiles</PrepareForBuildDependsOn>
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);GetCFamilyFiles</CoreCompileDependsOn>
   </PropertyGroup>
+
+  <ItemGroup>
+      <!-- The exe is a build-time utility i.e. we need to reference it so it is built when we need it,
+           but we don't want to include it in the VSIX.
+      -->
+    <ProjectReference Include="..\..\build\CFamilyJarPreProcessor\CFamilyJarPreProcessor.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
 
   <Target Name="GetCFamilyFiles">
     <Message Importance="high" Text="Fetching the CFamily files..." />
 
-    <!-- Note: building the helper project explicitly using MSBuild rather than referencing it via a ProjectReference.
-         This makes is easier for us to control when the build is performed, so we can trigger it early enough
-         to include the downloaded files as normal Content files in this project.
-         Also, we are using the "Exec" task to invoke MSBuild.exe rather the "MSBuild" task when building
-         DownloadSonarPlugin.csproj to avoid getting file-locking errors when rebuilding.
-    -->
-    <Exec Command="&quot;$(MSBuildBinPath)\msbuild.exe&quot; ..\..\build\DownloadSonarPlugin\DownloadSonarPlugin.csproj /p:PluginUrl=$(PluginUrl) /p:TargetDirectory=&quot;$(CFamilyTargetDirectory)&quot; /p:UseSharedCompilation=false /t:Restore;Build;EmbedCFamilyFiles /p:VsTargetVersion=$(VsTargetVersion) /nr:false /p:BuildInParallel=false" LogStandardErrorAsError="true" IgnoreExitCode="false" />
+    <Exec Command="&quot;..\..\build\CFamilyJarPreProcessor\bin\$(Configuration)\net472\CFamilyJarPreProcessor.exe&quot; $(PluginUrl) &quot;$(CFamilyTargetDirectory)&quot;" IgnoreExitCode="false" />
 
     <!-- Copy the license file to the same directory -->
     <Copy SourceFiles=".\CFamily\LICENSE.txt" DestinationFolder="$(CFamilyTargetDirectory)" SkipUnchangedFiles="true" />
@@ -397,7 +400,7 @@
     </ItemGroup>
   </Target>
 
-  
+
   <!-- *************************************************************************** -->
   <!-- Sonar Secrets -->
   <!-- *************************************************************************** -->
@@ -408,9 +411,9 @@
     <ItemGroup>
       <SonarSecretsFilesToAdd Include="$(OutDir)SonarLint.Secrets.*.dll" />
     </ItemGroup>
-    
+
     <Message Importance="high" Text="Adding the SonarSecrets files to the VSIX:@(SonarSecretsFilesToAdd)" />
-    
+
     <ItemGroup>
       <VSIXSourceItem Include="@(SonarSecretsFilesToAdd)">
         <VSIXSubPath>secrets</VSIXSubPath>
