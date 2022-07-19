@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
         /// <summary>
         /// Returns a rules provider containing rules for the specified language repository
         /// </summary>
-        IRulesProvider Create(string repoKey);
+        IRulesProvider Create(string repoKey, Language language);
     }
 
     [Export(typeof(IRulesProviderFactory))]
@@ -46,17 +46,17 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
         internal const string RuleDefinitionsFilePathContractName = "SonarLint.TypeScript.RuleDefinitionsFilePath";
 
         private readonly string ruleMetadataFilePath;
-        private readonly IUserSettingsProvider userSettingsProvider;
+        private readonly IRuleSettingsProviderFactory ruleSettingsProviderFactory;
 
         [ImportingConstructor]
         public RulesProviderFactory([Import(RuleDefinitionsFilePathContractName)] string ruleMetadataFilePath,
-            IUserSettingsProvider userSettingsProvider)
+            IRuleSettingsProviderFactory ruleSettingsProviderFactory)
         {
             this.ruleMetadataFilePath = ruleMetadataFilePath;
-            this.userSettingsProvider = userSettingsProvider;
+            this.ruleSettingsProviderFactory = ruleSettingsProviderFactory;
         }
 
-        public IRulesProvider Create(string repoKey)
+        public IRulesProvider Create(string repoKey, Language language)
         {
             if (string.IsNullOrEmpty(repoKey))
             {
@@ -67,7 +67,10 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
 
             var allRules = Load(ruleMetadataFilePath);
             var filteredRules = FilterByRepo(repoKey + ":", allRules);
-            return new RulesProvider(filteredRules, new ActiveRulesCalculator(filteredRules, userSettingsProvider));
+
+            var ruleSettingsProvider = ruleSettingsProviderFactory.Get(language);
+
+            return new RulesProvider(filteredRules, new ActiveRulesCalculator(filteredRules, ruleSettingsProvider));
         }
 
         private static List<RuleDefinition> Load(string filePath) =>
