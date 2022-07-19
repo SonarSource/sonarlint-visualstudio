@@ -25,11 +25,17 @@ using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Core
 {
+    public interface IRulesSettingsSerializer
+    {
+        RulesSettings SafeLoad(string filePath);
+        void SafeSave(string filePath, RulesSettings data);
+    }
+
     /// <summary>
     /// Loads and saves rules settings to disc.
     /// Logs user-friendly messages and suppresses non-critical exceptions.
     /// </summary>
-    public class RulesSettingsSerializer
+    public class RulesSettingsSerializer : IRulesSettingsSerializer
     {
         private readonly IFileSystem fileSystem;
         private readonly ILogger logger;

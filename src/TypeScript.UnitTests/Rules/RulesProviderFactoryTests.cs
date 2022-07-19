@@ -33,7 +33,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
     [TestClass]
     public class RulesProviderFactoryTests
     {
-        private static readonly IUserSettingsProvider ValidUserSettingsProvider = Mock.Of<IUserSettingsProvider>();
+        private static readonly Language ValidLanguage = Language.C;
+        private static readonly IRuleSettingsProviderFactory ValidRuleSettingsProviderFactory = Mock.Of<IRuleSettingsProviderFactory>();
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
@@ -43,7 +44,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             MefTestHelpers.CheckTypeCanBeImported<RulesProviderFactory, IRulesProviderFactory>(null, new[]
             {
                 MefTestHelpers.CreateExport<string>(jsonFilePath, RulesProviderFactory.RuleDefinitionsFilePathContractName),
-                MefTestHelpers.CreateExport<IUserSettingsProvider>(Mock.Of<IUserSettingsProvider>())
+                MefTestHelpers.CreateExport<IRuleSettingsProviderFactory>(Mock.Of<IRuleSettingsProviderFactory>())
             });
         }
 
@@ -54,9 +55,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         {
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_Valid.json");
 
-            var testSubject = new RulesProviderFactory(jsonFilePath, ValidUserSettingsProvider);
+            var testSubject = new RulesProviderFactory(jsonFilePath, ValidRuleSettingsProviderFactory);
 
-            Action act = () => testSubject.Create(prefix);
+            Action act = () => testSubject.Create(prefix, ValidLanguage);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("repoKey");
         }
@@ -66,22 +67,22 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         {
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_CheckLanguageFiltering.json");
 
-            var testSubject = new RulesProviderFactory(jsonFilePath, ValidUserSettingsProvider);
+            var testSubject = new RulesProviderFactory(jsonFilePath, ValidRuleSettingsProviderFactory);
 
             // 1. TypeScript
-            var tsRuleKeys = testSubject.Create("typescript").GetDefinitions()
+            var tsRuleKeys = testSubject.Create("typescript", ValidLanguage).GetDefinitions()
                 .Select(x => x.RuleKey);
 
             tsRuleKeys.Should().BeEquivalentTo("typescript:S2092", "typescript:S3524", "TypeSCRIPT:S1135");
 
             // 2. JavaScript
-            var jsRuleKeys = testSubject.Create("javascript").GetDefinitions()
+            var jsRuleKeys = testSubject.Create("javascript", ValidLanguage).GetDefinitions()
                 .Select(x => x.RuleKey);
 
             jsRuleKeys.Should().BeEquivalentTo("javascript:S1135", "JAVASCRIPT:xyz");
 
             // 3. Unrecognized language
-            var result = testSubject.Create("unknown");
+            var result = testSubject.Create("unknown", ValidLanguage);
             result.GetDefinitions().Should().BeEmpty();
         }
 
@@ -90,9 +91,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         {
             // Checking the detailed definition properties for a single language
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_CheckDetailedProperties.json");
-            var testSubject = new RulesProviderFactory(jsonFilePath, ValidUserSettingsProvider);
+            var testSubject = new RulesProviderFactory(jsonFilePath, ValidRuleSettingsProviderFactory);
 
-            var result = testSubject.Create("typescript")
+            var result = testSubject.Create("typescript", ValidLanguage)
                 .GetDefinitions().ToArray();
 
             result.Should().HaveCount(2);
@@ -130,9 +131,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             // so this test just does a quick sanity check that the expected number of
             // configs are being fetched.
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_CheckDefaultParams.json");
-            var testSubject = new RulesProviderFactory(jsonFilePath, ValidUserSettingsProvider );
+            var testSubject = new RulesProviderFactory(jsonFilePath, ValidRuleSettingsProviderFactory);
 
-            var result = testSubject.Create("javascript")
+            var result = testSubject.Create("javascript", ValidLanguage)
                 .GetDefinitions().ToArray();
 
             result.Should().HaveCount(4);
@@ -149,12 +150,15 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             // Sanity check that factory returns a provider that returns the active config
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_CheckActiveRulesConfig.json");
 
-            var settingsProvider = new Mock<IUserSettingsProvider>();
-            settingsProvider.Setup(x => x.UserSettings).Returns(new UserSettings(new RulesSettings()));
+            var ruleSettingsProvider = new Mock<IRuleSettingsProvider>();
+            ruleSettingsProvider.Setup(x => x.Get()).Returns(new RulesSettings());
 
-            var testSubject = new RulesProviderFactory(jsonFilePath, settingsProvider.Object);
+            var ruleSettingsProviderFactory = new Mock<IRuleSettingsProviderFactory>();
+            ruleSettingsProviderFactory.Setup(x => x.Get(ValidLanguage)).Returns(ruleSettingsProvider.Object);
 
-            var result = testSubject.Create("typescript")
+            var testSubject = new RulesProviderFactory(jsonFilePath, ruleSettingsProviderFactory.Object);
+
+            var result = testSubject.Create("typescript", ValidLanguage)
                 .GetActiveRulesConfiguration().ToArray();
 
             result.Should().HaveCount(2);
