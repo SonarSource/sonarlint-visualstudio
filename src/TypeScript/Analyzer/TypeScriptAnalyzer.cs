@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             this.telemetryManager = telemetryManager;
             this.logger = logger;
 
-            var rulesProvider = rulesProviderFactory.Create("typescript");
+            var rulesProvider = rulesProviderFactory.Create("typescript", Language.Ts);
             eslintBridgeAnalyzer = eslintBridgeAnalyzerFactory.Create(rulesProvider, eslintBridgeClient);
         }
 

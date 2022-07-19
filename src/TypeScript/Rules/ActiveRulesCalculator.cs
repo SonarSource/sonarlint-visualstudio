@@ -39,41 +39,41 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
     internal class ActiveRulesCalculator : IActiveRulesCalculator
     {
         private readonly IEnumerable<RuleDefinition> ruleDefinitions;
-        private readonly IUserSettingsProvider userSettingsProvider;
+        private readonly IRuleSettingsProvider ruleSettingsProvider;
 
         /// <summary>
         /// Ctor
         /// </summary>
         /// <param name="rulesDefinitions">The set of applicable rule definitions</param>
-        /// <param name="userSettingsProvider">Rule configurations specified by the user</param>
+        /// <param name="ruleSettingsProvider">Rule configurations specified in connected mode or by the user</param>
         public ActiveRulesCalculator(IEnumerable<RuleDefinition> rulesDefinitions,
-            IUserSettingsProvider userSettingsProvider)
+            IRuleSettingsProvider ruleSettingsProvider)
         {
+            this.ruleSettingsProvider = ruleSettingsProvider;
             this.ruleDefinitions = rulesDefinitions?.ToArray() ?? Array.Empty<RuleDefinition>();
-            this.userSettingsProvider = userSettingsProvider;
         }
 
         public IEnumerable<Rule> Calculate()
         {
-            // TODO: handle QP configuration in connected mode #770
+            var settings = ruleSettingsProvider.Get();
+
             return ruleDefinitions
-                .Where(IncludeRule)
+                .Where(x=> IncludeRule(settings, x))
                 .Select(Convert)
                 .ToArray();
         }
 
-        private bool IncludeRule(RuleDefinition ruleDefinition)
+        private bool IncludeRule(RulesSettings settings, RuleDefinition ruleDefinition)
         {
             return ruleDefinition.Type != RuleType.SECURITY_HOTSPOT &&
                 ruleDefinition.EslintKey != null && // should only apply to S2260
-                IsRuleActive(ruleDefinition);
+                IsRuleActive(settings, ruleDefinition);
         }
 
-        private bool IsRuleActive(RuleDefinition ruleDefinition)
+        private bool IsRuleActive(RulesSettings settings, RuleDefinition ruleDefinition)
         {
-            // User settings override the default, if present
-            if (userSettingsProvider.UserSettings.RulesSettings.Rules
-                .TryGetValue(ruleDefinition.RuleKey, out var ruleConfig))
+            // Settings override the default, if present
+            if (settings.Rules.TryGetValue(ruleDefinition.RuleKey, out var ruleConfig))
             {
                 return ruleConfig.Level == RuleLevel.On;
             }

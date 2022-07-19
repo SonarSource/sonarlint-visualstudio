@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             this.telemetryManager = telemetryManager;
             this.analysisStatusNotifier = analysisStatusNotifier;
 
-            var rulesProvider = rulesProviderFactory.Create("javascript");
+            var rulesProvider = rulesProviderFactory.Create("javascript", Language.Js);
             eslintBridgeAnalyzer = eslintBridgeAnalyzerFactory.Create(rulesProvider, eslintBridgeClient);
         }
 

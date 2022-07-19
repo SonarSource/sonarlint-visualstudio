@@ -167,4 +167,12 @@
   <data name="CredentialStore_Win32Error" xml:space="preserve">
     <value>Failed to {0} credentials, Win32ErrorCode: {1}. See https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes for more information.</value>
   </data>
+  <data name="UnableToLoadConnectedModeSettings" xml:space="preserve">
+    <value>[RuleSettings] Unable to load/locate connected mode settings. Falling back on standalone mode settings.</value>
+    <comment>Output window message if in connected mode but couldn't find or load the connected mode settings file</comment>
+  </data>
+  <data name="UsingConnectedModeSettings" xml:space="preserve">
+    <value>[RuleSettings] Using connected mode settings. User-specified settings in settings.json will be ignored.</value>
+    <comment>Output window message</comment>
+  </data>
 </root>
