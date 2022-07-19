@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Core
 
             if (binding != null && binding.Mode != SonarLintMode.Standalone)
             {
-                settings = FindConnectedModeSettings(language, binding);
+                settings = FindConnectedModeSettings(binding);
                 if (settings == null)
                 {
                     logger.WriteLine(CoreStrings.UnableToLoadConnectedModeSettings);
@@ -89,13 +89,8 @@ namespace SonarLint.VisualStudio.Core
             return settings;
         }
 
-        private RulesSettings FindConnectedModeSettings(Language language, BindingConfiguration binding)
+        private RulesSettings FindConnectedModeSettings(BindingConfiguration binding)
         {
-            if (language == null)
-            {
-                return null;
-            }
-
             var filePath = binding.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
             var settings = serializer.SafeLoad(filePath);
 
