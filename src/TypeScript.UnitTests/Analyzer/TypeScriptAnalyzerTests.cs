@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration;
@@ -48,7 +49,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var rulesProvider = Mock.Of<IRulesProvider>();
             var rulesProviderFactory = new Mock<IRulesProviderFactory>();
             rulesProviderFactory
-                .Setup(x => x.Create("typescript"))
+                .Setup(x => x.Create("typescript", Language.Ts))
                 .Returns(rulesProvider);
 
             var eslintBridgeAnalyzer = Mock.Of<IEslintBridgeAnalyzer>();
@@ -285,7 +286,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             telemetryManager ??= Mock.Of<ITelemetryManager>();
 
             var rulesProviderFactory = new Mock<IRulesProviderFactory>();
-            rulesProviderFactory.Setup(x => x.Create("typescript")).Returns(rulesProvider);
+            rulesProviderFactory.Setup(x => x.Create("typescript", Language.Ts)).Returns(rulesProvider);
 
             var eslintBridgeClient = Mock.Of<ITypeScriptEslintBridgeClient>();
             var eslintBridgeAnalyzerFactory = new Mock<IEslintBridgeAnalyzerFactory>();
