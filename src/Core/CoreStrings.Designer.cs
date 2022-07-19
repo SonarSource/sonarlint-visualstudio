@@ -162,11 +162,29 @@ namespace SonarLint.VisualStudio.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [RuleSettings] Unable to load/locate connected mode settings. Falling back on standalone mode settings..
+        /// </summary>
+        public static string UnableToLoadConnectedModeSettings {
+            get {
+                return ResourceManager.GetString("UnableToLoadConnectedModeSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unknown.
         /// </summary>
         public static string UnknownLanguageName {
             get {
                 return ResourceManager.GetString("UnknownLanguageName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [RuleSettings] Using connected mode settings. User-specified settings in settings.json will be ignored..
+        /// </summary>
+        public static string UsingConnectedModeSettings {
+            get {
+                return ResourceManager.GetString("UsingConnectedModeSettings", resourceCulture);
             }
         }
         
