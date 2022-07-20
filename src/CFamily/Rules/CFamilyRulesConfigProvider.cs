@@ -18,12 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.CFamily.Rules
@@ -32,34 +29,25 @@ namespace SonarLint.VisualStudio.CFamily.Rules
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class CFamilyRuleConfigProvider : ICFamilyRulesConfigProvider
     {
-        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private readonly IUserSettingsProvider userSettingsProvider;
         private readonly EffectiveRulesConfigCalculator effectiveConfigCalculator;
-        private readonly ILogger logger;
 
         // Settable in constructor for testing
+        private readonly IRuleSettingsProviderFactory ruleSettingsProviderFactory;
         private readonly ICFamilyRulesConfigProvider sonarWayProvider;
 
-        private readonly RulesSettingsSerializer serializer;
 
         [ImportingConstructor]
-        public CFamilyRuleConfigProvider(IActiveSolutionBoundTracker activeSolutionBoundTracker, IUserSettingsProvider userSettingsProvider, ILogger logger)
-            : this(activeSolutionBoundTracker, userSettingsProvider, logger,
+        public CFamilyRuleConfigProvider(IRuleSettingsProviderFactory ruleSettingsProviderFactory, ILogger logger)
+            : this(ruleSettingsProviderFactory,
                  new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory),
-                 new FileSystem())
+                 logger)
         {
         }
 
-        public CFamilyRuleConfigProvider(IActiveSolutionBoundTracker activeSolutionBoundTracker, IUserSettingsProvider userSettingsProvider,
-            ILogger logger, ICFamilyRulesConfigProvider sonarWayProvider, IFileSystem fileSystem)
+        public CFamilyRuleConfigProvider(IRuleSettingsProviderFactory ruleSettingsProviderFactory, ICFamilyRulesConfigProvider sonarWayProvider, ILogger logger)
         {
-            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
-            this.userSettingsProvider = userSettingsProvider;
-            this.logger = logger;
-
+            this.ruleSettingsProviderFactory = ruleSettingsProviderFactory;
             this.sonarWayProvider = sonarWayProvider;
-            this.serializer = new RulesSettingsSerializer(fileSystem, logger);
-
             this.effectiveConfigCalculator = new EffectiveRulesConfigCalculator(logger);
         }
 
@@ -67,44 +55,26 @@ namespace SonarLint.VisualStudio.CFamily.Rules
 
         public ICFamilyRulesConfig GetRulesConfiguration(string languageKey)
         {
-            RulesSettings settings = null;
-
-            // If in connected mode, look for the C++/C family settings in the .sonarlint/sonarqube folder.
-            var binding = this.activeSolutionBoundTracker.CurrentConfiguration;
-            if (binding != null && binding.Mode != SonarLintMode.Standalone)
+            if (languageKey == null)
             {
-                settings = FindConnectedModeSettings(languageKey, binding);
-                if (settings == null)
-                {
-                    logger.WriteLine(Resources.UnableToLoadConnectedModeSettings);
-                }
-                else
-                {
-                    logger.WriteLine(Resources.UsingConnectedModeSettings);
-                }
+                throw new ArgumentNullException(nameof(languageKey));
             }
 
-            // If we are not in connected mode or couldn't find the connected mode settings then fall back on the standalone settings.
-            settings = settings ?? userSettingsProvider.UserSettings.RulesSettings;
+            var language = Language.GetLanguageFromLanguageKey(languageKey);
+
+            if (language == null)
+            {
+                throw new ArgumentNullException(nameof(language));
+            }
+
+            var ruleSettingsProvider = ruleSettingsProviderFactory.Get(language);
+            var settings = ruleSettingsProvider.Get();
+
             var sonarWayConfig = sonarWayProvider.GetRulesConfiguration(languageKey);
             return CreateConfiguration(languageKey, sonarWayConfig, settings);
         }
 
         #endregion IRulesConfigurationProvider implementation
-
-        private RulesSettings FindConnectedModeSettings(string languageKey, BindingConfiguration binding)
-        {
-            var language = Language.GetLanguageFromLanguageKey(languageKey);
-            Debug.Assert(language != null, $"Unknown language key: {languageKey}");
-
-            if (language != null)
-            {
-                var filePath = binding.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
-                var settings = serializer.SafeLoad(filePath);
-                return settings;
-            }
-            return null;
-        }
 
         protected virtual /* for testing */ ICFamilyRulesConfig CreateConfiguration(string languageKey, ICFamilyRulesConfig sonarWayConfig, RulesSettings settings)
             => effectiveConfigCalculator.GetEffectiveRulesConfig(languageKey, sonarWayConfig, settings);
