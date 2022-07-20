@@ -381,7 +381,7 @@
   <Target Name="GetCFamilyFiles" Condition=" $(DesignTimeBuild) != 'true' ">
     <Message Importance="high" Text="Fetching the CFamily files..." />
 
-    <Exec Command="&quot;..\..\build\CFamilyJarPreProcessor\bin\$(Configuration)\net472\CFamilyJarPreProcessor.exe&quot; $(PluginUrl) &quot;$(CFamilyTargetDirectory)&quot;" IgnoreExitCode="false" />
+    <Exec Command="&quot;..\..\build\tools\CFamilyJarPreProcessor\bin\$(Configuration)\net472\CFamilyJarPreProcessor.exe&quot; $(PluginUrl) &quot;$(CFamilyTargetDirectory)&quot;" IgnoreExitCode="false" />
     
     <!-- Copy the license file to the same directory -->
     <Copy SourceFiles=".\CFamily\LICENSE.txt" DestinationFolder="$(CFamilyTargetDirectory)" SkipUnchangedFiles="true" />
