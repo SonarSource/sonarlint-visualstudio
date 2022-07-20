@@ -18,16 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
-using System.IO.Abstractions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Newtonsoft.Json;
 using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
 {
@@ -35,41 +33,46 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
     public class CFamilyRuleConfigProviderTests
     {
         [TestMethod]
-        public void Get_StandaloneMode()
+        public void Get_NullLanguage_ArgumentNullException()
         {
-            // Arrange
-            var builder = new TestEnvironmentBuilder(SonarLintMode.Standalone)
+            var testSubject = CreateTestSubject(new RulesSettings(), new DummyCFamilyRulesConfig("cpp"));
+
+            Action act = () => testSubject.GetRulesConfiguration(null);
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("languageKey");
+        }
+
+        [TestMethod]
+        public void Get_UnknownLanguageKey_ArgumentNullException()
+        {
+            var testSubject = CreateTestSubject(new RulesSettings(), new DummyCFamilyRulesConfig("cpp"));
+
+            Action act = () => testSubject.GetRulesConfiguration("sfdsfdggretert");
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("language");
+        }
+
+        [TestMethod]
+        public void Get_EffectiveRulesAreCalculated()
+        {
+            var standaloneModeSettings = new RulesSettings
             {
-                ConnectedModeSettings = new UserSettings(new RulesSettings
+                Rules = new Dictionary<string, RuleConfig>
                 {
-                    Rules = new Dictionary<string, RuleConfig>
-                    {
-                        {  "cpp:rule1", new RuleConfig { Level = RuleLevel.Off } },
-                        {  "cpp:rule2", new RuleConfig { Level = RuleLevel.On } },
-                        {  "cpp:rule3", new RuleConfig { Level = RuleLevel.On } },
-                        {  "XXX:rule3", new RuleConfig { Level = RuleLevel.On } }
-                    }
-                }),
-
-                StandaloneModeSettings = new UserSettings(new RulesSettings
-                {
-                    Rules = new Dictionary<string, RuleConfig>
-                    {
-                        {  "cpp:rule1", new RuleConfig { Level = RuleLevel.On } },
-                        {  "cpp:rule2", new RuleConfig { Level = RuleLevel.Off } },
-                        {  "cpp:rule4", new RuleConfig { Level = RuleLevel.On } },
-                        {  "XXX:rule3", new RuleConfig { Level = RuleLevel.On } }
-                    }
-                }),
-
-                SonarWayConfig = new DummyCFamilyRulesConfig("cpp")
-                    .AddRule("rule1", IssueSeverity.Blocker, isActive: false)
-                    .AddRule("rule2", IssueSeverity.Critical, isActive: false)
-                    .AddRule("rule3", IssueSeverity.Major, isActive: true)
-                    .AddRule("rule4", IssueSeverity.Minor, isActive: false)
+                    {"cpp:rule1", new RuleConfig {Level = RuleLevel.On}},
+                    {"cpp:rule2", new RuleConfig {Level = RuleLevel.Off}},
+                    {"cpp:rule4", new RuleConfig {Level = RuleLevel.On}},
+                    {"XXX:rule3", new RuleConfig {Level = RuleLevel.On}}
+                }
             };
 
-            var testSubject = builder.CreateTestSubject();
+            var sonarWayConfig = new DummyCFamilyRulesConfig("cpp")
+                .AddRule("rule1", IssueSeverity.Info, isActive: false)
+                .AddRule("rule2", IssueSeverity.Major, isActive: false)
+                .AddRule("rule3", IssueSeverity.Minor, isActive: true)
+                .AddRule("rule4", IssueSeverity.Blocker, isActive: false);
+
+            var testSubject = CreateTestSubject(standaloneModeSettings, sonarWayConfig);
 
             // Act
             var result = testSubject.GetRulesConfiguration("cpp");
@@ -77,174 +80,24 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             // Assert
             result.ActivePartialRuleKeys.Should().BeEquivalentTo("rule1", "rule3", "rule4");
             result.AllPartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2", "rule3", "rule4");
-
-            builder.AssertConnectedSettingsNotAccessed();
         }
 
-        [TestMethod]
-        [DataRow(SonarLintMode.Connected)]
-        [DataRow(SonarLintMode.LegacyConnected)]
-        public void Get_ConnectedMode(SonarLintMode mode)
+        private CFamilyRuleConfigProvider CreateTestSubject(RulesSettings ruleSettings, DummyCFamilyRulesConfig sonarWayConfig)
         {
-            // Arrange
-            var builder = new TestEnvironmentBuilder(mode)
-            {
-                ConnectedModeSettings = new UserSettings(new RulesSettings
-                {
-                    Rules = new Dictionary<string, RuleConfig>
-                    {
-                        { "cpp:rule1", new RuleConfig { Level = RuleLevel.Off, Severity = null } },
-                        { "cpp:rule2", new RuleConfig { Level = RuleLevel.On, Severity = IssueSeverity.Blocker } },
-                        { "cpp:rule3", new RuleConfig { Level = RuleLevel.On, Severity = IssueSeverity.Critical } },
-                        { "XXX:rule4", new RuleConfig { Level = RuleLevel.On, Severity = IssueSeverity.Info } }
-                    }
-                }),
+            var ruleSettingsProvider = new Mock<IRuleSettingsProvider>();
+            ruleSettingsProvider.Setup(x => x.Get()).Returns(ruleSettings);
 
-                StandaloneModeSettings = new UserSettings(new RulesSettings
-                {
-                    Rules = new Dictionary<string, RuleConfig>
-                    {
-                        { "cpp:rule1", new RuleConfig { Level = RuleLevel.On } },
-                        { "cpp:rule2", new RuleConfig { Level = RuleLevel.Off } },
-                        { "cpp:rule4", new RuleConfig { Level = RuleLevel.On } },
-                        { "XXX:rule4", new RuleConfig { Level = RuleLevel.On } }
-                    }
-                }),
+            var ruleSettingsProviderFactory = new Mock<IRuleSettingsProviderFactory>();
+            ruleSettingsProviderFactory.Setup(x => x.Get(Language.Cpp)).Returns(ruleSettingsProvider.Object);
 
-                SonarWayConfig = new DummyCFamilyRulesConfig("cpp")
-                    .AddRule("rule1", IssueSeverity.Info, isActive: false)
-                    .AddRule("rule2", IssueSeverity.Major, isActive: false)
-                    .AddRule("rule3", IssueSeverity.Minor, isActive: true)
-                    .AddRule("rule4", IssueSeverity.Blocker, isActive: false)
-            };
+            var sonarWayProviderMock = new Mock<ICFamilyRulesConfigProvider>();
 
-            var testSubject = builder.CreateTestSubject();
+            sonarWayProviderMock.Setup(x => x.GetRulesConfiguration(It.IsAny<string>()))
+                .Returns(sonarWayConfig);
 
-            // Act
-            var result = testSubject.GetRulesConfiguration("cpp");
+            var testSubject = new CFamilyRuleConfigProvider(ruleSettingsProviderFactory.Object, sonarWayProviderMock.Object, Mock.Of<ILogger>());
 
-            // Assert
-            result.ActivePartialRuleKeys.Should().BeEquivalentTo("rule2", "rule3");
-            result.AllPartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2", "rule3", "rule4");
-
-            result.RulesMetadata["rule1"].DefaultSeverity.Should().Be(IssueSeverity.Info);     // not set in ConnectedModeSettings so should use default
-            result.RulesMetadata["rule2"].DefaultSeverity.Should().Be(IssueSeverity.Blocker);  // ConnectedModeSetting should override the default
-            result.RulesMetadata["rule3"].DefaultSeverity.Should().Be(IssueSeverity.Critical); // ConnectedModeSetting should override the default
-            result.RulesMetadata["rule4"].DefaultSeverity.Should().Be(IssueSeverity.Blocker); // ConnectedModeSetting should override the default
-
-            builder.AssertStandaloneSettingsNotAccessed();
-            builder.Logger.AssertOutputStringExists(Resources.UsingConnectedModeSettings);
-        }
-
-        [TestMethod]
-        [DataRow(SonarLintMode.Connected)]
-        [DataRow(SonarLintMode.LegacyConnected)]
-        public void Get_ConnectedMode_MissingSettings_StandaloneModeSettingsUsed(SonarLintMode mode)
-        {
-            // Arrange
-            var builder = new TestEnvironmentBuilder(mode)
-            {
-                ConnectedSettingsFileExists = false,
-
-                StandaloneModeSettings = new UserSettings(new RulesSettings
-                {
-                    Rules = new Dictionary<string, RuleConfig>
-                    {
-                        {  "cpp:rule1", new RuleConfig { Level = RuleLevel.On } },
-                        {  "cpp:rule2", new RuleConfig { Level = RuleLevel.Off } },
-                        {  "cpp:rule4", new RuleConfig { Level = RuleLevel.On } },
-                        {  "XXX:rule3", new RuleConfig { Level = RuleLevel.On } }
-                    }
-                }),
-
-                SonarWayConfig = new DummyCFamilyRulesConfig("cpp")
-                    .AddRule("rule1", IssueSeverity.Info, isActive: false)
-                    .AddRule("rule2", IssueSeverity.Major, isActive: false)
-                    .AddRule("rule3", IssueSeverity.Minor, isActive: true)
-                    .AddRule("rule4", IssueSeverity.Blocker, isActive: false)
-            };
-
-            var testSubject = builder.CreateTestSubject();
-
-            // Act
-            var result = testSubject.GetRulesConfiguration("cpp");
-
-            // Assert
-            result.ActivePartialRuleKeys.Should().BeEquivalentTo("rule1", "rule3", "rule4");
-            result.AllPartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2", "rule3", "rule4");
-
-            builder.Logger.AssertOutputStringExists(Resources.UnableToLoadConnectedModeSettings);
-        }
-
-        private class TestEnvironmentBuilder
-        {
-            private readonly Mock<IUserSettingsProvider> standaloneSettingsProviderMock;
-            private readonly Mock<ICFamilyRulesConfigProvider> sonarWayProviderMock;
-
-            private readonly Mock<IFileSystem> fileSystemMock;
-
-            private readonly ConfigurableActiveSolutionBoundTracker activeSolutionBoundTracker;
-
-            private readonly SonarLintMode bindingMode;
-
-            public UserSettings StandaloneModeSettings { get; set; }
-            public UserSettings ConnectedModeSettings { get; set; }
-            public DummyCFamilyRulesConfig SonarWayConfig { get; set; }
-
-            public bool ConnectedSettingsFileExists { get; set; } = true;
-
-            public TestLogger Logger { get; }
-
-            public TestEnvironmentBuilder(SonarLintMode mode)
-            {
-                standaloneSettingsProviderMock = new Mock<IUserSettingsProvider>();
-                fileSystemMock = new Mock<IFileSystem>();
-                Logger = new TestLogger();
-
-                sonarWayProviderMock = new Mock<ICFamilyRulesConfigProvider>();
-                activeSolutionBoundTracker = new ConfigurableActiveSolutionBoundTracker();
-
-                bindingMode = mode;
-            }
-            
-            public CFamilyRuleConfigProvider CreateTestSubject()
-            {
-                // Data: set up the binding configuration
-                var projectToReturn = new BoundSonarQubeProject(new System.Uri("http://localhost:9000"),
-                    "sqProjectKey", "sqProjectName");
-                activeSolutionBoundTracker.CurrentConfiguration = new BindingConfiguration(projectToReturn, bindingMode, "c:\\test\\");
-
-                // Data: user-configured settings
-                standaloneSettingsProviderMock.Setup(x => x.UserSettings).Returns(StandaloneModeSettings);
-
-                // Data: connected mode settings
-                var connectedSettingsFilesPath = activeSolutionBoundTracker.CurrentConfiguration.BuildPathUnderConfigDirectory(Language.Cpp.FileSuffixAndExtension);
-                var connectedSettingsData = JsonConvert.SerializeObject(ConnectedModeSettings?.RulesSettings, Formatting.Indented);
-
-                fileSystemMock.Setup(x => x.File.Exists(connectedSettingsFilesPath)).Returns(ConnectedSettingsFileExists);
-                fileSystemMock.Setup(x => x.File.ReadAllText(connectedSettingsFilesPath))
-                    .Returns(connectedSettingsData);
-
-                // Data: SonarWay configuration
-                sonarWayProviderMock.Setup(x => x.GetRulesConfiguration(It.IsAny<string>()))
-                    .Returns(SonarWayConfig);
-
-                var testSubject = new CFamilyRuleConfigProvider(activeSolutionBoundTracker, standaloneSettingsProviderMock.Object, Logger,
-                    sonarWayProviderMock.Object, fileSystemMock.Object);
-
-                return testSubject;
-            }
-
-            public void AssertConnectedSettingsNotAccessed()
-            {
-                fileSystemMock.Verify(x => x.File.Exists(It.IsAny<string>()), Times.Never);
-                fileSystemMock.Verify(x => x.File.ReadAllText(It.IsAny<string>()), Times.Never);
-            }
-
-            public void AssertStandaloneSettingsNotAccessed()
-            {
-                standaloneSettingsProviderMock.Verify(x => x.UserSettings, Times.Never);
-            }
+            return testSubject;
         }
     }
 }
