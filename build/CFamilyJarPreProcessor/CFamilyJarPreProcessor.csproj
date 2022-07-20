@@ -16,5 +16,36 @@
   <ItemGroup>
     <Reference Include="System.Net.Http" />
   </ItemGroup>
-
+  
+  <!-- ****************************************************************** -->
+  <!-- Excluding built outputs of this project from the VSIX
+  
+    We don't want the built binaries etc to be included in the VSIX project.
+    Unfortunately, there doesn't seem to be an easy way to do that in the 
+    referencing project: setting <IncludeInVSIX> or adding the files to
+    <SuppressFromVSIX> doesn't work.
+       
+    The SDK targets work out which files to from a referenced project by triggering
+    MSBuild to build the project with specific targets, and it uses the outputs of
+    those targets to work out which files to add.
+      
+    We can exclude the outputs for this project by creating a dummy target that does
+    nothing, which is what "GetItemsToIncludeInVSIX_NoOp" is for.  
+    
+    The target project should reference this project as follows:
+    
+      <ProjectReference Include="..\..\build\CFamilyJarPreProcessor\CFamilyJarPreProcessor.csproj">
+        <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+        <IncludeOutputGroupsInVSIX>GetItemsToIncludeInVSIX_NoOp</IncludeOutputGroupsInVSIX>
+      </ProjectReference>
+      
+    The "ReferenceOutputAssembly" is enough to stop the "normal" build targets from copy the binaries
+    to the VSIX project bin folder.
+    
+    The "IncludeOutputGroupsInVSIX" setting makes the SDK targets call the no-op target to get the list
+    of files to include.
+    -->
+  
+  <!-- ****************************************************************** -->
+  <Target Name="GetItemsToIncludeInVSIX_NoOp" />  
 </Project>

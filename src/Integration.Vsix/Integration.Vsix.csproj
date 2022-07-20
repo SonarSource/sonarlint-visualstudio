@@ -369,18 +369,20 @@
 
   <ItemGroup>
       <!-- The exe is a build-time utility i.e. we need to reference it so it is built when we need it,
-           but we don't want to include it in the VSIX.
+           but we don't want it to be copied to the bin directory or included in the VSIX.
+           See the notes in the tool project file for more information.
       -->
     <ProjectReference Include="..\..\build\CFamilyJarPreProcessor\CFamilyJarPreProcessor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>GetItemsToIncludeInVSIX_NoOp</IncludeOutputGroupsInVSIX>
     </ProjectReference>
   </ItemGroup>
 
-  <Target Name="GetCFamilyFiles">
+  <Target Name="GetCFamilyFiles" Condition=" $(DesignTimeBuild) != 'true' ">
     <Message Importance="high" Text="Fetching the CFamily files..." />
 
     <Exec Command="&quot;..\..\build\CFamilyJarPreProcessor\bin\$(Configuration)\net472\CFamilyJarPreProcessor.exe&quot; $(PluginUrl) &quot;$(CFamilyTargetDirectory)&quot;" IgnoreExitCode="false" />
-
+    
     <!-- Copy the license file to the same directory -->
     <Copy SourceFiles=".\CFamily\LICENSE.txt" DestinationFolder="$(CFamilyTargetDirectory)" SkipUnchangedFiles="true" />
 
@@ -397,6 +399,13 @@
         <VSIXSubPath>$(CFamilyFolderName)</VSIXSubPath>
         <Visible>false</Visible>
       </Content>
+
+      <!--<xxx Include="..\..\build\CFamilyJarPreProcessor\**\*.*" />
+      <SuppressFromVSIX Include="%(xxx.FullPath)" />-->
+
+      <!--<SuppressFromVSIX Include="..\..\build\CFamilyJarPreProcessor\**\*.*" />
+      <SuppressFromVSIX Include="..\..\build\CFamilyJarPreProcessor\bin\$(Configuration)\net472\CFamilyJarPreProcessor.exe" />
+      <SuppressFromVSIX Include="CFamilyJarPreProcessor.exe" />-->
     </ItemGroup>
   </Target>
 
