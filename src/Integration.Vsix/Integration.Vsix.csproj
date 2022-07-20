@@ -134,7 +134,6 @@
     </PackageReference>
   </ItemGroup>
 
-
   <ItemGroup>
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
@@ -363,10 +362,10 @@
 
     <!-- Hook the target that fetches the CFamily files into to the build process. 
          This needs to be set after the SDK targets have been imported.
-         It also needs to be done early enough in the build process so the copied files
-         are included in this project as "Content", otherwise tests will fail.
+         It can't be too early in the build process, or MSBuild won't have processed
+         and built the project reference.
     -->
-    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);GetCFamilyFiles</PrepareForBuildDependsOn>
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);GetCFamilyFiles</CoreCompileDependsOn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -383,28 +382,32 @@
   <Target Name="GetCFamilyFiles" Condition=" $(DesignTimeBuild) != 'true' ">
     <Message Importance="high" Text="Fetching the CFamily files..." />
 
-    <Exec Command="&quot;..\..\build\tools\CFamilyJarPreProcessor\bin\$(Configuration)\net472\CFamilyJarPreProcessor.exe&quot; $(PluginUrl) &quot;$(CFamilyTargetDirectory)&quot;" IgnoreExitCode="false" />
+    <Exec Command="&quot;..\..\build\tools\CFamilyJarPreProcessor\bin\$(Configuration)\net472\CFamilyJarPreProcessor.exe&quot; $(PluginUrl) &quot;$(CFamilyTargetDirectory)&quot;" IgnoreExitCode="false" ContinueOnError="false" LogStandardErrorAsError ="true" />
     
     <!-- Copy the license file to the same directory -->
     <Copy SourceFiles=".\CFamily\LICENSE.txt" DestinationFolder="$(CFamilyTargetDirectory)" SkipUnchangedFiles="true" />
 
-    <ItemGroup>
-      <Content Include="$(CFamilyTargetDirectory)\**\*">
-        <!-- We need to include the files as content that is copied to the output directory so that
-             1) they get included in the VSIX, and 
-             2) they get copied to the bin folder of any test projects that reference this project.
-        -->
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <IncludeInVSIX>True</IncludeInVSIX>
-
-        <!-- Custom sub folder in the VSIX -->
-        <VSIXSubPath>$(CFamilyFolderName)</VSIXSubPath>
-        <Visible>false</Visible>
-      </Content>
-    </ItemGroup>
   </Target>
 
+  <ItemGroup>
+    <Content Include="$(CFamilyTargetDirectory)\**\*">
+      <!-- We need to include the files as content that is copied to the output directory so that
+            1) they get included in the VSIX, and 
+            2) they get copied to the bin folder of any test projects that reference this project.
+            
+            There's a potential ordering issue here: the files won't be copied into the "lib" folder until
+            the "GetFamilyFiles" target has run. However, just referring to the files in an ItemGroup as
+            normal - the files are on disc by the time MSBuild evaluates the ItemGroup.
+      -->
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>True</IncludeInVSIX>
 
+      <!-- Custom sub folder in the VSIX -->
+      <VSIXSubPath>$(CFamilyFolderName)</VSIXSubPath>
+      <Visible>false</Visible>
+    </Content>
+  </ItemGroup>
+  
   <!-- *************************************************************************** -->
   <!-- Sonar Secrets -->
   <!-- *************************************************************************** -->
