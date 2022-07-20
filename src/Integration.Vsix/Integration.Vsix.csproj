@@ -363,8 +363,10 @@
 
     <!-- Hook the target that fetches the CFamily files into to the build process. 
          This needs to be set after the SDK targets have been imported.
+         It also needs to be done early enough in the build process so the copied files
+         are included in this project as "Content", otherwise tests will fail.
     -->
-    <CoreCompileDependsOn>$(CoreCompileDependsOn);GetCFamilyFiles</CoreCompileDependsOn>
+    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);GetCFamilyFiles</PrepareForBuildDependsOn>
   </PropertyGroup>
 
   <ItemGroup>
