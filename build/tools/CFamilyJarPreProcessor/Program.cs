@@ -28,7 +28,7 @@ namespace CFamilyJarPreProcessor
 
             if (args.Length != 2)
             {
-                logger.LogMessage("Expected parameters: [plugin download url] [full path to destination directory]");
+                logger.LogError("Expected parameters: [plugin download url] [full path to destination directory]");
                 return -1;
             }
 
