@@ -372,7 +372,7 @@
            but we don't want it to be copied to the bin directory or included in the VSIX.
            See the notes in the tool project file for more information.
       -->
-    <ProjectReference Include="..\..\build\CFamilyJarPreProcessor\CFamilyJarPreProcessor.csproj">
+    <ProjectReference Include="..\..\build\tools\CFamilyJarPreProcessor\CFamilyJarPreProcessor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>GetItemsToIncludeInVSIX_NoOp</IncludeOutputGroupsInVSIX>
     </ProjectReference>
@@ -399,13 +399,6 @@
         <VSIXSubPath>$(CFamilyFolderName)</VSIXSubPath>
         <Visible>false</Visible>
       </Content>
-
-      <!--<xxx Include="..\..\build\CFamilyJarPreProcessor\**\*.*" />
-      <SuppressFromVSIX Include="%(xxx.FullPath)" />-->
-
-      <!--<SuppressFromVSIX Include="..\..\build\CFamilyJarPreProcessor\**\*.*" />
-      <SuppressFromVSIX Include="..\..\build\CFamilyJarPreProcessor\bin\$(Configuration)\net472\CFamilyJarPreProcessor.exe" />
-      <SuppressFromVSIX Include="CFamilyJarPreProcessor.exe" />-->
     </ItemGroup>
   </Target>
 
