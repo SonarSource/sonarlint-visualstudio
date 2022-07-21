@@ -380,23 +380,22 @@
     <!-- Copy the license file to the same directory -->
     <Copy SourceFiles=".\CFamily\LICENSE.txt" DestinationFolder="$(CFamilyTargetDirectory)" SkipUnchangedFiles="true" />
 
+    <ItemGroup>
+      <Content Include="$(CFamilyTargetDirectory)\**\*">
+        <!-- We need to include the files as content that is copied to the output directory so that
+              1) they get included in the VSIX, and 
+              2) they get copied to the bin folder of any test projects that reference this project.
+        -->
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <IncludeInVSIX>True</IncludeInVSIX>
+
+        <!-- Custom sub folder in the VSIX -->
+        <VSIXSubPath>$(CFamilyFolderName)</VSIXSubPath>
+        <Visible>false</Visible>
+      </Content>
+    </ItemGroup>
   </Target>
 
-  <ItemGroup>
-    <Content Include="$(CFamilyTargetDirectory)\**\*">
-      <!-- We need to include the files as content that is copied to the output directory so that
-            1) they get included in the VSIX, and 
-            2) they get copied to the bin folder of any test projects that reference this project.
-      -->
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>True</IncludeInVSIX>
-
-      <!-- Custom sub folder in the VSIX -->
-      <VSIXSubPath>$(CFamilyFolderName)</VSIXSubPath>
-      <Visible>false</Visible>
-    </Content>
-  </ItemGroup>
-  
   <!-- *************************************************************************** -->
   <!-- Sonar Secrets -->
   <!-- *************************************************************************** -->
