@@ -362,24 +362,17 @@
 
     <!-- Hook the target that fetches the CFamily files into to the build process. 
          This needs to be set after the SDK targets have been imported.
-         It can't be too early in the build process, or MSBuild won't have processed
-         and built the project reference.
     -->
-    <CoreCompileDependsOn>$(CoreCompileDependsOn);GetCFamilyFiles</CoreCompileDependsOn>
+    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);GetCFamilyFiles</PrepareForBuildDependsOn>
   </PropertyGroup>
 
-  <ItemGroup>
-      <!-- The exe is a build-time utility i.e. we need to reference it so it is built when we need it,
-           but we don't want it to be copied to the bin directory or included in the VSIX.
-           See the notes in the tool project file for more information.
-      -->
-    <ProjectReference Include="..\..\build\tools\CFamilyJarPreProcessor\CFamilyJarPreProcessor.csproj">
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>GetItemsToIncludeInVSIX_NoOp</IncludeOutputGroupsInVSIX>
-    </ProjectReference>
-  </ItemGroup>
-
   <Target Name="GetCFamilyFiles" Condition=" $(DesignTimeBuild) != 'true' ">
+    <!-- This target assumes the CFamilyJarPreProcessor tool has already been built.
+         We don't want to add a ProjectReference the tool project from this project
+         as we would have to do extra hacky work to stop it from being included in the VSIX.
+         Instead, we've said the tool project should be built before this project in the
+         solution file.
+    -->
     <Message Importance="high" Text="Fetching the CFamily files..." />
 
     <Exec Command="&quot;..\..\build\tools\CFamilyJarPreProcessor\bin\$(Configuration)\net472\CFamilyJarPreProcessor.exe&quot; $(PluginUrl) &quot;$(CFamilyTargetDirectory)&quot;" IgnoreExitCode="false" ContinueOnError="false" LogStandardErrorAsError ="true" />
@@ -394,10 +387,6 @@
       <!-- We need to include the files as content that is copied to the output directory so that
             1) they get included in the VSIX, and 
             2) they get copied to the bin folder of any test projects that reference this project.
-            
-            There's a potential ordering issue here: the files won't be copied into the "lib" folder until
-            the "GetFamilyFiles" target has run. However, just referring to the files in an ItemGroup as
-            normal - the files are on disc by the time MSBuild evaluates the ItemGroup.
       -->
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>True</IncludeInVSIX>

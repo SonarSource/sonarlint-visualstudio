@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.0.31815.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration.Vsix", "src\Integration.Vsix\Integration.Vsix.csproj", "{FF2AD819-28F4-493A-8E9B-1D3F16BD4689}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0E50D9A0-693D-4B4E-81E2-8B8028231CFA} = {0E50D9A0-693D-4B4E-81E2-8B8028231CFA}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration", "src\Integration\Integration.csproj", "{03278C1A-EE78-4FA7-A5B0-1AB0A81EA76F}"
 EndProject
