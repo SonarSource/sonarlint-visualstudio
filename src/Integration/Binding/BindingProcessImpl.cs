@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -51,6 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IProjectToLanguageMapper projectToLanguageMapper;
         private readonly IThreadHandling threadHandling;
         private readonly IExclusionSettingsStorage exclusionSettingsStorage;
+        private readonly IFolderWorkspaceService folderWorkspaceService;
 
         internal /*for testing*/ INuGetBindingOperation NuGetBindingOperation { get; }
 
@@ -75,6 +75,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.exclusionSettingsStorage = exclusionSettingsStorage ?? throw new ArgumentNullException(nameof(exclusionSettingsStorage));
             this.bindingMode = bindingMode;
             projectToLanguageMapper = host.GetMefService<IProjectToLanguageMapper>();
+            folderWorkspaceService = host.GetMefService<IFolderWorkspaceService>();
+
             this.threadHandling = threadHandling ?? new ThreadHandling();
 
             Debug.Assert(bindingArgs.ProjectKey != null);
@@ -104,6 +106,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public bool DiscoverProjects()
         {
+            if (folderWorkspaceService.IsFolderWorkspace())
+            {
+                return true;
+            }
+
             var patternFilteredProjects = this.projectSystem.GetFilteredSolutionProjects();
             var pluginAndPatternFilteredProjects =
                 patternFilteredProjects.Where(p => this.host.SupportedPluginLanguages
@@ -126,6 +133,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
             foreach (var language in languageList)
             {
                 var serverLanguage = language.ServerLanguage;
+
+                if (serverLanguage == null)
+                {
+                    continue;
+                }
 
                 // Download the quality profile for each language
                 var qualityProfileInfo = await Core.WebServiceHelper.SafeServiceCallAsync(() =>
@@ -299,6 +311,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /* for testing */ IEnumerable<Language> GetBindingLanguages()
         {
+            if (folderWorkspaceService.IsFolderWorkspace())
+            {
+                return projectToLanguageMapper.GetAllBindingLanguagesInSolution();
+            }
+
             var languageList = this.InternalState.BindingProjects.SelectMany(projectToLanguageMapper.GetAllBindingLanguagesForProject)
                                        .Distinct()
                                        .Where(this.host.SupportedPluginLanguages.Contains)
