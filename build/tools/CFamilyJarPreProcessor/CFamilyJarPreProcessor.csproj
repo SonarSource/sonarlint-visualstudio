@@ -1,9 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net472</TargetFramework>
-  
+    <RequiresNewtonsoft>true</RequiresNewtonsoft>
+    
     <!-- Not a product project or test project - completely exclude it from analysis/code coverage -->
     <SonarQubeExclude>true</SonarQubeExclude>
   </PropertyGroup>
@@ -15,5 +16,11 @@
 
   <ItemGroup>
     <Reference Include="System.Net.Http" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Adding the product code Json data class for RulesSettings as a linked file so we generate
+         the output in the correct format. -->
+    <Compile Include="D:\repos\sq\slvs\src\Core\RulesSettings.cs" Link="FileGenerator\Output\RulesSettings.cs" />
   </ItemGroup>
 </Project>

@@ -238,6 +238,33 @@ namespace CFamilyJarPreProcessor
             return files[0];
         }
 
+        public static void CopyFiles(IList<string> files, string destinationDir, ILogger logger)
+        {
+            Common.EnsureWorkingDirectoryExist(destinationDir, logger);
+
+            foreach (var file in files)
+            {
+                CopyIfNewer(file, destinationDir, logger);
+            }
+        }
+
+        public static void CopyIfNewer(string file, string destinationDir, ILogger logger)
+        {
+            // Overwrite if newer
+            var sourceFileInfo = new FileInfo(file);
+            var destinationFileInfo = new FileInfo(Path.Combine(destinationDir, sourceFileInfo.Name));
+
+            if (!destinationFileInfo.Exists || sourceFileInfo.LastWriteTimeUtc > destinationFileInfo.LastWriteTimeUtc)
+            {
+                logger.LogMessage($"  Copying file: {file}");
+                File.Copy(sourceFileInfo.FullName, destinationFileInfo.FullName, true);
+            }
+            else
+            {
+                logger.LogMessage($"  Skipping copying file - not newer: {file}");
+            }
+        }
+
         private static void LogElapsedTime(string message, Stopwatch timer, ILogger logger)
         {
             LogMessage($"{message} {timer.Elapsed.ToString("g")}", logger);
