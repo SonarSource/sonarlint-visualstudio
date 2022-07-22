@@ -601,7 +601,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.host.SupportedPluginLanguages.UnionWith(new[] { Language.CSharp });
 
             // Act
-            var result = testSubject.DiscoverProjects();
+            var result = testSubject.DiscoverBindableProjects();
 
             // Assert
             result.Should().BeTrue();
@@ -626,7 +626,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.host.SupportedPluginLanguages.UnionWith(new[] { Language.CSharp });
 
             // Act
-            var result = testSubject.DiscoverProjects();
+            var result = testSubject.DiscoverBindableProjects();
 
             // Assert
             result.Should().Be(expectedResult);

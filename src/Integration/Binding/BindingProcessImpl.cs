@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return result;
         }
 
-        public bool DiscoverProjects()
+        public bool DiscoverBindableProjects()
         {
             if (folderWorkspaceService.IsFolderWorkspace())
             {

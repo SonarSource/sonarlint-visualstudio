@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         bool PromptSaveSolutionIfDirty();
 
-        bool DiscoverProjects();
+        bool DiscoverBindableProjects();
 
         Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken);
 

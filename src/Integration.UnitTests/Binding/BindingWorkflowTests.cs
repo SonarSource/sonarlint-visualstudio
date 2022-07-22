@@ -297,7 +297,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var controller = new ConfigurableProgressController();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
 
-            mockBindingProcess.Setup(x => x.DiscoverProjects()).Returns(true);
+            mockBindingProcess.Setup(x => x.DiscoverBindableProjects()).Returns(true);
 
             // Act
             testSubject.DiscoverProjects(controller, progressEvents);
@@ -315,7 +315,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var controller = new ConfigurableProgressController();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
 
-            mockBindingProcess.Setup(x => x.DiscoverProjects()).Returns(false);
+            mockBindingProcess.Setup(x => x.DiscoverBindableProjects()).Returns(false);
 
             // Act
             testSubject.DiscoverProjects(controller, progressEvents);
