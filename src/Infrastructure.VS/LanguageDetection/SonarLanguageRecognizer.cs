@@ -39,7 +39,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
     internal class SonarLanguageRecognizer : ISonarLanguageRecognizer
     {
         private static readonly ISet<string> JavascriptSupportedExtensions = new HashSet<string> { "js", "jsx", "vue" };
-        private static readonly ISet<string> RoslynLanguagesSupportedExtensions = new HashSet<string> { "cs", "vb" };
 
         private static readonly string CFamilyTypeName = "C/C++";
         private static readonly string JavaScriptTypeName = "JavaScript";
