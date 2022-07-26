@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return sonarLanguageRecognizer.GetAnalysisLanguageFromExtension(extension) == Core.Analysis.AnalysisLanguage.Javascript;
         }
 
-        private bool HasProjectJSTS(ProjectItems projectItems)
+        private bool HasProjectJsTs(ProjectItems projectItems)
         {
 
             foreach (ProjectItem item in projectItems)
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 }
                 if (item.ProjectItems?.Count > 0)
                 {
-                    if (HasProjectJSTS(item.ProjectItems))
+                    if (HasProjectJsTs(item.ProjectItems))
                     {
                         return true;
                     }
