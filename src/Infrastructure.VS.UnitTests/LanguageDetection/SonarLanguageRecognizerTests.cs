@@ -217,6 +217,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
             actualLanguage.Value.Should().Be(expectedLanguage);
         }
 
+        [TestMethod]
+        public void GetAnalysisLanguageFromExtension_UnknownExtensionPassed_ReturnsNull()
+        {
+            var actualLanguage = testSubject.GetAnalysisLanguageFromExtension("*.json");
+
+            actualLanguage.Should().BeNull();
+        }
+
         private void GetContentTypeSetup()
         {
             contentTypeServiceMock.Setup(c => c.GetContentType("C/C++")).Returns(CFamilyType.Object);

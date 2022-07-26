@@ -40,10 +40,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
     {
         private static readonly ISet<string> JavascriptSupportedExtensions = new HashSet<string> { "js", "jsx", "vue" };
 
-        private static readonly string CFamilyTypeName = "C/C++";
-        private static readonly string TypeScriptTypeName = "TypeScript";
-        private static readonly string CSharpTypeName = "CSharp";
-        private static readonly string BasicTypeName = "Basic";
+        private const string CFamilyTypeName = "C/C++";
+        private const string TypeScriptTypeName = "TypeScript";
+        private const string CSharpTypeName = "CSharp";
+        private const string BasicTypeName = "Basic";
 
         private readonly IContentTypeRegistryService contentTypeRegistryService;
         private readonly IFileExtensionRegistryService fileExtensionRegistryService;

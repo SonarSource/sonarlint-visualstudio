@@ -38,8 +38,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         readonly IFolderWorkspaceService folderWorkspaceService;
         readonly IFileSystem fileSystem;
 
-        public static List<string> filesChecked = new List<string>();
-
         [ImportingConstructor]
         public JsTsProjectTypeIndicator(ISonarLanguageRecognizer sonarLanguageRecognizer, IFolderWorkspaceService folderWorkspaceService)
             : this(sonarLanguageRecognizer, folderWorkspaceService, new FileSystem())
@@ -60,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             //If both are true folder search takes precedense for consistency
             if (folderWorkspaceService.IsFolderWorkspace())
             {
-                return HasFolderJSTS();
+                return HasFolderJsTs();
             }
             else
             {
@@ -70,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }            
         }
 
-        private bool HasFolderJSTS()
+        private bool HasFolderJsTs()
         {
             string root = folderWorkspaceService.FindRootDirectory();
 
@@ -78,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             foreach (var file in fileList)
             {
-                if(IsFileJSTS(file))
+                if(IsFileJsTs(file))
                 {
                     return true;
                 }    
@@ -86,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return false;
         }
 
-        private bool IsFileJSTS(string fileName)
+        private bool IsFileJsTs(string fileName)
         {
             var extension = Path.GetExtension(fileName);
             return sonarLanguageRecognizer.GetAnalysisLanguageFromExtension(extension) == Core.Analysis.AnalysisLanguage.Javascript;
@@ -97,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             foreach (ProjectItem item in projectItems)
             {
-                if (IsFileJSTS(item.Name))
+                if (IsFileJsTs(item.Name))
                 {
                     return true;
                 }
