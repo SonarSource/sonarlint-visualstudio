@@ -717,7 +717,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void DiscoverBindableProjects_FolderWorkspace_HasSupportedLanguages_True()
         {
             folderWorkspaceService.Setup(x => x.IsFolderWorkspace()).Returns(true);
-            jstsIndicator.Setup(x => x.IsJsTs()).Returns(true);
+            jstsIndicator.Setup(x => x.IsJsTs(It.IsAny<Project>())).Returns(true);
 
             var testSubject = this.CreateTestSubject();
 
@@ -734,7 +734,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void DiscoverBindableProjects_FolderWorkspace_NoSupportedLanguages_False()
         {
             folderWorkspaceService.Setup(x => x.IsFolderWorkspace()).Returns(true);
-            jstsIndicator.Setup(x => x.IsJsTs()).Returns(false);
+            jstsIndicator.Setup(x => x.IsJsTs(It.IsAny<Project>())).Returns(false);
 
             var testSubject = this.CreateTestSubject();
 
