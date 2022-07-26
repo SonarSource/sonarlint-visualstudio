@@ -34,7 +34,10 @@ namespace SonarLint.VisualStudio.Core
             { SonarRuleRepoKeys.CSharpSecurityRules, "csharp" },
 
             // Support for C# hotspots. No need to special-case the VB.NET hotspots, as their repo name is identical to the one on rules.sonarsource.com
-            { SonarRuleRepoKeys.CSharpRules, "csharp" }
+            { SonarRuleRepoKeys.CSharpRules, "csharp" },
+
+            { SonarRuleRepoKeys.JsSecurityRules, "javascript" },
+            { SonarRuleRepoKeys.TsSecurityRules, "typescript" }
         };
 
         public string GetHelpLink(string ruleKey)
