@@ -39,12 +39,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
         private Mock<IFileExtensionRegistryService> fileExtensionServiceMock;
         private SonarLanguageRecognizer testSubject;
 
+        private Mock<IContentType> CFamilyType = new Mock<IContentType>();
+        private Mock<IContentType> JavaScriptType = new Mock<IContentType>();
+        private Mock<IContentType> TypeScriptType = new Mock<IContentType>();
+        private Mock<IContentType> CSharpType = new Mock<IContentType>();
+        private Mock<IContentType> BasicType = new Mock<IContentType>();
+        
+
+
        [TestInitialize]
         public void TestInitialize()
         {
             contentTypeServiceMock = new Mock<IContentTypeRegistryService>();
             fileExtensionServiceMock = new Mock<IFileExtensionRegistryService>();
             testSubject = new SonarLanguageRecognizer(contentTypeServiceMock.Object, fileExtensionServiceMock.Object);
+            IsContentTypeSetup();
         }
 
         [TestMethod]
@@ -189,6 +198,48 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
 
             result.Should().HaveCount(1);
             result.First().Should().Be(AnalysisLanguage.Javascript);
+        }
+
+        [DataRow("cs", AnalysisLanguage.RoslynFamily)]
+        [DataRow("CS", AnalysisLanguage.RoslynFamily)]
+        [DataRow(".cs", AnalysisLanguage.RoslynFamily)]
+        [DataRow(".CS", AnalysisLanguage.RoslynFamily)]
+        [DataRow("vb", AnalysisLanguage.RoslynFamily)]
+        [DataRow("js", AnalysisLanguage.Javascript)]
+        [DataRow("ts", AnalysisLanguage.TypeScript)]
+        [DataRow("cpp", AnalysisLanguage.CFamily)]
+        [TestMethod]
+        public void GetAnalysisLanguageFromExtension_ReturnsAnalysisLangFromExtension(string extension, AnalysisLanguage expectedLanguage)
+        {
+            var actualLanguage = testSubject.GetAnalysisLanguageFromExtension(extension);
+
+            actualLanguage.Should().NotBeNull();
+            actualLanguage.Value.Should().Be(expectedLanguage);
+        }
+
+        private void GetContentTypeSetup()
+        {
+            contentTypeServiceMock.Setup(c => c.GetContentType("C/C++")).Returns(CFamilyType.Object);
+            contentTypeServiceMock.Setup(c => c.GetContentType("JavaScript")).Returns(JavaScriptType.Object);
+            contentTypeServiceMock.Setup(c => c.GetContentType("TypeScript")).Returns(TypeScriptType.Object);
+            contentTypeServiceMock.Setup(c => c.GetContentType("CSharp")).Returns(CSharpType.Object);
+            contentTypeServiceMock.Setup(c => c.GetContentType("Basic")).Returns(BasicType.Object);
+        }
+
+        private void GetExtensionsForContentTypeSetup()
+        {
+            fileExtensionServiceMock.Setup(f => f.GetExtensionsForContentType(CFamilyType.Object)).Returns(new List<string> { "c", "cpp" });
+            fileExtensionServiceMock.Setup(f => f.GetExtensionsForContentType(CSharpType.Object)).Returns(new List<string> { "cs" });
+            fileExtensionServiceMock.Setup(f => f.GetExtensionsForContentType(BasicType.Object)).Returns(new List<string> { "vb" });
+            fileExtensionServiceMock.Setup(f => f.GetExtensionsForContentType(JavaScriptType.Object)).Returns(new List<string> { });
+            fileExtensionServiceMock.Setup(f => f.GetExtensionsForContentType(TypeScriptType.Object)).Returns(new List<string> { "js", "ts", "jsx", "tsx" });
+            
+        }
+
+        private void IsContentTypeSetup()
+        {
+            GetContentTypeSetup();
+            GetExtensionsForContentTypeSetup();
         }
     }
 }

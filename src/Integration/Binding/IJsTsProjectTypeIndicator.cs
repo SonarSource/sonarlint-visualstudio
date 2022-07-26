@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.JsTs
+using EnvDTE;
+
+namespace SonarLint.VisualStudio.Integration.Binding
 {
     public interface IJsTsProjectTypeIndicator
     {
@@ -26,6 +28,6 @@ namespace SonarLint.VisualStudio.Core.JsTs
         /// Returns true if the currently open solution has a JS/TS file.
         /// Returns false if the solution has no JS/TS files, or if there is no open solution.
         /// </summary>
-        bool IsJsTs();
+        bool IsJsTs(Project dteProject);
     }
 }

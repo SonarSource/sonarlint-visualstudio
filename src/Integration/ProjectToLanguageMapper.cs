@@ -24,7 +24,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using EnvDTE;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Core.JsTs;
+using SonarLint.VisualStudio.Integration.Binding;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration
@@ -80,12 +80,18 @@ namespace SonarLint.VisualStudio.Integration
                 return new[] { Language.Unknown };
             }
 
-            return GetLanguagesInProject(projectKind);
+            return GetLanguagesInProject(dteProject);
         }
 
-        private IEnumerable<Language> GetLanguagesInProject(Guid projectKind)
+        private IEnumerable<Language> GetLanguagesInProject(Project dteProject)
         {
             var languages = new List<Language>();
+
+            if (!Guid.TryParse(dteProject?.Kind, out var projectKind))
+            {
+                projectKind = Guid.Empty;
+            }
+
 
             if (KnownProjectTypes.TryGetValue(projectKind, out var language))
             {
@@ -98,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration
                 languages.Add(Language.C);
             }
 
-            if (jsTsProjectTypeIndicator.IsJsTs())
+            if (jsTsProjectTypeIndicator.IsJsTs(dteProject))
             {
                 languages.Add(Language.Js);
                 languages.Add(Language.Ts);
@@ -121,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public IEnumerable<Language> GetAllBindingLanguagesInSolution()
         {
-            return GetLanguagesInProject(Guid.Empty);
+            return GetLanguagesInProject(null);
         }
 
         private bool IsCFamilyProject(Guid projectKind)
