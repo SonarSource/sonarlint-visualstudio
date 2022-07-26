@@ -165,8 +165,14 @@ namespace SonarLint.VisualStudio.Integration
             threadHandling.ThrowIfNotOnUIThread();
 
             var configProjectBinder = projectBinderFactory.Get(project);
-
             var projectName = project.Name;
+
+            if (configProjectBinder == null)
+            {
+                logger.LogDebug($"[Binding check] No project binder found for '{projectName}'.");
+                return false;
+            }
+
             CodeMarkers.Instance.CheckProjectBindingStart(projectName);
 
             logger.LogDebug($"[Binding check] Checking binding for project '{projectName}'. Binder type: {configProjectBinder.GetType().Name}");

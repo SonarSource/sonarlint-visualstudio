@@ -78,6 +78,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             result.Should().BeEquivalentTo(unboundProjects);
         }
 
+        [TestMethod]
+        public void GetUnboundProjects_NoSupportedBinder_False()
+        {
+            var testConfig = new TestConfigurationBuilder();
+            var project = testConfig.AddFilteredProject(ProjectSystemHelper.CSharpCoreProjectKind);
+
+            testConfig.SetupProjectBinder(project, null);
+
+            var testSubject = testConfig.CreateTestSubject();
+
+            var result = testSubject.GetUnboundProjects();
+            result.Should().BeEmpty();
+        }
+
         private static void AssertEmptyResult(IEnumerable<EnvDTE.Project> projects)
         {
             projects.Should().NotBeNull("Null are not expected");
@@ -106,6 +120,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                 return project;
             }
 
+            public void SetupProjectBinder(EnvDTE.Project project, IProjectBinder binder)
+            {
+                projectBinderFactoryMock
+                    .Setup(x => x.Get(project))
+                    .Returns(binder);
+            }
+
             public void SetupProjectBindingRequired(EnvDTE.Project project, bool isBindingRequired)
             {
                 var projectBinderMock = new Mock<IProjectBinder>();
@@ -113,9 +134,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                     .Setup(x => x.IsBindingRequired(bindingConfiguration, project))
                     .Returns(isBindingRequired);
 
-                projectBinderFactoryMock
-                    .Setup(x => x.Get(project))
-                    .Returns(projectBinderMock.Object);
+                SetupProjectBinder(project, projectBinderMock.Object);
             }
 
             public UnboundProjectFinder CreateTestSubject()
