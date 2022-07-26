@@ -41,7 +41,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
         private static readonly ISet<string> JavascriptSupportedExtensions = new HashSet<string> { "js", "jsx", "vue" };
 
         private static readonly string CFamilyTypeName = "C/C++";
-        private static readonly string JavaScriptTypeName = "JavaScript";
         private static readonly string TypeScriptTypeName = "TypeScript";
         private static readonly string CSharpTypeName = "CSharp";
         private static readonly string BasicTypeName = "Basic";
@@ -125,7 +124,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
         {
             extension = NormalizeExtension(extension);
 
-            if (IsContentType(JavaScriptTypeName, extension) || JavascriptSupportedExtensions.Contains(extension)) { return AnalysisLanguage.Javascript; }
+            if (JavascriptSupportedExtensions.Contains(extension)) { return AnalysisLanguage.Javascript; }
             if (IsContentType(TypeScriptTypeName, extension)) { return AnalysisLanguage.TypeScript; }
             if (IsContentType(CFamilyTypeName, extension)) { return AnalysisLanguage.CFamily; }
             if (IsContentType(CSharpTypeName, extension) || IsContentType(BasicTypeName, extension)) { return AnalysisLanguage.RoslynFamily; }
