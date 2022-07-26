@@ -485,14 +485,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void CanExecute_NoProjects_FolderWorkspace_False()
+        public void CanExecute_NoProjects_FolderWorkspace_True()
         {
             SetupSolutionState(isSolutionLoaded: false, isSolutionNotBuilding: true, isOpenAsFolder: true, hasProjects: false);
 
             var testSubject = CreateBindingController();
 
             var canExecute = testSubject.BindCommand.CanExecute(CreateBindingArguments("project1", "name1", "http://localhost"));
-            canExecute.Should().BeFalse();
+            canExecute.Should().BeTrue();
         }
 
         [TestMethod]

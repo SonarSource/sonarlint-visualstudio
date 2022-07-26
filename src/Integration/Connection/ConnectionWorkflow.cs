@@ -30,6 +30,7 @@ using System.Windows;
 using System.Windows.Input;
 using Microsoft.Alm.Authentication;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Connection.UI;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -271,6 +272,13 @@ namespace SonarLint.VisualStudio.Integration.Connection
         private async Task<bool> AreSolutionProjectsAndSonarQubePluginsCompatibleAsync(IProgressController controller,
             IProgressStepExecutionEvents notifications, CancellationToken cancellationToken)
         {
+            var folderWorkspaceService = host.GetMefService<IFolderWorkspaceService>();
+
+            if (folderWorkspaceService.IsFolderWorkspace())
+            {
+                return true;
+            }
+
             notifications.ProgressChanged(Strings.DetectingSonarQubePlugins);
 
             var plugins = await this.host.SonarQubeService.GetAllPluginsAsync(cancellationToken);

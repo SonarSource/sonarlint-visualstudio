@@ -38,6 +38,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.JsTs;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -56,6 +57,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private ConfigurableSolutionRuleSetsInformationProvider ruleSetsInformationProvider;
         private ConfigurableHost host;
+        private Mock<IFolderWorkspaceService> folderWorkspaceService;
+        private Mock<IJsTsProjectTypeIndicator> jstsIndicator;
 
         [TestInitialize]
         public void TestInitialize()
@@ -79,9 +82,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.ruleSetsInformationProvider);
 
-            var projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), Mock.Of<IJsTsProjectTypeIndicator>());
-            var mefHost = ConfigurableComponentModel.CreateWithExports(MefTestHelpers.CreateExport<IProjectToLanguageMapper>(projectToLanguageMapper));
-            serviceProvider.RegisterService(typeof(SComponentModel), mefHost);
+            jstsIndicator = new Mock<IJsTsProjectTypeIndicator>();
+            var projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), jstsIndicator.Object);
+
+            folderWorkspaceService = new Mock<IFolderWorkspaceService>();
+
+            var mefProjectToLanguageMapper = 
+                ConfigurableComponentModel.CreateWithExports(
+                    MefTestHelpers.CreateExport<IProjectToLanguageMapper>(projectToLanguageMapper),
+                    MefTestHelpers.CreateExport<IFolderWorkspaceService>(folderWorkspaceService.Object));
+
+            serviceProvider.RegisterService(typeof(SComponentModel), mefProjectToLanguageMapper);
 
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
         }
@@ -584,7 +595,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void DiscoverProjects_AddsMatchingProjectsToBinding()
+        public void DiscoverBindableProjects_AddsMatchingProjectsToBinding()
         {
             // Arrange
             ThreadHelper.SetCurrentThreadAsUIThread();
@@ -601,14 +612,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.host.SupportedPluginLanguages.UnionWith(new[] { Language.CSharp });
 
             // Act
-            var result = testSubject.DiscoverProjects();
+            var result = testSubject.DiscoverBindableProjects();
 
             // Assert
             result.Should().BeTrue();
             CollectionAssert.AreEqual(matchingProjects, testSubject.InternalState.BindingProjects.ToArray(), "Unexpected projects selected for binding");
         }
 
-        private void DiscoverProjects_GenericPart(int numberOfProjectsToCreate, int numberOfProjectsToInclude, bool expectedResult)
+        private void DiscoverBindableProjects_GenericPart(int numberOfProjectsToCreate, int numberOfProjectsToInclude, bool expectedResult)
         {
             // Arrange
             List<Project> projects = new List<Project>();
@@ -626,7 +637,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.host.SupportedPluginLanguages.UnionWith(new[] { Language.CSharp });
 
             // Act
-            var result = testSubject.DiscoverProjects();
+            var result = testSubject.DiscoverBindableProjects();
 
             // Assert
             result.Should().Be(expectedResult);
@@ -663,43 +674,95 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void DiscoverProjects_OutputsIncludedProjects()
+        public void DiscoverBindableProjects_OutputsIncludedProjects()
         {
             // Arrange
             ThreadHelper.SetCurrentThreadAsUIThread();
 
             // Act & Common Assert
-            DiscoverProjects_GenericPart(2, 2, true);
+            DiscoverBindableProjects_GenericPart(2, 2, true);
         }
 
         [TestMethod]
-        public void DiscoverProjects_OutputsExcludedProjects()
+        public void DiscoverBindableProjects_OutputsExcludedProjects()
         {
             // Arrange
             ThreadHelper.SetCurrentThreadAsUIThread();
 
             // Act & Common Assert
-            DiscoverProjects_GenericPart(2, 0, false);
+            DiscoverBindableProjects_GenericPart(2, 0, false);
         }
 
         [TestMethod]
-        public void DiscoverProjects_OutputsIncludedAndExcludedProjects()
+        public void DiscoverBindableProjects_OutputsIncludedAndExcludedProjects()
         {
             // Arrange
             ThreadHelper.SetCurrentThreadAsUIThread();
 
             // Act & Common Assert
-            DiscoverProjects_GenericPart(4, 2, true);
+            DiscoverBindableProjects_GenericPart(4, 2, true);
         }
 
         [TestMethod]
-        public void DiscoverProjects_NoMatchingProjects_AbortsWorkflow()
+        public void DiscoverBindableProjects_NoMatchingProjects_AbortsWorkflow()
         {
             // Arrange
             ThreadHelper.SetCurrentThreadAsUIThread();
 
             // Act & Common Assert
-            DiscoverProjects_GenericPart(0, 0, false);
+            DiscoverBindableProjects_GenericPart(0, 0, false);
+        }
+
+        [TestMethod]
+        public void DiscoverBindableProjects_FolderWorkspace_HasSupportedLanguages_True()
+        {
+            folderWorkspaceService.Setup(x => x.IsFolderWorkspace()).Returns(true);
+            jstsIndicator.Setup(x => x.IsJsTs()).Returns(true);
+
+            var testSubject = this.CreateTestSubject();
+
+            // Act
+            var result = testSubject.DiscoverBindableProjects();
+
+            // Assert
+            result.Should().Be(true);
+            testSubject.InternalState.BindingProjects.Should().BeEmpty();
+            this.outputWindowPane.AssertOutputStrings(0);
+        }
+
+        [TestMethod]
+        public void DiscoverBindableProjects_FolderWorkspace_NoSupportedLanguages_False()
+        {
+            folderWorkspaceService.Setup(x => x.IsFolderWorkspace()).Returns(true);
+            jstsIndicator.Setup(x => x.IsJsTs()).Returns(false);
+
+            var testSubject = this.CreateTestSubject();
+
+            // Act
+            var result = testSubject.DiscoverBindableProjects();
+
+            // Assert
+            result.Should().Be(false);
+            testSubject.InternalState.BindingProjects.Should().BeEmpty();
+            this.outputWindowPane.AssertOutputStrings(1);
+
+            // Returns expected output message
+            var expectedOutput = new StringBuilder();
+            expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, Strings.DiscoveringSolutionIncludedProjectsHeader)
+                .AppendLine();
+
+            var msg = string.Format(Strings.DiscoveredIncludedOrExcludedProjectFormat,
+                Strings.NoProjectsExcludedFromBinding);
+            expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, msg).AppendLine();
+            expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, Strings.DiscoveringSolutionExcludedProjectsHeader)
+                .AppendLine();
+
+            msg = string.Format(Strings.DiscoveredIncludedOrExcludedProjectFormat,
+                Strings.NoProjectsExcludedFromBinding);
+            expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, msg).AppendLine();
+            expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, Strings.FilteredOutProjectFromBindingEnding);
+
+            this.outputWindowPane.AssertOutputStrings(expectedOutput.ToString());
         }
 
         [TestMethod]

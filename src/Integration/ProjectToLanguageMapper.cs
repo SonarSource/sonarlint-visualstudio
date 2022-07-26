@@ -41,6 +41,8 @@ namespace SonarLint.VisualStudio.Integration
         /// Returns true/false if the project has at least one supported Sonar language
         /// </summary>
         bool HasSupportedLanguage(Project project);
+
+        IEnumerable<Language> GetAllBindingLanguagesInSolution();
     }
 
     [Export(typeof(IProjectToLanguageMapper))]
@@ -78,6 +80,11 @@ namespace SonarLint.VisualStudio.Integration
                 return new[] { Language.Unknown };
             }
 
+            return GetLanguagesInProject(projectKind);
+        }
+
+        private IEnumerable<Language> GetLanguagesInProject(Guid projectKind)
+        {
             var languages = new List<Language>();
 
             if (KnownProjectTypes.TryGetValue(projectKind, out var language))
@@ -102,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration
                 return languages;
             }
 
-            return new[] { Language.Unknown };
+            return new[] {Language.Unknown};
         }
 
         public bool HasSupportedLanguage(Project project)
@@ -110,6 +117,11 @@ namespace SonarLint.VisualStudio.Integration
             var languages = GetAllBindingLanguagesForProject(project);
 
             return languages.Any(x => x.IsSupported);
+        }
+
+        public IEnumerable<Language> GetAllBindingLanguagesInSolution()
+        {
+            return GetLanguagesInProject(Guid.Empty);
         }
 
         private bool IsCFamilyProject(Guid projectKind)

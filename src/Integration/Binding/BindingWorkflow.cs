@@ -168,7 +168,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             notifications.ProgressChanged(Strings.DiscoveringSolutionProjectsProgressMessage);
 
-            if (!bindingProcess.DiscoverProjects())
+            if (!bindingProcess.DiscoverBindableProjects())
             {
                 AbortWorkflow(controller, CancellationToken.None);
             }
