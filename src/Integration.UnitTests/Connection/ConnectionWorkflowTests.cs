@@ -32,6 +32,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.JsTs;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -54,6 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private Mock<ICredentialStoreService> credentialStoreMock;
         private Mock<ITestProjectRegexSetter> testProjectRegexSetter;
+        private Mock<IFolderWorkspaceService> folderWorkspaceService;
 
         [TestInitialize]
         public void TestInit()
@@ -73,7 +75,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 });
             this.settings = new ConfigurableSonarLintSettings();
 
+            folderWorkspaceService = new Mock<IFolderWorkspaceService>();
+            folderWorkspaceService.Setup(x => x.IsFolderWorkspace()).Returns(false);
+
             var mefModel = ConfigurableComponentModel.CreateWithExports(
+                MefTestHelpers.CreateExport<IFolderWorkspaceService>(folderWorkspaceService.Object),
                 MefTestHelpers.CreateExport<ISonarLintSettings>(settings),
                 MefTestHelpers.CreateExport<IProjectToLanguageMapper>(new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), Mock.Of<IJsTsProjectTypeIndicator>())));
 
@@ -291,6 +297,48 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             notifications.AssertNotification(NotificationIds.BadSonarQubePluginId, Strings.SolutionContainsNoSupportedProject);
 
             AssertCredentialsNotStored(); // Username and password are null
+        }
+
+
+        [TestMethod]
+        public async Task ConnectionWorkflow_ConnectionStep_WhenFolderWorkspace_SuccessfulConnection()
+        {
+            // Arrange
+            folderWorkspaceService.Setup(x => x.IsFolderWorkspace()).Returns(true);
+
+            var connectionInfo = new ConnectionInformation(new Uri("http://server"), "user", "pass".ToSecureString());
+            var projects = new List<SonarQubeProject> { new SonarQubeProject("project1", "") };
+            this.sonarQubeServiceMock.Setup(x => x.ConnectAsync(connectionInfo, It.IsAny<CancellationToken>()))
+                .Returns(Task.Delay(0));
+            this.sonarQubeServiceMock.Setup(x => x.GetAllProjectsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(projects);
+
+            var controller = new ConfigurableProgressController();
+            var executionEvents = new ConfigurableProgressStepExecutionEvents();
+            string connectionMessage = connectionInfo.ServerUri.ToString();
+            var testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
+
+            // Act
+            await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
+
+            // Assert
+            controller.NumberOfAbortRequests.Should().Be(0);
+            AssertServiceDisconnectNotCalled();
+            executionEvents.AssertProgressMessages(
+                connectionMessage,
+                Strings.ConnectionStepValidatinCredentials,
+                Strings.ConnectionStepRetrievingProjects,
+                Strings.ConnectionResultSuccess);
+
+            sonarQubeServiceMock.Verify(x=> x.GetAllPluginsAsync(CancellationToken.None), Times.Never);
+
+            this.sonarQubeServiceMock.Verify(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(),
+                It.IsAny<CancellationToken>()), Times.Once());
+            testSubject.ConnectedServer.Should().Be(connectionInfo);
+            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoShowErrorMessages();
+            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoNotification(NotificationIds.FailedToConnectId);
+
+            AssertCredentialsStored(connectionInfo);
         }
 
         [TestMethod]
