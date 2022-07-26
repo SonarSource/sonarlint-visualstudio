@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 Debug.Assert(dteProject != null, "When it's not folder workspace we expect dteProject not to be null");
 
-                return HasProjectJSTS(dteProject.ProjectItems);
+                return HasProjectJsTs(dteProject.ProjectItems);
             }            
         }
 
