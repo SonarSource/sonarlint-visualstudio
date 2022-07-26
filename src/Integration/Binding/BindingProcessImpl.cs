@@ -104,9 +104,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return result;
         }
 
-        public bool DiscoverProjects()
+        public bool DiscoverBindableProjects()
         {
-            if (folderWorkspaceService.IsFolderWorkspace())
+            if (folderWorkspaceService.IsFolderWorkspace() && GetBindingLanguages().Any())
             {
                 return true;
             }
@@ -313,7 +313,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             if (folderWorkspaceService.IsFolderWorkspace())
             {
-                return projectToLanguageMapper.GetAllBindingLanguagesInSolution();
+                return projectToLanguageMapper.GetAllBindingLanguagesInSolution().Where(x=> x.IsSupported);
             }
 
             var languageList = this.InternalState.BindingProjects.SelectMany(projectToLanguageMapper.GetAllBindingLanguagesForProject)
