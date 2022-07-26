@@ -20,6 +20,7 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
@@ -55,23 +56,22 @@ namespace SonarLint.VisualStudio.Integration.Binding
         
         public bool IsJsTs(Project dteProject)
         {
-            if (dteProject == null)
+            //When opened as folder there can be a dteProject if a file is open
+            //If both are true folder search takes precedense for consistency
+            if (folderWorkspaceService.IsFolderWorkspace())
             {
                 return HasFolderJSTS();
             }
             else
             {
+                Debug.Assert(dteProject != null, "When it's not folder workspace we expect dteProject not to be null");
+
                 return HasProjectJSTS(dteProject.ProjectItems);
             }            
         }
 
         private bool HasFolderJSTS()
         {
-            if (!folderWorkspaceService.IsFolderWorkspace())
-            {
-                return false;
-            }
-
             string root = folderWorkspaceService.FindRootDirectory();
 
             var fileList = fileSystem.Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories).Where(x => !x.Contains("\\node_modules\\"));

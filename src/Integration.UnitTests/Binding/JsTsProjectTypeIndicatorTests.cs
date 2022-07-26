@@ -47,7 +47,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
 
             //Sanity Check to make sure no disk search is done
-            folderWorkspaceService.Verify(f => f.IsFolderWorkspace(), Times.Never);
             folderWorkspaceService.Verify(f => f.FindRootDirectory(), Times.Never);
             directory.Verify(d => d.EnumerateFiles(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SearchOption>()), Times.Never);
 
@@ -72,7 +71,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var result = testSubject.IsJsTs(project);
 
             //Sanity Check to make sure no disk search is done
-            folderWorkspaceService.Verify(f => f.IsFolderWorkspace(), Times.Never);
             folderWorkspaceService.Verify(f => f.FindRootDirectory(), Times.Never);
             directory.Verify(d => d.EnumerateFiles(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SearchOption>()), Times.Never);
 
@@ -154,20 +152,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void IsJsTs_dteProjecetNull_NotOpenAsFolder_ReturnsFalse()
+        public void IsJsTs_dteProject_OpenAsFolder_DoesFileSearch()
         {
-            var folderWorkspaceService = CreateFolderWorkSpaceService(false);
-            var directory = CreateDirectory();
+            string fileName = "Script.js";
 
-            var testSubject = CreateTestSubject(folderWorkspaceService.Object, directory.Object);
+            var folderWorkspaceService = CreateFolderWorkSpaceService(true);
+            var directory = CreateDirectory(fileName);
+            var sonarLanguageRecognizer = CreateSonarLanguageRecognizer();
 
-            var result = testSubject.IsJsTs(null);
+            var testSubject = CreateTestSubject(folderWorkspaceService.Object, directory.Object, sonarLanguageRecognizer.Object);
+
+            var item = CreateItem(fileName);
+            var items = CreateProjectItems(item);
+            var project = CreateProject(items);
+
+            var actualResult = testSubject.IsJsTs(project);
 
             folderWorkspaceService.Verify(f => f.IsFolderWorkspace(), Times.Once);
-            folderWorkspaceService.Verify(f => f.FindRootDirectory(), Times.Never);
-            directory.Verify(d => d.EnumerateFiles(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SearchOption>()), Times.Never);
+            folderWorkspaceService.Verify(f => f.FindRootDirectory(), Times.Once);
+            directory.Verify(d => d.EnumerateFiles("Root", "*", SearchOption.AllDirectories), Times.Once);
+            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Once);
 
-            result.Should().BeFalse();
+            actualResult.Should().Be(true);
         }
 
         [DataRow("script.js", true)]
