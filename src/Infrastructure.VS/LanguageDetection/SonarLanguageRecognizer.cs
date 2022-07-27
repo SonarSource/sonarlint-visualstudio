@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
     {
         IEnumerable<AnalysisLanguage> Detect(string filePath, IContentType bufferContentType);
 
-        AnalysisLanguage? GetAnalysisLanguageFromExtension(string extension);
+        AnalysisLanguage? GetAnalysisLanguageFromExtension(string fileName);
     }
 
     [Export(typeof(ISonarLanguageRecognizer))]
@@ -124,10 +124,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
         {
             var extension = GetNormalizedExtention(fileName);
 
+            var ctype = fileExtensionRegistryService.GetContentTypeForExtension(extension);
+
             if (JavascriptSupportedExtensions.Contains(extension)) { return AnalysisLanguage.Javascript; }
-            if (IsContentType(TypeScriptTypeName, extension)) { return AnalysisLanguage.TypeScript; }
-            if (IsContentType(CFamilyTypeName, extension)) { return AnalysisLanguage.CFamily; }
-            if (IsContentType(CSharpTypeName, extension) || IsContentType(BasicTypeName, extension)) { return AnalysisLanguage.RoslynFamily; }
+            if (fileExtensionRegistryService.GetContentTypeForExtension(extension).TypeName == TypeScriptTypeName) { return AnalysisLanguage.TypeScript; }
+            if (fileExtensionRegistryService.GetContentTypeForExtension(extension).TypeName == CFamilyTypeName) { return AnalysisLanguage.CFamily; }
+            if (fileExtensionRegistryService.GetContentTypeForExtension(extension).TypeName == CSharpTypeName 
+                || fileExtensionRegistryService.GetContentTypeForExtension(extension).TypeName == BasicTypeName) { return AnalysisLanguage.RoslynFamily; }
 
             return null;
         }
@@ -143,13 +146,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
             }
             return extension.ToLowerInvariant();
         }
+        
 
-        private bool IsContentType(string typeName, string extension)
-        {
-            var contentType = contentTypeRegistryService.GetContentType(typeName);
-            var extensions = fileExtensionRegistryService.GetExtensionsForContentType(contentType);
-
-            return extensions.Contains(extension);
-        }
     }
 }

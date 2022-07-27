@@ -40,12 +40,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
         private SonarLanguageRecognizer testSubject;
 
         private Mock<IContentType> CFamilyType = new Mock<IContentType>();
-        private Mock<IContentType> JavaScriptType = new Mock<IContentType>();
         private Mock<IContentType> TypeScriptType = new Mock<IContentType>();
         private Mock<IContentType> CSharpType = new Mock<IContentType>();
         private Mock<IContentType> BasicType = new Mock<IContentType>();
-        
-
+        private Mock<IContentType> UnknownType = new Mock<IContentType>();
 
        [TestInitialize]
         public void TestInitialize()
@@ -53,7 +51,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
             contentTypeServiceMock = new Mock<IContentTypeRegistryService>();
             fileExtensionServiceMock = new Mock<IFileExtensionRegistryService>();
             testSubject = new SonarLanguageRecognizer(contentTypeServiceMock.Object, fileExtensionServiceMock.Object);
-            IsContentTypeSetup();
+            FileExtensionServiceSetup();
         }
 
         [TestMethod]
@@ -225,29 +223,30 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
             actualLanguage.Should().BeNull();
         }
 
-        private void GetContentTypeSetup()
+
+        private void FileExtensionServiceSetup()
         {
-            contentTypeServiceMock.Setup(c => c.GetContentType("C/C++")).Returns(CFamilyType.Object);
-            contentTypeServiceMock.Setup(c => c.GetContentType("JavaScript")).Returns(JavaScriptType.Object);
-            contentTypeServiceMock.Setup(c => c.GetContentType("TypeScript")).Returns(TypeScriptType.Object);
-            contentTypeServiceMock.Setup(c => c.GetContentType("CSharp")).Returns(CSharpType.Object);
-            contentTypeServiceMock.Setup(c => c.GetContentType("Basic")).Returns(BasicType.Object);
+            ContentTypesSetup();
+            GetContentTypeForExtensionSetup();
         }
 
-        private void GetExtensionsForContentTypeSetup()
+        private void GetContentTypeForExtensionSetup()
         {
-            fileExtensionServiceMock.Setup(f => f.GetExtensionsForContentType(CFamilyType.Object)).Returns(new List<string> { "c", "cpp" });
-            fileExtensionServiceMock.Setup(f => f.GetExtensionsForContentType(CSharpType.Object)).Returns(new List<string> { "cs" });
-            fileExtensionServiceMock.Setup(f => f.GetExtensionsForContentType(BasicType.Object)).Returns(new List<string> { "vb" });
-            fileExtensionServiceMock.Setup(f => f.GetExtensionsForContentType(JavaScriptType.Object)).Returns(new List<string> { });
-            fileExtensionServiceMock.Setup(f => f.GetExtensionsForContentType(TypeScriptType.Object)).Returns(new List<string> { "js", "ts", "jsx", "tsx" });
-            
+            fileExtensionServiceMock.Setup(f => f.GetContentTypeForExtension(It.IsAny<string>())).Returns(UnknownType.Object);
+            fileExtensionServiceMock.Setup(f => f.GetContentTypeForExtension("js")).Returns(TypeScriptType.Object);
+            fileExtensionServiceMock.Setup(f => f.GetContentTypeForExtension("ts")).Returns(TypeScriptType.Object);
+            fileExtensionServiceMock.Setup(f => f.GetContentTypeForExtension("cs")).Returns(CSharpType.Object);
+            fileExtensionServiceMock.Setup(f => f.GetContentTypeForExtension("vb")).Returns(BasicType.Object);
+            fileExtensionServiceMock.Setup(f => f.GetContentTypeForExtension("cpp")).Returns(CFamilyType.Object);
         }
 
-        private void IsContentTypeSetup()
+        private void ContentTypesSetup()
         {
-            GetContentTypeSetup();
-            GetExtensionsForContentTypeSetup();
+            CFamilyType.SetupGet(ct => ct.TypeName).Returns("C/C++");
+            TypeScriptType.SetupGet(ct => ct.TypeName).Returns("TypeScript");
+            CSharpType.SetupGet(ct => ct.TypeName).Returns("CSharp");
+            BasicType.SetupGet(ct => ct.TypeName).Returns("Basic");
+            UnknownType.SetupGet(ct => ct.TypeName).Returns("UNKNOWN");
         }
     }
 }

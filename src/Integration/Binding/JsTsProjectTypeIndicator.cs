@@ -75,14 +75,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             var fileList = fileSystem.Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories).Where(x => !x.Contains("\\node_modules\\"));
 
-            foreach (var file in fileList)
-            {
-                if(IsFileJsTs(file))
-                {
-                    return true;
-                }    
-            }
-            return false;
+            return (fileList.Any(IsFileJsTs));
         }
 
         private bool IsFileJsTs(string fileName)
