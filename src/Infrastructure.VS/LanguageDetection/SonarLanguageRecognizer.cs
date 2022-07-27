@@ -124,12 +124,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
         {
             var extension = GetNormalizedExtention(fileName);
 
+            var contentTypeName = fileExtensionRegistryService.GetContentTypeForExtension(extension).TypeName;
+
             // ContentType for "js" is typescript we do manual check to be consistent with Detect method
             if (JavascriptSupportedExtensions.Contains(extension)) { return AnalysisLanguage.Javascript; }
-            if (fileExtensionRegistryService.GetContentTypeForExtension(extension).TypeName == TypeScriptTypeName) { return AnalysisLanguage.TypeScript; }
-            if (fileExtensionRegistryService.GetContentTypeForExtension(extension).TypeName == CFamilyTypeName) { return AnalysisLanguage.CFamily; }
-            if (fileExtensionRegistryService.GetContentTypeForExtension(extension).TypeName == CSharpTypeName 
-                || fileExtensionRegistryService.GetContentTypeForExtension(extension).TypeName == BasicTypeName) { return AnalysisLanguage.RoslynFamily; }
+            if (contentTypeName == TypeScriptTypeName) { return AnalysisLanguage.TypeScript; }
+            if (contentTypeName == CFamilyTypeName) { return AnalysisLanguage.CFamily; }
+            if (contentTypeName == CSharpTypeName || contentTypeName == BasicTypeName) { return AnalysisLanguage.RoslynFamily; }
 
             return null;
         }
