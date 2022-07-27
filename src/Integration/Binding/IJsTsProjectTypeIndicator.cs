@@ -18,14 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.JsTs
+using EnvDTE;
+
+namespace SonarLint.VisualStudio.Integration.Binding
 {
     public interface IJsTsProjectTypeIndicator
     {
         /// <summary>
-        /// Returns true if the currently open solution has a JS/TS file.
-        /// Returns false if the solution has no JS/TS files, or if there is no open solution.
+        /// Opened As Folder: Searches all the files under the folder and it's subfolders
+        /// Opened As Solution: Searches all items for given dte project
         /// </summary>
-        bool IsJsTs();
+        /// <remarks>
+        /// If given dte project is opened as Folder. A folder search is done
+        /// </remarks>
+        /// <returns>
+        /// True if a js/ts file is found, false otherwise
+        /// </returns>
+        bool IsJsTs(Project dteProject);
     }
 }

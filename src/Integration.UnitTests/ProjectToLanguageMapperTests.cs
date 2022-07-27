@@ -19,11 +19,13 @@
  */
 
 using System;
+using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.JsTs;
+using SonarLint.VisualStudio.Integration.Binding;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -246,7 +248,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var jsTsProjectTypeIndicator = new Mock<IJsTsProjectTypeIndicator>();
 
             jsTsProjectTypeIndicator
-                .Setup(x => x.IsJsTs())
+                .Setup(x => x.IsJsTs(It.IsAny<Project>()))
                 .Returns(isJsTs);
 
             return jsTsProjectTypeIndicator;

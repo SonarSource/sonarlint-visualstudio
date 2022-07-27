@@ -31,12 +31,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
     public interface ISonarLanguageRecognizer
     {
         IEnumerable<AnalysisLanguage> Detect(string filePath, IContentType bufferContentType);
+
+        AnalysisLanguage? GetAnalysisLanguageFromExtension(string fileName);
     }
 
     [Export(typeof(ISonarLanguageRecognizer))]
     internal class SonarLanguageRecognizer : ISonarLanguageRecognizer
     {
         private static readonly ISet<string> JavascriptSupportedExtensions = new HashSet<string> { "js", "jsx", "vue" };
+
+        private const string CFamilyTypeName = "C/C++";
+        private const string TypeScriptTypeName = "TypeScript";
+        private const string CSharpTypeName = "CSharp";
+        private const string BasicTypeName = "Basic";
 
         private readonly IContentTypeRegistryService contentTypeRegistryService;
         private readonly IFileExtensionRegistryService fileExtensionRegistryService;
@@ -60,7 +67,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
             if (IsJavascriptDocument(fileExtension, contentTypes))
             {
                 detectedLanguages.Add(AnalysisLanguage.Javascript);
-            } 
+            }
             else if (IsTypeScriptDocument(contentTypes))
             {
                 detectedLanguages.Add(AnalysisLanguage.TypeScript);
@@ -112,5 +119,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
         {
             return contentTypes.Any(type => type.IsOfType("TypeScript"));
         }
+
+        public AnalysisLanguage? GetAnalysisLanguageFromExtension(string fileName)
+        {
+            var extension = GetNormalizedExtention(fileName);
+
+            // ContentType for "js" is typescript we do manual check to be consistent with Detect method
+            if (JavascriptSupportedExtensions.Contains(extension)) { return AnalysisLanguage.Javascript; }
+            if (fileExtensionRegistryService.GetContentTypeForExtension(extension).TypeName == TypeScriptTypeName) { return AnalysisLanguage.TypeScript; }
+            if (fileExtensionRegistryService.GetContentTypeForExtension(extension).TypeName == CFamilyTypeName) { return AnalysisLanguage.CFamily; }
+            if (fileExtensionRegistryService.GetContentTypeForExtension(extension).TypeName == CSharpTypeName 
+                || fileExtensionRegistryService.GetContentTypeForExtension(extension).TypeName == BasicTypeName) { return AnalysisLanguage.RoslynFamily; }
+
+            return null;
+        }
+
+        private string GetNormalizedExtention(string fileName)
+        {
+            var extension = Path.GetExtension(fileName);
+
+            if (extension.Length > 0 && extension[0] == '.')
+            {
+                //remove the leading . on extension
+                extension = extension.Substring(1);
+            }
+            return extension.ToLowerInvariant();
+        }
+        
+
     }
 }
