@@ -25,8 +25,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
     public interface IJsTsProjectTypeIndicator
     {
         /// <summary>
-        /// Returns true if the currently open solution has a JS/TS file.
-        /// Returns false if the solution has no JS/TS files, or if there is no open solution.
+        /// Returns true if the currently open solution/folder has a JS/TS file.
+        /// Returns false if the solution/folder has no JS/TS files.
         /// </summary>
         bool IsJsTs(Project dteProject);
     }

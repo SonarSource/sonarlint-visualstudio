@@ -120,9 +120,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
             return contentTypes.Any(type => type.IsOfType("TypeScript"));
         }
 
-        public AnalysisLanguage? GetAnalysisLanguageFromExtension(string extension)
+        public AnalysisLanguage? GetAnalysisLanguageFromExtension(string fileName)
         {
-            extension = NormalizeExtension(extension);
+            var extension = GetNormalizedExtention(fileName);
 
             if (JavascriptSupportedExtensions.Contains(extension)) { return AnalysisLanguage.Javascript; }
             if (IsContentType(TypeScriptTypeName, extension)) { return AnalysisLanguage.TypeScript; }
@@ -132,8 +132,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
             return null;
         }
 
-        private string NormalizeExtension(string extension)
-        {            
+        private string GetNormalizedExtention(string fileName)
+        {
+            var extension = Path.GetExtension(fileName);
+
             if (extension.Length > 0 && extension[0] == '.')
             {
                 //remove the leading . on extension

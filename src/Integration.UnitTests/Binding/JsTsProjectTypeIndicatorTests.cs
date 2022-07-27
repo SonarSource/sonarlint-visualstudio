@@ -1,10 +1,27 @@
-﻿using System;
+﻿/*
+ * SonarLint for Visual Studio
+ * Copyright (C) 2016-2022 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -20,14 +37,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
     public class JsTsProjectTypeIndicatorTests
     {
         
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-
-        }
-
         [DataRow("script.js", true)]
+        [DataRow("script.ts", true)]
         [DataRow("file.cs", false)]
         [DataRow("Folder", false)]
         [DataRow("js", false)]
@@ -74,9 +85,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             folderWorkspaceService.Verify(f => f.FindRootDirectory(), Times.Never);
             directory.Verify(d => d.EnumerateFiles(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SearchOption>()), Times.Never);
 
-            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(2));
-            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(".cs"), Times.Once);
-            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(".js"), Times.Once);
+            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(3));
+            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension("File1.cs"), Times.Exactly(2));
+            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension("Script1.js"), Times.Once);
 
             result.Should().BeTrue();
         }
@@ -111,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             var result = testSubject.IsJsTs(project);
 
-            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(4));
+            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(7));
 
             result.Should().BeTrue();
         }
@@ -146,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             var result = testSubject.IsJsTs(project);
 
-            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(7));
+            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(14));
 
             result.Should().BeFalse();
         }
@@ -176,12 +187,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             actualResult.Should().Be(true);
         }
 
-        [DataRow("script.js", true)]
-        [DataRow("file.cs", false)]
-        [DataRow("Folder", false)]
-        [DataRow("js", false)]
+        [DataRow("script.js", true, 1)]
+        [DataRow("script.ts", true, 2)]
+        [DataRow("file.cs", false, 2)]
+        [DataRow("Folder", false, 2)]
+        [DataRow("js", false, 2)]
         [TestMethod]
-        public void IsJsTs_OpenAsFolder_ReturnsCorrectly(string fileName, bool expectedResult)
+        public void IsJsTs_OpenAsFolder_ReturnsCorrectly(string fileName, bool expectedResult, int expectedGetAnalysisLanguageFromExtensionCalls)
         {
             var folderWorkspaceService = CreateFolderWorkSpaceService(true);
             var directory = CreateDirectory(fileName);
@@ -194,7 +206,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             folderWorkspaceService.Verify(f => f.IsFolderWorkspace(), Times.Once);
             folderWorkspaceService.Verify(f => f.FindRootDirectory(), Times.Once);
             directory.Verify(d => d.EnumerateFiles("Root", "*", SearchOption.AllDirectories), Times.Once);
-            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Once);
+            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(expectedGetAnalysisLanguageFromExtensionCalls));
 
             actualResult.Should().Be(expectedResult);
         }
@@ -213,8 +225,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             folderWorkspaceService.Verify(f => f.IsFolderWorkspace(), Times.Once);
             folderWorkspaceService.Verify(f => f.FindRootDirectory(), Times.Once);
             directory.Verify(d => d.EnumerateFiles("Root", "*", SearchOption.AllDirectories), Times.Once);
-            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(3));
-            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(".js"), Times.Once);
+            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(5));
+            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension("script.js"), Times.Once);
 
             actualResult.Should().Be(true);
         }
@@ -233,8 +245,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             folderWorkspaceService.Verify(f => f.IsFolderWorkspace(), Times.Once);
             folderWorkspaceService.Verify(f => f.FindRootDirectory(), Times.Once);
             directory.Verify(d => d.EnumerateFiles("Root", "*", SearchOption.AllDirectories), Times.Once);
-            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(4));
-            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(".js"), Times.Never);
+            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(8));
+            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsRegex("^.*\\.(js|JS)$")), Times.Never);
+            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsRegex("^.*\\.(ts|TS)$")), Times.Never);
 
             actualResult.Should().Be(false);
         }
@@ -321,8 +334,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var sonarLanguageRecognizer = new Mock<ISonarLanguageRecognizer>();
 
             sonarLanguageRecognizer.Setup(x => x.GetAnalysisLanguageFromExtension(It.IsAny<string>())).Returns((AnalysisLanguage?)null);
-            sonarLanguageRecognizer.Setup(x => x.GetAnalysisLanguageFromExtension(".cs")).Returns(AnalysisLanguage.RoslynFamily);
-            sonarLanguageRecognizer.Setup(x => x.GetAnalysisLanguageFromExtension(".js")).Returns(AnalysisLanguage.Javascript);
+            sonarLanguageRecognizer.Setup(x => x.GetAnalysisLanguageFromExtension(It.IsRegex("^.*\\.(cs|CS)$"))).Returns(AnalysisLanguage.RoslynFamily);
+            sonarLanguageRecognizer.Setup(x => x.GetAnalysisLanguageFromExtension(It.IsRegex("^.*\\.(js|JS)$"))).Returns(AnalysisLanguage.Javascript);
+            sonarLanguageRecognizer.Setup(x => x.GetAnalysisLanguageFromExtension(It.IsRegex("^.*\\.(ts|TS)$"))).Returns(AnalysisLanguage.TypeScript);
 
             return sonarLanguageRecognizer;
         }

@@ -55,20 +55,21 @@ namespace SonarLint.VisualStudio.Integration.Binding
         public bool IsJsTs(Project dteProject)
         {
             //When opened as folder there can be a dteProject if a file is open
-            //If both are true folder search takes precedense for consistency
+            //If there is a dteProject and it's opened as a folder
+            //Folder search takes precedense for consistency
             if (folderWorkspaceService.IsFolderWorkspace())
             {
-                return HasFolderJsTs();
+                return HasJsTsFileOnDisk();
             }
             else
             {
                 Debug.Assert(dteProject != null, "When it's not folder workspace we expect dteProject not to be null");
 
-                return HasProjectJsTs(dteProject.ProjectItems);
+                return HasJsTsFileInProject(dteProject.ProjectItems);
             }            
         }
 
-        private bool HasFolderJsTs()
+        private bool HasJsTsFileOnDisk()
         {
             string root = folderWorkspaceService.FindRootDirectory();
 
@@ -86,11 +87,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private bool IsFileJsTs(string fileName)
         {
-            var extension = Path.GetExtension(fileName);
-            return sonarLanguageRecognizer.GetAnalysisLanguageFromExtension(extension) == Core.Analysis.AnalysisLanguage.Javascript;
+            return sonarLanguageRecognizer.GetAnalysisLanguageFromExtension(fileName) == Core.Analysis.AnalysisLanguage.Javascript
+                || sonarLanguageRecognizer.GetAnalysisLanguageFromExtension(fileName) == Core.Analysis.AnalysisLanguage.TypeScript;
         }
 
-        private bool HasProjectJsTs(ProjectItems projectItems)
+        private bool HasJsTsFileInProject(ProjectItems projectItems)
         {
 
             foreach (ProjectItem item in projectItems)
@@ -101,7 +102,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 }
                 if (item.ProjectItems?.Count > 0)
                 {
-                    if (HasProjectJsTs(item.ProjectItems))
+                    if (HasJsTsFileInProject(item.ProjectItems))
                     {
                         return true;
                     }

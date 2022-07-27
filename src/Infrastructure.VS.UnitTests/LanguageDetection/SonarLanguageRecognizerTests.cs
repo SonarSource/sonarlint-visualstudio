@@ -200,27 +200,27 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
             result.First().Should().Be(AnalysisLanguage.Javascript);
         }
 
-        [DataRow("cs", AnalysisLanguage.RoslynFamily)]
-        [DataRow("CS", AnalysisLanguage.RoslynFamily)]
-        [DataRow(".cs", AnalysisLanguage.RoslynFamily)]
-        [DataRow(".CS", AnalysisLanguage.RoslynFamily)]
-        [DataRow("vb", AnalysisLanguage.RoslynFamily)]
-        [DataRow("js", AnalysisLanguage.Javascript)]
-        [DataRow("ts", AnalysisLanguage.TypeScript)]
-        [DataRow("cpp", AnalysisLanguage.CFamily)]
+        [DataRow("File.cs", AnalysisLanguage.RoslynFamily)]
+        [DataRow("File.CS", AnalysisLanguage.RoslynFamily)]
+        [DataRow("File.vb", AnalysisLanguage.RoslynFamily)]
+        [DataRow("File.js", AnalysisLanguage.Javascript)]
+        [DataRow("File.ts", AnalysisLanguage.TypeScript)]
+        [DataRow("File.cpp", AnalysisLanguage.CFamily)]
         [TestMethod]
-        public void GetAnalysisLanguageFromExtension_ReturnsAnalysisLangFromExtension(string extension, AnalysisLanguage expectedLanguage)
+        public void GetAnalysisLanguageFromExtension_ReturnsAnalysisLangFromExtension(string fileName, AnalysisLanguage expectedLanguage)
         {
-            var actualLanguage = testSubject.GetAnalysisLanguageFromExtension(extension);
+            var actualLanguage = testSubject.GetAnalysisLanguageFromExtension(fileName);
 
             actualLanguage.Should().NotBeNull();
             actualLanguage.Value.Should().Be(expectedLanguage);
         }
 
+        [DataRow("File.json")]
+        [DataRow("Folder")]
         [TestMethod]
-        public void GetAnalysisLanguageFromExtension_UnknownExtensionPassed_ReturnsNull()
+        public void GetAnalysisLanguageFromExtension_UnknownExtensionPassed_ReturnsNull(string fileName)
         {
-            var actualLanguage = testSubject.GetAnalysisLanguageFromExtension("*.json");
+            var actualLanguage = testSubject.GetAnalysisLanguageFromExtension(fileName);
 
             actualLanguage.Should().BeNull();
         }
