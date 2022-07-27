@@ -87,8 +87,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private bool IsFileJsTs(string fileName)
         {
-            return sonarLanguageRecognizer.GetAnalysisLanguageFromExtension(fileName) == Core.Analysis.AnalysisLanguage.Javascript
-                || sonarLanguageRecognizer.GetAnalysisLanguageFromExtension(fileName) == Core.Analysis.AnalysisLanguage.TypeScript;
+            var analysisLanguage = sonarLanguageRecognizer.GetAnalysisLanguageFromExtension(fileName);
+            return analysisLanguage == Core.Analysis.AnalysisLanguage.Javascript || analysisLanguage == Core.Analysis.AnalysisLanguage.TypeScript;
         }
 
         private bool HasJsTsFileInProject(ProjectItems projectItems)
