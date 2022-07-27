@@ -39,12 +39,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
         private Mock<IFileExtensionRegistryService> fileExtensionServiceMock;
         private SonarLanguageRecognizer testSubject;
 
+        private Mock<IContentType> CFamilyType = new Mock<IContentType>();
+        private Mock<IContentType> TypeScriptType = new Mock<IContentType>();
+        private Mock<IContentType> CSharpType = new Mock<IContentType>();
+        private Mock<IContentType> BasicType = new Mock<IContentType>();
+        private Mock<IContentType> UnknownType = new Mock<IContentType>();
+
        [TestInitialize]
         public void TestInitialize()
         {
             contentTypeServiceMock = new Mock<IContentTypeRegistryService>();
             fileExtensionServiceMock = new Mock<IFileExtensionRegistryService>();
             testSubject = new SonarLanguageRecognizer(contentTypeServiceMock.Object, fileExtensionServiceMock.Object);
+            FileExtensionServiceSetup();
         }
 
         [TestMethod]
@@ -189,6 +196,57 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
 
             result.Should().HaveCount(1);
             result.First().Should().Be(AnalysisLanguage.Javascript);
+        }
+
+        [DataRow("File.cs", AnalysisLanguage.RoslynFamily)]
+        [DataRow("File.CS", AnalysisLanguage.RoslynFamily)]
+        [DataRow("File.vb", AnalysisLanguage.RoslynFamily)]
+        [DataRow("File.js", AnalysisLanguage.Javascript)]
+        [DataRow("File.ts", AnalysisLanguage.TypeScript)]
+        [DataRow("File.cpp", AnalysisLanguage.CFamily)]
+        [TestMethod]
+        public void GetAnalysisLanguageFromExtension_ReturnsAnalysisLangFromExtension(string fileName, AnalysisLanguage expectedLanguage)
+        {
+            var actualLanguage = testSubject.GetAnalysisLanguageFromExtension(fileName);
+
+            actualLanguage.Should().NotBeNull();
+            actualLanguage.Value.Should().Be(expectedLanguage);
+        }
+
+        [DataRow("File.json")]
+        [DataRow("Folder")]
+        [TestMethod]
+        public void GetAnalysisLanguageFromExtension_UnknownExtensionPassed_ReturnsNull(string fileName)
+        {
+            var actualLanguage = testSubject.GetAnalysisLanguageFromExtension(fileName);
+
+            actualLanguage.Should().BeNull();
+        }
+
+
+        private void FileExtensionServiceSetup()
+        {
+            ContentTypesSetup();
+            GetContentTypeForExtensionSetup();
+        }
+
+        private void GetContentTypeForExtensionSetup()
+        {
+            fileExtensionServiceMock.Setup(f => f.GetContentTypeForExtension(It.IsAny<string>())).Returns(UnknownType.Object);
+            fileExtensionServiceMock.Setup(f => f.GetContentTypeForExtension("js")).Returns(TypeScriptType.Object);
+            fileExtensionServiceMock.Setup(f => f.GetContentTypeForExtension("ts")).Returns(TypeScriptType.Object);
+            fileExtensionServiceMock.Setup(f => f.GetContentTypeForExtension("cs")).Returns(CSharpType.Object);
+            fileExtensionServiceMock.Setup(f => f.GetContentTypeForExtension("vb")).Returns(BasicType.Object);
+            fileExtensionServiceMock.Setup(f => f.GetContentTypeForExtension("cpp")).Returns(CFamilyType.Object);
+        }
+
+        private void ContentTypesSetup()
+        {
+            CFamilyType.SetupGet(ct => ct.TypeName).Returns("C/C++");
+            TypeScriptType.SetupGet(ct => ct.TypeName).Returns("TypeScript");
+            CSharpType.SetupGet(ct => ct.TypeName).Returns("CSharp");
+            BasicType.SetupGet(ct => ct.TypeName).Returns("Basic");
+            UnknownType.SetupGet(ct => ct.TypeName).Returns("UNKNOWN");
         }
     }
 }
