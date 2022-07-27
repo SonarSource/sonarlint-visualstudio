@@ -315,7 +315,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             if (csharpOrVbNetProjects.Count == 0)
             {
-                return Strings.SolutionContainsNoSupportedProject;
+                return Strings.SolutionContainsNoSupportedProjects;
             }
 
             var supportedPluginsNames = string.Join(", ", this.host.SupportedPluginLanguages.Select(p => p.Name));

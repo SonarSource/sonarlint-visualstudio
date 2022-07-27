@@ -1091,11 +1091,11 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This solution contains no supported project language (C#, VB.Net). Please create at least one project of the supported language and then try to reconnect..
+        ///   Looks up a localized string similar to This solution does not contain any supported languages (C#, VB.Net, C, C++, JavaScript, TypeScript). Please create at least one project using a supported language and then try to reconnect..
         /// </summary>
-        public static string SolutionContainsNoSupportedProject {
+        public static string SolutionContainsNoSupportedProjects {
             get {
-                return ResourceManager.GetString("SolutionContainsNoSupportedProject", resourceCulture);
+                return ResourceManager.GetString("SolutionContainsNoSupportedProjects", resourceCulture);
             }
         }
         
