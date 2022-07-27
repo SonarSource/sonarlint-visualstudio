@@ -123,16 +123,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
         public AnalysisLanguage? GetAnalysisLanguageFromExtension(string fileName)
         {
             var extension = GetNormalizedExtention(fileName);
-
-            var contentTypeName = fileExtensionRegistryService.GetContentTypeForExtension(extension).TypeName;
-
+            
             // ContentType for "js" is typescript we do manual check to be consistent with Detect method
             if (JavascriptSupportedExtensions.Contains(extension)) { return AnalysisLanguage.Javascript; }
-            if (contentTypeName == TypeScriptTypeName) { return AnalysisLanguage.TypeScript; }
-            if (contentTypeName == CFamilyTypeName) { return AnalysisLanguage.CFamily; }
-            if (contentTypeName == CSharpTypeName || contentTypeName == BasicTypeName) { return AnalysisLanguage.RoslynFamily; }
 
-            return null;
+            var contentTypeName = fileExtensionRegistryService.GetContentTypeForExtension(extension).TypeName;
+            switch (contentTypeName)
+            {
+                case TypeScriptTypeName:
+                    return AnalysisLanguage.TypeScript;
+                case CFamilyTypeName:
+                    return AnalysisLanguage.CFamily;
+                case CSharpTypeName:
+                case BasicTypeName:
+                    return AnalysisLanguage.RoslynFamily;
+                default:
+                    return null;                   
+            }
         }
 
         private string GetNormalizedExtention(string fileName)
