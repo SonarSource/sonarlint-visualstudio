@@ -171,13 +171,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     return;
                 }
 
-                var languageForProject = projectToLanguageMapper.GetAllBindingLanguagesForProject(project).First();
-                var bindingConfigFile = GetBindingConfig(languageForProject);
-
                 var projectBinder = projectBinderFactory.Get(project);
-                var bindAction = projectBinder.GetBindAction(bindingConfigFile, project, token);
 
-                projectBinders.Add(bindAction);
+                // Not every language requires project-level binding
+                if (projectBinder != null)
+                {
+                    var languageForProject = projectToLanguageMapper.GetAllBindingLanguagesForProject(project).First();
+                    var bindingConfigFile = GetBindingConfig(languageForProject);
+                    var bindAction = projectBinder.GetBindAction(bindingConfigFile, project, token);
+                    projectBinders.Add(bindAction);
+                }
             }
         }
 
