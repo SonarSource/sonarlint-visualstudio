@@ -30,7 +30,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Flavor;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -45,6 +44,7 @@ namespace SonarLint.VisualStudio.Integration
         internal const string VbCoreProjectKind = "{778DAE3C-4631-46EA-AA77-85C1314464D9}";
         internal const string CSharpCoreProjectKind = "{9A19103F-16F7-4668-BE54-9A1E7A4F7556}";
         internal const string CppProjectKind = "{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}";
+        internal const string NodeJSProjectKind = "{9092aa53-fb77-4645-b42d-1ccca6bd08bd}";
 
         internal const string TestProjectKind = "{3AC096D0-A1C2-E12C-1390-A8335801FDAB}";
         internal static readonly Guid TestProjectKindGuid = new Guid(TestProjectKind);

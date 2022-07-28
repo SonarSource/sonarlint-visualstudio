@@ -381,6 +381,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ProjectKind = ProjectSystemHelper.VbProjectKind;
         }
 
+        public void SetNodeProjectKind()
+        {
+            this.ProjectKind = ProjectSystemHelper.NodeJSProjectKind;
+        }
+
         public string GetBuildProperty(string propertyName, string configuration = "")
         {
             string value;

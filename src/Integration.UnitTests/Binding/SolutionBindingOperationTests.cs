@@ -223,8 +223,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var vbBinder = new Mock<IProjectBinder>();
             var vbCommitAction = new Mock<BindProject>();
 
+            // Regression test for #3129
+            // https://github.com/SonarSource/sonarlint-visualstudio/issues/3129
+            var nodeProject = this.solutionMock.AddOrGetProject("Node.njsproj");
+            nodeProject.SetNodeProjectKind();
+
             projectBinderFactoryMock.Setup(x => x.Get(csProject)).Returns(csBinder.Object);
             projectBinderFactoryMock.Setup(x => x.Get(vbProject)).Returns(vbBinder.Object);
+            // Node projects don't have a project-level binder.
+            projectBinderFactoryMock.Setup(x => x.Get(nodeProject)).Returns<IProjectBinder>(null);
 
             csBinder
                 .Setup(x => x.GetBindAction(csConfigFile.Object, csProject, CancellationToken.None))
@@ -233,7 +240,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             vbBinder.Setup(x => x.GetBindAction(vbConfigFile.Object, vbProject, CancellationToken.None))
                 .Returns(vbCommitAction.Object);
 
-            var projects = new[] { csProject, vbProject };
+            var projects = new[] { csProject, vbProject, nodeProject };
 
             var testSubject = CreateTestSubject();
 
