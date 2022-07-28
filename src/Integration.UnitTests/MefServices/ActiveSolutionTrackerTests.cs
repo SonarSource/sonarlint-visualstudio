@@ -21,6 +21,8 @@
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -43,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             int counter = 0;
-            var testSubject = new ActiveSolutionTracker(this.serviceProvider);
+            var testSubject = CreateTestSubject();
             testSubject.ActiveSolutionChanged += (o, e) => counter++;
             testSubject.Dispose();
 
@@ -61,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             int counter = 0;
             bool isSolutionOpenArg = false;
-            var testSubject = new ActiveSolutionTracker(this.serviceProvider);
+            var testSubject = CreateTestSubject();
             testSubject.ActiveSolutionChanged += (o, e) => { counter++; isSolutionOpenArg = e.IsSolutionOpen; };
 
             // Act
@@ -78,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             int counter = 0;
             bool isSolutionOpenEventArg = true;
-            var testSubject = new ActiveSolutionTracker(this.serviceProvider);
+            var testSubject = CreateTestSubject();
             testSubject.ActiveSolutionChanged += (o, e) => { counter++; isSolutionOpenEventArg = e.IsSolutionOpen; };
 
             // Act
@@ -95,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             int counter = 0;
             bool isSolutionOpenArg = false;
-            var testSubject = new ActiveSolutionTracker(this.serviceProvider);
+            var testSubject = CreateTestSubject();
             testSubject.ActiveSolutionChanged += (o, e) => { counter++; isSolutionOpenArg = e.IsSolutionOpen; };
 
             // Act
@@ -105,5 +107,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             counter.Should().Be(1, nameof(testSubject.ActiveSolutionChanged) + " was expected to be raised");
             isSolutionOpenArg.Should().BeTrue();
         }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void FolderWorkspaceInitializedEvent_RaiseEventOnProjectOpenedIfFolderWorkspace(bool isFolderWorkspace)
+        {
+            // Arrange
+            int counter = 0;
+            var testSubject = CreateTestSubject(isFolderWorkspace);
+            testSubject.FolderWorkspaceInitialized += (o, e) => { counter++; };
+
+            // Act
+            this.solutionMock.SimulateProjectOpen(null);
+
+            // Assert
+            counter.Should().Be(isFolderWorkspace ? 1 : 0);
+        }
+
+        private ActiveSolutionTracker CreateTestSubject(bool? isFolderWorkspace = null)
+        {
+            var folderWorkspaceFolder = new Mock<IFolderWorkspaceService>();
+            folderWorkspaceFolder.Setup(x => x.IsFolderWorkspace()).Returns(isFolderWorkspace ?? false);
+          
+            return new ActiveSolutionTracker(serviceProvider, folderWorkspaceFolder.Object);
+        }
+
     }
 }

@@ -21,20 +21,21 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration
 {
     [Export(typeof(IActiveSolutionTracker))]
+    [Export(typeof(IFolderWorkspaceInitializedEvent))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class ActiveSolutionTracker : IActiveSolutionTracker, IVsSolutionEvents, IDisposable, IVsSolutionEvents7
+    internal sealed class ActiveSolutionTracker : IActiveSolutionTracker, IFolderWorkspaceInitializedEvent, IVsSolutionEvents, IDisposable, IVsSolutionEvents7
     {
+        private readonly IFolderWorkspaceService folderWorkspaceService;
         private bool isDisposed;
         private readonly IVsSolution solution;
         private readonly uint cookie;
@@ -44,9 +45,12 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         public event EventHandler<ActiveSolutionChangedEventArgs> ActiveSolutionChanged;
 
+        public event EventHandler FolderWorkspaceInitialized;
+
         [ImportingConstructor]
-        public ActiveSolutionTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public ActiveSolutionTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IFolderWorkspaceService folderWorkspaceService)
         {
+            this.folderWorkspaceService = folderWorkspaceService;
             this.solution = serviceProvider.GetService<SVsSolution, IVsSolution>();
             Debug.Assert(this.solution != null, "Cannot find IVsSolution");
             ErrorHandler.ThrowOnFailure(this.solution.AdviseSolutionEvents(this, out this.cookie));
@@ -55,6 +59,10 @@ namespace SonarLint.VisualStudio.Integration
         #region IVsSolutionEvents
         int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
         {
+            if (folderWorkspaceService.IsFolderWorkspace())
+            {
+                FolderWorkspaceInitialized?.Invoke(this, EventArgs.Empty);
+            }
             return VSConstants.S_OK;
         }
 
