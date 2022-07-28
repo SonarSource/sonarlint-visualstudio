@@ -39,19 +39,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
     internal sealed class TaintIssuesBindingMonitor : ITaintIssuesBindingMonitor
     {
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private readonly IFolderWorkspaceInitializedEvent folderWorkspaceInitializedEvent;
+        private readonly IFolderWorkspaceMonitor folderWorkspaceMonitor;
         private readonly ITaintIssuesSynchronizer taintIssuesSynchronizer;
 
         [ImportingConstructor]
         public TaintIssuesBindingMonitor(IActiveSolutionBoundTracker activeSolutionBoundTracker,
-            IFolderWorkspaceInitializedEvent folderWorkspaceInitializedEvent,
+            IFolderWorkspaceMonitor folderWorkspaceMonitor,
             ITaintIssuesSynchronizer taintIssuesSynchronizer)
         {
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
-            this.folderWorkspaceInitializedEvent = folderWorkspaceInitializedEvent;
+            this.folderWorkspaceMonitor = folderWorkspaceMonitor;
             this.taintIssuesSynchronizer = taintIssuesSynchronizer;
 
-            folderWorkspaceInitializedEvent.FolderWorkspaceInitialized += FolderWorkspaceInitializedEvent_FolderWorkspaceInitialized;
+            folderWorkspaceMonitor.FolderWorkspaceInitialized += FolderWorkspaceInitializedEvent_FolderWorkspaceInitialized;
             activeSolutionBoundTracker.SolutionBindingChanged += ActiveSolutionBoundTracker_SolutionBindingChanged;
             activeSolutionBoundTracker.SolutionBindingUpdated += ActiveSolutionBoundTracker_SolutionBindingUpdated;
         }
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
         public void Dispose()
         {
-            folderWorkspaceInitializedEvent.FolderWorkspaceInitialized -= FolderWorkspaceInitializedEvent_FolderWorkspaceInitialized;
+            folderWorkspaceMonitor.FolderWorkspaceInitialized -= FolderWorkspaceInitializedEvent_FolderWorkspaceInitialized;
             activeSolutionBoundTracker.SolutionBindingChanged -= ActiveSolutionBoundTracker_SolutionBindingChanged;
             activeSolutionBoundTracker.SolutionBindingUpdated -= ActiveSolutionBoundTracker_SolutionBindingUpdated;
         }

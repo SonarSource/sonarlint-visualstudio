@@ -125,10 +125,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             counter.Should().Be(isFolderWorkspace ? 1 : 0);
         }
 
-        private ActiveSolutionTracker CreateTestSubject(bool? isFolderWorkspace = null)
+        private ActiveSolutionTracker CreateTestSubject(bool isFolderWorkspace = false)
         {
             var folderWorkspaceFolder = new Mock<IFolderWorkspaceService>();
-            folderWorkspaceFolder.Setup(x => x.IsFolderWorkspace()).Returns(isFolderWorkspace ?? false);
+            folderWorkspaceFolder.Setup(x => x.IsFolderWorkspace()).Returns(isFolderWorkspace);
           
             return new ActiveSolutionTracker(serviceProvider, folderWorkspaceFolder.Object);
         }

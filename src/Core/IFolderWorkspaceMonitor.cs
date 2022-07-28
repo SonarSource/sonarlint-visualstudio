@@ -23,8 +23,17 @@ using System;
 
 namespace SonarLint.VisualStudio.Core
 {
-    public interface IFolderWorkspaceInitializedEvent
+    public interface IFolderWorkspaceMonitor
     {
+        /// <summary>
+        /// The event is raised whenever a folder workspace is initialized by VS to have an underlying VsHierarchy.
+        /// </summary>
+        /// <remarks>
+        /// When a folder is opened, before any file is actually opened, VS does not structure a proper VsHierarchy and DTE.
+        /// Only when a file is actually opened that VS initializes it to be "Miscellaneous Files" project.
+        /// We need this event since certain parts of our code, i.e. <see cref="IAbsoluteFilePathLocator"/>,
+        /// rely on VsHierarchy being initialized by the time they're called.
+        /// </remarks>
         event EventHandler FolderWorkspaceInitialized;
     }
 }

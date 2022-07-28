@@ -31,9 +31,9 @@ using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 namespace SonarLint.VisualStudio.Integration
 {
     [Export(typeof(IActiveSolutionTracker))]
-    [Export(typeof(IFolderWorkspaceInitializedEvent))]
+    [Export(typeof(IFolderWorkspaceMonitor))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class ActiveSolutionTracker : IActiveSolutionTracker, IFolderWorkspaceInitializedEvent, IVsSolutionEvents, IDisposable, IVsSolutionEvents7
+    internal sealed class ActiveSolutionTracker : IActiveSolutionTracker, IFolderWorkspaceMonitor, IVsSolutionEvents, IDisposable, IVsSolutionEvents7
     {
         private readonly IFolderWorkspaceService folderWorkspaceService;
         private bool isDisposed;

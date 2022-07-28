@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             MefTestHelpers.CheckTypeCanBeImported<TaintIssuesBindingMonitor, ITaintIssuesBindingMonitor>(null, new[]
             {
                 MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(Mock.Of<IActiveSolutionBoundTracker>()),
-                MefTestHelpers.CreateExport<IFolderWorkspaceInitializedEvent>(Mock.Of<IFolderWorkspaceInitializedEvent>()),
+                MefTestHelpers.CreateExport<IFolderWorkspaceMonitor>(Mock.Of<IFolderWorkspaceMonitor>()),
                 MefTestHelpers.CreateExport<ITaintIssuesSynchronizer>(Mock.Of<ITaintIssuesSynchronizer>())
             });
         }
@@ -48,9 +48,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         {
             var synchronizer = new Mock<ITaintIssuesSynchronizer>();
             var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
-            var folderWorkspaceInitialized = new Mock<IFolderWorkspaceInitializedEvent>();
+            var folderWorkspaceInitialized = new Mock<IFolderWorkspaceMonitor>();
 
             new TaintIssuesBindingMonitor(activeSolutionBoundTracker.Object, folderWorkspaceInitialized.Object, synchronizer.Object);
+            synchronizer.Invocations.Clear();
 
             activeSolutionBoundTracker.Raise(x=> x.SolutionBindingUpdated += null, EventArgs.Empty);
 
@@ -62,9 +63,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         {
             var synchronizer = new Mock<ITaintIssuesSynchronizer>();
             var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
-            var folderWorkspaceInitialized = new Mock<IFolderWorkspaceInitializedEvent>();
+            var folderWorkspaceInitialized = new Mock<IFolderWorkspaceMonitor>();
 
             new TaintIssuesBindingMonitor(activeSolutionBoundTracker.Object, folderWorkspaceInitialized.Object, synchronizer.Object);
+            synchronizer.Invocations.Clear();
 
             activeSolutionBoundTracker.Raise(x => x.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(BindingConfiguration.Standalone));
 
@@ -76,9 +78,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         {
             var synchronizer = new Mock<ITaintIssuesSynchronizer>();
             var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
-            var folderWorkspaceInitialized = new Mock<IFolderWorkspaceInitializedEvent>();
+            var folderWorkspaceInitialized = new Mock<IFolderWorkspaceMonitor>();
 
             new TaintIssuesBindingMonitor(activeSolutionBoundTracker.Object, folderWorkspaceInitialized.Object, synchronizer.Object);
+            synchronizer.Invocations.Clear();
 
             folderWorkspaceInitialized.Raise(x => x.FolderWorkspaceInitialized += null, EventArgs.Empty);
 
@@ -90,10 +93,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         {
             var synchronizer = new Mock<ITaintIssuesSynchronizer>();
             var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
-            var folderWorkspaceInitialized = new Mock<IFolderWorkspaceInitializedEvent>();
+            var folderWorkspaceInitialized = new Mock<IFolderWorkspaceMonitor>();
 
             var testSubject = new TaintIssuesBindingMonitor(activeSolutionBoundTracker.Object, folderWorkspaceInitialized.Object, synchronizer.Object);
             testSubject.Dispose();
+            synchronizer.Invocations.Clear();
 
             folderWorkspaceInitialized.Raise(x => x.FolderWorkspaceInitialized += null, EventArgs.Empty);
             activeSolutionBoundTracker.Raise(x => x.SolutionBindingUpdated += null, EventArgs.Empty);
