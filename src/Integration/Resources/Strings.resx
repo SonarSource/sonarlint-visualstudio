@@ -620,9 +620,9 @@ This is the general format to use when writing errors to output window or when t
     <value>Detecting server plugins</value>
     <comment>Output window message printed before accessing to server plugins.</comment>
   </data>
-  <data name="SolutionContainsNoSupportedProject" xml:space="preserve">
-    <value>This solution contains no supported project language (C#, VB.Net). Please create at least one project of the supported language and then try to reconnect.</value>
-    <comment>Output window message printed when some server plugin are supported but the current solution contains no supported project (based on project type GUID).</comment>
+  <data name="SolutionContainsNoSupportedProjects" xml:space="preserve">
+    <value>This solution does not contain any supported languages (C#, VB.Net, C, C++, JavaScript, TypeScript). Please create at least one project using a supported language and then try to reconnect.</value>
+    <comment>Output window message printed when some server plugin are supported but the current solution contains no supported project.</comment>
   </data>
   <data name="BindingProjectLanguageNotMatchingAnyQualityProfileLanguage" xml:space="preserve">
     <value>Language for project '{0}' is not matching any of the available quality profile's languages</value>
@@ -777,7 +777,7 @@ This is the general format to use when writing errors to output window or when t
   </data>
   <data name="SaveServerExclusionsMessage" xml:space="preserve">
     <value>Downloading Server Exclusions</value>
-    </data>
+  </data>
   <data name="SonarLintFoundUnboundSolution" xml:space="preserve">
     <value>Some binding configuration is missing. Please rebind the solution.</value>
     <comment>Output window message</comment>

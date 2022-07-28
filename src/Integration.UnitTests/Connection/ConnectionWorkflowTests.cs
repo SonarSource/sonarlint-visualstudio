@@ -294,7 +294,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 Strings.DetectingSonarQubePlugins,
                 Strings.ConnectionResultFailure);
             projectChangedCallbackCalled.Should().BeFalse("ConnectedProjectsCallaback was called");
-            notifications.AssertNotification(NotificationIds.BadSonarQubePluginId, Strings.SolutionContainsNoSupportedProject);
+            notifications.AssertNotification(NotificationIds.BadSonarQubePluginId, Strings.SolutionContainsNoSupportedProjects);
 
             AssertCredentialsNotStored(); // Username and password are null
         }
