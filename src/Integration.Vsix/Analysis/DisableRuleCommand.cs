@@ -192,6 +192,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         private static void CalculateStatuses(SonarCompositeRuleId rule, SonarLintMode mode, out bool isVisible, out bool isEnabled)
         {
+            // Special case: Secrets
+            // We don't support connected mode for Secrets at the moment so we allow disabling
+            // secrets rules in connected mode.
             if (SonarRuleRepoKeys.AreEqual(SonarRuleRepoKeys.Secrets, rule.RepoKey))
             {
                 isVisible = true;
