@@ -182,6 +182,40 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         [TestMethod]
+        public async Task HasSuggestedActionsAsync_NonCriticalException_Suppressed()
+        {
+            // Regression test for #3122: Goldbar thrown when opening and quickly closing a .ts file
+            // https://github.com/SonarSource/sonarlint-visualstudio/issues/3122
+
+            var logger = new TestLogger();
+            var tagAggregator = CreateThrowingAggregator(new InvalidOperationException("this is a test"));
+
+            var testSubject = CreateTestSubject(tagAggregator.Object, logger: logger);
+
+            var hasSuggestedActions = await testSubject.HasSuggestedActionsAsync(null, mockSpan, CancellationToken.None);
+
+            hasSuggestedActions.Should().Be(false);
+            tagAggregator.VerifyAll();
+            logger.AssertPartialOutputStringExists("this is a test");
+        }
+
+        [TestMethod]
+        public async Task HasSuggestedActionsAsync_CriticalException_IsNotSuppressed()
+        {
+            var logger = new TestLogger();
+            var tagAggregator = CreateThrowingAggregator(new StackOverflowException("this is a test"));
+
+            var testSubject = CreateTestSubject(tagAggregator.Object, logger: logger);
+
+            Func<Task<bool>> func = async () => await testSubject.HasSuggestedActionsAsync(null, mockSpan, CancellationToken.None);
+
+            func.Should().ThrowExactly<StackOverflowException>().And
+                .Message.Should().Be("this is a test");
+            
+            logger.AssertPartialOutputStringDoesNotExist("this is a test");
+        }
+
+        [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
         public void GetSuggestedActions_NoIssuesWithQuickFixes_NoActions(bool hasIssues)
@@ -244,10 +278,43 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             quickFixSuggestedActions.Select(x => x.DisplayText).Should().BeEquivalentTo(QuickFixSuggestedAction.sonarLintPrefix + "fix2", QuickFixSuggestedAction.sonarLintPrefix + "fix3", QuickFixSuggestedAction.sonarLintPrefix + "fix6");
         }
 
+        [TestMethod]
+        public async Task GetSuggestedActionsAsync_NonCriticalException_Suppressed()
+        {
+            var logger = new TestLogger();
+            var tagAggregator = CreateThrowingAggregator(new InvalidOperationException("this is a test"));
+
+            var testSubject = CreateTestSubject(tagAggregator.Object, logger: logger);
+
+            var actual = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
+
+            actual.Should().NotBeNull();
+            actual.Should().BeEmpty();
+            tagAggregator.VerifyAll();
+            logger.AssertPartialOutputStringExists("this is a test");
+        }
+
+        [TestMethod]
+        public async Task GetSuggestedActionsAsync_CriticalException_IsNotSuppressed()
+        {
+            var logger = new TestLogger();
+            var tagAggregator = CreateThrowingAggregator(new StackOverflowException("this is a test"));
+
+            var testSubject = CreateTestSubject(tagAggregator.Object, logger: logger);
+
+            Action act = () => testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
+
+            act.Should().ThrowExactly<StackOverflowException>().And
+                .Message.Should().Be("this is a test");
+            logger.AssertPartialOutputStringDoesNotExist("this is a test");
+        }
+
         private QuickFixActionsSource CreateTestSubject(ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator,
-            ILightBulbBroker lightBulbBroker = null)
+            ILightBulbBroker lightBulbBroker = null,
+            ILogger logger = null)
         {
             lightBulbBroker ??= Mock.Of<ILightBulbBroker>();
+            logger = logger ?? Mock.Of<ILogger>();
 
             var bufferTagAggregatorFactoryService = new Mock<IBufferTagAggregatorFactoryService>();
 
@@ -261,7 +328,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 bufferTagAggregatorFactoryService.Object, 
                 textView,
                 Mock.Of<IQuickFixesTelemetryManager>(),
-                Mock.Of<ILogger>(),
+                logger,
                 threadHandling);
         }
 
@@ -293,6 +360,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             quickFixViz.Setup(x => x.Fix.Message).Returns(message);
 
             return quickFixViz.Object;
+        }
+
+        private static Mock<ITagAggregator<IIssueLocationTag>> CreateThrowingAggregator(Exception ex)
+        {
+            var throwingAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+            throwingAggregator.Setup(x => x.GetTags(It.IsAny<SnapshotSpan>())).Throws(ex);
+            return throwingAggregator;
         }
     }
 }
