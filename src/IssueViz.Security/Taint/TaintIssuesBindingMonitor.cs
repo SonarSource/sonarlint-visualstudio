@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
@@ -38,16 +39,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
     internal sealed class TaintIssuesBindingMonitor : ITaintIssuesBindingMonitor
     {
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private readonly IFolderWorkspaceMonitor folderWorkspaceMonitor;
         private readonly ITaintIssuesSynchronizer taintIssuesSynchronizer;
 
         [ImportingConstructor]
-        public TaintIssuesBindingMonitor(IActiveSolutionBoundTracker activeSolutionBoundTracker, ITaintIssuesSynchronizer taintIssuesSynchronizer)
+        public TaintIssuesBindingMonitor(IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            IFolderWorkspaceMonitor folderWorkspaceMonitor,
+            ITaintIssuesSynchronizer taintIssuesSynchronizer)
         {
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+            this.folderWorkspaceMonitor = folderWorkspaceMonitor;
             this.taintIssuesSynchronizer = taintIssuesSynchronizer;
 
+            folderWorkspaceMonitor.FolderWorkspaceInitialized += FolderWorkspaceInitializedEvent_FolderWorkspaceInitialized;
             activeSolutionBoundTracker.SolutionBindingChanged += ActiveSolutionBoundTracker_SolutionBindingChanged;
             activeSolutionBoundTracker.SolutionBindingUpdated += ActiveSolutionBoundTracker_SolutionBindingUpdated;
+        }
+
+        private async void FolderWorkspaceInitializedEvent_FolderWorkspaceInitialized(object sender, EventArgs e)
+        {
+            await Sync();
         }
 
         private async void ActiveSolutionBoundTracker_SolutionBindingUpdated(object sender, EventArgs e)
@@ -67,6 +78,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
         public void Dispose()
         {
+            folderWorkspaceMonitor.FolderWorkspaceInitialized -= FolderWorkspaceInitializedEvent_FolderWorkspaceInitialized;
             activeSolutionBoundTracker.SolutionBindingChanged -= ActiveSolutionBoundTracker_SolutionBindingChanged;
             activeSolutionBoundTracker.SolutionBindingUpdated -= ActiveSolutionBoundTracker_SolutionBindingUpdated;
         }
