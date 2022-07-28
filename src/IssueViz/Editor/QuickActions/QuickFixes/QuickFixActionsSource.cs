@@ -74,20 +74,27 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
         public event EventHandler<EventArgs> SuggestedActionsChanged;
 
         public IEnumerable<SuggestedActionSet> GetSuggestedActions(
-            ISuggestedActionCategorySet requestedActionCategories, 
+            ISuggestedActionCategorySet requestedActionCategories,
             SnapshotSpan range,
             CancellationToken cancellationToken)
         {
             var allActions = new List<ISuggestedAction>();
 
-            if (IsOnIssueWithApplicableQuickFixes(range, out var issuesWithFixes))
+            try
             {
-                foreach (var issueViz in issuesWithFixes)
+                if (IsOnIssueWithApplicableQuickFixes(range, out var issuesWithFixes))
                 {
-                    var applicableFixes = issueViz.QuickFixes.Where(x => x.CanBeApplied(textView.TextSnapshot));
+                    foreach (var issueViz in issuesWithFixes)
+                    {
+                        var applicableFixes = issueViz.QuickFixes.Where(x => x.CanBeApplied(textView.TextSnapshot));
 
-                    allActions.AddRange(applicableFixes.Select(fix => new QuickFixSuggestedAction(fix, textView.TextBuffer, issueViz, quickFixesTelemetryManager, logger)));
+                        allActions.AddRange(applicableFixes.Select(fix => new QuickFixSuggestedAction(fix, textView.TextBuffer, issueViz, quickFixesTelemetryManager, logger)));
+                    }
                 }
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(string.Format(Resources.ERR_QuickFixes_Exception, ex));
             }
 
             return allActions.Any()
@@ -98,9 +105,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
         public async Task<bool> HasSuggestedActionsAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
         {
             var hasActions = false;
-
-            await threadHandling.RunOnUIThread(() => hasActions = IsOnIssueWithApplicableQuickFixes(range, out _));
-
+            try
+            {
+                await threadHandling.RunOnUIThread(() => hasActions = IsOnIssueWithApplicableQuickFixes(range, out _));
+            }
+            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(string.Format(Resources.ERR_QuickFixes_Exception, ex));
+            }
             return hasActions;
         }
 

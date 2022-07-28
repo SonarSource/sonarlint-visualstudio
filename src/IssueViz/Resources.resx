@@ -138,4 +138,7 @@
   <data name="IssueVisualizationToolWindowCaption" xml:space="preserve">
     <value>SonarLint Issue Visualization</value>
   </data>
+  <data name="ERR_QuickFixes_Exception" xml:space="preserve">
+    <value>[Quick fixes] Error processing quick fixes: {0}</value>
+  </data>
 </root>
