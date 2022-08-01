@@ -103,7 +103,7 @@ namespace SonarQube.Client
         /// <param name="configure">Action that configures a type instance that implements TRequest.</param>
         /// <param name="token">Cancellation token.</param>
         /// <returns>Returns the result of the request invocation.</returns>
-        private async Task<TResponse> InvokeRequestAsync<TRequest, TResponse>(Action<TRequest> configure,
+        protected virtual async Task<TResponse> InvokeRequestAsync<TRequest, TResponse>(Action<TRequest> configure,
             CancellationToken token)
             where TRequest : IRequest<TResponse>
         {
