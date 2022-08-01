@@ -18,11 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Tracing;
 
 namespace SonarLint.VisualStudio.Core.ETW
 {
     [EventSource(Name = "SonarSource-SonarLint-VS-Integration")]
+    [ExcludeFromCodeCoverage] // boilerplate. The ETW provider will log errors if the manifest is invalid
     public sealed class CodeMarkers : EventSource
     {
         public static readonly CodeMarkers Instance = new CodeMarkers();
