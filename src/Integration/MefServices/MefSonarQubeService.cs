@@ -18,14 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using SonarLint.VisualStudio.Core.ETW;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarQube.Client;
-using SonarQube.Client.Api;
-using SonarQube.Client.Requests;
 
 namespace SonarLint.VisualStudio.Integration.MefServices
 {
@@ -35,8 +37,8 @@ namespace SonarLint.VisualStudio.Integration.MefServices
     /// </summary>
     [Export(typeof(ISonarQubeService))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    [ExcludeFromCodeCoverage] // Simply provides MEF export
-    public class MefSonarQubeService : SonarQubeService
+    [ExcludeFromCodeCoverage] // Simply provides MEF export and ETW tracing
+    public sealed class MefSonarQubeService : SonarQubeService
     {
         [ImportingConstructor]
         public MefSonarQubeService(ILogger logger)
@@ -44,6 +46,17 @@ namespace SonarLint.VisualStudio.Integration.MefServices
                 userAgent: $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}",
                 logger: new LoggerAdapter(logger))
         {
+        }
+
+        protected override async Task<TResponse> InvokeRequestAsync<TRequest, TResponse>(Action<TRequest> configure, CancellationToken token)
+        {
+            CodeMarkers.Instance.WebClientCallStart(typeof(TRequest).Name);
+
+            var result = await base.InvokeRequestAsync<TRequest, TResponse>(configure, token);
+
+            CodeMarkers.Instance.WebClientCallStop(typeof(TRequest).Name);
+
+            return result;
         }
 
         private sealed class LoggerAdapter : SonarQube.Client.Logging.ILogger
