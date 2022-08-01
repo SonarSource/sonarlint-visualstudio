@@ -35,6 +35,7 @@ namespace SonarLint.VisualStudio.Core.ETW
             public const EventKeywords Analysis = (EventKeywords)4;
             public const EventKeywords CFamily = (EventKeywords)8;
             public const EventKeywords RoslynSuppression = (EventKeywords)16;
+            public const EventKeywords WebClient = (EventKeywords)32;
         }
 
         #region Binding: 1000-1999
@@ -166,6 +167,19 @@ namespace SonarLint.VisualStudio.Core.ETW
 
         [Event(FileSynchronizerUpdateStopId, Level = EventLevel.Informational, Keywords = Keywords.RoslynSuppression)]
         public void FileSynchronizerUpdateStop() => Write(FileSynchronizerUpdateStopId);
+
+        #endregion
+
+        #region Web call: 4000-4999
+
+        private const int WebClientCallStartId = 4000;
+        private const int WebClinetCallStopId = 4001;
+
+        [Event(WebClientCallStartId, Level = EventLevel.Informational, Keywords = Keywords.WebClient)]
+        public void WebClientCallStart(string requestName) => Write(WebClientCallStartId, requestName);
+
+        [Event(WebClinetCallStopId, Level = EventLevel.Informational, Keywords = Keywords.WebClient)]
+        public void WebClientCallStop(string requestName) => Write(WebClinetCallStopId, requestName);
 
         #endregion
 
