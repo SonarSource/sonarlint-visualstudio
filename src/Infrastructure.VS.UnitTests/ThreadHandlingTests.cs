@@ -115,25 +115,11 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
+        [Ignore] // Can't test this case because it requires mocking ThreadHelper.JoinableTaskFactory.RunAsync which
+                 // is broken. See https://github.com/SonarSource/sonarlint-visualstudio/issues/3144
         public async Task RunOnBackgroundThread_StartsOnBackgroundThread_NoSwitch()
         {
-            await RunOnBackgroundThread(async () =>
-            {
-                var testSubject = new ThreadHandling();
-
-                var startThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
-                // Should start on a background thread...
-                VSThreadHelper.CheckAccess().Should().BeFalse();
-
-                var result = await testSubject.RunOnBackgroundThread(() => VSThreadHelper.CheckAccess());
-
-                // Work should be done on the background thread
-                result.Should().BeFalse();
-
-                // ... and finish on a background thread
-                VSThreadHelper.CheckAccess().Should().BeFalse();
-                System.Threading.Thread.CurrentThread.ManagedThreadId.Should().Be(startThreadId);
-            });
+            // TODO
         }
 
         [TestMethod]

@@ -44,11 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return Task.CompletedTask;
         }
 
-        public Task<T> RunOnBackgroundThread<T>(Func<T> asyncMethod)
-        {
-            var result = asyncMethod();
-            return Task.FromResult(result);
-        }
+        public Task<T> RunOnBackgroundThread<T>(Func<Task<T>> asyncMethod) => asyncMethod();
 
         public IAwaitableWrapper SwitchToBackgroundThread() => new NoOpAwaitable();
 
