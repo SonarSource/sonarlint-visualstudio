@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using VSThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
@@ -44,7 +45,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
-        public async Task CheckAccess_NotUIThread_ReturnsFlase()
+        public async Task CheckAccess_NotUIThread_ReturnsFalse()
         {
             bool actual = false;
 
@@ -111,6 +112,36 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             });
 
             actual.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public async Task RunOnBackgroundThread_StartsOnBackgroundThread_NoSwitch()
+        {
+            await RunOnBackgroundThread(async () =>
+            {
+                var testSubject = new ThreadHandling();
+
+                var startThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+                // Should start on a background thread...
+                VSThreadHelper.CheckAccess().Should().BeFalse();
+
+                var result = await testSubject.RunOnBackgroundThread(() => VSThreadHelper.CheckAccess());
+
+                // Work should be done on the background thread
+                result.Should().BeFalse();
+
+                // ... and finish on a background thread
+                VSThreadHelper.CheckAccess().Should().BeFalse();
+                System.Threading.Thread.CurrentThread.ManagedThreadId.Should().Be(startThreadId);
+            });
+        }
+
+        [TestMethod]
+        [Ignore] // Can't test this case because it requires mocking SwitchToMainThreadAsync which
+                 // is broken. See https://github.com/SonarSource/sonarlint-visualstudio/issues/3144
+        public async Task RunOnBackgroundThread_StartsOnUIThread_WorksInBackground_ReturnsOnUIThread()
+        {
+            // TODO 
         }
 
         private static async Task RunOnUIThread(Action op)

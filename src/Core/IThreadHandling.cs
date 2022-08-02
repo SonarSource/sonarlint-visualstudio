@@ -54,6 +54,14 @@ namespace SonarLint.VisualStudio.Core
         Task RunOnUIThread(Action op);
 
         /// <summary>
+        /// Executes the operation asynchronously on the background thread.
+        /// If the caller is on a background thread already then the operation is executed directly.
+        /// If the caller is not on a background thread then the method will switch to one,
+        /// then resume on the UI thread when then the operation completes.
+        /// </summary>
+        Task<T> RunOnBackgroundThread<T>(Func<T> asyncMethod);
+
+        /// <summary>
         /// Runs the asynchronous method to completion while synchronously blocking the calling thread.
         /// </summary>
         /// <remarks>Wrapper around <see cref="ThreadHelper.JoinableTaskFactory.Run"/></remarks>
