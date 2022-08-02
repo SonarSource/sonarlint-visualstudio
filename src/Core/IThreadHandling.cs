@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Core
         /// If the caller is not on a background thread then the method will switch to one,
         /// then resume on the UI thread when then the operation completes.
         /// </summary>
-        Task<T> RunOnBackgroundThread<T>(Func<T> asyncMethod);
+        Task<T> RunOnBackgroundThread<T>(Func<Task<T>> asyncMethod);
 
         /// <summary>
         /// Runs the asynchronous method to completion while synchronously blocking the calling thread.
