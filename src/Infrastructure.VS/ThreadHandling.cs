@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
@@ -39,6 +40,21 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         public void ThrowIfNotOnUIThread() => ThreadHelper.ThrowIfNotOnUIThread();
 
         public async Task RunOnUIThread(Action op) => await VS.RunOnUIThread.RunAsync(op);
+
+        public async Task<T> RunOnBackgroundThread<T>(Func<T> asyncMethod)
+        {
+            if (!ThreadHelper.CheckAccess())
+            {
+                return asyncMethod();
+            }
+
+            await SwitchToBackgroundThread();
+            var result = asyncMethod();
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            Debug.Assert(ThreadHelper.CheckAccess(), "Expecting to returning on the UI thread");
+            return result;
+        }
 
         public T Run<T>(Func<Task<T>> asyncMethod) => ThreadHelper.JoinableTaskFactory.Run(asyncMethod);
 
