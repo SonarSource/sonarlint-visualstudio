@@ -137,9 +137,9 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
-        [Ignore] // Can't currently test this case because it requires mocking SwitchToMainThreadAsync which
-                 // is currently broken. See https://github.com/SonarSource/sonarlint-visualstudio/issues/3144
-        public async Task RunOnBackgroundThread_StartsOnUIThread_NoSwitch()
+        [Ignore] // Can't test this case because it requires mocking SwitchToMainThreadAsync which
+                 // is broken. See https://github.com/SonarSource/sonarlint-visualstudio/issues/3144
+        public async Task RunOnBackgroundThread_StartsOnUIThread_WorksInBackground_ReturnsOnUIThread()
         {
             // TODO 
         }
