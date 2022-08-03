@@ -30,7 +30,10 @@ namespace SonarQube.Client
 {
     public interface ISonarQubeService
     {
-        ServerInfo ServerInfo { get; }
+        /// <summary>
+        /// Returns <see cref="ServerInfo"/> that the service is connected to at this moment. Subsequent calls can result in different values.
+        /// </summary>
+        ServerInfo GetServerInfo();
 
         /// <summary>
         /// Returns whether organizations are available and being used
