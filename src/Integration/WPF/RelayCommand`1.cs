@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2022 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -20,6 +20,7 @@
 
 using System;
 using System.Diagnostics;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.WPF
 {
@@ -59,12 +60,25 @@ namespace SonarLint.VisualStudio.Integration.WPF
         [DebuggerStepThrough]
         public bool CanExecute(T parameter)
         {
-            return this.canExecute?.Invoke(parameter) ?? true;
+            try
+            {
+                return this.canExecute?.Invoke(parameter) ?? true;
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                return false;
+            }
         }
 
         public void Execute(T parameter)
         {
-            this.execute(parameter);
+            try
+            {
+                this.execute(parameter);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+            }
         }
 
         internal /* testing purposes */ static T SafeCast(object parameter)

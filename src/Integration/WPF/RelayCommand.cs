@@ -19,6 +19,7 @@
  */
 
 using System;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.WPF
 {
@@ -49,12 +50,25 @@ namespace SonarLint.VisualStudio.Integration.WPF
 
         public bool CanExecute()
         {
-            return this.canExecute?.Invoke() ?? true;
+            try
+            {
+                return this.canExecute?.Invoke() ?? true;
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                return false;
+            }
         }
 
         public void Execute()
         {
-            this.execute();
+            try
+            {
+                this.execute();
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+            }
         }
 
         #region RelayCommandBase
