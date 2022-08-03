@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.ETW;
 using static Microsoft.VisualStudio.Threading.AwaitExtensions;
 using Task = System.Threading.Tasks.Task;
 
@@ -42,22 +43,28 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
 
         public async Task<T> RunOnBackgroundThread<T>(Func<Task<T>> asyncMethod)
         {
+            CodeMarkers.Instance.Threading_RunOnBackgroundThread_Start();
+
             var startedOnUIThread = ThreadHelper.CheckAccess();
 
             return await ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
                 {
                     if (startedOnUIThread)
                     {
+                        CodeMarkers.Instance.Threading_RunOnBackgroundThread_SwitchingToBackground();
                         await SwitchToBackgroundThread();
                     }
 
+                    CodeMarkers.Instance.Threading_RunOnBackgroundThread_ExecutingCall();
                     var result = await asyncMethod();
 
                     if (startedOnUIThread)
                     {
+                        CodeMarkers.Instance.Threading_RunOnBackgroundThread_SwitchingToUI();
                         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                     }
 
+                    CodeMarkers.Instance.Threading_RunOnBackgroundThread_Stop();
                     return result;
                 });
         }
