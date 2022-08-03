@@ -60,10 +60,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         [TestMethod]
-        public async Task SynchronizeWithServer_FailureToCheckServerConnection_CriticalException_ExceptionThrown()
+        public void SynchronizeWithServer_FailureToCheckServerConnection_CriticalException_ExceptionThrown()
         {
             var sonarQubeServer = new Mock<ISonarQubeService>();
-            sonarQubeServer.Setup(x => x.IsConnected).Throws(new StackOverflowException());
+            sonarQubeServer.Setup(x => x.GetServerInfo()).Throws(new StackOverflowException());
 
             var testSubject = CreateTestSubject(
                 sonarService: sonarQubeServer.Object,
@@ -75,10 +75,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         [TestMethod]
-        public async Task SynchronizeWithServer_FailureToCheckServerConnection_NonCriticalException_ExceptionIsCaught()
+        public void SynchronizeWithServer_FailureToCheckServerConnection_NonCriticalException_ExceptionIsCaught()
         {
             var sonarQubeServer = new Mock<ISonarQubeService>();
-            sonarQubeServer.Setup(x => x.IsConnected).Throws(new NotImplementedException("this is a test"));
+            sonarQubeServer.Setup(x => x.GetServerInfo()).Throws(new NotImplementedException("this is a test"));
 
             var logger = new TestLogger();
 
@@ -92,6 +92,30 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             act.Should().NotThrow();
 
             logger.AssertPartialOutputStringExists("this is a test");
+        }
+
+        [TestMethod]
+        [Description("Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/3152")]
+        public void SynchronizeWithServer_DisconnectedInTheMiddle_ServerInfoIsReusedAndNoExceptions()
+        {
+            var sonarQubeServer = new Mock<ISonarQubeService>();
+            sonarQubeServer
+                .SetupSequence(x => x.GetServerInfo())
+                .Returns(new ServerInfo(new Version(1, 1), ServerType.SonarQube))
+                .Returns((ServerInfo) null);
+
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(
+                sonarService: sonarQubeServer.Object,
+                mode: SonarLintMode.Connected,
+                logger: logger);
+
+            Func<Task> act = async () => await testSubject.SynchronizeWithServer();
+
+            act.Should().NotThrow();
+
+            logger.AssertPartialOutputStringDoesNotExist("NullReferenceException");
         }
 
         [TestMethod]
@@ -458,9 +482,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             ServerType serverType = ServerType.SonarQube,
             string versionString = "9.9")
         {
+            var serverInfo = isConnected ? new ServerInfo(new Version(versionString), serverType) : null;
+
             var sonarQubeService = new Mock<ISonarQubeService>();
-            sonarQubeService.Setup(x => x.IsConnected).Returns(isConnected);
-            sonarQubeService.Setup(x => x.GetServerInfo()).Returns(new ServerInfo(new Version(versionString), serverType));
+            sonarQubeService.Setup(x => x.GetServerInfo()).Returns(serverInfo);
 
             return sonarQubeService;
         }
@@ -482,13 +507,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             return serviceProvider.Object;
         }
 
-        private static void CheckUIContextUpdated(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie, int expectedState)
-        {
+        private static void CheckUIContextUpdated(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie, int expectedState) => 
             monitorMock.Verify(x => x.SetCmdUIContext(expectedCookie, expectedState), Times.Once);
-        }
 
         private static void CheckConnectedStatusIsChecked(Mock<ISonarQubeService> serviceMock) =>
-            serviceMock.Verify(x => x.IsConnected, Times.Once);
+            serviceMock.Verify(x => x.GetServerInfo(), Times.Once);
 
         private static void CheckIssuesAreFetched(Mock<ISonarQubeService> serviceMock) =>
             serviceMock.Verify(x => x.GetTaintVulnerabilitiesAsync(SharedProjectKey, It.IsAny<CancellationToken>()), Times.Once);
