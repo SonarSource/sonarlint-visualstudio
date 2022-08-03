@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             {
                 var bindingConfiguration = configurationProvider.GetConfiguration();
 
-                if (IsStandalone(bindingConfiguration) || !IsConnected() || !IsFeatureSupported())
+                if (IsStandalone(bindingConfiguration) || !IsConnected(out var serverInfo) || !IsFeatureSupported(serverInfo))
                 {
                     HandleNoTaintIssues();
                     return;
@@ -134,9 +134,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             return false;
         }
 
-        private bool IsConnected()
+        private bool IsConnected(out ServerInfo serverInfo)
         {
-            if (sonarQubeService.IsConnected)
+            serverInfo = sonarQubeService.GetServerInfo();
+
+            if (serverInfo != null)
             {
                 return true;
             }
@@ -145,15 +147,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             return false;
         }
 
-        private bool IsFeatureSupported()
+        private bool IsFeatureSupported(ServerInfo serverInfo)
         {
-            if (sonarQubeService.ServerInfo.ServerType == ServerType.SonarCloud ||
-                sonarQubeService.ServerInfo.Version >= MinimumRequiredSonarQubeVersion)
+            if (serverInfo.ServerType == ServerType.SonarCloud ||
+                serverInfo.Version >= MinimumRequiredSonarQubeVersion)
             {
                 return true;
             }
 
-            logger.WriteLine(TaintResources.Synchronizer_UnsupportedSQVersion, sonarQubeService.ServerInfo.Version);
+            logger.WriteLine(TaintResources.Synchronizer_UnsupportedSQVersion, serverInfo.Version);
             return false;
         }
 
