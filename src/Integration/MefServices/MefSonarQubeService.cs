@@ -20,11 +20,12 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ETW;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarQube.Client;
@@ -32,27 +33,38 @@ using SonarQube.Client;
 namespace SonarLint.VisualStudio.Integration.MefServices
 {
     /// <summary>
-    /// This class only purposes is to avoid bringing MEF composition to the SonarQube.Client assembly which
-    /// can be used in contexts where it is not required.
+    /// This class exists for a couple of reasons:
+    /// * to add VS-specific thread handling and ETW tracing
+    /// * to avoid bringing MEF composition to the SonarQube.Client assembly which 
+    ///   can be used in contexts where it is not required.
     /// </summary>
     [Export(typeof(ISonarQubeService))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    [ExcludeFromCodeCoverage] // Simply provides MEF export and ETW tracing
     public sealed class MefSonarQubeService : SonarQubeService
     {
+        private readonly IThreadHandling threadHandling;
+
         [ImportingConstructor]
         public MefSonarQubeService(ILogger logger)
+            : this(logger, new ThreadHandling())
+        {
+        }
+
+        internal /* for testing */ MefSonarQubeService(ILogger logger, IThreadHandling threadHandling)
             : base(new HttpClientHandler(),
                 userAgent: $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}",
                 logger: new LoggerAdapter(logger))
         {
+            this.threadHandling = threadHandling;
         }
 
         protected override async Task<TResponse> InvokeUncheckedRequestAsync<TRequest, TResponse>(Action<TRequest> configure, CancellationToken token)
         {
             CodeMarkers.Instance.WebClientCallStart(typeof(TRequest).Name);
 
-            var result = await base.InvokeUncheckedRequestAsync<TRequest, TResponse>(configure, token);
+            Func<Task<TResponse>> asyncMethod = () => base.InvokeUncheckedRequestAsync<TRequest, TResponse>(configure, token);
+
+            var result = await threadHandling.RunOnBackgroundThread(asyncMethod);
 
             CodeMarkers.Instance.WebClientCallStop(typeof(TRequest).Name);
 
