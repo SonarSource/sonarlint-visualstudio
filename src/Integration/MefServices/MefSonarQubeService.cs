@@ -20,7 +20,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,8 +33,10 @@ using SonarQube.Client;
 namespace SonarLint.VisualStudio.Integration.MefServices
 {
     /// <summary>
-    /// This class only purposes is to avoid bringing MEF composition to the SonarQube.Client assembly which
-    /// can be used in contexts where it is not required.
+    /// This class exists for a couple of reasons:
+    /// * to add VS-specific thread handling and ETW tracing
+    /// * to avoid bringing MEF composition to the SonarQube.Client assembly which 
+    ///   can be used in contexts where it is not required.
     /// </summary>
     [Export(typeof(ISonarQubeService))]
     [PartCreationPolicy(CreationPolicy.Shared)]
