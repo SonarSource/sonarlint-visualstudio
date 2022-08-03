@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2022 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -45,6 +46,92 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
 
             // Act + Assert
             command.CanExecute(null).Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void RelayCommand_CanExecute_NonCriticalException_False()
+        {
+            var command = new RelayCommand(() => { }, () => throw new NotImplementedException("this is a test"));
+
+            command.CanExecute().Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void GenericRelayCommand_CanExecute_NonCriticalException_False()
+        {
+            var command = new RelayCommand<object>(_ => { }, _ => throw new NotImplementedException("this is a test"));
+
+            command.CanExecute(null).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void RelayCommand_CanExecute_CriticalException_ExceptionNotCaught()
+        {
+            var command = new RelayCommand(() => { }, () => throw new StackOverflowException("this is a test"));
+
+            Action act = () => command.CanExecute();
+
+            act.Should().ThrowExactly<StackOverflowException>();
+        }
+
+        [TestMethod]
+        public void GenericRelayCommand_CanExecute_CriticalException_ExceptionNotCaught()
+        {
+            var command = new RelayCommand<object>(_ => { }, _ => throw new StackOverflowException("this is a test"));
+
+            Action act = () => command.CanExecute(null);
+
+            act.Should().ThrowExactly<StackOverflowException>();
+        }
+
+        [TestMethod]
+        public void RelayCommand_Execute_NonCriticalException_False()
+        {
+            var wasCalled = false;
+            var command = new RelayCommand(() =>
+            {
+                wasCalled = true;
+                throw new NotImplementedException("this is a test");
+            });
+
+            Action act = () => command.Execute();
+            act.Should().NotThrow();
+
+            wasCalled.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void GenericRelayCommand_Execute_NonCriticalException_False()
+        {
+            var wasCalled = false;
+            var command = new RelayCommand<object>(_ =>
+            {
+                wasCalled = true;
+                throw new NotImplementedException("this is a test");
+            });
+
+            Action act = () => command.Execute(null);
+            act.Should().NotThrow();
+
+            wasCalled.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void RelayCommand_Execute_CriticalException_ExceptionNotCaught()
+        {
+            var command = new RelayCommand(() => throw new StackOverflowException("this is a test"));
+
+            Action act = () => command.Execute();
+            act.Should().ThrowExactly<StackOverflowException>();
+        }
+
+        [TestMethod]
+        public void GenericRelayCommand_Execute_CriticalException_ExceptionNotCaught()
+        {
+            var command = new RelayCommand<object>(_ => throw new StackOverflowException("this is a test"));
+
+            Action act = () => command.Execute(null);
+            act.Should().ThrowExactly<StackOverflowException>();
         }
     }
 }

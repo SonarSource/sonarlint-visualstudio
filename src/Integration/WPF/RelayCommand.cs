@@ -19,6 +19,7 @@
  */
 
 using System;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.WPF
 {
@@ -49,12 +50,29 @@ namespace SonarLint.VisualStudio.Integration.WPF
 
         public bool CanExecute()
         {
-            return this.canExecute?.Invoke() ?? true;
+            // can be called directly from XAML on the UI thread so we need to guard against unhandled exceptions
+            try
+            {
+                return this.canExecute?.Invoke() ?? true;
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                // Just squash the exception
+                return false;
+            }
         }
 
         public void Execute()
         {
-            this.execute();
+            // can be called directly from XAML on the UI thread so we need to guard against unhandled exceptions
+            try
+            {
+                this.execute();
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                // Just squash the exception
+            }
         }
 
         #region RelayCommandBase
