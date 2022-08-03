@@ -48,11 +48,11 @@ namespace SonarLint.VisualStudio.Integration.MefServices
         {
         }
 
-        protected override async Task<TResponse> InvokeRequestAsync<TRequest, TResponse>(Action<TRequest> configure, CancellationToken token)
+        protected override async Task<TResponse> InvokeUncheckedRequestAsync<TRequest, TResponse>(Action<TRequest> configure, CancellationToken token)
         {
             CodeMarkers.Instance.WebClientCallStart(typeof(TRequest).Name);
 
-            var result = await base.InvokeRequestAsync<TRequest, TResponse>(configure, token);
+            var result = await base.InvokeUncheckedRequestAsync<TRequest, TResponse>(configure, token);
 
             CodeMarkers.Instance.WebClientCallStop(typeof(TRequest).Name);
 

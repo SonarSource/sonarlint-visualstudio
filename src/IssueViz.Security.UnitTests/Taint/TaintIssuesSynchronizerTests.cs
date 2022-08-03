@@ -460,7 +460,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         {
             var sonarQubeService = new Mock<ISonarQubeService>();
             sonarQubeService.Setup(x => x.IsConnected).Returns(isConnected);
-            sonarQubeService.Setup(x => x.ServerInfo).Returns(new ServerInfo(new Version(versionString), serverType));
+            sonarQubeService.Setup(x => x.GetServerInfo()).Returns(new ServerInfo(new Version(versionString), serverType));
 
             return sonarQubeService;
         }
