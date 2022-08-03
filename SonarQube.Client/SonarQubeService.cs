@@ -54,7 +54,7 @@ namespace SonarQube.Client
             return await Task.FromResult<bool>(hasOrganisations);
         }
 
-        public bool IsConnected { get; private set; }
+        public bool IsConnected => ServerInfo != null;
 
         public ServerInfo ServerInfo { get; private set; }
 
@@ -89,10 +89,10 @@ namespace SonarQube.Client
         /// <summary>
         /// Convenience overload for requests that do not need configuration.
         /// </summary>
-        private Task<TResponse> InvokeRequestAsync<TRequest, TResponse>(CancellationToken token)
+        private Task<TResponse> InvokeCheckedRequestAsync<TRequest, TResponse>(CancellationToken token)
             where TRequest : IRequest<TResponse>
         {
-            return InvokeRequestAsync<TRequest, TResponse>(request => { }, token);
+            return InvokeCheckedRequestAsync<TRequest, TResponse>(request => { }, token);
         }
 
         /// <summary>
@@ -103,12 +103,22 @@ namespace SonarQube.Client
         /// <param name="configure">Action that configures a type instance that implements TRequest.</param>
         /// <param name="token">Cancellation token.</param>
         /// <returns>Returns the result of the request invocation.</returns>
-        protected virtual async Task<TResponse> InvokeRequestAsync<TRequest, TResponse>(Action<TRequest> configure,
+        private Task<TResponse> InvokeCheckedRequestAsync<TRequest, TResponse>(Action<TRequest> configure,
             CancellationToken token)
             where TRequest : IRequest<TResponse>
         {
             EnsureIsConnected();
 
+            return InvokeUncheckedRequestAsync<TRequest, TResponse>(configure, token);
+        }
+
+        /// <summary>
+        /// Executes the call without checking whether the connection to the server has been established. This should only normally be used directly while connecting.
+        /// Other uses should call <see cref="InvokeCheckedRequestAsync{TRequest,TResponse}(System.Threading.CancellationToken)"/>.
+        /// </summary>
+        protected virtual async Task<TResponse> InvokeUncheckedRequestAsync<TRequest, TResponse>(Action<TRequest> configure, CancellationToken token)
+            where TRequest : IRequest<TResponse>
+        {
             var request = requestFactory.Create<TRequest>(ServerInfo);
             configure(request);
 
@@ -138,33 +148,29 @@ namespace SonarQube.Client
 
             try
             {
-                // We have to set IsConnected to true here, otherwise the two calls to InvokeRequestAsync
-                // below will fail. However, at this point we don't really know if the server is running
-                // so the web calls could fail.
-                IsConnected = true;
                 var serverTypeDescription = connection.IsSonarCloud ? "SonarCloud" : "SonarQube";
 
                 logger.Debug($"Getting the version of {serverTypeDescription}...");
 
-                var versionResponse = await InvokeRequestAsync<IGetVersionRequest, string>(token);
-                ServerInfo = new ServerInfo(Version.Parse(versionResponse),
-                    connection.IsSonarCloud ? ServerType.SonarCloud : ServerType.SonarQube);
+                var versionResponse = await InvokeUncheckedRequestAsync<IGetVersionRequest, string>(request => { }, token);
+                var serverInfo = new ServerInfo(Version.Parse(versionResponse), connection.IsSonarCloud ? ServerType.SonarCloud : ServerType.SonarQube);
 
-                logger.Info($"Connected to {serverTypeDescription} '{ServerInfo.Version}'.");
+                logger.Info($"Connected to {serverTypeDescription} '{serverInfo.Version}'.");
 
                 logger.Debug($"Validating the credentials...");
 
-                var credentialResponse = await InvokeRequestAsync<IValidateCredentialsRequest, bool>(token);
+                var credentialResponse = await InvokeUncheckedRequestAsync<IValidateCredentialsRequest, bool>(request => { }, token);
                 if (!credentialResponse)
                 {
                     throw new InvalidOperationException("Invalid credentials");
                 }
 
                 logger.Debug($"Credentials accepted.");
+
+                ServerInfo = serverInfo;
             }
             catch
             {
-                IsConnected = false;
                 ServerInfo = null;
                 throw;
             }
@@ -177,7 +183,6 @@ namespace SonarQube.Client
 
             // Don't dispose the HttpClient when disconnecting. We'll need it if
             // the caller connects to another server.
-            IsConnected = false;
             ServerInfo = null;
             requestFactory = null;
         }
@@ -192,7 +197,7 @@ namespace SonarQube.Client
         }
 
         public async Task<IList<SonarQubeOrganization>> GetAllOrganizationsAsync(CancellationToken token) =>
-            await InvokeRequestAsync<IGetOrganizationsRequest, SonarQubeOrganization[]>(
+            await InvokeCheckedRequestAsync<IGetOrganizationsRequest, SonarQubeOrganization[]>(
                 request =>
                 {
                     request.OnlyUserOrganizations = true;
@@ -200,10 +205,10 @@ namespace SonarQube.Client
                 token);
 
         public async Task<IList<SonarQubeLanguage>> GetAllLanguagesAsync(CancellationToken token) =>
-           await InvokeRequestAsync<IGetLanguagesRequest, SonarQubeLanguage[]>(token);
+           await InvokeCheckedRequestAsync<IGetLanguagesRequest, SonarQubeLanguage[]>(token);
 
         public async Task<Stream> DownloadStaticFileAsync(string pluginKey, string fileName, CancellationToken token) =>
-            await InvokeRequestAsync<IDownloadStaticFile, Stream>(
+            await InvokeCheckedRequestAsync<IDownloadStaticFile, Stream>(
                 request =>
                 {
                     request.PluginKey = pluginKey;
@@ -212,10 +217,10 @@ namespace SonarQube.Client
                 token);
 
         public async Task<IList<SonarQubePlugin>> GetAllPluginsAsync(CancellationToken token) =>
-           await InvokeRequestAsync<IGetPluginsRequest, SonarQubePlugin[]>(token);
+           await InvokeCheckedRequestAsync<IGetPluginsRequest, SonarQubePlugin[]>(token);
 
         public async Task<IList<SonarQubeProject>> GetAllProjectsAsync(string organizationKey, CancellationToken token) =>
-            await InvokeRequestAsync<IGetProjectsRequest, SonarQubeProject[]>(
+            await InvokeCheckedRequestAsync<IGetProjectsRequest, SonarQubeProject[]>(
                 request =>
                 {
                     request.OrganizationKey = GetOrganizationKeyForWebApiCalls(organizationKey, logger);
@@ -223,7 +228,7 @@ namespace SonarQube.Client
                 token);
 
         public async Task<IList<SonarQubeProperty>> GetAllPropertiesAsync(string projectKey, CancellationToken token) =>
-            await InvokeRequestAsync<IGetPropertiesRequest, SonarQubeProperty[]>(
+            await InvokeCheckedRequestAsync<IGetPropertiesRequest, SonarQubeProperty[]>(
                 request =>
                 {
                     request.ProjectKey = projectKey;
@@ -244,7 +249,7 @@ namespace SonarQube.Client
 
         public async Task<SonarQubeQualityProfile> GetQualityProfileAsync(string projectKey, string organizationKey, SonarQubeLanguage language, CancellationToken token)
         {
-            var qualityProfiles = await InvokeRequestAsync<IGetQualityProfilesRequest, SonarQubeQualityProfile[]>(
+            var qualityProfiles = await InvokeCheckedRequestAsync<IGetQualityProfilesRequest, SonarQubeQualityProfile[]>(
                 request =>
                 {
                     request.ProjectKey = projectKey;
@@ -264,7 +269,7 @@ namespace SonarQube.Client
                 ? profilesWithGivenLanguage.Single(x => x.IsDefault)
                 : profilesWithGivenLanguage.Single();
 
-            var changeLog = await InvokeRequestAsync<IGetQualityProfileChangeLogRequest, DateTime[]>(
+            var changeLog = await InvokeCheckedRequestAsync<IGetQualityProfileChangeLogRequest, DateTime[]>(
                 request =>
                 {
                     request.Page = 1;
@@ -285,7 +290,7 @@ namespace SonarQube.Client
 
         public async Task<RoslynExportProfileResponse> GetRoslynExportProfileAsync(string qualityProfileName,
             string organizationKey, SonarQubeLanguage language, CancellationToken token) =>
-            await InvokeRequestAsync<IGetRoslynExportProfileRequest, RoslynExportProfileResponse>(
+            await InvokeCheckedRequestAsync<IGetRoslynExportProfileRequest, RoslynExportProfileResponse>(
                 request =>
                 {
                     request.QualityProfileName = qualityProfileName;
@@ -295,7 +300,7 @@ namespace SonarQube.Client
                 token);
 
         public async Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string projectKey, CancellationToken token) =>
-            await InvokeRequestAsync<IGetIssuesRequest, SonarQubeIssue[]>(
+            await InvokeCheckedRequestAsync<IGetIssuesRequest, SonarQubeIssue[]>(
                 request =>
                 {
                     request.ProjectKey = projectKey;
@@ -305,7 +310,7 @@ namespace SonarQube.Client
 
         public async Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(string projectKey, DateTimeOffset eventsSince,
             CancellationToken token) =>
-            await InvokeRequestAsync<IGetNotificationsRequest, SonarQubeNotification[]>(
+            await InvokeCheckedRequestAsync<IGetNotificationsRequest, SonarQubeNotification[]>(
                 request =>
                 {
                     request.ProjectKey = projectKey;
@@ -314,7 +319,7 @@ namespace SonarQube.Client
                 token);
 
         public async Task<IList<SonarQubeModule>> GetAllModulesAsync(string projectKey, CancellationToken token) =>
-            await InvokeRequestAsync<IGetModulesRequest, SonarQubeModule[]>(
+            await InvokeCheckedRequestAsync<IGetModulesRequest, SonarQubeModule[]>(
                 request =>
                 {
                     request.ProjectKey = projectKey;
@@ -323,7 +328,7 @@ namespace SonarQube.Client
                 token);
 
         public async Task<IList<SonarQubeRule>> GetRulesAsync(bool isActive, string qualityProfileKey, CancellationToken token) =>
-            await InvokeRequestAsync<IGetRulesRequest, SonarQubeRule[]>(
+            await InvokeCheckedRequestAsync<IGetRulesRequest, SonarQubeRule[]>(
                 request =>
                 {
                     request.IsActive = isActive;
@@ -332,7 +337,7 @@ namespace SonarQube.Client
                 token);
 
         public async Task<SonarQubeHotspot> GetHotspotAsync(string hotspotKey, CancellationToken token) =>
-            await InvokeRequestAsync<IGetHotspotRequest, SonarQubeHotspot>(
+            await InvokeCheckedRequestAsync<IGetHotspotRequest, SonarQubeHotspot>(
                 request =>
                 {
                     request.HotspotKey = hotspotKey;
@@ -341,7 +346,7 @@ namespace SonarQube.Client
 
         public async Task<IList<SonarQubeIssue>> GetTaintVulnerabilitiesAsync(string projectKey, CancellationToken token)
         {
-            var issues = await InvokeRequestAsync<IGetTaintVulnerabilitiesRequest, SonarQubeIssue[]>(
+            var issues = await InvokeCheckedRequestAsync<IGetTaintVulnerabilitiesRequest, SonarQubeIssue[]>(
                 request =>
                 {
                     request.ProjectKey = projectKey;
@@ -382,7 +387,7 @@ namespace SonarQube.Client
         }
 
         public async Task<string> GetSourceCodeAsync(string fileKey, CancellationToken token) =>
-            await InvokeRequestAsync<IGetSourceCodeRequest, string>(
+            await InvokeCheckedRequestAsync<IGetSourceCodeRequest, string>(
                 request =>
                 {
                     request.FileKey = fileKey;
@@ -390,14 +395,14 @@ namespace SonarQube.Client
                 token);
 
         public async Task<IList<SonarQubeProjectBranch>> GetProjectBranchesAsync(string projectKey, CancellationToken token) =>
-            await InvokeRequestAsync<IGetProjectBranchesRequest, SonarQubeProjectBranch[]>(
+            await InvokeCheckedRequestAsync<IGetProjectBranchesRequest, SonarQubeProjectBranch[]>(
                 request =>
                 {
                     request.ProjectKey = projectKey;
                 }, token);
 
         public async Task<ServerExclusions> GetServerExclusions(string projectKey, CancellationToken token) =>
-            await InvokeRequestAsync<IGetExclusionsRequest, ServerExclusions>(
+            await InvokeCheckedRequestAsync<IGetExclusionsRequest, ServerExclusions>(
                 request =>
                 {
                     request.ProjectKey = projectKey;
@@ -414,7 +419,6 @@ namespace SonarQube.Client
                 logger.Debug("SonarQubeService was not disposed, continuing with dispose...");
                 if (disposing)
                 {
-                    IsConnected = false;
                     ServerInfo = null;
                     messageHandler.Dispose();
                 }
