@@ -38,6 +38,7 @@ namespace SonarLint.VisualStudio.Core.ETW
             public const EventKeywords CFamily = (EventKeywords)8;
             public const EventKeywords RoslynSuppression = (EventKeywords)16;
             public const EventKeywords WebClient = (EventKeywords)32;
+            public const EventKeywords Threading = (EventKeywords)64;
         }
 
         #region Binding: 1000-1999
@@ -182,6 +183,31 @@ namespace SonarLint.VisualStudio.Core.ETW
 
         [Event(WebClinetCallStopId, Level = EventLevel.Informational, Keywords = Keywords.WebClient)]
         public void WebClientCallStop(string requestName) => Write(WebClinetCallStopId, requestName);
+
+        #endregion
+
+        #region Threading: 5000-5999
+
+        private const int Threading_RunOnBackgroundThread_StartId = 5000;
+        private const int Threading_RunOnBackgroundThread_StopId = 5001;
+        private const int Threading_RunOnBackgroundThread_SwitchingToBackgroundId = 5002;
+        private const int Threading_RunOnBackgroundThread_ExecutingCallId = 5003;
+        private const int Threading_RunOnBackgroundThread_SwitchingToUIId = 5004;
+
+        [Event(Threading_RunOnBackgroundThread_StartId, Level = EventLevel.Informational, Keywords = Keywords.Threading)]
+        public void Threading_RunOnBackgroundThread_Start() => Write(Threading_RunOnBackgroundThread_StartId);
+
+        [Event(Threading_RunOnBackgroundThread_StopId, Level = EventLevel.Informational, Keywords = Keywords.Threading)]
+        public void Threading_RunOnBackgroundThread_Stop() => Write(Threading_RunOnBackgroundThread_StopId);
+
+        [Event(Threading_RunOnBackgroundThread_SwitchingToBackgroundId, Level = EventLevel.Informational, Keywords = Keywords.Threading)]
+        public void Threading_RunOnBackgroundThread_SwitchingToBackground() => Write(Threading_RunOnBackgroundThread_SwitchingToBackgroundId);
+
+        [Event(Threading_RunOnBackgroundThread_ExecutingCallId, Level = EventLevel.Informational, Keywords = Keywords.Threading)]
+        public void Threading_RunOnBackgroundThread_ExecutingCall() => Write(Threading_RunOnBackgroundThread_ExecutingCallId);
+
+        [Event(Threading_RunOnBackgroundThread_SwitchingToUIId, Level = EventLevel.Informational, Keywords = Keywords.Threading)]
+        public void Threading_RunOnBackgroundThread_SwitchingToUI() => Write(Threading_RunOnBackgroundThread_SwitchingToUIId);
 
         #endregion
 
