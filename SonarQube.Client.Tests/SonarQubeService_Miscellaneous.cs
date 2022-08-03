@@ -91,8 +91,8 @@ namespace SonarQube.Client.Tests
             testSubject.IsConnected.Should().BeTrue();
 
             var expectedServerType = isSonarCloud ? ServerType.SonarCloud : ServerType.SonarQube;
-            testSubject.ServerInfo.ServerType.Should().Be(expectedServerType);
-            testSubject.ServerInfo.Version.Should().Be(new Version(1, 2, 3));
+            testSubject.GetServerInfo().ServerType.Should().Be(expectedServerType);
+            testSubject.GetServerInfo().Version.Should().Be(new Version(1, 2, 3));
         }
 
         [TestMethod]
@@ -117,7 +117,7 @@ namespace SonarQube.Client.Tests
             qubeFactoryMock.Invocations.Count.Should().Be(2);
             cloudFactoryMock.Invocations.Count.Should().Be(0);
             testSubject.IsConnected.Should().BeTrue();
-            testSubject.ServerInfo.ServerType.Should().Be(ServerType.SonarQube);
+            testSubject.GetServerInfo().ServerType.Should().Be(ServerType.SonarQube);
 
             // 2. Disconnect
             testSubject.Disconnect();
@@ -129,7 +129,7 @@ namespace SonarQube.Client.Tests
             qubeFactoryMock.Invocations.Count.Should().Be(2);
             cloudFactoryMock.Invocations.Count.Should().Be(2);
             testSubject.IsConnected.Should().BeTrue();
-            testSubject.ServerInfo.ServerType.Should().Be(ServerType.SonarCloud);
+            testSubject.GetServerInfo().ServerType.Should().Be(ServerType.SonarCloud);
         }
 
         private static Mock<IRequestFactory> CreateRequestFactory(string versionResponse)
