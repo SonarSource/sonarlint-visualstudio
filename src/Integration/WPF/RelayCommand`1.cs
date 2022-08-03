@@ -60,24 +60,28 @@ namespace SonarLint.VisualStudio.Integration.WPF
         [DebuggerStepThrough]
         public bool CanExecute(T parameter)
         {
+            // can be called directly from XAML on the UI thread so we need to guard against unhandled exceptions
             try
             {
                 return this.canExecute?.Invoke(parameter) ?? true;
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
+                // Just squash the exception
                 return false;
             }
         }
 
         public void Execute(T parameter)
         {
+            // can be called directly from XAML on the UI thread so we need to guard against unhandled exceptions
             try
             {
                 this.execute(parameter);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
+                // Just squash the exception
             }
         }
 
