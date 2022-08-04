@@ -20,7 +20,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
@@ -73,32 +76,50 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         public async Task<IReadOnlyCollection<IAnalysisIssue>> Analyze(string filePath, string tsConfig, CancellationToken cancellationToken)
         {
+            var fileName = Path.GetFileName(filePath);
+            LogWithFileName($"sStarting analysis...");
+            var timer = Stopwatch.StartNew();
+
             await EnsureEslintBridgeClientIsInitialized(cancellationToken);
             var analysisResponse = await eslintBridgeClient.Analyze(filePath, tsConfig, cancellationToken);
 
             if (LinterNotInitializedResponse(analysisResponse))
             {
+                Log($"[{fileName}] Linter not initialized response received. Triggering initialization and re-analysis...");
+
+                LogWithFileName($"[Inner analysis] Start");
+                var innerTimer = Stopwatch.StartNew();
+
                 // The call to `EnsureEslintBridgeClientIsInitialized` above doesn't guarantee the client is correctly initialized (e.g. the external process might have crashed).
                 // So we still need to handle the "not initialised" case here.
                 RequireLinterUpdate();
                 await EnsureEslintBridgeClientIsInitialized(cancellationToken);
                 analysisResponse = await eslintBridgeClient.Analyze(filePath, tsConfig, cancellationToken);
+                LogWithFileName($"[Inner analysis] Stop. Elapsed: {timer.ElapsedMilliseconds}ms");
             }
+
+            IReadOnlyCollection<IAnalysisIssue> issues;
 
             if (analysisResponse.ParsingError != null)
             {
                 LogParsingError(filePath, analysisResponse.ParsingError);
-                return Array.Empty<IAnalysisIssue>();
+                issues = Array.Empty<IAnalysisIssue>();
             }
-
-            if (analysisResponse.Issues == null)
+            else if (analysisResponse.Issues == null)
             {
-                return Array.Empty<IAnalysisIssue>();
+                issues = Array.Empty<IAnalysisIssue>();
+            }
+            else
+            {
+                LogWithFileName($"Converting issues... Running total: {timer.ElapsedMilliseconds}ms");
+                issues = ConvertIssues(filePath, analysisResponse.Issues);
+                LogWithFileName($"Finished converting issues. Running total: {timer.ElapsedMilliseconds}ms");
             }
 
-            var issues = ConvertIssues(filePath, analysisResponse.Issues);
-
+            Log($"[{fileName}] Finished analysis. Elapsed: {timer.ElapsedMilliseconds}ms");
             return issues;
+
+            void LogWithFileName(string message) => Log($"[{fileName}] {message}");
         }
 
         private static bool LinterNotInitializedResponse(AnalysisResponse analysisResponse)
@@ -109,20 +130,28 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         private async Task EnsureEslintBridgeClientIsInitialized(CancellationToken cancellationToken)
         {
+            Log("Ensuring eslintbridge is initialized...");
+            var timer = Stopwatch.StartNew();
+
             try
             {
+                Log("Waiting to acquire lock...");
                 serverInitLocker.WaitOne();
+                Log($"Lock acquired. Running total: {timer.ElapsedMilliseconds}ms");
 
                 if (shouldInitLinter)
                 {
+                    Log("Calling InitLinter...");
                     await eslintBridgeClient.InitLinter(rulesProvider.GetActiveRulesConfiguration(), cancellationToken);
                     shouldInitLinter = false;
+                    Log($"InitLinter finished. Running total: {timer.ElapsedMilliseconds}ms");
                 }
             }
             finally
             {
                 serverInitLocker.Set();
             }
+            Log($"eslintbridege is initialized. Elapsed: {timer.ElapsedMilliseconds}ms");
         }
 
         public void Dispose()
@@ -145,20 +174,34 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         private void AnalysisConfigMonitor_ConfigChanged(object sender, EventArgs e)
         {
+            Log("Handling analysis config changed event...");
+            var timer = Stopwatch.StartNew();
             RequireLinterUpdate();
+            Log($"Event handled. Elapsed: {timer.ElapsedMilliseconds}ms");
         }
 
         private async Task StopServer()
         {
+            Log("Stopping server...");
+            var timer = Stopwatch.StartNew();
+
             RequireLinterUpdate();
             await eslintBridgeClient.Close();
+            Log($"Server stopped. Elapsed: {timer.ElapsedMilliseconds}ms");
         }
 
         private void RequireLinterUpdate()
         {
+            Log("Start");
+            var timer = Stopwatch.StartNew();
+
+            Log("Waiting to acquire lock...");
             serverInitLocker.WaitOne();
+            Log($"Lock acquired. Running total: {timer.ElapsedMilliseconds}ms");
+
             shouldInitLinter = true;
             serverInitLocker.Set();
+            Log($"Stop.Elapsed: {timer.ElapsedMilliseconds}ms");
         }
 
         /// <summary>
@@ -183,5 +226,11 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         private IReadOnlyCollection<IAnalysisIssue> ConvertIssues(string filePath, IEnumerable<Issue> analysisResponseIssues) =>
             analysisResponseIssues.Select(x => issueConverter.Convert(filePath, x)).ToList();
+
+        private void Log(string message, [CallerMemberName] string callerMemberName = null)
+        {
+            var text = $"[{this.GetType().Name}] [{callerMemberName}] [Thread: {Thread.CurrentThread.ManagedThreadId}, {DateTime.Now.ToString("hh:mm:ss.fff")}]  {message}";
+            logger.WriteLine(text);
+        }
     }
 }

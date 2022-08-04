@@ -23,12 +23,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 
@@ -93,6 +95,8 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             refreshTimer.Elapsed += OnRefreshTimerElapsed;
 
             this.initialFetch = DoInitialFetchAsync();
+
+            Log("Starting refresh timer");
             refreshTimer.Start();
         }
 
@@ -112,12 +116,16 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         public IEnumerable<SonarQubeIssue> GetSuppressedIssues(string projectGuid, string filePath)
         {
-           // Block the call while the cache is being built.
+            // Block the call while the cache is being built.
             // If the task has already completed then this will return immediately
             // (e.g. on subsequent calls)
             // If we time out waiting for the initial fetch then we won't suppress any issues.
             // We'll try to fetch the issues again when the timer elapses.
+
+            var timer = Stopwatch.StartNew();
+            Log("Waiting for initial fetch...");
             this.initialFetch?.Wait(MillisecondsToWaitForInitialFetch);
+            Log($"Finished waiting for initial fetch. Elapsed: {timer.ElapsedMilliseconds}ms");
 
             if (this.suppressedFileIssues == null ||
                 this.isDisposed)
@@ -150,8 +158,12 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             // (e.g. on subsequent calls)
             // If we time out waiting for the initial fetch then we won't suppress any issues.
             // We'll try to fetch the issues again when the timer elapses.
-                                    
+
+            var timer = Stopwatch.StartNew();
+            Log("Waiting for initial fetch...");
             this.initialFetch?.Wait(MillisecondsToWaitForInitialFetch);
+            Log($"Finished waiting for initial fetch. Elapsed: {timer.ElapsedMilliseconds}ms");
+
             return allSuppressedIssues ?? Enumerable.Empty<SonarQubeIssue>();
         }
 
@@ -171,18 +183,23 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         private async void OnRefreshTimerElapsed(object sender, TimerEventArgs e)
         {
+            Log("Refresh timer elapsed - synchronizing.");
             await SynchronizeSuppressedIssuesAsync();
         }
 
         private async Task DoInitialFetchAsync()
         {
+            Log("[Initial fetch] Starting ...");
             await threadHandling.SwitchToBackgroundThread();
+            Log("[Initial fetch] Switched to background thread");
+
             // We might not have connected to the server at this point so if necessary
             // wait before trying to fetch the issues
+            Log("[Initial fetch] Checking for connection to server...");
             int retryCount = 0;
             while (!this.sonarQubeService.IsConnected && retryCount < 30)
             {
-                
+                Log($"[Initial fetch] Spinning - waiting for connection to service: {retryCount}");                
                 if (this.isDisposed)
                 {
                     return;
@@ -191,16 +208,19 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 retryCount++;
             }
 
+            Log("[Initial fetch] Connected.");
             await SynchronizeSuppressedIssuesAsync();
+            Log("[Initial fetch] Finished.");
         }
 
         private async Task SynchronizeSuppressedIssuesAsync()
         {
+            var timer = Stopwatch.StartNew();
+            Log("Synchronzing...");
             try
             {
                 if (!this.sonarQubeService.IsConnected)
                 {
-
                     this.logger.WriteLine(Resources.Strings.Suppressions_NotConnected);
                     return;
                 }
@@ -233,6 +253,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 // Suppress the error - on a background thread so there isn't much else we can do
                 this.logger.WriteLine(Resources.Strings.Suppressions_ERROR_Fetching, ex.Message);
             }
+            Log($"Finished Synchronizing. Elapsed: {timer.ElapsedMilliseconds}ms");
         }
 
         private string ProcessKey(Dictionary<string, string> keyToPath, SonarQubeIssue issue)
@@ -252,6 +273,12 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             filePathRelativeToRoot += issue.FilePath;
 
             return filePathRelativeToRoot;
+        }
+
+        private void Log(string message, [CallerMemberName] string callerMemberName = null)
+        {
+            var text = $"[Suppressions] [{callerMemberName}] [Thread: {Thread.CurrentThread.ManagedThreadId}, {DateTime.Now.ToString("hh:mm:ss.fff")}]  {message}";
+            logger.WriteLine(text);
         }
     }
 }

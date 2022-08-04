@@ -20,6 +20,9 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
@@ -80,12 +83,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         {
             // NB assumes exception handling is done by the AnalysisRequester
             logger.WriteLine(AnalysisStrings.ConfigMonitor_SuppressionsUpdated);
+
+            var timer = Stopwatch.StartNew();
+            Log("Raising analysis config changed event...");
             RaiseConfigChangedEvent();
+            Log($"Event handling finished. Elapsed: {timer.ElapsedMilliseconds}ms");
+
+            timer = Stopwatch.StartNew();
+            Log("Requesting re-analysis...");
             analysisRequester.RequestAnalysis();
+            Log($"Returned from requesting re-analysis. Elapsed: {timer.ElapsedMilliseconds}ms");
         }
 
         private void RaiseConfigChangedEvent()
         {
+            if (ConfigChanged == null)
+            {
+                Log("No event listeners");
+            }
             ConfigChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -112,5 +127,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             Dispose(true);
         }
         #endregion
+
+        private void Log(string message, [CallerMemberName] string callerMemberName = null)
+        {
+            var text = $"[AnalysisConfig] [{callerMemberName}] [Thread: {Thread.CurrentThread.ManagedThreadId}, {DateTime.Now.ToString("hh:mm:ss.fff")}]  {message}";
+            logger.WriteLine(text);
+        }
     }
 }
