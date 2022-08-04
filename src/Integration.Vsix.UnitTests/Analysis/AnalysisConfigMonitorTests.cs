@@ -34,34 +34,50 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
     public class AnalysisConfigMonitorTests
     {
         [TestMethod]
-        [DataRow(SonarLintMode.Standalone)]
+        public void WhenUserSettingsChange_StandaloneMode_AnalysisIsRequested()
+        {
+            var builder = new TestEnvironmentBuilder(SonarLintMode.Standalone);
+
+            builder.SimulateUserSettingsChanged();
+
+            // Should re-analyse
+            builder.AssertAnalysisIsRequested();
+            builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
+            builder.Logger.AssertOutputStringDoesNotExist(AnalysisStrings.ConfigMonitor_UserSettingsIgnoredForConnectedModeLanguages);
+        }
+
+        [TestMethod]
         [DataRow(SonarLintMode.Connected)]
         [DataRow(SonarLintMode.LegacyConnected)]
-        public void WhenUserSettingsChange_AnalysisIsRequested(SonarLintMode bindingMode)
+        public void WhenUserSettingsChange_ConnectedMode_AnalysisIsNotRequested(SonarLintMode bindingMode)
         {
             var builder = new TestEnvironmentBuilder(bindingMode);
 
             builder.SimulateUserSettingsChanged();
 
-            // Should always re-analyse
-            builder.AssertAnalysisIsRequested();
-            builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
-
-            if (bindingMode == SonarLintMode.Standalone)
-            {
-                builder.Logger.AssertOutputStringDoesNotExist(AnalysisStrings.ConfigMonitor_UserSettingsIgnoredForConnectedModeLanguages);
-            }
-            else
-            {
-                builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_UserSettingsIgnoredForConnectedModeLanguages);
-            }
+            // Should not re-analyse
+            builder.AssertAnalysisIsNotRequested();
+            builder.Logger.AssertOutputStringDoesNotExist(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
+            builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_UserSettingsIgnoredForConnectedModeLanguages);
         }
 
         [TestMethod]
-        [DataRow(SonarLintMode.Standalone)]
+
+        public void WhenUserSettingsChange_HasSubscribersToConfigChangedEvent_StandaloneMode_SubscribersNotified()
+        {
+            var builder = new TestEnvironmentBuilder(SonarLintMode.Standalone);
+            var eventHandler = new Mock<EventHandler>();
+            builder.TestSubject.ConfigChanged += eventHandler.Object;
+
+            builder.SimulateUserSettingsChanged();
+
+            eventHandler.Verify(x=> x(builder.TestSubject, EventArgs.Empty), Times.Once);
+        }
+
+        [TestMethod]
         [DataRow(SonarLintMode.Connected)]
         [DataRow(SonarLintMode.LegacyConnected)]
-        public void WhenUserSettingsChange_HasSubscribersToConfigChangedEvent_SubscribersNotified(SonarLintMode bindingMode)
+        public void WhenUserSettingsChange_HasSubscribersToConfigChangedEvent_ConnectedMode_SubscribersNotNotified(SonarLintMode bindingMode)
         {
             var builder = new TestEnvironmentBuilder(bindingMode);
             var eventHandler = new Mock<EventHandler>();
@@ -69,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             builder.SimulateUserSettingsChanged();
 
-            eventHandler.Verify(x=> x(builder.TestSubject, EventArgs.Empty), Times.Once);
+            eventHandler.Verify(x => x(builder.TestSubject, EventArgs.Empty), Times.Never);
         }
 
         [TestMethod]

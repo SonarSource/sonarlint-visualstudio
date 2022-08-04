@@ -62,25 +62,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         private void OnUserSettingsChanged(object sender, EventArgs e)
         {
-            // NB assumes exception handling is done by the AnalysisRequester
-            logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
-            
-            // TODO: once connected mode is supported for all languages this event could
-            // be ignored in connected mode. See #771.
-            if (activeSolutionBoundTracker.CurrentConfiguration.Mode != SonarLintMode.Standalone)
+            if (activeSolutionBoundTracker.CurrentConfiguration.Mode == SonarLintMode.Standalone)
+            {
+                logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
+                OnSettingsChanged();
+            }
+            else
             {
                 logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsIgnoredForConnectedModeLanguages);
             }
-
-            RaiseConfigChangedEvent();
-            analysisRequester.RequestAnalysis();
         }
 
         private void OnSuppressionsUpdated(object sender, EventArgs e)
         {
-            // NB assumes exception handling is done by the AnalysisRequester
             logger.WriteLine(AnalysisStrings.ConfigMonitor_SuppressionsUpdated);
+            OnSettingsChanged();
+        }
+
+        private void OnSettingsChanged()
+        {
             RaiseConfigChangedEvent();
+
+            // NB assumes exception handling is done by the AnalysisRequester
             analysisRequester.RequestAnalysis();
         }
 
