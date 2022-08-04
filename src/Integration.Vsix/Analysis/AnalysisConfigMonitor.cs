@@ -56,8 +56,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         { }
 
         internal AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
-            IUserSettingsProvider userSettingsProvider, // reports changes to user settings.json
-            IActiveSolutionBoundTracker activeSolutionBoundTracker, // reports changes to connected mode
+            IUserSettingsProvider userSettingsProvider, 
+            IActiveSolutionBoundTracker activeSolutionBoundTracker, 
             ISuppressedIssuesMonitor suppressedIssuesMonitor,
             ILogger logger,
             IThreadHandling threadHandling)
