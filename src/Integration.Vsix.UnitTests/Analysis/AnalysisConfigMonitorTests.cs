@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -27,6 +28,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using static SonarLint.VisualStudio.Integration.UnitTests.NoOpThreadHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 {
@@ -42,6 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             // Should re-analyse
             builder.AssertAnalysisIsRequested();
+            builder.AssertSwitchedToBackgroundThread();
             builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
             builder.Logger.AssertOutputStringDoesNotExist(AnalysisStrings.ConfigMonitor_UserSettingsIgnoredForConnectedModeLanguages);
         }
@@ -70,8 +73,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             builder.TestSubject.ConfigChanged += eventHandler.Object;
 
             builder.SimulateUserSettingsChanged();
+            builder.AssertSwitchedToBackgroundThread();
 
             eventHandler.Verify(x=> x(builder.TestSubject, EventArgs.Empty), Times.Once);
+            
         }
 
         [TestMethod]
@@ -95,6 +100,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             builder.SimulateSuppressionsUpdated();
 
+            builder.AssertSwitchedToBackgroundThread();
             builder.AssertAnalysisIsRequested();
             builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_SuppressionsUpdated);
         }
@@ -106,8 +112,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var eventHandler = new Mock<EventHandler>();
             builder.TestSubject.ConfigChanged += eventHandler.Object;
 
-            builder.SimulateSuppressionsUpdated();
-
+            builder.SimulateSuppressionsUpdated();            
+            
+            builder.AssertSwitchedToBackgroundThread();
             eventHandler.Verify(x => x(builder.TestSubject, EventArgs.Empty), Times.Once);
         }
 
@@ -124,8 +131,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             // Raise events and check they are ignored
             builder.SimulateSuppressionsUpdated();
-            builder.SimulateUserSettingsChanged();
 
+            builder.SimulateUserSettingsChanged();
             builder.AssertAnalysisIsNotRequested();
         }
 
@@ -134,12 +141,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             private readonly Mock<IAnalysisRequester> analysisRequesterMock;
             private readonly Mock<IUserSettingsProvider> userSettingsProviderMock;
             private readonly Mock<ISuppressedIssuesMonitor> suppressedIssuesMonitorMock;
+            private readonly Mock<IThreadHandling> threadHandling;
+
 
             public TestEnvironmentBuilder(SonarLintMode bindingMode)
             {
                 analysisRequesterMock = new Mock<IAnalysisRequester>();
                 userSettingsProviderMock = new Mock<IUserSettingsProvider>();
                 suppressedIssuesMonitorMock = new Mock<ISuppressedIssuesMonitor>();
+                threadHandling = new Mock<IThreadHandling>();
+                
+                threadHandling.Setup(th => th.SwitchToBackgroundThread()).Returns(new NoOpAwaitable());
 
                 var solutionBoundTracker = new ConfigurableActiveSolutionBoundTracker
                 {
@@ -149,7 +161,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
                 Logger = new TestLogger();
 
                 TestSubject = new AnalysisConfigMonitor(analysisRequesterMock.Object,
-                    userSettingsProviderMock.Object, solutionBoundTracker, suppressedIssuesMonitorMock.Object, Logger);
+                    userSettingsProviderMock.Object, solutionBoundTracker, suppressedIssuesMonitorMock.Object, Logger, threadHandling.Object);
             }
 
             public TestLogger Logger { get; }
@@ -174,6 +186,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             public void AssertAnalysisIsNotRequested()
             {
                 analysisRequesterMock.Invocations.Count.Should().Be(0);
+            }
+
+            public void AssertSwitchedToBackgroundThread()
+            {
+                threadHandling.Verify(x => x.SwitchToBackgroundThread(), Times.Once);
             }
         }
     }
