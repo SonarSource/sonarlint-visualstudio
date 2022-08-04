@@ -44,6 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             // Should re-analyse
             builder.AssertAnalysisIsRequested();
+            builder.AssertSwitchedToBackgroundThread();
             builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
             builder.Logger.AssertOutputStringDoesNotExist(AnalysisStrings.ConfigMonitor_UserSettingsIgnoredForConnectedModeLanguages);
         }
@@ -72,10 +73,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             builder.TestSubject.ConfigChanged += eventHandler.Object;
 
             builder.SimulateUserSettingsChanged();
-            
+            builder.AssertSwitchedToBackgroundThread();
 
             eventHandler.Verify(x=> x(builder.TestSubject, EventArgs.Empty), Times.Once);
-            builder.AssertSwitchedToBackgroundThread();
+            
         }
 
         [TestMethod]
@@ -98,8 +99,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var builder = new TestEnvironmentBuilder(SonarLintMode.Connected);
 
             builder.SimulateSuppressionsUpdated();
-            builder.AssertSwitchedToBackgroundThread();
 
+            builder.AssertSwitchedToBackgroundThread();
             builder.AssertAnalysisIsRequested();
             builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_SuppressionsUpdated);
         }
@@ -111,9 +112,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var eventHandler = new Mock<EventHandler>();
             builder.TestSubject.ConfigChanged += eventHandler.Object;
 
-            builder.SimulateSuppressionsUpdated();
+            builder.SimulateSuppressionsUpdated();            
+            
             builder.AssertSwitchedToBackgroundThread();
-
             eventHandler.Verify(x => x(builder.TestSubject, EventArgs.Empty), Times.Once);
         }
 
@@ -130,8 +131,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             // Raise events and check they are ignored
             builder.SimulateSuppressionsUpdated();
-            builder.SimulateUserSettingsChanged();
 
+            builder.SimulateUserSettingsChanged();
             builder.AssertAnalysisIsNotRequested();
         }
 
