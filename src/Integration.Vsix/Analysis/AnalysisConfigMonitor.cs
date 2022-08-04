@@ -20,10 +20,13 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppression;
+using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
@@ -40,6 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private readonly IUserSettingsProvider userSettingsProvider;
         private readonly ISuppressedIssuesMonitor suppressedIssuesMonitor;
         private readonly ILogger logger;
+        private readonly IThreadHandling threadHandling;
 
         public event EventHandler ConfigChanged;
 
@@ -48,13 +52,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             IUserSettingsProvider userSettingsProvider, // reports changes to user settings.json
             IActiveSolutionBoundTracker activeSolutionBoundTracker, // reports changes to connected mode
             ISuppressedIssuesMonitor suppressedIssuesMonitor,
-            ILogger logger)
+            ILogger logger) : this(analysisRequester, userSettingsProvider, activeSolutionBoundTracker, suppressedIssuesMonitor, logger, new ThreadHandling())
+        { }
+
+        internal AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
+            IUserSettingsProvider userSettingsProvider, 
+            IActiveSolutionBoundTracker activeSolutionBoundTracker, 
+            ISuppressedIssuesMonitor suppressedIssuesMonitor,
+            ILogger logger,
+            IThreadHandling threadHandling)
         {
             this.analysisRequester = analysisRequester;
             this.userSettingsProvider = userSettingsProvider;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.suppressedIssuesMonitor = suppressedIssuesMonitor;
             this.logger = logger;
+            this.threadHandling = threadHandling;
 
             userSettingsProvider.SettingsChanged += OnUserSettingsChanged;
             suppressedIssuesMonitor.SuppressionsUpdateRequested += OnSuppressionsUpdated;
@@ -65,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             if (activeSolutionBoundTracker.CurrentConfiguration.Mode == SonarLintMode.Standalone)
             {
                 logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
-                OnSettingsChanged();
+                OnSettingsChangedAsync().Forget();
             }
             else
             {
@@ -76,11 +89,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private void OnSuppressionsUpdated(object sender, EventArgs e)
         {
             logger.WriteLine(AnalysisStrings.ConfigMonitor_SuppressionsUpdated);
-            OnSettingsChanged();
+            OnSettingsChangedAsync().Forget();
         }
 
-        private void OnSettingsChanged()
+        private async Task OnSettingsChangedAsync()
         {
+            await threadHandling.SwitchToBackgroundThread();
             RaiseConfigChangedEvent();
 
             // NB assumes exception handling is done by the AnalysisRequester
