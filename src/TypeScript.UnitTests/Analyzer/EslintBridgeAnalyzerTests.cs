@@ -310,6 +310,32 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
+        public void OnSolutionChanged_SolutionClosed_EslintBridgeClientStoppedOnBackgroundThread()
+        {
+            // Regression test for #3161 - UI freeze when closing a folder/solution after a JS/TS analysis was done
+            var activeSolutionTracker = SetupActiveSolutionTracker();
+
+            var callOrder = new List<string>();
+
+            var threadHandling = new Mock<IThreadHandling>();
+            threadHandling.Setup(x => x.SwitchToBackgroundThread())
+                .Returns(() => new NoOpThreadHandler.NoOpAwaitable())
+                .Callback(() => callOrder.Add("SwitchToBackgroundThread"));
+
+            var client = new Mock<IEslintBridgeClient>();
+            client.Setup(x => x.Close())
+                .Returns(() => Task.CompletedTask)
+                .Callback(() => callOrder.Add("Close"));
+
+            CreateTestSubject(client.Object, activeSolutionTracker: activeSolutionTracker.Object, threadHandling: threadHandling.Object);
+
+            activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(false));
+
+            // Order is important so using Equal rather than IsEquivalentTo
+            callOrder.Should().Equal("SwitchToBackgroundThread", "Close");
+        }
+
+        [TestMethod]
         public async Task OnConfigChanged_NextAnalysisCallsInitLinter()
         {
             var analysisConfigMonitor = SetupAnalysisConfigMonitor();
@@ -536,6 +562,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             IActiveSolutionTracker activeSolutionTracker = null,
             IAnalysisConfigMonitor analysisConfigMonitor = null,
             IEslintBridgeIssueConverter issueConverter = null,
+            IThreadHandling threadHandling = null,
             ILogger logger = null)
         {
             eslintBridgeClient ??= SetupEslintBridgeClient().Object;
@@ -543,6 +570,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             activeSolutionTracker ??= Mock.Of<IActiveSolutionTracker>();
             analysisConfigMonitor ??= Mock.Of<IAnalysisConfigMonitor>();
             issueConverter ??= Mock.Of<IEslintBridgeIssueConverter>();
+            threadHandling ??= new NoOpThreadHandler();
             logger ??= Mock.Of<ILogger>();
 
             return new EslintBridgeAnalyzer(rulesProvider,
@@ -550,7 +578,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 activeSolutionTracker,
                 analysisConfigMonitor,
                 issueConverter,
-                new NoOpThreadHandler(),
+                threadHandling,
                 logger);
         }
     }
