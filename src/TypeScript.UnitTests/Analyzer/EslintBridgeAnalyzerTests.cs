@@ -550,6 +550,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 activeSolutionTracker,
                 analysisConfigMonitor,
                 issueConverter,
+                new NoOpThreadHandler(),
                 logger);
         }
     }
