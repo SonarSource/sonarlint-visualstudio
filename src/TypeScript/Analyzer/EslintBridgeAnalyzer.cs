@@ -25,6 +25,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
@@ -47,6 +48,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         private readonly IActiveSolutionTracker activeSolutionTracker;
         private readonly IAnalysisConfigMonitor analysisConfigMonitor;
         private readonly IEslintBridgeIssueConverter issueConverter;
+        private readonly IThreadHandling threadHandling;
         private readonly ILogger logger;
 
         private readonly EventWaitHandle serverInitLocker = new EventWaitHandle(true, EventResetMode.AutoReset);
@@ -59,12 +61,25 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             IAnalysisConfigMonitor analysisConfigMonitor,
             IEslintBridgeIssueConverter issueConverter,
             ILogger logger)
+            : this(rulesProvider, eslintBridgeClient, activeSolutionTracker, analysisConfigMonitor, issueConverter, new ThreadHandling(), logger)
+        {
+        }
+
+        internal EslintBridgeAnalyzer(
+            IRulesProvider rulesProvider,
+            IEslintBridgeClient eslintBridgeClient,
+            IActiveSolutionTracker activeSolutionTracker,
+            IAnalysisConfigMonitor analysisConfigMonitor,
+            IEslintBridgeIssueConverter issueConverter,
+            IThreadHandling threadHandling,
+            ILogger logger)
         {
             this.rulesProvider = rulesProvider;
             this.eslintBridgeClient = eslintBridgeClient;
             this.activeSolutionTracker = activeSolutionTracker;
             this.analysisConfigMonitor = analysisConfigMonitor;
             this.issueConverter = issueConverter;
+            this.threadHandling = threadHandling;
             this.logger = logger;
 
             activeSolutionTracker.ActiveSolutionChanged += ActiveSolutionTracker_ActiveSolutionChanged;
@@ -135,7 +150,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         private async void ActiveSolutionTracker_ActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
         {
-            if(!e.IsSolutionOpen)
+            if (!e.IsSolutionOpen)
             {
                 // We only need to shut down the server after a solution is closed.
                 // See https://github.com/SonarSource/sonarlint-visualstudio/issues/2438 for more info.
@@ -150,12 +165,15 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         private async Task StopServer()
         {
+            await threadHandling.SwitchToBackgroundThread();
             RequireLinterUpdate();
             await eslintBridgeClient.Close();
         }
 
         private void RequireLinterUpdate()
         {
+            threadHandling.ThrowIfOnUIThread();
+
             serverInitLocker.WaitOne();
             shouldInitLinter = true;
             serverInitLocker.Set();
