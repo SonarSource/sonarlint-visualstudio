@@ -22,6 +22,6 @@ namespace SonarLint.VisualStudio.Core.SonarLintNotifications
 {
     public interface INotificationService
     {
-        void ShowNotification(Notification notification);
+        void ShowNotification(INotification notification);
     }
 }
