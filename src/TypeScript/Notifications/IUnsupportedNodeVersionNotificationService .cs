@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.TypeScript.Notifications
 {
-    public interface INodeExpiredNotificationService
+    public interface IUnsupportedNodeVersionNotificationService
     {
         void Show();
     }

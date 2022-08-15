@@ -23,18 +23,19 @@ namespace SonarLint.VisualStudio.Core.SonarLintNotifications
 {
     public interface INotificationAction
     {
-        string Message { get; }
+        string CommandText { get; }
         Action Action { get; }
     }
+
     public class NotificationAction : INotificationAction
     {
-        public NotificationAction(string message, Action action)
+        public NotificationAction(string commandText, Action action)
         {
-            Message = message;
+            CommandText = commandText;
             Action = action;
         }
 
-        public string Message { get; }
+        public string CommandText { get; }
         public Action Action { get; }
     }
 }
