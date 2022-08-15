@@ -23,10 +23,24 @@ using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Core.SonarLintNotifications
 {
-    public class Notification
+    public interface INotification
     {
-        public Guid NotificationId { get; set; }
-        public string Message { get; set; }
-        public IEnumerable<NotificationAction> Actions { get; set; }
+        Guid NotificationId { get; }
+        string Message { get; }
+        IEnumerable<INotificationAction> Actions { get; }
+    }
+
+    public class Notification : INotification
+    {
+        public Notification(Guid notificationId, string message, IEnumerable<INotificationAction> actions)
+        {
+            NotificationId = notificationId;
+            Message = message;
+            Actions = actions;
+        }
+
+        public Guid NotificationId { get; }
+        public string Message { get; }
+        public IEnumerable<INotificationAction> Actions { get; }
     }
 }

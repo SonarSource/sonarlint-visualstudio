@@ -18,13 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.SonarLintNotifications
+namespace SonarLint.VisualStudio.TypeScript.Notifications
 {
-    //TODO: TBD what theese should be called. 
-    public enum Severity
+    public interface INodeExpiredNotificationService
     {
-        Info,
-        Warning,
-        Error
+        void Show();
     }
 }

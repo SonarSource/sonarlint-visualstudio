@@ -21,9 +21,20 @@ using System;
 
 namespace SonarLint.VisualStudio.Core.SonarLintNotifications
 {
-    public class NotificationAction
+    public interface INotificationAction
     {
-        public string Message { get; set; }
-        public Action Action { get; set; }
+        string Message { get; }
+        Action Action { get; }
+    }
+    public class NotificationAction : INotificationAction
+    {
+        public NotificationAction(string message, Action action)
+        {
+            Message = message;
+            Action = action;
+        }
+
+        public string Message { get; }
+        public Action Action { get; }
     }
 }
