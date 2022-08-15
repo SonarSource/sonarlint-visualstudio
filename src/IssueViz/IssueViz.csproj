@@ -44,6 +44,7 @@
 
   <ItemGroup>
     <None Remove="Commands\Resources\CommandIcons.png" />
+    <None Remove="Commands\Resources\sonarlint.png" />
     <None Remove="IssueVisualizationControl\IssueVisualizationControl.xaml" />
 
     <Page Include="IssueVisualizationControl\IssueVisualizationControl.xaml">
@@ -66,6 +67,13 @@
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
     </VSCTCompile>
+
+    <Resource Include="Commands\Resources\sonarlint.png" />
+
+    <Content Include="Monikers.imagemanifest">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
 
   </ItemGroup>
 
