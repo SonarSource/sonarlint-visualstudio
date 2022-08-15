@@ -45,11 +45,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         // 5. Repeat for C++.
 
         // Rule data for C-Family plugin v6.36 (build 52033)
-        private const int Active_C_Rules = 207;
-        private const int Inactive_C_Rules = 104;
+        private const int Active_C_Rules = 208;
+        private const int Inactive_C_Rules = 103;
 
-        private const int Active_CPP_Rules = 410;
-        private const int Inactive_CPP_Rules = 168;
+        private const int Active_CPP_Rules = 411;
+        private const int Inactive_CPP_Rules = 167;
 
         private readonly CFamilySonarWayRulesConfigProvider rulesMetadataCache = new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory);
 
