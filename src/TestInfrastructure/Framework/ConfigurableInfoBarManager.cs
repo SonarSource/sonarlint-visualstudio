@@ -22,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
-using Microsoft.VisualStudio.Imaging.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.InfoBar;
 
@@ -41,6 +40,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var infoBar = new ConfigurableInfoBar(message, buttonText, imageMoniker);
             this.attached[toolWindowGuid] = infoBar;
             return infoBar;
+        }
+
+        public IInfoBar AttachInfoBarWithButtons(Guid toolWindowGuid, string message, IReadOnlyList<string> buttonTexts, ButtonStyle buttonStyle, SonarLintImageMoniker imageMoniker)
+        {
+            // not needed so far
+            throw new NotImplementedException();
         }
 
         IInfoBar IInfoBarManager.AttachInfoBar(Guid toolWindowGuid, string message, SonarLintImageMoniker imageMoniker)

@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Core.InfoBar
         /// <summary>
         /// Click event
         /// </summary>
-        event EventHandler ButtonClick;
+        event EventHandler<InfoBarButtonClickedEventArgs> ButtonClick;
 
         /// <summary>
         /// Closed event
@@ -41,5 +41,15 @@ namespace SonarLint.VisualStudio.Core.InfoBar
         /// Close the info bar
         /// </summary>
         void Close();
+    }
+
+    public class InfoBarButtonClickedEventArgs : EventArgs
+    {
+        public string ClickedButtonText { get; }
+
+        public InfoBarButtonClickedEventArgs(string clickedButtonText)
+        {
+            ClickedButtonText = clickedButtonText;
+        }
     }
 }

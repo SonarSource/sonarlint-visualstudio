@@ -25,6 +25,7 @@ using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
+using Moq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -116,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void SimulateClickEvent(IVsInfoBarActionItem item = null)
         {
-            this.sinks.Values.ToList().ForEach(v => v.OnActionItemClicked(this, item));
+            this.sinks.Values.ToList().ForEach(v => v.OnActionItemClicked(this, item ?? Mock.Of<IVsInfoBarActionItem>()));
         }
 
         public void SimulateClosedEvent()

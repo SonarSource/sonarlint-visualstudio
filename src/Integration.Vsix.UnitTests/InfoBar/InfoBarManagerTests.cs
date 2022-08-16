@@ -217,7 +217,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private class InvalidInfoBar : IInfoBar
         {
-            event EventHandler IInfoBar.ButtonClick
+            event EventHandler<InfoBarButtonClickedEventArgs> IInfoBar.ButtonClick
             {
                 add
                 {
