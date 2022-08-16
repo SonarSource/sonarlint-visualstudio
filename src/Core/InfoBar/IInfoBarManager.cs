@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Core.InfoBar
         /// <remarks>
         /// The created info bar will have multiple buttons with a "hyperlink" style
         /// </remarks>
-        IInfoBar AttachInfoBarWithButtons(Guid toolWindowGuid, string message, IReadOnlyList<string> buttonTexts, SonarLintImageMoniker imageMoniker);
+        IInfoBar AttachInfoBarWithButtons(Guid toolWindowGuid, string message, IEnumerable<string> buttonTexts, SonarLintImageMoniker imageMoniker);
 
         /// <summary>
         /// Detaches an <see cref="IInfoBar"/> from its tool window

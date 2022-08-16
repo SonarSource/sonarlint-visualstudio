@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
             return AttachInfoBarImpl(toolWindowGuid, message, imageMoniker, ButtonStyle.Button, buttonText);
         }
 
-        public IInfoBar AttachInfoBarWithButtons(Guid toolWindowGuid, string message, IReadOnlyList<string> buttonTexts, SonarLintImageMoniker imageMoniker)
+        public IInfoBar AttachInfoBarWithButtons(Guid toolWindowGuid, string message, IEnumerable<string> buttonTexts, SonarLintImageMoniker imageMoniker)
         {
             if (string.IsNullOrWhiteSpace(message))
             {
