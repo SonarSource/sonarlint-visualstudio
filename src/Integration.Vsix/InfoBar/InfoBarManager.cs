@@ -39,11 +39,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
     internal class InfoBarManager : IInfoBarManager
     {
         private readonly IServiceProvider serviceProvider;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
-        public InfoBarManager([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public InfoBarManager([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ILogger logger = null)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.logger = logger;
         }
 
         #region IInfoBarManager
@@ -117,11 +119,40 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
             ThreadHelper.ThrowIfNotOnUIThread();
 
             IVsUIShell shell = serviceProvider.GetService<SVsUIShell, IVsUIShell>();
+
+            if (shell == null)
+            {
+                throw new Exception("shell is nul!!");
+            }
+
+
             IVsWindowFrame frame = GetToolWindowFrame(shell, toolWindowGuid);
+
+
+            if (frame == null)
+            {
+                throw new Exception("frame is nul!!");
+            }
+
 
             InfoBarModel model = CreateModel(message, buttonTexts, buttonStyle, imageMoniker);
 
+
+            if (model == null)
+            {
+                throw new Exception("model is nul!!");
+            }
+
+
+
             IVsInfoBarUIFactory infoBarUIFactory = serviceProvider.GetService<SVsInfoBarUIFactory, IVsInfoBarUIFactory>();
+
+            if (infoBarUIFactory == null)
+            {
+                throw new Exception("infoBarUIFactory is nul!!");
+            }
+
+
             IVsInfoBarUIElement uiElement;
             if (TryCreateInfoBarUI(infoBarUIFactory, model, out uiElement)
                 && TryAddInfoBarToFrame(frame, uiElement))
@@ -157,6 +188,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
             }
 
             uiElement = infoBarUIFactory.CreateInfoBar(infoBar);
+
+            if (uiElement == null)
+            {
+                throw new Exception("uiElement is nul!!");
+            }
 
             return uiElement != null;
         }
@@ -194,11 +230,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
 
             if (ErrorHandler.Failed(frame.GetProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, out infoBarHostObj)))
             {
+                Debug.Fail("could not get infoBarHostObj");
+
                 infoBarHost = null;
                 return false;
             }
 
             infoBarHost = infoBarHostObj as IVsInfoBarHost;
+
+            if (infoBarHost == null)
+            {
+                throw new Exception("infoBarHost is nul!!");
+            }
+
             return infoBarHost != null;
         }
         #endregion

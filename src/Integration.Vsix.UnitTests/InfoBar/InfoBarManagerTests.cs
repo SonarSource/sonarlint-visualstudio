@@ -310,12 +310,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             vsUiShell ??= new ConfigurableVsUIShell();
 
-            var serviceProviderMock = new Mock<IServiceProvider>();
+            var serviceProviderMock = new ConfigurableServiceProvider();
+            serviceProviderMock.RegisterService(typeof(SVsUIShell), vsUiShell);
+            serviceProviderMock.RegisterService(typeof(SVsInfoBarUIFactory), new ConfigurableVsInfoBarUIFactory());
 
-            serviceProviderMock.Setup(x => x.GetService(typeof(SVsInfoBarUIFactory))).Returns(new ConfigurableVsInfoBarUIFactory());
-            serviceProviderMock.Setup(x => x.GetService(typeof(SVsUIShell))).Returns(vsUiShell);
-
-            return new InfoBarManager(serviceProviderMock.Object);
+            return new InfoBarManager(serviceProviderMock);
         }
 
         private static SonarLintImageMoniker CreateFromVsMoniker(ImageMoniker imageMoniker) => new SonarLintImageMoniker(imageMoniker.Guid, imageMoniker.Id);
