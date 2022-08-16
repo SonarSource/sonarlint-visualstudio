@@ -49,15 +49,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
         #region IInfoBarManager
         public IInfoBar AttachInfoBarWithButton(Guid toolWindowGuid, string message, string buttonText, SonarLintImageMoniker imageMoniker)
         {
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
             if (string.IsNullOrWhiteSpace(buttonText))
             {
                 throw new ArgumentNullException(nameof(buttonText));
             }
 
-            return AttachInfoBarWithButtons(toolWindowGuid, message, new []{ buttonText }, ButtonStyle.Button, imageMoniker);
+            return AttachInfoBarImpl(toolWindowGuid, message, imageMoniker, ButtonStyle.Button, buttonText);
         }
 
-        public IInfoBar AttachInfoBarWithButtons(Guid toolWindowGuid, string message, IReadOnlyList<string> buttonTexts, ButtonStyle buttonStyle, SonarLintImageMoniker imageMoniker)
+        public IInfoBar AttachInfoBarWithButtons(Guid toolWindowGuid, string message, IReadOnlyList<string> buttonTexts, SonarLintImageMoniker imageMoniker)
         {
             if (string.IsNullOrWhiteSpace(message))
             {
@@ -69,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
                 throw new ArgumentNullException(nameof(buttonTexts));
             }
 
-            return AttachInfoBarImpl(toolWindowGuid, message, imageMoniker, buttonStyle, buttonTexts.ToArray());
+            return AttachInfoBarImpl(toolWindowGuid, message, imageMoniker, ButtonStyle.Hyperlink, buttonTexts.ToArray());
         }
 
         public IInfoBar AttachInfoBar(Guid toolWindowGuid, string message, SonarLintImageMoniker imageMoniker)
@@ -197,6 +202,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
             return infoBarHost != null;
         }
         #endregion
+
+        private enum ButtonStyle
+        {
+            Hyperlink,
+            Button
+        }
 
         private class PrivateInfoBarWrapper : IInfoBar, IVsInfoBarUIEvents
         {

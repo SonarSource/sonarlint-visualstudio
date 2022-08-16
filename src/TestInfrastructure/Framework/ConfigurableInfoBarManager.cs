@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return infoBar;
         }
 
-        public IInfoBar AttachInfoBarWithButtons(Guid toolWindowGuid, string message, IReadOnlyList<string> buttonTexts, ButtonStyle buttonStyle, SonarLintImageMoniker imageMoniker)
+        public IInfoBar AttachInfoBarWithButtons(Guid toolWindowGuid, string message, IReadOnlyList<string> buttonTexts, SonarLintImageMoniker imageMoniker)
         {
             // not needed so far
             throw new NotImplementedException();

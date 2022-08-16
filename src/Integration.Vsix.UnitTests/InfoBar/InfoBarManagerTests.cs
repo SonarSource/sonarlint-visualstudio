@@ -211,7 +211,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var testSubject = CreateTestSubject();
 
-            Action act = () => testSubject.AttachInfoBarWithButtons(dummyWindowGuid, null, new[] {"button"}, ButtonStyle.Button, default);
+            Action act = () => testSubject.AttachInfoBarWithButtons(dummyWindowGuid, null, new[] {"button"}, default);
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("message");
         }
@@ -221,7 +221,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var testSubject = CreateTestSubject();
 
-            Action act = () => testSubject.AttachInfoBarWithButtons(dummyWindowGuid, "message", null, ButtonStyle.Button, default);
+            Action act = () => testSubject.AttachInfoBarWithButtons(dummyWindowGuid, "message", null, default);
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("buttonTexts");
         }
@@ -242,7 +242,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 "button3"
             };
 
-            var infoBar = testSubject.AttachInfoBarWithButtons(dummyWindowGuid, "message", buttons, ButtonStyle.Hyperlink, default);
+            var infoBar = testSubject.AttachInfoBarWithButtons(dummyWindowGuid, "message", buttons, default);
 
             infoBar.Should().NotBeNull();
 
@@ -282,7 +282,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 "button3"
             };
 
-            var infoBar = testSubject.AttachInfoBarWithButtons(dummyWindowGuid, "message", buttons, ButtonStyle.Hyperlink, default);
+            var infoBar = testSubject.AttachInfoBarWithButtons(dummyWindowGuid, "message", buttons, default);
 
             infoBar.Should().NotBeNull();
 
