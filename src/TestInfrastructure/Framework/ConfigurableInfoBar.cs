@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region IInfoBar
 
-        public event EventHandler ButtonClick;
+        public event EventHandler<InfoBarButtonClickedEventArgs> ButtonClick;
 
         public event EventHandler Closed;
 
@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void SimulateButtonClickEvent()
         {
-            this.ButtonClick?.Invoke(this, EventArgs.Empty);
+            this.ButtonClick?.Invoke(this, new InfoBarButtonClickedEventArgs(ButtonText));
         }
 
         public void SimulateClosedEvent()

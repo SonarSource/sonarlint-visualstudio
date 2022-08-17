@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Integration.Vsix.InfoBar;
@@ -34,6 +35,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class InfoBarManagerTests
     {
+        private readonly Guid dummyWindowGuid = Guid.NewGuid();
+
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsUIShell shell;
 
@@ -114,6 +117,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             infoBarUI.Model.TextSpans.GetSpan(0).Text.Should().Be("Hello");
             infoBarUI.Model.ActionItems.Count.Should().Be(1);
             infoBarUI.Model.ActionItems.GetItem(0).Text.Should().Be("world");
+            infoBarUI.Model.ActionItems.GetItem(0).IsButton.Should().BeTrue();
 
             // Sanity
             actionClicked.Should().BeFalse();
@@ -202,9 +206,116 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             host.AssertInfoBars(0);
         }
 
+        [TestMethod]
+        public void AttachInfoBarWithButtons_NoMessage_ArgumentNullException()
+        {
+            var testSubject = CreateTestSubject();
+
+            Action act = () => testSubject.AttachInfoBarWithButtons(dummyWindowGuid, null, new[] {"button"}, default);
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("message");
+        }
+
+        [TestMethod]
+        public void AttachInfoBarWithButtons_NoButtons_ArgumentNullException()
+        {
+            var testSubject = CreateTestSubject();
+
+            Action act = () => testSubject.AttachInfoBarWithButtons(dummyWindowGuid, "message", null, default);
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("buttonTexts");
+        }
+
+        [TestMethod]
+        public void AttachInfoBarWithButtons_CreatedInfoBarWithMultipleButtons()
+        {
+            var vsUiShell = new ConfigurableVsUIShell();
+            var frame = vsUiShell.RegisterToolWindow(dummyWindowGuid);
+            var host = RegisterFrameInfoBarHost(frame);
+
+            var testSubject = CreateTestSubject(vsUiShell);
+
+            var buttons = new[]
+            {
+                "button1",
+                "button2",
+                "button3"
+            };
+
+            var infoBar = testSubject.AttachInfoBarWithButtons(dummyWindowGuid, "message", buttons, default);
+
+            infoBar.Should().NotBeNull();
+
+            host.AssertInfoBars(1);
+
+            var infoBarUI = host.MockedElements.SingleOrDefault();
+
+            infoBarUI.Should().NotBeNull();
+
+            infoBarUI.Model.TextSpans.Count.Should().Be(1);
+            infoBarUI.Model.TextSpans.GetSpan(0).Text.Should().Be("message");
+
+            infoBarUI.Model.ActionItems.Count.Should().Be(3);
+
+            infoBarUI.Model.ActionItems.GetItem(0).Text.Should().Be("button1");
+            infoBarUI.Model.ActionItems.GetItem(1).Text.Should().Be("button2");
+            infoBarUI.Model.ActionItems.GetItem(2).Text.Should().Be("button3");
+
+            infoBarUI.Model.ActionItems.GetItem(0).IsButton.Should().BeFalse();
+            infoBarUI.Model.ActionItems.GetItem(1).IsButton.Should().BeFalse();
+            infoBarUI.Model.ActionItems.GetItem(2).IsButton.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void AttachInfoBarWithButtons_ButtonClickedEvent_RaisedWithTheRightButtonText()
+        {
+            var vsUiShell = new ConfigurableVsUIShell();
+            var frame = vsUiShell.RegisterToolWindow(dummyWindowGuid);
+            var host = RegisterFrameInfoBarHost(frame);
+
+            var testSubject = CreateTestSubject(vsUiShell);
+
+            var buttons = new[]
+            {
+                "button1",
+                "button2",
+                "button3"
+            };
+
+            var infoBar = testSubject.AttachInfoBarWithButtons(dummyWindowGuid, "message", buttons, default);
+
+            infoBar.Should().NotBeNull();
+
+            var eventHandler = new Mock<Action<InfoBarButtonClickedEventArgs>>();
+            infoBar.ButtonClick += (_, args) => eventHandler.Object(args);
+
+            var infoBarUI = host.MockedElements.Single();
+
+            infoBarUI.SimulateClickEvent(infoBarUI.Model.ActionItems.GetItem(1));
+            eventHandler.Verify(x => x(It.Is((InfoBarButtonClickedEventArgs e) => e.ClickedButtonText == "button2")), Times.Once);
+            eventHandler.VerifyNoOtherCalls();
+
+            eventHandler.Reset();
+
+            infoBarUI.SimulateClickEvent(infoBarUI.Model.ActionItems.GetItem(2));
+            eventHandler.Verify(x => x(It.Is((InfoBarButtonClickedEventArgs e) => e.ClickedButtonText == "button3")), Times.Once);
+            eventHandler.VerifyNoOtherCalls();
+        }
+
         #endregion Tests
 
         #region Test helpers
+
+        private static InfoBarManager CreateTestSubject(ConfigurableVsUIShell vsUiShell = null)
+        {
+            vsUiShell ??= new ConfigurableVsUIShell();
+
+            var serviceProviderMock = new ConfigurableServiceProvider();
+            serviceProviderMock.RegisterService(typeof(SVsUIShell), vsUiShell);
+            serviceProviderMock.RegisterService(typeof(SVsInfoBarUIFactory), new ConfigurableVsInfoBarUIFactory());
+
+            return new InfoBarManager(serviceProviderMock);
+        }
 
         private static SonarLintImageMoniker CreateFromVsMoniker(ImageMoniker imageMoniker) => new SonarLintImageMoniker(imageMoniker.Guid, imageMoniker.Id);
 
@@ -217,7 +328,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private class InvalidInfoBar : IInfoBar
         {
-            event EventHandler IInfoBar.ButtonClick
+            event EventHandler<InfoBarButtonClickedEventArgs> IInfoBar.ButtonClick
             {
                 add
                 {

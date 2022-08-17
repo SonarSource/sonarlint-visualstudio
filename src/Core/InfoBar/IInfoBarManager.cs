@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Core.InfoBar
 {
@@ -36,12 +37,22 @@ namespace SonarLint.VisualStudio.Core.InfoBar
         /// <summary>
         /// Attach an info bar with a message and a button to an existing tool window
         /// </summary>
+        /// <remarks>
+        /// The created info bar will have one button with a "button" style
+        /// </remarks>
         /// <param name="toolWindowGuid">Tool window Guid</param>
         /// <param name="message">Message to show on the info bar</param>
         /// <param name="buttonText">The button text</param>
         /// <param name="imageMoniker">Image</param>
-        /// <returns><see cref="IInfoBar"/></returns>
         IInfoBar AttachInfoBarWithButton(Guid toolWindowGuid, string message, string buttonText, SonarLintImageMoniker imageMoniker);
+
+        /// <summary>
+        /// Attach an info bar with a message and multiple buttons to an existing tool window
+        /// </summary>
+        /// <remarks>
+        /// The created info bar will have multiple buttons with a "hyperlink" style
+        /// </remarks>
+        IInfoBar AttachInfoBarWithButtons(Guid toolWindowGuid, string message, IEnumerable<string> buttonTexts, SonarLintImageMoniker imageMoniker);
 
         /// <summary>
         /// Detaches an <see cref="IInfoBar"/> from its tool window
