@@ -25,6 +25,7 @@ using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
+using Moq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -116,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void SimulateClickEvent(IVsInfoBarActionItem item = null)
         {
-            this.sinks.Values.ToList().ForEach(v => v.OnActionItemClicked(this, item));
+            this.sinks.Values.ToList().ForEach(v => v.OnActionItemClicked(this, item ?? new ConfigurableVsInfoBarActionItem()));
         }
 
         public void SimulateClosedEvent()
@@ -131,5 +132,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #endregion Test helpers
+    }
+
+    public class ConfigurableVsInfoBarActionItem : IVsInfoBarActionItem
+    {
+        public string Text { get; set; }
+
+        public object ActionContext { get; set; }
+
+        public bool IsButton { get; set; }
+
+        public bool Bold { get; set; }
+
+        public bool Italic { get; set; }
+
+        public bool Underline { get; set; }
     }
 }

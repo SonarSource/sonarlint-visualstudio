@@ -175,7 +175,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             outputWindowService.VerifyNoOtherCalls();
 
             // Act
-            infoBar.Raise(x => x.ButtonClick += null, EventArgs.Empty);
+            infoBar.Raise(x => x.ButtonClick += null, new InfoBarButtonClickedEventArgs("some button"));
 
             outputWindowService.Verify(x => x.Show(), Times.Once);
             outputWindowService.VerifyNoOtherCalls();
@@ -220,7 +220,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             infoBarManager.Verify(x => x.DetachInfoBar(infoBar.Object), Times.Once);
 
             infoBar.VerifyRemove(x => x.Closed -= It.IsAny<EventHandler>(), Times.Once);
-            infoBar.VerifyRemove(x => x.ButtonClick -= It.IsAny<EventHandler>(), Times.Once);
+            infoBar.VerifyRemove(x => x.ButtonClick -= It.IsAny<EventHandler<InfoBarButtonClickedEventArgs>>(), Times.Once);
         }
 
         private static void CheckInfoBarWithEventsAdded(Mock<IInfoBarManager> infoBarManager, Mock<IInfoBar> infoBar, Guid toolWindowId)
@@ -228,7 +228,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             infoBarManager.Verify(x => x.AttachInfoBarWithButton(toolWindowId, It.IsAny<string>(), It.IsAny<string>(), default), Times.Once);
 
             infoBar.VerifyAdd(x => x.Closed += It.IsAny<EventHandler>(), Times.Once);
-            infoBar.VerifyAdd(x => x.ButtonClick += It.IsAny<EventHandler>(), Times.Once);
+            infoBar.VerifyAdd(x => x.ButtonClick += It.IsAny<EventHandler<InfoBarButtonClickedEventArgs>>(), Times.Once);
         }
     }
 }
