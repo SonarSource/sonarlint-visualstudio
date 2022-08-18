@@ -18,10 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.SonarLintNotifications
+namespace SonarLint.VisualStudio.Core.Notifications
 {
-    public interface INotificationService
+    public interface IDisabledNotificationsStorage
     {
-        void ShowNotification(INotification notification);
+        void DisableNotification(string id);
+        bool IsNotificationDisabled(string id);
     }
 }
