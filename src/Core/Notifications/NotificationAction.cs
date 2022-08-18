@@ -19,28 +19,24 @@
  */
 
 using System;
-using System.Collections.Generic;
 
-namespace SonarLint.VisualStudio.Core.SonarLintNotifications
+namespace SonarLint.VisualStudio.Core.Notifications
 {
-    public interface INotification
+    public interface INotificationAction
     {
-        string Id { get; }
-        string Message { get; }
-        IEnumerable<INotificationAction> Actions { get; }
+        string CommandText { get; }
+        Action Action { get; }
     }
 
-    public class Notification : INotification
+    public class NotificationAction : INotificationAction
     {
-        public Notification(string id, string message, IEnumerable<INotificationAction> actions)
+        public NotificationAction(string commandText, Action action)
         {
-            Id = id;
-            Message = message;
-            Actions = actions;
+            CommandText = commandText;
+            Action = action;
         }
 
-        public string Id { get; }
-        public string Message { get; }
-        public IEnumerable<INotificationAction> Actions { get; }
+        public string CommandText { get; }
+        public Action Action { get; }
     }
 }

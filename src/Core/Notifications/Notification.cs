@@ -17,25 +17,29 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-using System;
 
-namespace SonarLint.VisualStudio.Core.SonarLintNotifications
+using System.Collections.Generic;
+
+namespace SonarLint.VisualStudio.Core.Notifications
 {
-    public interface INotificationAction
+    public interface INotification
     {
-        string CommandText { get; }
-        Action Action { get; }
+        string Id { get; }
+        string Message { get; }
+        IEnumerable<INotificationAction> Actions { get; }
     }
 
-    public class NotificationAction : INotificationAction
+    public class Notification : INotification
     {
-        public NotificationAction(string commandText, Action action)
+        public Notification(string id, string message, IEnumerable<INotificationAction> actions)
         {
-            CommandText = commandText;
-            Action = action;
+            Id = id;
+            Message = message;
+            Actions = actions;
         }
 
-        public string CommandText { get; }
-        public Action Action { get; }
+        public string Id { get; }
+        public string Message { get; }
+        public IEnumerable<INotificationAction> Actions { get; }
     }
 }
