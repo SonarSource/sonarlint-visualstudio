@@ -19,28 +19,12 @@
  */
 
 using System;
-using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Core.SonarLintNotifications
 {
-    public interface INotification
+    public interface IDisabledNotificationsStorage
     {
-        string Id { get; }
-        string Message { get; }
-        IEnumerable<INotificationAction> Actions { get; }
-    }
-
-    public class Notification : INotification
-    {
-        public Notification(string id, string message, IEnumerable<INotificationAction> actions)
-        {
-            Id = id;
-            Message = message;
-            Actions = actions;
-        }
-
-        public string Id { get; }
-        public string Message { get; }
-        public IEnumerable<INotificationAction> Actions { get; }
+        void DisableNotification(string id);
+        bool IsNotificationDisabled(string id);
     }
 }
