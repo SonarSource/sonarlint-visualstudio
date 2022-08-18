@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Core.SonarLintNotifications
 {
     public interface IDisabledNotificationsStorage
     {
-        void DisableNotification(string notificationId);
-        bool IsNotificationDisabled(string notificationId);
+        void DisableNotification(string id);
+        bool IsNotificationDisabled(string id);
     }
 }
