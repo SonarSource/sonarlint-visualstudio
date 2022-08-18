@@ -25,21 +25,21 @@ namespace SonarLint.VisualStudio.Core.SonarLintNotifications
 {
     public interface INotification
     {
-        Guid NotificationId { get; }
+        string Id { get; }
         string Message { get; }
         IEnumerable<INotificationAction> Actions { get; }
     }
 
     public class Notification : INotification
     {
-        public Notification(Guid notificationId, string message, IEnumerable<INotificationAction> actions)
+        public Notification(string id, string message, IEnumerable<INotificationAction> actions)
         {
-            NotificationId = notificationId;
+            Id = id;
             Message = message;
             Actions = actions;
         }
 
-        public Guid NotificationId { get; }
+        public string Id { get; }
         public string Message { get; }
         public IEnumerable<INotificationAction> Actions { get; }
     }
