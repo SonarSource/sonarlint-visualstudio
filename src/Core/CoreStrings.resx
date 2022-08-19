@@ -175,4 +175,13 @@
     <value>[RuleSettings] Using connected mode settings. User-specified settings in settings.json will be ignored.</value>
     <comment>Output window message</comment>
   </data>
+  <data name="Notifications_FailedToDisplay" xml:space="preserve">
+    <value>[Notifications] Failed to display notification "{0}": {1}</value>
+  </data>
+  <data name="Notifications_FailedToExecuteAction" xml:space="preserve">
+    <value>[Notifications] Failed to execute notification action: {0}</value>
+  </data>
+  <data name="Notifications_FailedToRemove" xml:space="preserve">
+    <value>[Notifications] Failed to remove existing notification: {0}</value>
+  </data>
 </root>

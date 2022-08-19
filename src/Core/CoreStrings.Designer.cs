@@ -88,6 +88,33 @@ namespace SonarLint.VisualStudio.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Notifications] Failed to display notification &quot;{0}&quot;: {1}.
+        /// </summary>
+        public static string Notifications_FailedToDisplay {
+            get {
+                return ResourceManager.GetString("Notifications_FailedToDisplay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Notifications] Failed to execute notification action: {0}.
+        /// </summary>
+        public static string Notifications_FailedToExecuteAction {
+            get {
+                return ResourceManager.GetString("Notifications_FailedToExecuteAction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Notifications] Failed to remove existing notification: {0}.
+        /// </summary>
+        public static string Notifications_FailedToRemove {
+            get {
+                return ResourceManager.GetString("Notifications_FailedToRemove", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An absolute file path was expected..
         /// </summary>
         public static string PathHelperAbsolutePathExpected {
