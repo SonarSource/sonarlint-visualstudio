@@ -136,6 +136,67 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             await act.Should().ThrowAsync<NotImplementedException>();
         }
 
+        [TestMethod]
+        public async Task GetAsync_ExecutesRequestsOnTheUrl()
+        {
+            Uri requestUri = null;
+
+            var httpMessageHandler = SetupHttpMessageHandler("some response", message =>
+            {
+                requestUri = message.RequestUri;
+            });
+
+            var testSubject = CreateTestSubject(httpMessageHandler);
+
+            var response = await testSubject.GetAsync(TestUri, CancellationToken.None);
+
+            requestUri.Should().BeEquivalentTo(TestUri);
+            response.Should().Be("some response");
+        }
+
+        [TestMethod]
+        public async Task GetAsync_PassesCancellationToken()
+        {
+            var validationPassed = false;
+            var httpMessageHandler = new Mock<HttpMessageHandler>();
+            var originalTokenSource = new CancellationTokenSource();
+
+            httpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage { Content = new StringContent("response") })
+                .Callback((HttpRequestMessage message, CancellationToken receivedToken) =>
+                {
+                    // SendAsync uses `CancellationTokenSource.CreateLinkedTokenSource`
+                    receivedToken.IsCancellationRequested.Should().BeFalse();
+                    originalTokenSource.Cancel();
+                    receivedToken.IsCancellationRequested.Should().BeTrue();
+                    validationPassed = true;
+                })
+                .Verifiable();
+
+            var testSubject = CreateTestSubject(httpMessageHandler: httpMessageHandler.Object);
+
+            await testSubject.GetAsync(TestUri, originalTokenSource.Token);
+
+            httpMessageHandler.VerifyAll();
+            validationPassed.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public async Task GetAsync_Exception_ExceptionNotCaught()
+        {
+            var httpMessageHandler = new FakeHttpMessageHandler(message =>
+                throw new NotImplementedException());
+
+            var testSubject = CreateTestSubject(httpMessageHandler);
+
+            Func<Task> act = async () => await testSubject.GetAsync(TestUri, CancellationToken.None);
+            await act.Should().ThrowAsync<NotImplementedException>();
+        }
+
         private FakeHttpMessageHandler SetupHttpMessageHandler(string response, Action<HttpRequestMessage> assertReceivedMessage = null)
         {
             var httpMessageHandler = new FakeHttpMessageHandler(message =>

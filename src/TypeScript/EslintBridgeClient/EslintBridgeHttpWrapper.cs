@@ -32,6 +32,8 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
     internal interface IEslintBridgeHttpWrapper : IDisposable
     {
         Task<string> PostAsync(Uri serverEndpoint, object request, CancellationToken cancellationToken);
+
+        Task<string> GetAsync(Uri serverEndpoint, CancellationToken cancellationToken);
     }
 
     internal sealed class EslintBridgeHttpWrapper : IEslintBridgeHttpWrapper
@@ -55,13 +57,25 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             var serializedRequest = request == null
                 ? string.Empty
                 : JsonConvert.SerializeObject(request, Formatting.Indented);
-            logger.LogDebug("[eslint-bridge] Endpoint: {0}, request:{1}{2}", serverEndpoint, Environment.NewLine, serializedRequest);
+            logger.LogDebug("[eslint-bridge POST] Endpoint: {0}, request:{1}{2}", serverEndpoint, Environment.NewLine, serializedRequest);
 
             var content = new StringContent(serializedRequest, Encoding.UTF8, "application/json");
             var response = await httpClient.PostAsync(serverEndpoint, content, cancellationToken);
             var responseString = await response.Content.ReadAsStringAsync();
 
-            logger.LogDebug("[eslint-bridge] Endpoint: {0}, response:{1}{2}", serverEndpoint, Environment.NewLine, responseString);
+            logger.LogDebug("[eslint-bridge POST] Endpoint: {0}, response:{1}{2}", serverEndpoint, Environment.NewLine, responseString);
+
+            return responseString;
+        }
+
+        public async Task<string> GetAsync(Uri serverEndpoint, CancellationToken cancellationToken)
+        {
+            logger.LogDebug("[eslint-bridge GET] Endpoint: {0}{1}", serverEndpoint, Environment.NewLine);
+
+            var response = await httpClient.GetAsync(serverEndpoint, cancellationToken);
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            logger.LogDebug("[eslint-bridge GET] Endpoint: {0}, response:{1}{2}", serverEndpoint, Environment.NewLine, responseString);
 
             return responseString;
         }
