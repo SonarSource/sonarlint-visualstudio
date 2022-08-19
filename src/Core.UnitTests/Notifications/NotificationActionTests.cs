@@ -19,24 +19,29 @@
  */
 
 using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core.Notifications;
 
-namespace SonarLint.VisualStudio.Core.Notifications
+namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 {
-    public interface INotificationAction
+    [TestClass]
+    public class NotificationActionTests
     {
-        string CommandText { get; }
-        Action Action { get; }
-    }
-
-    public class NotificationAction : INotificationAction
-    {
-        public NotificationAction(string commandText, Action action)
+        [TestMethod]
+        public void Ctor_NullCommandText_ArgumentNullException()
         {
-            CommandText = commandText ?? throw new ArgumentNullException(nameof(commandText));
-            Action = action ?? throw new ArgumentNullException(nameof(action));
+            Action act = () => new NotificationAction(null, () => { });
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("commandText");
         }
 
-        public string CommandText { get; }
-        public Action Action { get; }
+        [TestMethod]
+        public void Ctor_NullActionArgumentNullException()
+        {
+            Action act = () => new NotificationAction("text", null);
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("action");
+        }
     }
 }
