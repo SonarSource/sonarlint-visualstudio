@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Core
         /// <summary>
         /// Based on the information inside sonarlint-visualstudio\src\IssueViz\Monikers.imagemanifest
         /// </summary>
-        public static SonarLintImageMoniker OfficialSonarLintMoniker = new SonarLintImageMoniker(new Guid("19682eb3-4922-49e2-8f9b-e3edb43f656c"), 0);
+        public static readonly SonarLintImageMoniker OfficialSonarLintMoniker = new SonarLintImageMoniker(new Guid("19682eb3-4922-49e2-8f9b-e3edb43f656c"), 0);
 
         public SonarLintImageMoniker(Guid guid, int id)
         {

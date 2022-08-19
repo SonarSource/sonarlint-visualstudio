@@ -21,6 +21,7 @@
 using System;
 using System.Linq;
 using SonarLint.VisualStudio.Core.InfoBar;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Core.Notifications
 {
@@ -38,13 +39,15 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
         private readonly IInfoBarManager infoBarManager;
         private readonly IThreadHandling threadHandling;
+        private readonly ILogger logger;
 
         private Tuple<IInfoBar, INotification> activeNotification;
 
-        public NotificationService(IInfoBarManager infoBarManager, IThreadHandling threadHandling)
+        public NotificationService(IInfoBarManager infoBarManager, IThreadHandling threadHandling, ILogger logger)
         {
             this.infoBarManager = infoBarManager;
             this.threadHandling = threadHandling;
+            this.logger = logger;
         }
 
         public void ShowNotification(INotification notification)
@@ -57,26 +60,40 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
             threadHandling.RunOnUIThread(() =>
             {
-                RemoveExistingInfoBar();
+                try
+                {
+                    RemoveExistingInfoBar();
 
-                var buttonTexts = notification.Actions.Select(x => x.CommandText).ToArray();
+                    var buttonTexts = notification.Actions.Select(x => x.CommandText).ToArray();
 
-                var infoBar = infoBarManager.AttachInfoBarWithButtons(ErrorListToolWindowGuid,
-                    notification.Message,
-                    buttonTexts,
-                    SonarLintImageMoniker.OfficialSonarLintMoniker);
+                    var infoBar = infoBarManager.AttachInfoBarWithButtons(ErrorListToolWindowGuid,
+                        notification.Message,
+                        buttonTexts,
+                        SonarLintImageMoniker.OfficialSonarLintMoniker);
 
-                activeNotification = new Tuple<IInfoBar, INotification>(infoBar, notification); 
-                activeNotification.Item1.ButtonClick += CurrentInfoBar_ButtonClick;
-                activeNotification.Item1.Closed += CurrentInfoBar_Closed;
+                    activeNotification = new Tuple<IInfoBar, INotification>(infoBar, notification);
+                    activeNotification.Item1.ButtonClick += CurrentInfoBar_ButtonClick;
+                    activeNotification.Item1.Closed += CurrentInfoBar_Closed;
+                }
+                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+                {
+                    logger.WriteLine(CoreStrings.Notifications_FailedToDisplay, notification.Id, ex);
+                }
             });
         }
 
         private void CurrentInfoBar_ButtonClick(object sender, InfoBarButtonClickedEventArgs e)
         {
-            var matchingAction = activeNotification.Item2.Actions.FirstOrDefault(x => x.CommandText == e.ClickedButtonText);
+            try
+            {
+                var matchingAction = activeNotification.Item2.Actions.FirstOrDefault(x => x.CommandText == e.ClickedButtonText);
 
-            matchingAction?.Action();
+                matchingAction?.Action();
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(CoreStrings.Notifications_FailedToExecuteAction, ex);
+            }
 
             // todo: handle "do not show again"
             // todo: who is responsible for adding "do not show again" action?
@@ -89,12 +106,21 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
         private void RemoveExistingInfoBar()
         {
-            if (activeNotification != null)
+            if (activeNotification == null)
+            {
+                return;
+            }
+
+            try
             {
                 activeNotification.Item1.ButtonClick -= CurrentInfoBar_ButtonClick;
                 activeNotification.Item1.Closed -= CurrentInfoBar_Closed;
                 infoBarManager.DetachInfoBar(activeNotification.Item1);
                 activeNotification = null;
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(CoreStrings.Notifications_FailedToRemove, ex);
             }
         }
 

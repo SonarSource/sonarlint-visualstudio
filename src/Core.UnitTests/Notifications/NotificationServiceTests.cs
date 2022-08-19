@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Core.Notifications;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
@@ -223,12 +224,189 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             infoBarManager.VerifyNoOtherCalls();
         }
 
-        private static NotificationService CreateTestSubject(IInfoBarManager infoBarManager = null, IThreadHandling threadHandling = null)
+        [TestMethod]
+        public void ShowNotification_NonCriticalException_ExceptionCaught()
+        {
+            var notification = CreateNotification();
+
+            var infoBarManager = new Mock<IInfoBarManager>();
+            infoBarManager
+                .Setup(x => x.AttachInfoBarWithButtons(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), SonarLintImageMoniker.OfficialSonarLintMoniker))
+                .Throws(new NotImplementedException("this is a test"));
+
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(infoBarManager.Object, logger: logger);
+            Action act = () => testSubject.ShowNotification(notification);
+
+            act.Should().NotThrow();
+            
+            infoBarManager.VerifyAll();
+
+            logger.AssertPartialOutputStringExists("this is a test");
+        }
+
+        [TestMethod]
+        public void ShowNotification_CriticalException_ExceptionNotCaught()
+        {
+            var notification = CreateNotification();
+
+            var infoBarManager = new Mock<IInfoBarManager>();
+            infoBarManager
+                .Setup(x => x.AttachInfoBarWithButtons(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), SonarLintImageMoniker.OfficialSonarLintMoniker))
+                .Throws(new StackOverflowException("this is a test"));
+
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(infoBarManager.Object, logger: logger);
+            Action act = () => testSubject.ShowNotification(notification);
+
+            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("this is a test");
+
+            infoBarManager.VerifyAll();
+
+            logger.AssertNoOutputMessages();
+        }
+
+        [TestMethod]
+        public void ShowNotification_InfoBarButtonClicked_NonCriticalException_ExceptionCaught()
+        {
+            var notification = CreateNotification(
+                new NotificationAction("action", () => throw new NotImplementedException("this is a test"))
+            );
+
+            var infoBar = new Mock<IInfoBar>();
+
+            var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(infoBarManager.Object, logger: logger);
+            testSubject.ShowNotification(notification);
+
+            Action act = () => infoBar.Raise(x => x.ButtonClick += null, new InfoBarButtonClickedEventArgs("action"));
+
+            act.Should().NotThrow();
+            logger.AssertPartialOutputStringExists("this is a test");
+        }
+
+        [TestMethod]
+        public void ShowNotification_InfoBarButtonClicked_CriticalException_ExceptionNotCaught()
+        {
+            var notification = CreateNotification(
+                new NotificationAction("action", () => throw new StackOverflowException("this is a test"))
+            );
+
+            var infoBar = new Mock<IInfoBar>();
+
+            var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(infoBarManager.Object, logger: logger);
+            testSubject.ShowNotification(notification);
+
+            Action act = () => infoBar.Raise(x => x.ButtonClick += null, new InfoBarButtonClickedEventArgs("action"));
+
+            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("this is a test");
+            logger.AssertNoOutputMessages();
+        }
+
+        [TestMethod]
+        public void ShowNotification_UserClosedTheNotification_NonCriticalException_ExceptionCaught()
+        {
+            var notification = CreateNotification();
+            var infoBar = CreateInfoBar();
+
+            var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
+            infoBarManager
+                .Setup(x => x.DetachInfoBar(infoBar.Object))
+                .Throws(new NotImplementedException("this is a test"));
+
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(infoBarManager.Object, logger: logger);
+            testSubject.ShowNotification(notification);
+
+            Action act = () => infoBar.Raise(x => x.Closed += null, EventArgs.Empty);
+            act.Should().NotThrow();
+
+            logger.AssertPartialOutputStringExists("this is a test");
+        }
+
+        [TestMethod]
+        public void ShowNotification_UserClosedTheNotification_CriticalException_ExceptionNotCaught()
+        {
+            var notification = CreateNotification();
+            var infoBar = CreateInfoBar();
+
+            var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
+            infoBarManager
+                .Setup(x => x.DetachInfoBar(infoBar.Object))
+                .Throws(new StackOverflowException("this is a test"));
+
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(infoBarManager.Object, logger: logger);
+            testSubject.ShowNotification(notification);
+
+            Action act = () => infoBar.Raise(x => x.Closed += null, EventArgs.Empty);
+            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("this is a test");
+
+            logger.AssertNoOutputMessages();
+        }
+
+        [TestMethod]
+        public void Dispose_NonCriticalException_ExceptionCaught()
+        {
+            var notification = CreateNotification();
+            var infoBar = CreateInfoBar();
+
+            var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
+            infoBarManager
+                .Setup(x => x.DetachInfoBar(infoBar.Object))
+                .Throws(new NotImplementedException("this is a test"));
+
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(infoBarManager.Object, logger: logger);
+            testSubject.ShowNotification(notification);
+
+            Action act = () => testSubject.Dispose();
+            act.Should().NotThrow();
+
+            logger.AssertPartialOutputStringExists("this is a test");
+        }
+
+        [TestMethod]
+        public void Dispose_CriticalException_ExceptionNotCaught()
+        {
+            var notification = CreateNotification();
+            var infoBar = CreateInfoBar();
+
+            var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
+            infoBarManager
+                .Setup(x => x.DetachInfoBar(infoBar.Object))
+                .Throws(new StackOverflowException("this is a test"));
+
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(infoBarManager.Object, logger: logger);
+            testSubject.ShowNotification(notification);
+
+            Action act = () => testSubject.Dispose();
+            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("this is a test");
+
+            logger.AssertNoOutputMessages();
+        }
+
+        private static NotificationService CreateTestSubject(IInfoBarManager infoBarManager = null,
+            IThreadHandling threadHandling = null,
+            ILogger logger = null)
         {
             infoBarManager ??= Mock.Of<IInfoBarManager>();
             threadHandling ??= new NoOpThreadHandler();
+            logger ??= Mock.Of<ILogger>();
 
-            return new NotificationService(infoBarManager, threadHandling);
+            return new NotificationService(infoBarManager, threadHandling, logger);
         }
 
         private static INotification CreateNotification(params INotificationAction[] actions)
