@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Core.Notifications
@@ -33,9 +34,9 @@ namespace SonarLint.VisualStudio.Core.Notifications
     {
         public Notification(string id, string message, IEnumerable<INotificationAction> actions)
         {
-            Id = id;
-            Message = message;
-            Actions = actions;
+            Id = id ?? throw new ArgumentNullException(nameof(id));
+            Message = message ?? throw new ArgumentNullException(nameof(message));
+            Actions = actions ?? throw new ArgumentNullException(nameof(actions));
         }
 
         public string Id { get; }
