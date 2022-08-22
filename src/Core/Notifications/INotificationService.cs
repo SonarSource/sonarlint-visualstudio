@@ -37,6 +37,8 @@ namespace SonarLint.VisualStudio.Core.Notifications
         /// </summary>
         internal static readonly Guid ErrorListToolWindowGuid = new Guid("D78612C7-9962-4B83-95D9-268046DAD23A");
 
+        private static readonly object Locker = new object();
+
         private readonly IInfoBarManager infoBarManager;
         private readonly IThreadHandling threadHandling;
         private readonly ILogger logger;
@@ -60,24 +62,10 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
             threadHandling.RunOnUIThread(() =>
             {
-                try
+                lock (Locker)
                 {
                     RemoveExistingInfoBar();
-
-                    var buttonTexts = notification.Actions.Select(x => x.CommandText).ToArray();
-
-                    var infoBar = infoBarManager.AttachInfoBarWithButtons(ErrorListToolWindowGuid,
-                        notification.Message,
-                        buttonTexts,
-                        SonarLintImageMoniker.OfficialSonarLintMoniker);
-
-                    activeNotification = new Tuple<IInfoBar, INotification>(infoBar, notification);
-                    activeNotification.Item1.ButtonClick += CurrentInfoBar_ButtonClick;
-                    activeNotification.Item1.Closed += CurrentInfoBar_Closed;
-                }
-                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-                {
-                    logger.WriteLine(CoreStrings.Notifications_FailedToDisplay, notification.Id, ex);
+                    ShowInfoBar(notification);
                 }
             });
         }
@@ -86,7 +74,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
         {
             try
             {
-                var matchingAction = activeNotification.Item2.Actions.FirstOrDefault(x => x.CommandText == e.ClickedButtonText);
+                var matchingAction = activeNotification?.Item2.Actions.FirstOrDefault(x => x.CommandText == e.ClickedButtonText);
 
                 matchingAction?.Action();
             }
@@ -101,7 +89,10 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
         private void CurrentInfoBar_Closed(object sender, EventArgs e)
         {
-            RemoveExistingInfoBar();
+            lock (Locker)
+            {
+                RemoveExistingInfoBar();
+            }
         }
 
         private void RemoveExistingInfoBar()
@@ -124,9 +115,33 @@ namespace SonarLint.VisualStudio.Core.Notifications
             }
         }
 
+        private void ShowInfoBar(INotification notification)
+        {
+            try
+            {
+                var buttonTexts = notification.Actions.Select(x => x.CommandText).ToArray();
+
+                var infoBar = infoBarManager.AttachInfoBarWithButtons(ErrorListToolWindowGuid,
+                    notification.Message,
+                    buttonTexts,
+                    SonarLintImageMoniker.OfficialSonarLintMoniker);
+
+                activeNotification = new Tuple<IInfoBar, INotification>(infoBar, notification);
+                activeNotification.Item1.ButtonClick += CurrentInfoBar_ButtonClick;
+                activeNotification.Item1.Closed += CurrentInfoBar_Closed;
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(CoreStrings.Notifications_FailedToDisplay, notification.Id, ex);
+            }
+        }
+
         public void Dispose()
         {
-            RemoveExistingInfoBar();
+            lock (Locker)
+            {
+                RemoveExistingInfoBar();
+            }
         }
     }
 }
