@@ -55,7 +55,6 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
     /// </summary>
     internal class EslintBridgeClient : IEslintBridgeClient
     {
-
         private readonly string analyzeEndpoint;
         private readonly IEslintBridgeProcess eslintBridgeProcess;
         private readonly IEslintBridgeHttpWrapper httpWrapper;

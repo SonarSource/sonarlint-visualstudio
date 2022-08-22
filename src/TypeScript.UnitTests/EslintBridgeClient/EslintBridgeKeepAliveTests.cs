@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
     public class EslintBridgeKeepAliveTests
     {
         [TestMethod]
-        public void KeepAlive_Constructor_TimerIsInitializedAndAStarted()
+        public void Constructor_TimerIsInitializedAndAStarted()
         {
             var timer = new Mock<ITimer>();
 
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         }
 
         [TestMethod]
-        public void KeepAlive_Dispose_DisposesTimer()
+        public void Dispose_DisposesTimer()
         {
             var timer = new Mock<ITimer>();
 
@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
-        public void KeepAlive_EventRaised_KeepAliveSentOnlyIfProcessIsRunning(bool isProcessRunning)
+        public void EventRaised_KeepAliveSentOnlyIfProcessIsRunning(bool isProcessRunning)
         {
             var context = KeepAliveWorkflowContext.Create(isProcessRunning);
             context.ResetCalledMethod();
@@ -79,12 +79,11 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             else
             {
                 context.CheckOnlyExpectedMethods("Stop", "Start");
-                context.HttpWrapper.Invocations.Count.Should().Be(0);
             }
         }
 
         [TestMethod]
-        public void KeepAlive_NonCriticalException_IsSuppressed()
+        public void EventHandler_NonCriticalException_IsSuppressed()
         {
             var context = KeepAliveWorkflowContext.Create(isProcessRunning: true);
             context.ResetCalledMethod();
@@ -104,7 +103,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         }
 
         [TestMethod]
-        public void KeepAlive_CriticalException_IsNotSuppressed()
+        public void EventHandler_CriticalException_IsNotSuppressed()
         {
             var exceptionThrowingMethodCalled = new ManualResetEvent(false);
 
