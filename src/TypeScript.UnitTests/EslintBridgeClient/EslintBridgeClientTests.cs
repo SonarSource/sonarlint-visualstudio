@@ -217,6 +217,17 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         }
 
         [TestMethod]
+        public void Dispose_DisposesEslintBridgeKeepAlive()
+        {
+            var keepAlive = new Mock<IEslintBridgeKeepAlive>();
+
+            var testSubject = CreateTestSubject(keepAlive: keepAlive.Object);
+            testSubject.Dispose();
+
+            keepAlive.Verify(x => x.Dispose(), Times.Once);
+        }
+
+        [TestMethod]
         public async Task Close_StopsEslintBridgeProcess()
         {
             var eslintBridgeProcess = new Mock<IEslintBridgeProcess>();
@@ -274,15 +285,15 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         private static TypeScript.EslintBridgeClient.EslintBridgeClient CreateTestSubject(IEslintBridgeHttpWrapper httpWrapper = null,
             IAnalysisConfiguration analysisConfiguration = null,
             IEslintBridgeProcess eslintBridgeProcess = null,
-            ITimer timer = null)
+            IEslintBridgeKeepAlive keepAlive = null)
         {
             analysisConfiguration ??= Mock.Of<IAnalysisConfiguration>();
             eslintBridgeProcess ??= SetupServerProcess().Object;
             httpWrapper ??= Mock.Of<IEslintBridgeHttpWrapper>();
-            timer ??= new Mock<ITimer>().Object;
+            keepAlive ??= new Mock<IEslintBridgeKeepAlive>().Object;
 
             return new TypeScript.EslintBridgeClient.EslintBridgeClient(AnalyzeEndpoint, eslintBridgeProcess, httpWrapper, analysisConfiguration,
-                timer, Mock.Of<ILogger>());
+                keepAlive);
         }
 
         private static Mock<IEslintBridgeHttpWrapper> SetupHttpWrapper(string endpoint, string response = "OK!", Action<object> assertReceivedRequest = null)

@@ -27,14 +27,16 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
 {
-    partial class EslintBridgeClientTests
+    [TestClass]
+    public class EslintBridgeKeepAliveTests
     {
         [TestMethod]
-        public void KeepAlive_Constructor_TimerIsInitializedButNotStarted()
+        public void KeepAlive_Constructor_TimerIsInitializedAndAStarted()
         {
             var timer = new Mock<ITimer>();
 
@@ -42,7 +44,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
 
             timer.VerifySet(x => x.AutoReset = true, Times.Once);
             timer.VerifySet(x => x.Interval = It.IsAny<double>(), Times.Once);
-            timer.Verify(x => x.Start(), Times.Never);
+            timer.Verify(x => x.Start(), Times.Once);
         }
 
         [TestMethod]
@@ -57,23 +59,12 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         }
 
         [TestMethod]
-        public async Task KeepAlive_Close_StopsTimer()
-        {
-            var timer = new Mock<ITimer>();
-
-            var testSubject = CreateTestSubject(timer: timer.Object);
-            await testSubject.Close();
-
-            timer.Verify(x => x.Stop(), Times.Once);
-            timer.Verify(x => x.Dispose(), Times.Never);
-        }
-
-        [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
-        public void KeepAlive_TimerExpires_KeepAliveSentOnlyIfProcessIsRunning(bool isProcessRunning)
+        public void KeepAlive_EventRaised_KeepAliveSentOnlyIfProcessIsRunning(bool isProcessRunning)
         {
             var context = KeepAliveWorkflowContext.Create(isProcessRunning);
+            context.ResetCalledMethod();
 
             context.RaiseTimerEvent();
 
@@ -96,6 +87,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         public void KeepAlive_NonCriticalException_IsSuppressed()
         {
             var context = KeepAliveWorkflowContext.Create(isProcessRunning: true);
+            context.ResetCalledMethod();
 
             context.Process.Setup(x => x.Start())
                 .Throws(new InvalidOperationException("this is a test"));
@@ -103,7 +95,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             // We have to call the internal handler method here: if we just raise
             // the event, the Forget() method means event handler returns before
             // the exception is thrown.
-            Func<Task> act = async () => await context.InvokeAsyncTimerHandler();
+            Func<Task> act = async () => await context.DirectlyInvokeTimerHandlerAsync();
 
             act.Should().NotThrow();
 
@@ -117,6 +109,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var exceptionThrowingMethodCalled = new ManualResetEvent(false);
 
             var context = KeepAliveWorkflowContext.Create(isProcessRunning: true);
+            context.ResetCalledMethod();
 
             context.Process.Setup(x => x.Start())
                 .Throws(new StackOverflowException("this is a test"));
@@ -124,7 +117,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             // We have to call the internal handler method here: if we just raise
             // the event, the Forget() method means event handler returns before
             // the exception is thrown.
-            Func<Task> act = async () => await context.InvokeAsyncTimerHandler();
+            Func<Task> act = async () => await context.DirectlyInvokeTimerHandlerAsync();
 
             act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("this is a test");
 
@@ -136,7 +129,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         {
             private readonly Mock<ITimer> timer;
             private readonly List<string> calledMethods;
-            private readonly TypeScript.EslintBridgeClient.EslintBridgeClient testSubject;
+            private readonly EslintBridgeKeepAlive testSubject;
 
             public Mock<IEslintBridgeHttpWrapper> HttpWrapper { get; }
 
@@ -160,7 +153,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
 
                 Process = SetupServerProcess(isRunning: isProcessRunning);
 
-                testSubject = CreateTestSubject(HttpWrapper.Object, null, Process.Object, timer.Object);
+                testSubject = CreateTestSubject(Process.Object, null, HttpWrapper.Object, timer.Object);
+                calledMethods.Clear();
             }
 
             /// <summary>
@@ -172,11 +166,34 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             /// <summary>
             /// Bypasses the timer event and directly invokes the async handler
             /// </summary>
-            public async Task InvokeAsyncTimerHandler() => await testSubject.HandleKeepAliveTimerElapsedAsync();
+            public async Task DirectlyInvokeTimerHandlerAsync() => await testSubject.HandleKeepAliveTimerElapsedAsync();
+
+            public void ResetCalledMethod() => calledMethods.Clear();
 
             public void CheckOnlyExpectedMethods(params string[] expected) =>
                 // Order is important so using Equal rather than IsEquivalentTo
                 calledMethods.Should().Equal(expected);
+        }
+
+        private static EslintBridgeKeepAlive CreateTestSubject(IEslintBridgeProcess eslintBridgeProcess = null,
+            ILogger logger = null,
+            IEslintBridgeHttpWrapper httpWrapper = null,
+            ITimer timer = null)
+        {
+            eslintBridgeProcess ??= SetupServerProcess().Object;
+            logger ??= Mock.Of<ILogger>();
+            httpWrapper ??= Mock.Of<IEslintBridgeHttpWrapper>();
+            timer ??= new Mock<ITimer>().Object;
+
+            return new EslintBridgeKeepAlive(eslintBridgeProcess, logger, httpWrapper, timer);
+        }
+
+        private static Mock<IEslintBridgeProcess> SetupServerProcess(bool isRunning = false)
+        {
+            var serverProcess = new Mock<IEslintBridgeProcess>();
+            serverProcess.Setup(x => x.IsRunning).Returns(isRunning);
+
+            return serverProcess;
         }
     }
 }

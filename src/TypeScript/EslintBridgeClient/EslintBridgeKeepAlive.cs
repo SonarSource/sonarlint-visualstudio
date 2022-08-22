@@ -1,0 +1,90 @@
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Helpers;
+
+namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
+{
+    /// <summary>
+    /// Component that is responsible for sending keep-alive messages
+    /// to the eslint-bridge
+    /// </summary>
+    internal interface IEslintBridgeKeepAlive : IDisposable
+    {
+    }
+
+    internal sealed class EslintBridgeKeepAlive : IEslintBridgeKeepAlive
+    {
+        // The eslintbridge process will shutdown after 15 seconds.
+        // We send a keep alive every 5 seconds.
+        private const double MillisecondsToWaitBetweenKeepAlives = 5000;
+
+        private readonly IEslintBridgeProcess process;
+        private readonly IEslintBridgeHttpWrapper httpWrapper;
+        private readonly ITimer timer;
+        private readonly ILogger logger;
+
+        public EslintBridgeKeepAlive(IEslintBridgeProcess process,ILogger logger)
+            : this(process, logger, new EslintBridgeHttpWrapper(logger), new TimerWrapper())
+        {
+        }
+
+        internal /* for testing */ EslintBridgeKeepAlive(IEslintBridgeProcess process, ILogger logger,
+            IEslintBridgeHttpWrapper httpWrapper, ITimer timer)
+        {
+            this.process = process;
+            this.logger = logger;
+            this.httpWrapper = httpWrapper;
+
+            this.timer = timer;
+            this.timer.AutoReset = true;
+            this.timer.Interval = MillisecondsToWaitBetweenKeepAlives;
+            this.timer.Elapsed += OnKeepAliveTimerElapsed;
+
+            // Note: we're starting the timer immediately, even though the process might not be running
+            // yet (i.e. the user hasn't tried to analyse a JS/TS file)
+            this.timer.Start();
+        }
+
+        private void OnKeepAliveTimerElapsed(object sender, TimerEventArgs e)
+            => HandleKeepAliveTimerElapsedAsync().Forget();
+
+        internal /* for testing */async Task HandleKeepAliveTimerElapsedAsync()
+        {
+            try
+            {
+                // Stopping the timer here means we won't send multiple keep-alives
+                // if the server is busy analysing and doesn't respond to the first
+                // call. It also makes debugging this method simpler.
+                timer.Stop();
+                if (process.IsRunning)
+                {
+                    await SendKeepAliveAsync();
+                }
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.LogDebug($"[EsLintBridgeClient] Error sending keep-alive: {ex}");
+            }
+            finally
+            {
+                timer.Start();
+            }
+        }
+
+        private async Task SendKeepAliveAsync()
+        {
+            var port = await process.Start();
+            var fullServerUrl = BuildServerUri(port, "status");
+            await httpWrapper.GetAsync(fullServerUrl, CancellationToken.None);
+        }
+
+        private Uri BuildServerUri(int port, string endpoint) => new Uri($"http://localhost:{port}/{endpoint}");
+
+        public void Dispose() => timer.Dispose();
+    }
+}

@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         }
 
         internal /* for testing */ TypeScriptEslintBridgeClient(IEslintBridgeProcess eslintBridgeProcess, IEslintBridgeHttpWrapper httpWrapper, ILogger logger)
-            : base("analyze-ts", eslintBridgeProcess, httpWrapper, new AnalysisConfiguration(), new TimerWrapper(), logger)
+            : base("analyze-ts", eslintBridgeProcess, httpWrapper, new AnalysisConfiguration(), new EslintBridgeKeepAlive(eslintBridgeProcess, logger))
         {
         }
 
