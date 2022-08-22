@@ -23,8 +23,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 
 namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
@@ -55,26 +59,41 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
     /// </summary>
     internal class EslintBridgeClient : IEslintBridgeClient
     {
+        // The eslintbridge process will shutdown after 15 seconds.
+        // We send a keep alive every 5 seconds.
+        private const double MillisecondsToWaitBetweenKeepAlives = 5000;
+
         private readonly string analyzeEndpoint;
         private readonly IEslintBridgeProcess eslintBridgeProcess;
         private readonly IEslintBridgeHttpWrapper httpWrapper;
         private readonly IAnalysisConfiguration analysisConfiguration;
+        private readonly ITimer keepAliveTimer;
+        private readonly ILogger logger;
         private bool isDisposed;
 
         public EslintBridgeClient(string analyzeEndpoint, IEslintBridgeProcess eslintBridgeProcess, ILogger logger)
-            : this(analyzeEndpoint, eslintBridgeProcess, new EslintBridgeHttpWrapper(logger), new AnalysisConfiguration())
+            : this(analyzeEndpoint, eslintBridgeProcess, new EslintBridgeHttpWrapper(logger), new AnalysisConfiguration(),
+                  new TimerWrapper(), logger)
         {
         }
 
-        internal EslintBridgeClient(string analyzeEndpoint, 
+        internal EslintBridgeClient(string analyzeEndpoint,
             IEslintBridgeProcess eslintBridgeProcess,
             IEslintBridgeHttpWrapper httpWrapper,
-            IAnalysisConfiguration analysisConfiguration)
+            IAnalysisConfiguration analysisConfiguration,
+            ITimer keepAliveTimer,
+            ILogger logger)
         {
             this.analyzeEndpoint = analyzeEndpoint;
             this.eslintBridgeProcess = eslintBridgeProcess;
             this.httpWrapper = httpWrapper;
             this.analysisConfiguration = analysisConfiguration;
+            this.logger = logger;
+
+            this.keepAliveTimer = keepAliveTimer;
+            this.keepAliveTimer.AutoReset = true;
+            this.keepAliveTimer.Interval = MillisecondsToWaitBetweenKeepAlives;
+            this.keepAliveTimer.Elapsed += OnKeepAliveTimerElapsed;
         }
 
         public async Task InitLinter(IEnumerable<Rule> rules, CancellationToken cancellationToken)
@@ -96,7 +115,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         public async Task<AnalysisResponse> Analyze(string filePath, string tsConfigFilePath, CancellationToken cancellationToken)
         {
-            var tsConfigFilePaths = tsConfigFilePath == null ? Array.Empty<string>() : new[] {tsConfigFilePath};
+            var tsConfigFilePaths = tsConfigFilePath == null ? Array.Empty<string>() : new[] { tsConfigFilePath };
 
             var analysisRequest = new AnalysisRequest
             {
@@ -131,6 +150,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             }
             finally
             {
+                keepAliveTimer.Stop();
                 eslintBridgeProcess.Stop();
             }
         }
@@ -158,23 +178,85 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
                 eslintBridgeProcess.Dispose();
                 httpWrapper.Dispose();
+                keepAliveTimer.Dispose();
                 isDisposed = true;
             }
         }
 
         #endregion
 
-
-
         protected async Task<string> MakeCall(string endpoint, object request, CancellationToken cancellationToken)
         {
-            var port = await eslintBridgeProcess.Start();
+            var port = await EnsureProcessIsRunningAsync();
             var fullServerUrl = BuildServerUri(port, endpoint);
             var response = await httpWrapper.PostAsync(fullServerUrl, request, cancellationToken);
 
             return response;
         }
 
+        private async Task<int> EnsureProcessIsRunningAsync()
+        {
+            // Both "Start" methods can be called multiple times safely
+            var port = await eslintBridgeProcess.Start();
+            keepAliveTimer.Start();
+            return port;
+        }
+
         private Uri BuildServerUri(int port, string endpoint) => new Uri($"http://localhost:{port}/{endpoint}");
+
+        //private void OnKeepAliveTimerElapsed(object sender, TimerEventArgs e)
+        //{
+        //    try
+        //    {
+        //        // Stopping the timer here means we won't send multiple keep-alives
+        //        // if the server is busy analysing and doesn't respond to the first
+        //        // call. It also makes debugging this method simpler.
+        //        keepAliveTimer.Stop();
+        //        if (eslintBridgeProcess.IsRunning)
+        //        {
+        //            SendKeepAliveAsync().Forget();
+        //        }
+        //    }
+        //    catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        //    {
+        //        logger.LogDebug($"[EsLintBridgeClient] Error sending keep-alive: {ex}");
+        //    }
+        //    finally
+        //    {
+        //        keepAliveTimer.Start();
+        //    }
+        //}
+
+        private void OnKeepAliveTimerElapsed(object sender, TimerEventArgs e)
+            => HandleKeepAliveTimerElapsedAsync().Forget();
+        internal /* for testing */async Task HandleKeepAliveTimerElapsedAsync()
+        {
+            try
+            {
+                // Stopping the timer here means we won't send multiple keep-alives
+                // if the server is busy analysing and doesn't respond to the first
+                // call. It also makes debugging this method simpler.
+                keepAliveTimer.Stop();
+                if (eslintBridgeProcess.IsRunning)
+                {
+                    await SendKeepAliveAsync();
+                }
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.LogDebug($"[EsLintBridgeClient] Error sending keep-alive: {ex}");
+            }
+            finally
+            {
+                keepAliveTimer.Start();
+            }
+        }
+
+        private async Task SendKeepAliveAsync()
+        {
+            var port = await eslintBridgeProcess.Start();
+            var fullServerUrl = BuildServerUri(port, "status");
+            await httpWrapper.GetAsync(fullServerUrl, CancellationToken.None);
+        }
     }
 }

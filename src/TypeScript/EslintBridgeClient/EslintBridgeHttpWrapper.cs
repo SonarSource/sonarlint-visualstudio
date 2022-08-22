@@ -70,12 +70,12 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         public async Task<string> GetAsync(Uri serverEndpoint, CancellationToken cancellationToken)
         {
-            logger.LogDebug("[eslint-bridge GET] Endpoint: {0}{1}", serverEndpoint, Environment.NewLine);
+            logger.LogDebug("[eslint-bridge GET] Endpoint: {0}", serverEndpoint);
 
             var response = await httpClient.GetAsync(serverEndpoint, cancellationToken);
             var responseString = await response.Content.ReadAsStringAsync();
 
-            logger.LogDebug("[eslint-bridge GET] Endpoint: {0}, response:{1}{2}", serverEndpoint, Environment.NewLine, responseString);
+            logger.LogDebug("[eslint-bridge GET] Endpoint: {0}, response:{1}", serverEndpoint, responseString);
 
             return responseString;
         }
