@@ -204,31 +204,9 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         private Uri BuildServerUri(int port, string endpoint) => new Uri($"http://localhost:{port}/{endpoint}");
 
-        //private void OnKeepAliveTimerElapsed(object sender, TimerEventArgs e)
-        //{
-        //    try
-        //    {
-        //        // Stopping the timer here means we won't send multiple keep-alives
-        //        // if the server is busy analysing and doesn't respond to the first
-        //        // call. It also makes debugging this method simpler.
-        //        keepAliveTimer.Stop();
-        //        if (eslintBridgeProcess.IsRunning)
-        //        {
-        //            SendKeepAliveAsync().Forget();
-        //        }
-        //    }
-        //    catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-        //    {
-        //        logger.LogDebug($"[EsLintBridgeClient] Error sending keep-alive: {ex}");
-        //    }
-        //    finally
-        //    {
-        //        keepAliveTimer.Start();
-        //    }
-        //}
-
         private void OnKeepAliveTimerElapsed(object sender, TimerEventArgs e)
             => HandleKeepAliveTimerElapsedAsync().Forget();
+
         internal /* for testing */async Task HandleKeepAliveTimerElapsedAsync()
         {
             try
