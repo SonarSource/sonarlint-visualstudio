@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
                 .Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
                 .Callback((Action callbackAction) => runOnUiAction = callbackAction);
 
-            var testSubject = CreateTestSubject(infoBarManager.Object, threadHandling.Object);
+            var testSubject = CreateTestSubject(infoBarManager.Object, threadHandling: threadHandling.Object);
             testSubject.ShowNotification(notification);
 
             infoBarManager.Invocations.Count.Should().Be(0);
@@ -76,9 +76,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         {
             var notification = CreateNotification(actions: new INotificationAction[]
             {
-                new NotificationAction("notification1", () => { }),
-                new NotificationAction("notification2", () => { }),
-                new NotificationAction("notification2", () => { })
+                new NotificationAction("notification1", _ => { }),
+                new NotificationAction("notification2", _ => { }),
+                new NotificationAction("notification2", _ => { })
             });
 
             var infoBarManager = CreateInfoBarManager(notification, Mock.Of<IInfoBar>());
@@ -88,6 +88,67 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
             VerifyInfoBarCreatedCorrectly(infoBarManager, notification);
 
+            infoBarManager.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void ShowNotification_NotificationIsDisabled_NotificationNotShown()
+        {
+            var notification = CreateNotification(id: "some id");
+            var infoBar = CreateInfoBar();
+
+            var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
+
+            var disabledNotificationsStorage = new Mock<IDisabledNotificationsStorage>();
+            disabledNotificationsStorage.Setup(x => x.IsNotificationDisabled("some id")).Returns(true);
+
+            var testSubject = CreateTestSubject(infoBarManager.Object, disabledNotificationsStorage.Object);
+
+            testSubject.ShowNotification(notification);
+
+            disabledNotificationsStorage.Verify(x=> x.IsNotificationDisabled("some id"), Times.Once);
+            disabledNotificationsStorage.VerifyNoOtherCalls();
+
+            infoBarManager.Invocations.Count.Should().Be(0);
+            infoBarManager.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void ShowNotification_NotificationIsDisabled_PreviousNotificationNotRemoved()
+        {
+            var notification1 = CreateNotification(id: "some id1");
+            var notification2 = CreateNotification(id: "some id2");
+
+            var infoBar1 = CreateInfoBar();
+            var infoBar2 = CreateInfoBar();
+
+            var infoBarManager = new Mock<IInfoBarManager>();
+            SetupInfoBarManager(infoBarManager, notification1, infoBar1.Object);
+            SetupInfoBarManager(infoBarManager, notification2, infoBar2.Object);
+
+            var disabledNotificationsStorage = new Mock<IDisabledNotificationsStorage>();
+            disabledNotificationsStorage.Setup(x => x.IsNotificationDisabled("some id1")).Returns(false);
+            disabledNotificationsStorage.Setup(x => x.IsNotificationDisabled("some id2")).Returns(true);
+
+            var testSubject = CreateTestSubject(infoBarManager.Object, disabledNotificationsStorage.Object);
+
+            testSubject.ShowNotification(notification1);
+
+            disabledNotificationsStorage.Verify(x => x.IsNotificationDisabled("some id1"), Times.Once);
+            disabledNotificationsStorage.VerifyNoOtherCalls();
+
+            VerifyInfoBarCreatedCorrectly(infoBarManager, notification1);
+            VerifySubscribedToInfoBarEvents(infoBar1);
+            infoBarManager.Invocations.Count.Should().Be(1);
+
+            testSubject.ShowNotification(notification2);
+
+            disabledNotificationsStorage.Verify(x => x.IsNotificationDisabled("some id2"), Times.Once);
+            disabledNotificationsStorage.VerifyNoOtherCalls();
+
+            infoBarManager.Invocations.Count.Should().Be(1);
+            infoBar2.Invocations.Count.Should().Be(0);
+            infoBar1.VerifyNoOtherCalls();
             infoBarManager.VerifyNoOtherCalls();
         }
 
@@ -126,7 +187,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             var callback = new Mock<Action<string>>();
 
             var notification = CreateNotification(actions: 
-                new NotificationAction("notification1", () => callback.Object("action1")));
+                new NotificationAction("notification1", _ => callback.Object("action1")));
 
             var infoBar = new Mock<IInfoBar>();
 
@@ -143,15 +204,40 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         }
 
         [TestMethod]
+        public void ShowNotification_InfoBarButtonClicked_ActionInvokedWithTheNotification()
+        {
+            var callback = new Mock<Action<INotification>>();
+
+            var notification = CreateNotification(actions: new INotificationAction[]
+            {
+                new NotificationAction("notification1", notification => callback.Object(notification))
+            });
+
+            var infoBar = new Mock<IInfoBar>();
+
+            var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
+
+            var testSubject = CreateTestSubject(infoBarManager.Object);
+            testSubject.ShowNotification(notification);
+
+            callback.Invocations.Count.Should().Be(0);
+
+            infoBar.Raise(x => x.ButtonClick += null, new InfoBarButtonClickedEventArgs("notification1"));
+
+            callback.Verify(x => x(notification), Times.Once);
+            callback.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
         public void ShowNotification_InfoBarButtonClicked_CorrectActionInvoked()
         {
             var callback = new Mock<Action<string>>();
 
             var notification = CreateNotification(actions: new INotificationAction[]
             {
-                new NotificationAction("notification1", () => callback.Object("action1")),
-                new NotificationAction("notification2", () => callback.Object("action2")),
-                new NotificationAction("notification3", () => callback.Object("action3"))
+                new NotificationAction("notification1", _ => callback.Object("action1")),
+                new NotificationAction("notification2", _ => callback.Object("action2")),
+                new NotificationAction("notification3", _ => callback.Object("action3"))
             });
 
             var infoBar = new Mock<IInfoBar>();
@@ -302,7 +388,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         public void ShowNotification_InfoBarButtonClicked_NonCriticalException_ExceptionCaught()
         {
             var notification = CreateNotification(actions:
-                new NotificationAction("action", () => throw new NotImplementedException("this is a test"))
+                new NotificationAction("action", _ => throw new NotImplementedException("this is a test"))
             );
 
             var infoBar = new Mock<IInfoBar>();
@@ -323,7 +409,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         public void ShowNotification_InfoBarButtonClicked_CriticalException_ExceptionNotCaught()
         {
             var notification = CreateNotification(actions:
-                new NotificationAction("action", () => throw new StackOverflowException("this is a test"))
+                new NotificationAction("action", _ => throw new StackOverflowException("this is a test"))
             );
 
             var infoBar = new Mock<IInfoBar>();
@@ -429,14 +515,16 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         }
 
         private static NotificationService CreateTestSubject(IInfoBarManager infoBarManager = null,
+            IDisabledNotificationsStorage disabledNotificationsStorage = null,
             IThreadHandling threadHandling = null,
             ILogger logger = null)
         {
             infoBarManager ??= Mock.Of<IInfoBarManager>();
+            disabledNotificationsStorage ??= Mock.Of<IDisabledNotificationsStorage>();
             threadHandling ??= new NoOpThreadHandler();
             logger ??= Mock.Of<ILogger>();
 
-            return new NotificationService(infoBarManager, threadHandling, logger);
+            return new NotificationService(infoBarManager, disabledNotificationsStorage, threadHandling, logger);
         }
 
         private static INotification CreateNotification(string id = null, params INotificationAction[] actions)

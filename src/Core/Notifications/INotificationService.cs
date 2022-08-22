@@ -22,6 +22,7 @@ using System;
 using System.Linq;
 using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.Core.Notifications
 {
@@ -38,14 +39,19 @@ namespace SonarLint.VisualStudio.Core.Notifications
         internal static readonly Guid ErrorListToolWindowGuid = new Guid("D78612C7-9962-4B83-95D9-268046DAD23A");
 
         private readonly IInfoBarManager infoBarManager;
+        private readonly IDisabledNotificationsStorage notificationsStorage;
         private readonly IThreadHandling threadHandling;
         private readonly ILogger logger;
 
         private Tuple<IInfoBar, INotification> activeNotification;
 
-        public NotificationService(IInfoBarManager infoBarManager, IThreadHandling threadHandling, ILogger logger)
+        public NotificationService(IInfoBarManager infoBarManager, 
+            IDisabledNotificationsStorage notificationsStorage,
+            IThreadHandling threadHandling, 
+            ILogger logger)
         {
             this.infoBarManager = infoBarManager;
+            this.notificationsStorage = notificationsStorage;
             this.threadHandling = threadHandling;
             this.logger = logger;
         }
@@ -57,11 +63,19 @@ namespace SonarLint.VisualStudio.Core.Notifications
                 throw new ArgumentNullException(nameof(notification));
             }
 
-            if (activeNotification?.Item2.Id == notification.Id)
+            if (notificationsStorage.IsNotificationDisabled(notification.Id))
             {
+                logger.LogDebug($"[NotificationService] notification '{notification.Id}' will not be shown: notification is blocked.");
                 return;
             }
-            // todo: check if blocked
+
+            var activeNotificationId = activeNotification?.Item2.Id;
+
+            if (activeNotificationId == notification.Id)
+            {
+                logger.LogDebug($"[NotificationService] notification '{notification.Id}' will not be shown: notification is already displayed.");
+                return;
+            }
 
             threadHandling.RunOnUIThread(() =>
             {
@@ -74,17 +88,15 @@ namespace SonarLint.VisualStudio.Core.Notifications
         {
             try
             {
-                var matchingAction = activeNotification.Item2.Actions.FirstOrDefault(x => x.CommandText == e.ClickedButtonText);
+                var notification = activeNotification.Item2;
+                var matchingAction = notification.Actions.FirstOrDefault(x => x.CommandText == e.ClickedButtonText);
 
-                matchingAction?.Action();
+                matchingAction?.Action(notification);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(CoreStrings.Notifications_FailedToExecuteAction, ex);
             }
-
-            // todo: handle "do not show again"
-            // todo: who is responsible for adding "do not show again" action?
         }
 
         private void CurrentInfoBar_Closed(object sender, EventArgs e)

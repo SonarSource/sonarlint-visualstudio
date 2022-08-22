@@ -19,29 +19,33 @@
  */
 
 using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Core.Notifications;
 
-namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
+namespace SonarLint.VisualStudio.Core.Notifications
 {
-    [TestClass]
-    public class NotificationActionTests
+    public interface IDoNotShowAgainNotificationAction : INotificationAction
     {
-        [TestMethod]
-        public void Ctor_NullCommandText_ArgumentNullException()
-        {
-            Action act = () => new NotificationAction(null, _ => { });
+    }
 
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("commandText");
+    public class DoNotShowAgainNotificationAction : IDoNotShowAgainNotificationAction
+    {
+        private readonly IDisabledNotificationsStorage disabledNotificationsStorage;
+
+        public DoNotShowAgainNotificationAction(IDisabledNotificationsStorage disabledNotificationsStorage)
+        {
+            this.disabledNotificationsStorage = disabledNotificationsStorage;
         }
 
-        [TestMethod]
-        public void Ctor_NullActionArgumentNullException()
-        {
-            Action act = () => new NotificationAction("text", null);
+        public string CommandText => "Do not show again";
 
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("action");
-        }
+        public Action<INotification> Action => 
+            notification =>
+            {
+                if (notification == null)
+                {
+                    throw new ArgumentNullException(nameof(notification));
+                }
+                
+                disabledNotificationsStorage.DisableNotification(notification.Id);
+            };
     }
 }
