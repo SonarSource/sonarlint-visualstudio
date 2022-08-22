@@ -56,29 +56,17 @@ namespace SonarLint.VisualStudio.Core.Notifications
             {
                 throw new ArgumentNullException(nameof(notification));
             }
-            // todo: check if already shown
+
+            if (activeNotification?.Item2.Id == notification.Id)
+            {
+                return;
+            }
+            // todo: check if blocked
 
             threadHandling.RunOnUIThread(() =>
             {
-                try
-                {
-                    RemoveExistingInfoBar();
-
-                    var buttonTexts = notification.Actions.Select(x => x.CommandText).ToArray();
-
-                    var infoBar = infoBarManager.AttachInfoBarWithButtons(ErrorListToolWindowGuid,
-                        notification.Message,
-                        buttonTexts,
-                        SonarLintImageMoniker.OfficialSonarLintMoniker);
-
-                    activeNotification = new Tuple<IInfoBar, INotification>(infoBar, notification);
-                    activeNotification.Item1.ButtonClick += CurrentInfoBar_ButtonClick;
-                    activeNotification.Item1.Closed += CurrentInfoBar_Closed;
-                }
-                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-                {
-                    logger.WriteLine(CoreStrings.Notifications_FailedToDisplay, notification.Id, ex);
-                }
+                RemoveExistingInfoBar();
+                ShowInfoBar(notification);
             });
         }
 
@@ -121,6 +109,27 @@ namespace SonarLint.VisualStudio.Core.Notifications
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(CoreStrings.Notifications_FailedToRemove, ex);
+            }
+        }
+
+        private void ShowInfoBar(INotification notification)
+        {
+            try
+            {
+                var buttonTexts = notification.Actions.Select(x => x.CommandText).ToArray();
+
+                var infoBar = infoBarManager.AttachInfoBarWithButtons(ErrorListToolWindowGuid,
+                    notification.Message,
+                    buttonTexts,
+                    SonarLintImageMoniker.OfficialSonarLintMoniker);
+
+                activeNotification = new Tuple<IInfoBar, INotification>(infoBar, notification);
+                activeNotification.Item1.ButtonClick += CurrentInfoBar_ButtonClick;
+                activeNotification.Item1.Closed += CurrentInfoBar_Closed;
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(CoreStrings.Notifications_FailedToDisplay, notification.Id, ex);
             }
         }
 

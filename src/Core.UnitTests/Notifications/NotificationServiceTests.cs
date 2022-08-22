@@ -74,11 +74,12 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         [TestMethod]
         public void ShowNotification_InfoBarCreatedCorrectly()
         {
-            var notification = CreateNotification(
+            var notification = CreateNotification(actions: new INotificationAction[]
+            {
                 new NotificationAction("notification1", () => { }),
                 new NotificationAction("notification2", () => { }),
                 new NotificationAction("notification2", () => { })
-            );
+            });
 
             var infoBarManager = CreateInfoBarManager(notification, Mock.Of<IInfoBar>());
 
@@ -91,13 +92,41 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         }
 
         [TestMethod]
+        public void ShowNotification_NotificationWithSameIdAlreadyShown_InfoBarIsUnchanged()
+        {
+            var notification1 = CreateNotification(id: "some id");
+            var notification2 = CreateNotification(id: "some id");
+
+            var infoBar1 = CreateInfoBar();
+            var infoBar2 = CreateInfoBar();
+
+            var infoBarManager = new Mock<IInfoBarManager>();
+            SetupInfoBarManager(infoBarManager, notification1, infoBar1.Object);
+            SetupInfoBarManager(infoBarManager, notification2, infoBar2.Object);
+
+            var testSubject = CreateTestSubject(infoBarManager.Object);
+
+            testSubject.ShowNotification(notification1);
+
+            VerifyInfoBarCreatedCorrectly(infoBarManager, notification1);
+            VerifySubscribedToInfoBarEvents(infoBar1);
+            infoBarManager.Invocations.Count.Should().Be(1);
+
+            testSubject.ShowNotification(notification2);
+
+            infoBarManager.Invocations.Count.Should().Be(1);
+            infoBar2.Invocations.Count.Should().Be(0);
+            infoBar1.VerifyNoOtherCalls();
+            infoBarManager.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
         public void ShowNotification_UnknownInfoBarButtonClicked_NoException()
         {
             var callback = new Mock<Action<string>>();
 
-            var notification = CreateNotification(
-                new NotificationAction("notification1", () => callback.Object("action1"))
-            );
+            var notification = CreateNotification(actions: 
+                new NotificationAction("notification1", () => callback.Object("action1")));
 
             var infoBar = new Mock<IInfoBar>();
 
@@ -118,11 +147,12 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         {
             var callback = new Mock<Action<string>>();
 
-            var notification = CreateNotification(
+            var notification = CreateNotification(actions: new INotificationAction[]
+            {
                 new NotificationAction("notification1", () => callback.Object("action1")),
                 new NotificationAction("notification2", () => callback.Object("action2")),
                 new NotificationAction("notification3", () => callback.Object("action3"))
-            );
+            });
 
             var infoBar = new Mock<IInfoBar>();
 
@@ -271,7 +301,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         [TestMethod]
         public void ShowNotification_InfoBarButtonClicked_NonCriticalException_ExceptionCaught()
         {
-            var notification = CreateNotification(
+            var notification = CreateNotification(actions:
                 new NotificationAction("action", () => throw new NotImplementedException("this is a test"))
             );
 
@@ -292,7 +322,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         [TestMethod]
         public void ShowNotification_InfoBarButtonClicked_CriticalException_ExceptionNotCaught()
         {
-            var notification = CreateNotification(
+            var notification = CreateNotification(actions:
                 new NotificationAction("action", () => throw new StackOverflowException("this is a test"))
             );
 
@@ -409,10 +439,11 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             return new NotificationService(infoBarManager, threadHandling, logger);
         }
 
-        private static INotification CreateNotification(params INotificationAction[] actions)
+        private static INotification CreateNotification(string id = null, params INotificationAction[] actions)
         {
             var notification = new Mock<INotification>();
 
+            notification.SetupGet(x => x.Id).Returns(id ?? Guid.NewGuid().ToString());
             notification.SetupGet(x => x.Message).Returns(Guid.NewGuid().ToString);
             notification.SetupGet(x => x.Actions).Returns(actions);
 
