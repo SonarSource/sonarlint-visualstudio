@@ -31,7 +31,7 @@ using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
 {
     [TestClass]
-    public partial class EslintBridgeClientTests
+    public class EslintBridgeClientTests
     {
         private const int ServerPort = 1234;
         private const string AnalyzeEndpoint = "dummy-analyze";
