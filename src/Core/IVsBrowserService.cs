@@ -18,26 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Shell;
-
 namespace SonarLint.VisualStudio.Infrastructure.VS
 {
     /// <summary>
-    /// Testable wrapper for <see cref="VsShellUtilities.OpenBrowser(string)"/>
+    /// Handles showing a page in a browser
     /// </summary>
     public interface IVsBrowserService
     {
         void Navigate(string url);
-    }
-
-    [Export(typeof(IVsBrowserService))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class VsBrowserService : IVsBrowserService
-    {
-        public void Navigate(string url)
-        {
-            VsShellUtilities.OpenSystemBrowser(url);
-        }
     }
 }
