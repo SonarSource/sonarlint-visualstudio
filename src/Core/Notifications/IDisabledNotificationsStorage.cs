@@ -18,11 +18,83 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.IO;
+using System.IO.Abstractions;
+using System.Linq;
+using SonarLint.VisualStudio.Core.VsVersion;
+
 namespace SonarLint.VisualStudio.Core.Notifications
 {
     public interface IDisabledNotificationsStorage
     {
         void DisableNotification(string id);
         bool IsNotificationDisabled(string id);
+    }
+
+    [Export(typeof(IDisabledNotificationsStorage))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    public class DisabledNotificationsStorage : IDisabledNotificationsStorage
+    {
+        private readonly IVsVersionProvider vsVersionProvider;
+        private readonly IFileSystem fileSystem;
+        private readonly string filePath;
+
+        internal /*for testing*/ IList<string> disabledNotifications = null;
+        [ImportingConstructor]
+        public DisabledNotificationsStorage(IVsVersionProvider vsVersionProvider) : this(vsVersionProvider, new FileSystem())
+        {
+
+        }
+
+        internal /*for testing*/ DisabledNotificationsStorage(IVsVersionProvider vsVersionProvider, IFileSystem fileSystem)
+        {
+            this.vsVersionProvider = vsVersionProvider;
+            this.fileSystem = fileSystem;
+
+            filePath = GetFilePath();
+        }
+
+        public void DisableNotification(string id)
+        {
+            if(IsNotificationDisabled(id))
+            {
+                return;
+            }
+
+            disabledNotifications.Add(id);
+            SaveNotifications();
+        }
+
+        public bool IsNotificationDisabled(string id)
+        {
+            if (disabledNotifications == null)
+            {
+                disabledNotifications = ReadDisabledNotifications();
+            }
+            return disabledNotifications.Contains(id);
+        }
+
+        private IList<string> ReadDisabledNotifications()
+        {
+            return fileSystem.File.ReadAllLines(filePath).ToList();
+        }
+
+        private void SaveNotifications()
+        {
+            fileSystem.File.WriteAllLines(filePath, disabledNotifications);
+        }
+        
+        private string GetFilePath()
+        {
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string fullPath = Path.Combine(appData, "SonarLint for Visual Studio", vsVersionProvider.Version.MajorInstallationVersion, "disabledNotifications.txt");
+
+            return fullPath;
+        }
+
+
     }
 }

@@ -18,36 +18,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using SonarLint.VisualStudio.Core.VsVersion;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarLint.VisualStudio.Infrastructure.VS.VsVersion
+namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
-    internal class VsVersion : IVsVersion
+    [TestClass]
+    public class VsVersionTests
     {
-        public VsVersion(string displayName, string installationVersion, string displayVersion)
+        [DataRow("17.058.698.12", "17")]
+        [DataRow("0.9.359", "0")]
+        [DataRow("-1.56.25", null)]
+        [DataRow("Not Valid", null)]
+        [TestMethod]
+        public void MajorInstallationVersion_CalculatedCorrectly(string installationVersion, string expectedMajorInstallationVersion)
         {
-            DisplayName = displayName;
-            InstallationVersion = installationVersion;
-            DisplayVersion = displayVersion;
-        }
-
-        public string DisplayName { get; }
-
-        public string InstallationVersion { get; }
-
-        public string DisplayVersion { get; }
-
-        public string MajorInstallationVersion
-        {
-            get
-            {
-                if(Version.TryParse(this.InstallationVersion, out var version))
-                {
-                    return version.Major.ToString();
-                }
-                return null;
-            }
+            var testSubject = new VsVersion.VsVersion(null, installationVersion, null);
+            testSubject.MajorInstallationVersion.Should().Be(expectedMajorInstallationVersion);
         }
     }
 }
