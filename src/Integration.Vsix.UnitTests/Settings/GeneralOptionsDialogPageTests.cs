@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         [TestMethod]
         public void ClickHyperlink_ShowWikiCommandIsCalled()
         {
-            var browserService = new Mock<IVsBrowserService>();
+            var browserService = new Mock<IBrowserService>();
 
             GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
             ConfigureSiteMock(page, vsBrowserService: browserService.Object);
@@ -143,16 +143,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
 
         private static void ConfigureSiteMock(GeneralOptionsDialogPage testSubject,
             ISonarLintSettings settings = null,
-            IVsBrowserService vsBrowserService = null)
+            IBrowserService vsBrowserService = null)
         {
             settings ??= new ConfigurableSonarLintSettings();
-            vsBrowserService ??= new Mock<IVsBrowserService>().Object;
+            vsBrowserService ??= new Mock<IBrowserService>().Object;
 
             var mefHostMock = new Mock<IComponentModel>();
             mefHostMock.Setup(m => m.GetExtensions<ISonarLintSettings>()).Returns(() => new[] { settings });
             mefHostMock.Setup(m => m.GetExtensions<ILogger>()).Returns(() => new[] { new TestLogger() });
             mefHostMock.Setup(m => m.GetExtensions<IUserSettingsProvider>()).Returns(() => new[] { new Mock<IUserSettingsProvider>().Object });
-            mefHostMock.Setup(m => m.GetExtensions<IVsBrowserService>()).Returns(() => new[] { vsBrowserService });
+            mefHostMock.Setup(m => m.GetExtensions<IBrowserService>()).Returns(() => new[] { vsBrowserService });
 
             var siteMock = new Mock<ISite>();
             siteMock.As<IServiceProvider>().Setup(m => m.GetService(It.Is<Type>(t => t == typeof(SComponentModel)))).Returns(mefHostMock.Object);

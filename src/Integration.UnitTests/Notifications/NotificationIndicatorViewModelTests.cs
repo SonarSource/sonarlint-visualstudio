@@ -23,6 +23,7 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Telemetry;
@@ -218,7 +219,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         [TestMethod]
         public void NavigateToNotification_NotificationNavigated()
         {
-            var vsBrowserService = new Mock<IVsBrowserService>();
+            var vsBrowserService = new Mock<IBrowserService>();
             var testSubject = CreateTestSubject(vsBrowserService: vsBrowserService.Object);
 
             var notification = CreateNotification("test", "http://localhost:2000");
@@ -281,11 +282,11 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
 
         private NotificationIndicatorViewModel CreateTestSubject(ITimer timer = null, 
             IServerNotificationsTelemetryManager telemetryManager = null,
-            IVsBrowserService vsBrowserService = null)
+            IBrowserService vsBrowserService = null)
         {
             timer ??= Mock.Of<ITimer>();
             telemetryManager ??= Mock.Of<IServerNotificationsTelemetryManager>();
-            vsBrowserService ??= Mock.Of<IVsBrowserService>();
+            vsBrowserService ??= Mock.Of<IBrowserService>();
 
             return new NotificationIndicatorViewModel(telemetryManager, vsBrowserService, a => a(), timer);
         }

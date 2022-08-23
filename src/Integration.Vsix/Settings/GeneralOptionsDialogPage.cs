@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     Debug.Assert(this.Site != null, "Expecting the page to be sited");
                     var userSettingsProvider = this.Site.GetMefService<IUserSettingsProvider>();
-                    var browserService = this.Site.GetMefService<IVsBrowserService>();
+                    var browserService = this.Site.GetMefService<IBrowserService>();
                     var logger = this.Site.GetMefService<ILogger>();
 
                     var openSettingsFileCmd = new OpenSettingsFileWpfCommand(this.Site, userSettingsProvider, this, logger);
