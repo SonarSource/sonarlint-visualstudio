@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.Core.JsTs;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
+using SonarLint.VisualStudio.TypeScript.Notifications;
 
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
 {
@@ -39,6 +40,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
             MefTestHelpers.CheckTypeCanBeImported<CompatibleNodeLocator, ICompatibleNodeLocator>(null, new[]
             {
                 MefTestHelpers.CreateExport<INodeVersionInfoProvider>(Mock.Of<INodeVersionInfoProvider>()),
+                MefTestHelpers.CreateExport<IUnsupportedNodeVersionNotificationService>(Mock.Of<IUnsupportedNodeVersionNotificationService>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
@@ -84,6 +86,37 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         }
 
         [TestMethod]
+        public void Locate_NoCompatibleVersions_NotificationIsShown()
+        {
+            var versions = new List<NodeVersionInfo>
+            {
+                new("bad version", new Version(9, 0))
+            };
+
+            var notificationService = new Mock<IUnsupportedNodeVersionNotificationService>();
+            var testSubject = CreateTestSubject(versions, notificationService.Object);
+
+            _ = testSubject.Locate();
+            notificationService.Verify(x => x.Show(), Times.Once);
+            notificationService.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Locate_CompatibleVersionFound_NotificationIsNotShown()
+        {
+            var versions = new List<NodeVersionInfo>
+            {
+                new("bad version", new Version(12, 0))
+            };
+
+            var notificationService = new Mock<IUnsupportedNodeVersionNotificationService>();
+            var testSubject = CreateTestSubject(versions, notificationService.Object);
+
+            _ = testSubject.Locate();
+            notificationService.Invocations.Count.Should().Be(0);
+        }
+
+        [TestMethod]
         [DataRow(9, false)]
         [DataRow(10, true)]
         [DataRow(11, false)]
@@ -97,15 +130,18 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
             result.Should().Be(expectedResult);
         }
 
-        private CompatibleNodeLocator CreateTestSubject(IReadOnlyCollection<NodeVersionInfo> candidateLocations = null)
+        private CompatibleNodeLocator CreateTestSubject(IReadOnlyCollection<NodeVersionInfo> candidateLocations = null,
+            IUnsupportedNodeVersionNotificationService unsupportedNodeNotificationService = null)
         {
             candidateLocations ??= Array.Empty<NodeVersionInfo>();
             var versionInfoProvider = new Mock<INodeVersionInfoProvider>();
             versionInfoProvider.Setup(x => x.GetAllNodeVersions()).Returns(candidateLocations);
 
+            unsupportedNodeNotificationService ??= Mock.Of<IUnsupportedNodeVersionNotificationService>();
+
             var logger = Mock.Of<ILogger>();
 
-            return new CompatibleNodeLocator(versionInfoProvider.Object, logger);
+            return new CompatibleNodeLocator(versionInfoProvider.Object, unsupportedNodeNotificationService, logger);
         }
     }
 }
