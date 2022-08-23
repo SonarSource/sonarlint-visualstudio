@@ -42,7 +42,8 @@ namespace SonarLint.VisualStudio.Core.Notifications
         private readonly IFileSystem fileSystem;
         private readonly string filePath;
 
-        internal /*for testing*/ IList<string> disabledNotifications = null;
+        private IList<string> disabledNotifications = null;
+
         [ImportingConstructor]
         public DisabledNotificationsStorage(IVsVersionProvider vsVersionProvider) : this(vsVersionProvider, new FileSystem())
         {
