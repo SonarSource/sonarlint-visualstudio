@@ -53,6 +53,21 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         }
 
         [TestMethod]
+        public void Locate_NoCompatibleVersions_ReturnsNull()
+        {
+            var versions = new List<NodeVersionInfo>
+            {
+                new("bad version", new Version(9, 0)),
+                new("bad version", new Version(11, 0))
+            };
+
+            var testSubject = CreateTestSubject(versions);
+
+            var result = testSubject.Locate();
+            result.Should().BeNull();
+        }
+
+        [TestMethod]
         public void Locate_ReturnsFirstCompatiblePath()
         {
             var versions = new List<NodeVersionInfo>
