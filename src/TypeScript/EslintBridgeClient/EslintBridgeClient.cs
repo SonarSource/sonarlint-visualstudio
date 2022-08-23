@@ -59,22 +59,26 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         private readonly IEslintBridgeProcess eslintBridgeProcess;
         private readonly IEslintBridgeHttpWrapper httpWrapper;
         private readonly IAnalysisConfiguration analysisConfiguration;
+        private readonly IEslintBridgeKeepAlive keepAlive;
         private bool isDisposed;
 
         public EslintBridgeClient(string analyzeEndpoint, IEslintBridgeProcess eslintBridgeProcess, ILogger logger)
-            : this(analyzeEndpoint, eslintBridgeProcess, new EslintBridgeHttpWrapper(logger), new AnalysisConfiguration())
+            : this(analyzeEndpoint, eslintBridgeProcess, new EslintBridgeHttpWrapper(logger), new AnalysisConfiguration(),
+                  new EslintBridgeKeepAlive(eslintBridgeProcess, logger))
         {
         }
 
-        internal EslintBridgeClient(string analyzeEndpoint, 
+        internal EslintBridgeClient(string analyzeEndpoint,
             IEslintBridgeProcess eslintBridgeProcess,
             IEslintBridgeHttpWrapper httpWrapper,
-            IAnalysisConfiguration analysisConfiguration)
+            IAnalysisConfiguration analysisConfiguration,
+            IEslintBridgeKeepAlive keepAlive)
         {
             this.analyzeEndpoint = analyzeEndpoint;
             this.eslintBridgeProcess = eslintBridgeProcess;
             this.httpWrapper = httpWrapper;
             this.analysisConfiguration = analysisConfiguration;
+            this.keepAlive = keepAlive;
         }
 
         public async Task InitLinter(IEnumerable<Rule> rules, CancellationToken cancellationToken)
@@ -96,7 +100,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         public async Task<AnalysisResponse> Analyze(string filePath, string tsConfigFilePath, CancellationToken cancellationToken)
         {
-            var tsConfigFilePaths = tsConfigFilePath == null ? Array.Empty<string>() : new[] {tsConfigFilePath};
+            var tsConfigFilePaths = tsConfigFilePath == null ? Array.Empty<string>() : new[] { tsConfigFilePath };
 
             var analysisRequest = new AnalysisRequest
             {
@@ -158,13 +162,12 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
                 eslintBridgeProcess.Dispose();
                 httpWrapper.Dispose();
+                keepAlive.Dispose();
                 isDisposed = true;
             }
         }
 
         #endregion
-
-
 
         protected async Task<string> MakeCall(string endpoint, object request, CancellationToken cancellationToken)
         {
