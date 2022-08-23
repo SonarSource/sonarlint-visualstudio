@@ -88,7 +88,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
         private IDisabledNotificationsStorage CreateTestSubject(IFile file)
         {
-
             var fileSystem = CreateFileSystem(file);
             var versionProvider = CreateVsVersionProvider();
 
@@ -123,7 +122,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
             return versionProvider.Object;
         }
-
 
         private string GetFilePath()
         {
