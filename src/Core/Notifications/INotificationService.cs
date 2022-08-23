@@ -19,9 +19,11 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.Core.Notifications
 {
@@ -41,6 +43,8 @@ namespace SonarLint.VisualStudio.Core.Notifications
         private readonly IThreadHandling threadHandling;
         private readonly ILogger logger;
 
+        private readonly HashSet<string> oncePerSessionNotifications = new HashSet<string>();
+
         private Tuple<IInfoBar, INotification> activeNotification;
 
         public NotificationService(IInfoBarManager infoBarManager, IThreadHandling threadHandling, ILogger logger)
@@ -57,11 +61,11 @@ namespace SonarLint.VisualStudio.Core.Notifications
                 throw new ArgumentNullException(nameof(notification));
             }
 
-            if (activeNotification?.Item2.Id == notification.Id)
+            if (oncePerSessionNotifications.Contains(notification.Id))
             {
+                logger.LogDebug($"[NotificationService] notification '{notification.Id}' will not be shown: notification has already been displayed.");
                 return;
             }
-            // todo: check if blocked
 
             threadHandling.RunOnUIThread(() =>
             {
@@ -82,9 +86,6 @@ namespace SonarLint.VisualStudio.Core.Notifications
             {
                 logger.WriteLine(CoreStrings.Notifications_FailedToExecuteAction, ex);
             }
-
-            // todo: handle "do not show again"
-            // todo: who is responsible for adding "do not show again" action?
         }
 
         private void CurrentInfoBar_Closed(object sender, EventArgs e)
@@ -126,6 +127,8 @@ namespace SonarLint.VisualStudio.Core.Notifications
                 activeNotification = new Tuple<IInfoBar, INotification>(infoBar, notification);
                 activeNotification.Item1.ButtonClick += CurrentInfoBar_ButtonClick;
                 activeNotification.Item1.Closed += CurrentInfoBar_Closed;
+
+                oncePerSessionNotifications.Add(notification.Id);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
