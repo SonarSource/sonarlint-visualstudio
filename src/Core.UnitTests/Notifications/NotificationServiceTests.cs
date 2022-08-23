@@ -95,14 +95,17 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         public void ShowNotification_NotificationWithSameIdAlreadyShown_InfoBarIsUnchanged()
         {
             var notification1 = CreateNotification(id: "some id");
-            var notification2 = CreateNotification(id: "some id");
+            var notification2 = CreateNotification(id: "some other id");
+            var notification3 = CreateNotification(id: "some id");
 
             var infoBar1 = CreateInfoBar();
             var infoBar2 = CreateInfoBar();
+            var infoBar3 = CreateInfoBar();
 
             var infoBarManager = new Mock<IInfoBarManager>();
             SetupInfoBarManager(infoBarManager, notification1, infoBar1.Object);
             SetupInfoBarManager(infoBarManager, notification2, infoBar2.Object);
+            SetupInfoBarManager(infoBarManager, notification3, infoBar3.Object);
 
             var testSubject = CreateTestSubject(infoBarManager.Object);
 
@@ -110,13 +113,18 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
             VerifyInfoBarCreatedCorrectly(infoBarManager, notification1);
             VerifySubscribedToInfoBarEvents(infoBar1);
-            infoBarManager.Invocations.Count.Should().Be(1);
 
             testSubject.ShowNotification(notification2);
 
-            infoBarManager.Invocations.Count.Should().Be(1);
-            infoBar2.Invocations.Count.Should().Be(0);
-            infoBar1.VerifyNoOtherCalls();
+            VerifyInfoBarRemoved(infoBarManager, infoBar1);
+            VerifyUnsubscribedFromInfoBarEvents(infoBar1);
+            VerifyInfoBarCreatedCorrectly(infoBarManager, notification2);
+            VerifySubscribedToInfoBarEvents(infoBar2);
+
+            testSubject.ShowNotification(notification3);
+
+            infoBar3.Invocations.Count.Should().Be(0);
+            infoBar2.VerifyNoOtherCalls();
             infoBarManager.VerifyNoOtherCalls();
         }
 
@@ -196,7 +204,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
             testSubject.ShowNotification(notification2);
 
-            VerifyInfoBarRemoved(infoBar1, infoBarManager);
+            VerifyInfoBarRemoved(infoBarManager, infoBar1);
             VerifyInfoBarCreatedCorrectly(infoBarManager, notification2);
             VerifySubscribedToInfoBarEvents(infoBar2);
         }
@@ -216,7 +224,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
             infoBar.Raise(x => x.Closed += null, EventArgs.Empty);
 
-            VerifyInfoBarRemoved(infoBar, infoBarManager);
+            VerifyInfoBarRemoved(infoBarManager, infoBar);
 
             infoBarManager.VerifyNoOtherCalls();
         }
@@ -249,7 +257,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
             testSubject.Dispose();
 
-            VerifyInfoBarRemoved(infoBar, infoBarManager);
+            VerifyInfoBarRemoved(infoBarManager, infoBar);
 
             infoBarManager.VerifyNoOtherCalls();
         }
@@ -498,7 +506,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             actualButtonTexts.Should().BeEquivalentTo(expectedButtonTexts);
         }
 
-        private static void VerifyInfoBarRemoved(Mock<IInfoBar> infoBar, Mock<IInfoBarManager> infoBarManager)
+        private static void VerifyInfoBarRemoved(Mock<IInfoBarManager> infoBarManager, Mock<IInfoBar> infoBar)
         {
             VerifyUnsubscribedFromInfoBarEvents(infoBar);
             infoBarManager.Verify(x => x.DetachInfoBar(infoBar.Object));
