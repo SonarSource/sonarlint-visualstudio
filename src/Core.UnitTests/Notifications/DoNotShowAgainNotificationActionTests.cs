@@ -21,27 +21,42 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Core.Notifications;
 
 namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 {
     [TestClass]
-    public class NotificationActionTests
+    public class DoNotShowAgainNotificationActionTests
     {
         [TestMethod]
-        public void Ctor_NullCommandText_ArgumentNullException()
+        public void Action_NullNotification_ArgumentNullException()
         {
-            Action act = () => new NotificationAction(null, _ => { });
+            var disabledNotificationsStorage = new Mock<IDisabledNotificationsStorage>();
 
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("commandText");
+            var testSubject = new DoNotShowAgainNotificationAction(disabledNotificationsStorage.Object);
+
+            Action act = () => testSubject.Action(null);
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("notification");
+
+            disabledNotificationsStorage.Invocations.Count.Should().Be(0);
         }
 
         [TestMethod]
-        public void Ctor_NullActionArgumentNullException()
+        public void Action_DisablesTheGivenNotification()
         {
-            Action act = () => new NotificationAction("text", null);
+            var disabledNotificationsStorage = new Mock<IDisabledNotificationsStorage>();
 
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("action");
+            var notification = new Mock<INotification>();
+            notification.SetupGet(x => x.Id).Returns("some id");
+
+            var testSubject = new DoNotShowAgainNotificationAction(disabledNotificationsStorage.Object);
+
+            testSubject.Action(notification.Object);
+
+            disabledNotificationsStorage.Verify(x=> x.DisableNotification("some id"), Times.Once);
+            disabledNotificationsStorage.VerifyNoOtherCalls();
         }
     }
 }

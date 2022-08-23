@@ -22,21 +22,30 @@ using System;
 
 namespace SonarLint.VisualStudio.Core.Notifications
 {
-    public interface INotificationAction
+    public interface IDoNotShowAgainNotificationAction : INotificationAction
     {
-        string CommandText { get; }
-        Action<INotification> Action { get; }
     }
 
-    public class NotificationAction : INotificationAction
+    public class DoNotShowAgainNotificationAction : IDoNotShowAgainNotificationAction
     {
-        public NotificationAction(string commandText, Action<INotification> action)
+        private readonly IDisabledNotificationsStorage disabledNotificationsStorage;
+
+        public DoNotShowAgainNotificationAction(IDisabledNotificationsStorage disabledNotificationsStorage)
         {
-            CommandText = commandText ?? throw new ArgumentNullException(nameof(commandText));
-            Action = action ?? throw new ArgumentNullException(nameof(action));
+            this.disabledNotificationsStorage = disabledNotificationsStorage;
         }
 
-        public string CommandText { get; }
-        public Action<INotification> Action { get; }
+        public string CommandText => CoreStrings.Notifications_DontShowAgainAction;
+
+        public Action<INotification> Action => 
+            notification =>
+            {
+                if (notification == null)
+                {
+                    throw new ArgumentNullException(nameof(notification));
+                }
+                
+                disabledNotificationsStorage.DisableNotification(notification.Id);
+            };
     }
 }

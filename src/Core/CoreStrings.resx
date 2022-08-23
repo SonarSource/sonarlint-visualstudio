@@ -184,4 +184,7 @@
   <data name="Notifications_FailedToRemove" xml:space="preserve">
     <value>[Notifications] Failed to remove existing notification: {0}</value>
   </data>
+  <data name="Notifications_DontShowAgainAction" xml:space="preserve">
+    <value>Don't show this again</value>
+  </data>
 </root>

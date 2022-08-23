@@ -40,6 +40,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
         internal static readonly Guid ErrorListToolWindowGuid = new Guid("D78612C7-9962-4B83-95D9-268046DAD23A");
 
         private readonly IInfoBarManager infoBarManager;
+        private readonly IDisabledNotificationsStorage notificationsStorage;
         private readonly IThreadHandling threadHandling;
         private readonly ILogger logger;
 
@@ -47,9 +48,13 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
         private Tuple<IInfoBar, INotification> activeNotification;
 
-        public NotificationService(IInfoBarManager infoBarManager, IThreadHandling threadHandling, ILogger logger)
+        public NotificationService(IInfoBarManager infoBarManager, 
+            IDisabledNotificationsStorage notificationsStorage,
+            IThreadHandling threadHandling, 
+            ILogger logger)
         {
             this.infoBarManager = infoBarManager;
+            this.notificationsStorage = notificationsStorage;
             this.threadHandling = threadHandling;
             this.logger = logger;
         }
@@ -59,6 +64,12 @@ namespace SonarLint.VisualStudio.Core.Notifications
             if (notification == null)
             {
                 throw new ArgumentNullException(nameof(notification));
+            }
+
+            if (notificationsStorage.IsNotificationDisabled(notification.Id))
+            {
+                logger.LogDebug($"[NotificationService] notification '{notification.Id}' will not be shown: notification is blocked.");
+                return;
             }
 
             if (oncePerSessionNotifications.Contains(notification.Id))
@@ -78,9 +89,10 @@ namespace SonarLint.VisualStudio.Core.Notifications
         {
             try
             {
-                var matchingAction = activeNotification.Item2.Actions.FirstOrDefault(x => x.CommandText == e.ClickedButtonText);
+                var notification = activeNotification.Item2;
+                var matchingAction = notification.Actions.FirstOrDefault(x => x.CommandText == e.ClickedButtonText);
 
-                matchingAction?.Action();
+                matchingAction?.Action(notification);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
