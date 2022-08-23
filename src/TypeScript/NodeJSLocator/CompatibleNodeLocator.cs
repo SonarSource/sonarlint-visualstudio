@@ -22,6 +22,7 @@ using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core.JsTs;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.TypeScript.Notifications;
 
 namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
 {
@@ -30,12 +31,16 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
     internal class CompatibleNodeLocator : ICompatibleNodeLocator
     {
         private readonly INodeVersionInfoProvider nodeVersionInfoProvider;
+        private readonly IUnsupportedNodeVersionNotificationService unsupportedNodeNotificationService;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public CompatibleNodeLocator(INodeVersionInfoProvider nodeVersionInfoProvider, ILogger logger)
+        public CompatibleNodeLocator(INodeVersionInfoProvider nodeVersionInfoProvider,
+            IUnsupportedNodeVersionNotificationService unsupportedNodeNotificationService,
+            ILogger logger)
         {
             this.nodeVersionInfoProvider = nodeVersionInfoProvider;
+            this.unsupportedNodeNotificationService = unsupportedNodeNotificationService;
             this.logger = logger;
         }
 
@@ -54,6 +59,7 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
             }
 
             logger.WriteLine(Resources.ERR_NoCompatibleVersion);
+            unsupportedNodeNotificationService.Show();
             return null;
         }
 
