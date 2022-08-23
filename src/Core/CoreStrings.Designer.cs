@@ -88,6 +88,15 @@ namespace SonarLint.VisualStudio.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Don&apos;t show this again.
+        /// </summary>
+        public static string Notifications_DontShowAgainAction {
+            get {
+                return ResourceManager.GetString("Notifications_DontShowAgainAction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Notifications] Failed to display notification &quot;{0}&quot;: {1}.
         /// </summary>
         public static string Notifications_FailedToDisplay {
