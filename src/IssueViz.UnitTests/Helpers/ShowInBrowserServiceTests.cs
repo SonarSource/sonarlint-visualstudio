@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
             {
                 MefTestHelpers.CreateExport<ISonarQubeService>(Mock.Of<ISonarQubeService>()),
                 MefTestHelpers.CreateExport<IConfigurationProvider>(Mock.Of<IConfigurationProvider>()),
-                MefTestHelpers.CreateExport<IVsBrowserService>(Mock.Of<IVsBrowserService>())
+                MefTestHelpers.CreateExport<IBrowserService>(Mock.Of<IBrowserService>())
             });
         }
 
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
             configurationProvider.Setup(x => x.GetConfiguration()).Returns(BindingConfiguration.Standalone);
 
             var sonarQubeService = new Mock<ISonarQubeService>();
-            var browserService = new Mock<IVsBrowserService>();
+            var browserService = new Mock<IBrowserService>();
 
             var testSubject = CreateTestSubject(sonarQubeService.Object, configurationProvider.Object, browserService.Object);
             testSubject.ShowIssue("issue");
@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
                 .Setup(x => x.GetViewIssueUrl(projectKey, issueKey))
                 .Returns(new Uri("http://localhost:123/expected/issue?id=1"));
 
-            var browserService = new Mock<IVsBrowserService>();
+            var browserService = new Mock<IBrowserService>();
 
             var testSubject = CreateTestSubject(sonarQubeService.Object, configurationProvider.Object, browserService.Object);
             testSubject.ShowIssue(issueKey);
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
         [TestMethod]
         public void ShowDocumentation_BrowserOpened()
         {
-            var browserService = new Mock<IVsBrowserService>();
+            var browserService = new Mock<IBrowserService>();
 
             var testSubject = CreateTestSubject(browserService: browserService.Object);
 
@@ -118,7 +118,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
             const string ruleUrl = "some url";
 
             var helpLinkProvider = new Mock<IRuleHelpLinkProvider>();
-            var browserService = new Mock<IVsBrowserService>();
+            var browserService = new Mock<IBrowserService>();
             helpLinkProvider.Setup(x => x.GetHelpLink(ruleKey)).Returns(ruleUrl);
 
             var testSubject = CreateTestSubject(browserService: browserService.Object, helpLinkProvider: helpLinkProvider.Object);
@@ -131,12 +131,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
 
         private ShowInBrowserService CreateTestSubject(ISonarQubeService sonarQubeService = null,
             IConfigurationProvider configurationProvider = null,
-            IVsBrowserService browserService = null,
+            IBrowserService browserService = null,
             IRuleHelpLinkProvider helpLinkProvider = null)
         {
             sonarQubeService ??= Mock.Of<ISonarQubeService>();
             configurationProvider ??= Mock.Of<IConfigurationProvider>();
-            browserService ??= Mock.Of<IVsBrowserService>();
+            browserService ??= Mock.Of<IBrowserService>();
             helpLinkProvider ??= Mock.Of<IRuleHelpLinkProvider>();
 
             return new ShowInBrowserService(sonarQubeService, configurationProvider, browserService, helpLinkProvider);

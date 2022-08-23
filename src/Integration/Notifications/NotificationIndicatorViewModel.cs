@@ -25,6 +25,7 @@ using System.Linq;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Telemetry;
@@ -49,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
         public ICommand NavigateToNotification { get; }
 
-        public NotificationIndicatorViewModel(IServerNotificationsTelemetryManager telemetryManager, IVsBrowserService vsBrowserService)
+        public NotificationIndicatorViewModel(IServerNotificationsTelemetryManager telemetryManager, IBrowserService vsBrowserService)
             : this(telemetryManager, vsBrowserService, ThreadHelper.Generic.Invoke,
                   new TimerWrapper { AutoReset = false, Interval = 3000 /* 3 sec */})
         {
@@ -57,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
         // For testing
         internal NotificationIndicatorViewModel(IServerNotificationsTelemetryManager telemetryManager, 
-            IVsBrowserService vsBrowserService,
+            IBrowserService vsBrowserService,
             Action<Action> uiThreadInvoker, 
             ITimer autocloseTimer)
         {
