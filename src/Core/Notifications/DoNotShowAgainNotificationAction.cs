@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
             this.disabledNotificationsStorage = disabledNotificationsStorage;
         }
 
-        public string CommandText => "Do not show again";
+        public string CommandText => CoreStrings.Notifications_DontShowAgainAction;
 
         public Action<INotification> Action => 
             notification =>
