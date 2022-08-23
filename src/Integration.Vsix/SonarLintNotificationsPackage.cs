@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             AddOptionKey(NotificationDataKey);
 
             var telemetryManager = await this.GetMefServiceAsync<IServerNotificationsTelemetryManager>();
-            var vsBrowserService = await this.GetMefServiceAsync<Core.IVsBrowserService>();
+            var vsBrowserService = await this.GetMefServiceAsync<Core.IBrowserService>();
 
             notifications = new SonarQubeNotificationService(sonarqubeService,
                 new NotificationIndicatorViewModel(telemetryManager, vsBrowserService), new TimerWrapper { Interval = 60000 }, logger);

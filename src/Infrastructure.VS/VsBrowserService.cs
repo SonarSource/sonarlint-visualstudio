@@ -24,9 +24,9 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS
 {
-    [Export(typeof(IVsBrowserService))]
+    [Export(typeof(IBrowserService))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class VsBrowserService : IVsBrowserService
+    internal class VsBrowserService : IBrowserService
     {
         public void Navigate(string url)
         {

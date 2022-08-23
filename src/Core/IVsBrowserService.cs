@@ -23,7 +23,7 @@ namespace SonarLint.VisualStudio.Core
     /// <summary>
     /// Handles showing a page in a browser
     /// </summary>
-    public interface IVsBrowserService
+    public interface IBrowserService
     {
         void Navigate(string url);
     }
