@@ -18,22 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TypeScript.Notifications;
 
-namespace SonarLint.VisualStudio.TypeScript.Notifications
+namespace SonarLint.VisualStudio.TypeScript.UnitTests.Notifications
 {
-    public interface IUnsupportedNodeVersionNotificationService
+    [TestClass]
+    public class UnsupportedNodeVersionNotificationServiceTests
     {
-        void Show();
-    }
-
-    [Export(typeof(IUnsupportedNodeVersionNotificationService))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class UnsupportedNodeVersionNotificationService : IUnsupportedNodeVersionNotificationService
-    {
-        public void Show()
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
         {
-            // TODO
+            MefTestHelpers.CheckTypeCanBeImported<UnsupportedNodeVersionNotificationService, IUnsupportedNodeVersionNotificationService>(null, null);
         }
     }
 }
