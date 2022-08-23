@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Infrastructure.VS
+namespace SonarLint.VisualStudio.Core
 {
     /// <summary>
     /// Handles showing a page in a browser

@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS
 {
