@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Integration;
@@ -42,6 +43,8 @@ namespace SonarLint.VisualStudio.Core.Notifications
         private readonly IDisabledNotificationsStorage notificationsStorage;
         private readonly IThreadHandling threadHandling;
         private readonly ILogger logger;
+
+        private readonly HashSet<string> oncePerSessionNotifications = new HashSet<string>();
 
         private Tuple<IInfoBar, INotification> activeNotification;
 
@@ -69,11 +72,9 @@ namespace SonarLint.VisualStudio.Core.Notifications
                 return;
             }
 
-            var activeNotificationId = activeNotification?.Item2.Id;
-
-            if (activeNotificationId == notification.Id)
+            if (oncePerSessionNotifications.Contains(notification.Id))
             {
-                logger.LogDebug($"[NotificationService] notification '{notification.Id}' will not be shown: notification is already displayed.");
+                logger.LogDebug($"[NotificationService] notification '{notification.Id}' will not be shown: notification has already been displayed.");
                 return;
             }
 
@@ -138,6 +139,8 @@ namespace SonarLint.VisualStudio.Core.Notifications
                 activeNotification = new Tuple<IInfoBar, INotification>(infoBar, notification);
                 activeNotification.Item1.ButtonClick += CurrentInfoBar_ButtonClick;
                 activeNotification.Item1.Closed += CurrentInfoBar_Closed;
+
+                oncePerSessionNotifications.Add(notification.Id);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
