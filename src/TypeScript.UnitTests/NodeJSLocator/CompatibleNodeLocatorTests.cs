@@ -24,7 +24,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.JsTs;
-using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
@@ -41,6 +40,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
             MefTestHelpers.CheckTypeCanBeImported<CompatibleNodeLocator, ICompatibleNodeLocator>(null, new[]
             {
                 MefTestHelpers.CreateExport<INodeVersionInfoProvider>(Mock.Of<INodeVersionInfoProvider>()),
+                MefTestHelpers.CreateExport<IUnsupportedNodeVersionNotificationService>(Mock.Of<IUnsupportedNodeVersionNotificationService>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
