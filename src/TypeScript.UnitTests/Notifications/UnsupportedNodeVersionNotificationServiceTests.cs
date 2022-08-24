@@ -18,7 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.TypeScript.Notifications;
 
@@ -30,7 +35,93 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Notifications
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<UnsupportedNodeVersionNotificationService, IUnsupportedNodeVersionNotificationService>(null, null);
+            MefTestHelpers.CheckTypeCanBeImported<UnsupportedNodeVersionNotificationService, IUnsupportedNodeVersionNotificationService>(null, new[]
+                {
+                    MefTestHelpers.CreateExport<INotificationService>(Mock.Of<INotificationService>()),
+                    MefTestHelpers.CreateExport<IDoNotShowAgainNotificationAction>(Mock.Of<IDoNotShowAgainNotificationAction>())
+                });
+        }
+
+        [TestMethod]
+        public void Show_ShowsCorrectMessageAndNotificationId()
+        {
+            INotification createdNotification = null;
+            var notificationService = CreateNotificationService(n => createdNotification = n);
+
+            var testSubject = CreateTestSubject(notificationService.Object);
+
+            notificationService.Invocations.Count.Should().Be(0);
+            createdNotification.Should().BeNull();
+
+            testSubject.Show();
+
+            notificationService.Verify(x => x.ShowNotification(It.IsAny<INotification>()), Times.Once);
+            notificationService.VerifyNoOtherCalls();
+
+            createdNotification.Should().NotBeNull();
+            createdNotification.Id.Should().Be("sonarlint.nodejs.min.version.not.found.10");
+            createdNotification.Message.Should().Be(Resources.NotificationUnsupportedNode);
+            createdNotification.Actions.Count().Should().Be(2);
+        }
+
+        [TestMethod]
+        public void Show_HasDoNotShowAgainAction()
+        {
+            INotification createdNotification = null;
+            var notificationService = CreateNotificationService(n => createdNotification = n);
+
+            var doNotShowAgainNotificationAction = Mock.Of<IDoNotShowAgainNotificationAction>();
+
+            var testSubject = CreateTestSubject(notificationService.Object, doNotShowAgainNotificationAction);
+
+            testSubject.Show();
+
+            notificationService.Verify(x => x.ShowNotification(It.IsAny<INotification>()), Times.Once);
+            notificationService.VerifyNoOtherCalls();
+
+            createdNotification.Should().NotBeNull();
+            createdNotification.Actions.Last().Should().Be(doNotShowAgainNotificationAction);
+        }
+
+        [TestMethod, Ignore("don't know yet what this will do")]
+        public void Show_ShowMoreInfoAction_OpensBrowser()
+        {
+            INotification createdNotification = null;
+            var notificationService = CreateNotificationService(n => createdNotification = n);
+
+            var testSubject = CreateTestSubject(notificationService.Object);
+
+            testSubject.Show();
+
+            notificationService.Verify(x => x.ShowNotification(It.IsAny<INotification>()), Times.Once);
+            notificationService.VerifyNoOtherCalls();
+
+            createdNotification.Should().NotBeNull();
+            var firstAction = createdNotification.Actions.First();
+
+            firstAction.CommandText.Should().Be(Resources.NotificationShowMoreInfoAction);
+            firstAction.Action.Should().NotBeNull();
+
+            firstAction.Action(null);
+
+            // todo: assert browser action / output window / etc
+        }
+
+        private static UnsupportedNodeVersionNotificationService CreateTestSubject(
+            INotificationService notificationService,
+            IDoNotShowAgainNotificationAction doNotShowAgainNotificationAction = null)
+        {
+            return new UnsupportedNodeVersionNotificationService(notificationService, doNotShowAgainNotificationAction);
+        }
+
+        private Mock<INotificationService> CreateNotificationService(Action<INotification> callback)
+        {
+            var notificationService = new Mock<INotificationService>();
+            notificationService
+                .Setup(x => x.ShowNotification(It.IsAny<INotification>()))
+                .Callback(callback);
+
+            return notificationService;
         }
     }
 }
