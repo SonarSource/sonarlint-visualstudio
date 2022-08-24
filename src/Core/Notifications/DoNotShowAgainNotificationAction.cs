@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
 
 namespace SonarLint.VisualStudio.Core.Notifications
 {
@@ -26,10 +27,13 @@ namespace SonarLint.VisualStudio.Core.Notifications
     {
     }
 
-    public class DoNotShowAgainNotificationAction : IDoNotShowAgainNotificationAction
+    [Export(typeof(IDoNotShowAgainNotificationAction))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class DoNotShowAgainNotificationAction : IDoNotShowAgainNotificationAction
     {
         private readonly IDisabledNotificationsStorage disabledNotificationsStorage;
 
+        [ImportingConstructor]
         public DoNotShowAgainNotificationAction(IDisabledNotificationsStorage disabledNotificationsStorage)
         {
             this.disabledNotificationsStorage = disabledNotificationsStorage;

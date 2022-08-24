@@ -22,14 +22,20 @@ using System;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.UnitTests;
-using VSThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
     [TestClass]
     public class ThreadHandlingTests
     {
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<ThreadHandling, IThreadHandling>(null, null);
+        }
+
         [TestMethod]
         public async Task CheckAccess_IsUIThread_ReturnsTrue()
         {

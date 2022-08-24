@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Integration;
@@ -31,8 +32,10 @@ namespace SonarLint.VisualStudio.Core.Notifications
     {
         void ShowNotification(INotification notification);
     }
-    
-    public sealed class NotificationService : INotificationService
+
+    [Export(typeof(INotificationService))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal sealed class NotificationService : INotificationService
     {
         /// <summary>
         /// Taken from "ToolWindowGuids80.ErrorList"
@@ -48,6 +51,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
         private Tuple<IInfoBar, INotification> activeNotification;
 
+        [ImportingConstructor]
         public NotificationService(IInfoBarManager infoBarManager, 
             IDisabledNotificationsStorage notificationsStorage,
             IThreadHandling threadHandling, 
