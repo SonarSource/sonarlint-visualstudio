@@ -42,20 +42,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
     {
         private readonly ISonarQubeService sonarQubeService;
         private readonly IConfigurationProvider configurationProvider;
-        private readonly IVsBrowserService vsBrowserService;
+        private readonly IBrowserService vsBrowserService;
         private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
 
         [ImportingConstructor]
         public ShowInBrowserService(ISonarQubeService sonarQubeService,
             IConfigurationProvider configurationProvider,
-            IVsBrowserService vsBrowserService)
+            IBrowserService vsBrowserService)
             : this(sonarQubeService, configurationProvider, vsBrowserService, new RuleHelpLinkProvider())
         {
         }
 
         internal ShowInBrowserService(ISonarQubeService sonarQubeService,
             IConfigurationProvider configurationProvider,
-            IVsBrowserService vsBrowserService,
+            IBrowserService vsBrowserService,
             IRuleHelpLinkProvider ruleHelpLinkProvider)
         {
             this.sonarQubeService = sonarQubeService;

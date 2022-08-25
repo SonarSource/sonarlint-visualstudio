@@ -19,9 +19,12 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.Core.Notifications
 {
@@ -29,8 +32,10 @@ namespace SonarLint.VisualStudio.Core.Notifications
     {
         void ShowNotification(INotification notification);
     }
-    
-    public sealed class NotificationService : INotificationService
+
+    [Export(typeof(INotificationService))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal sealed class NotificationService : INotificationService
     {
         /// <summary>
         /// Taken from "ToolWindowGuids80.ErrorList"
@@ -38,14 +43,22 @@ namespace SonarLint.VisualStudio.Core.Notifications
         internal static readonly Guid ErrorListToolWindowGuid = new Guid("D78612C7-9962-4B83-95D9-268046DAD23A");
 
         private readonly IInfoBarManager infoBarManager;
+        private readonly IDisabledNotificationsStorage notificationsStorage;
         private readonly IThreadHandling threadHandling;
         private readonly ILogger logger;
 
+        private readonly HashSet<string> oncePerSessionNotifications = new HashSet<string>();
+
         private Tuple<IInfoBar, INotification> activeNotification;
 
-        public NotificationService(IInfoBarManager infoBarManager, IThreadHandling threadHandling, ILogger logger)
+        [ImportingConstructor]
+        public NotificationService(IInfoBarManager infoBarManager, 
+            IDisabledNotificationsStorage notificationsStorage,
+            IThreadHandling threadHandling, 
+            ILogger logger)
         {
             this.infoBarManager = infoBarManager;
+            this.notificationsStorage = notificationsStorage;
             this.threadHandling = threadHandling;
             this.logger = logger;
         }
@@ -56,29 +69,23 @@ namespace SonarLint.VisualStudio.Core.Notifications
             {
                 throw new ArgumentNullException(nameof(notification));
             }
-            // todo: check if already shown
+
+            if (notificationsStorage.IsNotificationDisabled(notification.Id))
+            {
+                logger.LogDebug($"[NotificationService] notification '{notification.Id}' will not be shown: notification is blocked.");
+                return;
+            }
+
+            if (oncePerSessionNotifications.Contains(notification.Id))
+            {
+                logger.LogDebug($"[NotificationService] notification '{notification.Id}' will not be shown: notification has already been displayed.");
+                return;
+            }
 
             threadHandling.RunOnUIThread(() =>
             {
-                try
-                {
-                    RemoveExistingInfoBar();
-
-                    var buttonTexts = notification.Actions.Select(x => x.CommandText).ToArray();
-
-                    var infoBar = infoBarManager.AttachInfoBarWithButtons(ErrorListToolWindowGuid,
-                        notification.Message,
-                        buttonTexts,
-                        SonarLintImageMoniker.OfficialSonarLintMoniker);
-
-                    activeNotification = new Tuple<IInfoBar, INotification>(infoBar, notification);
-                    activeNotification.Item1.ButtonClick += CurrentInfoBar_ButtonClick;
-                    activeNotification.Item1.Closed += CurrentInfoBar_Closed;
-                }
-                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-                {
-                    logger.WriteLine(CoreStrings.Notifications_FailedToDisplay, notification.Id, ex);
-                }
+                RemoveExistingInfoBar();
+                ShowInfoBar(notification);
             });
         }
 
@@ -86,17 +93,15 @@ namespace SonarLint.VisualStudio.Core.Notifications
         {
             try
             {
-                var matchingAction = activeNotification.Item2.Actions.FirstOrDefault(x => x.CommandText == e.ClickedButtonText);
+                var notification = activeNotification.Item2;
+                var matchingAction = notification.Actions.FirstOrDefault(x => x.CommandText == e.ClickedButtonText);
 
-                matchingAction?.Action();
+                matchingAction?.Action(notification);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(CoreStrings.Notifications_FailedToExecuteAction, ex);
             }
-
-            // todo: handle "do not show again"
-            // todo: who is responsible for adding "do not show again" action?
         }
 
         private void CurrentInfoBar_Closed(object sender, EventArgs e)
@@ -121,6 +126,29 @@ namespace SonarLint.VisualStudio.Core.Notifications
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(CoreStrings.Notifications_FailedToRemove, ex);
+            }
+        }
+
+        private void ShowInfoBar(INotification notification)
+        {
+            try
+            {
+                var buttonTexts = notification.Actions.Select(x => x.CommandText).ToArray();
+
+                var infoBar = infoBarManager.AttachInfoBarWithButtons(ErrorListToolWindowGuid,
+                    notification.Message,
+                    buttonTexts,
+                    SonarLintImageMoniker.OfficialSonarLintMoniker);
+
+                activeNotification = new Tuple<IInfoBar, INotification>(infoBar, notification);
+                activeNotification.Item1.ButtonClick += CurrentInfoBar_ButtonClick;
+                activeNotification.Item1.Closed += CurrentInfoBar_Closed;
+
+                oncePerSessionNotifications.Add(notification.Id);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(CoreStrings.Notifications_FailedToDisplay, notification.Id, ex);
             }
         }
 

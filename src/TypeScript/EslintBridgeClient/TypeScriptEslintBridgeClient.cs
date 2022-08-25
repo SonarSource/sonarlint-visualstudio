@@ -23,6 +23,7 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 
@@ -48,12 +49,12 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
     {
         [ImportingConstructor]
         public TypeScriptEslintBridgeClient(IEslintBridgeProcessFactory eslintBridgeProcessFactory, ILogger logger)
-            : this(eslintBridgeProcessFactory.Create(), new EslintBridgeHttpWrapper(logger))
+            : this(eslintBridgeProcessFactory.Create(), new EslintBridgeHttpWrapper(logger), logger)
         {
         }
 
-        internal TypeScriptEslintBridgeClient(IEslintBridgeProcess eslintBridgeProcess, IEslintBridgeHttpWrapper httpWrapper)
-            : base("analyze-ts", eslintBridgeProcess, httpWrapper, new AnalysisConfiguration())
+        internal /* for testing */ TypeScriptEslintBridgeClient(IEslintBridgeProcess eslintBridgeProcess, IEslintBridgeHttpWrapper httpWrapper, ILogger logger)
+            : base("analyze-ts", eslintBridgeProcess, httpWrapper, new AnalysisConfiguration(), new EslintBridgeKeepAlive(eslintBridgeProcess, logger))
         {
         }
 

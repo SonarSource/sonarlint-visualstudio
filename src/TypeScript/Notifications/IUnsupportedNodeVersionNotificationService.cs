@@ -18,10 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
+
 namespace SonarLint.VisualStudio.TypeScript.Notifications
 {
     public interface IUnsupportedNodeVersionNotificationService
     {
         void Show();
+    }
+
+    [Export(typeof(IUnsupportedNodeVersionNotificationService))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class UnsupportedNodeVersionNotificationService : IUnsupportedNodeVersionNotificationService
+    {
+        public void Show()
+        {
+            // TODO
+        }
     }
 }

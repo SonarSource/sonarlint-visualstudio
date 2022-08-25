@@ -18,30 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Core.Notifications;
+using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
+namespace SonarLint.VisualStudio.Infrastructure.VS
 {
-    [TestClass]
-    public class NotificationActionTests
+    [Export(typeof(IBrowserService))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class VsBrowserService : IBrowserService
     {
-        [TestMethod]
-        public void Ctor_NullCommandText_ArgumentNullException()
+        public void Navigate(string url)
         {
-            Action act = () => new NotificationAction(null, _ => { });
-
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("commandText");
-        }
-
-        [TestMethod]
-        public void Ctor_NullActionArgumentNullException()
-        {
-            Action act = () => new NotificationAction("text", null);
-
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("action");
+            VsShellUtilities.OpenSystemBrowser(url);
         }
     }
 }

@@ -203,11 +203,19 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             var disabledNotifications = new DisabledNotifications();
 
             foreach (var id in ids)
-            {
+        {
                 disabledNotifications.AddNotification(id);
             }
 
             return disabledNotifications;
         }
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<DisabledNotificationsStorage, IDisabledNotificationsStorage>(null, null);
+        }
+
+
     }
 }

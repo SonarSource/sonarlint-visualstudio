@@ -18,30 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Core.Notifications;
+using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TypeScript.Notifications;
 
-namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
+namespace SonarLint.VisualStudio.TypeScript.UnitTests.Notifications
 {
     [TestClass]
-    public class NotificationActionTests
+    public class UnsupportedNodeVersionNotificationServiceTests
     {
         [TestMethod]
-        public void Ctor_NullCommandText_ArgumentNullException()
+        public void MefCtor_CheckIsExported()
         {
-            Action act = () => new NotificationAction(null, _ => { });
-
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("commandText");
-        }
-
-        [TestMethod]
-        public void Ctor_NullActionArgumentNullException()
-        {
-            Action act = () => new NotificationAction("text", null);
-
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("action");
+            MefTestHelpers.CheckTypeCanBeImported<UnsupportedNodeVersionNotificationService, IUnsupportedNodeVersionNotificationService>(null, null);
         }
     }
 }
