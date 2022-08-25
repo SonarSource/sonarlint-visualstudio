@@ -83,6 +83,6 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
     {
         MAIN,
         TEST,
-        BOTH
+        ALL
     }
 }

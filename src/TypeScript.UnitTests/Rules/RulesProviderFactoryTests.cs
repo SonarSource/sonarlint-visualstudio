@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             var result = testSubject.Create("typescript", ValidLanguage)
                 .GetDefinitions().ToArray();
 
-            result.Should().HaveCount(2);
+            result.Should().HaveCount(3);
 
             // Rule 0 - no tags, params or default params
             result[0].RuleKey.Should().Be("typescript:S2092");
@@ -118,9 +118,13 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             result[1].Tags.Should().BeEquivalentTo("convention", "es2015");
             result[1].Params.Should().HaveCount(2);
             result[1].DefaultParams.Should().HaveCount(1);
-            result[1].Scope.Should().Be(RuleScope.BOTH);
+            result[1].Scope.Should().Be(RuleScope.ALL);
             result[1].EslintKey.Should().Be("arrow-function-convention");
             result[1].ActivatedByDefault.Should().BeFalse();
+
+            // Rule 2 - TEST scope
+            result[2].RuleKey.Should().Be("typescript:MyTestRule");
+            result[2].Scope.Should().Be(RuleScope.TEST);
         }
 
         [TestMethod]
