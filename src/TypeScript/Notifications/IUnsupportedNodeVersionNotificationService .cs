@@ -19,10 +19,12 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Notifications;
 
 namespace SonarLint.VisualStudio.TypeScript.Notifications
 {
-    public interface IUnsupportedNodeVersionNotificationService
+    internal interface IUnsupportedNodeVersionNotificationService
     {
         void Show();
     }
@@ -31,9 +33,40 @@ namespace SonarLint.VisualStudio.TypeScript.Notifications
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class UnsupportedNodeVersionNotificationService : IUnsupportedNodeVersionNotificationService
     {
+        private readonly INotificationService notificationService;
+        private readonly IBrowserService browserService;
+        private readonly INotification notification;
+
+        private const string NotificationId = "sonarlint.nodejs.min.version.not.found.10";
+
+        [ImportingConstructor]
+        public UnsupportedNodeVersionNotificationService(INotificationService notificationService, 
+            IDoNotShowAgainNotificationAction doNotShowAgainNotificationAction,
+            IBrowserService browserService)
+        {
+            this.notificationService = notificationService;
+            this.browserService = browserService;
+
+            notification = new Notification(
+                id: NotificationId,
+                message: Resources.NotificationUnsupportedNode,
+                actions: new INotificationAction[]
+                {
+                    new NotificationAction(Resources.NotificationShowMoreInfoAction, _ => ShowMoreInfo()),
+                    doNotShowAgainNotificationAction
+                }
+            );
+        }
+
         public void Show()
         {
-            // TODO
+            notificationService.ShowNotification(notification);
+        }
+
+        private void ShowMoreInfo()
+        {
+            // todo: redirect to a specific page
+            browserService.Navigate("https://github.com/SonarSource/sonarlint-visualstudio/wiki");
         }
     }
 }
