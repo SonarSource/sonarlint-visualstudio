@@ -36,6 +36,17 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
     [TestClass]
     public class DisabledNotificationsStorageTests
     {
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<DisabledNotificationsStorage, IDisabledNotificationsStorage>(null, new[]
+            {
+                MefTestHelpers.CreateExport<IVsVersionProvider>(Mock.Of<IVsVersionProvider>()),
+                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
+            });
+        }
+
         [DataRow("2", true)]
         [DataRow("4", false)]
         [TestMethod]
@@ -57,7 +68,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         {
             var file = new Mock<IFile>();
             file.Setup(f => f.ReadAllText(It.IsAny<string>())).Throws(new Exception("Test"));
-
             var logger = new TestLogger();
 
             var testSubject = CreateTestSubject(file.Object, logger);
@@ -65,7 +75,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             var result = testSubject.IsNotificationDisabled("1");
 
             result.Should().BeFalse();
-
             logger.AssertOutputStrings(2);
             logger.AssertOutputStringExists("Failed to read disabled notification config from disk. Error:Test");
             logger.AssertOutputStringExists("Couldn't find disabled notification config. Notification will be showed");
@@ -151,6 +160,38 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             file.Verify(f => f.WriteAllText(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
+        [TestMethod]
+        public void DisableNotification_ReadError_LogsError()
+        {
+            var file = new Mock<IFile>();
+            file.Setup(f => f.ReadAllText(It.IsAny<string>())).Throws(new Exception("Test"));
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(file.Object, logger);
+
+            testSubject.DisableNotification("1");
+
+            logger.AssertOutputStrings(2);
+            logger.AssertOutputStringExists("Failed to read disabled notification config from disk. Error:Test");
+            logger.AssertOutputStringExists("Couldn't find disabled notification config. Notification will be showed");
+        }
+
+        [TestMethod]
+        public void DisableNotification_WriteError_LogsError()
+        {
+            var disabledNotifications = CreateDisabledNotifications("1", "2", "3");
+            var file = CreateFileMock(disabledNotifications);
+            file.Setup(f => f.WriteAllText(It.IsAny<string>(), It.IsAny<string>())).Throws(new Exception("Test"));
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(file.Object, logger);
+
+            testSubject.DisableNotification("4");
+
+            logger.AssertOutputStrings(1);
+            logger.AssertOutputStringExists("Failed to save disabled notification config to disk. Error:Test");
+        }
+
         private IDisabledNotificationsStorage CreateTestSubject(IFile file, ILogger logger = null)
         {
             logger = logger ?? Mock.Of<ILogger>();
@@ -203,19 +244,11 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             var disabledNotifications = new DisabledNotifications();
 
             foreach (var id in ids)
-        {
+            {
                 disabledNotifications.AddNotification(id);
             }
 
             return disabledNotifications;
         }
-
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<DisabledNotificationsStorage, IDisabledNotificationsStorage>(null, null);
-        }
-
-
     }
 }

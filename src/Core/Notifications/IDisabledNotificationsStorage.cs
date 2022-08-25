@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
     [Export(typeof(IDisabledNotificationsStorage))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class DisabledNotificationsStorage : IDisabledNotificationsStorage
+    internal class DisabledNotificationsStorage : IDisabledNotificationsStorage
     {
         private readonly IVsVersionProvider vsVersionProvider;
         private readonly IFileSystem fileSystem;
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
                 }
                 if (disabledNotifications == null)
                 {
-                    logger.WriteLine("Couldn't find disabled notification config. Notification will not be disabled");
+                    return;
                 }
 
                 disabledNotifications.AddNotification(id);
