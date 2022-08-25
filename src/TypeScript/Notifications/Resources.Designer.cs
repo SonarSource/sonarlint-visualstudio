@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.TypeScript.Notifications {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Show more info.
+        ///   Looks up a localized string similar to How do I fix this?.
         /// </summary>
         internal static string NotificationShowMoreInfoAction {
             get {
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.TypeScript.Notifications {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: JavaScript/TypeScript analysis failed: no supported version of Node was found..
+        ///   Looks up a localized string similar to JavaScript/TypeScript analysis failed: no supported version of Node was found..
         /// </summary>
         internal static string NotificationUnsupportedNode {
             get {
