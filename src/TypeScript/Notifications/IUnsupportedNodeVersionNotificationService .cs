@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
 
 namespace SonarLint.VisualStudio.TypeScript.Notifications
@@ -33,15 +34,18 @@ namespace SonarLint.VisualStudio.TypeScript.Notifications
     internal class UnsupportedNodeVersionNotificationService : IUnsupportedNodeVersionNotificationService
     {
         private readonly INotificationService notificationService;
+        private readonly IBrowserService browserService;
         private readonly INotification notification;
 
         private const string NotificationId = "sonarlint.nodejs.min.version.not.found.10";
 
         [ImportingConstructor]
         public UnsupportedNodeVersionNotificationService(INotificationService notificationService, 
-            IDoNotShowAgainNotificationAction doNotShowAgainNotificationAction)
+            IDoNotShowAgainNotificationAction doNotShowAgainNotificationAction,
+            IBrowserService browserService)
         {
             this.notificationService = notificationService;
+            this.browserService = browserService;
 
             notification = new Notification(
                 id: NotificationId,
@@ -61,7 +65,8 @@ namespace SonarLint.VisualStudio.TypeScript.Notifications
 
         private void ShowMoreInfo()
         {
-            // todo: output pane? wiki page?
+            // todo: redirect to a specific page
+            browserService.Navigate("https://github.com/SonarSource/sonarlint-visualstudio/wiki");
         }
     }
 }

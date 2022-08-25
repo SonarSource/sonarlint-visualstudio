@@ -23,6 +23,7 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.TypeScript.Notifications;
@@ -38,7 +39,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Notifications
             MefTestHelpers.CheckTypeCanBeImported<UnsupportedNodeVersionNotificationService, IUnsupportedNodeVersionNotificationService>(null, new[]
                 {
                     MefTestHelpers.CreateExport<INotificationService>(Mock.Of<INotificationService>()),
-                    MefTestHelpers.CreateExport<IDoNotShowAgainNotificationAction>(Mock.Of<IDoNotShowAgainNotificationAction>())
+                    MefTestHelpers.CreateExport<IDoNotShowAgainNotificationAction>(Mock.Of<IDoNotShowAgainNotificationAction>()),
+                    MefTestHelpers.CreateExport<IBrowserService>(Mock.Of<IBrowserService>())
                 });
         }
 
@@ -83,13 +85,15 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Notifications
             createdNotification.Actions.Last().Should().Be(doNotShowAgainNotificationAction);
         }
 
-        [TestMethod, Ignore("don't know yet what this will do")]
+        [TestMethod]
         public void Show_ShowMoreInfoAction_OpensBrowser()
         {
             INotification createdNotification = null;
             var notificationService = CreateNotificationService(n => createdNotification = n);
 
-            var testSubject = CreateTestSubject(notificationService.Object);
+            var browserService = new Mock<IBrowserService>();
+
+            var testSubject = CreateTestSubject(notificationService.Object, browserService: browserService.Object);
 
             testSubject.Show();
 
@@ -102,16 +106,20 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Notifications
             firstAction.CommandText.Should().Be(Resources.NotificationShowMoreInfoAction);
             firstAction.Action.Should().NotBeNull();
 
+            browserService.Invocations.Count.Should().Be(0);
+
             firstAction.Action(null);
 
-            // todo: assert browser action / output window / etc
+            browserService.Verify(x=> x.Navigate("https://github.com/SonarSource/sonarlint-visualstudio/wiki"), Times.Once);
+            browserService.VerifyNoOtherCalls();
         }
 
         private static UnsupportedNodeVersionNotificationService CreateTestSubject(
             INotificationService notificationService,
-            IDoNotShowAgainNotificationAction doNotShowAgainNotificationAction = null)
+            IDoNotShowAgainNotificationAction doNotShowAgainNotificationAction = null,
+            IBrowserService browserService = null)
         {
-            return new UnsupportedNodeVersionNotificationService(notificationService, doNotShowAgainNotificationAction);
+            return new UnsupportedNodeVersionNotificationService(notificationService, doNotShowAgainNotificationAction, browserService);
         }
 
         private Mock<INotificationService> CreateNotificationService(Action<INotification> callback)
