@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Core.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Notifications]Couldn&apos;t load disabled notification config. Notification will be showed.
+        ///   Looks up a localized string similar to [Notifications]Couldn&apos;t load disabled notification config. Notification will be showed..
         /// </summary>
         internal static string DisabledNotificationsFailedToLoad {
             get {

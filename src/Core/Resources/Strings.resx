@@ -124,6 +124,6 @@
     <value>[Notifications]Failed to save disabled notification config to disk. Error: {0}</value>
   </data>
   <data name="DisabledNotificationsFailedToLoad" xml:space="preserve">
-    <value>[Notifications]Couldn't load disabled notification config. Notification will be showed</value>
+    <value>[Notifications]Couldn't load disabled notification config. Notification will be showed.</value>
   </data>
 </root>
