@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace SonarLint.VisualStudio.Core.Notifications
@@ -34,6 +35,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
         public void AddNotification(string id)
         {
+            Debug.Assert(!(Notifications.Any(n => n.Id == id)), "Notification Already Disabled");
             var disabledNotification = new DisabledNotification(id);
             Notifications.Add(disabledNotification);
         }
