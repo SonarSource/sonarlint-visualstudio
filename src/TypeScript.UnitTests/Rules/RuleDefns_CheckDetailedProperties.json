@@ -56,8 +56,13 @@
         "requireBodyBraces": false
       }
     ],
-    "scope": "BOTH",
+    "scope": "ALL",
     "eslintKey": "arrow-function-convention",
     "activatedByDefault": false
+  },
+  {
+    "ruleKey": "typescript:MyTestRule",
+    "name": "Deserialization of TEST scope. See #3218",
+    "scope": "TEST"
   }
 ]
