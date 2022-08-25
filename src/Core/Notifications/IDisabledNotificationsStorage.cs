@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
         private readonly IFileSystem fileSystem;
         private readonly ILogger logger;
 
-        private string filePath => GetFilePath();
+        private string FilePath => GetFilePath();
 
         private DisabledNotifications disabledNotifications = null;
         private readonly object lockObject = new object();
@@ -103,20 +103,20 @@ namespace SonarLint.VisualStudio.Core.Notifications
         {
             try
             {
-                if (!fileSystem.File.Exists(filePath)) 
+                if (!fileSystem.File.Exists(FilePath)) 
                 { 
-                    logger.LogDebug($"[Notifications] Disabled notifications file does not exist. File: {filePath}"); 
+                    logger.LogDebug($"[Notifications] Disabled notifications file does not exist. File: {FilePath}"); 
                     return new DisabledNotifications(); 
                 }
 
-                var fileContent = fileSystem.File.ReadAllText(filePath);                
+                var fileContent = fileSystem.File.ReadAllText(FilePath);                
 
                 if (JsonHelper.TryDeserialize<DisabledNotifications>(fileContent, out var result))
                 {
                     return result;
                 }
 
-                logger.LogDebug($"[Notifications] Disabled notifications file corrupted it will be overriden. File: {filePath}");
+                logger.LogDebug($"[Notifications] Disabled notifications file corrupted it will be overriden. File: {FilePath}");
                 return new DisabledNotifications();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
             try
             {
                 var fileContent = JsonConvert.SerializeObject(disabledNotifications, Formatting.Indented);
-                fileSystem.File.WriteAllText(filePath, fileContent);
+                fileSystem.File.WriteAllText(FilePath, fileContent);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
