@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Core.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Notifications]Failed to read disabled notification config from disk. Error: {0}.
+        ///   Looks up a localized string similar to [Notifications] Failed to read disabled notification config from disk. Error: {0}.
         /// </summary>
         internal static string DisabledNotificationReadError {
             get {
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Core.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Notifications]Failed to save disabled notification config to disk. Error: {0}.
+        ///   Looks up a localized string similar to [Notifications] Failed to save disabled notification config to disk. Error: {0}.
         /// </summary>
         internal static string DisabledNotificationSaveError {
             get {
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Core.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Notifications]Couldn&apos;t load disabled notification config. Notification will be showed..
+        ///   Looks up a localized string similar to [Notifications] Couldn&apos;t load disabled notification config. Notification will be shown..
         /// </summary>
         internal static string DisabledNotificationsFailedToLoad {
             get {

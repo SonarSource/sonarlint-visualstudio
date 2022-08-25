@@ -25,6 +25,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Resources;
 using SonarLint.VisualStudio.Core.VsVersion;
 using SonarLint.VisualStudio.Integration;
@@ -104,12 +105,19 @@ namespace SonarLint.VisualStudio.Core.Notifications
             {
                 if (!fileSystem.File.Exists(filePath)) 
                 { 
-                    logger.LogDebug($"[Notifications]Disabled notifications file does not exist. File: {filePath}"); 
+                    logger.LogDebug($"[Notifications] Disabled notifications file does not exist. File: {filePath}"); 
                     return new DisabledNotifications(); 
                 }
 
-                var fileContent = fileSystem.File.ReadAllText(filePath);
-                return JsonConvert.DeserializeObject<DisabledNotifications>(fileContent);
+                var fileContent = fileSystem.File.ReadAllText(filePath);                
+
+                if (JsonHelper.TryDeserialize<DisabledNotifications>(fileContent, out var result))
+                {
+                    return result;
+                }
+
+                logger.LogDebug($"[Notifications] Disabled notifications file corrupted it will be overriden. File: {filePath}");
+                return new DisabledNotifications();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {

@@ -118,12 +118,12 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="DisabledNotificationReadError" xml:space="preserve">
-    <value>[Notifications]Failed to read disabled notification config from disk. Error: {0}</value>
+    <value>[Notifications] Failed to read disabled notification config from disk. Error: {0}</value>
   </data>
   <data name="DisabledNotificationSaveError" xml:space="preserve">
-    <value>[Notifications]Failed to save disabled notification config to disk. Error: {0}</value>
+    <value>[Notifications] Failed to save disabled notification config to disk. Error: {0}</value>
   </data>
   <data name="DisabledNotificationsFailedToLoad" xml:space="preserve">
-    <value>[Notifications]Couldn't load disabled notification config. Notification will be showed.</value>
+    <value>[Notifications] Couldn't load disabled notification config. Notification will be shown.</value>
   </data>
 </root>

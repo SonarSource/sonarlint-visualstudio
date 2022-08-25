@@ -62,6 +62,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
             result.Should().Be(expectedResult);
             file.Verify(f => f.ReadAllText(ExpectedDisabledNotificationsFilePath), Times.Once);
+
+            //To make sure we do not go to disk on consecutive calls 
+            _ = testSubject.IsNotificationDisabled(notificationId);
+            file.Verify(f => f.ReadAllText(It.IsAny<string>()), Times.Once);
         }
 
         [TestMethod]
@@ -95,7 +99,21 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         }
 
         [TestMethod]
-        public void DisableNotification_IsNotDisabled_IsDisabledNotCalled_Disables()
+        public void IsNotificationDisabled_CriticalException_Throws()
+        {
+            var file = CreateFileMock();
+            file.Setup(f => f.WriteAllText(It.IsAny<string>(), It.IsAny<string>())).Throws(new StackOverflowException("this is a critical error"));
+
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(file.Object, logger);
+
+            Action act = () => testSubject.IsNotificationDisabled("1");
+            act.Should().Throw<StackOverflowException>().WithMessage("this is a critical error");
+        }
+
+        [TestMethod]
+        public void DisableNotification_IsNotDisabled_Disables()
         {
             var disabledNotifications = CreateDisabledNotifications("1", "2", "3");
             var file = CreateFileMock(disabledNotifications);
@@ -103,7 +121,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             var testSubject = CreateTestSubject(file.Object);
 
             testSubject.DisableNotification("4");
-
+            
             var result = testSubject.IsNotificationDisabled("4");
 
             result.Should().BeTrue();
@@ -114,6 +132,25 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
             disabledNotificationsResult.Notifications.Count().Should().Be(4);
             disabledNotificationsResult.Notifications.Any(n => n.Id == "4").Should().BeTrue();
+
+            //To make sure we do not go to disk on consecutive calls 
+            testSubject.DisableNotification("4");
+            file.Verify(f => f.ReadAllText(It.IsAny<string>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void DisableNotification_AlreadyDisabled_DoesNothing()
+        {
+            var disabledNotifications = CreateDisabledNotifications("1", "2", "3");
+            var file = CreateFileMock(disabledNotifications);
+            var testSubject = CreateTestSubject(file.Object);
+
+            testSubject.DisableNotification("3");
+
+            var result = testSubject.IsNotificationDisabled("3");
+
+            result.Should().BeTrue();
+            file.Verify(f => f.WriteAllText(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
@@ -138,61 +175,24 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         }
 
         [TestMethod]
-        public void DisableNotification_AlreadyDisabled_IsDisabledNotCalled_DoesNothing()
+        public void DisableNotification_FileCorrupted_Overrides()
         {
-            var disabledNotifications = CreateDisabledNotifications("1", "2", "3");
-            var file = CreateFileMock(disabledNotifications);
-            var testSubject = CreateTestSubject(file.Object);
-
-            testSubject.DisableNotification("3");
-
-            var result = testSubject.IsNotificationDisabled("3");
-
-            result.Should().BeTrue();
-            file.Verify(f => f.WriteAllText(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-        }
-
-        [TestMethod]
-        public void DisableNotification_IsNotDisabled_IsDisabledCalled_Disables()
-        {
-            var disabledNotifications = CreateDisabledNotifications("1", "2", "3");
-            var file = CreateFileMock(disabledNotifications);
+            var file = CreateFileMock();
 
             var testSubject = CreateTestSubject(file.Object);
 
-            var result = testSubject.IsNotificationDisabled("4"); 
-            result.Should().BeFalse();
+            testSubject.DisableNotification("1");
 
-            testSubject.DisableNotification("4");
+            var result = testSubject.IsNotificationDisabled("1");
 
-            result = testSubject.IsNotificationDisabled("4");
-            
             result.Should().BeTrue();
             file.Verify(f => f.WriteAllText(ExpectedDisabledNotificationsFilePath, It.IsAny<string>()), Times.Once);
-            
+
             var disabledNotificationsJson = (string)file.Invocations[2].Arguments[1];
             var disabledNotificationsResult = JsonConvert.DeserializeObject<DisabledNotifications>(disabledNotificationsJson);
 
-            disabledNotificationsResult.Notifications.Count().Should().Be(4);
-            disabledNotificationsResult.Notifications.Any(n => n.Id == "4").Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void DisableNotification_AlreadyDisabled_IsDisabledCalled_DoesNothing()
-        {
-            var disabledNotifications = CreateDisabledNotifications("1", "2", "3");
-            var file = CreateFileMock(disabledNotifications);
-            var testSubject = CreateTestSubject(file.Object);
-
-            var result = testSubject.IsNotificationDisabled("3");
-            result.Should().BeTrue();
-
-            testSubject.DisableNotification("3");
-
-            result = testSubject.IsNotificationDisabled("3");
-
-            result.Should().BeTrue();
-            file.Verify(f => f.WriteAllText(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            disabledNotificationsResult.Notifications.Count().Should().Be(1);
+            disabledNotificationsResult.Notifications.Any(n => n.Id == "1").Should().BeTrue();
         }
 
         [TestMethod]
@@ -224,6 +224,20 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
             logger.AssertOutputStrings(1);
             logger.AssertPartialOutputStringExists("this is a test");
+        }
+
+        [TestMethod]
+        public void DisableNotification_CriticalException_Throws()
+        {
+            var disabledNotifications = CreateDisabledNotifications("1", "2", "3");
+            var file = CreateFileMock(disabledNotifications);
+            file.Setup(f => f.WriteAllText(It.IsAny<string>(), It.IsAny<string>())).Throws(new StackOverflowException("this is a critical error"));
+
+            var testSubject = CreateTestSubject(file.Object);
+
+            Action act = () => testSubject.DisableNotification("4");
+
+            act.Should().Throw<StackOverflowException>().WithMessage("this is a critical error");
         }
 
         private IDisabledNotificationsStorage CreateTestSubject(IFile file, ILogger logger = null)
