@@ -102,13 +102,13 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         public void IsNotificationDisabled_CriticalException_Throws()
         {
             var file = CreateFileMock();
-            file.Setup(f => f.WriteAllText(It.IsAny<string>(), It.IsAny<string>())).Throws(new StackOverflowException("this is a critical error"));
+            file.Setup(f => f.ReadAllText(It.IsAny<string>())).Throws(new StackOverflowException("this is a critical error"));
 
             var logger = new TestLogger();
 
             var testSubject = CreateTestSubject(file.Object, logger);
 
-            Action act = () => testSubject.IsNotificationDisabled("1");
+            Action act = () => testSubject.IsNotificationDisabled("4");
             act.Should().Throw<StackOverflowException>().WithMessage("this is a critical error");
         }
 
