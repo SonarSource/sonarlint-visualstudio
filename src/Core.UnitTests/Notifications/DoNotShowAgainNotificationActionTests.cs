@@ -23,12 +23,22 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Notifications;
+using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 {
     [TestClass]
     public class DoNotShowAgainNotificationActionTests
     {
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<DoNotShowAgainNotificationAction, IDoNotShowAgainNotificationAction>(null, new[]
+            {
+                MefTestHelpers.CreateExport<IDisabledNotificationsStorage>(Mock.Of<IDisabledNotificationsStorage>()),
+            });
+        }
+
         [TestMethod]
         public void Action_NullNotification_ArgumentNullException()
         {

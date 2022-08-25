@@ -18,29 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core.Notifications;
+using SonarLint.VisualStudio.Integration.UnitTests;
 
-namespace SonarLint.VisualStudio.Core.Notifications
+namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 {
-    public interface IDisabledNotificationsStorage
+    [TestClass]
+    public class DisabledNotificationsStorageTests
     {
-        void DisableNotification(string id);
-        bool IsNotificationDisabled(string id);
-    }
-
-    [Export(typeof(IDisabledNotificationsStorage))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class DisabledNotificationsStorage : IDisabledNotificationsStorage
-    {
-        public void DisableNotification(string id)
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
         {
-            // todo
-        }
-
-        public bool IsNotificationDisabled(string id)
-        {
-            // todo
-            return false;
+            MefTestHelpers.CheckTypeCanBeImported<DisabledNotificationsStorage, IDisabledNotificationsStorage>(null, null);
         }
     }
 }

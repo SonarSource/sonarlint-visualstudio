@@ -23,6 +23,10 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
 
+  <ItemGroup Label="Framework references">
+    <Reference Include="System.ComponentModel.Composition" />
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Update="CoreStrings.Designer.cs">
       <DesignTime>True</DesignTime>
