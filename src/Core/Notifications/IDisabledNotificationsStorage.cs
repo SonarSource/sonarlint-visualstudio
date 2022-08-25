@@ -24,7 +24,9 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.VsVersion;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Core.Notifications
 {
@@ -40,52 +42,85 @@ namespace SonarLint.VisualStudio.Core.Notifications
     {
         private readonly IVsVersionProvider vsVersionProvider;
         private readonly IFileSystem fileSystem;
-        private readonly string filePath;
+        private readonly ILogger logger;
 
-        private IList<string> disabledNotifications = null;
+        private string filePath => GetFilePath();
+
+        private DisabledNotifications disabledNotifications = null;
+        private readonly object lockObject = new object();
 
         [ImportingConstructor]
-        public DisabledNotificationsStorage(IVsVersionProvider vsVersionProvider) : this(vsVersionProvider, new FileSystem())
+        public DisabledNotificationsStorage(IVsVersionProvider vsVersionProvider, ILogger logger) : this(vsVersionProvider, logger, new FileSystem())
         {
 
         }
 
-        internal /*for testing*/ DisabledNotificationsStorage(IVsVersionProvider vsVersionProvider, IFileSystem fileSystem)
+        internal /*for testing*/ DisabledNotificationsStorage(IVsVersionProvider vsVersionProvider, ILogger logger, IFileSystem fileSystem)
         {
             this.vsVersionProvider = vsVersionProvider;
             this.fileSystem = fileSystem;
-
-            filePath = GetFilePath();
+            this.logger = logger;
         }
 
         public void DisableNotification(string id)
         {
-            if(IsNotificationDisabled(id))
+            lock (lockObject)
             {
-                return;
+                if (IsNotificationDisabled(id))
+                {
+                    return;
+                }
+                if (disabledNotifications == null)
+                {
+                    logger.WriteLine("Couldn't find disabled notification config. Notification will not be disabled");
+                }
+
+                disabledNotifications.AddNotification(id);
+                SaveNotifications();
             }
-
-            disabledNotifications.Add(id);
-            SaveNotifications();
         }
-
         public bool IsNotificationDisabled(string id)
         {
-            if (disabledNotifications == null)
+            lock (lockObject)
             {
-                disabledNotifications = ReadDisabledNotifications();
+                if (disabledNotifications == null)
+                {
+                    disabledNotifications = ReadDisabledNotifications();
+                }
+                if (disabledNotifications == null)
+                {
+                    logger.WriteLine("Couldn't find disabled notification config. Notification will be showed");
+                    return false;
+                }
+                return disabledNotifications.Notifications.Any(n => n.Id == id);
             }
-            return disabledNotifications.Contains(id);
         }
 
-        private IList<string> ReadDisabledNotifications()
+        private DisabledNotifications ReadDisabledNotifications()
         {
-            return fileSystem.File.ReadAllLines(filePath).ToList();
+            try
+            {
+                var fileContent = fileSystem.File.ReadAllText(filePath);
+                return JsonConvert.DeserializeObject<DisabledNotifications>(fileContent);
+            }
+            catch (Exception ex)
+            {
+                logger.WriteLine($"Failed to read disabled notification config from disk. Error:{ex.Message}");                
+            }
+            return null;
         }
 
         private void SaveNotifications()
         {
-            fileSystem.File.WriteAllLines(filePath, disabledNotifications);
+            try
+            {
+                var fileContent = JsonConvert.SerializeObject(disabledNotifications);
+                fileSystem.File.WriteAllText(filePath, fileContent);
+            }
+            catch (Exception ex)
+            {
+                logger.WriteLine($"Failed to save disabled notification config to disk. Error:{ex.Message}");
+            }
         }
         
         private string GetFilePath()
@@ -95,7 +130,5 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
             return fullPath;
         }
-
-
     }
 }
