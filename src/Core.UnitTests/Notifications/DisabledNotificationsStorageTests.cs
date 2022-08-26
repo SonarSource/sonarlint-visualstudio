@@ -72,14 +72,16 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         public void IsNotificationDisabled_FileDoesNotExists_ReturnsFalse()
         {
             var file = CreateFileMock(fileExists: false);
+            var directory = new Mock<IDirectory>();
 
-            var testSubject = CreateTestSubject(file.Object);
+            var testSubject = CreateTestSubject(file.Object, directory: directory.Object);
 
             var result = testSubject.IsNotificationDisabled("1");
 
             result.Should().BeFalse();
             file.Verify(f => f.Exists(ExpectedDisabledNotificationsFilePath), Times.Once);
             file.Verify(f => f.ReadAllText(ExpectedDisabledNotificationsFilePath), Times.Never);
+            directory.Verify(d => d.CreateDirectory(Path.GetDirectoryName(ExpectedDisabledNotificationsFilePath)), Times.Once);
         }
 
         [TestMethod]
@@ -157,8 +159,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         public void DisableNotification_FileDoesNotExists_Disables()
         {
             var file = CreateFileMock(fileExists: false);
+            var directory = new Mock<IDirectory>();
 
-            var testSubject = CreateTestSubject(file.Object);
+            var testSubject = CreateTestSubject(file.Object, directory: directory.Object);
 
             testSubject.DisableNotification("1");
 
@@ -166,6 +169,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
             result.Should().BeTrue();
             file.Verify(f => f.WriteAllText(ExpectedDisabledNotificationsFilePath, It.IsAny<string>()), Times.Once);
+            directory.Verify(d => d.CreateDirectory(Path.GetDirectoryName(ExpectedDisabledNotificationsFilePath)), Times.Once);
 
             var disabledNotificationsJson = (string)file.Invocations[1].Arguments[1];
             var disabledNotificationsResult = JsonConvert.DeserializeObject<DisabledNotifications>(disabledNotificationsJson);
@@ -240,11 +244,11 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             act.Should().Throw<StackOverflowException>().WithMessage("this is a critical error");
         }
 
-        private IDisabledNotificationsStorage CreateTestSubject(IFile file, ILogger logger = null)
+        private IDisabledNotificationsStorage CreateTestSubject(IFile file, ILogger logger = null, IDirectory directory = null)
         {
             logger = logger ?? Mock.Of<ILogger>();
 
-            var fileSystem = CreateFileSystem(file);
+            var fileSystem = CreateFileSystem(file, directory);
             var versionProvider = CreateVsVersionProvider();
 
             var testSubject = new DisabledNotificationsStorage(versionProvider, logger, fileSystem);
@@ -252,10 +256,13 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             return testSubject;
         }
 
-        private IFileSystem CreateFileSystem(IFile file)
+        private IFileSystem CreateFileSystem(IFile file, IDirectory directory)
         {
             var fileSystem = new Mock<IFileSystem>();
             fileSystem.SetupGet(fs => fs.File).Returns(file);
+
+            directory = directory ?? Mock.Of<IDirectory>();
+            fileSystem.SetupGet(fs => fs.Directory).Returns(directory);
 
             return fileSystem.Object;
         }
