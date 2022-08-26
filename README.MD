@@ -11,6 +11,7 @@ SonarLint is free, open source, and available in the Visual Studio Marketplace:
 * [SonarLint for Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=SonarSource.SonarLintforVisualStudio2022)
 * [SonarLint for Visual Studio 2019](https://marketplace.visualstudio.com/items?itemName=SonarSource.SonarLintforVisualStudio2019)
 * [SonarLint for Visual Studio 2017](https://marketplace.visualstudio.com/items?itemName=SonarSource.SonarLintforVisualStudio2017)
+
 Note: SonarLint for Visual Studio 2017 has been deprecated. New versions will not be shipped after March 1, 2022.
 
 
@@ -20,7 +21,7 @@ Note: SonarLint for Visual Studio 2017 has been deprecated. New versions will no
 * Support for standalone analysis.
 * Support for connected mode for C# and VB.Net projects.
 
-[Connected mode](https://github.com/SonarSource/sonarlint-visualstudio/wiki/Connected-Mode) provides suppression of issues marked as `False Positive` or `Won't Fix` on SonarQube and SonarCloud. Follow the link for more information.
+[Connected Mode](https://github.com/SonarSource/sonarlint-visualstudio/wiki/Connected-Mode) provides suppression of issues marked as **False Positive** or **Won't Fix** on SonarQube and SonarCloud. Follow the link for more information.
 
 ## Useful links
 * [Community Forum](https://community.sonarsource.com/)
