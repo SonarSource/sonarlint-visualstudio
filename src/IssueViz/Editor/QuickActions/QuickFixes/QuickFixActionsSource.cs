@@ -31,6 +31,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
@@ -143,9 +144,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
 
         private async void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e)
         {
-            await threadHandling.RunOnUIThread(() => lightBulbBroker.DismissSession(textView));
+            try
+            {
+                await threadHandling.RunOnUIThread(() => lightBulbBroker.DismissSession(textView));
 
-            SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
+                SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.LogDebug($"[QuickFixActionsSource] Failed to dismiss lightbulb session: {ex}");
+            }
         }
     }
 }
