@@ -106,7 +106,6 @@ namespace SonarLint.VisualStudio.Core.Notifications
                 if (!fileSystem.File.Exists(FilePath)) 
                 { 
                     logger.LogDebug($"[Notifications] Disabled notifications file does not exist. File: {FilePath}");
-                    fileSystem.Directory.CreateDirectory(Path.GetDirectoryName(FilePath));
                     return new DisabledNotifications(); 
                 }
 
@@ -131,6 +130,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
         {
             try
             {
+                fileSystem.Directory.CreateDirectory(Path.GetDirectoryName(FilePath));
                 var fileContent = JsonConvert.SerializeObject(disabledNotifications, Formatting.Indented);
                 fileSystem.File.WriteAllText(FilePath, fileContent);
             }

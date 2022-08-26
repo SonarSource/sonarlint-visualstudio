@@ -72,16 +72,14 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         public void IsNotificationDisabled_FileDoesNotExists_ReturnsFalse()
         {
             var file = CreateFileMock(fileExists: false);
-            var directory = new Mock<IDirectory>();
 
-            var testSubject = CreateTestSubject(file.Object, directory: directory.Object);
+            var testSubject = CreateTestSubject(file.Object);
 
             var result = testSubject.IsNotificationDisabled("1");
 
             result.Should().BeFalse();
             file.Verify(f => f.Exists(ExpectedDisabledNotificationsFilePath), Times.Once);
             file.Verify(f => f.ReadAllText(ExpectedDisabledNotificationsFilePath), Times.Never);
-            directory.Verify(d => d.CreateDirectory(Path.GetDirectoryName(ExpectedDisabledNotificationsFilePath)), Times.Once);
         }
 
         [TestMethod]
