@@ -18,36 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using SonarLint.VisualStudio.Core.VsVersion;
+using Newtonsoft.Json;
 
-namespace SonarLint.VisualStudio.Infrastructure.VS.VsVersion
+namespace SonarLint.VisualStudio.Core.Helpers
 {
-    internal class VsVersion : IVsVersion
+    public static class JsonHelper
     {
-        public VsVersion(string displayName, string installationVersion, string displayVersion)
+        public static bool TryDeserialize<T>(string content, out T result)
         {
-            DisplayName = displayName;
-            InstallationVersion = installationVersion;
-            DisplayVersion = displayVersion;
-        }
-
-        public string DisplayName { get; }
-
-        public string InstallationVersion { get; }
-
-        public string DisplayVersion { get; }
-
-        public string MajorInstallationVersion
-        {
-            get
+            result = default(T);
+            try
             {
-                if(Version.TryParse(this.InstallationVersion, out var version))
-                {
-                    return version.Major.ToString();
-                }
-                return null;
+                result = JsonConvert.DeserializeObject<T>(content);                
             }
+            catch 
+            {
+                return false; 
+            }
+            return true;
         }
     }
 }

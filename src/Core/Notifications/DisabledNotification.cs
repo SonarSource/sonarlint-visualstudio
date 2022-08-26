@@ -18,36 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using SonarLint.VisualStudio.Core.VsVersion;
-
-namespace SonarLint.VisualStudio.Infrastructure.VS.VsVersion
+namespace SonarLint.VisualStudio.Core.Notifications
 {
-    internal class VsVersion : IVsVersion
+    public class DisabledNotification
     {
-        public VsVersion(string displayName, string installationVersion, string displayVersion)
+        public DisabledNotification(string id)
         {
-            DisplayName = displayName;
-            InstallationVersion = installationVersion;
-            DisplayVersion = displayVersion;
+            Id = id;
         }
 
-        public string DisplayName { get; }
-
-        public string InstallationVersion { get; }
-
-        public string DisplayVersion { get; }
-
-        public string MajorInstallationVersion
-        {
-            get
-            {
-                if(Version.TryParse(this.InstallationVersion, out var version))
-                {
-                    return version.Major.ToString();
-                }
-                return null;
-            }
-        }
+        public string Id { get; }
     }
 }

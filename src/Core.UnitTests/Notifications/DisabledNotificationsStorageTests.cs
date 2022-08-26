@@ -18,8 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.IO;
+using System.IO.Abstractions;
+using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Notifications;
+using SonarLint.VisualStudio.Core.VsVersion;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
@@ -27,10 +36,270 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
     [TestClass]
     public class DisabledNotificationsStorageTests
     {
+        private string ExpectedDisabledNotificationsFilePath => GetExpectedDisabledNotificationsFilePath();
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<DisabledNotificationsStorage, IDisabledNotificationsStorage>(null, null);
+            MefTestHelpers.CheckTypeCanBeImported<DisabledNotificationsStorage, IDisabledNotificationsStorage>(null, new[]
+            {
+                MefTestHelpers.CreateExport<IVsVersionProvider>(Mock.Of<IVsVersionProvider>()),
+                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
+            });
+        }
+
+        [DataRow("2", true)]
+        [DataRow("4", false)]
+        [TestMethod]
+        public void IsNotificationDisabled_ReturnsCorrect(string notificationId, bool expectedResult)
+        {
+            var disabledNotifications = CreateDisabledNotifications("1", "2", "3");
+            var file = CreateFileMock(disabledNotifications);
+
+            var testSubject = CreateTestSubject(file.Object);
+                        
+            var result = testSubject.IsNotificationDisabled(notificationId);
+
+            result.Should().Be(expectedResult);
+            file.Verify(f => f.ReadAllText(ExpectedDisabledNotificationsFilePath), Times.Once);
+
+            //To make sure we do not go to disk on consecutive calls 
+            _ = testSubject.IsNotificationDisabled(notificationId);
+            file.Verify(f => f.ReadAllText(It.IsAny<string>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void IsNotificationDisabled_FileDoesNotExists_ReturnsFalse()
+        {
+            var file = CreateFileMock(fileExists: false);
+
+            var testSubject = CreateTestSubject(file.Object);
+
+            var result = testSubject.IsNotificationDisabled("1");
+
+            result.Should().BeFalse();
+            file.Verify(f => f.Exists(ExpectedDisabledNotificationsFilePath), Times.Once);
+            file.Verify(f => f.ReadAllText(ExpectedDisabledNotificationsFilePath), Times.Never);
+        }
+
+        [TestMethod]
+        public void IsNotificationDisabled_ReadError_LogsError()
+        {
+            var file = CreateFileMock();
+            file.Setup(f => f.ReadAllText(It.IsAny<string>())).Throws(new Exception("this is a test"));
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(file.Object, logger);
+
+            var result = testSubject.IsNotificationDisabled("1");
+
+            result.Should().BeFalse();
+            logger.AssertOutputStrings(2);
+            logger.AssertPartialOutputStringExists("this is a test");
+        }
+
+        [TestMethod]
+        public void IsNotificationDisabled_CriticalException_Throws()
+        {
+            var file = CreateFileMock();
+            file.Setup(f => f.ReadAllText(It.IsAny<string>())).Throws(new StackOverflowException("this is a critical error"));
+
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(file.Object, logger);
+
+            Action act = () => testSubject.IsNotificationDisabled("4");
+            act.Should().Throw<StackOverflowException>().WithMessage("this is a critical error");
+        }
+
+        [TestMethod]
+        public void DisableNotification_IsNotDisabled_Disables()
+        {
+            var disabledNotifications = CreateDisabledNotifications("1", "2", "3");
+            var file = CreateFileMock(disabledNotifications);
+
+            var testSubject = CreateTestSubject(file.Object);
+
+            testSubject.DisableNotification("4");
+            
+            var result = testSubject.IsNotificationDisabled("4");
+
+            result.Should().BeTrue();
+            file.Verify(f => f.WriteAllText(ExpectedDisabledNotificationsFilePath, It.IsAny<string>()), Times.Once);
+
+            var disabledNotificationsJson = (string)file.Invocations[2].Arguments[1];
+            var disabledNotificationsResult = JsonConvert.DeserializeObject<DisabledNotifications>(disabledNotificationsJson);
+
+            disabledNotificationsResult.Notifications.Count().Should().Be(4);
+            disabledNotificationsResult.Notifications.Any(n => n.Id == "4").Should().BeTrue();
+
+            //To make sure we do not go to disk on consecutive calls 
+            testSubject.DisableNotification("4");
+            file.Verify(f => f.ReadAllText(It.IsAny<string>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void DisableNotification_AlreadyDisabled_DoesNothing()
+        {
+            var disabledNotifications = CreateDisabledNotifications("1", "2", "3");
+            var file = CreateFileMock(disabledNotifications);
+            var testSubject = CreateTestSubject(file.Object);
+
+            testSubject.DisableNotification("3");
+
+            var result = testSubject.IsNotificationDisabled("3");
+
+            result.Should().BeTrue();
+            file.Verify(f => f.WriteAllText(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void DisableNotification_FileDoesNotExists_Disables()
+        {
+            var file = CreateFileMock(fileExists: false);
+
+            var testSubject = CreateTestSubject(file.Object);
+
+            testSubject.DisableNotification("1");
+
+            var result = testSubject.IsNotificationDisabled("1");
+
+            result.Should().BeTrue();
+            file.Verify(f => f.WriteAllText(ExpectedDisabledNotificationsFilePath, It.IsAny<string>()), Times.Once);
+
+            var disabledNotificationsJson = (string)file.Invocations[1].Arguments[1];
+            var disabledNotificationsResult = JsonConvert.DeserializeObject<DisabledNotifications>(disabledNotificationsJson);
+
+            disabledNotificationsResult.Notifications.Count().Should().Be(1);
+            disabledNotificationsResult.Notifications.Any(n => n.Id == "1").Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void DisableNotification_FileCorrupted_Overrides()
+        {
+            var file = CreateFileMock();
+
+            var testSubject = CreateTestSubject(file.Object);
+
+            testSubject.DisableNotification("1");
+
+            var result = testSubject.IsNotificationDisabled("1");
+
+            result.Should().BeTrue();
+            file.Verify(f => f.WriteAllText(ExpectedDisabledNotificationsFilePath, It.IsAny<string>()), Times.Once);
+
+            var disabledNotificationsJson = (string)file.Invocations[2].Arguments[1];
+            var disabledNotificationsResult = JsonConvert.DeserializeObject<DisabledNotifications>(disabledNotificationsJson);
+
+            disabledNotificationsResult.Notifications.Count().Should().Be(1);
+            disabledNotificationsResult.Notifications.Any(n => n.Id == "1").Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void DisableNotification_ReadError_LogsError()
+        {
+            var file = CreateFileMock();
+            file.Setup(f => f.ReadAllText(ExpectedDisabledNotificationsFilePath)).Throws(new Exception("this is a test"));
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(file.Object, logger);
+
+            testSubject.DisableNotification("1");
+
+            logger.AssertOutputStrings(2);
+            logger.AssertPartialOutputStringExists("this is a test");
+        }
+
+        [TestMethod]
+        public void DisableNotification_WriteError_LogsError()
+        {
+            var disabledNotifications = CreateDisabledNotifications("1", "2", "3");
+            var file = CreateFileMock(disabledNotifications);
+            file.Setup(f => f.WriteAllText(It.IsAny<string>(), It.IsAny<string>())).Throws(new Exception("this is a test"));
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(file.Object, logger);
+
+            testSubject.DisableNotification("4");
+
+            logger.AssertOutputStrings(1);
+            logger.AssertPartialOutputStringExists("this is a test");
+        }
+
+        [TestMethod]
+        public void DisableNotification_CriticalException_Throws()
+        {
+            var disabledNotifications = CreateDisabledNotifications("1", "2", "3");
+            var file = CreateFileMock(disabledNotifications);
+            file.Setup(f => f.WriteAllText(It.IsAny<string>(), It.IsAny<string>())).Throws(new StackOverflowException("this is a critical error"));
+
+            var testSubject = CreateTestSubject(file.Object);
+
+            Action act = () => testSubject.DisableNotification("4");
+
+            act.Should().Throw<StackOverflowException>().WithMessage("this is a critical error");
+        }
+
+        private IDisabledNotificationsStorage CreateTestSubject(IFile file, ILogger logger = null)
+        {
+            logger = logger ?? Mock.Of<ILogger>();
+
+            var fileSystem = CreateFileSystem(file);
+            var versionProvider = CreateVsVersionProvider();
+
+            var testSubject = new DisabledNotificationsStorage(versionProvider, logger, fileSystem);
+
+            return testSubject;
+        }
+
+        private IFileSystem CreateFileSystem(IFile file)
+        {
+            var fileSystem = new Mock<IFileSystem>();
+            fileSystem.SetupGet(fs => fs.File).Returns(file);
+
+            return fileSystem.Object;
+        }
+
+        private Mock<IFile> CreateFileMock(DisabledNotifications disabledNotifications = null, bool fileExists = true)
+        {
+            var file = new Mock<IFile>();
+            file.Setup(f => f.Exists(ExpectedDisabledNotificationsFilePath)).Returns(fileExists);
+            if (disabledNotifications != null)
+            {
+                file.Setup(f => f.ReadAllText(ExpectedDisabledNotificationsFilePath)).Returns(JsonConvert.SerializeObject(disabledNotifications));
+            }
+            return file;
+        }
+
+        private IVsVersionProvider CreateVsVersionProvider()
+        {
+            var version = new Mock<IVsVersion>();
+            version.SetupGet(v => v.MajorInstallationVersion).Returns("17");
+
+            var versionProvider = new Mock<IVsVersionProvider>();
+            versionProvider.SetupGet(vp => vp.Version).Returns(version.Object);
+
+            return versionProvider.Object;
+        }
+
+        private string GetExpectedDisabledNotificationsFilePath()
+        {
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string fullPath = Path.Combine(appData, "SonarLint for Visual Studio", "17", "disabledNotifications.txt");
+
+            return fullPath;
+        }
+
+        private DisabledNotifications CreateDisabledNotifications(params string[] ids)
+        {
+            var disabledNotifications = new DisabledNotifications();
+
+            foreach (var id in ids)
+            {
+                disabledNotifications.AddNotification(id);
+            }
+
+            return disabledNotifications;
         }
     }
 }
