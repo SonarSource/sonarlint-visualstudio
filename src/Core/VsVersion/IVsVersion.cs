@@ -36,5 +36,10 @@ namespace SonarLint.VisualStudio.Core.VsVersion
         /// VS display version, as seen in the About window. Example: "16.9.0 Preview 3.0"
         /// </summary>
         string DisplayVersion { get; }
+
+        /// <summary>
+        /// Major VS build version. Example: for "16.9.30914.41" it'll be "16"
+        /// </summary>
+        string MajorInstallationVersion { get; }
     }
 }

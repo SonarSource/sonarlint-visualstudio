@@ -18,36 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using SonarLint.VisualStudio.Core.VsVersion;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
-namespace SonarLint.VisualStudio.Infrastructure.VS.VsVersion
+namespace SonarLint.VisualStudio.Core.Notifications
 {
-    internal class VsVersion : IVsVersion
+    public class DisabledNotifications
     {
-        public VsVersion(string displayName, string installationVersion, string displayVersion)
+        public DisabledNotifications()
         {
-            DisplayName = displayName;
-            InstallationVersion = installationVersion;
-            DisplayVersion = displayVersion;
+            Notifications = new List<DisabledNotification>();
         }
 
-        public string DisplayName { get; }
+        public IList<DisabledNotification> Notifications { get; }
 
-        public string InstallationVersion { get; }
-
-        public string DisplayVersion { get; }
-
-        public string MajorInstallationVersion
+        public void AddNotification(string id)
         {
-            get
-            {
-                if(Version.TryParse(this.InstallationVersion, out var version))
-                {
-                    return version.Major.ToString();
-                }
-                return null;
-            }
+            Debug.Assert(!(Notifications.Any(n => n.Id == id)), "Notification Already Disabled");
+            var disabledNotification = new DisabledNotification(id);
+            Notifications.Add(disabledNotification);
         }
     }
 }
