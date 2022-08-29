@@ -76,13 +76,15 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
             {
                 new("bad version", new Version(11, 0)),
                 new("compatible1", new Version(12, 0)),
-                new("compatible2", new Version(12, 0)),
+                new("compatible2", new Version(12, 22)),
+                new("compatible2", new Version(12, 22)),
+                new("compatible2", new Version(13, 0)),
             };
 
             var testSubject = CreateTestSubject(versions);
 
             var result = testSubject.Locate();
-            result.Should().Be(versions[1]);
+            result.Should().Be(versions[2]);
         }
 
         [TestMethod]
@@ -106,7 +108,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         {
             var versions = new List<NodeVersionInfo>
             {
-                new("bad version", new Version(12, 0))
+                new("good version", new Version(13, 0))
             };
 
             var notificationService = new Mock<IUnsupportedNodeVersionNotificationService>();
@@ -117,14 +119,17 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         }
 
         [TestMethod]
-        [DataRow(9, false)]
-        [DataRow(10, true)]
-        [DataRow(11, false)]
-        [DataRow(12, true)]
-        [DataRow(13, true)]
-        public void IsCompatibleVersion_ReturnsTrueFalse(int majorVersion, bool expectedResult)
+        [DataRow(9, 0, false)]
+        [DataRow(10, 0, false)]
+        [DataRow(11, 0, false)]
+        [DataRow(12, 0, false)]
+        [DataRow(12, 21, false)]
+        [DataRow(12, 22, true)]
+        [DataRow(12, 23, true)]
+        [DataRow(13, 0, true)]
+        public void IsCompatibleVersion_ReturnsTrueFalse(int majorVersion,int minorVersion, bool expectedResult)
         {
-            var version = new Version(majorVersion, 0);
+            var version = new Version(majorVersion, minorVersion);
             var result = CompatibleNodeLocator.IsCompatibleVersion(version);
 
             result.Should().Be(expectedResult);
