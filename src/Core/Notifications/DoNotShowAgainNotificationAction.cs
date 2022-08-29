@@ -41,6 +41,8 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
         public string CommandText => CoreStrings.Notifications_DontShowAgainAction;
 
+        public bool ShouldDismissAfterAction => true;
+
         public Action<INotification> Action => 
             notification =>
             {
@@ -50,6 +52,6 @@ namespace SonarLint.VisualStudio.Core.Notifications
                 }
                 
                 disabledNotificationsStorage.DisableNotification(notification.Id);
-            };
+            };       
     }
 }

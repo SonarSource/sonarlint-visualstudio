@@ -25,18 +25,21 @@ namespace SonarLint.VisualStudio.Core.Notifications
     public interface INotificationAction
     {
         string CommandText { get; }
+        bool ShouldDismissAfterAction { get; }
         Action<INotification> Action { get; }
     }
 
     public class NotificationAction : INotificationAction
     {
-        public NotificationAction(string commandText, Action<INotification> action)
+        public NotificationAction(string commandText, Action<INotification> action, bool shouldDismissAfterAction)
         {
             CommandText = commandText ?? throw new ArgumentNullException(nameof(commandText));
             Action = action ?? throw new ArgumentNullException(nameof(action));
+            ShouldDismissAfterAction = shouldDismissAfterAction;
         }
 
         public string CommandText { get; }
+        public bool ShouldDismissAfterAction { get; }
         public Action<INotification> Action { get; }
     }
 }

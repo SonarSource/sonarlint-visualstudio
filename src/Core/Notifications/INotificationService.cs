@@ -97,6 +97,11 @@ namespace SonarLint.VisualStudio.Core.Notifications
                 var matchingAction = notification.Actions.FirstOrDefault(x => x.CommandText == e.ClickedButtonText);
 
                 matchingAction?.Action(notification);
+                
+                if(matchingAction?.ShouldDismissAfterAction == true)
+                {
+                    RemoveExistingInfoBar();
+                }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
