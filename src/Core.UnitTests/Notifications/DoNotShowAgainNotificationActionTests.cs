@@ -40,6 +40,15 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         }
 
         [TestMethod]
+        public void Initialize_DefaultValuesCorrect()
+        {
+            var testSubject = new DoNotShowAgainNotificationAction(Mock.Of<IDisabledNotificationsStorage>());
+
+            testSubject.CommandText.Should().Be(CoreStrings.Notifications_DontShowAgainAction);
+            testSubject.ShouldDismissAfterAction.Should().BeTrue();
+        }
+
+        [TestMethod]
         public void Action_NullNotification_ArgumentNullException()
         {
             var disabledNotificationsStorage = new Mock<IDisabledNotificationsStorage>();
