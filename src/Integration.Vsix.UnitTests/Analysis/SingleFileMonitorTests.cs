@@ -393,6 +393,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
         #endregion Simple file operations
 
+        [Ignore] // Flaky -> disabled https://github.com/SonarSource/sonarlint-visualstudio/issues/3236
         [TestMethod]
         public void RealFile_MultipleOperations_NoDuplicates()
         {
