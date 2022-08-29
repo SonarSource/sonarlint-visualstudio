@@ -40,17 +40,26 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         }
 
         [TestMethod]
+        public void Initialize_DefaultValuesCorrect()
+        {
+            var testSubject = new DoNotShowAgainNotificationAction(Mock.Of<IDisabledNotificationsStorage>());
+
+            testSubject.CommandText.Should().Be(CoreStrings.Notifications_DontShowAgainAction);
+            testSubject.ShouldDismissAfterAction.Should().BeTrue();
+        }
+
+        [TestMethod]
         public void Action_NullNotification_ArgumentNullException()
         {
             var disabledNotificationsStorage = new Mock<IDisabledNotificationsStorage>();
 
             var testSubject = new DoNotShowAgainNotificationAction(disabledNotificationsStorage.Object);
-
+            
             Action act = () => testSubject.Action(null);
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("notification");
 
-            disabledNotificationsStorage.Invocations.Count.Should().Be(0);
+            disabledNotificationsStorage.Invocations.Count.Should().Be(0);            
         }
 
         [TestMethod]
@@ -66,7 +75,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             testSubject.Action(notification.Object);
 
             disabledNotificationsStorage.Verify(x=> x.DisableNotification("some id"), Times.Once);
-            disabledNotificationsStorage.VerifyNoOtherCalls();
+            disabledNotificationsStorage.VerifyNoOtherCalls();            
         }
     }
 }

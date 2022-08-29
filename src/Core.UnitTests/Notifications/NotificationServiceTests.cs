@@ -223,14 +223,16 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             callback.Invocations.Count.Should().Be(0);            
         }
 
+        [DataRow(false, 0)]
+        [DataRow(true, 1)]
         [TestMethod]
-        public void ShowNotification_InfoBarButtonClicked_ActionInvokedWithTheNotification_NotDismissed()
+        public void ShowNotification_InfoBarButtonClicked_ActionInvokedWithTheNotification(bool shouldDismissNotificationAfterAction, int dismissInvocationCount)
         {
             var callback = new Mock<Action<INotification>>();
 
             var notification = CreateNotification(actions: new INotificationAction[]
             {
-                new NotificationAction("notification1", notification => callback.Object(notification), false)
+                new NotificationAction("notification1", notification => callback.Object(notification), shouldDismissNotificationAfterAction)
             });
 
             var infoBar = new Mock<IInfoBar>();
@@ -246,33 +248,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
             callback.Verify(x => x(notification), Times.Once);
             callback.VerifyNoOtherCalls();
-            infoBarManager.Verify(ib => ib.DetachInfoBar(infoBar.Object), Times.Never);
-        }
-
-        [TestMethod]
-        public void ShowNotification_InfoBarButtonClicked_ActionInvokedWithTheNotification_Dismissed()
-        {
-            var callback = new Mock<Action<INotification>>();
-
-            var notification = CreateNotification(actions: new INotificationAction[]
-            {
-                new NotificationAction("notification1", notification => callback.Object(notification), true)
-            });
-
-            var infoBar = new Mock<IInfoBar>();
-
-            var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
-
-            var testSubject = CreateTestSubject(infoBarManager.Object);
-            testSubject.ShowNotification(notification);
-
-            callback.Invocations.Count.Should().Be(0);
-
-            infoBar.Raise(x => x.ButtonClick += null, new InfoBarButtonClickedEventArgs("notification1"));
-
-            callback.Verify(x => x(notification), Times.Once);
-            callback.VerifyNoOtherCalls();
-            infoBarManager.Verify(ib => ib.DetachInfoBar(infoBar.Object), Times.Once);
+            infoBarManager.Verify(ib => ib.DetachInfoBar(infoBar.Object), Times.Exactly(dismissInvocationCount));
         }
 
         [TestMethod]
