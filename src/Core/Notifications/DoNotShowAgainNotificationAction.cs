@@ -52,6 +52,6 @@ namespace SonarLint.VisualStudio.Core.Notifications
                 }
                 
                 disabledNotificationsStorage.DisableNotification(notification.Id);
-            };       
+            };
     }
 }
