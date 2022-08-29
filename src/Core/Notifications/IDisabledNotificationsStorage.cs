@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
         private string FilePath => GetFilePath();
 
-        private DisabledNotifications disabledNotifications = null;
+        private NotificationSettings disabledNotifications = null;
         private readonly object lockObject = new object();
 
         [ImportingConstructor]
@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
                     return;
                 }
 
-                disabledNotifications.AddNotification(id);
+                disabledNotifications.AddDisabledNotification(id);
                 SaveNotifications();
             }
         }
@@ -95,29 +95,29 @@ namespace SonarLint.VisualStudio.Core.Notifications
                     logger.WriteLine(Strings.DisabledNotificationsFailedToLoad);
                     return false;
                 }
-                return disabledNotifications.Notifications.Any(n => n.Id == id);
+                return disabledNotifications.DisabledNotifications.Any(n => n.Id == id);
             }
         }
 
-        private DisabledNotifications ReadDisabledNotifications()
+        private NotificationSettings ReadDisabledNotifications()
         {
             try
             {
                 if (!fileSystem.File.Exists(FilePath)) 
                 { 
                     logger.LogDebug($"[Notifications] Disabled notifications file does not exist. File: {FilePath}");
-                    return new DisabledNotifications(); 
+                    return new NotificationSettings(); 
                 }
 
                 var fileContent = fileSystem.File.ReadAllText(FilePath);                
 
-                if (JsonHelper.TryDeserialize<DisabledNotifications>(fileContent, out var result))
+                if (JsonHelper.TryDeserialize<NotificationSettings>(fileContent, out var result))
                 {
                     return result;
                 }
 
                 logger.LogDebug($"[Notifications] Disabled notifications file corrupted it will be overriden. File: {FilePath}");
-                return new DisabledNotifications();
+                return new NotificationSettings();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -143,7 +143,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
         private string GetFilePath()
         {
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            string fullPath = Path.Combine(appData, "SonarLint for Visual Studio", vsVersionProvider.Version.MajorInstallationVersion, "disabledNotifications.txt");
+            string fullPath = Path.Combine(appData, "SonarLint for Visual Studio", vsVersionProvider.Version.MajorInstallationVersion, "internal.notifications.json");
 
             return fullPath;
         }
