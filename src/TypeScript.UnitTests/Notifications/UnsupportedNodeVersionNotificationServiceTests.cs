@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Notifications
             notificationService.VerifyNoOtherCalls();
 
             createdNotification.Should().NotBeNull();
-            createdNotification.Id.Should().Be("sonarlint.nodejs.min.version.not.found.10");
+            createdNotification.Id.Should().Be("sonarlint.nodejs.min.version.not.found.12.22");
             createdNotification.Message.Should().Be(Resources.NotificationUnsupportedNode);
             createdNotification.Actions.Count().Should().Be(2);
         }
