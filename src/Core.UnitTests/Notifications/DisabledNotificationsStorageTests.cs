@@ -128,10 +128,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             file.Verify(f => f.WriteAllText(ExpectedDisabledNotificationsFilePath, It.IsAny<string>()), Times.Once);
 
             var disabledNotificationsJson = (string)file.Invocations[2].Arguments[1];
-            var disabledNotificationsResult = JsonConvert.DeserializeObject<DisabledNotifications>(disabledNotificationsJson);
+            var disabledNotificationsResult = JsonConvert.DeserializeObject<NotificationSettings>(disabledNotificationsJson);
 
-            disabledNotificationsResult.Notifications.Count().Should().Be(4);
-            disabledNotificationsResult.Notifications.Any(n => n.Id == "4").Should().BeTrue();
+            disabledNotificationsResult.DisabledNotifications.Count().Should().Be(4);
+            disabledNotificationsResult.DisabledNotifications.Any(n => n.Id == "4").Should().BeTrue();
 
             //To make sure we do not go to disk on consecutive calls 
             testSubject.DisableNotification("4");
@@ -170,10 +170,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             directory.Verify(d => d.CreateDirectory(Path.GetDirectoryName(ExpectedDisabledNotificationsFilePath)), Times.Once);
 
             var disabledNotificationsJson = (string)file.Invocations[1].Arguments[1];
-            var disabledNotificationsResult = JsonConvert.DeserializeObject<DisabledNotifications>(disabledNotificationsJson);
+            var disabledNotificationsResult = JsonConvert.DeserializeObject<NotificationSettings>(disabledNotificationsJson);
 
-            disabledNotificationsResult.Notifications.Count().Should().Be(1);
-            disabledNotificationsResult.Notifications.Any(n => n.Id == "1").Should().BeTrue();
+            disabledNotificationsResult.DisabledNotifications.Count().Should().Be(1);
+            disabledNotificationsResult.DisabledNotifications.Any(n => n.Id == "1").Should().BeTrue();
         }
 
         [TestMethod]
@@ -191,10 +191,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             file.Verify(f => f.WriteAllText(ExpectedDisabledNotificationsFilePath, It.IsAny<string>()), Times.Once);
 
             var disabledNotificationsJson = (string)file.Invocations[2].Arguments[1];
-            var disabledNotificationsResult = JsonConvert.DeserializeObject<DisabledNotifications>(disabledNotificationsJson);
+            var disabledNotificationsResult = JsonConvert.DeserializeObject<NotificationSettings>(disabledNotificationsJson);
 
-            disabledNotificationsResult.Notifications.Count().Should().Be(1);
-            disabledNotificationsResult.Notifications.Any(n => n.Id == "1").Should().BeTrue();
+            disabledNotificationsResult.DisabledNotifications.Count().Should().Be(1);
+            disabledNotificationsResult.DisabledNotifications.Any(n => n.Id == "1").Should().BeTrue();
         }
 
         [TestMethod]
@@ -265,7 +265,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             return fileSystem.Object;
         }
 
-        private Mock<IFile> CreateFileMock(DisabledNotifications disabledNotifications = null, bool fileExists = true)
+        private Mock<IFile> CreateFileMock(NotificationSettings disabledNotifications = null, bool fileExists = true)
         {
             var file = new Mock<IFile>();
             file.Setup(f => f.Exists(ExpectedDisabledNotificationsFilePath)).Returns(fileExists);
@@ -290,18 +290,18 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         private string GetExpectedDisabledNotificationsFilePath()
         {
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            string fullPath = Path.Combine(appData, "SonarLint for Visual Studio", "17", "disabledNotifications.txt");
+            string fullPath = Path.Combine(appData, "SonarLint for Visual Studio", "17", "internal.notifications.json");
 
             return fullPath;
         }
 
-        private DisabledNotifications CreateDisabledNotifications(params string[] ids)
+        private NotificationSettings CreateDisabledNotifications(params string[] ids)
         {
-            var disabledNotifications = new DisabledNotifications();
+            var disabledNotifications = new NotificationSettings();
 
             foreach (var id in ids)
             {
-                disabledNotifications.AddNotification(id);
+                disabledNotifications.AddDisabledNotification(id);
             }
 
             return disabledNotifications;

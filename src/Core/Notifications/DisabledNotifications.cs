@@ -24,20 +24,23 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.Core.Notifications
 {
-    public class DisabledNotifications
+    /// <summary>
+    /// Data class for storage of notification-related settings
+    /// </summary>
+    internal class NotificationSettings
     {
-        public DisabledNotifications()
+        public NotificationSettings()
         {
-            Notifications = new List<DisabledNotification>();
+            DisabledNotifications = new List<DisabledNotification>();
         }
 
-        public IList<DisabledNotification> Notifications { get; }
+        public IList<DisabledNotification> DisabledNotifications { get; }
 
-        public void AddNotification(string id)
+        public void AddDisabledNotification(string id)
         {
-            Debug.Assert(!(Notifications.Any(n => n.Id == id)), "Notification Already Disabled");
+            Debug.Assert(!(DisabledNotifications.Any(n => n.Id == id)), "Notification Already Disabled");
             var disabledNotification = new DisabledNotification(id);
-            Notifications.Add(disabledNotification);
+            DisabledNotifications.Add(disabledNotification);
         }
     }
 }
