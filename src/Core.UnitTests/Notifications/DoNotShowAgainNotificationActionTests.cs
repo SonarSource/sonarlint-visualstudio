@@ -54,12 +54,12 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             var disabledNotificationsStorage = new Mock<IDisabledNotificationsStorage>();
 
             var testSubject = new DoNotShowAgainNotificationAction(disabledNotificationsStorage.Object);
-            
+
             Action act = () => testSubject.Action(null);
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("notification");
 
-            disabledNotificationsStorage.Invocations.Count.Should().Be(0);            
+            disabledNotificationsStorage.Invocations.Count.Should().Be(0);
         }
 
         [TestMethod]
@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             testSubject.Action(notification.Object);
 
             disabledNotificationsStorage.Verify(x=> x.DisableNotification("some id"), Times.Once);
-            disabledNotificationsStorage.VerifyNoOtherCalls();            
+            disabledNotificationsStorage.VerifyNoOtherCalls();
         }
     }
 }
