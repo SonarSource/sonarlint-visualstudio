@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Notifications
 
             firstAction.Action(null);
 
-            browserService.Verify(x=> x.Navigate("https://github.com/SonarSource/sonarlint-visualstudio/wiki"), Times.Once);
+            browserService.Verify(x=> x.Navigate("https://github.com/SonarSource/sonarlint-visualstudio/wiki/Supported-NodeJS-versions"), Times.Once);
             browserService.VerifyNoOtherCalls();
         }
 
