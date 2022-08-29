@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.TypeScript.Notifications
                 message: Resources.NotificationUnsupportedNode,
                 actions: new INotificationAction[]
                 {
-                    new NotificationAction(Resources.NotificationShowMoreInfoAction, _ => ShowMoreInfo()),
+                    new NotificationAction(Resources.NotificationShowMoreInfoAction, _ => ShowMoreInfo(), false),
                     doNotShowAgainNotificationAction
                 }
             );

@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         [TestMethod]
         public void Ctor_NullCommandText_ArgumentNullException()
         {
-            Action act = () => new NotificationAction(null, _ => { });
+            Action act = () => new NotificationAction(null, _ => { }, false);
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("commandText");
         }
@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         [TestMethod]
         public void Ctor_NullActionArgumentNullException()
         {
-            Action act = () => new NotificationAction("text", null);
+            Action act = () => new NotificationAction("text", null, false);
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("action");
         }
