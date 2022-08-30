@@ -41,7 +41,6 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
     internal sealed class EslintBridgeAnalyzer : IEslintBridgeAnalyzer
     {
         // todo: fix in https://github.com/SonarSource/sonarlint-visualstudio/issues/2432
-        internal const string LinterIsNotInitializedError = "Linter is undefined";
 
         private readonly IRulesProvider rulesProvider;
         private readonly IEslintBridgeClient eslintBridgeClient;
@@ -119,7 +118,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         private static bool LinterNotInitializedResponse(AnalysisResponse analysisResponse)
         {
             return analysisResponse.ParsingError != null && 
-                   analysisResponse.ParsingError.Message.Contains(LinterIsNotInitializedError);
+                   analysisResponse.ParsingError.Code == ParsingErrorCode.LINTER_INITIALIZATION;
         }
 
         private async Task EnsureEslintBridgeClientIsInitialized(CancellationToken cancellationToken)
