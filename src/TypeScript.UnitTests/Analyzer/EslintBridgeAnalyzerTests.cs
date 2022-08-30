@@ -225,7 +225,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var testSubject = CreateTestSubject(client.Object, logger: logger);
             var result = await testSubject.Analyze("some path", "some config", CancellationToken.None);
 
-            logger.AssertPartialOutputStringExists(linterNotInitializedResponse.ParsingError.Message);
+            logger.AssertPartialOutputStringExists(linterNotInitializedResponse.ParsingError.Code.ToString());
         }
 
         [TestMethod]
@@ -493,7 +493,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         private static AnalysisResponse CreateLinterNotInitializedResponse() => 
-            new AnalysisResponse { ParsingError = new ParsingError { Message = EslintBridgeAnalyzer.LinterIsNotInitializedError } };
+            new AnalysisResponse { ParsingError = new ParsingError { Code = ParsingErrorCode.LINTER_INITIALIZATION } };
 
         private static void SetupConvertedIssue(Mock<IEslintBridgeIssueConverter> issueConverter,
             string filePath,
