@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
@@ -142,7 +143,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
             issueLocationsTagAggregator.Dispose();
         }
 
-        private async void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e)
+        private void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e)
+            => HandleTagsChangedAsync().Forget();
+
+        internal /* for testing */ async Task HandleTagsChangedAsync()
         {
             try
             {
@@ -152,7 +156,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.LogDebug($"[QuickFixActionsSource] Failed to dismiss lightbulb session: {ex}");
+                logger.LogDebug($"[QuickFixActionsSource] Exception handling TagsChanged event: {ex}");
             }
         }
     }
