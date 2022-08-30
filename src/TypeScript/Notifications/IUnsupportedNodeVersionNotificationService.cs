@@ -65,8 +65,7 @@ namespace SonarLint.VisualStudio.TypeScript.Notifications
 
         private void ShowMoreInfo()
         {
-            // todo: redirect to a specific page
-            browserService.Navigate("https://github.com/SonarSource/sonarlint-visualstudio/wiki");
+            browserService.Navigate("https://github.com/SonarSource/sonarlint-visualstudio/wiki/NodeJS-prerequisite-for-JavaScript-and-TypeScript-analysis");
         }
     }
 }
