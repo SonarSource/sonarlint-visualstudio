@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.TypeScript.Notifications
         private readonly IBrowserService browserService;
         private readonly INotification notification;
 
-        private const string NotificationId = "sonarlint.nodejs.min.version.not.found.10";
+        private const string NotificationId = "sonarlint.nodejs.min.version.not.found.12.22";
 
         [ImportingConstructor]
         public UnsupportedNodeVersionNotificationService(INotificationService notificationService, 
