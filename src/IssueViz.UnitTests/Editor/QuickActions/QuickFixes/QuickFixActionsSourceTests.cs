@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
@@ -93,11 +94,47 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
             var lightBulbBroker = new Mock<ILightBulbBroker>();
 
-            CreateTestSubject(issueLocationsTagAggregator.Object, lightBulbBroker: lightBulbBroker.Object);
+            CreateTestSubject(issueLocationsTagAggregator.Object, lightBulbBroker.Object);
 
             lightBulbBroker.VerifyNoOtherCalls();
 
             issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
+            lightBulbBroker.Verify(x => x.DismissSession(textView), Times.Once);
+        }
+
+        [TestMethod]
+        public void OnTagsChanged_NonCriticalException_ExceptionIsCaught()
+        {
+            var lightBulbBroker = new Mock<ILightBulbBroker>();
+            lightBulbBroker
+                .Setup(x => x.DismissSession(textView))
+                .Throws(new NotImplementedException("this is a test"));
+
+            var testSubject = CreateTestSubject(lightBulbBroker: lightBulbBroker.Object);
+
+            lightBulbBroker.VerifyNoOtherCalls();
+
+            Func<Task> act = async () => await testSubject.HandleTagsChangedAsync();
+            act.Should().NotThrow();
+
+            lightBulbBroker.Verify(x => x.DismissSession(textView), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task OnTagsChanged_CriticalException_ExceptionIsNotCaught()
+        {
+            var lightBulbBroker = new Mock<ILightBulbBroker>();
+            lightBulbBroker
+                .Setup(x => x.DismissSession(textView))
+                .Throws(new StackOverflowException("this is a test"));
+
+            var testSubject = CreateTestSubject(lightBulbBroker: lightBulbBroker.Object);
+
+            lightBulbBroker.VerifyNoOtherCalls();
+
+            Func<Task> act = async () => await testSubject.HandleTagsChangedAsync();
+            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("this is a test");
+
             lightBulbBroker.Verify(x => x.DismissSession(textView), Times.Once);
         }
 
@@ -309,12 +346,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             logger.AssertPartialOutputStringDoesNotExist("this is a test");
         }
 
-        private QuickFixActionsSource CreateTestSubject(ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator,
+        private QuickFixActionsSource CreateTestSubject(ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator = null,
             ILightBulbBroker lightBulbBroker = null,
-            ILogger logger = null)
+            ILogger logger = null,
+            IThreadHandling threadHandling = null)
         {
+            issueLocationsTagAggregator ??= Mock.Of<ITagAggregator<IIssueLocationTag>>();
             lightBulbBroker ??= Mock.Of<ILightBulbBroker>();
-            logger = logger ?? Mock.Of<ILogger>();
+            logger ??= Mock.Of<ILogger>();
 
             var bufferTagAggregatorFactoryService = new Mock<IBufferTagAggregatorFactoryService>();
 
@@ -322,7 +361,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 .Setup(x => x.CreateTagAggregator<IIssueLocationTag>(textView.TextBuffer))
                 .Returns(issueLocationsTagAggregator);
 
-            var threadHandling = new NoOpThreadHandler();
+            threadHandling ??= new NoOpThreadHandler();
 
             return new QuickFixActionsSource(lightBulbBroker, 
                 bufferTagAggregatorFactoryService.Object, 

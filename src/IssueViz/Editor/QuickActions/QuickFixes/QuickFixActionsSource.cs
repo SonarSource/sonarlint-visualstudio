@@ -27,10 +27,12 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
@@ -141,11 +143,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
             issueLocationsTagAggregator.Dispose();
         }
 
-        private async void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e)
-        {
-            await threadHandling.RunOnUIThread(() => lightBulbBroker.DismissSession(textView));
+        private void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e)
+            => HandleTagsChangedAsync().Forget();
 
-            SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
+        internal /* for testing */ async Task HandleTagsChangedAsync()
+        {
+            try
+            {
+                await threadHandling.RunOnUIThread(() => lightBulbBroker.DismissSession(textView));
+
+                SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.LogDebug($"[QuickFixActionsSource] Exception handling TagsChanged event: {ex}");
+            }
         }
     }
 }
