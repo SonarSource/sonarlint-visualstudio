@@ -19,7 +19,7 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [NodeJsLocator] Found incompatible Node version: {0}. Path: {1}.
+        ///   Looks up a localized string similar to [NodeJsLocator] Found incompatible Node.js version: {0}. Path: {1}.
         /// </summary>
         internal static string ERR_IncompatibleVersion {
             get {
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [NodeJsLocator] Could not find a compatible node version. Supported versions are v10 and v12+..
+        ///   Looks up a localized string similar to [NodeJsLocator] Could not find a compatible Node.js version. Supported versions are v12.22+..
         /// </summary>
         internal static string ERR_NoCompatibleVersion {
             get {
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [NodeJsLocator] Found compatible Node version: {0}. Path: {1}.
+        ///   Looks up a localized string similar to [NodeJsLocator] Found compatible Node.js version: {0}. Path: {1}.
         /// </summary>
         internal static string INFO_FoundCompatibleVersion {
             get {
