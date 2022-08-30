@@ -54,7 +54,8 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract
         MISSING_TYPESCRIPT,
         UNSUPPORTED_TYPESCRIPT,
         FAILING_TYPESCRIPT,
-        GENERAL_ERROR
+        GENERAL_ERROR,
+        LINTER_INITIALIZATION
     }
 
     internal class Issue
