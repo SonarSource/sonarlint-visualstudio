@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.TypeScript.Notifications {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: JavaScript/TypeScript analysis failed: no supported version of Node.js was found..
+        ///   Looks up a localized string similar to SonarLint: JavaScript/TypeScript analysis failed. Could not find a supported Node.js runtime on your computer..
         /// </summary>
         internal static string NotificationUnsupportedNode {
             get {
