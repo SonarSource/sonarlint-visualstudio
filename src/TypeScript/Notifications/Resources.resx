@@ -121,6 +121,6 @@
     <value>How do I fix this?</value>
   </data>
   <data name="NotificationUnsupportedNode" xml:space="preserve">
-    <value>SonarLint JavaScript/TypeScript analysis failed: no supported version of Node.js was found.</value>
+    <value>SonarLint: JavaScript/TypeScript analysis failed. Could not find a supported Node.js runtime on your computer.</value>
   </data>
 </root>
