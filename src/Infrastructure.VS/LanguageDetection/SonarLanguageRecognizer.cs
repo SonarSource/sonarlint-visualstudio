@@ -159,16 +159,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
             return extension.ToLowerInvariant();
         }
         
-        private bool IsFileNameInvalid(string fileName)
-        {
-            foreach (var invalidChar in Path.GetInvalidFileNameChars())
-            {
-                if(fileName.Contains(invalidChar))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
+        private bool IsFileNameInvalid(string fileName) 
+            => Path.GetInvalidFileNameChars().Any(x => fileName.Contains(x));
+    }  
 }
