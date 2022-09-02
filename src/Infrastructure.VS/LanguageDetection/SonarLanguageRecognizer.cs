@@ -122,6 +122,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
 
         public AnalysisLanguage? GetAnalysisLanguageFromExtension(string fileName)
         {
+            if(IsFileNameInvalid(fileName))
+            {
+                return null;
+            }
+
             var extension = GetNormalizedExtention(fileName);
             
             // ContentType for "js" is typescript we do manual check to be consistent with Detect method
@@ -154,6 +159,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
             return extension.ToLowerInvariant();
         }
         
-
+        private bool IsFileNameInvalid(string fileName)
+        {
+            foreach (var invalidChar in Path.GetInvalidFileNameChars())
+            {
+                if(fileName.Contains(invalidChar))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }
