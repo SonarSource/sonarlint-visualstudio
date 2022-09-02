@@ -215,6 +215,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
 
         [DataRow("File.json")]
         [DataRow("Folder")]
+        [DataRow("<SharedProject>")] //Shared projects in .Net Framework are represented by <>
         [TestMethod]
         public void GetAnalysisLanguageFromExtension_UnknownExtensionPassed_ReturnsNull(string fileName)
         {
