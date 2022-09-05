@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<FolderWorkspaceService, IFolderWorkspaceService>(
-                MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>()));
+                MefTestHelpers.CreateExport<SVsServiceProvider>());
         }
 
         [TestMethod]

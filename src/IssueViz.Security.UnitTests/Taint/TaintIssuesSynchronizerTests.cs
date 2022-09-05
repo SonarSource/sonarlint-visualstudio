@@ -52,6 +52,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<ITaintIssueToIssueVisualizationConverter>(),
                 MefTestHelpers.CreateExport<IConfigurationProvider>(),
+                // The constructor calls the service provider so we need to pass a correctly-configured one
                 MefTestHelpers.CreateExport<SVsServiceProvider>(CreateServiceProvider()),
                 MefTestHelpers.CreateExport<IToolWindowService>(),
                 MefTestHelpers.CreateExport<ILogger>());

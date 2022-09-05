@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<StatusRequestHandler, IStatusRequestHandler>(
-                MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>()));
+                MefTestHelpers.CreateExport<SVsServiceProvider>());
         }
 
         [TestMethod]

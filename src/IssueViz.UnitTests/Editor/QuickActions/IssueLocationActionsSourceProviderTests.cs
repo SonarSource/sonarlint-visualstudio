@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<IssueLocationActionsSourceProvider, ISuggestedActionsSourceProvider>(
-                MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>()),
+                MefTestHelpers.CreateExport<SVsServiceProvider>(),
                 MefTestHelpers.CreateExport<IBufferTagAggregatorFactoryService>(),
                 MefTestHelpers.CreateExport<IIssueSelectionService>(),
                 MefTestHelpers.CreateExport<ILightBulbBroker>());

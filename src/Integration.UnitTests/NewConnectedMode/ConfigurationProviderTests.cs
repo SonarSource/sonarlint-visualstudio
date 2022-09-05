@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             MefTestHelpers.CheckTypeCanBeImported<ConfigurationProvider, IConfigurationProvider>(
                 MefTestHelpers.CreateExport<ILogger>(),
                 MefTestHelpers.CreateExport<ICredentialStoreService>(),
-                MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>()));
+                MefTestHelpers.CreateExport<SVsServiceProvider>());
         }
 
         [TestMethod]
