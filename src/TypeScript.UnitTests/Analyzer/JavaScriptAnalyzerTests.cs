@@ -55,14 +55,12 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 .Setup(x => x.Create(rulesProvider, eslintBridgeClient))
                 .Returns(eslintBridgeAnalyzer);
 
-            MefTestHelpers.CheckTypeCanBeImported<JavaScriptAnalyzer, IAnalyzer>(null, new[]
-            {
+            MefTestHelpers.CheckTypeCanBeImported<JavaScriptAnalyzer, IAnalyzer>(
                 MefTestHelpers.CreateExport<IJavaScriptEslintBridgeClient>(eslintBridgeClient),
                 MefTestHelpers.CreateExport<IRulesProviderFactory>(rulesProviderFactory.Object),
-                MefTestHelpers.CreateExport<ITelemetryManager>(Mock.Of<ITelemetryManager>()),
-                MefTestHelpers.CreateExport<IAnalysisStatusNotifier>(Mock.Of<IAnalysisStatusNotifier>()),
-                MefTestHelpers.CreateExport<IEslintBridgeAnalyzerFactory>(eslintBridgeAnalyzerFactory.Object)
-            });
+                MefTestHelpers.CreateExport<ITelemetryManager>(),
+                MefTestHelpers.CreateExport<IAnalysisStatusNotifier>(),
+                MefTestHelpers.CreateExport<IEslintBridgeAnalyzerFactory>(eslintBridgeAnalyzerFactory.Object));
         }
 
         [TestMethod]

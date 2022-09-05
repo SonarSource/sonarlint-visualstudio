@@ -34,11 +34,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<CFamilyIssueConverterFactory, ICFamilyIssueConverterFactory>(null, new[]
-            {
-                MefTestHelpers.CreateExport<ITextDocumentFactoryService>(Mock.Of<ITextDocumentFactoryService>()),
-                MefTestHelpers.CreateExport<IContentTypeRegistryService>(Mock.Of<IContentTypeRegistryService>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<CFamilyIssueConverterFactory, ICFamilyIssueConverterFactory>(                MefTestHelpers.CreateExport<ITextDocumentFactoryService>(Mock.Of<ITextDocumentFactoryService>()),
+                MefTestHelpers.CreateExport<IContentTypeRegistryService>());
         }
 
         [TestMethod]

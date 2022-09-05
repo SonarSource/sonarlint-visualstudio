@@ -46,20 +46,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<OpenInIDERequestHandler, IOpenInIDERequestHandler>(null,
-                new[] {
-                    MefTestHelpers.CreateExport<IIDEWindowService>(Mock.Of<IIDEWindowService>()),
-                    MefTestHelpers.CreateExport<IToolWindowService>(Mock.Of<IToolWindowService>()),
-                    MefTestHelpers.CreateExport<IOpenInIDEStateValidator>(Mock.Of<IOpenInIDEStateValidator>()),
-                    MefTestHelpers.CreateExport<ISonarQubeService>(Mock.Of<ISonarQubeService>()),
-                    MefTestHelpers.CreateExport<IHotspotToIssueVisualizationConverter>(Mock.Of<IHotspotToIssueVisualizationConverter>()),
-                    MefTestHelpers.CreateExport<ILocationNavigator>(Mock.Of<ILocationNavigator>()),
-                    MefTestHelpers.CreateExport<IHotspotsStore>(Mock.Of<IHotspotsStore>()),
-                    MefTestHelpers.CreateExport<IOpenInIDEFailureInfoBar>(Mock.Of<IOpenInIDEFailureInfoBar>()),
-                    MefTestHelpers.CreateExport<IIssueSelectionService>(Mock.Of<IIssueSelectionService>()),
-                    MefTestHelpers.CreateExport<ITelemetryManager>(Mock.Of<ITelemetryManager>()),
-                    MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
-                });
+            MefTestHelpers.CheckTypeCanBeImported<OpenInIDERequestHandler, IOpenInIDERequestHandler>(
+                MefTestHelpers.CreateExport<IIDEWindowService>(),
+                MefTestHelpers.CreateExport<IToolWindowService>(),
+                MefTestHelpers.CreateExport<IOpenInIDEStateValidator>(),
+                MefTestHelpers.CreateExport<ISonarQubeService>(),
+                MefTestHelpers.CreateExport<IHotspotToIssueVisualizationConverter>(),
+                MefTestHelpers.CreateExport<ILocationNavigator>(),
+                MefTestHelpers.CreateExport<IHotspotsStore>(),
+                MefTestHelpers.CreateExport<IOpenInIDEFailureInfoBar>(),
+                MefTestHelpers.CreateExport<IIssueSelectionService>(),
+                MefTestHelpers.CreateExport<ITelemetryManager>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
     }
 

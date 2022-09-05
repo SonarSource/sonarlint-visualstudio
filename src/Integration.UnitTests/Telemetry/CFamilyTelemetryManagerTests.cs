@@ -35,15 +35,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<CFamilyTelemetryManager, ICFamilyTelemetryManager>(null, new[]
-            {
-                MefTestHelpers.CreateExport<ICMakeProjectTypeIndicator>(Mock.Of<ICMakeProjectTypeIndicator>()),
-                MefTestHelpers.CreateExport<ICompilationDatabaseLocator>(Mock.Of<ICompilationDatabaseLocator>()),
-                MefTestHelpers.CreateExport<IActiveSolutionTracker>(Mock.Of<IActiveSolutionTracker>()),
-                MefTestHelpers.CreateExport<ITelemetryDataRepository>(Mock.Of<ITelemetryDataRepository>()),
-                MefTestHelpers.CreateExport<IVcxProjectTypeIndicator>(Mock.Of<IVcxProjectTypeIndicator>()),
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<CFamilyTelemetryManager, ICFamilyTelemetryManager>(
+                MefTestHelpers.CreateExport<ICMakeProjectTypeIndicator>(),
+                MefTestHelpers.CreateExport<ICompilationDatabaseLocator>(),
+                MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
+                MefTestHelpers.CreateExport<ITelemetryDataRepository>(),
+                MefTestHelpers.CreateExport<IVcxProjectTypeIndicator>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]

@@ -36,12 +36,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Notifications
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<UnsupportedNodeVersionNotificationService, IUnsupportedNodeVersionNotificationService>(null, new[]
-                {
-                    MefTestHelpers.CreateExport<INotificationService>(Mock.Of<INotificationService>()),
-                    MefTestHelpers.CreateExport<IDoNotShowAgainNotificationAction>(Mock.Of<IDoNotShowAgainNotificationAction>()),
-                    MefTestHelpers.CreateExport<IBrowserService>(Mock.Of<IBrowserService>())
-                });
+            MefTestHelpers.CheckTypeCanBeImported<UnsupportedNodeVersionNotificationService, IUnsupportedNodeVersionNotificationService>(
+                MefTestHelpers.CreateExport<INotificationService>(),
+                MefTestHelpers.CreateExport<IDoNotShowAgainNotificationAction>(),
+                MefTestHelpers.CreateExport<IBrowserService>());
         }
 
         [TestMethod]

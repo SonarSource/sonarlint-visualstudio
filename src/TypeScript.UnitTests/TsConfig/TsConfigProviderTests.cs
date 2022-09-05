@@ -40,12 +40,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<TsConfigProvider, ITsConfigProvider>(null, new[]
-            {
-                MefTestHelpers.CreateExport<ITsConfigsLocator>(Mock.Of<ITsConfigsLocator>()),
-                MefTestHelpers.CreateExport<ITypeScriptEslintBridgeClient>(Mock.Of<ITypeScriptEslintBridgeClient>()),
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<TsConfigProvider, ITsConfigProvider>(
+                MefTestHelpers.CreateExport<ITsConfigsLocator>(),
+                MefTestHelpers.CreateExport<ITypeScriptEslintBridgeClient>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]

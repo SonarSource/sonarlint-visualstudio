@@ -41,13 +41,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<TelemetryPayloadCreator, ITelemetryPayloadCreator>(null, new[]
-            {
-                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(Mock.Of<IActiveSolutionBoundTracker>()),
-                MefTestHelpers.CreateExport<INodeVersionInfoProvider>(Mock.Of<INodeVersionInfoProvider>()),
-                MefTestHelpers.CreateExport<ICompatibleNodeLocator>(Mock.Of<ICompatibleNodeLocator>()),
-                MefTestHelpers.CreateExport<IVsVersionProvider>(Mock.Of<IVsVersionProvider>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<TelemetryPayloadCreator, ITelemetryPayloadCreator>(
+                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
+                MefTestHelpers.CreateExport<INodeVersionInfoProvider>(),
+                MefTestHelpers.CreateExport<ICompatibleNodeLocator>(),
+                MefTestHelpers.CreateExport<IVsVersionProvider>());
         }
 
         [TestMethod]

@@ -40,11 +40,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<TypeScriptEslintBridgeClient, ITypeScriptEslintBridgeClient>(null, new[]
-            {
-                MefTestHelpers.CreateExport<IEslintBridgeProcessFactory>(Mock.Of<IEslintBridgeProcessFactory>()),
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<TypeScriptEslintBridgeClient, ITypeScriptEslintBridgeClient>(
+                MefTestHelpers.CreateExport<IEslintBridgeProcessFactory>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]

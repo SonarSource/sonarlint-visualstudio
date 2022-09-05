@@ -19,7 +19,6 @@
  */
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
@@ -32,11 +31,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<JavaScriptEslintBridgeClient, IJavaScriptEslintBridgeClient>(null, new[]
-            {
-                MefTestHelpers.CreateExport<IEslintBridgeProcessFactory>(Mock.Of<IEslintBridgeProcessFactory>()),
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<JavaScriptEslintBridgeClient, IJavaScriptEslintBridgeClient>(
+                MefTestHelpers.CreateExport<IEslintBridgeProcessFactory>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
     }
 }

@@ -37,10 +37,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.MefServices
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<MefSonarQubeService, ISonarQubeService> (null, new[]
-            {
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<MefSonarQubeService, ISonarQubeService> (
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]

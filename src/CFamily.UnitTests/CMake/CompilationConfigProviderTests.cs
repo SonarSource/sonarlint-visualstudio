@@ -37,11 +37,9 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<CompilationConfigProvider, ICompilationConfigProvider>(null, new[]
-            {
-                MefTestHelpers.CreateExport<ICompilationDatabaseLocator>(Mock.Of<ICompilationDatabaseLocator>()),
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<CompilationConfigProvider, ICompilationConfigProvider>(
+                MefTestHelpers.CreateExport<ICompilationDatabaseLocator>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]

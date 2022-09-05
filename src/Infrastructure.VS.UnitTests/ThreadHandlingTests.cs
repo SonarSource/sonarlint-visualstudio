@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<ThreadHandling, IThreadHandling>(null, null);
+            MefTestHelpers.CheckTypeCanBeImported<ThreadHandling, IThreadHandling>();
         }
 
         [TestMethod]

@@ -37,12 +37,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<ShowInBrowserService, IShowInBrowserService>(null, new[]
-            {
-                MefTestHelpers.CreateExport<ISonarQubeService>(Mock.Of<ISonarQubeService>()),
-                MefTestHelpers.CreateExport<IConfigurationProvider>(Mock.Of<IConfigurationProvider>()),
-                MefTestHelpers.CreateExport<IBrowserService>(Mock.Of<IBrowserService>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<ShowInBrowserService, IShowInBrowserService>(
+                MefTestHelpers.CreateExport<ISonarQubeService>(),
+                MefTestHelpers.CreateExport<IConfigurationProvider>(),
+                MefTestHelpers.CreateExport<IBrowserService>());
         }
 
         [TestMethod]

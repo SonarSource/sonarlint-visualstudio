@@ -41,10 +41,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<DisabledNotificationsStorage, IDisabledNotificationsStorage>(null, new[]
+            MefTestHelpers.CheckTypeCanBeImported<DisabledNotificationsStorage, IDisabledNotificationsStorage>(new[]
             {
-                MefTestHelpers.CreateExport<IVsVersionProvider>(Mock.Of<IVsVersionProvider>()),
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
+                MefTestHelpers.CreateExport<IVsVersionProvider>(),
+                MefTestHelpers.CreateExport<ILogger>()
             });
         }
 

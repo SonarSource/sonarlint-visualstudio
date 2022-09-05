@@ -33,10 +33,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<ServerNotificationsTelemetryManager, IServerNotificationsTelemetryManager>(null, new[]
-            {
-                MefTestHelpers.CreateExport<ITelemetryDataRepository>(Mock.Of<ITelemetryDataRepository>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<ServerNotificationsTelemetryManager, IServerNotificationsTelemetryManager>(
+                MefTestHelpers.CreateExport<ITelemetryDataRepository>());
         }
 
         [TestMethod]

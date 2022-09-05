@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             var serviceProviderExport = MefTestHelpers.CreateExport<SVsServiceProvider>(serviceProviderMock.Object);
 
             // Act and Assert
-            MefTestHelpers.CheckTypeCanBeImported<ToolWindowService, IToolWindowService>(null, new[] { serviceProviderExport });
+            MefTestHelpers.CheckTypeCanBeImported<ToolWindowService, IToolWindowService>(serviceProviderExport);
 
             serviceProviderMock.VerifyAll();
         }
