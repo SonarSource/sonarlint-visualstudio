@@ -44,14 +44,12 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<RoslynSettingsFileSynchronizer, IRoslynSettingsFileSynchronizer>(null, new[]
-            {
-                MefTestHelpers.CreateExport<ISuppressedIssuesMonitor>(Mock.Of<ISuppressedIssuesMonitor>()),
-                MefTestHelpers.CreateExport<ISonarQubeIssuesProvider>(Mock.Of<ISonarQubeIssuesProvider>()),
-                MefTestHelpers.CreateExport<IRoslynSettingsFileStorage>(Mock.Of<IRoslynSettingsFileStorage>()),
-                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(Mock.Of<IActiveSolutionBoundTracker>()),
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<RoslynSettingsFileSynchronizer, IRoslynSettingsFileSynchronizer>(
+                MefTestHelpers.CreateExport<ISuppressedIssuesMonitor>(),
+                MefTestHelpers.CreateExport<ISonarQubeIssuesProvider>(),
+                MefTestHelpers.CreateExport<IRoslynSettingsFileStorage>(),
+                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]

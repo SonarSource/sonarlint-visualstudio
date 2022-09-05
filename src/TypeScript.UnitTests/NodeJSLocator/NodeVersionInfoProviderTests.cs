@@ -40,11 +40,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<NodeVersionInfoProvider, INodeVersionInfoProvider>(null, new[]
-            {
-                MefTestHelpers.CreateExport<INodeLocationsProvider>(Mock.Of<INodeLocationsProvider>()),
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<NodeVersionInfoProvider, INodeVersionInfoProvider>(
+                MefTestHelpers.CreateExport<INodeLocationsProvider>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]

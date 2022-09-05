@@ -43,8 +43,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
         [TestMethod]
         public void FormatDefinition_MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<LightIssueHighlightFormatDefinition, EditorFormatDefinition>(null, null);
-            MefTestHelpers.CheckTypeCanBeImported<DarkIssueHighlightFormatDefinition, EditorFormatDefinition>(null, null);
+            MefTestHelpers.CheckTypeCanBeImported<LightIssueHighlightFormatDefinition, EditorFormatDefinition>();
+            MefTestHelpers.CheckTypeCanBeImported<DarkIssueHighlightFormatDefinition, EditorFormatDefinition>();
         }
     }
 }

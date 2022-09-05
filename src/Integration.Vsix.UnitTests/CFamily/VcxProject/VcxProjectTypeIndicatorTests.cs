@@ -35,10 +35,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<VcxProjectTypeIndicator, IVcxProjectTypeIndicator>(null, new[]
-            {
-                MefTestHelpers.CreateExport<IProjectSystemHelper>(Mock.Of<IProjectSystemHelper>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<VcxProjectTypeIndicator, IVcxProjectTypeIndicator>(
+                MefTestHelpers.CreateExport<IProjectSystemHelper>());
         }
 
         [TestMethod]

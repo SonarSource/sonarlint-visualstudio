@@ -51,11 +51,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            // Arrange
-            var loggerExport = MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>());
-
-            // Act & Assert
-            MefTestHelpers.CheckTypeCanBeImported<CredentialStore, ICredentialStoreService>(null, new[] { loggerExport });
+            MefTestHelpers.CheckTypeCanBeImported<CredentialStore, ICredentialStoreService>(
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]

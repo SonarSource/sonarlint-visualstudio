@@ -36,10 +36,8 @@ namespace SonarLint.VisualStudio.CFamily.CMake.UnitTests
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<CMakeProjectTypeIndicator, ICMakeProjectTypeIndicator>(null, new[]
-            {
-                MefTestHelpers.CreateExport<IFolderWorkspaceService>(Mock.Of<IFolderWorkspaceService>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<CMakeProjectTypeIndicator, ICMakeProjectTypeIndicator>(
+                MefTestHelpers.CreateExport<IFolderWorkspaceService>());
         }
 
         [TestMethod]

@@ -40,11 +40,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<TaintIssueToIssueVisualizationConverter, ITaintIssueToIssueVisualizationConverter>(null, new[]
-            {
-                MefTestHelpers.CreateExport<IAnalysisIssueVisualizationConverter>(Mock.Of<IAnalysisIssueVisualizationConverter>()),
-                MefTestHelpers.CreateExport<IAbsoluteFilePathLocator>(Mock.Of<IAbsoluteFilePathLocator>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<TaintIssueToIssueVisualizationConverter, ITaintIssueToIssueVisualizationConverter>(
+                MefTestHelpers.CreateExport<IAnalysisIssueVisualizationConverter>(),
+                MefTestHelpers.CreateExport<IAbsoluteFilePathLocator>());
         }
 
         [TestMethod]

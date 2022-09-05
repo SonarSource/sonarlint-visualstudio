@@ -55,18 +55,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
         }
 
         [TestMethod]
-        public void Class_IsMEF()
+        public void MefCtor_CheckIsExported()
         {
-            // Arrange
-            var requiredExports = new List<Export>();
-            requiredExports.Add(MefTestHelpers.CreateExport<IContentTypeRegistryService>(
-                new Mock<IContentTypeRegistryService>().Object));
-            requiredExports.Add(MefTestHelpers.CreateExport<IFileExtensionRegistryService>(
-                new Mock<IFileExtensionRegistryService>().Object));
-
-            // Act & Assert
-            MefTestHelpers.CheckTypeCanBeImported<SonarLanguageRecognizer, ISonarLanguageRecognizer>(Enumerable.Empty<Export>(),
-                requiredExports);
+            MefTestHelpers.CheckTypeCanBeImported<SonarLanguageRecognizer, ISonarLanguageRecognizer>(
+                MefTestHelpers.CreateExport<IContentTypeRegistryService>(),
+                MefTestHelpers.CreateExport<IFileExtensionRegistryService>());
         }
 
         [TestMethod]

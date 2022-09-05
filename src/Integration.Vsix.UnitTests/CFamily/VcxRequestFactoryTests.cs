@@ -47,12 +47,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<VcxRequestFactory, IRequestFactory>(null, new[]
-            {
-                MefTestHelpers.CreateExport<VsShell.SVsServiceProvider>(Mock.Of<IServiceProvider>()),
-                MefTestHelpers.CreateExport<ICFamilyRulesConfigProvider>(Mock.Of<ICFamilyRulesConfigProvider>()),
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<VcxRequestFactory, IRequestFactory>(
+                MefTestHelpers.CreateExport<VsShell.SVsServiceProvider>(),
+                MefTestHelpers.CreateExport<ICFamilyRulesConfigProvider>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]

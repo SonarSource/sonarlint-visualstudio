@@ -36,11 +36,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<AnalyzableFileIndicator, IAnalyzableFileIndicator>(null, new []
-            {
-                MefTestHelpers.CreateExport<IExclusionSettingsStorage>(Mock.Of<IExclusionSettingsStorage>()),
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<AnalyzableFileIndicator, IAnalyzableFileIndicator>(
+                MefTestHelpers.CreateExport<IExclusionSettingsStorage>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]

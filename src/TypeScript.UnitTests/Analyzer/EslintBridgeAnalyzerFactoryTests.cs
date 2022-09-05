@@ -37,12 +37,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<EslintBridgeAnalyzerFactory, IEslintBridgeAnalyzerFactory>(null, new[]
-            {
-                MefTestHelpers.CreateExport<IActiveSolutionTracker>(Mock.Of<IActiveSolutionTracker>()),
-                MefTestHelpers.CreateExport<IAnalysisConfigMonitor>(Mock.Of<IAnalysisConfigMonitor>()),
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<EslintBridgeAnalyzerFactory, IEslintBridgeAnalyzerFactory>(
+                MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
+                MefTestHelpers.CreateExport<IAnalysisConfigMonitor>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]

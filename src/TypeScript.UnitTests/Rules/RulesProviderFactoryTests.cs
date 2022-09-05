@@ -41,11 +41,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         {
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_Valid.json");
 
-            MefTestHelpers.CheckTypeCanBeImported<RulesProviderFactory, IRulesProviderFactory>(null, new[]
-            {
+            MefTestHelpers.CheckTypeCanBeImported<RulesProviderFactory, IRulesProviderFactory>(
                 MefTestHelpers.CreateExport<string>(jsonFilePath, RulesProviderFactory.RuleDefinitionsFilePathContractName),
-                MefTestHelpers.CreateExport<IRuleSettingsProviderFactory>(Mock.Of<IRuleSettingsProviderFactory>())
-            });
+                MefTestHelpers.CreateExport<IRuleSettingsProviderFactory>());
         }
 
         [TestMethod]

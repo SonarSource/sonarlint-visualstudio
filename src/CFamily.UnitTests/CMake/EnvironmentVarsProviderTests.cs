@@ -36,11 +36,9 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<EnvironmentVarsProvider, IEnvironmentVarsProvider>(null, new[]
-            {
-                MefTestHelpers.CreateExport<IVsDevCmdEnvironmentProvider>(Mock.Of<IVsDevCmdEnvironmentProvider>()),
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<EnvironmentVarsProvider, IEnvironmentVarsProvider>(
+                MefTestHelpers.CreateExport<IVsDevCmdEnvironmentProvider>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]
