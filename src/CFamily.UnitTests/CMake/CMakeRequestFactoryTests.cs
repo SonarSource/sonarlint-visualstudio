@@ -44,12 +44,10 @@ namespace SonarLint.VisualStudio.CFamily.CMake.UnitTests
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<CMakeRequestFactory, IRequestFactory>(null, new[]
-            {
-                MefTestHelpers.CreateExport<ICompilationConfigProvider>(Mock.Of<ICompilationConfigProvider>()),
-                MefTestHelpers.CreateExport<ICFamilyRulesConfigProvider>(Mock.Of<ICFamilyRulesConfigProvider>()),
-                MefTestHelpers.CreateExport<IEnvironmentVarsProvider>(Mock.Of<IEnvironmentVarsProvider>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<CMakeRequestFactory, IRequestFactory>(
+                MefTestHelpers.CreateExport<ICompilationConfigProvider>(),
+                MefTestHelpers.CreateExport<ICFamilyRulesConfigProvider>(),
+                MefTestHelpers.CreateExport<IEnvironmentVarsProvider>());
         }
 
         [TestMethod]

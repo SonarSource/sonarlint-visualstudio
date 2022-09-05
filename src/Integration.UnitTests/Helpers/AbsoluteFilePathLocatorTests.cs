@@ -39,10 +39,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(x => x.GetService(typeof(SVsUIShellOpenDocument))).Returns(Mock.Of<IVsUIShellOpenDocument>());
 
-            MefTestHelpers.CheckTypeCanBeImported<AbsoluteFilePathLocator, IAbsoluteFilePathLocator>(null, new[]
-            {
-                MefTestHelpers.CreateExport<SVsServiceProvider>(serviceProvider.Object)
-            });
+            MefTestHelpers.CheckTypeCanBeImported<AbsoluteFilePathLocator, IAbsoluteFilePathLocator>(
+                MefTestHelpers.CreateExport<SVsServiceProvider>(serviceProvider.Object));
         }
 
         [TestMethod]

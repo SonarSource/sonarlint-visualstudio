@@ -47,16 +47,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<TaintIssuesSynchronizer, ITaintIssuesSynchronizer>(null, new[]
-            {
-                MefTestHelpers.CreateExport<ITaintStore>(Mock.Of<ITaintStore>()),
-                MefTestHelpers.CreateExport<ISonarQubeService>(Mock.Of<ISonarQubeService>()),
-                MefTestHelpers.CreateExport<ITaintIssueToIssueVisualizationConverter>(Mock.Of<ITaintIssueToIssueVisualizationConverter>()),
-                MefTestHelpers.CreateExport<IConfigurationProvider>(Mock.Of<IConfigurationProvider>()),
+            MefTestHelpers.CheckTypeCanBeImported<TaintIssuesSynchronizer, ITaintIssuesSynchronizer>(
+                MefTestHelpers.CreateExport<ITaintStore>(),
+                MefTestHelpers.CreateExport<ISonarQubeService>(),
+                MefTestHelpers.CreateExport<ITaintIssueToIssueVisualizationConverter>(),
+                MefTestHelpers.CreateExport<IConfigurationProvider>(),
                 MefTestHelpers.CreateExport<SVsServiceProvider>(CreateServiceProvider()),
-                MefTestHelpers.CreateExport<IToolWindowService>(Mock.Of<IToolWindowService>()),
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
-            });
+                MefTestHelpers.CreateExport<IToolWindowService>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]

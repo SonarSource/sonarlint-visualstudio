@@ -41,15 +41,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            var storeExport = MefTestHelpers.CreateExport<IIssueLocationStoreAggregator>(ValidLocationStore);
-            var calculatorExport = MefTestHelpers.CreateExport<IIssueSpanCalculator>(ValidSpanCalculator);
-            var taggableBufferIndicatorExport = MefTestHelpers.CreateExport<ITaggableBufferIndicator>(Mock.Of<ITaggableBufferIndicator>());
-            var loggerExport = MefTestHelpers.CreateExport<ILogger>(ValidLogger);
-
-            MefTestHelpers.CheckTypeCanBeImported<LocationTaggerProvider, ITaggerProvider>(null, new[]
-            {
-                storeExport, calculatorExport, taggableBufferIndicatorExport, loggerExport
-            });
+            MefTestHelpers.CheckTypeCanBeImported<LocationTaggerProvider, ITaggerProvider>(
+                MefTestHelpers.CreateExport<IIssueLocationStoreAggregator>(),
+                MefTestHelpers.CreateExport<IIssueSpanCalculator>(),
+                MefTestHelpers.CreateExport<ITaggableBufferIndicator>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         internal override ITaggerProvider CreateTestSubject(ITaggableBufferIndicator taggableBufferIndicator) =>

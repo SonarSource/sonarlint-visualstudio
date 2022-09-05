@@ -35,12 +35,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<TaintIssuesBindingMonitor, ITaintIssuesBindingMonitor>(null, new[]
-            {
-                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(Mock.Of<IActiveSolutionBoundTracker>()),
-                MefTestHelpers.CreateExport<IFolderWorkspaceMonitor>(Mock.Of<IFolderWorkspaceMonitor>()),
-                MefTestHelpers.CreateExport<ITaintIssuesSynchronizer>(Mock.Of<ITaintIssuesSynchronizer>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<TaintIssuesBindingMonitor, ITaintIssuesBindingMonitor>(
+                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
+                MefTestHelpers.CreateExport<IFolderWorkspaceMonitor>(),
+                MefTestHelpers.CreateExport<ITaintIssuesSynchronizer>());
         }
 
         [TestMethod]
@@ -67,7 +65,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
             new TaintIssuesBindingMonitor(activeSolutionBoundTracker.Object, folderWorkspaceInitialized.Object, synchronizer.Object);
             synchronizer.Invocations.Clear();
-
+            
             activeSolutionBoundTracker.Raise(x => x.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(BindingConfiguration.Standalone));
 
             synchronizer.Verify(x => x.SynchronizeWithServer(), Times.Once);

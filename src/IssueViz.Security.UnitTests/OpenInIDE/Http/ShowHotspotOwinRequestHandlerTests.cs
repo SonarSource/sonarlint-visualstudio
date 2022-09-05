@@ -37,12 +37,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            // Arrange
-            var apiRequestHandler = MefTestHelpers.CreateExport<IOpenInIDERequestHandler>(Mock.Of<IOpenInIDERequestHandler>());
-            var loggerExport = MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>());
-
-            // Act & Assert
-            MefTestHelpers.CheckTypeCanBeImported<ShowHotspotOwinRequestHandler, IOwinPathRequestHandler>(null, new[] { apiRequestHandler, loggerExport });
+            MefTestHelpers.CheckTypeCanBeImported<ShowHotspotOwinRequestHandler, IOwinPathRequestHandler>(
+                MefTestHelpers.CreateExport<IOpenInIDERequestHandler>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]

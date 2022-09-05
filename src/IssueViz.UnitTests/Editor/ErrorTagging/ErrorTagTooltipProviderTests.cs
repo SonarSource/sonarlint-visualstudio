@@ -38,12 +38,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<ErrorTagTooltipProvider, IErrorTagTooltipProvider>(null,
-                new[]
-                {
-                    MefTestHelpers.CreateExport<INavigateToRuleDescriptionCommand>(Mock.Of<INavigateToRuleDescriptionCommand>()),
-                    MefTestHelpers.CreateExport<IVsThemeColorProvider>(Mock.Of<IVsThemeColorProvider>())
-                });
+            MefTestHelpers.CheckTypeCanBeImported<ErrorTagTooltipProvider, IErrorTagTooltipProvider>(
+                MefTestHelpers.CreateExport<INavigateToRuleDescriptionCommand>(),
+                MefTestHelpers.CreateExport<IVsThemeColorProvider>());
         }
 
         [TestMethod]

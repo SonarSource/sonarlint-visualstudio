@@ -34,11 +34,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<SelectedVisualizationValidityMonitor, ISelectedVisualizationValidityMonitor>(null, new[]
-            {
-                MefTestHelpers.CreateExport<IIssueSelectionService>(Mock.Of<IIssueSelectionService>()),
-                MefTestHelpers.CreateExport<IIssueLocationStoreAggregator>(Mock.Of<IIssueLocationStoreAggregator>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<SelectedVisualizationValidityMonitor, ISelectedVisualizationValidityMonitor>(
+                MefTestHelpers.CreateExport<IIssueSelectionService>(),
+                MefTestHelpers.CreateExport<IIssueLocationStoreAggregator>());
         }
 
         [TestMethod]

@@ -36,14 +36,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            var aggregatorFactoryExport = MefTestHelpers.CreateExport<IBufferTagAggregatorFactoryService>(Mock.Of<IBufferTagAggregatorFactoryService>());
-            var locationServiceExport = MefTestHelpers.CreateExport<IAnalysisIssueSelectionService>(Mock.Of<IAnalysisIssueSelectionService>());
-            var taggableBufferIndicatorExport = MefTestHelpers.CreateExport<ITaggableBufferIndicator>(Mock.Of<ITaggableBufferIndicator>());
-
-            MefTestHelpers.CheckTypeCanBeImported<SelectedIssueLocationTaggerProvider, ITaggerProvider>(null, new[]
-            {
-                aggregatorFactoryExport, locationServiceExport, taggableBufferIndicatorExport
-            });
+            MefTestHelpers.CheckTypeCanBeImported<SelectedIssueLocationTaggerProvider, ITaggerProvider>(
+                MefTestHelpers.CreateExport<IBufferTagAggregatorFactoryService>(),
+                MefTestHelpers.CreateExport<IAnalysisIssueSelectionService>(),
+                MefTestHelpers.CreateExport<ITaggableBufferIndicator>());
         }
 
         internal override ITaggerProvider CreateTestSubject(ITaggableBufferIndicator taggableBufferIndicator)

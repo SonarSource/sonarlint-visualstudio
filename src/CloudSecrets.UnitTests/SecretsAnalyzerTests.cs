@@ -43,14 +43,12 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<SecretsAnalyzer, IAnalyzer>(null, new[]
-            {
-                MefTestHelpers.CreateExport<ITextDocumentFactoryService>(Mock.Of<ITextDocumentFactoryService>()),
-                MefTestHelpers.CreateExport<IContentTypeRegistryService>(Mock.Of<IContentTypeRegistryService>()),
-                MefTestHelpers.CreateExport<IAnalysisStatusNotifier>(Mock.Of<IAnalysisStatusNotifier>()),
-                MefTestHelpers.CreateExport<ICloudSecretsTelemetryManager>(Mock.Of<ICloudSecretsTelemetryManager>()),
-                MefTestHelpers.CreateExport<IUserSettingsProvider>(Mock.Of<IUserSettingsProvider>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<SecretsAnalyzer, IAnalyzer>(
+                MefTestHelpers.CreateExport<ITextDocumentFactoryService>(),
+                MefTestHelpers.CreateExport<IContentTypeRegistryService>(),
+                MefTestHelpers.CreateExport<IAnalysisStatusNotifier>(),
+                MefTestHelpers.CreateExport<ICloudSecretsTelemetryManager>(),
+                MefTestHelpers.CreateExport<IUserSettingsProvider>());
         }
 
         [TestMethod]

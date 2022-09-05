@@ -44,11 +44,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<OpenInIDEFailureInfoBar, IOpenInIDEFailureInfoBar>(null, new[]
-            {
-                MefTestHelpers.CreateExport<IInfoBarManager>(Mock.Of<IInfoBarManager>()),
-                MefTestHelpers.CreateExport<IOutputWindowService>(Mock.Of<IOutputWindowService>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<OpenInIDEFailureInfoBar, IOpenInIDEFailureInfoBar>(
+                MefTestHelpers.CreateExport<IInfoBarManager>(),
+                MefTestHelpers.CreateExport<IOutputWindowService>());
         }
 
         [TestMethod]

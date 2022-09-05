@@ -40,13 +40,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<QuickFixActionsSourceProvider, ISuggestedActionsSourceProvider>(null, new[]
-            {
-                MefTestHelpers.CreateExport<IBufferTagAggregatorFactoryService>(Mock.Of<IBufferTagAggregatorFactoryService>()),
-                MefTestHelpers.CreateExport<ILightBulbBroker>(Mock.Of<ILightBulbBroker>()),
-                MefTestHelpers.CreateExport<IQuickFixesTelemetryManager>(Mock.Of<IQuickFixesTelemetryManager>()),
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<QuickFixActionsSourceProvider, ISuggestedActionsSourceProvider>(
+                MefTestHelpers.CreateExport<IBufferTagAggregatorFactoryService>(),
+                MefTestHelpers.CreateExport<ILightBulbBroker>(),
+                MefTestHelpers.CreateExport<IQuickFixesTelemetryManager>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]

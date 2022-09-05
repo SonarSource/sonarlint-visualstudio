@@ -61,18 +61,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            // Arrange
-            var documentOpenerExport = MefTestHelpers.CreateExport<IDocumentNavigator>(documentOpenerMock.Object);
-            var spanCalculatorExport = MefTestHelpers.CreateExport<IIssueSpanCalculator>(spanCalculatorMock.Object);
-            var loggerExport = MefTestHelpers.CreateExport<ILogger>(logger);
-
-            // Act & Assert
-            MefTestHelpers.CheckTypeCanBeImported<LocationNavigator, ILocationNavigator>(null, new[]
-            {
-                documentOpenerExport, 
-                spanCalculatorExport, 
-                loggerExport
-            });
+            MefTestHelpers.CheckTypeCanBeImported<LocationNavigator, ILocationNavigator>(
+                MefTestHelpers.CreateExport<IDocumentNavigator>(),
+                MefTestHelpers.CreateExport<IIssueSpanCalculator>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]

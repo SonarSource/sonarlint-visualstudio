@@ -73,13 +73,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<DocumentNavigator, IDocumentNavigator>(null, new[]
-            {
-                MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>()),
-                MefTestHelpers.CreateExport<IVsEditorAdaptersFactoryService>(Mock.Of<IVsEditorAdaptersFactoryService>()),
-                MefTestHelpers.CreateExport<IOutliningManagerService>(Mock.Of<IOutliningManagerService>()),
-                MefTestHelpers.CreateExport<IEditorOperationsFactoryService>(Mock.Of<IEditorOperationsFactoryService>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<DocumentNavigator, IDocumentNavigator>(
+                MefTestHelpers.CreateExport<SVsServiceProvider>(),
+                MefTestHelpers.CreateExport<IVsEditorAdaptersFactoryService>(),
+                MefTestHelpers.CreateExport<IOutliningManagerService>(),
+                MefTestHelpers.CreateExport<IEditorOperationsFactoryService>());
         }
 
         [TestMethod]

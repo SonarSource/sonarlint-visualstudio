@@ -34,12 +34,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            // Arrange
-            var monitor = Mock.Of<IIssueSelectionService>();
-            var monitorExport = MefTestHelpers.CreateExport<IIssueSelectionService>(monitor);
-
-            // Act & Assert
-            MefTestHelpers.CheckTypeCanBeImported<VSTableEventProcessorProvider, ITableControlEventProcessorProvider>(null, new[] { monitorExport });
+            MefTestHelpers.CheckTypeCanBeImported<VSTableEventProcessorProvider, ITableControlEventProcessorProvider>(
+                MefTestHelpers.CreateExport<IIssueSelectionService>());
         }
 
         [TestMethod]

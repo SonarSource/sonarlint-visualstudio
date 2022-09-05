@@ -36,11 +36,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<ProjectToLanguageMapper, IProjectToLanguageMapper>(null, new[]
-            {
-                MefTestHelpers.CreateExport<ICMakeProjectTypeIndicator>(Mock.Of<ICMakeProjectTypeIndicator>()),
-                MefTestHelpers.CreateExport<IJsTsProjectTypeIndicator>(Mock.Of<IJsTsProjectTypeIndicator>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<ProjectToLanguageMapper, IProjectToLanguageMapper>(
+                MefTestHelpers.CreateExport<ICMakeProjectTypeIndicator>(),
+                MefTestHelpers.CreateExport<IJsTsProjectTypeIndicator>());
         }
 
         [TestMethod]

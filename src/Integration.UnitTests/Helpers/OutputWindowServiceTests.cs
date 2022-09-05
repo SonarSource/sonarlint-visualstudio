@@ -36,11 +36,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<OutputWindowService, IOutputWindowService>(null, new[]
-            {
-                MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>()),
-                MefTestHelpers.CreateExport<IToolWindowService>(Mock.Of<IToolWindowService>())
-            });
+            MefTestHelpers.CheckTypeCanBeImported<OutputWindowService, IOutputWindowService>(
+                MefTestHelpers.CreateExport<SVsServiceProvider>(),
+                MefTestHelpers.CreateExport<IToolWindowService>());
         }
 
         [TestMethod]
