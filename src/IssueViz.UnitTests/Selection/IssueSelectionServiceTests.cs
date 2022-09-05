@@ -34,8 +34,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<IssueSelectionService, IIssueSelectionService>(
-                MefTestHelpers.CreateExport<IAnalysisIssueSelectionService>());
+            MefTestHelpers.CheckTypeCanBeImported<IssueSelectionService, IIssueSelectionService>();
         }
       
         [TestMethod]

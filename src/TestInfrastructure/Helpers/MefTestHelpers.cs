@@ -23,18 +23,22 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.ComponentModel.Composition.Primitives;
+using System.Diagnostics;
 using System.Linq;
+using FluentAssertions;
 using Moq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public static class MefTestHelpers
     {
+        [DebuggerStepThrough]
         public static Export CreateExport<T>() where T: class
         {
             return CreateExport<T>(Mock.Of<T>());
         }
 
+        [DebuggerStepThrough]
         public static Export CreateExport<T>(object exportInstance, string contractName = null)
         {
             // Add the required export ID so that MEF knows which contract it exports.
@@ -103,10 +107,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             for (int i = 0; i < requiredExports.Count(); i++)
             {
                 // Try importing when not all of the required exports are available -> exception
-                Exceptions.Expect<Exception>(
-                    null,
-                    () => TryCompose(importer, catalog, requiredExports.Take(i)),
-                    checkDerived: true);
+                var subsetOfRequiredExports = new List<Export>(requiredExports);
+                var exportToRemove = subsetOfRequiredExports[i];
+                Console.WriteLine($"Removing export: {exportToRemove.Definition.ContractName}");
+                subsetOfRequiredExports.RemoveAt(i);
+
+                Action act = () => TryCompose(importer, catalog, subsetOfRequiredExports);
+                act.Should().Throw<CompositionException>();
             }
 
             // Finally try importing when all of the required exports are available -> success

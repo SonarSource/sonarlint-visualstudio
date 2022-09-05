@@ -46,8 +46,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<IssueSpanCalculator, IIssueSpanCalculator>(
-                MefTestHelpers.CreateExport<IChecksumCalculator>());
+            MefTestHelpers.CheckTypeCanBeImported<IssueSpanCalculator, IIssueSpanCalculator>();
         }
 
         [DataTestMethod]
