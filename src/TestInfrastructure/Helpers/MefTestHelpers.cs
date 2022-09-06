@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             contractName ??= AttributedModelServices.GetContractName(typeof(T));
-            Export export = new Export(contractName, metadata, () => exportInstance);
+            var export = new Export(contractName, metadata, () => exportInstance);
 
             return export;
         }
@@ -65,9 +65,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             where TImportType : class
             where TTypeToCheck : class
         {
-            SingleObjectImporter<TImportType> importer = new SingleObjectImporter<TImportType>();
+            var importer = new SingleObjectImporter<TImportType>();
 
-            CheckTypeCanBeImported<TTypeToCheck, TImportType>(importer, requiredExports);
+            CheckTypeCanBeImported<TTypeToCheck>(importer, requiredExports);
 
             importer.AssertImportIsNotNull();
             importer.AssertImportIsInstanceOf<TTypeToCheck>();
@@ -75,19 +75,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         /// <summary>
-        /// Tests that the <typeparamref name="TTypeToCheck"/> can be imported using MEF as an
-        /// instance of <typeparamref name="TImportType"/>.
+        /// Tests that the <typeparamref name="TTypeToCheck"/> can be imported using MEF.
         /// If required exports are supplied then the test also checks that the type cannot be
         /// imported without them.
         /// </summary>
         /// <typeparam name="TTypeToCheck">The type to check</typeparam>
-        /// <typeparam name="TImportType">The import contract type</typeparam>
         /// <param name="importer">The instance that is importing values</param>
         /// <param name="requiredExports">Any exports required by TTypeToCheck. Optional.</param>
-        private static void CheckTypeCanBeImported<TTypeToCheck, TImportType>(
+        private static void CheckTypeCanBeImported<TTypeToCheck>(
             object importer,
-            IEnumerable<Export> requiredExports)
-            where TImportType : class
+            Export[] requiredExports)
             where TTypeToCheck : class
         {
             if (importer == null)
@@ -97,12 +94,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             if (requiredExports == null)
             {
-                requiredExports = Enumerable.Empty<Export>();
+                requiredExports = Array.Empty<Export>();
             }
-
-            // Create a type catalog that only contains the type to be checked to
-            // make sure we don't pick up any other types
-            TypeCatalog catalog = new TypeCatalog(typeof(TTypeToCheck));
 
             for (int i = 0; i < requiredExports.Count(); i++)
             {
@@ -112,26 +105,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Console.WriteLine($"Removing export: {exportToRemove.Definition.ContractName}");
                 subsetOfRequiredExports.RemoveAt(i);
 
-                Action act = () => TryCompose(importer, catalog, subsetOfRequiredExports);
+                Action act = () => Compose(importer, typeof(TTypeToCheck), subsetOfRequiredExports.ToArray());
                 act.Should().Throw<CompositionException>();
             }
 
             // Finally try importing when all of the required exports are available -> success
-            TryCompose(importer, catalog, requiredExports);
+            Compose(importer, typeof(TTypeToCheck), requiredExports);
         }
 
-        private static void TryCompose(object importer, TypeCatalog catalog, IEnumerable<Export> exports)
+        /// <summary>
+        /// Performs a MEF compose with the supplied objects
+        /// </summary>
+        /// <param name="importer">The instance that is importing the exported type</param>
+        /// <param name="typeToExport">The type to of export being tested</param>
+        /// <param name="additionalExports">Any other exports that are required. Can be empty.</param>
+        public static void Compose(object importer, Type typeToExport, params Export[] additionalExports)
         {
-            CompositionBatch batch = new CompositionBatch();
+            // Create a type catalog that only contains the type to be checked to
+            // make sure we don't pick up any other types
+            var catalog = new TypeCatalog(typeToExport);
+
+            var batch = new CompositionBatch();
             batch.AddPart(importer);
-            foreach (Export item in exports)
+            foreach (Export item in additionalExports)
             {
                 batch.AddExport(item);
             }
-            using (CompositionContainer container = new CompositionContainer(catalog))
-            {
-                container.Compose(batch);
-            }
+            
+            using var container = new CompositionContainer(catalog);
+            container.Compose(batch);
         }
     }
 }
