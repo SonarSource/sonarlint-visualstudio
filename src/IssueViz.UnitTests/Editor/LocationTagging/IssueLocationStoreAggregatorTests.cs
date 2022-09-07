@@ -20,8 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -45,28 +43,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
         [TestMethod]
         public void MefCtor_CheckIsExported_LocationStoresAreImported()
         {
-            var batch = new CompositionBatch();
+            var store1Export = MefTestHelpers.CreateExport<IIssueLocationStore>();
+            var store2Export = MefTestHelpers.CreateExport<IIssueLocationStore>();
+            var store3Export = MefTestHelpers.CreateExport<IIssueLocationStore>();
 
-            var store1 = Mock.Of<IIssueLocationStore>();
-            var store2 = Mock.Of<IIssueLocationStore>();
-            var store3 = Mock.Of<IIssueLocationStore>();
+            var importer = new SingleObjectImporter<IIssueLocationStoreAggregator>();
 
-            batch.AddExport(MefTestHelpers.CreateExport<IIssueLocationStore>(store1));
-            batch.AddExport(MefTestHelpers.CreateExport<IIssueLocationStore>(store2));
-            batch.AddExport(MefTestHelpers.CreateExport<IIssueLocationStore>(store3));
+            MefTestHelpers.Compose(importer, typeof(IssueLocationStoreAggregator), store1Export, store2Export, store3Export);
 
-            var issueLocationStoreAggregatorImporter = new SingleObjectImporter<IIssueLocationStoreAggregator>();
-            batch.AddPart(issueLocationStoreAggregatorImporter);
+            importer.Import.Should().NotBeNull();
 
-            using var catalog = new TypeCatalog(typeof(IssueLocationStoreAggregator));
-            using var container = new CompositionContainer(catalog);
-            container.Compose(batch);
-                
-            issueLocationStoreAggregatorImporter.Import.Should().NotBeNull();
-
-            var actual = (IssueLocationStoreAggregator)issueLocationStoreAggregatorImporter.Import;
+            var actual = (IssueLocationStoreAggregator)importer.Import;
             actual.LocationStores.Count.Should().Be(3);
-            actual.LocationStores.Should().BeEquivalentTo(new[] { store1, store2, store3 });
+            actual.LocationStores.Should().BeEquivalentTo(new[] { store1Export.Value, store2Export.Value, store3Export.Value});
         }
 
         [TestMethod]
