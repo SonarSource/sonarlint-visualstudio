@@ -36,6 +36,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
     {
         private readonly IEnumerable<IIssueLocationStore> locationStores;
 
+        internal /* for testing */ IReadOnlyList<IIssueLocationStore> LocationStores => (IReadOnlyList<IIssueLocationStore>)locationStores;
+
         [ImportingConstructor]
         public IssueLocationStoreAggregator([ImportMany] IEnumerable<IIssueLocationStore> locationStores)
         {

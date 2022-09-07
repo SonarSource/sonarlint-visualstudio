@@ -36,13 +36,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
     public class IssueLocationStoreAggregatorTests
     {
         [TestMethod]
-        public void MefCtor_CheckExports()
+        public void MefCtor_CheckIsExported()
+        {
+            // IIssueLocationStores are ImportMany -> optional
+            MefTestHelpers.CheckTypeCanBeImported<IssueLocationStoreAggregator, IIssueLocationStoreAggregator>();
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported_LocationStoresAreImported()
         {
             var batch = new CompositionBatch();
 
-            batch.AddExport(MefTestHelpers.CreateExport<IIssueLocationStore>(Mock.Of<IIssueLocationStore>()));
-            batch.AddExport(MefTestHelpers.CreateExport<IIssueLocationStore>(Mock.Of<IIssueLocationStore>()));
-            batch.AddExport(MefTestHelpers.CreateExport<IIssueLocationStore>(Mock.Of<IIssueLocationStore>()));
+            var store1 = Mock.Of<IIssueLocationStore>();
+            var store2 = Mock.Of<IIssueLocationStore>();
+            var store3 = Mock.Of<IIssueLocationStore>();
+
+            batch.AddExport(MefTestHelpers.CreateExport<IIssueLocationStore>(store1));
+            batch.AddExport(MefTestHelpers.CreateExport<IIssueLocationStore>(store2));
+            batch.AddExport(MefTestHelpers.CreateExport<IIssueLocationStore>(store3));
 
             var issueLocationStoreAggregatorImporter = new SingleObjectImporter<IIssueLocationStoreAggregator>();
             batch.AddPart(issueLocationStoreAggregatorImporter);
@@ -52,6 +63,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             container.Compose(batch);
                 
             issueLocationStoreAggregatorImporter.Import.Should().NotBeNull();
+
+            var actual = (IssueLocationStoreAggregator)issueLocationStoreAggregatorImporter.Import;
+            actual.LocationStores.Count.Should().Be(3);
+            actual.LocationStores.Should().BeEquivalentTo(new[] { store1, store2, store3 });
         }
 
         [TestMethod]
