@@ -19,8 +19,7 @@
  */
 
 using System;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
+using System.ComponentModel.Composition.Primitives;
 using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -49,21 +48,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         [TestMethod]
         public void MefCtor_CheckIsExported_RequestHandlersAreImported()
         {
-            var requestHandler1 = CreateHandler("/path1");
-            var requestHandler2 = CreateHandler("/path2");
-
-            var batch = new CompositionBatch();
-
-            batch.AddExport(MefTestHelpers.CreateExport<IOwinPathRequestHandler>(requestHandler1));
-            batch.AddExport(MefTestHelpers.CreateExport<IOwinPathRequestHandler>(requestHandler2));
-            batch.AddExport(MefTestHelpers.CreateExport<ILogger>());
-
+            var handler1Export = CreateHandlerExport("/path1");
+            var handler2Export = CreateHandlerExport("/path2");
+            var loggerExport = MefTestHelpers.CreateExport<ILogger>();
+            
             var importer = new SingleObjectImporter<IOwinPipelineProcessor>();
-            batch.AddPart(importer);
 
-            using var catalog = new TypeCatalog(typeof(OwinPipelineProcessor));
-            using var container = new CompositionContainer(catalog);
-            container.Compose(batch);
+            MefTestHelpers.Compose(importer, typeof(OwinPipelineProcessor), handler1Export, handler2Export, loggerExport);
 
             importer.Import.Should().NotBeNull();
 
@@ -71,14 +62,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             actual.PathToHandlerMap.Count.Should().Be(2);
 
             actual.PathToHandlerMap.Keys.Should().BeEquivalentTo(new string[] { "/path1", "/path2"} );
-            actual.PathToHandlerMap["/path1"].Should().BeSameAs(requestHandler1);
-            actual.PathToHandlerMap["/path2"].Should().BeSameAs(requestHandler2);
+            actual.PathToHandlerMap["/path1"].Should().BeSameAs(handler1Export.Value);
+            actual.PathToHandlerMap["/path2"].Should().BeSameAs(handler2Export.Value);
 
-            IOwinPathRequestHandler CreateHandler(string path)
+            static Export CreateHandlerExport(string path)
             {
                 var handler = new Mock<IOwinPathRequestHandler>();
                 handler.Setup(x => x.ApiPath).Returns(path);
-                return handler.Object;
+                return MefTestHelpers.CreateExport<IOwinPathRequestHandler>(handler.Object);
             }
         }
 
