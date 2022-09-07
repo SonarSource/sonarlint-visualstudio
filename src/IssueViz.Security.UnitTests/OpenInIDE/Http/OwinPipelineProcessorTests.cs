@@ -19,7 +19,8 @@
  */
 
 using System;
-using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
 using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -35,14 +36,50 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
     [TestClass]
     public class OwinPipelineProcessorTests
     {
-        const string Origin = "http://origin";
+        private const string Origin = "http://origin";
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
+            // IOwinRequestHandlers are ImportMany -> optional
             MefTestHelpers.CheckTypeCanBeImported<OwinPipelineProcessor, IOwinPipelineProcessor>(
-                MefTestHelpers.CreateExport<IEnumerable<IOwinPathRequestHandler>>(Array.Empty<IOwinPathRequestHandler>()),
                 MefTestHelpers.CreateExport<ILogger>());
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported_RequestHandlersAreImported()
+        {
+            var requestHandler1 = CreateHandler("/path1");
+            var requestHandler2 = CreateHandler("/path2");
+
+            var batch = new CompositionBatch();
+
+            batch.AddExport(MefTestHelpers.CreateExport<IOwinPathRequestHandler>(requestHandler1));
+            batch.AddExport(MefTestHelpers.CreateExport<IOwinPathRequestHandler>(requestHandler2));
+            batch.AddExport(MefTestHelpers.CreateExport<ILogger>());
+
+            var importer = new SingleObjectImporter<IOwinPipelineProcessor>();
+            batch.AddPart(importer);
+
+            using var catalog = new TypeCatalog(typeof(OwinPipelineProcessor));
+            using var container = new CompositionContainer(catalog);
+            container.Compose(batch);
+
+            importer.Import.Should().NotBeNull();
+
+            var actual = (OwinPipelineProcessor)importer.Import;
+            actual.PathToHandlerMap.Count.Should().Be(2);
+
+            actual.PathToHandlerMap.Keys.Should().BeEquivalentTo(new string[] { "/path1", "/path2"} );
+            actual.PathToHandlerMap["/path1"].Should().BeSameAs(requestHandler1);
+            actual.PathToHandlerMap["/path2"].Should().BeSameAs(requestHandler2);
+
+            IOwinPathRequestHandler CreateHandler(string path)
+            {
+                var handler = new Mock<IOwinPathRequestHandler>();
+                handler.Setup(x => x.ApiPath).Returns(path);
+                return handler.Object;
+            }
         }
 
         [TestMethod]
