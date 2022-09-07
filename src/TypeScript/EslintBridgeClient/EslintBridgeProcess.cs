@@ -23,6 +23,7 @@ using System.Diagnostics;
 using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.JsTs;
@@ -68,6 +69,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         private readonly IFileSystem fileSystem;
         private readonly ILogger logger;
         private TaskCompletionSource<int> startTask;
+        private int retryCount = 0;
 
         internal Process Process;
 
@@ -92,10 +94,18 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             this.logger = logger;
         }
 
+        
+
         public Task<int> Start()
         {
+            if (retryCount >= 3)
+            {
+                throw new EslintBridgeProcessLaunchException("Some Error Message");
+            }
+
             lock (Lock)
             {
+
                 var shouldSpawnNewProcess = startTask == null ||
                                             startTask.Task.IsFaulted ||
                                             Process == null ||
@@ -117,7 +127,17 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                     startTask.SetException(ex);
                 }
 
-                return startTask.Task;
+                return startTask.Task
+                    .WithTimeout(TimeSpan.FromMilliseconds(2000))
+                    .ContinueWith(task =>
+                    {
+                        if (task.IsFaulted)
+                        {
+                            retryCount++;
+                        }
+
+                        return task.Result;
+                    });
             }
         }
 

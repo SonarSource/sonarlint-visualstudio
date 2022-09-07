@@ -133,6 +133,10 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                     shouldInitLinter = false;
                 }
             }
+            catch (Exception ex)
+            {
+                logger.WriteLine(ex.Message);
+            }
             finally
             {
                 serverInitLocker.Set();
