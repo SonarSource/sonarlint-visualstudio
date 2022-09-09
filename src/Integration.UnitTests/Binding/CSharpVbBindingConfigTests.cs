@@ -63,36 +63,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.SolutionLevelFilePaths.Last().Should().Be(additionalFile.Path);
         }
 
-//        [TestMethod]
-//        public void Save_FilesSaved()
-//        {
-//            // We can't mock the RuleSet class so we're testing Save by actually
-//            // writing to disk.
-//            // Arrange
-//            var testDir = Path.Combine(TestContext.DeploymentDirectory, TestContext.TestName);
-//            Directory.CreateDirectory(testDir);
+        [TestMethod]
+        public void Save_FilesSaved()
+        {
+            // We can't mock the RuleSet class so we're testing Save by actually
+            // writing to disk.
+            // Arrange
+            var testDir = Path.Combine(TestContext.DeploymentDirectory, TestContext.TestName);
+            Directory.CreateDirectory(testDir);
 
-//            var rulesetFullPath = Path.Combine(testDir, "savedRuleSet.txt");
-//            var additionalFileFullPath = Path.Combine(testDir, "additionalFile.txt");
+            var rulesetFullPath = Path.Combine(testDir, "savedRuleSet.txt");
+            var additionalFileFullPath = Path.Combine(testDir, "additionalFile.txt");
 
-//            var ruleSet = new FilePathAndContent<RuleSet>(rulesetFullPath, new CoreRuleSet());
-//            var additionalFile = new FilePathAndContent<SonarLintConfiguration>(additionalFileFullPath, new SonarLintConfiguration());
+            var ruleSet = new FilePathAndContent<RuleSet>(rulesetFullPath, new CoreRuleSet());
+            var additionalFile = new FilePathAndContent<SonarLintConfiguration>(additionalFileFullPath, new SonarLintConfiguration());
 
-//            var testSubject = new CSharpVBBindingConfig(ruleSet, additionalFile);
+            var testSubject = new CSharpVBBindingConfig(ruleSet, additionalFile);
 
-//            // Act
-//            testSubject.Save();
+            // Act
+            testSubject.Save();
 
-//            // Assert
-//            File.Exists(rulesetFullPath).Should().BeTrue();
-//            File.Exists(additionalFileFullPath).Should().BeTrue();
+            // Assert
+            File.Exists(rulesetFullPath).Should().BeTrue();
+            File.Exists(additionalFileFullPath).Should().BeTrue();
 
-//            var savedAdditionalFile = File.ReadAllText(additionalFileFullPath);
-//            savedAdditionalFile.Should().Be(@"<?xml version=""1.0"" encoding=""utf-8""?>
-//<AnalysisInput xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
-//  <Settings />
-//  <Rules />
-//</AnalysisInput>");
-       // }
+            var savedAdditionalFile = File.ReadAllText(additionalFileFullPath);
+            savedAdditionalFile.Should().Be(@"<?xml version=""1.0"" encoding=""utf-8""?>
+<AnalysisInput xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">
+  <Settings />
+  <Rules />
+</AnalysisInput>");
+        }
     }
 }

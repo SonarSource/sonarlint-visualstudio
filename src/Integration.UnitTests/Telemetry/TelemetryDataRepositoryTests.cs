@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
 
             // Assert
             fileContents.ToString().Should().Be(@"<?xml version=""1.0"" encoding=""utf-16""?>
-<TelemetryData xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+<TelemetryData xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">
   <IsAnonymousDataShared>true</IsAnonymousDataShared>
   <NumberOfDaysOfUse>0</NumberOfDaysOfUse>
   <InstallationDate>0001-01-01T00:00:00.0000000+00:00</InstallationDate>
@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Arrange
             var fileContents = new StringBuilder(@"<?xml version=""1.0"" encoding=""utf-16""?>
-<TelemetryData xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+<TelemetryData  xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">
   <IsAnonymousDataShared>false</IsAnonymousDataShared>
   <NumberOfDaysOfUse>10</NumberOfDaysOfUse>
   <InstallationDate>2017-03-15T06:15:42.1234567+01:00</InstallationDate>
@@ -182,7 +182,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Arrange
             var fileContents = new StringBuilder(@"<?xml version=""1.0"" encoding=""utf-16""?>
-<TelemetryData xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+<TelemetryData  xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">
   <IsAnonymousDataShared>false</IsAnonymousDataShared>
   <NumberOfDaysOfUse>10</NumberOfDaysOfUse>
   <InstallationDate>2010-03-15T06:15:42.1234567+01:00</InstallationDate>
@@ -212,7 +212,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             var newLastUploadDate = new DateTimeOffset(new DateTime(2019, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1));
             fileContents.Clear();
             fileContents.Append($@"<?xml version=""1.0"" encoding=""utf-16""?>
-<TelemetryData xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+<TelemetryData  xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">
   <IsAnonymousDataShared>{newIsAnonymousDataShared.ToString().ToLower()}</IsAnonymousDataShared>
   <NumberOfDaysOfUse>{newDaysOfUse}</NumberOfDaysOfUse>
   <InstallationDate>{newInstallationDate.ToString("o")}</InstallationDate>
@@ -297,7 +297,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         public void Can_Read_Old_TelemetryXml()
         {
             var fileContents = new StringBuilder(@"<?xml version=""1.0"" encoding=""utf-8""?>
-<TelemetryData xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+<TelemetryData  xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">
  <IsAnonymousDataShared>false</IsAnonymousDataShared>
  <InstallationDate>1999-12-31T23:59:59.9999999</InstallationDate>
  <LastSavedAnalysisDate>1999-12-31T23:59:59.9999999</LastSavedAnalysisDate>

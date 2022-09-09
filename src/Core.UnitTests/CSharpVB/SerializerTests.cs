@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
 
             // Assert
             const string expected = @"<?xml version=""1.0"" encoding=""utf-8""?>
-<MyDataClass xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+<MyDataClass xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">
   <Value1>val1</Value1>
   <Value2>22</Value2>
 </MyDataClass>";
