@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var savedAdditionalFile = File.ReadAllText(additionalFileFullPath);
             savedAdditionalFile.Should().Be(@"<?xml version=""1.0"" encoding=""utf-8""?>
-<AnalysisInput xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+<AnalysisInput xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">
   <Settings />
   <Rules />
 </AnalysisInput>");
