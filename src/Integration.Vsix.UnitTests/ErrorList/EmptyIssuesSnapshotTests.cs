@@ -29,7 +29,7 @@ using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 {
     [TestClass]
-    internal class EmptyIssuesSnapshotTests
+    public class EmptyIssuesSnapshotTests
     {
         [TestMethod]
         [DataRow("")]
@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             testSubject.AnalyzedFilePath.Should().Be("file1");
 
             var updatedSnapshot = testSubject.CreateUpdatedSnapshot("file2");
-            updatedSnapshot.AnalyzedFilePath.Should().Be("file");
+            updatedSnapshot.AnalyzedFilePath.Should().Be("file2");
             updatedSnapshot.Should().BeSameAs(testSubject);
         }
 

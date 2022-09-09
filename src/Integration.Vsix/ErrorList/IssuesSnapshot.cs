@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// <remarks>
         /// Note about object identities:
         /// * the caller *cannot* rely on the identity of the snapshot object being preserved
-        /// * the call { /* no-op */ }er *can* rely on the identity of individual issues being preserved
+        /// * the caller *can* rely on the identity of individual issues being preserved
         /// </remarks>
         IIssuesSnapshot GetUpdatedSnapshot();
     }
