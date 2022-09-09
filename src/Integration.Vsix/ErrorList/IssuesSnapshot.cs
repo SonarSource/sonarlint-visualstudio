@@ -57,7 +57,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// <summary>
         /// Returns all of the location visualizations (primary and secondary) that are in the specified file
         /// </summary>
-        /// <returns></returns>
         IEnumerable<IAnalysisIssueLocationVisualization> GetLocationsVizsForFile(string filePath);
 
         /// <summary>
@@ -74,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// <remarks>
         /// Note about object identities:
         /// * the caller *cannot* rely on the identity of the snapshot object being preserved
-        /// * the caller *can* rely on the identity of individual issues being preserved
+        /// * the call { /* no-op */ }er *can* rely on the identity of individual issues being preserved
         /// </remarks>
         IIssuesSnapshot GetUpdatedSnapshot();
     }
