@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
 using EnvDTE80;
@@ -28,8 +27,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Helpers;
+using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -47,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// See the README.md in this folder for more information
     /// </para>
     /// </remarks>
-    internal class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>, IDisposable
+    internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>, IDisposable
     {
         private readonly DTE2 dte;
         internal /* for testing */ TaggerProvider Provider { get; }
@@ -57,18 +56,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ITextDocument document;
         private readonly string charset;
         private readonly ILogger logger;
-        private readonly IIssuesFilter issuesFilter;
         private readonly ISonarErrorListDataSource sonarErrorDataSource;
-        private readonly IAnalysisIssueVisualizationConverter converter;
         private readonly IVsSolution5 vsSolution;
+        private readonly IIssueConsumerFactory issueConsumerFactory;
 
         public string FilePath { get; private set; }
         internal /* for testing */ IssuesSnapshotFactory Factory { get; }
 
-        public TextBufferIssueTracker(DTE2 dte, TaggerProvider provider, ITextDocument document,
-            IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
-            ISonarErrorListDataSource sonarErrorDataSource, IAnalysisIssueVisualizationConverter converter,
-            IVsSolution5 vsSolution, ILogger logger)
+        public TextBufferIssueTracker(DTE2 dte,
+            TaggerProvider provider,
+            ITextDocument document,
+            IEnumerable<AnalysisLanguage> detectedLanguages,
+            ISonarErrorListDataSource sonarErrorDataSource,
+            IVsSolution5 vsSolution,
+            IIssueConsumerFactory issueConsumerFactory,
+            ILogger logger)
         {
             this.dte = dte;
 
@@ -77,10 +79,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.detectedLanguages = detectedLanguages;
             this.sonarErrorDataSource = sonarErrorDataSource;
-            this.converter = converter;
             this.vsSolution = vsSolution;
+            this.issueConsumerFactory = issueConsumerFactory;
             this.logger = logger;
-            this.issuesFilter = issuesFilter;
 
             this.document = document;
             this.FilePath = document.FilePath;
@@ -113,24 +114,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        protected virtual /* for testing */ IEnumerable<IAnalysisIssueVisualization> TranslateSpans(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot)
-        {
-            var issuesWithTranslatedSpans = issues
-                .Where(x => x.Span.HasValue)
-                .Select(x =>
-                {
-                    var oldSpan = x.Span.Value;
-                    var newSpan = oldSpan.TranslateTo(activeSnapshot, SpanTrackingMode.EdgeExclusive);
-                    x.Span = oldSpan.Length == newSpan.Length ? newSpan : (SnapshotSpan?) null;
-                    return x;
-                })
-                .Where(x => x.Span.HasValue)
-                .Union(issues.Where(i => i.IsFileLevel()))
-                .ToArray();
-
-            return issuesWithTranslatedSpans;
-        }
-
         private void SnapToNewSnapshot(IIssuesSnapshot newSnapshot)
         {
             // Tell our factory to snap to a new snapshot.
@@ -139,12 +122,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             sonarErrorDataSource.RefreshErrorList(Factory);
         }
 
-        #region Daemon interaction
-
         public void RequestAnalysis(IAnalyzerOptions options)
         {
             FilePath = document.FilePath; // Refresh the stored file path in case the document has been renamed
-            var issueConsumer = new AccumulatingIssueConsumer(textBuffer.CurrentSnapshot, FilePath, HandleNewIssues, converter);
+
+            var projectName = GetProjectName();
+            var projectGuid = GetProjectGuid();
+
+            var issueConsumer = issueConsumerFactory.Create(document, projectName, projectGuid, SnapToNewSnapshot);
 
             // Call the consumer with no analysis issues to immediately clear issies for this file
             // from the error list
@@ -152,31 +137,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             Provider.RequestAnalysis(FilePath, charset, detectedLanguages, issueConsumer, options);
         }
-
-        internal /* for testing */ void HandleNewIssues(IEnumerable<IAnalysisIssueVisualization> issues)
-        {
-            var filteredIssues = RemoveSuppressedIssues(issues);
-
-            // The text buffer might have changed since the analysis was triggered, so translate
-            // all issues to the current snapshot.
-            // See bug #1487: https://github.com/SonarSource/sonarlint-visualstudio/issues/1487
-            var translatedIssues = TranslateSpans(filteredIssues, textBuffer.CurrentSnapshot);
-
-            var newSnapshot = new IssuesSnapshot(GetProjectName(), GetProjectGuid(), FilePath, translatedIssues);
-            SnapToNewSnapshot(newSnapshot);
-        }
-
-        private IEnumerable<IAnalysisIssueVisualization> RemoveSuppressedIssues(IEnumerable<IAnalysisIssueVisualization> issues)
-        {
-            var filterableIssues = issues.OfType<IFilterableIssue>().ToArray();
-
-            var filteredIssues = issuesFilter.Filter(filterableIssues);
-            Debug.Assert(filteredIssues.All(x => x is IAnalysisIssueVisualization), "Not expecting the issue filter to change the list item type");
-
-            return filteredIssues.OfType<IAnalysisIssueVisualization>().ToArray();
-        }
-
-        #endregion
 
         private string GetProjectName() => GetProject()?.Name ?? "{none}";
 
