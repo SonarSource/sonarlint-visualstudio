@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.FilePath = document.FilePath;
             this.charset = document.Encoding.WebName;
 
-            this.Factory = new IssuesSnapshotFactory(EmptyIssuesSnapshot.Create(FilePath));
+            this.Factory = new IssuesSnapshotFactory(FilePath);
 
             document.FileActionOccurred += SafeOnFileActionOccurred;
 

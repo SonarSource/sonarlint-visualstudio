@@ -24,7 +24,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
+using static SonarLint.VisualStudio.Integration.Vsix.ErrorList.IssuesSnapshotFactory;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 {
@@ -37,26 +37,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         [DataRow(null)]
         public void Create_MissingFilePath_Throws(string filePath)
         {
-            Action act = () => EmptyIssuesSnapshot.Create(filePath);
+            Action act = () => CreateEmptySnapshot(filePath);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("filePath");
         }
 
         [TestMethod]
         public void Create_AnalysisRunId_IsNotEmptyGuid()
-            => EmptyIssuesSnapshot.Create("any").AnalysisRunId.Should().NotBe(Guid.Empty);
+            => CreateEmptySnapshot("any").AnalysisRunId.Should().NotBe(Guid.Empty);
 
         [TestMethod]
         public void Create_AnalyzedFilePath()
-            => EmptyIssuesSnapshot.Create("c:\\a\\b.txt").AnalyzedFilePath.Should().Be("c:\\a\\b.txt");
+            => CreateEmptySnapshot("c:\\a\\b.txt").AnalyzedFilePath.Should().Be("c:\\a\\b.txt");
 
         [TestMethod]
         public void EmptyIssuesSnapshot_FilesInSnapshot_IsExpected() 
-            => EmptyIssuesSnapshot.Create("my file").FilesInSnapshot.Should().BeEquivalentTo(new[] { "my file" });
+            => CreateEmptySnapshot("my file").FilesInSnapshot.Should().BeEquivalentTo(new[] { "my file" });
 
         [TestMethod]
         public void EmptyIssuesSnapshot_CreateUpdateShapshot_UpdatesFileName()
         {
-            var testSubject = EmptyIssuesSnapshot.Create("file1");
+            var testSubject = CreateEmptySnapshot("file1");
             testSubject.AnalyzedFilePath.Should().Be("file1");
 
             var updatedSnapshot = testSubject.CreateUpdatedSnapshot("file2");
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         [TestMethod]
         public void EmptyIssuesSnapshot_GetUpdatedShapshot_ReturnsExpected()
         {
-            var testSubject = EmptyIssuesSnapshot.Create("any");
+            var testSubject = CreateEmptySnapshot("any");
 
             var updatedSnapshot = testSubject.GetUpdatedSnapshot();
             updatedSnapshot.Should().BeSameAs(testSubject);
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         [TestMethod]
         public void EmptyIssuesSnapshot_IsEmpty()
         {
-            var testSubject = EmptyIssuesSnapshot.Create("my file");
+            var testSubject = CreateEmptySnapshot("my file");
 
             testSubject.Count.Should().Be(0);
             testSubject.Issues.Count().Should().Be(0);
@@ -87,15 +87,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 
         [TestMethod]
         public void EmptyIssuesSnapshot_ITableEntriesSnapshot_Count_ReturnsZero()
-            => EmptyIssuesSnapshot.Create("any").Count.Should().Be(0);
+            => CreateEmptySnapshot("any").Count.Should().Be(0);
 
         [TestMethod]
         public void EmptyIssuesSnapshot_ITableEntriesSnapshot_VersionNumber_ReturnsExpected()
-            => EmptyIssuesSnapshot.Create("any").VersionNumber.Should().Be(0);
+            => CreateEmptySnapshot("any").VersionNumber.Should().Be(0);
 
         [TestMethod]
         public void EmptyIssuesSnapshot_ITableEntriesSnapshot_IndexOf_ReturnsExpected()
-            => EmptyIssuesSnapshot.Create("any").IndexOf(100, Mock.Of<ITableEntriesSnapshot>()).Should().Be(-1);
+            => CreateEmptySnapshot("any").IndexOf(100, Mock.Of<ITableEntriesSnapshot>()).Should().Be(-1);
         
         [TestMethod]
         [DataRow(0, StandardTableKeyNames.DocumentName)]
@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         [DataRow(2, "any")]
         public void EmptyIssuesSnapshot_ITableEntriesSnapshot_TryGetValue_ReturnsFalse(int index, string keyName)
         {
-            var testSubject = EmptyIssuesSnapshot.Create("my file");
+            var testSubject = CreateEmptySnapshot("my file");
 
             var result = testSubject.TryGetValue(index, keyName, out var content);
             result.Should().BeFalse();
