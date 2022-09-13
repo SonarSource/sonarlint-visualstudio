@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 
         [TestMethod]
         public void EmptyIssuesSnapshot_ITableEntriesSnapshot_VersionNumber_ReturnsExpected()
-            => CreateEmptySnapshot("any").VersionNumber.Should().Be(0);
+            => CreateEmptySnapshot("any").VersionNumber.Should().Be(-1);
 
         [TestMethod]
         public void EmptyIssuesSnapshot_ITableEntriesSnapshot_IndexOf_ReturnsExpected()
