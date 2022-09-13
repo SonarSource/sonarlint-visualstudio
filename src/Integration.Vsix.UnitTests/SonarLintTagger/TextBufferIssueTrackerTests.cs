@@ -304,8 +304,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             testSubject = CreateTextBufferIssueTracker(issueConsumerFactory: issueConsumerFactory.Object);
 
-            testSubject.RequestAnalysis(Mock.Of<IAnalyzerOptions>());
-
             // The factory should have been called...
             issueConsumerFactory.Verify(x => x.Create(mockedJavascriptDocumentFooJs.Object, It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<PublishSnapshot>()), Times.Once);
 

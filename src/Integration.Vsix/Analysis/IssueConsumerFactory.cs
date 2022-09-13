@@ -27,10 +27,21 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
+    /// <summary>
+    /// Callback used by the issue consumer to notify when a new snapshot
+    /// is available i.e. the set of issues has changed.
+    /// </summary>
     internal delegate void PublishSnapshot(IIssuesSnapshot issuesSnapshot);
 
     internal interface IIssueConsumerFactory
     {
+        /// <summary>
+        /// Creates and returns a new issue consumer
+        /// </summary>
+        /// <remarks>
+        /// Instancing: a new issue consumer should be created for each analysis request
+        /// i.e. the lifetime of the issue consumer should be tied to that analysis.
+        /// </remarks>
         IIssueConsumer Create(ITextDocument textDocument, string projectName, Guid projectGuid, PublishSnapshot publishSnapshot);
     }
 
