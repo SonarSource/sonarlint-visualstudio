@@ -45,8 +45,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
                 CreateIssue("S111", startLine: 1, endLine: 1),
                 CreateIssue("S222", startLine: 2, endLine: 2)
             };
-
             var issuesToReturnFromFilter = new[]
+
             {
                 CreateIssue("xxx", startLine: 3, endLine: 3)
             };
@@ -255,7 +255,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         private static IEnumerable<IAnalysisIssueVisualization> PassthroughSpanTranslator(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot)
             => issues;
 
-        private class SnapshotPublisher
+        internal class SnapshotPublisher
         {
             public IIssuesSnapshot PublishedSnapshot { get; private set; }
 
