@@ -57,7 +57,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// <summary>
         /// Returns all of the location visualizations (primary and secondary) that are in the specified file
         /// </summary>
-        /// <returns></returns>
         IEnumerable<IAnalysisIssueLocationVisualization> GetLocationsVizsForFile(string filePath);
 
         /// <summary>
