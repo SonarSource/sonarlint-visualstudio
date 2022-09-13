@@ -34,10 +34,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
         /// Represents a snapshot with no issues
         /// </summary>
         /// <remarks>
-        /// There is a <see cref="TableEntriesSnapshotFactoryBase.EmptySnapshot"/>, which provides an empty
-        /// snapshot implementation, but we can't use it because we used inheritance rather than composition.
-        /// </remarks>
-        private sealed class EmptyIssuesSnapshot : IIssuesSnapshot
+        /// There is a <see cref="TableEntriesSnapshotFactoryBase.EmptySnapshot"/>, which
+        /// just derives from <see cref="TableEntriesSnapshotFactoryBase" /> like we are below.
+         /// </remarks>
+        private sealed class EmptyIssuesSnapshot : TableEntriesSnapshotBase, IIssuesSnapshot
         {
             public EmptyIssuesSnapshot(string filePath)
             {
@@ -74,28 +74,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
             public IIssuesSnapshot GetUpdatedSnapshot() => this;
 
             #endregion IIssuesSnaphost members
-
-            #region ITableEntriesSnapshot members
-
-            public int Count => 0;
-
-            public int VersionNumber => 0;
-
-            public int IndexOf(int currentIndex, ITableEntriesSnapshot newSnapshot) => -1;
-
-            public void StartCaching() { /* no-op */ }
-
-            public void StopCaching() { /* no-op */ }
-
-            public bool TryGetValue(int index, string keyName, out object content)
-            {
-                content = null;
-                return false;
-            }
-
-            public void Dispose() { /* no-op */ }
-
-            #endregion ITableEntriesSnapshot
         }
     }
 }
