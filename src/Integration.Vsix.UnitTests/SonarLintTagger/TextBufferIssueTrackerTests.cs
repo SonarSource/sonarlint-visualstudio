@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         private static IIssueConsumerFactory CreateValidIssueConsumerFactory()
         {
             var issueConsumerFactory = new Mock<IIssueConsumerFactory>();
-            issueConsumerFactory.Setup(x => x.Create(It.IsAny<ITextDocument>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<PublishSnapshot>()))
+            issueConsumerFactory.Setup(x => x.Create(It.IsAny<ITextDocument>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<SnapshotChangedHandler>()))
                 .Returns(Mock.Of<IIssueConsumer>());
 
             return issueConsumerFactory.Object;
@@ -304,11 +304,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             testSubject = CreateTextBufferIssueTracker(issueConsumerFactory: issueConsumerFactory.Object);
 
-            // The factory should have been called...
-            issueConsumerFactory.Verify(x => x.Create(mockedJavascriptDocumentFooJs.Object, It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<PublishSnapshot>()), Times.Once);
-
-            // and the return issue consumer should have been cleared
-            issueConsumer.Verify(x => x.Accept("foo.js", Enumerable.Empty<IAnalysisIssue>()), Times.Once);
+            VerifyNewIssueConsumerWasCreated(issueConsumerFactory);
+            VerifyExistingIssuesWereCleared(issueConsumer);
         }
 
         [TestMethod]
@@ -324,11 +321,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             testSubject.RequestAnalysis(Mock.Of<IAnalyzerOptions>());
 
-            // The factory should have been called...
-            issueConsumerFactory.Verify(x => x.Create(mockedJavascriptDocumentFooJs.Object, It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<PublishSnapshot>()), Times.Once);
-
-            // and the return issue consumer should have been cleared
-            issueConsumer.Verify(x => x.Accept("foo.js", Enumerable.Empty<IAnalysisIssue>()), Times.Once);
+            VerifyNewIssueConsumerWasCreated(issueConsumerFactory);
+            VerifyExistingIssuesWereCleared(issueConsumer);
         }
 
         [TestMethod]
@@ -350,7 +344,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             testSubject.RequestAnalysis(Mock.Of<IAnalyzerOptions>());
 
             issueConsumerFactory.Verify(x => x.Create(mockedJavascriptDocumentFooJs.Object, "{none}",
-                Guid.Empty, It.IsAny<PublishSnapshot>()), Times.Once);
+                Guid.Empty, It.IsAny<SnapshotChangedHandler>()), Times.Once);
         }
 
         private static Mock<IIssueConsumerFactory> CreateIssueConsumerFactory(IIssueConsumer consumerToReturn = null)
@@ -358,11 +352,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             consumerToReturn ??= Mock.Of<IIssueConsumer>();
 
             var issueConsumerFactory = new Mock<IIssueConsumerFactory>();
-            issueConsumerFactory.Setup(x => x.Create(It.IsAny<ITextDocument>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<PublishSnapshot>()))
+            issueConsumerFactory.Setup(x => x.Create(It.IsAny<ITextDocument>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<SnapshotChangedHandler>()))
                 .Returns(consumerToReturn);
 
             return issueConsumerFactory;
         }
+
+        private static void VerifyNewIssueConsumerWasCreated(Mock<IIssueConsumerFactory> issueConsumerFactory)
+            => issueConsumerFactory.Verify(x => x.Create(It.IsAny<ITextDocument>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<SnapshotChangedHandler>()), Times.Once);
+
+        private static void VerifyExistingIssuesWereCleared(Mock<IIssueConsumer> issueConsumer)
+            // Check that issue consumer has been been cleared by passing an empty list
+            => issueConsumer.Verify(x => x.Accept("foo.js", Enumerable.Empty<IAnalysisIssue>()), Times.Once);
 
         #endregion RequestAnalysis
 

@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             private readonly string projectName;
             private readonly Guid projectGuid;
             private readonly IIssuesFilter issuesFilter;
-            private readonly PublishSnapshot publishSnapshot;
+            private readonly SnapshotChangedHandler onSnapshotChanged;
 
             private readonly TranslateSpans translateSpans;
 
@@ -50,8 +50,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 string projectName,
                 Guid projectGuid,
                 IIssuesFilter issuesFilter,
-                PublishSnapshot publishSnapshot)
-                : this (textDocument, projectName, projectGuid, issuesFilter, publishSnapshot, DoTranslateSpans)
+                SnapshotChangedHandler onSnapshotChanged)
+                : this (textDocument, projectName, projectGuid, issuesFilter, onSnapshotChanged, DoTranslateSpans)
             {
             }
 
@@ -59,14 +59,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 string projectName,
                 Guid projectGuid,
                 IIssuesFilter issuesFilter,
-                PublishSnapshot publishSnapshot,
+                SnapshotChangedHandler onSnapshotChanged,
                 TranslateSpans translateSpans)
             {
                 this.textDocument = textDocument;
                 this.projectName = projectName;
                 this.projectGuid = projectGuid;
                 this.issuesFilter = issuesFilter;
-                this.publishSnapshot = publishSnapshot;
+                this.onSnapshotChanged = onSnapshotChanged;
 
                 this.translateSpans = translateSpans;
             }
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 var translatedIssues = translateSpans(filteredIssues, textDocument.TextBuffer.CurrentSnapshot);
 
                 var newSnapshot = new IssuesSnapshot(projectName, projectGuid, textDocument.FilePath, translatedIssues);
-                publishSnapshot(newSnapshot);
+                onSnapshotChanged(newSnapshot);
             }
 
             private IEnumerable<IAnalysisIssueVisualization> RemoveSuppressedIssues(IEnumerable<IAnalysisIssueVisualization> issues)

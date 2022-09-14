@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
@@ -52,18 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
 
             consumer.Should().NotBeNull();
 
-            // Smoke test that the consumer was initialized - check something is published
-            // Note: this means the issues passed need to be valid
-            var analysisIssues = new IAnalysisIssue[]
-            {
-                new DummyAnalysisIssue
-                {
-                    RuleKey = "S123",
-                    PrimaryLocation = new DummyAnalysisIssueLocation { TextRange = null }
-                }
-            };
-
-            consumer.Accept("file.txt", analysisIssues);
+            consumer.Accept("file.txt", Array.Empty<IAnalysisIssue>());
             publishedSnaphot.Should().NotBeNull();
         }
 

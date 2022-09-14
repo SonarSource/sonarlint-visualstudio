@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Callback((string file, Action<CancellationToken> analyze, int timeout) => analyze(CancellationToken.None));
 
             var issueConsumerFactory = new Mock<IIssueConsumerFactory>();
-            issueConsumerFactory.Setup(x => x.Create(It.IsAny<ITextDocument>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<PublishSnapshot>()))
+            issueConsumerFactory.Setup(x => x.Create(It.IsAny<ITextDocument>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<SnapshotChangedHandler>()))
                 .Returns(Mock.Of<IIssueConsumer>());
 
             this.provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, mockAnalyzerController.Object, serviceProvider,
