@@ -32,13 +32,11 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
-using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -60,7 +58,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal readonly ISonarErrorListDataSource sonarErrorDataSource;
         internal readonly ITextDocumentFactoryService textDocumentFactoryService;
-        internal readonly IIssuesFilter issuesFilter;
         internal readonly DTE2 dte;
 
         private readonly ISet<IIssueTracker> issueTrackers = new HashSet<IIssueTracker>();
@@ -68,34 +65,32 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IAnalyzerController analyzerController;
         private readonly ISonarLanguageRecognizer languageRecognizer;
         private readonly IVsStatusbar vsStatusBar;
-        private readonly IAnalysisIssueVisualizationConverter converter;
         private readonly ITaggableBufferIndicator taggableBufferIndicator;
         private readonly ILogger logger;
         private readonly IScheduler scheduler;
         private readonly IVsSolution5 vsSolution;
+        private readonly IIssueConsumerFactory issueConsumerFactory;
 
         [ImportingConstructor]
         internal TaggerProvider(ISonarErrorListDataSource sonarErrorDataSource,
             ITextDocumentFactoryService textDocumentFactoryService,
-            IIssuesFilter issuesFilter,
             IAnalyzerController analyzerController,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             ISonarLanguageRecognizer languageRecognizer,
             IAnalysisRequester analysisRequester,
-            IAnalysisIssueVisualizationConverter converter,
             ITaggableBufferIndicator taggableBufferIndicator,
+            IIssueConsumerFactory issueConsumerFactory,
             ILogger logger,
             IScheduler scheduler)
         {
             this.sonarErrorDataSource = sonarErrorDataSource;
             this.textDocumentFactoryService = textDocumentFactoryService;
-            this.issuesFilter = issuesFilter;
 
             this.analyzerController = analyzerController;
             this.dte = serviceProvider.GetService<SDTE, DTE2>();
             this.languageRecognizer = languageRecognizer;
-            this.converter = converter;
             this.taggableBufferIndicator = taggableBufferIndicator;
+            this.issueConsumerFactory = issueConsumerFactory;
             this.logger = logger;
             this.scheduler = scheduler;
 
@@ -187,7 +182,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         private TextBufferIssueTracker InternalCreateTextBufferIssueTracker(ITextDocument textDocument, IEnumerable<AnalysisLanguage> analysisLanguages) =>
-            new TextBufferIssueTracker(dte, this, textDocument, analysisLanguages, issuesFilter, sonarErrorDataSource, converter, vsSolution, logger);
+            new TextBufferIssueTracker(dte, this, textDocument, analysisLanguages, sonarErrorDataSource, vsSolution, issueConsumerFactory, logger);
 
         #endregion IViewTaggerProvider members
 

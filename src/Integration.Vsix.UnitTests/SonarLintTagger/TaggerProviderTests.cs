@@ -40,7 +40,6 @@ using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
-using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -110,9 +109,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockAnalysisScheduler.Setup(x => x.Schedule(It.IsAny<string>(), It.IsAny<Action<CancellationToken>>(), It.IsAny<int>()))
                 .Callback((string file, Action<CancellationToken> analyze, int timeout) => analyze(CancellationToken.None));
 
-            var issuesFilter = new Mock<IIssuesFilter>();
-            this.provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, issuesFilter.Object, mockAnalyzerController.Object, serviceProvider,
-                mockSonarLanguageRecognizer.Object, mockAnalysisRequester.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), mockTaggableBufferIndicator.Object, logger, mockAnalysisScheduler.Object);
+            var issueConsumerFactory = new Mock<IIssueConsumerFactory>();
+            issueConsumerFactory.Setup(x => x.Create(It.IsAny<ITextDocument>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<SnapshotChangedHandler>()))
+                .Returns(Mock.Of<IIssueConsumer>());
+
+            this.provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, mockAnalyzerController.Object, serviceProvider,
+                mockSonarLanguageRecognizer.Object, mockAnalysisRequester.Object, mockTaggableBufferIndicator.Object, issueConsumerFactory.Object, logger, mockAnalysisScheduler.Object);
         }
 
         [TestMethod]
@@ -154,7 +156,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockTaggableBufferIndicator.Verify(x=> x.IsTaggable(doc.TextBuffer), Times.Once);
             mockTaggableBufferIndicator.Verify(x=> x.IsTaggable(It.IsAny<ITextBuffer>()), Times.Once);
         }
-
 
         [TestMethod]
         public void CreateTagger_SameDocument_ShouldUseSameSingletonManager()
