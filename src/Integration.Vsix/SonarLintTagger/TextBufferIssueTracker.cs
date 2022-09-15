@@ -21,17 +21,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
-using SonarLint.VisualStudio.IssueVisualization.Models;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -59,6 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISonarErrorListDataSource sonarErrorDataSource;
         private readonly IVsSolution5 vsSolution;
         private readonly IIssueConsumerFactory issueConsumerFactory;
+        private readonly IThreadHandling threadHandling;
 
         public string FilePath { get; private set; }
         internal /* for testing */ IssuesSnapshotFactory Factory { get; }
@@ -71,6 +75,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             IVsSolution5 vsSolution,
             IIssueConsumerFactory issueConsumerFactory,
             ILogger logger)
+            : this(dte, provider, document, detectedLanguages, sonarErrorDataSource,
+                  vsSolution, issueConsumerFactory, logger, new ThreadHandling())
+        { }
+        
+        internal /* for testing */ TextBufferIssueTracker(DTE2 dte,
+            TaggerProvider provider,
+            ITextDocument document,
+            IEnumerable<AnalysisLanguage> detectedLanguages,
+            ISonarErrorListDataSource sonarErrorDataSource,
+            IVsSolution5 vsSolution,
+            IIssueConsumerFactory issueConsumerFactory,
+            ILogger logger,
+            IThreadHandling threadHandling)
         {
             this.dte = dte;
 
@@ -82,6 +99,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.vsSolution = vsSolution;
             this.issueConsumerFactory = issueConsumerFactory;
             this.logger = logger;
+            this.threadHandling = threadHandling;
 
             this.document = document;
             this.FilePath = document.FilePath;
@@ -110,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Strings.Daemon_Editor_ERROR, ex);
+                logger.WriteLine(Strings.Analysis_ErrorTriggeringAnalysis, ex);
             }
         }
 
@@ -124,18 +142,38 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void RequestAnalysis(IAnalyzerOptions options)
         {
-            FilePath = document.FilePath; // Refresh the stored file path in case the document has been renamed
+            RequestAnalysisAsync(options).Forget();
+        }
 
-            var projectName = GetProjectName();
-            var projectGuid = GetProjectGuid();
+        internal /* for testing */ async Task RequestAnalysisAsync(IAnalyzerOptions options)
+        {
+            try
+            {
+                string projectName = null;
+                Guid projectGuid = Guid.Empty;
 
-            var issueConsumer = issueConsumerFactory.Create(document, projectName, projectGuid, SnapToNewSnapshot);
+                await threadHandling.RunOnUIThread(() =>
+                {
+                    projectName = GetProjectName();
+                    projectGuid = GetProjectGuid();
+                });
 
-            // Call the consumer with no analysis issues to immediately clear issies for this file
-            // from the error list
-            issueConsumer.Accept(FilePath, Enumerable.Empty<IAnalysisIssue>());
+                await threadHandling.SwitchToBackgroundThread();
 
-            Provider.RequestAnalysis(FilePath, charset, detectedLanguages, issueConsumer, options);
+                FilePath = document.FilePath; // Refresh the stored file path in case the document has been renamed
+
+                var issueConsumer = issueConsumerFactory.Create(document, projectName, projectGuid, SnapToNewSnapshot);
+
+                // Call the consumer with no analysis issues to immediately clear issues for this file
+                // from the error list
+                issueConsumer.Accept(FilePath, Enumerable.Empty<IAnalysisIssue>());
+
+                Provider.RequestAnalysis(FilePath, charset, detectedLanguages, issueConsumer, options);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(Strings.Analysis_ErrorTriggeringAnalysis, ex);
+            }
         }
 
         private string GetProjectName() => GetProject()?.Name ?? "{none}";

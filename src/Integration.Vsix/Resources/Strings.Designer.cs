@@ -19,7 +19,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Strings {
@@ -61,6 +61,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Analysis] Error triggering analysis: {0}.
+        /// </summary>
+        internal static string Analysis_ErrorTriggeringAnalysis {
+            get {
+                return ResourceManager.GetString("Analysis_ErrorTriggeringAnalysis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Connected mode detected..
         /// </summary>
         internal static string AnalyzerManager_InConnectedMode {
@@ -84,15 +93,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         internal static string CannotFindToolWindow {
             get {
                 return ResourceManager.GetString("CannotFindToolWindow", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Daemon error occurred in editor integration: {0}.
-        /// </summary>
-        internal static string Daemon_Editor_ERROR {
-            get {
-                return ResourceManager.GetString("Daemon_Editor_ERROR", resourceCulture);
             }
         }
         
