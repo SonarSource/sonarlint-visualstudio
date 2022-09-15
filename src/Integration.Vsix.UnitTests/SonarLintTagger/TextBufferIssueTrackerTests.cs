@@ -356,7 +356,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 .Throws(new InvalidOperationException("this is a test"));
 
             Func<Task> act = () => testSubject.RequestAnalysisAsync(Mock.Of<IAnalyzerOptions>());
-            act.Should().NotThrow<InvalidOperationException>();
+            act.Should().NotThrow();
         }
 
         [TestMethod]
