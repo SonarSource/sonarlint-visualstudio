@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using EnvDTE;
 using EnvDTE80;
 using FluentAssertions;
@@ -85,7 +86,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             return new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage,
-                mockSonarErrorDataSource.Object, vsSolution, issueConsumerFactory, logger);
+                mockSonarErrorDataSource.Object, vsSolution, issueConsumerFactory, logger,
+                new NoOpThreadHandler());
         }
 
         private static IIssueConsumerFactory CreateValidIssueConsumerFactory()
@@ -129,27 +131,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         }
 
         [TestMethod]
-        public void Ctor_FailsToRetrieveProjectGuid_NonCriticalException_ExceptionCaught()
+        public void Ctor_ExceptionInInitialAnalysisRequest_IsNotPropagated()
         {
             var mockVsSolution = new Mock<IVsSolution5>();
+
             mockVsSolution.Setup(x => x.GetGuidOfProjectFile("MyProject.csproj"))
-                .Throws(new Exception("this is a test"));
-
-            Action act = () => CreateTextBufferIssueTracker(mockVsSolution.Object);
-
-            act.Should().NotThrow();
-        }
-
-        [TestMethod]
-        public void Ctor_FailsToRetrieveProjectGuid_CriticalException_ExceptionThrown()
-        {
-            var mockVsSolution = new Mock<IVsSolution5>();
-            mockVsSolution.Setup(x => x.GetGuidOfProjectFile("MyProject.csproj"))
+                // Note: even critical exceptions are not propagated, because the
+                // analysis is done via RequestAnalysisAsync().Forget() 
                 .Throws(new StackOverflowException("this is a test"));
 
             Action act = () => CreateTextBufferIssueTracker(mockVsSolution.Object);
 
-            act.Should().ThrowExactly<StackOverflowException>();
+            act.Should().NotThrow();
+            mockVsSolution.Verify(x => x.GetGuidOfProjectFile("MyProject.csproj"), Times.Once);
         }
 
         [TestMethod]
@@ -202,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         {
             mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8",
                 new[] { AnalysisLanguage.Javascript }, It.IsAny<IIssueConsumer>(),
-                null /* no expecting any options when a new tagger is added */,
+                null /* not expecting any options when a new tagger is added */,
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
@@ -309,24 +303,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         }
 
         [TestMethod]
-        public void RequestAnalysis_IssueConsumerIsCreatedAndCleared()
+        public async Task RequestAnalysis_IssueConsumerIsCreatedAndCleared()
         {
             var issueConsumer = new Mock<IIssueConsumer>();
             var issueConsumerFactory = CreateIssueConsumerFactory(issueConsumer.Object);
 
             testSubject = CreateTextBufferIssueTracker(issueConsumerFactory: issueConsumerFactory.Object);
 
+            // Clear the invocations that occurred during construction
             issueConsumer.Invocations.Clear();
             issueConsumerFactory.Invocations.Clear();
 
-            testSubject.RequestAnalysis(Mock.Of<IAnalyzerOptions>());
+            await testSubject.RequestAnalysisAsync(Mock.Of<IAnalyzerOptions>());
 
             VerifyNewIssueConsumerWasCreated(issueConsumerFactory);
             VerifyExistingIssuesWereCleared(issueConsumer);
         }
 
         [TestMethod]
-        public void RequestAnalysis_FileHasNoAssociatedProject_NoExceptionIsThrown()
+        public async Task RequestAnalysis_FileHasNoAssociatedProject_NoExceptionIsThrown()
         {
             mockSolution.Reset();
             mockSolution
@@ -338,13 +333,47 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             testSubject = CreateTextBufferIssueTracker(issueConsumerFactory: issueConsumerFactory.Object);
 
+            // Clear the invocations that occurred during construction
             issueConsumer.Invocations.Clear();
             issueConsumerFactory.Invocations.Clear();
 
-            testSubject.RequestAnalysis(Mock.Of<IAnalyzerOptions>());
+            await testSubject.RequestAnalysisAsync(Mock.Of<IAnalyzerOptions>());
 
             issueConsumerFactory.Verify(x => x.Create(mockedJavascriptDocumentFooJs.Object, "{none}",
                 Guid.Empty, It.IsAny<SnapshotChangedHandler>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void RequestAnalysis_NonCriticalException_IsSuppressed()
+        {
+            var issueConsumer = new Mock<IIssueConsumer>();
+            var issueConsumerFactory = CreateIssueConsumerFactory(issueConsumer.Object);
+
+            // Clear the invocations that occurred during construction
+            testSubject = CreateTextBufferIssueTracker(issueConsumerFactory: issueConsumerFactory.Object);
+
+            issueConsumer.Setup(x => x.Accept(It.IsAny<string>(), It.IsAny<IEnumerable<IAnalysisIssue>>()))
+                .Throws(new InvalidOperationException("this is a test"));
+
+            Func<Task> act = () => testSubject.RequestAnalysisAsync(Mock.Of<IAnalyzerOptions>());
+            act.Should().NotThrow<InvalidOperationException>();
+        }
+
+        [TestMethod]
+        public void RequestAnalysis_CriticalException_IsNotSuppressed()
+        {
+            var issueConsumer = new Mock<IIssueConsumer>();
+            var issueConsumerFactory = CreateIssueConsumerFactory(issueConsumer.Object);
+
+            // Clear the invocations that occurred during construction
+            testSubject = CreateTextBufferIssueTracker(issueConsumerFactory: issueConsumerFactory.Object);
+
+            issueConsumer.Setup(x => x.Accept(It.IsAny<string>(), It.IsAny<IEnumerable<IAnalysisIssue>>()))
+                .Throws(new StackOverflowException("this is a test"));
+
+            Func<Task> act = () => testSubject.RequestAnalysisAsync(Mock.Of<IAnalyzerOptions>());
+            act.Should().Throw<StackOverflowException>()
+                .And.Message.Should().Be("this is a test");
         }
 
         private static Mock<IIssueConsumerFactory> CreateIssueConsumerFactory(IIssueConsumer consumerToReturn = null)
