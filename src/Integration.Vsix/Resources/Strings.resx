@@ -129,8 +129,8 @@
     <value>Cannot find tool window with the specified guid: {0}</value>
     <comment>Exception message, {0} guid</comment>
   </data>
-  <data name="Daemon_Editor_ERROR" xml:space="preserve">
-    <value>Daemon error occurred in editor integration: {0}</value>
+  <data name="Analysis_ErrorTriggeringAnalysis" xml:space="preserve">
+    <value>[Analysis] Error triggering analysis: {0}</value>
     <comment>Output window message</comment>
   </data>
   <data name="Daemon_InitializationComplete" xml:space="preserve">
