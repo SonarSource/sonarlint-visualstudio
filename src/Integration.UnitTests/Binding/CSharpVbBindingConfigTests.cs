@@ -93,6 +93,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 //  <Settings />
 //  <Rules />
 //</AnalysisInput>");
-        }
+       // }
     }
 }
