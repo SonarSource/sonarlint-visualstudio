@@ -22,11 +22,13 @@ using System;
 using System.Diagnostics;
 using System.IO.Abstractions;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.JsTs;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Helpers;
 
@@ -62,19 +64,25 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
     internal sealed class EslintBridgeProcess : IEslintBridgeProcess
     {
+        internal const int MaxNumberOfRetries = 3;
+        private const int MaxStartupTimeoutInMilliseconds = 2000;
+
         private static readonly object Lock = new object();
 
         private readonly string eslintBridgeStartupScriptPath;
         private readonly ICompatibleNodeLocator compatibleNodeLocator;
         private readonly IFileSystem fileSystem;
         private readonly ILogger logger;
+
         private TaskCompletionSource<int> startTask;
-        private int retryCount = 0;
+        private int retryCount;
 
         internal Process Process;
 
         private const int NO_PROCESS = 0;
         int processId = NO_PROCESS;
+        private CancellationTokenSource cancellationTokenSource;
+        private CancellationTokenRegistration cancelledHandle;
 
         internal EslintBridgeProcess(string eslintBridgeStartupScriptPath,
             ICompatibleNodeLocator compatibleNodeLocator,
@@ -94,18 +102,15 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             this.logger = logger;
         }
 
-        
-
         public Task<int> Start()
         {
-            if (retryCount >= 3)
+            if (retryCount >= MaxNumberOfRetries)
             {
-                throw new EslintBridgeProcessLaunchException("Some Error Message");
+                throw new EslintBridgeProcessLaunchException("eslint-bridge start up timed-out too many times");
             }
 
             lock (Lock)
             {
-
                 var shouldSpawnNewProcess = startTask == null ||
                                             startTask.Task.IsFaulted ||
                                             Process == null ||
@@ -117,6 +122,18 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 }
 
                 startTask = new TaskCompletionSource<int>();
+                cancellationTokenSource = new CancellationTokenSource();
+                cancelledHandle = cancellationTokenSource.Token.Register(() =>
+                {
+                    if (startTask.Task.IsCompleted)
+                    {
+                        return;
+                    }
+                    Stop();
+                    retryCount++;
+                    startTask.TrySetCanceled();
+                }, useSynchronizationContext: false);
+                cancellationTokenSource.CancelAfter(MaxStartupTimeoutInMilliseconds);
 
                 try
                 {
@@ -124,20 +141,10 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 }
                 catch (Exception ex)
                 {
-                    startTask.SetException(ex);
+                    startTask.TrySetException(ex);
                 }
 
-                return startTask.Task
-                    .WithTimeout(TimeSpan.FromMilliseconds(2000))
-                    .ContinueWith(task =>
-                    {
-                        if (task.IsFaulted)
-                        {
-                            retryCount++;
-                        }
-
-                        return task.Result;
-                    });
+                return startTask.Task;
             }
         }
 
@@ -195,7 +202,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         private void Process_Exited(object sender, EventArgs e)
         {
-            if(sender is Process terminatedProcess)
+            if (sender is Process terminatedProcess)
             {
                 logger.LogDebug($"[eslint-bridge] [process id: {terminatedProcess.Id}] Process exited.");
                 terminatedProcess.Exited -= Process_Exited;
@@ -220,7 +227,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 if (portNumber != 0)
                 {
                     logger.WriteLine(Resources.INFO_ServerStarted, processId, portNumber);
-                    startTask.SetResult(portNumber);
+                    startTask.TrySetResult(portNumber);
                 }
             }
         }
@@ -297,7 +304,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         private static string GetDefaultParameters()
         {
-            var workDir = PathHelper.GetTempDirForTask(true , "ESLintBridge", "workdir");
+            var workDir = PathHelper.GetTempDirForTask(true, "ESLintBridge", "workdir");
 
 
             /*
@@ -310,13 +317,15 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             sonarlint - when running in SonarLint (used to not compute metrics, highlighting, etc)
             Source: https://github.com/SonarSource/SonarJS/blob/0e83c667fc6bc1687111db9343de73f725c992ca/eslint-bridge/bin/server#L4 
             */
-            return $" \"0\" \"127.0.0.1\" \"{workDir}\" \"true\" \"true\""; 
+            return $" \"0\" \"127.0.0.1\" \"{workDir}\" \"true\" \"true\"";
         }
 
         private void ClearProcessData()
         {
             Process = null;
             processId = NO_PROCESS;
+            cancelledHandle.Dispose();
+            cancellationTokenSource?.Dispose();
         }
     }
 }

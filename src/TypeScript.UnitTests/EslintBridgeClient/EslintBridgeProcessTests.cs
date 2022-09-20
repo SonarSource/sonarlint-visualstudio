@@ -203,6 +203,32 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         }
 
         [TestMethod]
+        [Description("Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/3230")]
+        public async Task Start_ProcessStartsButFailsToAllocatePort_TaskTimesOut()
+        {
+            var fakeNodeExePath = CreateHangingScriptThatDoesNotPrintsPortNumber();
+            var nodeLocator = SetupNodeLocator(fakeNodeExePath);
+            var testSubject = CreateTestSubject(compatibleNodeLocator: nodeLocator.Object);
+
+            await VerifyStartupException<TaskCanceledException>(testSubject);
+        }
+
+        [TestMethod]
+        public async Task Start_ProcessStartTimesOut_RetriesAndEventuallyGivesUp()
+        {
+            var fakeNodeExePath = CreateHangingScriptThatDoesNotPrintsPortNumber();
+            var nodeLocator = SetupNodeLocator(fakeNodeExePath);
+            var testSubject = CreateTestSubject(compatibleNodeLocator: nodeLocator.Object);
+
+            for (var i = 0; i < EslintBridgeProcess.MaxNumberOfRetries; i++)
+            {
+                await VerifyStartupException<TaskCanceledException>(testSubject);
+            }
+
+            await VerifyStartupException<EslintBridgeProcessLaunchException>(testSubject);
+        }
+
+        [TestMethod]
         public async Task Dispose_KillsRunningProcess()
         {
             var fakeNodeExePath = CreateScriptThatPrintsPortNumber(123, isHanging: true);
@@ -328,6 +354,17 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             return fileSystem;
         }
 
+        private string CreateHangingScriptThatDoesNotPrintsPortNumber()
+        {
+            const string content = "set /p asd=\"Waiting for process to be killed\"";
+
+            var fileName = Path.GetTempFileName() + ".bat";
+
+            File.WriteAllText(fileName, content);
+
+            return fileName;
+        }
+
         private string CreateScriptThatPrintsPortNumber(int portNumber, bool isHanging = false)
         {
             var content = "echo port " + portNumber;
@@ -354,6 +391,27 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             catch
             {
                 // do nothing
+            }
+        }
+
+        private static async Task VerifyStartupException<T>(EslintBridgeProcess testSubject)
+            where T : Exception
+        {
+            Process spawnedProcess = null;
+
+            try
+            {
+                Func<Task> act = async () => await testSubject.Start();
+                await act
+                    .Should()
+                    .ThrowAsync<T>() // ensure that the production code throws relevant exception
+                    .WithTimeout(TimeSpan.FromSeconds(10)); // abort the test if the production code hangs
+
+                spawnedProcess = testSubject.Process;
+            }
+            finally
+            {
+                SafeKillProcess(spawnedProcess ?? testSubject.Process);
             }
         }
 
