@@ -4,7 +4,7 @@
     "identity": {
         "internalName": "SonarLintforVisualStudio2022"
     },
-    "overview": "overview.md",            
+    "overview": "overview-2022.md",            
     "priceCategory": "free",             
     "publisher": "SonarSource",       
     "private": false,                     

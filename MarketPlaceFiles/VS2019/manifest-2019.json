@@ -4,7 +4,7 @@
     "identity": {
         "internalName": "SonarLintforVisualStudio2019"
     },
-    "overview": "overview.md",            
+    "overview": "overview-2019.md",            
     "priceCategory": "free",             
     "publisher": "SonarSource",       
     "private": false,                     
