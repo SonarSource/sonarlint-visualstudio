@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
             return JsonConvert.DeserializeObject<AnalysisResponse>(responseString);
         }
-
+         
         public async Task Close()
         {
             try
