@@ -1,0 +1,329 @@
+# 'Allow scripts to access the OAuth token' was selected in pipeline.  Add the following YAML to any steps requiring access:
+#       env:
+#           MY_ACCESS_TOKEN: $(System.AccessToken)
+# Variable 'AdditionalMSBuildArgs' was defined in the Variables tab
+# Variable 'ForceSignVsix' was defined in the Variables tab
+# Variable 'ForceWhiteSourceScan' was defined in the Variables tab
+# Variable 'SignVsixIfMasterBranch' was defined in the Variables tab
+# Variable 'TriggerDogfoodReleaseIfMasterBranch' was defined in the Variables tab
+# Variable 'vsTargetVersion' was defined in the Variables tab
+# Variable Group 'sonarsource-build-variables' was defined in the Variables tab
+# Multi-job configuration must be converted to matrix strategy: https://docs.microsoft.com/en-us/azure/devops/pipelines/process/phases?view=azure-devops&tabs=yaml#multi-job-configuration
+variables:
+- name: BuildParameters.solution
+  value: SonarLint.VisualStudio.Integration.sln
+trigger:
+  branches:
+    include:
+    - master
+    - dev/*
+    - feature/*
+    - branch-*
+  batch: True
+jobs:
+- job: Phase_1
+  strategy:
+    maxParallel: 2
+    matrix:
+      2019:
+        vsTargetVersion: 2019
+      2022:
+        vsTargetVersion: 2022      
+  displayName: Phase 1
+  cancelTimeoutInMinutes: 1
+  pool:
+    vmImage: windows-2022
+  steps:
+  - checkout: self
+    submodules: recursive
+    fetchTags: false
+    persistCredentials: True
+  - task: PowerShell@2
+    displayName: Calculate if should sign Vsix
+    continueOnError: True
+    inputs:
+      targetType: inline
+      script: >-
+        $ErrorView = 'NormalView'
+
+
+        Write-Host "Current branch: $(Build.SourceBranch)"
+
+        Write-Host "SignVsixIfMasterBranch flag; $(SignVsixIfMasterBranch)"
+
+        Write-Host "ForceSignVsix flag; $(ForceSignVsix)"
+
+
+        if ("$(ForceSignVsix)" -eq "true"){
+         Write-Host "ForceSignVsix is set to true. Signing vsix."
+         $shouldSign = $true
+        }
+
+        else {
+
+        Write-Host "ForceSignVsix is set to false. Checking if master branch..."
+
+
+        if ("$(Build.SourceBranch)" -eq "refs/heads/master"){
+
+            if ("$(SignVsixIfMasterBranch)" -eq "true"){
+                Write-Host "Building master and trigger flag is true. Signing vsix."
+                $shouldSign = $true
+            }
+            else{
+                Write-Host "Building master but trigger flag is false. Vsix will not be signed."
+                $shouldSign = $false
+            }
+        }
+
+        else{
+            Write-Host "Current branch is not master. Vsix will not be signed."
+             $shouldSign = $false
+        }
+
+        }
+
+
+        Write-Host "Setting SHOULD_SIGN flag:" $shouldSign
+
+
+        Write-Host "##vso[task.setvariable variable=SHOULD_SIGN;]$shouldSign"
+
+
+        Write-Host "SHOULD_SIGN flag set:" $shouldSign
+      errorActionPreference: continue
+  - task: NuGetToolInstaller@0
+    displayName: Use NuGet 5.8.x
+    inputs:
+      versionSpec: 5.8.x
+  - task: NuGetCommand@2
+    displayName: NuGet restore with LockedMode check (VS2022 only)
+    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+    inputs:
+      command: custom
+      solution: $(BuildParameters.solution)
+      feedRestore: 399fb241-ecc7-4802-8697-dcdd01fbb832/423b576f-2263-43a1-93bd-69f4def19102
+      includeNuGetOrg: false
+      nugetConfigPath: nuget.config
+      arguments: restore -LockedMode -Verbosity detailed
+  - task: NuGetCommand@2
+    displayName: NuGet restore without LockedMode check (VS2017 and VS2019)
+    condition: and(succeeded(), ne(variables['vsTargetVersion'], '2022'))
+    inputs:
+      solution: $(BuildParameters.solution)
+      selectOrConfig: config
+  - task: PowerShell@2
+    displayName: 'Read Sonar project version from the versions.props file '
+    inputs:
+      targetType: inline
+      script: >-
+        # Calculate the file path
+
+        $versionFilePath = "$env:BUILD_SOURCESDIRECTORY\build\Version.props"
+
+        Write-Host "Reading the Sonar project version from '${versionFilePath}' ..."
+
+
+        # Read the version from the file
+
+        [xml]$versionProps = Get-Content "$versionFilePath"
+
+        $sonarProjectVersion = $versionProps.Project.PropertyGroup.MainVersion
+
+        Write-Host "Sonar project version is '${sonarProjectVersion}'"
+
+
+        # Set the variable to it can be used by other tasks
+
+        Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION;]$sonarProjectVersion"
+  - task: PowerShell@2
+    displayName: Locate signtool.exe
+    inputs:
+      targetType: inline
+      script: >-
+        # Search for signtool.exe
+
+        $searchRoot = ${env:ProgramFiles(x86)} + '\Windows Kits\10\bin\10*'
+
+        $exeName = 'signtool.exe'
+
+        $signtool = Get-ChildItem -Path $searchRoot -Filter $exeName -Recurse -ErrorAction SilentlyContinue -Force | Select -Last 1
+
+
+        if (!$signtool){
+            throw 'Unable to find ' + $exeName + ' under ' + $searchRoot
+        }
+
+
+        Write-Host 'Sign tool location: ' $signtool.FullName
+
+
+        Write-Host "##vso[task.setvariable variable=SIGNTOOL_PATH;]$signtool"
+  - task: PowerShell@2
+    displayName: (VS2022 only) Set VsixVersion as a build property for the release pipeline to use
+    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+    inputs:
+      targetType: inline
+      script: "function SetBuildProperty\n{\n    Param([string] $propertyPath, [string] $propertyValue)\n\n    Write-Host \"Setting the build property $propertyPath to $propertyValue ...\"\n\n    # NB: the WebClient class defaults to TLS v1, which is no longer supported by some online providers.\n    # This setting isn't required on MS-hosted agents, but it can be for local agents.\n    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12\n\n    $rootApiUrl = \"$($env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI)$env:SYSTEM_TEAMPROJECTID/_apis/\" \n\n    # Update build properties\n    $url =$rootApiUrl + \"build/builds/$env:BUILD_BUILDID/properties?api-version=5.0-preview.1\"\n\n    #$jsonPatch = '[{ \"op\": \"replace\", \"path\": \"/$($propertyPath)\", \"value\": \"' + $($propertyValue) + '\" }]'\n\n    $jsonPatch = \"[{ 'op': 'replace', 'path': '/$propertyPath', 'value': '$propertyValue' }]\"\n\n    $pipeline = Invoke-RestMethod -Uri $url -Headers @{\n        \"Authorization\" = \"Bearer $env:SYSTEM_ACCESSTOKEN\";\n    } -Body $jsonPatch -Method Patch -ContentType \"application/json-patch+json\"\n\n}\n\n\nSetBuildProperty -propertyPath \"VsixVersion\" -propertyValue $env:SONAR_PROJECT_VERSION"
+  - task: PowerShell@2
+    displayName: (VS2022 only) Sanity check - fetch VsixVersion build property
+    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+    inputs:
+      targetType: inline
+      script: "function GetAllBuildProperties{\n    Param([string] $propertyPath, [string] $propertyValue)\n\n    Write-Host \"Getting all build properties ...\"\n\n    # NB: the WebClient class defaults to TLS v1, which is no longer supported by some online providers.\n    # This setting isn't required on MS-hosted agents, but it can be for local agents.\n    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12\n\n    # GET https://dev.azure.com/{organization}/{project}/_apis/build/builds/{buildId}/properties?filter={filter}&api-version=5.1-preview.1\n    $rootApiUrl = \"$($env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI)$env:SYSTEM_TEAMPROJECTID/_apis/\" \n    $url =$rootApiUrl + \"build/builds/$env:BUILD_BUILDID/properties?api-version=5.0-preview.1\"\n\n    $properties = Invoke-RestMethod -Uri $url -Headers @{\n      Authorization = \"Bearer $env:SYSTEM_ACCESSTOKEN\"\n    }\n\n    Write-Host \"Properties = $($properties | ConvertTo-Json -Depth 100)\"\n}\n\nfunction GetBuildProperty{\n    Param([string] $propertyPath)\n\n    Write-Host \"Getting build property $propertyPath\"\n\n    # NB: the WebClient class defaults to TLS v1, which is no longer supported by some online providers.\n    # This setting isn't required on MS-hosted agents, but it can be for local agents.\n    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12\n\n    # GET https://dev.azure.com/{organization}/{project}/_apis/build/builds/{buildId}/properties?filter={filter}&api-version=5.1-preview.1\n    $rootApiUrl = \"$($env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI)$env:SYSTEM_TEAMPROJECTID/_apis/\" \n    $url =$rootApiUrl + \"build/builds/$env:BUILD_BUILDID/properties?filter=$propertyPath&api-version=5.0-preview.1\"\n\n    $result = Invoke-RestMethod -Uri $url -Headers @{\n      Authorization = \"Bearer $env:SYSTEM_ACCESSTOKEN\"\n    }\n\n    $extractedValue = $result.value.\"$propertyPath\".'$value'\n\n    Write-Host \"Extracted value = $extractedValue\"\n    return $extractedValue\n}\n\n\nGetAllBuildProperties\n$version = GetBuildProperty -propertyPath \"VsixVersion\"\nWrite-Host \"VsixVersion build property = $version\"\n"
+  - task: VSBuild@1
+    displayName: Set BranchName, Sha1 and BuildNumber properties from Azdo pipeline variables
+    inputs:
+      solution: build/ChangeVersion.proj
+      msbuildArgs: /p:Sha1=$(Build.SourceVersion) /p:BranchName=$(Build.SourceBranchName) /p:BuildNumber=$(Build.BuildId)  /p:BuildConfiguration=$(BuildConfiguration)
+  - task: DownloadSecureFile@1
+    name: snk
+    displayName: Download snk file
+    inputs:
+      secureFile: c638339f-2dc0-42e1-9b9c-7ee76eda15f5
+      retryCount: 5
+  - task: DownloadSecureFile@1
+    name: pfx
+    displayName: Download pfx file
+    inputs:
+      secureFile: c2ebf861-df45-46e0-9245-6ef7ae954a8b
+      retryCount: 5
+  - task: SonarCloudPrepare@1
+    displayName: Prepare analysis on SonarCloud (VS2022 only)
+    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+    inputs:
+      SonarCloud: 4d6d3285-de8e-41bb-a346-987397025edb
+      organization: sonarsource
+      projectKey: sonarlint-visualstudio
+      projectName: SonarLint for Visual Studio
+      projectVersion: $(SONAR_PROJECT_VERSION)
+      extraProperties: "# Additional properties that will be passed to the scanner, \n# Put one key=value per line, example:\n# sonar.exclusions=**/*.bin\n#sonar.cs.vstest.reportsPaths=$(Agent.TempDirectory)/**/*.trx\n#sonar.cs.vscoveragexml.reportsPaths=$(Agent.TempDirectory)/**/*.coveragexml"
+  - task: VSBuild@1
+    displayName: Build solution SonarLint.VisualStudio.Integration.sln
+    inputs:
+      solution: $(BuildParameters.solution)
+      vsVersion: 17.0
+      msbuildArgs: /p:VsTargetVersion=$(vsTargetVersion) /p:DeployExtension=false /p:SignArtifacts=$(SHOULD_SIGN) /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)" /p:pfxCertificatePath="$(pfx.secureFilePath)" /p:pfxPassword="$(pfxPassword2021-2023)" /p:pfxSha1=$(pfxSha1-2021-2023) /p:Sha1=$(Build.SourceVersion) /p:BuildNumber=$(Build.BuildId)  $(AdditionalMSBuildArgs)
+      platform: $(BuildPlatform)
+      configuration: $(BuildConfiguration)
+      maximumCpuCount: true
+      logFileVerbosity: diagnostic
+  - task: UniversalPackages@0
+    displayName: Download WhiteSource agent
+    condition: and(succeeded(), or(eq(variables['ForceWhiteSourceScan'], 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
+    inputs:
+      downloadDirectory: $(System.DefaultWorkingDirectory)\Whitesource
+      feedListDownload: 399fb241-ecc7-4802-8697-dcdd01fbb832/69e11f1b-cad7-442a-b676-37722e207221
+      packageListDownload: agent
+      versionListDownload: '*'
+  - task: PowerShell@2
+    displayName: Run WhiteSource (Mend) scan
+    condition: and(succeeded(), or(eq(variables['ForceWhiteSourceScan'], 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
+    inputs:
+      targetType: inline
+      script: java -jar  "${env:SYSTEM_DEFAULTWORKINGDIRECTORY}\Whitesource\wss-unified-agent.jar" -c "${env:BUILD_SOURCESDIRECTORY}\build\whitesource\wss-unified-agent.config" -product "SonarLint/VisualStudio"  -project "SonarSource/sonarlint-visualstudio VS$(vsTargetVersion) ${env:SONAR_PROJECT_VERSION}" -projectversion ${env:SONAR_PROJECT_VERSION}  -scanComment "buildNumber:${env:BUILD_BUILDID};gitSha:${env:BUILD_SOURCEVERSION}" -offline false
+  - task: DotNetCoreCLI@2
+    displayName: Install cycloneDX tool
+    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+    inputs:
+      command: custom
+      custom: tool
+      arguments: install --global CycloneDX
+  - task: DotNetCoreCLI@2
+    displayName: Generate cycloneDX sbom file
+    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+    inputs:
+      command: custom
+      projects: SonarLint.VisualStudio.Integration.sln
+      custom: CycloneDX
+      arguments: -t -j -o binaries
+  - task: DownloadSecureFile@1
+    name: signKey
+    displayName: Download sign key
+    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+    inputs:
+      secureFile: 3755ac9b-4269-4218-a8d7-97aa4f1dd117
+  - task: PowerShell@2
+    displayName: Rename and sign SBOM file
+    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+    inputs:
+      targetType: inline
+      script: "# Calculate the file name\n$sbomName = \"SonarLint.visualstudio.sbom-$env:SONAR_PROJECT_VERSION.$env:BUILD_BUILDID-$(vsTargetVersion).json\"\nWrite-Host \"SBOM file is: $sbomName\"\n\nRename-Item -Path \"binaries\\bom.json\" -NewName \"${sbomName}\"\n\n# Set the variable to it can be used by other tasks\nWrite-Host \"##vso[task.setvariable variable=SBOM_NAME;]$sbomName\"\n\nInstall-Package Gpg.Windows.x64 \ngpg --batch --passphrase $(PGP_PASSPHRASE) --allow-secret-key-import --import $(signKey.secureFilePath)\ngpg --list-secret-keys\ncd binaries\nWrite-Host \"About to sign $sbomName\"\ngpg --pinentry-mode loopback  --passphrase $(PGP_PASSPHRASE) --armor --detach-sig --default-key infra@sonarsource.com \"$sbomName\"\nWrite-Host \"Signed $sbomName\""
+  - task: CopyFiles@2
+    displayName: 'Copy VSIX to: $(Build.ArtifactStagingDirectory)'
+    inputs:
+      SourceFolder: $(Build.SourcesDirectory)\binaries
+      Contents: >-
+        **\*.vsix
+
+        **\SonarLint.visualstudio.sbom*.*
+      TargetFolder: $(Build.ArtifactStagingDirectory)
+  - task: CopyFiles@2
+    displayName: 'Copy any MSBuild binary logs to: $(Build.ArtifactStagingDirectory)'
+    inputs:
+      SourceFolder: $(Build.SourcesDirectory)
+      Contents: '**\*.binlog'
+      TargetFolder: $(Build.ArtifactStagingDirectory)
+  - task: CopyFiles@2
+    displayName: 'Copy marketplace files to:  $(Build.ArtifactStagingDirectory) (VS2022 only)'
+    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+    inputs:
+      SourceFolder: $(Build.SourcesDirectory)\MarketPlaceFiles\VS2022
+      TargetFolder: $(Build.ArtifactStagingDirectory)
+  - task: CopyFiles@2
+    displayName: 'Copy marketplace files to:  $(Build.ArtifactStagingDirectory) (VS2019 only)'
+    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2019'))
+    inputs:
+      SourceFolder: $(Build.SourcesDirectory)\MarketPlaceFiles\VS2019
+      TargetFolder: $(Build.ArtifactStagingDirectory)
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: vsix'
+    inputs:
+      ArtifactName: vsix
+  - task: VSTest@2
+    displayName: VsTest - testAssemblies
+    inputs:
+      testAssemblyVer2: >-
+        **\$(BuildConfiguration)\**\*test*.dll
+
+        !**\obj\**
+      runInParallel: false
+      runTestsInIsolation: false
+      codeCoverageEnabled: true
+      platform: $(BuildPlatform)
+      configuration: $(BuildConfiguration)
+      rerunFailedTests: false
+  - task: SonarCloudAnalyze@1
+    displayName: Run Code Analysis (VS2022 only)
+    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+  - task: SonarCloudPublish@1
+    displayName: Publish Quality Gate Result (VS2022 only)
+    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+  - task: PowerShell@2
+    displayName: Set trigger dogfood VSIX build tag (VS2022 only)
+    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+    inputs:
+      targetType: inline
+      script: >
+        Write-Host "Current branch: $(Build.SourceBranch)"
+
+        Write-Host "Trigger dogfood release flag; $(TriggerDogfoodReleaseIfMasterBranch)"
+
+
+        if ("$(Build.SourceBranch)" -eq "refs/heads/master"){
+
+            if ("$(TriggerDogfoodReleaseIfMasterBranch)" -eq "true"){
+                Write-Host "Building master and trigger flag is true. Setting tag to trigger dogfood release pipeline."
+                Write-Host "##vso[build.addbuildtag]TriggerDogfoodVsixUpdate"
+            }
+            else{
+                Write-Host "Building master but trigger flag is false. Tag to trigger dogfood release pipeline will not be set."
+                Write-Host "##vso[build.addbuildtag]DoNot_TriggerDogfoodVsixUpdate_TriggerFlagIsFalse"
+            }
+        }
+
+        else{
+            Write-Host "Current branch is not master. Tag to trigger dogfood release pipeline will not be set."
+            Write-Host "##vso[build.addbuildtag]BuildTag DoNot_TriggerDogfoodVsixUpdate_NotMaster"
+        }
+...
