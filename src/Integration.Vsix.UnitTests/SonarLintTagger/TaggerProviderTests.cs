@@ -125,6 +125,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             tagger.Should().NotBeNull();
 
             VerifyCheckedAnalysisIsSupported();
+            VerifyAnalysisWasRequested();
             mockAnalyzerController.VerifyNoOtherCalls();
         }
 
