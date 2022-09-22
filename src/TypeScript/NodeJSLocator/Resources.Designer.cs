@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [NodeJsLocator] Could not find a compatible Node.js version. Supported versions are v12.22+..
+        ///   Looks up a localized string similar to [NodeJsLocator] Could not find a compatible Node.js version. Supported versions are v14.17+..
         /// </summary>
         internal static string ERR_NoCompatibleVersion {
             get {
