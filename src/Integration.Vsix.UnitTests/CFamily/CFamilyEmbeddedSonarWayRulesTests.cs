@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         private const int Active_C_Rules = 208;
         private const int Inactive_C_Rules = 103;
 
-        private const int Active_CPP_Rules = 411;
+        private const int Active_CPP_Rules = 412;
         private const int Inactive_CPP_Rules = 167;
 
         private readonly CFamilySonarWayRulesConfigProvider rulesMetadataCache = new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory);
