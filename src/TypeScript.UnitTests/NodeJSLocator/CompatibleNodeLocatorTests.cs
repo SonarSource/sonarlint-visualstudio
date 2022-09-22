@@ -73,10 +73,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
             var versions = new List<NodeVersionInfo>
             {
                 new("bad version", new Version(11, 0)),
-                new("compatible1", new Version(12, 0)),
-                new("compatible2", new Version(12, 22)),
-                new("compatible2", new Version(12, 22)),
-                new("compatible2", new Version(13, 0)),
+                new("bad version2", new Version(14, 16)),
+                new("compatible2", new Version(14, 17)),
+                new("compatible3", new Version(14, 18)),
+                new("compatible4", new Version(15, 0)),
             };
 
             var testSubject = CreateTestSubject(versions);
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         {
             var versions = new List<NodeVersionInfo>
             {
-                new("good version", new Version(13, 0))
+                new("good version", new Version(15, 0))
             };
 
             var notificationService = new Mock<IUnsupportedNodeVersionNotificationService>();
@@ -121,10 +121,12 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         [DataRow(10, 0, false)]
         [DataRow(11, 0, false)]
         [DataRow(12, 0, false)]
-        [DataRow(12, 21, false)]
-        [DataRow(12, 22, true)]
-        [DataRow(12, 23, true)]
-        [DataRow(13, 0, true)]
+        [DataRow(13, 0, false)]
+        [DataRow(14, 0, false)]
+        [DataRow(14, 16, false)]
+        [DataRow(14, 17, true)]
+        [DataRow(14, 18, true)]
+        [DataRow(15, 00, true)]
         public void IsCompatibleVersion_ReturnsTrueFalse(int majorVersion,int minorVersion, bool expectedResult)
         {
             var version = new Version(majorVersion, minorVersion);
