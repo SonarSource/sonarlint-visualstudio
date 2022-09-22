@@ -439,7 +439,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 .Callback((string file, Action<CancellationToken> analyze, int timeout) => analyze(CancellationToken.None));
 
             var provider = new TaggerProvider(mockSonarErrorDataSource.Object, textDocFactoryServiceMock.Object, mockAnalyzerController.Object,
-                serviceProvider, languageRecognizer, mockAnalysisRequester.Object, Mock.Of<ITaggableBufferIndicator>(), Mock.Of<IIssueConsumerFactory>(), logger, mockAnalysisScheduler.Object);
+                serviceProvider, languageRecognizer, mockAnalysisRequester.Object, Mock.Of<ITaggableBufferIndicator>(), Mock.Of<IIssueConsumerFactory>(), logger, mockAnalysisScheduler.Object, new NoOpThreadHandler());
             return provider;
         }
 

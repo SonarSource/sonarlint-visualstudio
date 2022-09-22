@@ -70,6 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IScheduler scheduler;
         private readonly IVsSolution5 vsSolution;
         private readonly IIssueConsumerFactory issueConsumerFactory;
+        private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
         internal TaggerProvider(ISonarErrorListDataSource sonarErrorDataSource,
@@ -81,7 +82,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             ITaggableBufferIndicator taggableBufferIndicator,
             IIssueConsumerFactory issueConsumerFactory,
             ILogger logger,
-            IScheduler scheduler)
+            IScheduler scheduler,
+            IThreadHandling threadHandling)
         {
             this.sonarErrorDataSource = sonarErrorDataSource;
             this.textDocumentFactoryService = textDocumentFactoryService;
@@ -93,6 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.issueConsumerFactory = issueConsumerFactory;
             this.logger = logger;
             this.scheduler = scheduler;
+            this.threadHandling = threadHandling;
 
             vsStatusBar = serviceProvider.GetService(typeof(IVsStatusbar)) as IVsStatusbar;
             analysisRequester.AnalysisRequested += OnAnalysisRequested;
@@ -182,7 +185,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         private TextBufferIssueTracker InternalCreateTextBufferIssueTracker(ITextDocument textDocument, IEnumerable<AnalysisLanguage> analysisLanguages) =>
-            new TextBufferIssueTracker(dte, this, textDocument, analysisLanguages, sonarErrorDataSource, vsSolution, issueConsumerFactory, logger);
+            new TextBufferIssueTracker(dte,
+                this,
+                textDocument, 
+                analysisLanguages,
+                sonarErrorDataSource, 
+                vsSolution,
+                issueConsumerFactory,
+                logger,
+                threadHandling);
 
         #endregion IViewTaggerProvider members
 

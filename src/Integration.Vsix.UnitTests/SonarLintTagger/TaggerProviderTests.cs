@@ -34,7 +34,6 @@ using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
@@ -114,7 +113,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Returns(Mock.Of<IIssueConsumer>());
 
             this.provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, mockAnalyzerController.Object, serviceProvider,
-                mockSonarLanguageRecognizer.Object, mockAnalysisRequester.Object, mockTaggableBufferIndicator.Object, issueConsumerFactory.Object, logger, mockAnalysisScheduler.Object);
+                mockSonarLanguageRecognizer.Object, mockAnalysisRequester.Object, mockTaggableBufferIndicator.Object, issueConsumerFactory.Object, logger, mockAnalysisScheduler.Object, new NoOpThreadHandler());
         }
 
         [TestMethod]
@@ -126,6 +125,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             tagger.Should().NotBeNull();
 
             VerifyCheckedAnalysisIsSupported();
+            VerifyAnalysisWasRequested();
             mockAnalyzerController.VerifyNoOtherCalls();
         }
 
