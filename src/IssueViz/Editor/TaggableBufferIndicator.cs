@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using System.IO.Abstractions;
 using Microsoft.VisualStudio.Text;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor
@@ -31,6 +32,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
     [Export(typeof(ITaggableBufferIndicator))]
     internal class TaggableBufferIndicator : ITaggableBufferIndicator
     {
+        private readonly IFileSystem fileSystem;
+
+        [ImportingConstructor]
+        public TaggableBufferIndicator()
+            : this(new FileSystem())
+        {
+        }
+
+        internal TaggableBufferIndicator(IFileSystem fileSystem)
+        {
+            this.fileSystem = fileSystem;
+        }
+
         public bool IsTaggable(ITextBuffer buffer)
         {
             var filePath = buffer.GetFilePath();
@@ -40,14 +54,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
                 return false;
             }
 
-            var isOutputBuffer = buffer.ContentType.IsOfType("Output");
-
-            if (isOutputBuffer)
-            {
-                return false;
-            }
-
-            return true;
+            return fileSystem.File.Exists(filePath);
         }
     }
 }
