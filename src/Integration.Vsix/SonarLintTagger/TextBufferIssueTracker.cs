@@ -30,7 +30,6 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
@@ -68,18 +67,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal /* for testing */ IssuesSnapshotFactory Factory { get; }
 
         public TextBufferIssueTracker(DTE2 dte,
-            TaggerProvider provider,
-            ITextDocument document,
-            IEnumerable<AnalysisLanguage> detectedLanguages,
-            ISonarErrorListDataSource sonarErrorDataSource,
-            IVsSolution5 vsSolution,
-            IIssueConsumerFactory issueConsumerFactory,
-            ILogger logger)
-            : this(dte, provider, document, detectedLanguages, sonarErrorDataSource,
-                  vsSolution, issueConsumerFactory, logger, new ThreadHandling())
-        { }
-        
-        internal /* for testing */ TextBufferIssueTracker(DTE2 dte,
             TaggerProvider provider,
             ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages,
