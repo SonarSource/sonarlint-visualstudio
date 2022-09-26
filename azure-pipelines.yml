@@ -1,14 +1,3 @@
-# 'Allow scripts to access the OAuth token' was selected in pipeline.  Add the following YAML to any steps requiring access:
-#       env:
-#           MY_ACCESS_TOKEN: $(System.AccessToken)
-# Variable 'AdditionalMSBuildArgs' was defined in the Variables tab
-# Variable 'ForceSignVsix' was defined in the Variables tab
-# Variable 'ForceWhiteSourceScan' was defined in the Variables tab
-# Variable 'SignVsixIfMasterBranch' was defined in the Variables tab
-# Variable 'TriggerDogfoodReleaseIfMasterBranch' was defined in the Variables tab
-# Variable 'vsTargetVersion' was defined in the Variables tab
-# Variable Group 'sonarsource-build-variables' was defined in the Variables tab
-# Multi-job configuration must be converted to matrix strategy: https://docs.microsoft.com/en-us/azure/devops/pipelines/process/phases?view=azure-devops&tabs=yaml#multi-job-configuration
 variables:
 - group: sonarsource-build-variables
 - name: BuildParameters.solution
@@ -20,16 +9,14 @@ trigger:
     - dev/*
     - feature/*
     - branch-*
-    # vvv THIS WILL BE REMOVED!!!
-    - ue/yaml 
   batch: True
 jobs:
 - job: Phase_1
   strategy:
     maxParallel: 2
-    #matrix:
-    #  2019:
-    #    vsTargetVersion: 2019
+    matrix:
+      2019:
+        vsTargetVersion: 2019
       2022:
         vsTargetVersion: 2022      
   displayName: Phase 1
