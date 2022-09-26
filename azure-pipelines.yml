@@ -10,6 +10,7 @@
 # Variable Group 'sonarsource-build-variables' was defined in the Variables tab
 # Multi-job configuration must be converted to matrix strategy: https://docs.microsoft.com/en-us/azure/devops/pipelines/process/phases?view=azure-devops&tabs=yaml#multi-job-configuration
 variables:
+  group: sonarsource-build-variables
 - name: BuildParameters.solution
   value: SonarLint.VisualStudio.Integration.sln
 trigger:
