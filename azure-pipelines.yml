@@ -162,8 +162,6 @@ jobs:
         Write-Host "##vso[task.setvariable variable=SIGNTOOL_PATH;]$signtool"
   - task: PowerShell@2
     displayName: (VS2022 only) Set VsixVersion as a build property for the release pipeline to use
-    env:
-      MY_ACCESS_TOKEN: $(System.AccessToken)
     condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
     inputs:
       targetType: inline
