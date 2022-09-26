@@ -20,6 +20,8 @@ trigger:
     - dev/*
     - feature/*
     - branch-*
+    # vvv THIS WILL BE REMOVED!!!
+    - ue/yaml 
   batch: True
 jobs:
 - job: Phase_1
