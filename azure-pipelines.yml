@@ -2,6 +2,7 @@ variables:
 - group: sonarsource-build-variables
 - name: BuildParameters.solution
   value: SonarLint.VisualStudio.Integration.sln
+name: $(Build.BuildId)
 trigger:
   branches:
     include:
