@@ -1,11 +1,11 @@
 param(
-    string SourceBranch
+    [string] $SourceBranch
 )
 
-Write-Host "Current branch: $(SourceBranch)"
+Write-Host "Current branch: $SourceBranch"
 Write-Host "Trigger dogfood release flag; $(TriggerDogfoodReleaseIfMasterBranch)"
 
-if ("$(SourceBranch)" -eq "refs/heads/master"){
+if ("$SourceBranch" -eq "refs/heads/master"){
 
     if ("$(TriggerDogfoodReleaseIfMasterBranch)" -eq "true"){
         Write-Host "Building master and trigger flag is true. Setting tag to trigger dogfood release pipeline."
