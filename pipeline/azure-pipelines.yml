@@ -7,8 +7,6 @@ trigger:
   branches:
     include:
     - master
-    - dev/*
-    - feature/*
     - branch-*
   batch: True
 jobs:
@@ -20,7 +18,7 @@ jobs:
         vsTargetVersion: 2019
       2022:
         vsTargetVersion: 2022      
-  displayName: Phase 1
+  displayName: "Build:"
   cancelTimeoutInMinutes: 1
   pool:
     vmImage: windows-2022
@@ -98,7 +96,7 @@ jobs:
       nugetConfigPath: nuget.config
       arguments: restore -LockedMode -Verbosity detailed
   - task: NuGetCommand@2
-    displayName: NuGet restore without LockedMode check (VS2017 and VS2019)
+    displayName: NuGet restore without LockedMode check (VS2019)
     condition: and(succeeded(), ne(variables['vsTargetVersion'], '2022'))
     inputs:
       solution: $(BuildParameters.solution)
