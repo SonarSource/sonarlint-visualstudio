@@ -32,7 +32,7 @@ jobs:
     continueOnError: True
     inputs:
       targetType: filePath
-      filePath: $(System.DefaultWorkingDirectory)\pipeline\should-sign-vsix.ps1
+      filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\should-sign-vsix.ps1
       errorActionPreference: continue
   - task: NuGetToolInstaller@0
     displayName: Use NuGet 5.8.x
@@ -57,64 +57,27 @@ jobs:
   - task: PowerShell@2
     displayName: 'Read Sonar project version from the versions.props file '
     inputs:
-      targetType: inline
-      script: >-
-        # Calculate the file path
-
-        $versionFilePath = "$env:BUILD_SOURCESDIRECTORY\build\Version.props"
-
-        Write-Host "Reading the Sonar project version from '${versionFilePath}' ..."
-
-
-        # Read the version from the file
-
-        [xml]$versionProps = Get-Content "$versionFilePath"
-
-        $sonarProjectVersion = $versionProps.Project.PropertyGroup.MainVersion
-
-        Write-Host "Sonar project version is '${sonarProjectVersion}'"
-
-
-        # Set the variable to it can be used by other tasks
-
-        Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION;]$sonarProjectVersion"
+      targetType: filePath
+      filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\read-versions.props.ps1
   - task: PowerShell@2
     displayName: Locate signtool.exe
     inputs:
-      targetType: inline
-      script: >-
-        # Search for signtool.exe
-
-        $searchRoot = ${env:ProgramFiles(x86)} + '\Windows Kits\10\bin\10*'
-
-        $exeName = 'signtool.exe'
-
-        $signtool = Get-ChildItem -Path $searchRoot -Filter $exeName -Recurse -ErrorAction SilentlyContinue -Force | Select -Last 1
-
-
-        if (!$signtool){
-            throw 'Unable to find ' + $exeName + ' under ' + $searchRoot
-        }
-
-
-        Write-Host 'Sign tool location: ' $signtool.FullName
-
-
-        Write-Host "##vso[task.setvariable variable=SIGNTOOL_PATH;]$signtool"
+      targetType: filePath
+      filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\locate-signtool.ps1
   - task: PowerShell@2
     displayName: (VS2022 only) Set VsixVersion as a build property for the release pipeline to use
     env:
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
     condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
     inputs:
-      targetType: inline
-      script: "function SetBuildProperty\n{\n    Param([string] $propertyPath, [string] $propertyValue)\n\n    Write-Host \"Setting the build property $propertyPath to $propertyValue ...\"\n\n    # NB: the WebClient class defaults to TLS v1, which is no longer supported by some online providers.\n    # This setting isn't required on MS-hosted agents, but it can be for local agents.\n    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12\n\n    $rootApiUrl = \"$($env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI)$env:SYSTEM_TEAMPROJECTID/_apis/\" \n\n    # Update build properties\n    $url =$rootApiUrl + \"build/builds/$env:BUILD_BUILDID/properties?api-version=5.0-preview.1\"\n\n    #$jsonPatch = '[{ \"op\": \"replace\", \"path\": \"/$($propertyPath)\", \"value\": \"' + $($propertyValue) + '\" }]'\n\n    $jsonPatch = \"[{ 'op': 'replace', 'path': '/$propertyPath', 'value': '$propertyValue' }]\"\n\n    $pipeline = Invoke-RestMethod -Uri $url -Headers @{\n        \"Authorization\" = \"Bearer $env:SYSTEM_ACCESSTOKEN\";\n    } -Body $jsonPatch -Method Patch -ContentType \"application/json-patch+json\"\n\n}\n\n\nSetBuildProperty -propertyPath \"VsixVersion\" -propertyValue $env:SONAR_PROJECT_VERSION"
+      targetType: filePath
+      filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\set-vsix-version.ps1
   - task: PowerShell@2
     displayName: (VS2022 only) Sanity check - fetch VsixVersion build property
     condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
     inputs:
-      targetType: inline
-      script: "function GetAllBuildProperties{\n    Param([string] $propertyPath, [string] $propertyValue)\n\n    Write-Host \"Getting all build properties ...\"\n\n    # NB: the WebClient class defaults to TLS v1, which is no longer supported by some online providers.\n    # This setting isn't required on MS-hosted agents, but it can be for local agents.\n    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12\n\n    # GET https://dev.azure.com/{organization}/{project}/_apis/build/builds/{buildId}/properties?filter={filter}&api-version=5.1-preview.1\n    $rootApiUrl = \"$($env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI)$env:SYSTEM_TEAMPROJECTID/_apis/\" \n    $url =$rootApiUrl + \"build/builds/$env:BUILD_BUILDID/properties?api-version=5.0-preview.1\"\n\n    $properties = Invoke-RestMethod -Uri $url -Headers @{\n      Authorization = \"Bearer $env:SYSTEM_ACCESSTOKEN\"\n    }\n\n    Write-Host \"Properties = $($properties | ConvertTo-Json -Depth 100)\"\n}\n\nfunction GetBuildProperty{\n    Param([string] $propertyPath)\n\n    Write-Host \"Getting build property $propertyPath\"\n\n    # NB: the WebClient class defaults to TLS v1, which is no longer supported by some online providers.\n    # This setting isn't required on MS-hosted agents, but it can be for local agents.\n    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12\n\n    # GET https://dev.azure.com/{organization}/{project}/_apis/build/builds/{buildId}/properties?filter={filter}&api-version=5.1-preview.1\n    $rootApiUrl = \"$($env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI)$env:SYSTEM_TEAMPROJECTID/_apis/\" \n    $url =$rootApiUrl + \"build/builds/$env:BUILD_BUILDID/properties?filter=$propertyPath&api-version=5.0-preview.1\"\n\n    $result = Invoke-RestMethod -Uri $url -Headers @{\n      Authorization = \"Bearer $env:SYSTEM_ACCESSTOKEN\"\n    }\n\n    $extractedValue = $result.value.\"$propertyPath\".'$value'\n\n    Write-Host \"Extracted value = $extractedValue\"\n    return $extractedValue\n}\n\n\nGetAllBuildProperties\n$version = GetBuildProperty -propertyPath \"VsixVersion\"\nWrite-Host \"VsixVersion build property = $version\"\n"
+      targetType: filePath
+      filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\fetch-vsix-version.ps1
   - task: VSBuild@1
     displayName: Set BranchName, Sha1 and BuildNumber properties from Azdo pipeline variables
     inputs:
@@ -191,8 +154,8 @@ jobs:
     displayName: Rename and sign SBOM file
     condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
     inputs:
-      targetType: inline
-      script: "# Calculate the file name\n$sbomName = \"SonarLint.visualstudio.sbom-$env:SONAR_PROJECT_VERSION.$env:BUILD_BUILDID-$(vsTargetVersion).json\"\nWrite-Host \"SBOM file is: $sbomName\"\n\nRename-Item -Path \"binaries\\bom.json\" -NewName \"${sbomName}\"\n\n# Set the variable to it can be used by other tasks\nWrite-Host \"##vso[task.setvariable variable=SBOM_NAME;]$sbomName\"\n\nInstall-Package Gpg.Windows.x64 \ngpg --batch --passphrase $(PGP_PASSPHRASE) --allow-secret-key-import --import $(signKey.secureFilePath)\ngpg --list-secret-keys\ncd binaries\nWrite-Host \"About to sign $sbomName\"\ngpg --pinentry-mode loopback  --passphrase $(PGP_PASSPHRASE) --armor --detach-sig --default-key infra@sonarsource.com \"$sbomName\"\nWrite-Host \"Signed $sbomName\""
+      targetType: filePath
+      filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\sbom.ps1
   - task: CopyFiles@2
     displayName: 'Copy VSIX to: $(Build.ArtifactStagingDirectory)'
     inputs:
@@ -247,27 +210,6 @@ jobs:
     displayName: Set trigger dogfood VSIX build tag (VS2022 only)
     condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
     inputs:
-      targetType: inline
-      script: >
-        Write-Host "Current branch: $(Build.SourceBranch)"
-
-        Write-Host "Trigger dogfood release flag; $(TriggerDogfoodReleaseIfMasterBranch)"
-
-
-        if ("$(Build.SourceBranch)" -eq "refs/heads/master"){
-
-            if ("$(TriggerDogfoodReleaseIfMasterBranch)" -eq "true"){
-                Write-Host "Building master and trigger flag is true. Setting tag to trigger dogfood release pipeline."
-                Write-Host "##vso[build.addbuildtag]TriggerDogfoodVsixUpdate"
-            }
-            else{
-                Write-Host "Building master but trigger flag is false. Tag to trigger dogfood release pipeline will not be set."
-                Write-Host "##vso[build.addbuildtag]DoNot_TriggerDogfoodVsixUpdate_TriggerFlagIsFalse"
-            }
-        }
-
-        else{
-            Write-Host "Current branch is not master. Tag to trigger dogfood release pipeline will not be set."
-            Write-Host "##vso[build.addbuildtag]BuildTag DoNot_TriggerDogfoodVsixUpdate_NotMaster"
-        }
+      targetType: filePath
+      filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\trigger-dogfood.ps1
 ...
