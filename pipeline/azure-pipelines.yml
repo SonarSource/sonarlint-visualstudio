@@ -212,4 +212,5 @@ jobs:
     inputs:
       targetType: filePath
       filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\trigger-dogfood.ps1
+      arguments: -SourceBranch $(Build.SourceBranch)
 ...
