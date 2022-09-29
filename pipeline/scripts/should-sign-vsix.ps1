@@ -1,14 +1,16 @@
 $ErrorView = 'NormalView'
 
-
-Write-Host "Current branch: $(Build.SourceBranch)"
-
-Write-Host "SignVsixIfMasterBranch flag; $(SignVsixIfMasterBranch)"
-
-Write-Host "ForceSignVsix flag; $(ForceSignVsix)"
+param($SourceBranch, $SignVsixIfMasterBranch, $ForceSignVsix)
 
 
-if ("$(ForceSignVsix)" -eq "true"){
+Write-Host "Current branch: $SourceBranch"
+
+Write-Host "SignVsixIfMasterBranch flag; $SignVsixIfMasterBranch"
+
+Write-Host "ForceSignVsix flag; $ForceSignVsix"
+
+
+if ("$ForceSignVsix" -eq "true"){
     Write-Host "ForceSignVsix is set to true. Signing vsix."
     $shouldSign = $true
 }
@@ -18,9 +20,9 @@ else {
 Write-Host "ForceSignVsix is set to false. Checking if master branch..."
 
 
-if ("$(Build.SourceBranch)" -eq "refs/heads/master"){
+if ("$SourceBranch" -eq "refs/heads/master"){
 
-    if ("$(SignVsixIfMasterBranch)" -eq "true"){
+    if ("$SignVsixIfMasterBranch" -eq "true"){
         Write-Host "Building master and trigger flag is true. Signing vsix."
         $shouldSign = $true
     }

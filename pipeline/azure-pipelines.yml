@@ -29,11 +29,10 @@ jobs:
     persistCredentials: True
   - task: PowerShell@2
     displayName: Calculate if should sign Vsix
-    continueOnError: True
     inputs:
       targetType: filePath
       filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\should-sign-vsix.ps1
-      errorActionPreference: continue
+      arguments: -SourceBranch $(Build.SourceBranch) -SignVsixIfMasterBranch $(SignVsixIfMasterBranch) -ForceSignVsix $(ForceSignVsix)
   - task: NuGetToolInstaller@0
     displayName: Use NuGet 5.8.x
     inputs:
