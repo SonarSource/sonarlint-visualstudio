@@ -1,7 +1,6 @@
-$ErrorView = 'NormalView'
-
 param([string] $SourceBranch, [string] $SignVsixIfMasterBranch, [string] $ForceSignVsix)
 
+$ErrorView = 'NormalView'
 
 Write-Host "Current branch: $SourceBranch"
 
