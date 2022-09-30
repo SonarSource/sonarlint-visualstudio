@@ -45,4 +45,4 @@ Write-Host "Setting SHOULD_SIGN flag:" $shouldSign
 Write-Host "##vso[task.setvariable variable=SHOULD_SIGN;]$shouldSign"
 
 
-Write-Host "SHOULD_SIGN flag set:" $shouldSign
+Write-Host "SHOULD_SIGN flag set:" $shouldSign 
