@@ -1027,8 +1027,8 @@
       },
       "SonarLint.Secrets.DotNet": {
         "type": "Transitive",
-        "resolved": "1.0.2",
-        "contentHash": "F2Ml2DbLF1nwunKGbuJcEXIrxt46w8dlPiTZ2FE4Zf8yvfCjYsdd4RhX2600XKGbmaaoAS8mhSKbD7s35ITWmA=="
+        "resolved": "1.0.3",
+        "contentHash": "Z3wmq2ZuSyoN2GRmF8Sley4VqelHYtWqSg6+xeEaoAJ0gH0WpzjqfckzUPuibBBrA/f76+c0FVrEQhANsc6Wgw=="
       },
       "stdole": {
         "type": "Transitive",
@@ -1549,7 +1549,7 @@
         "dependencies": {
           "Microsoft.VisualStudio.Interop": "17.0.0-previews-4-31709-430",
           "Microsoft.VisualStudio.Sdk": "17.0.0-previews-4-31709-430",
-          "SonarLint.Secrets.DotNet": "1.0.2",
+          "SonarLint.Secrets.DotNet": "1.0.3",
           "SonarLint.VisualStudio.Core": "1.0.0"
         }
       },
