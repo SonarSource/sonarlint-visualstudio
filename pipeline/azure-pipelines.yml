@@ -37,7 +37,6 @@ jobs:
     inputs:
       targetType: filePath
       filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\should-sign-vsix.ps1
-      arguments: -SignVsixIfMasterBranch $(SignVsixIfMasterBranch) -ForceSignVsix $(ForceSignVsix)
 
   - task: NuGetToolInstaller@0
     displayName: Use NuGet 5.8.x
@@ -242,5 +241,4 @@ jobs:
     inputs:
       targetType: filePath
       filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\trigger-dogfood.ps1
-      arguments: -SourceBranch $(Build.SourceBranch) -TriggerDogfoodReleaseIfMasterBranch $(TriggerDogfoodReleaseIfMasterBranch)
 ...

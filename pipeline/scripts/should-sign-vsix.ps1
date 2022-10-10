@@ -1,15 +1,13 @@
-param([string] $SignVsixIfMasterBranch, [string] $ForceSignVsix)
-
 $ErrorView = 'NormalView'
 
 Write-Host "Current branch: $env:BUILD_SOURCEBRANCH"
 
-Write-Host "SignVsixIfMasterBranch flag; $SignVsixIfMasterBranch"
+Write-Host "SignVsixIfMasterBranch flag; $env:SIGNVSIXIFMASTERBRANCH"
 
-Write-Host "ForceSignVsix flag; $ForceSignVsix"
+Write-Host "ForceSignVsix flag; $env:FORCESIGNVSIX"
 
 
-if ("$ForceSignVsix" -eq "true"){
+if ("$env:FORCESIGNVSIX" -eq "true"){
     Write-Host "ForceSignVsix is set to true. Signing vsix."
     $shouldSign = $true
 }
@@ -21,7 +19,7 @@ Write-Host "ForceSignVsix is set to false. Checking if master branch..."
 
 if ("$env:BUILD_SOURCEBRANCH" -eq "refs/heads/master"){
 
-    if ("$SignVsixIfMasterBranch" -eq "true"){
+    if ("$env:SIGNVSIXIFMASTERBRANCH" -eq "true"){
         Write-Host "Building master and trigger flag is true. Signing vsix."
         $shouldSign = $true
     }

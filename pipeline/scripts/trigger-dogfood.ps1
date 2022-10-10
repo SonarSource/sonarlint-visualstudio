@@ -1,11 +1,9 @@
-param($SourceBranch, $TriggerDogfoodReleaseIfMasterBranch)
+Write-Host "Current branch: $env:BUILD_SOURCEBRANCH"
+Write-Host "Trigger dogfood release flag; $env:TRIGGERDOGFOODRELEASEIFMASTERBRANCH"
 
-Write-Host "Current branch: $SourceBranch"
-Write-Host "Trigger dogfood release flag; $TriggerDogfoodReleaseIfMasterBranch"
+if ("$env:BUILD_SOURCEBRANCH" -eq "refs/heads/master"){
 
-if ("$SourceBranch" -eq "refs/heads/master"){
-
-    if ("$TriggerDogfoodReleaseIfMasterBranch" -eq "true"){
+    if ("$env:TRIGGERDOGFOODRELEASEIFMASTERBRANCH" -eq "true"){
         Write-Host "Building master and trigger flag is true. Setting tag to trigger dogfood release pipeline."
         Write-Host "##vso[build.addbuildtag]TriggerDogfoodVsixUpdate"
     }
