@@ -113,7 +113,7 @@ jobs:
     displayName: Prepare analysis on SonarCloud (VS2022 only)
     condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
     inputs:
-      SonarCloud: 4d6d3285-de8e-41bb-a346-987397025edb
+      SonarCloud: SonarCloud
       organization: sonarsource
       projectKey: sonarlint-visualstudio
       projectName: SonarLint for Visual Studio
