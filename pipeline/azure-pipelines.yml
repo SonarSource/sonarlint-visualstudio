@@ -118,7 +118,6 @@ jobs:
       projectKey: sonarlint-visualstudio
       projectName: SonarLint for Visual Studio
       projectVersion: $(SONAR_PROJECT_VERSION)
-      extraProperties: "# Additional properties that will be passed to the scanner, \n# Put one key=value per line, example:\n# sonar.exclusions=**/*.bin\n#sonar.cs.vstest.reportsPaths=$(Agent.TempDirectory)/**/*.trx\n#sonar.cs.vscoveragexml.reportsPaths=$(Agent.TempDirectory)/**/*.coveragexml"
 
   - task: VSBuild@1
     displayName: Build solution SonarLint.VisualStudio.Integration.sln
@@ -163,12 +162,13 @@ jobs:
       projects: SonarLint.VisualStudio.Integration.sln
       custom: CycloneDX
       arguments: -t -j -o binaries
+
   - task: DownloadSecureFile@1
     name: signKey
     displayName: Download sign key
     condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
     inputs:
-      secureFile: 3755ac9b-4269-4218-a8d7-97aa4f1dd117
+      secureFile: sign-key.asc
 
   - task: PowerShell@2
     displayName: Rename and sign SBOM file
@@ -181,9 +181,8 @@ jobs:
     displayName: 'Copy VSIX to: $(Build.ArtifactStagingDirectory)'
     inputs:
       SourceFolder: $(Build.SourcesDirectory)\binaries
-      Contents: >-
+      Contents: |
         **\*.vsix
-
         **\SonarLint.visualstudio.sbom*.*
       TargetFolder: $(Build.ArtifactStagingDirectory)
 
@@ -216,9 +215,8 @@ jobs:
   - task: VSTest@2
     displayName: VsTest - testAssemblies
     inputs:
-      testAssemblyVer2: >-
+      testAssemblyVer2: |
         **\$(BuildConfiguration)\**\*test*.dll
-
         !**\obj\**
       runInParallel: false
       runTestsInIsolation: false
