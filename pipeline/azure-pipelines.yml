@@ -99,14 +99,14 @@ jobs:
     name: snk
     displayName: Download snk file
     inputs:
-      secureFile: c638339f-2dc0-42e1-9b9c-7ee76eda15f5
+      secureFile: SonarSourceSecret.snk
       retryCount: 5
 
   - task: DownloadSecureFile@1
     name: pfx
     displayName: Download pfx file
     inputs:
-      secureFile: c2ebf861-df45-46e0-9245-6ef7ae954a8b
+      secureFile: SonarSource-2021-2023.pfx
       retryCount: 5
 
   - task: SonarCloudPrepare@1
