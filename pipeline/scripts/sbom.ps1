@@ -8,9 +8,8 @@ Rename-Item -Path "binaries\bom.json" -NewName "${sbomName}"
 Write-Host "##vso[task.setvariable variable=SBOM_NAME;]$sbomName"
 
 # Note: we're assuming the PowerShell package Gpg.Windows.x64 is installed on the hosted agent.
-
-#check if this necessary... the log output for this step always has "WARNING: User declined to install package (Gpg.Windows.x64)"
-#Install-Package Gpg.Windows.x64
+# If not, run the following:
+#Install-Package Gpg.Windows.x64 -Scope CurrentUser -Force
 gpg --batch --passphrase "$env:PGP_PASSPHRASE" --allow-secret-key-import --import "$env:SIGNKEY_SECUREFILEPATH"
 gpg --list-secret-keys
 cd binaries
