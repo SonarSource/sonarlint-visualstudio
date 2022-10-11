@@ -10,6 +10,7 @@ Write-Host "##vso[task.setvariable variable=SBOM_NAME;]$sbomName"
 # Note: we're assuming the PowerShell package Gpg.Windows.x64 is installed on the hosted agent.
 # If not, run the following:
 #Install-Package Gpg.Windows.x64 -Scope CurrentUser -Force
+
 gpg --batch --passphrase "$env:PGP_PASSPHRASE" --allow-secret-key-import --import "$env:SIGNKEY_SECUREFILEPATH"
 gpg --list-secret-keys
 cd binaries
