@@ -13,9 +13,9 @@
       },
       "SharpCompress": {
         "type": "Direct",
-        "requested": "[0.32.1, )",
-        "resolved": "0.32.1",
-        "contentHash": "9Cwj3lK/p7wkiBaQPCvaKINuHYuZ0ACDldA4M3o5ISSq7cjbbq3yqigTDBUoKjtyyXpqmQHUkw6fhLnjNF30ow==",
+        "requested": "[0.32.2, )",
+        "resolved": "0.32.2",
+        "contentHash": "MSt6TKAg2c0uFFDtf7oACB4DfvXKq5Cvot2e0wjy5nAiVujpIRQ8laiIqCU/VMRGyytasGzg+nODKTkkDjbr/g==",
         "dependencies": {
           "System.Memory": "4.5.4",
           "System.Text.Encoding.CodePages": "6.0.0"
