@@ -8,8 +8,8 @@ Rename-Item -Path "binaries\bom.json" -NewName "${sbomName}"
 # Set the variable to it can be used by other tasks
 Write-Host "##vso[task.setvariable variable=SBOM_NAME;]$sbomName"
 
-Install-Package Gpg.Windows.x64 
-gpg --batch --passphrase "$env:PGP_PASSPHRASE --allow-secret-key-import --import "$env:SIGNKEY_SECUREFILEPATH"
+Install-Package Gpg.Windows.x64
+gpg --batch --passphrase "$env:PGP_PASSPHRASE" --allow-secret-key-import --import "$env:SIGNKEY_SECUREFILEPATH"
 gpg --list-secret-keys
 cd binaries
 Write-Host "About to sign $sbomName"
