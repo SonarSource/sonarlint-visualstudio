@@ -19,9 +19,9 @@
       },
       "Microsoft.VisualStudio.Setup.Configuration.Interop": {
         "type": "Direct",
-        "requested": "[1.16.30, )",
-        "resolved": "1.16.30",
-        "contentHash": "lC6SqNkraWUSY7cyF5GUmXSECoTMwslBc/r1dguChjsi0D0BlF7G6PLsvXD0NFCwnpKlgVzUYrIq7DQakdGerw=="
+        "requested": "[3.3.2180, )",
+        "resolved": "3.3.2180",
+        "contentHash": "Uuv0YBq00EFa9V8vOMIlXpKOTUJifDBWZZD3Dd7Y/Aiv5xzx3yQedQ++3yTjPGOqVXrUji8GXLfUQFjmOl3g0A=="
       },
       "Moq": {
         "type": "Direct",
