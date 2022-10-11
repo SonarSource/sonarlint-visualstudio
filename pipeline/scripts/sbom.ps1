@@ -9,9 +9,9 @@ Rename-Item -Path "binaries\bom.json" -NewName "${sbomName}"
 Write-Host "##vso[task.setvariable variable=SBOM_NAME;]$sbomName"
 
 Install-Package Gpg.Windows.x64 
-gpg --batch --passphrase $env:PGP_PASSPHRASE --allow-secret-key-import --import "$env:SIGNKEY_SECUREFILEPATH"
+gpg --batch --passphrase "$env:PGP_PASSPHRASE --allow-secret-key-import --import "$env:SIGNKEY_SECUREFILEPATH"
 gpg --list-secret-keys
 cd binaries
 Write-Host "About to sign $sbomName"
-gpg --pinentry-mode loopback  --passphrase $env:PGP_PASSPHRASE --armor --detach-sig --default-key infra@sonarsource.com "$sbomName"
+gpg --pinentry-mode loopback  --passphrase "$env:PGP_PASSPHRASE" --armor --detach-sig --default-key infra@sonarsource.com "$sbomName"
 Write-Host "Signed $sbomName"

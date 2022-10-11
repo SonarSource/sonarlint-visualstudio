@@ -150,7 +150,6 @@ jobs:
 
 
 ### SBOM generation start ###
-
   - task: DotNetCoreCLI@2
     displayName: Install cycloneDX tool
     condition: and(succeeded(), or(eq(variables['ForceSbomGeneration'], 'true'), eq(variables['Build.SourceBranch'], 'master')))
@@ -183,8 +182,8 @@ jobs:
     inputs:
       targetType: filePath
       filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\sbom.ps1
-
 ### SBOM generation end ###
+
 
   - task: CopyFiles@2
     displayName: 'Copy VSIX to: $(Build.ArtifactStagingDirectory)'
