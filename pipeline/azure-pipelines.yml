@@ -161,8 +161,6 @@ jobs:
   - task: DotNetCoreCLI@2
     displayName: Generate cycloneDX sbom file
     condition: and(succeeded(), or(eq(variables['ForceSbomGeneration'], 'true'), eq(variables['Build.SourceBranch'], 'master')))
-    env:
-      PGP_PASSPHRASE: $(PGP_PASSPHRASE)
     inputs:
       command: custom
       projects: SonarLint.VisualStudio.Integration.sln
@@ -179,6 +177,8 @@ jobs:
   - task: PowerShell@2
     displayName: Rename and sign SBOM file
     condition: and(succeeded(), or(eq(variables['ForceSbomGeneration'], 'true'), eq(variables['Build.SourceBranch'], 'master')))
+    env:
+      PGP_PASSPHRASE: $(PGP_PASSPHRASE)
     inputs:
       targetType: filePath
       filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\sbom.ps1
