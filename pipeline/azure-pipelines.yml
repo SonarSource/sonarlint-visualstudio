@@ -148,9 +148,11 @@ jobs:
       targetType: inline
       script: java -jar  "${env:SYSTEM_DEFAULTWORKINGDIRECTORY}\Whitesource\wss-unified-agent.jar" -c "${env:BUILD_SOURCESDIRECTORY}\build\whitesource\wss-unified-agent.config" -product "SonarLint/VisualStudio"  -project "SonarSource/sonarlint-visualstudio VS$(vsTargetVersion) ${env:SONAR_PROJECT_VERSION}" -projectversion ${env:SONAR_PROJECT_VERSION}  -scanComment "buildNumber:${env:BUILD_BUILDID};gitSha:${env:BUILD_SOURCEVERSION}" -offline false
 
+
+### SBOM generation start ###
   - task: DotNetCoreCLI@2
     displayName: Install cycloneDX tool
-    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+    condition: and(succeeded(), or(eq(variables['ForceSbomGeneration'], 'true'), eq(variables['Build.SourceBranch'], 'master')))
     inputs:
       command: custom
       custom: tool
@@ -158,7 +160,7 @@ jobs:
 
   - task: DotNetCoreCLI@2
     displayName: Generate cycloneDX sbom file
-    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+    condition: and(succeeded(), or(eq(variables['ForceSbomGeneration'], 'true'), eq(variables['Build.SourceBranch'], 'master')))
     inputs:
       command: custom
       projects: SonarLint.VisualStudio.Integration.sln
@@ -168,16 +170,20 @@ jobs:
   - task: DownloadSecureFile@1
     name: signKey
     displayName: Download sign key
-    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+    condition: and(succeeded(), or(eq(variables['ForceSbomGeneration'], 'true'), eq(variables['Build.SourceBranch'], 'master')))
     inputs:
       secureFile: sign-key.asc
 
   - task: PowerShell@2
     displayName: Rename and sign SBOM file
-    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+    condition: and(succeeded(), or(eq(variables['ForceSbomGeneration'], 'true'), eq(variables['Build.SourceBranch'], 'master')))
+    env:
+      PGP_PASSPHRASE: $(PGP_PASSPHRASE)
     inputs:
       targetType: filePath
       filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\sbom.ps1
+### SBOM generation end ###
+
 
   - task: CopyFiles@2
     displayName: 'Copy VSIX to: $(Build.ArtifactStagingDirectory)'
