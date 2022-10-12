@@ -39,9 +39,9 @@ jobs:
       filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\should-sign-vsix.ps1
 
   - task: NuGetToolInstaller@0
-    displayName: Use NuGet 5.8.x
+    displayName: Use NuGet 6.3.x
     inputs:
-      versionSpec: 5.8.x
+      versionSpec: 6.3.x
 
   - task: NuGetCommand@2
     displayName: NuGet restore with LockedMode check (VS2022 only)
