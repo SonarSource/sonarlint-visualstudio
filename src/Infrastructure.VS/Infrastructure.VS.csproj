@@ -16,11 +16,6 @@
     <AssemblyName>SonarLint.VisualStudio.Infrastructure.VS</AssemblyName>
   </PropertyGroup>
 
-  <ItemGroup Label="Package references">
-    <!-- The VS.Setup.Config.Interop package is not in the v17 SDK meta-package, but it is in the v15.0.1 meta-package -->
-    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="3.3.2180" PrivateAssets="all" />
-  </ItemGroup>
-
   <ItemGroup Label="Framework references">
     <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
