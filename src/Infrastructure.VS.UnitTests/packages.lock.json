@@ -17,12 +17,6 @@
           "Microsoft.CodeCoverage": "16.5.0"
         }
       },
-      "Microsoft.VisualStudio.Setup.Configuration.Interop": {
-        "type": "Direct",
-        "requested": "[3.3.2180, )",
-        "resolved": "3.3.2180",
-        "contentHash": "Uuv0YBq00EFa9V8vOMIlXpKOTUJifDBWZZD3Dd7Y/Aiv5xzx3yQedQ++3yTjPGOqVXrUji8GXLfUQFjmOl3g0A=="
-      },
       "Moq": {
         "type": "Direct",
         "requested": "[4.18.2, )",
@@ -526,6 +520,11 @@
           "envdte90a": "17.0.31902.203",
           "stdole": "17.0.31902.203"
         }
+      },
+      "Microsoft.VisualStudio.Setup.Configuration.Interop": {
+        "type": "Transitive",
+        "resolved": "3.0.4492",
+        "contentHash": "BfkqM96P8+N+cz4T+pxKrIKk2ZD1YMxCXH2ivtBDj5tx6Mc2YQLK1+3h+C6Qebper0RBipuHVn51lb9SZH6bKQ=="
       },
       "Microsoft.VisualStudio.Shell.15.0": {
         "type": "Transitive",
