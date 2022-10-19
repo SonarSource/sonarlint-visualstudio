@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\SonarLint.Product.props" />
+  <Import Project="..\SonarLint.VsPkgRefs.props" />
 
   <PropertyGroup>
     <ProjectGuid>{58619C0F-0F3D-4E8C-B204-A19B332D45E5}</ProjectGuid>

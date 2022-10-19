@@ -11,6 +11,7 @@
   -->
 
   <Import Project="..\..\SonarLint.Product.props" />
+  <Import Project="..\..\SonarLint.VsPkgRefs.props" />
 
   <PropertyGroup>
     <ProjectGuid>{082D5D8E-F914-4139-9AE3-3F48B679E3DA}</ProjectGuid>
