@@ -12,7 +12,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
     <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
-    <PackageReference Include="Moq" Version="4.14.5" />
+    <PackageReference Include="Moq" Version="4.18.2" />
     <PackageReference Include="FluentAssertions" Version="5.9.0" />
   </ItemGroup>
 
@@ -22,12 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="System.ComponentModel.Composition"/>
-  </ItemGroup>
-
-  <ItemGroup Label="Package references">
-    <!-- The VS.Setup.Config.Interop package is not in the v17 SDK meta-package, but it is in the v15.0.1 meta-package -->
-    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.16.30" PrivateAssets="all" />
+    <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
 
 </Project>

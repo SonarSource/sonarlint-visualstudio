@@ -100,7 +100,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         public async Task Show_HasPreviousInfoBar_InfoBarReplaced()
         {
             var firstInfoBar = new Mock<IInfoBar>();
+            SetupInfoBarEvents(firstInfoBar);
+
             var secondInfoBar = new Mock<IInfoBar>();
+            SetupInfoBarEvents(secondInfoBar);
+
             var infoBarManager = new Mock<IInfoBarManager>();
             infoBarManager
                 .SetupSequence(x => x.AttachInfoBarWithButton(ValidToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default))
@@ -111,12 +115,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             // Act
             await testSubject.ShowAsync(ValidToolWindowId); // show first bar
+           
+            CheckInfoBarWithEventsAdded(infoBarManager, firstInfoBar, ValidToolWindowId);
+            infoBarManager.Invocations.Clear();
+
             await testSubject.ShowAsync(ValidToolWindowId); // show second bar
+
+            CheckInfoBarWithEventsRemoved(infoBarManager, firstInfoBar);
+            CheckInfoBarWithEventsAdded(infoBarManager, secondInfoBar, ValidToolWindowId);
 
             firstInfoBar.VerifyNoOtherCalls();
             secondInfoBar.VerifyNoOtherCalls();
             infoBarManager.VerifyAll();
-            infoBarManager.Verify(x => x.DetachInfoBar(firstInfoBar.Object), Times.Once);
             infoBarManager.VerifyNoOtherCalls();
         }
 
@@ -185,19 +195,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             Mock<IOutputWindowService> outputWindow = null)
         {
             infoBar ??= new Mock<IInfoBar>();
-            infoBarManager ??= new Mock<IInfoBarManager>();
-            outputWindow ??= new Mock<IOutputWindowService>();
+            SetupInfoBarEvents(infoBar);
 
+            infoBarManager ??= new Mock<IInfoBarManager>();
             infoBarManager
                 .Setup(x => x.AttachInfoBarWithButton(ValidToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default))
                 .Returns(infoBar.Object);
+
+            outputWindow ??= new Mock<IOutputWindowService>();
 
             var testSubject = new OpenInIDEFailureInfoBar(infoBarManager.Object, outputWindow.Object);
 
             // Call "Show" to create an infobar and check it was added
             await testSubject.ShowAsync(ValidToolWindowId);
 
-            infoBarManager.VerifyAll();
+            CheckInfoBarWithEventsAdded(infoBarManager, infoBar, ValidToolWindowId);
+
             infoBarManager.VerifyNoOtherCalls();
             outputWindow.Invocations.Should().BeEmpty();
 

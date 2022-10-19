@@ -58,7 +58,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         public void ShowNotification_ShouldAddInfoBarOnUiThread()
         {
             var notification = CreateNotification();
-            var infoBarManager = CreateInfoBarManager(notification, Mock.Of<IInfoBar>());
+            var infoBar = CreateInfoBar();
+            var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
 
             var threadHandling = new Mock<IThreadHandling>();
             Action runOnUiAction = null;
@@ -75,6 +76,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             runOnUiAction.Should().NotBeNull();
             runOnUiAction();
 
+            VerifySubscribedToInfoBarEvents(infoBar);
             VerifyInfoBarCreatedCorrectly(infoBarManager, notification);
 
             infoBarManager.VerifyNoOtherCalls();
@@ -91,12 +93,14 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
                 new NotificationAction("notification2", _ => { }, false)
             });
 
-            var infoBarManager = CreateInfoBarManager(notification, Mock.Of<IInfoBar>());
+            var infoBar = CreateInfoBar();
+            var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
 
             var testSubject = CreateTestSubject(infoBarManager.Object);
             testSubject.ShowNotification(notification);
 
             VerifyInfoBarCreatedCorrectly(infoBarManager, notification);
+            VerifySubscribedToInfoBarEvents(infoBar);
 
             infoBarManager.VerifyNoOtherCalls();
         }
