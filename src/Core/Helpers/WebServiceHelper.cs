@@ -31,6 +31,7 @@ namespace SonarLint.VisualStudio.Core
         {
             try
             {
+                logger.WriteLine($"In SafeServiceCallAsync<T>: {nameof(T)}");
                 return await call();
             }
             catch (HttpRequestException e)
@@ -38,7 +39,7 @@ namespace SonarLint.VisualStudio.Core
                 // For some errors we will get an inner exception which will have a more specific information
                 // that we would like to show i.e. when the host could not be resolved
                 var innerException = e.InnerException as System.Net.WebException;
-                logger.WriteLine(CoreStrings.SonarQubeRequestFailed, e.Message, innerException?.Message);
+                logger.WriteLine(CoreStrings.SonarQubeRequestFailed, e, innerException?.Message ?? "");
             }
             catch (TaskCanceledException)
             {
@@ -52,7 +53,7 @@ namespace SonarLint.VisualStudio.Core
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(CoreStrings.SonarQubeRequestFailed, ex.Message, null);
+                logger.WriteLine(CoreStrings.SonarQubeRequestFailed, ex, "");
             }
 
             return default(T);

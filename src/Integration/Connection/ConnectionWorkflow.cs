@@ -29,6 +29,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Alm.Authentication;
+using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Connection.UI;
@@ -202,7 +203,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 // For some errors we will get an inner exception which will have a more specific information
                 // that we would like to show i.e.when the host could not be resolved
                 var innerException = e.InnerException as System.Net.WebException;
-                this.host.Logger.WriteLine(CoreStrings.SonarQubeRequestFailed, e.Message, innerException?.Message);
+                this.host.Logger.WriteLine(CoreStrings.SonarQubeRequestFailed, e, innerException?.Message ?? "");
                 AbortWithMessage(notifications, controller, cancellationToken);
             }
             catch (TaskCanceledException)
@@ -213,7 +214,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             }
             catch (Exception ex)
             {
-                this.host.Logger.WriteLine(CoreStrings.SonarQubeRequestFailed, ex.Message, null);
+                this.host.Logger.WriteLine(CoreStrings.SonarQubeRequestFailed, ex, "");
                 AbortWithMessage(notifications, controller, cancellationToken);
             }
         }
@@ -282,7 +283,9 @@ namespace SonarLint.VisualStudio.Integration.Connection
             notifications.ProgressChanged(Strings.DetectingSonarQubePlugins);
 
             var plugins = await this.host.SonarQubeService.GetAllPluginsAsync(cancellationToken);
+            DumpVar("plugins", plugins);
             var projectToLanguageMapper = host.GetMefService<IProjectToLanguageMapper>();
+            DumpVar("projectToLanguageMapper", projectToLanguageMapper);
 
             var csharpOrVbNetProjects = new HashSet<EnvDTE.Project>(this.projectSystem.GetSolutionProjects());
             var supportedPluginsLanguages = MinimumSupportedSonarQubePlugin.All
@@ -304,6 +307,11 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             AbortWorkflow(controller, cancellationToken);
             return false;
+        }
+
+        private void DumpVar(string name, object val)
+        {
+            host.Logger.WriteLine($"[XXX]   {name}: {val ?? "{null}"}");
         }
 
         private string GetPluginProjectMismatchErrorMessage(ICollection<EnvDTE.Project> csharpOrVbNetProjects)

@@ -71,6 +71,12 @@ namespace SonarLint.VisualStudio.Integration.MefServices
             return result;
         }
 
+
+        #region Logging overrides
+
+
+        #endregion
+
         private sealed class LoggerAdapter : SonarQube.Client.Logging.ILogger
         {
             private readonly ILogger logger;
@@ -85,13 +91,16 @@ namespace SonarLint.VisualStudio.Integration.MefServices
                 logger.LogDebug(message);
 
             public void Error(string message) =>
-                logger.WriteLine($"ERROR: {message}");
+                LogWithThreadId($"ERROR: {message}");
 
             public void Info(string message) =>
-                logger.WriteLine($"{message}");
+                LogWithThreadId($"{message}");
 
             public void Warning(string message) =>
-                logger.WriteLine($"WARNING: {message}");
+                LogWithThreadId($"WARNING: {message}");
+
+            private void LogWithThreadId(string message) =>
+                logger.WriteLine($"[Thread {System.Threading.Thread.CurrentThread.ManagedThreadId}] " + message);
         }
     }
 }
