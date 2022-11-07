@@ -135,8 +135,9 @@ jobs:
     condition: and(succeeded(), or(eq(variables['ForceWhiteSourceScan'], 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
     inputs:
       downloadDirectory: $(System.DefaultWorkingDirectory)\Whitesource
-      feedListDownload: 399fb241-ecc7-4802-8697-dcdd01fbb832/69e11f1b-cad7-442a-b676-37722e207221
-      packageListDownload: agent
+      feedsToUse: 'internal'
+      vstsFeed: '399fb241-ecc7-4802-8697-dcdd01fbb832/9e67fb30-4d6b-42ce-93f1-82d875c48b3b'
+      vstsFeedPackage: '1b87817a-74ba-44b2-952f-cb80bf4c6aa6'
       versionListDownload: '*'
 
   - task: PowerShell@2
