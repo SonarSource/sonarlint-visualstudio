@@ -297,17 +297,13 @@ namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
                 .Returns(() => new NoOpThreadHandler.NoOpAwaitable())
                 .Callback(() => callOrder.Add("SwitchToBackgroundThread"));
 
-            var analysisOptions = new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = false };
-
             var requestFactory = new Mock<IRequestFactoryAggregate>();
             requestFactory.Setup(x => x.TryCreateAsync(It.IsAny<string>(), It.IsAny<CFamilyAnalyzerOptions>()))
-                 .Callback(() => callOrder.Add("TryCreateAsync"));
-
+                                 .Callback(() => callOrder.Add("TryCreateAsync"));
 
             var testSubject = CreateTestableAnalyzer(requestFactory: requestFactory.Object, threadHandling: threadHandling.Object);
-
             await testSubject.TriggerAnalysisAsync("path", ValidDetectedLanguages, Mock.Of<IIssueConsumer>(),
-                                                    Mock.Of<IAnalyzerOptions>(), Mock.Of<IAnalysisStatusNotifier>(), CancellationToken.None);
+                                                   Mock.Of<IAnalyzerOptions>(), Mock.Of<IAnalysisStatusNotifier>(), CancellationToken.None);
 
             callOrder.Should().Equal("SwitchToBackgroundThread", "TryCreateAsync");
         }
