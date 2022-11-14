@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.IO.Abstractions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -29,6 +30,7 @@ using Moq;
 using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
 using SonarLint.VisualStudio.CFamily.Rules;
 using SonarLint.VisualStudio.CFamily.SubProcess;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration;
@@ -309,7 +311,9 @@ namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
             IAnalysisStatusNotifier statusNotifier = null,
             ICFamilyIssueConverterFactory issueConverterFactory = null,
             IRequestFactoryAggregate requestFactory = null,
-            ILogger logger = null)
+            ILogger logger = null,
+            IFileSystem fileSystem = null,
+            IThreadHandling threadHandling = null)
         {
             telemetryManager ??= Mock.Of<ITelemetryManager>();
             settings ??= new ConfigurableSonarLintSettings();
@@ -317,8 +321,10 @@ namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
             issueConverterFactory ??= Mock.Of<ICFamilyIssueConverterFactory>();
             requestFactory ??= Mock.Of<IRequestFactoryAggregate>();
             logger ??= new TestLogger();
+            fileSystem ??= Mock.Of<IFileSystem>();
+            threadHandling ??= new NoOpThreadHandler();
 
-            return new TestableCLangAnalyzer(telemetryManager, settings, statusNotifier, logger, issueConverterFactory, requestFactory);
+            return new TestableCLangAnalyzer(telemetryManager, settings, statusNotifier, logger, issueConverterFactory, requestFactory, fileSystem, threadHandling);
         }
 
         private class TestableCLangAnalyzer : CLangAnalyzer
@@ -337,8 +343,9 @@ namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
 
             public TestableCLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, 
                 IAnalysisStatusNotifier analysisStatusNotifier, ILogger logger, 
-                ICFamilyIssueConverterFactory cFamilyIssueConverterFactory, IRequestFactoryAggregate requestFactory)
-                : base(telemetryManager, settings, analysisStatusNotifier, cFamilyIssueConverterFactory, requestFactory, logger)
+                ICFamilyIssueConverterFactory cFamilyIssueConverterFactory, IRequestFactoryAggregate requestFactory, IFileSystem fileSystem,
+                IThreadHandling threadHandling)
+                : base(telemetryManager, settings, analysisStatusNotifier, cFamilyIssueConverterFactory, requestFactory, logger, fileSystem, threadHandling)
             {}
 
             protected override void CallSubProcess(Action<Message> handleMessage, IRequest request,
