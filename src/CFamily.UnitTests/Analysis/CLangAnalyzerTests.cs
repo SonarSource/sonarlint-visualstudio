@@ -287,6 +287,31 @@ namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
             statusNotifier.VerifyNoOtherCalls();
         }
 
+        [TestMethod]
+        public async Task TriggerAnalysisAsync_ThreadHandling_CorrectCallbackOrder()
+        {
+            var callOrder = new List<string>();
+
+            var threadHandling = new Mock<IThreadHandling>();
+            threadHandling.Setup(x => x.SwitchToBackgroundThread())
+                .Returns(() => new NoOpThreadHandler.NoOpAwaitable())
+                .Callback(() => callOrder.Add("SwitchToBackgroundThread"));
+
+            var analysisOptions = new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = false };
+
+            var requestFactory = new Mock<IRequestFactoryAggregate>();
+            requestFactory.Setup(x => x.TryCreateAsync(It.IsAny<string>(), It.IsAny<CFamilyAnalyzerOptions>()))
+                 .Callback(() => callOrder.Add("TryCreateAsync"));
+
+
+            var testSubject = CreateTestableAnalyzer(requestFactory: requestFactory.Object, threadHandling: threadHandling.Object);
+
+            await testSubject.TriggerAnalysisAsync("path", ValidDetectedLanguages, Mock.Of<IIssueConsumer>(),
+                                                    Mock.Of<IAnalyzerOptions>(), Mock.Of<IAnalysisStatusNotifier>(), CancellationToken.None);
+
+            callOrder.Should().Equal("SwitchToBackgroundThread", "TryCreateAsync");
+        }
+
         private readonly AnalysisLanguage[] ValidDetectedLanguages = new[] { AnalysisLanguage.CFamily };
         private readonly CFamilyAnalyzerOptions ValidAnalyzerOptions = null;
 
