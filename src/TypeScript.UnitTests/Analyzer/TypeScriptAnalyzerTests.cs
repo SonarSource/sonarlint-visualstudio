@@ -65,7 +65,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 MefTestHelpers.CreateExport<IAnalysisStatusNotifier>(),
                 MefTestHelpers.CreateExport<IEslintBridgeAnalyzerFactory>(eslintBridgeAnalyzerFactory.Object),
                 MefTestHelpers.CreateExport<ITelemetryManager>(),
-                MefTestHelpers.CreateExport<ILogger>());
+                MefTestHelpers.CreateExport<ILogger>(),
+                MefTestHelpers.CreateExport<IThreadHandling>());
         }
 
         [TestMethod]
@@ -274,7 +275,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             IRulesProvider rulesProvider = null,
             IAnalysisStatusNotifier statusNotifier = null,
             ITelemetryManager telemetryManager = null,
-            ILogger logger = null)
+            ILogger logger = null,
+            IThreadHandling threadHandling = null)
         {
             statusNotifier ??= Mock.Of<IAnalysisStatusNotifier>();
             rulesProvider ??= Mock.Of<IRulesProvider>();
@@ -282,6 +284,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             tsConfigProvider ??= SetupTsConfigProvider();
             eslintBridgeAnalyzer ??= Mock.Of<IEslintBridgeAnalyzer>();
             telemetryManager ??= Mock.Of<ITelemetryManager>();
+            threadHandling ??= new NoOpThreadHandler();
 
             var rulesProviderFactory = new Mock<IRulesProviderFactory>();
             rulesProviderFactory.Setup(x => x.Create("typescript", Language.Ts)).Returns(rulesProvider);
@@ -298,7 +301,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 statusNotifier,
                 eslintBridgeAnalyzerFactory.Object,
                 telemetryManager,
-                logger);
+                logger,
+                threadHandling);
         }
     }
 }
