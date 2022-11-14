@@ -6,7 +6,7 @@
     <!-- Note: don't forget to upload the new packages to the package feed when changing 
          the SonarAnalyzer version -->
     <EmbeddedSonarAnalyzerVersion>8.44.0.52574</EmbeddedSonarAnalyzerVersion>
-    <EmbeddedSonarCFamilyAnalyzerVersion>6.37.0.60132</EmbeddedSonarCFamilyAnalyzerVersion>
+    <EmbeddedSonarCFamilyAnalyzerVersion>6.39.0.60440</EmbeddedSonarCFamilyAnalyzerVersion>
     <EmbeddedSonarJSAnalyzerVersion>9.8.0.19239</EmbeddedSonarJSAnalyzerVersion>
     <EmbeddedSonarSecretsAnalyzerVersion>1.0.3</EmbeddedSonarSecretsAnalyzerVersion>
   </PropertyGroup>
