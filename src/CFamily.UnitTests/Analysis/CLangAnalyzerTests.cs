@@ -288,7 +288,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
         }
 
         [TestMethod]
-        public async Task TriggerAnalysisAsync_ThreadHandling_CorrectCallbackOrder()
+        public async Task TriggerAnalysisAsync_SwitchesToBackgroundThreadBeforeProcessing()
         {
             var callOrder = new List<string>();
 

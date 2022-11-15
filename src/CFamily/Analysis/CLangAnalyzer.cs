@@ -123,8 +123,6 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
-            // For notes on VS threading, see https://github.com/microsoft/vs-threading/blob/master/doc/cookbook_vs.md
-
             // Switch to a background thread
             await threadHandling.SwitchToBackgroundThread();
 
