@@ -34,6 +34,18 @@ namespace SonarLint.VisualStudio.CFamily.SubProcess
         }
     }
 
+    public class DataFlow
+    {
+        public string description { get; }
+        public MessagePart[] steps { get; }
+
+        public DataFlow(string description, MessagePart[] steps)
+        {
+            this.description = description;
+            this.steps = steps;
+        }
+    }
+
     public class MessagePart
     {
         public string Filename;
@@ -71,7 +83,6 @@ namespace SonarLint.VisualStudio.CFamily.SubProcess
             Parts = parts;
             Fixes = fixes;
         }
-
     }
 
     public class Fix

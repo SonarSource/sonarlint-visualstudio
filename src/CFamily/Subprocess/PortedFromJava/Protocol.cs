@@ -124,6 +124,7 @@ namespace SonarLint.VisualStudio.CFamily.SubProcess
             string text = ReadUTF(reader);
             bool partsMakeFlow = reader.ReadBoolean();
             MessagePart[] parts = ReadMessageParts(reader);
+            _ = ReadDataFlows(reader);
             reader.ReadBoolean();
             Fix[] fixes = ReadFixes(reader);
             return new Message(ruleKey, filename, line, column, endLine, endColumn, text, partsMakeFlow, parts, fixes);
@@ -219,6 +220,19 @@ namespace SonarLint.VisualStudio.CFamily.SubProcess
                     ReadInt(reader);
                 }
             }
+        }
+
+        private static DataFlow[] ReadDataFlows(BinaryReader reader) 
+        {
+            int flowCount = ReadInt(reader);
+            if (flowCount == 0) { return null; }
+
+            var dataFlows = new DataFlow[flowCount];
+            for (int i = 0; i<flowCount; i++) 
+            {
+                dataFlows[i] = new DataFlow(ReadUTF(reader), ReadMessageParts(reader));
+            }
+            return dataFlows;
         }
     }
 }
