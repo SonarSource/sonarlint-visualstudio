@@ -44,6 +44,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         private readonly ITelemetryManager telemetryManager;
         private readonly IEslintBridgeAnalyzer eslintBridgeAnalyzer;
         private readonly ILogger logger;
+        private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
         public TypeScriptAnalyzer(ITypeScriptEslintBridgeClient eslintBridgeClient,
@@ -52,12 +53,14 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             IAnalysisStatusNotifier analysisStatusNotifier,
             IEslintBridgeAnalyzerFactory eslintBridgeAnalyzerFactory,
             ITelemetryManager telemetryManager,
-            ILogger logger)
+            ILogger logger,
+            IThreadHandling threadHandling)
         {
             this.tsConfigProvider = tsConfigProvider;
             this.analysisStatusNotifier = analysisStatusNotifier;
             this.telemetryManager = telemetryManager;
             this.logger = logger;
+            this.threadHandling = threadHandling;
 
             var rulesProvider = rulesProviderFactory.Create("typescript", Language.Ts);
             eslintBridgeAnalyzer = eslintBridgeAnalyzerFactory.Create(rulesProvider, eslintBridgeClient);
@@ -85,7 +88,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             telemetryManager.LanguageAnalyzed("ts");
 
             // Switch to a background thread
-            await TaskScheduler.Default;
+            await threadHandling.SwitchToBackgroundThread();
 
             analysisStatusNotifier.AnalysisStarted(filePath);
 
