@@ -167,8 +167,8 @@
       },
       "Microsoft.Owin": {
         "type": "Transitive",
-        "resolved": "4.1.1",
-        "contentHash": "KtjkRz4COQRqrwOBMf+XKW1ZsdiFMqipbmM0khhNJIx6U9VRprbwRGdSq1++PHlZrIwHMmwRHC0nILNSHGkcaA==",
+        "resolved": "4.2.2",
+        "contentHash": "jt410l/8dvCIguRdU7dupYdm4kGLepVdD8EOTKU4nYZcLRrn6kQYqI6pbJOTJp7Vlm/T2WUF5bzyKK2z29xtjg==",
         "dependencies": {
           "Owin": "1.0.0"
         }
@@ -1305,6 +1305,7 @@
           "BouncyCastle": "[1.8.9, )",
           "Google.Protobuf": "[3.6.1, )",
           "Grpc.Tools": "[1.4.1, )",
+          "Microsoft.Owin": "[4.2.2, )",
           "Newtonsoft.Json": "[13.0.1, )",
           "System.Net.Http": "[4.0.0, )"
         }
