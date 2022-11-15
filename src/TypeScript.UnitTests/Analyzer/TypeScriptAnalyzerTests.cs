@@ -242,7 +242,26 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             statusNotifier.VerifyNoOtherCalls();
         }
 
-        private Mock<IEslintBridgeAnalyzer> SetupEslintBridgeAnalyzer(IReadOnlyCollection<IAnalysisIssue> issues = null, Exception exceptionToThrow = null)
+        [TestMethod]
+        public async Task ExecuteAnalysis_SwitchesToBackgroundThreadBeforeProcessing()
+        {
+            var callOrder = new List<string>();
+
+            var threadHandling = new Mock<IThreadHandling>();
+            threadHandling.Setup(x => x.SwitchToBackgroundThread())
+                .Returns(() => new NoOpThreadHandler.NoOpAwaitable())
+                .Callback(() => callOrder.Add("SwitchToBackgroundThread"));
+
+            var statusNotifier = new Mock<IAnalysisStatusNotifier>();
+            statusNotifier.Setup(x => x.AnalysisStarted(It.IsAny<string>())).Callback(() => callOrder.Add("AnalysisStarted"));
+
+            var testSubject = CreateTestSubject(statusNotifier: statusNotifier.Object, threadHandling: threadHandling.Object);
+            await testSubject.ExecuteAnalysis("path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+
+            callOrder.Should().Equal("SwitchToBackgroundThread", "AnalysisStarted");
+        }
+
+    private Mock<IEslintBridgeAnalyzer> SetupEslintBridgeAnalyzer(IReadOnlyCollection<IAnalysisIssue> issues = null, Exception exceptionToThrow = null)
         {
             var eslintBridgeClient = new Mock<IEslintBridgeAnalyzer>();
             var setup = eslintBridgeClient.Setup(x => x.Analyze(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()));
