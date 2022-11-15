@@ -60,7 +60,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 MefTestHelpers.CreateExport<IRulesProviderFactory>(rulesProviderFactory.Object),
                 MefTestHelpers.CreateExport<ITelemetryManager>(),
                 MefTestHelpers.CreateExport<IAnalysisStatusNotifier>(),
-                MefTestHelpers.CreateExport<IEslintBridgeAnalyzerFactory>(eslintBridgeAnalyzerFactory.Object));
+                MefTestHelpers.CreateExport<IEslintBridgeAnalyzerFactory>(eslintBridgeAnalyzerFactory.Object),
+                MefTestHelpers.CreateExport<IThreadHandling>());
         }
 
         [TestMethod]
@@ -207,6 +208,25 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             statusNotifier.VerifyNoOtherCalls();
         }
 
+        [TestMethod]
+        public async Task ExecuteAnalysis_SwitchesToBackgroundThreadBeforeProcessing()
+        {
+            var callOrder = new List<string>();
+
+            var threadHandling = new Mock<IThreadHandling>();
+            threadHandling.Setup(x => x.SwitchToBackgroundThread())
+                .Returns(() => new NoOpThreadHandler.NoOpAwaitable())
+                .Callback(() => callOrder.Add("SwitchToBackgroundThread"));
+
+            var statusNotifier = new Mock<IAnalysisStatusNotifier>();
+            statusNotifier.Setup(x => x.AnalysisStarted(It.IsAny<string>())).Callback(() => callOrder.Add("AnalysisStarted"));
+
+            var testSubject = CreateTestSubject(statusNotifier: statusNotifier.Object, threadHandling: threadHandling.Object);
+            await testSubject.ExecuteAnalysis("path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+
+            callOrder.Should().Equal("SwitchToBackgroundThread", "AnalysisStarted");
+        }
+
         private Mock<IEslintBridgeAnalyzer> SetupEslintBridgeAnalyzer(IReadOnlyCollection<IAnalysisIssue> issues = null, Exception exceptionToThrow = null)
         {
             var eslintBridgeClient = new Mock<IEslintBridgeAnalyzer>();
@@ -228,11 +248,13 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             IEslintBridgeAnalyzer eslintBridgeAnalyzer = null,
             IRulesProvider rulesProvider = null,
             ITelemetryManager telemetryManager = null,
-            IAnalysisStatusNotifier statusNotifier = null)
+            IAnalysisStatusNotifier statusNotifier = null,
+            IThreadHandling threadHandling = null)
         {
             telemetryManager ??= Mock.Of<ITelemetryManager>();
             statusNotifier ??= Mock.Of<IAnalysisStatusNotifier>();
             rulesProvider ??= Mock.Of<IRulesProvider>();
+            threadHandling ??= new NoOpThreadHandler();
 
             var rulesProviderFactory = new Mock<IRulesProviderFactory>();
             rulesProviderFactory.Setup(x => x.Create("javascript", Language.Js)).Returns(rulesProvider);
@@ -247,7 +269,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 rulesProviderFactory.Object,
                 telemetryManager,
                 statusNotifier,
-                eslintBridgeAnalyzerFactory.Object);
+                eslintBridgeAnalyzerFactory.Object,
+                threadHandling);
         }
     }
 }

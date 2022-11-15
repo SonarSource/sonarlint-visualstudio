@@ -40,16 +40,19 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         private readonly ITelemetryManager telemetryManager;
         private readonly IAnalysisStatusNotifier analysisStatusNotifier;
         private readonly IEslintBridgeAnalyzer eslintBridgeAnalyzer;
+        private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
         public JavaScriptAnalyzer(IJavaScriptEslintBridgeClient eslintBridgeClient,
             IRulesProviderFactory rulesProviderFactory,
             ITelemetryManager telemetryManager,
             IAnalysisStatusNotifier analysisStatusNotifier,
-            IEslintBridgeAnalyzerFactory eslintBridgeAnalyzerFactory)
+            IEslintBridgeAnalyzerFactory eslintBridgeAnalyzerFactory,
+            IThreadHandling threadHandling)
         {
             this.telemetryManager = telemetryManager;
             this.analysisStatusNotifier = analysisStatusNotifier;
+            this.threadHandling = threadHandling;
 
             var rulesProvider = rulesProviderFactory.Create("javascript", Language.Js);
             eslintBridgeAnalyzer = eslintBridgeAnalyzerFactory.Create(rulesProvider, eslintBridgeClient);
@@ -77,7 +80,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             telemetryManager.LanguageAnalyzed("js");
 
             // Switch to a background thread
-            await TaskScheduler.Default;
+            await threadHandling.SwitchToBackgroundThread();
 
             analysisStatusNotifier.AnalysisStarted(filePath);
 
