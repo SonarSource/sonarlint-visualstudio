@@ -32,6 +32,7 @@ using SonarLint.VisualStudio.CFamily.SubProcess;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
 
@@ -59,6 +60,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
         private readonly ICFamilyIssueConverterFactory issueConverterFactory;
         private readonly IRequestFactoryAggregate requestFactory;
         private readonly IFileSystem fileSystem;
+        private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
         public CLangAnalyzer(ITelemetryManager telemetryManager,
@@ -67,7 +69,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
             ICFamilyIssueConverterFactory issueConverterFactory,
             IRequestFactoryAggregate requestFactory,
             ILogger logger)
-            : this(telemetryManager, settings, analysisStatusNotifier, issueConverterFactory, requestFactory, logger, new FileSystem())
+            : this(telemetryManager, settings, analysisStatusNotifier, issueConverterFactory, requestFactory, logger, new FileSystem(), new ThreadHandling())
         {
         }
 
@@ -77,7 +79,8 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
             ICFamilyIssueConverterFactory issueConverterFactory,
             IRequestFactoryAggregate requestFactory,
             ILogger logger,
-            IFileSystem fileSystem)
+            IFileSystem fileSystem,
+            IThreadHandling threadHandling)
 
         {
             this.telemetryManager = telemetryManager;
@@ -87,6 +90,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
             this.issueConverterFactory = issueConverterFactory;
             this.requestFactory = requestFactory;
             this.fileSystem = fileSystem;
+            this.threadHandling = threadHandling;
         }
 
         public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
@@ -119,10 +123,8 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
-            // For notes on VS threading, see https://github.com/microsoft/vs-threading/blob/master/doc/cookbook_vs.md
-
             // Switch to a background thread
-            await TaskScheduler.Default;
+            await threadHandling.SwitchToBackgroundThread();
 
             var request = await TryCreateRequestAsync(path, analyzerOptions);
 
