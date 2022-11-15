@@ -36,13 +36,13 @@ namespace SonarLint.VisualStudio.CFamily.SubProcess
 
     public class DataFlow
     {
-        public string description { get; }
-        public MessagePart[] steps { get; }
+        public string Description { get; }
+        public MessagePart[] Steps { get; }
 
         public DataFlow(string description, MessagePart[] steps)
         {
-            this.description = description;
-            this.steps = steps;
+            this.Description = description;
+            this.Steps = steps;
         }
     }
 
