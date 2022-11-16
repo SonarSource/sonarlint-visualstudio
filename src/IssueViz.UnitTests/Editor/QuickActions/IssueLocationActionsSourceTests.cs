@@ -24,6 +24,7 @@ using System.Linq;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -32,6 +33,8 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
 using Moq;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
@@ -98,8 +101,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             var lightBulbBroker = new Mock<ILightBulbBroker>();
             var textView = CreateWpfTextView();
 
-            Integration.UnitTests.ThreadHelper.SetCurrentThreadAsUIThread();
-
             CreateTestSubject(selectedIssueLocationsTagAggregator.Object, 
                 issueLocationsTagAggregator.Object, 
                 lightBulbBroker: lightBulbBroker.Object, 
@@ -147,6 +148,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
             issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
             eventHandler.Verify(x => x(It.IsAny<object>(), It.IsAny<EventArgs>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void OnTagsChanged_RunsOnUIThread()
+        {
+            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
+            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+            var lightBulbBroker = new Mock<ILightBulbBroker>();
+
+            var threadHandling = new Mock<IThreadHandling>();
+            threadHandling.Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
+                .Callback<Action>(op =>
+                {
+                    // Try to check that the product code is executed inside the "RunOnUIThread" call
+                    lightBulbBroker.Invocations.Count.Should().Be(0);
+                    op();
+                    lightBulbBroker.Invocations.Count.Should().Be(1);
+                });
+
+            CreateTestSubject(selectedIssueLocationsTagAggregator.Object,
+                issueLocationsTagAggregator.Object,
+                lightBulbBroker : lightBulbBroker.Object,
+                threadHandling : threadHandling.Object);
+
+            selectedIssueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
+
+            threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
         }
 
         [TestMethod]
@@ -308,7 +336,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator,
             IIssueSelectionService selectionService = null, 
             ILightBulbBroker lightBulbBroker = null, 
-            ITextView textView = null)
+            ITextView textView = null,
+            IThreadHandling threadHandling = null)
         {
             textView = textView ?? CreateWpfTextView();
             var vsUiShell = Mock.Of<IVsUIShell>();
@@ -328,7 +357,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             selectionService ??= analysisIssueSelectionServiceMock.Object;
             lightBulbBroker ??= Mock.Of<ILightBulbBroker>();
 
-            return new IssueLocationActionsSource(lightBulbBroker, vsUiShell, bufferTagAggregatorFactoryService.Object, textView, selectionService);
+            threadHandling ??= new NoOpThreadHandler();
+
+            return new IssueLocationActionsSource(lightBulbBroker, vsUiShell, bufferTagAggregatorFactoryService.Object, textView, selectionService, threadHandling);
         }
 
         private (IList<SuggestedActionSet> actionList, bool hasAction) GetSuggestedActions(IEnumerable<IAnalysisIssueVisualization> primaryIssues,

@@ -23,11 +23,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Debugger.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
@@ -44,17 +47,27 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
         private readonly IIssueSelectionService selectionService;
         private readonly ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator;
         private readonly ITagAggregator<ISelectedIssueLocationTag> selectedIssueLocationsTagAggregator;
+        private readonly IThreadHandling threadHandling;
 
-        public IssueLocationActionsSource(ILightBulbBroker lightBulbBroker, 
+        public IssueLocationActionsSource(ILightBulbBroker lightBulbBroker,
+            IVsUIShell vsUiShell,
+            IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
+            ITextView textView,
+            IIssueSelectionService selectionService) :
+            this (lightBulbBroker, vsUiShell, bufferTagAggregatorFactoryService, textView, selectionService, new ThreadHandling()) { }
+
+        internal IssueLocationActionsSource(ILightBulbBroker lightBulbBroker, 
             IVsUIShell vsUiShell, 
             IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, 
             ITextView textView,
-            IIssueSelectionService selectionService)
+            IIssueSelectionService selectionService,
+            IThreadHandling threadHandling)
         {
             this.lightBulbBroker = lightBulbBroker;
             this.vsUiShell = vsUiShell;
             this.textView = textView;
             this.selectionService = selectionService;
+            this.threadHandling = threadHandling;
 
             issueLocationsTagAggregator = bufferTagAggregatorFactoryService.CreateTagAggregator<IIssueLocationTag>(textView.TextBuffer);
             issueLocationsTagAggregator.TagsChanged += TagAggregator_TagsChanged;
@@ -140,7 +153,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 
         private void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e)
         {
-            RunOnUIThread.Run(() => lightBulbBroker.DismissSession(textView));
+            threadHandling.RunOnUIThread(() => lightBulbBroker.DismissSession(textView)).Forget();
 
             SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
         }
