@@ -27,6 +27,8 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor
@@ -45,17 +47,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
         private readonly IVsEditorAdaptersFactoryService editorAdaptersFactory;
         private readonly IOutliningManagerService outliningManagerService;
         private readonly IEditorOperationsFactoryService editorOperationsFactory;
+        private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
         public DocumentNavigator([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            IVsEditorAdaptersFactoryService editorAdaptersFactory, 
-            IOutliningManagerService outliningManagerService, 
-            IEditorOperationsFactoryService editorOperationsFactory)
+            IVsEditorAdaptersFactoryService editorAdaptersFactory,
+            IOutliningManagerService outliningManagerService,
+            IEditorOperationsFactoryService editorOperationsFactory,
+            IThreadHandling threadHandling)
         {
             this.serviceProvider = serviceProvider;
             this.editorAdaptersFactory = editorAdaptersFactory;
             this.outliningManagerService = outliningManagerService;
             this.editorOperationsFactory = editorOperationsFactory;
+            this.threadHandling = threadHandling;
         }
 
         public ITextView Open(string filePath)
@@ -68,12 +73,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 
         public void Navigate(ITextView textView, SnapshotSpan snapshotSpan)
         {
-            RunOnUIThread.Run(() =>
+            threadHandling.RunOnUIThread(() =>
             {
                 ExpandSpan(textView, snapshotSpan);
 
                 SelectSpan(textView, snapshotSpan);
-            });
+            }).Forget();
         }
 
         private IVsTextView OpenDocument(string filePath)

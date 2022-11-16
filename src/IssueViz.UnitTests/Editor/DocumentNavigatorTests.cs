@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Outlining;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using ThreadHelper = SonarLint.VisualStudio.Integration.UnitTests.ThreadHelper;
@@ -42,14 +43,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 
         private Mock<IOutliningManagerService> outliningManagerServiceMock;
         private Mock<IEditorOperations> editorOperationsMock;
+        private Mock<IThreadHandling> threadHandlingMock;
 
         private DocumentNavigator testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            ThreadHelper.SetCurrentThreadAsUIThread();
-
             mockTextView = Mock.Of<ITextView>();
 
             var mockSnapshot = new Mock<ITextSnapshot>();
@@ -64,10 +64,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
                 .Setup(x => x.GetEditorOperations(mockTextView))
                 .Returns(editorOperationsMock.Object);
 
+            threadHandlingMock = new Mock<IThreadHandling>();
+            threadHandlingMock.Setup(x => x.RunOnUIThread(It.IsAny<Action>())).Callback<Action>(op => op());
+
             testSubject = new DocumentNavigator(Mock.Of<IServiceProvider>(),
                 Mock.Of<IVsEditorAdaptersFactoryService>(),
                 outliningManagerServiceMock.Object,
-                editorOperationsFactoryMock.Object);
+                editorOperationsFactoryMock.Object,
+                threadHandlingMock.Object
+                );
         }
 
         [TestMethod]
@@ -77,7 +82,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
                 MefTestHelpers.CreateExport<SVsServiceProvider>(),
                 MefTestHelpers.CreateExport<IVsEditorAdaptersFactoryService>(),
                 MefTestHelpers.CreateExport<IOutliningManagerService>(),
-                MefTestHelpers.CreateExport<IEditorOperationsFactoryService>());
+                MefTestHelpers.CreateExport<IEditorOperationsFactoryService>(),
+                MefTestHelpers.CreateExport<IThreadHandling>());
         }
 
         [TestMethod]
@@ -85,7 +91,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         {
             outliningManagerServiceMock
                 .Setup(x => x.GetOutliningManager(mockTextView))
-                .Returns((IOutliningManager) null);
+                .Returns((IOutliningManager)null);
 
             Action act = () => testSubject.Navigate(mockTextView, mockSnapshotSpan);
             act.Should().NotThrow();
@@ -124,6 +130,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
                 Times.Once);
 
             editorOperationsMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Navigate_VerifyIsRunningOnUIThread()
+        {
+            threadHandlingMock.Reset();
+            threadHandlingMock.Setup(x => x.RunOnUIThread(It.IsAny<Action>())).Callback<Action>(op =>
+            {
+                outliningManagerServiceMock.Invocations.Count.Should().Be(0);
+                editorOperationsMock.Invocations.Count.Should().Be(0);
+                op();
+                outliningManagerServiceMock.Invocations.Count.Should().Be(1);
+                editorOperationsMock.Invocations.Count.Should().Be(1);
+            });
+
+            testSubject.Navigate(mockTextView, mockSnapshotSpan);
+
+            threadHandlingMock.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
         }
     }
 }
