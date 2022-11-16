@@ -24,6 +24,8 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS
 {
@@ -41,21 +43,23 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
     {
         private readonly ITextDocumentProvider textDocumentProvider;
         private IVsMonitorSelection monitorSelection;
+        private IThreadHandling threadHandling;
 
         [ImportingConstructor]
-        public ActiveDocumentLocator([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ITextDocumentProvider textDocumentProvider)
+        public ActiveDocumentLocator([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ITextDocumentProvider textDocumentProvider, IThreadHandling threadHandling)
         {
             this.textDocumentProvider = textDocumentProvider;
-            
-            RunOnUIThread.Run(() =>
+            this.threadHandling = threadHandling;
+
+            threadHandling.RunOnUIThread(() =>
             {
                 monitorSelection = serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
-            });
+            }).Forget();
         }
 
         public ITextDocument FindActiveDocument()
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            threadHandling.ThrowIfNotOnUIThread();
 
             // Get the current doc frame, if there is one
             monitorSelection.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out var pvarValue);

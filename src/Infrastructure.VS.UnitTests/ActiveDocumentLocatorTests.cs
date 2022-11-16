@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
@@ -41,8 +42,6 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestInitialize]
         public void TestInitialize()
         {
-            ThreadHelper.SetCurrentThreadAsUIThread();
-
             monitorSelectionMock = new Mock<IVsMonitorSelection>();
             textDocumentProviderMock = new Mock<ITextDocumentProvider>();
             textDocument = Mock.Of<ITextDocument>();
@@ -52,7 +51,26 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
                 .Setup(x => x.GetService(typeof(SVsShellMonitorSelection)))
                 .Returns(monitorSelectionMock.Object);
 
-            testSubject = new ActiveDocumentLocator(serviceProviderMock.Object, textDocumentProviderMock.Object);
+            testSubject = new ActiveDocumentLocator(serviceProviderMock.Object, textDocumentProviderMock.Object, new NoOpThreadHandler());
+        }
+
+        [TestMethod]
+        public void Ctor_VerifyIsRunningOnUiThread()
+        {
+            var serviceProvider = new Mock<IServiceProvider>();
+            var threadHandling = new Mock<IThreadHandling>();
+            threadHandling.Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
+                .Callback<Action>(op =>
+                {
+                    // Try to check that the product code is executed inside the "RunOnUIThread" call
+                    serviceProvider.Invocations.Count.Should().Be(0);
+                    op();
+                    serviceProvider.Invocations.Count.Should().Be(1);
+                });
+
+            _ = new ActiveDocumentLocator(serviceProvider.Object, textDocumentProviderMock.Object, threadHandling.Object);
+
+            threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
         }
 
         [TestMethod]
