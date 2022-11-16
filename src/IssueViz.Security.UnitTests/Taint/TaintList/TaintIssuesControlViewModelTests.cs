@@ -29,6 +29,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
@@ -46,13 +47,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
     [TestClass]
     public class TaintIssuesControlViewModelTests
     {
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            // The ViewModel needs to be created on the UI thread
-            ThreadHelper.SetCurrentThreadAsUIThread();
-        }
-
         [TestMethod]
         public void Ctor_RegisterToStoreCollectionChanges()
         {
@@ -133,6 +127,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             sortedIssueVizs.Count.Should().Be(3);
 
             sortedIssueVizs.Should().ContainInOrder(newestIssueViz, middleIssueViz, oldestIssueViz);
+        }
+
+        [TestMethod]
+        public void Ctor_VerifySwitchesToUIThreadAndThrowIfNotOnUIThreadCalled()
+        {
+            var threadHandlingMock = new Mock<IThreadHandling>();
+
+            CreateTestSubject(threadHandling : threadHandlingMock.Object);
+
+            threadHandlingMock.Verify(x => x.ThrowIfNotOnUIThread(), Times.Once);
+            threadHandlingMock.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
         }
 
         [TestMethod]
@@ -710,7 +715,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             ITelemetryManager telemetryManager = null,
             IShowInBrowserService showInBrowserService = null,
             IIssueSelectionService selectionService = null,
-            IMenuCommandService menuCommandService = null)
+            IMenuCommandService menuCommandService = null,
+            IThreadHandling threadHandling = null)
         {
             issueVizs ??= Array.Empty<IAnalysisIssueVisualization>();
             store ??= new Mock<ITaintStore>();
@@ -723,6 +729,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             telemetryManager ??= Mock.Of<ITelemetryManager>();
             selectionService ??= Mock.Of<IIssueSelectionService>();
             menuCommandService ??= Mock.Of<IMenuCommandService>();
+            threadHandling ??= new NoOpThreadHandler();
 
             return new TaintIssuesControlViewModel(store.Object,
                 locationNavigator,
@@ -732,7 +739,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                 telemetryManager,
                 selectionService,
                 Mock.Of<ICommand>(),
-                menuCommandService);
+                menuCommandService,
+                threadHandling);
         }
 
         private static IActiveDocumentLocator CreateLocatorAndSetActiveDocument(string activeFilePath)

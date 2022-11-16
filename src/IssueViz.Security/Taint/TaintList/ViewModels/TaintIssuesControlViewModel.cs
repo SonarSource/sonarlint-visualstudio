@@ -28,6 +28,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
@@ -74,6 +75,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         private readonly IIssueSelectionService selectionService;
         private readonly ITaintStore store;
         private readonly IMenuCommandService menuCommandService;
+        private readonly IThreadHandling threadHandling;
         private readonly object Lock = new object();
         private string activeDocumentFilePath;
         private string windowCaption;
@@ -129,8 +131,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             ITelemetryManager telemetryManager,
             IIssueSelectionService selectionService,
             ICommand navigateToDocumentationCommand,
-            IMenuCommandService menuCommandService)
+            IMenuCommandService menuCommandService) :
+            this(store, locationNavigator, activeDocumentTracker,activeDocumentLocator,showInBrowserService,
+                 telemetryManager,selectionService,navigateToDocumentationCommand,menuCommandService, new ThreadHandling()){ }
+
+        internal TaintIssuesControlViewModel(ITaintStore store,
+            ILocationNavigator locationNavigator,
+            IActiveDocumentTracker activeDocumentTracker,
+            IActiveDocumentLocator activeDocumentLocator,
+            IShowInBrowserService showInBrowserService,
+            ITelemetryManager telemetryManager,
+            IIssueSelectionService selectionService,
+            ICommand navigateToDocumentationCommand,
+            IMenuCommandService menuCommandService,
+            IThreadHandling threadHandling)
         {
+            this.threadHandling = threadHandling;
             unfilteredIssues = new ObservableCollection<ITaintIssueViewModel>();
             AllowMultiThreadedAccessToIssuesCollection();
 
@@ -193,7 +209,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         /// </summary>
         private void AllowMultiThreadedAccessToIssuesCollection()
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            threadHandling.ThrowIfNotOnUIThread();
             BindingOperations.EnableCollectionSynchronization(unfilteredIssues, Lock);
         }
 
@@ -250,7 +266,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         private void UpdateCaption()
         {
-            RunOnUIThread.Run(() =>
+            threadHandling.RunOnUIThread(() =>
             {
                 // We'll show the default caption if:
                 // * there are no underlying issues, or
