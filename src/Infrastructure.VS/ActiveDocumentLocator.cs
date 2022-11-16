@@ -42,8 +42,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
     internal class ActiveDocumentLocator : IActiveDocumentLocator
     {
         private readonly ITextDocumentProvider textDocumentProvider;
+        private readonly IThreadHandling threadHandling;
         private IVsMonitorSelection monitorSelection;
-        private IThreadHandling threadHandling;
 
         [ImportingConstructor]
         public ActiveDocumentLocator([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ITextDocumentProvider textDocumentProvider, IThreadHandling threadHandling)

@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         {
             outliningManagerServiceMock
                 .Setup(x => x.GetOutliningManager(mockTextView))
-                .Returns((IOutliningManager)null);
+                .Returns((IOutliningManager) null);
 
             Action act = () => testSubject.Navigate(mockTextView, mockSnapshotSpan);
             act.Should().NotThrow();
@@ -136,6 +136,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         public void Navigate_VerifyIsRunningOnUIThread()
         {
             threadHandlingMock.Reset();
+
             threadHandlingMock.Setup(x => x.RunOnUIThread(It.IsAny<Action>())).Callback<Action>(op =>
             {
                 outliningManagerServiceMock.Invocations.Count.Should().Be(0);

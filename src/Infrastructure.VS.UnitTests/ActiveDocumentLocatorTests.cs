@@ -21,6 +21,7 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
@@ -35,6 +36,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
     {
         private Mock<IVsMonitorSelection> monitorSelectionMock;
         private Mock<ITextDocumentProvider> textDocumentProviderMock;
+        private Mock<IThreadHandling> threadHandlingMock;
         private ITextDocument textDocument;
 
         private ActiveDocumentLocator testSubject;
@@ -45,19 +47,23 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             monitorSelectionMock = new Mock<IVsMonitorSelection>();
             textDocumentProviderMock = new Mock<ITextDocumentProvider>();
             textDocument = Mock.Of<ITextDocument>();
+            
+            threadHandlingMock = new Mock<IThreadHandling>();
+            threadHandlingMock.Setup(x => x.RunOnUIThread(It.IsAny<Action>())).Callback<Action>(op => op());
 
             var serviceProviderMock = new Mock<IServiceProvider>();
             serviceProviderMock
                 .Setup(x => x.GetService(typeof(SVsShellMonitorSelection)))
                 .Returns(monitorSelectionMock.Object);
 
-            testSubject = new ActiveDocumentLocator(serviceProviderMock.Object, textDocumentProviderMock.Object, new NoOpThreadHandler());
+            testSubject = new ActiveDocumentLocator(serviceProviderMock.Object, textDocumentProviderMock.Object, threadHandlingMock.Object);
         }
 
         [TestMethod]
         public void Ctor_VerifyIsRunningOnUiThread()
         {
             var serviceProvider = new Mock<IServiceProvider>();
+            
             var threadHandling = new Mock<IThreadHandling>();
             threadHandling.Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
                 .Callback<Action>(op =>
@@ -71,6 +77,16 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             _ = new ActiveDocumentLocator(serviceProvider.Object, textDocumentProviderMock.Object, threadHandling.Object);
 
             threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void FindActiveDocument_VerifyThrowIfNotOnUIThreadIsCalled()
+        {
+            Configure(activeFrame: null);
+
+            testSubject.FindActiveDocument();
+
+            threadHandlingMock.Verify(x => x.ThrowIfNotOnUIThread(), Times.Once);
         }
 
         [TestMethod]

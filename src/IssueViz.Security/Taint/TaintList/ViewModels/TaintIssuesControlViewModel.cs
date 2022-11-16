@@ -28,6 +28,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Telemetry;
@@ -283,7 +284,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
                 // Must run on the UI thread.
                 int GetFilteredIssuesCount() => IssuesView.OfType<object>().Count();
-            });
+            }).Forget();
         }
 
         private void Store_IssuesChanged(object sender, IssuesChangedEventArgs e)
