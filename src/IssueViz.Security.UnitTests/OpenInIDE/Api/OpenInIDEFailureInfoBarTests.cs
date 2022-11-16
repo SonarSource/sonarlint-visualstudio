@@ -21,7 +21,6 @@
 using System;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
