@@ -22,6 +22,8 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
@@ -36,25 +38,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
     internal class StatusBarNotifier : IStatusBarNotifier
     {
         private IVsStatusbar vsStatusBar;
+        private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
-        public StatusBarNotifier([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public StatusBarNotifier([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IThreadHandling threadHandling)
         {
-            RunOnUIThread.Run(() =>
+            this.threadHandling = threadHandling;
+
+            threadHandling.RunOnUIThread(() =>
             {
                 vsStatusBar = serviceProvider.GetService(typeof(IVsStatusbar)) as IVsStatusbar;
-            });
+            }).Forget();
         }
 
         public void Notify(string message, bool showSpinner)
         {
-            RunOnUIThread.Run(() =>
+            threadHandling.RunOnUIThread(() =>
             {
                 object icon = (short)Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General;
                 vsStatusBar.Animation(showSpinner ? 1 : 0, ref icon);
 
                 vsStatusBar.SetText(message);
-            });
+            }).Forget();
         }
     }
 }
