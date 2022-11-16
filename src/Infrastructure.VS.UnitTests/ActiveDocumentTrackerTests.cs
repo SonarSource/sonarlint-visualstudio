@@ -21,10 +21,12 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
@@ -33,12 +35,6 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
     [TestClass]
     public class ActiveDocumentTrackerTests
     {
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            ThreadHelper.SetCurrentThreadAsUIThread();
-        }
-
         [TestMethod]
         public void Ctor_RegisterToSelectionEvents()
         {
@@ -46,10 +42,30 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             var monitorSelectionMock = new Mock<IVsMonitorSelection>();
             monitorSelectionMock.Setup(x => x.AdviseSelectionEvents(It.IsAny<IVsSelectionEvents>(), out cookie));
 
-            var testSubject = CreateTestSubject(monitorSelectionMock.Object);
+            var testSubject = CreateTestSubject(monitorSelection: monitorSelectionMock.Object);
 
             monitorSelectionMock.Verify(x=> x.AdviseSelectionEvents(testSubject, out cookie), Times.Once);
             monitorSelectionMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Ctor_RunsOnUIThread()
+        {
+            var serviceProviderMock = new Mock<IServiceProvider>();
+            serviceProviderMock.Setup(x => x.GetService(typeof(SVsShellMonitorSelection))).Returns(Mock.Of<IVsMonitorSelection>());
+            var threadHandlingMock = new Mock<IThreadHandling>();
+            threadHandlingMock.Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
+                .Callback<Action>(op =>
+                {
+                    // Try to check that the product code is executed inside the "RunOnUIThread" call
+                    serviceProviderMock.Invocations.Count.Should().Be(0);
+                    op();
+                    serviceProviderMock.Invocations.Count.Should().Be(1);
+                });
+
+
+            var testSubject = CreateTestSubject(serviceProvider: serviceProviderMock.Object, threadHandling: threadHandlingMock.Object);
+            threadHandlingMock.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
         }
 
         [TestMethod]
@@ -59,7 +75,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             var monitorSelectionMock = new Mock<IVsMonitorSelection>();
             monitorSelectionMock.Setup(x => x.AdviseSelectionEvents(It.IsAny<IVsSelectionEvents>(), out cookie));
 
-            var testSubject = CreateTestSubject(monitorSelectionMock.Object);
+            var testSubject = CreateTestSubject(monitorSelection: monitorSelectionMock.Object);
             testSubject.Dispose();
 
             monitorSelectionMock.Verify(x => x.UnadviseSelectionEvents(cookie), Times.Once);
@@ -108,6 +124,19 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             result.Should().Be(VSConstants.S_OK);
 
             CheckEventNotRaised(eventHandler);
+        }
+
+        [TestMethod]
+        public void OnElementValueChanged_ThrowIfNotOnUIThreadCalled()
+        {
+            var threadHandlingMock = new Mock<IThreadHandling>();
+            threadHandlingMock.Setup(x => x.RunOnUIThread(It.IsAny<Action>())).Callback<Action>(op => op());
+
+            var eventHandler = new Mock<Action<ActiveDocumentChangedEventArgs>>();
+            var testSubject = CreateTestSubject(eventHandler: eventHandler.Object, threadHandling: threadHandlingMock.Object);
+            SimulateElementValueChanged(testSubject, VSConstants.VSSELELEMID.SEID_DocumentFrame, null);
+
+            threadHandlingMock.Verify(x => x.ThrowIfNotOnUIThread(), Times.Once);
         }
 
         [TestMethod]
@@ -242,19 +271,24 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             act.Should().NotThrow().And.Subject().Should().Be(VSConstants.S_OK);
         }
 
-        private ActiveDocumentTracker CreateTestSubject(IVsMonitorSelection monitorSelection = null,
+        private ActiveDocumentTracker CreateTestSubject(IServiceProvider serviceProvider = null,
+            IVsMonitorSelection monitorSelection = null,
             ITextDocumentProvider textDocumentProvider = null,
-            Action<ActiveDocumentChangedEventArgs> eventHandler = null)
+            Action<ActiveDocumentChangedEventArgs> eventHandler = null,
+            IThreadHandling threadHandling = null)
         {
             monitorSelection ??= Mock.Of<IVsMonitorSelection>();
             textDocumentProvider ??= Mock.Of<ITextDocumentProvider>();
+            threadHandling ??= new NoOpThreadHandler();
 
             var serviceProviderMock = new Mock<IServiceProvider>();
             serviceProviderMock
                 .Setup(x => x.GetService(typeof(SVsShellMonitorSelection)))
                 .Returns(monitorSelection);
 
-            var testSubject = new ActiveDocumentTracker(serviceProviderMock.Object, textDocumentProvider);
+            serviceProvider ??= serviceProviderMock.Object;
+
+            var testSubject = new ActiveDocumentTracker(serviceProvider, textDocumentProvider, threadHandling);
 
             if (eventHandler != null)
             {

@@ -24,6 +24,8 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
 {
@@ -44,6 +46,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
     internal sealed class ActiveDocumentTracker : IActiveDocumentTracker, IVsSelectionEvents
     {
         private readonly ITextDocumentProvider textDocumentProvider;
+        private readonly IThreadHandling threadHandling;
         private IVsMonitorSelection monitorSelection;
         private uint cookie;
         private bool disposed;
@@ -51,15 +54,16 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
         public event EventHandler<ActiveDocumentChangedEventArgs> ActiveDocumentChanged;
 
         [ImportingConstructor]
-        public ActiveDocumentTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ITextDocumentProvider textDocumentProvider)
+        public ActiveDocumentTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ITextDocumentProvider textDocumentProvider, IThreadHandling threadHandling)
         {
             this.textDocumentProvider = textDocumentProvider;
+            this.threadHandling = threadHandling;
 
-            RunOnUIThread.Run(() =>
+            threadHandling.RunOnUIThread(() =>
             {
                 monitorSelection = serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
                 monitorSelection.AdviseSelectionEvents(this, out cookie);
-            });
+            }).Forget();
         }
 
         /// <summary>
@@ -77,7 +81,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
         /// </summary>
         int IVsSelectionEvents.OnElementValueChanged(uint elementId, object oldValue, object newValue)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            threadHandling.ThrowIfNotOnUIThread();
 
             if (elementId == (uint)VSConstants.VSSELELEMID.SEID_DocumentFrame)
             {
@@ -107,7 +111,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
             ActiveDocumentChanged?.Invoke(this, new ActiveDocumentChangedEventArgs(activeTextDoc));
 
         private static bool IsDocumentFrame(IVsWindowFrame frame) =>
-            ErrorHandler.Succeeded(frame.GetProperty((int) __VSFPROPID.VSFPROPID_Type, out var frameType)) &&
+            Microsoft.VisualStudio.ErrorHandler.Succeeded(frame.GetProperty((int) __VSFPROPID.VSFPROPID_Type, out var frameType)) &&
             (int) frameType == (int) __WindowFrameTypeFlags.WINDOWFRAMETYPE_Document;
 
         int IVsSelectionEvents.OnSelectionChanged(IVsHierarchy pHierOld, uint itemidOld, IVsMultiItemSelect pMISOld, ISelectionContainer pSCOld, IVsHierarchy pHierNew, uint itemidNew, IVsMultiItemSelect pMISNew, ISelectionContainer pSCNew) => VSConstants.S_OK;
