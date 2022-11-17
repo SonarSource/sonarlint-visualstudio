@@ -68,6 +68,22 @@ namespace SonarLint.VisualStudio.CFamily.SubProcess.UnitTests
         }
 
         [TestMethod]
+        public void Response_WithDataFlow_DataFlowIgnored()
+        {
+            var response = CallProtocolRead(MockResponseWithDataFlow());
+
+            response.Messages.Length.Should().Be(1);
+            response.Messages[0].RuleKey.Should().Be("ruleKey");
+            response.Messages[0].Line.Should().Be(10);
+            response.Messages[0].Column.Should().Be(11);
+            response.Messages[0].EndLine.Should().Be(12);
+            response.Messages[0].EndColumn.Should().Be(13);
+            response.Messages[0].Text.Should().Be("Issue message");
+            response.Messages[0].PartsMakeFlow.Should().Be(true);
+            response.Messages[0].Parts.Length.Should().Be(1);
+        }
+
+        [TestMethod]
         public void Response_WithMultipleMessages_MultipleMessageAreReturned()
         {
             var response = CallProtocolRead(MockResponseWithIssuesFromMultipleFiles());
@@ -285,6 +301,9 @@ namespace SonarLint.VisualStudio.CFamily.SubProcess.UnitTests
                 Protocol.WriteInt(writer, 17);
                 Protocol.WriteUTF(writer, "Flow message");
 
+                // 0 Data Flow
+                Protocol.WriteInt(writer, 0);
+
                 // 0 fixes
                 writer.Write(false);
                 Protocol.WriteInt(writer, 0);
@@ -339,6 +358,9 @@ namespace SonarLint.VisualStudio.CFamily.SubProcess.UnitTests
                 writer.Write(false); // no flow
                 Protocol.WriteInt(writer, 0);
 
+                // 0 Data Flow
+                Protocol.WriteInt(writer, 0);
+
                 // 0 fixes
                 writer.Write(false);
                 Protocol.WriteInt(writer, 0);
@@ -355,6 +377,9 @@ namespace SonarLint.VisualStudio.CFamily.SubProcess.UnitTests
                 Protocol.WriteUTF(writer, "Issue message");
 
                 writer.Write(false); // no flow
+                Protocol.WriteInt(writer, 0);
+
+                // 0 Data Flow
                 Protocol.WriteInt(writer, 0);
 
                 // 0 fixes
@@ -375,6 +400,9 @@ namespace SonarLint.VisualStudio.CFamily.SubProcess.UnitTests
                 writer.Write(false); // no flow
                 Protocol.WriteInt(writer, 0);
 
+                // 0 Data Flow
+                Protocol.WriteInt(writer, 0);
+
                 // 0 fixes
                 writer.Write(false);
                 Protocol.WriteInt(writer, 0);
@@ -392,7 +420,6 @@ namespace SonarLint.VisualStudio.CFamily.SubProcess.UnitTests
                 byte[] execLines = new byte[] { 1, 2, 3, 4 };
                 Protocol.WriteInt(writer, execLines.Length);
                 writer.Write(execLines);
-
 
                 // 1 symbol
                 Protocol.WriteUTF(writer, "symbols");
@@ -437,6 +464,9 @@ namespace SonarLint.VisualStudio.CFamily.SubProcess.UnitTests
                 Protocol.WriteInt(writer, 17);
                 Protocol.WriteUTF(writer, "Flow message");
 
+                // 0 Data Flow
+                Protocol.WriteInt(writer, 0);
+
                 // 1 fix
                 writer.Write(true);
                 Protocol.WriteInt(writer, 1);
@@ -456,6 +486,80 @@ namespace SonarLint.VisualStudio.CFamily.SubProcess.UnitTests
                 // 0 symbols
                 Protocol.WriteUTF(writer, "symbols");
                 Protocol.WriteInt(writer, 0);
+
+                Protocol.WriteUTF(writer, "END");
+                return stream.ToArray();
+            }
+        }
+
+        private byte[] MockResponseWithDataFlow()
+        {
+            string fileName = "file.cpp";
+            using (MemoryStream stream = new MemoryStream())
+            {
+                BinaryWriter writer = new BinaryWriter(stream);
+                Protocol.WriteUTF(writer, "OUT");
+
+                // 1 issue
+                Protocol.WriteUTF(writer, "message");
+
+                Protocol.WriteUTF(writer, "ruleKey");
+                Protocol.WriteUTF(writer, fileName);
+                Protocol.WriteInt(writer, 10);
+                Protocol.WriteInt(writer, 11);
+                Protocol.WriteInt(writer, 12);
+                Protocol.WriteInt(writer, 13);
+                Protocol.WriteInt(writer, 100);
+                Protocol.WriteUTF(writer, "Issue message");
+                writer.Write(true);
+
+                // 1 flow
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteUTF(writer, "another.cpp");
+                Protocol.WriteInt(writer, 14);
+                Protocol.WriteInt(writer, 15);
+                Protocol.WriteInt(writer, 16);
+                Protocol.WriteInt(writer, 17);
+                Protocol.WriteUTF(writer, "Flow message");
+
+                // 1 Data Flow
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteUTF(writer, "DataFlow 1");
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteUTF(writer, "another.cpp");
+                Protocol.WriteInt(writer, 24);
+                Protocol.WriteInt(writer, 25);
+                Protocol.WriteInt(writer, 26);
+                Protocol.WriteInt(writer, 27);
+                Protocol.WriteUTF(writer, "Data Flow message");
+
+                // 0 fixes
+                writer.Write(false);
+                Protocol.WriteInt(writer, 0);
+
+                // 1 measure
+                Protocol.WriteUTF(writer, "measures");
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteUTF(writer, fileName);
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteInt(writer, 1);
+
+                byte[] execLines = new byte[] { 1, 2, 3, 4 };
+                Protocol.WriteInt(writer, execLines.Length);
+                writer.Write(execLines);
+
+
+                // 1 symbol
+                Protocol.WriteUTF(writer, "symbols");
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteInt(writer, 1);
+                Protocol.WriteInt(writer, 1);
 
                 Protocol.WriteUTF(writer, "END");
                 return stream.ToArray();
