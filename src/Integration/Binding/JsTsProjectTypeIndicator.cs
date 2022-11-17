@@ -18,14 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
+using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using EnvDTE;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -34,24 +34,30 @@ namespace SonarLint.VisualStudio.Integration.Binding
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class JsTsProjectTypeIndicator : IJsTsProjectTypeIndicator
     {
-        readonly ISonarLanguageRecognizer sonarLanguageRecognizer;
-        readonly IFolderWorkspaceService folderWorkspaceService;
-        readonly IFileSystem fileSystem;
+        private readonly ISonarLanguageRecognizer sonarLanguageRecognizer;
+        private readonly IFolderWorkspaceService folderWorkspaceService;
+        private readonly ILogger logger;
+        private readonly IFileSystem fileSystem;
 
         [ImportingConstructor]
-        public JsTsProjectTypeIndicator(ISonarLanguageRecognizer sonarLanguageRecognizer, IFolderWorkspaceService folderWorkspaceService)
-            : this(sonarLanguageRecognizer, folderWorkspaceService, new FileSystem())
+        public JsTsProjectTypeIndicator(ISonarLanguageRecognizer sonarLanguageRecognizer,
+            IFolderWorkspaceService folderWorkspaceService,
+            ILogger logger)
+            : this(sonarLanguageRecognizer, folderWorkspaceService, logger, new FileSystem())
         {
-
         }
 
-        internal JsTsProjectTypeIndicator(ISonarLanguageRecognizer sonarLanguageRecognizer, IFolderWorkspaceService folderWorkspaceService, IFileSystem fileSystem)
+        internal JsTsProjectTypeIndicator(ISonarLanguageRecognizer sonarLanguageRecognizer,
+            IFolderWorkspaceService folderWorkspaceService,
+            ILogger logger,
+            IFileSystem fileSystem)
         {
             this.sonarLanguageRecognizer = sonarLanguageRecognizer;
             this.folderWorkspaceService = folderWorkspaceService;
+            this.logger = logger;
             this.fileSystem = fileSystem;
         }
-        
+
         public bool IsJsTs(Project dteProject)
         {
             //When opened as folder there can be a dteProject if a file is open
@@ -61,21 +67,48 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 return HasJsTsFileOnDisk();
             }
-            else
-            {
-                Debug.Assert(dteProject != null, "When it's not folder workspace we expect dteProject not to be null");
 
-                return HasJsTsFileInProject(dteProject.ProjectItems);
-            }            
+            if (dteProject == null)
+            {
+                logger.LogDebug("[JsTsProjectTypeIndicator] dteProject is null");
+                return false;
+            }
+
+            logger.LogDebug("[JsTsProjectTypeIndicator] Processing dteProject... ");
+
+            LogProperty("dteProject.Name", ()=> dteProject.Name);
+            LogProperty("dteProject.Kind", () => dteProject.Kind);
+            LogProperty("dteProject.FileName", () => dteProject.FileName);
+            LogProperty("dteProject.FullName", () => dteProject.FullName);
+            LogProperty("dteProject.ExtenderCATID", () => dteProject.ExtenderCATID);
+            LogProperty("dteProject.UniqueName", () => dteProject.UniqueName);
+
+            var result = HasJsTsFileInProject(dteProject.ProjectItems);
+
+            logger.LogDebug("[JsTsProjectTypeIndicator] Finished processing dteProject.");
+
+            return result;
+        }
+
+        private void LogProperty(string propertyName, Func<string> getValue)
+        {
+            try
+            {
+                var propertyValue = getValue();
+                logger.LogDebug("[JsTsProjectTypeIndicator] Property {0}={1}", propertyName, propertyValue);
+            }
+            catch (Exception e)
+            {
+                logger.LogDebug("[JsTsProjectTypeIndicator] Failed to log property {0} of dteProject: {1}", propertyName, e);
+            }
         }
 
         private bool HasJsTsFileOnDisk()
         {
-            string root = folderWorkspaceService.FindRootDirectory();
-
+            var root = folderWorkspaceService.FindRootDirectory();
             var fileList = fileSystem.Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories).Where(x => !x.Contains("\\node_modules\\"));
 
-            return (fileList.Any(IsFileJsTs));
+            return fileList.Any(IsFileJsTs);
         }
 
         private bool IsFileJsTs(string fileName)
@@ -86,23 +119,53 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private bool HasJsTsFileInProject(ProjectItems projectItems)
         {
-
-            foreach (ProjectItem item in projectItems)
+            if (projectItems == null)
             {
-                if (IsFileJsTs(item.Name))
+                logger.LogDebug("[JsTsProjectTypeIndicator] projectItems is null");
+                return false;
+            }
+            try
+            {
+                LogProperty("projectItems.Count", () => projectItems.Count.ToString());
+
+                foreach (ProjectItem item in projectItems)
                 {
-                    return true;
-                }
-                if (item.ProjectItems?.Count > 0)
-                {
-                    if (HasJsTsFileInProject(item.ProjectItems))
+                    if (item == null)
+                    {
+                        logger.LogDebug("[JsTsProjectTypeIndicator] item is null");
+                        return false;
+                    }
+
+                    if (string.IsNullOrEmpty(item.Name))
+                    {
+                        logger.LogDebug("[JsTsProjectTypeIndicator] item.Name is null");
+                        LogProperty("item.Kind", () => item.Kind);
+                        LogProperty("item.FileNames[0]", () => item.FileNames[0]);
+                        return false;
+                    }
+
+                    LogProperty("item.Name", () => item.Name);
+
+                    if (IsFileJsTs(item.Name))
                     {
                         return true;
                     }
-                }
-            }
 
-            return false;
+                    if (item.ProjectItems?.Count > 0)
+                    {
+                        if (HasJsTsFileInProject(item.ProjectItems))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+            catch (Exception e)
+            {
+                logger.LogDebug("[JsTsProjectTypeIndicator] Exception occurred: {0} ", e);
+                return false;
+            }
         }
     }
 }

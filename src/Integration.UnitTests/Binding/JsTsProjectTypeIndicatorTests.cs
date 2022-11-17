@@ -288,12 +288,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private JsTsProjectTypeIndicator CreateTestSubject(IFolderWorkspaceService folderWorkspaceService = null, IDirectory directory = null, ISonarLanguageRecognizer sonarLanguageRecognizer = null)
         {
 
-            folderWorkspaceService = folderWorkspaceService ?? Mock.Of<IFolderWorkspaceService>();
-            sonarLanguageRecognizer = sonarLanguageRecognizer ?? CreateSonarLanguageRecognizer().Object;
+            folderWorkspaceService ??= Mock.Of<IFolderWorkspaceService>();
+            sonarLanguageRecognizer ??= CreateSonarLanguageRecognizer().Object;
 
             var fileSystem = CreateFileSystem(directory); 
 
-            return new JsTsProjectTypeIndicator(sonarLanguageRecognizer, folderWorkspaceService, fileSystem);
+            return new JsTsProjectTypeIndicator(sonarLanguageRecognizer, folderWorkspaceService, Mock.Of<ILogger>(), fileSystem);
         }
 
         private ProjectItem CreateItem(string itemName, params ProjectItem[] childItems)
