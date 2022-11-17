@@ -158,7 +158,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             var lightBulbBroker = new Mock<ILightBulbBroker>();
 
             var threadHandling = new Mock<IThreadHandling>();
-            threadHandling.Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
+            threadHandling.Setup(x => x.RunOnUIThreadSync(It.IsAny<Action>()))
                 .Callback<Action>(op =>
                 {
                     // Try to check that the product code is executed inside the "RunOnUIThread" call
@@ -174,7 +174,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
             selectedIssueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
 
-            threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
+            threadHandling.Verify(x => x.RunOnUIThreadSync(It.IsAny<Action>()), Times.Once);
         }
 
         [TestMethod]

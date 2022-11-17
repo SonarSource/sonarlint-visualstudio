@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             var serviceProviderMock = new Mock<IServiceProvider>();
             serviceProviderMock.Setup(x => x.GetService(typeof(SVsShellMonitorSelection))).Returns(Mock.Of<IVsMonitorSelection>());
             var threadHandlingMock = new Mock<IThreadHandling>();
-            threadHandlingMock.Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
+            threadHandlingMock.Setup(x => x.RunOnUIThreadSync(It.IsAny<Action>()))
                 .Callback<Action>(op =>
                 {
                     // Try to check that the product code is executed inside the "RunOnUIThread" call
@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
 
             var testSubject = CreateTestSubject(serviceProvider: serviceProviderMock.Object, threadHandling: threadHandlingMock.Object);
-            threadHandlingMock.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
+            threadHandlingMock.Verify(x => x.RunOnUIThreadSync(It.IsAny<Action>()), Times.Once);
         }
 
         [TestMethod]
@@ -129,11 +129,9 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         public void OnElementValueChanged_ThrowIfNotOnUIThreadCalled()
         {
-            var threadHandlingMock = new Mock<IThreadHandling>();
-            threadHandlingMock.Setup(x => x.RunOnUIThread(It.IsAny<Action>())).Callback<Action>(op => op());
+            var threadHandlingMock = SetupPassThroughThreadHandling();
 
-            var eventHandler = new Mock<Action<ActiveDocumentChangedEventArgs>>();
-            var testSubject = CreateTestSubject(eventHandler: eventHandler.Object, threadHandling: threadHandlingMock.Object);
+            var testSubject = CreateTestSubject(threadHandling: threadHandlingMock.Object);
             SimulateElementValueChanged(testSubject, VSConstants.VSSELELEMID.SEID_DocumentFrame, null);
 
             threadHandlingMock.Verify(x => x.ThrowIfNotOnUIThread(), Times.Once);
@@ -320,5 +318,13 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
         private static void CheckEventNotRaised(Mock<Action<ActiveDocumentChangedEventArgs>> mockEventHandler) =>
             mockEventHandler.Verify(x => x(It.IsAny<ActiveDocumentChangedEventArgs>()), Times.Never);
+
+        private Mock<IThreadHandling> SetupPassThroughThreadHandling()
+        {
+            var threadHandlingMock = new Mock<IThreadHandling>();
+            threadHandlingMock.Setup(x => x.RunOnUIThread(It.IsAny<Action>())).Callback<Action>(op => op());
+
+            return threadHandlingMock;
+        }
     }
 }

@@ -45,21 +45,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
         {
             this.threadHandling = threadHandling;
 
-            threadHandling.RunOnUIThread(() =>
+            threadHandling.RunOnUIThreadSync(() =>
             {
                 vsStatusBar = serviceProvider.GetService(typeof(IVsStatusbar)) as IVsStatusbar;
-            }).Forget();
+            });
         }
 
         public void Notify(string message, bool showSpinner)
         {
-            threadHandling.RunOnUIThread(() =>
+            threadHandling.RunOnUIThreadSync(() =>
             {
                 object icon = (short)Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General;
                 vsStatusBar.Animation(showSpinner ? 1 : 0, ref icon);
 
                 vsStatusBar.SetText(message);
-            }).Forget();
+            });
         }
     }
 }

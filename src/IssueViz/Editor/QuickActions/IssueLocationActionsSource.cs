@@ -153,7 +153,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 
         private void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e)
         {
-            threadHandling.RunOnUIThread(() => lightBulbBroker.DismissSession(textView)).Forget();
+            threadHandling.RunOnUIThreadSync(() => lightBulbBroker.DismissSession(textView));
 
             SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
         }

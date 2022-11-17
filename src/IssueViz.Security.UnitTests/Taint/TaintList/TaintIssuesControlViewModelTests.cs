@@ -137,7 +137,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             CreateTestSubject(threadHandling : threadHandlingMock.Object);
 
             threadHandlingMock.Verify(x => x.ThrowIfNotOnUIThread(), Times.Once);
-            threadHandlingMock.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
+            threadHandlingMock.Verify(x => x.RunOnUIThreadSync(It.IsAny<Action>()), Times.Once);
         }
 
         [TestMethod]

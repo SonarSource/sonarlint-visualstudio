@@ -190,9 +190,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         public async Task ShowAsync_VerifySwitchesToUiThreadIsCalled()
         {
             var infoBarManager = new Mock<IInfoBarManager>();
-            infoBarManager.Setup(x => x.AttachInfoBarWithButton(ValidToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default));
+            infoBarManager.Setup(x => 
+                x.AttachInfoBarWithButton(ValidToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default)).Returns(Mock.Of<IInfoBar>());
 
             var threadHandling = new Mock<IThreadHandling>();
+            threadHandling.Setup(x => x.RunOnUIThread(It.IsAny<Action>())).Callback<Action>(op =>
+            {
+                infoBarManager.Verify(x
+                    => x.AttachInfoBarWithButton(ValidToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default), Times.Never);
+                op();
+                infoBarManager.Verify(x 
+                    => x.AttachInfoBarWithButton(ValidToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default), Times.Once);
+            });
 
             var testSubject = new OpenInIDEFailureInfoBar(infoBarManager.Object, Mock.Of<IOutputWindowService>(), threadHandling.Object);
 

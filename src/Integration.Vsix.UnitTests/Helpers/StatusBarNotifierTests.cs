@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         {
             var serviceProvider = new Mock<IServiceProvider>();
             var threadHandling = new Mock<IThreadHandling>();
-            threadHandling.Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
+            threadHandling.Setup(x => x.RunOnUIThreadSync(It.IsAny<Action>()))
                 .Callback<Action>(op =>
                 {
                     // Try to check that the product code is executed inside the "RunOnUIThread" call
@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 
             var testSubject = new StatusBarNotifier(serviceProvider.Object, threadHandling.Object);
 
-            threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
+            threadHandling.Verify(x => x.RunOnUIThreadSync(It.IsAny<Action>()), Times.Once);
         }
 
         [TestMethod]
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             var serviceProvider = SetupServiceProviderWithStatusBar(statusBar.Object);
 
             var threadHandling = new Mock<IThreadHandling>();
-            threadHandling.Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
+            threadHandling.Setup(x => x.RunOnUIThreadSync(It.IsAny<Action>()))
                 .Callback<Action>(op =>
                 {
                     op();
@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             var testSubject = new StatusBarNotifier(serviceProvider, threadHandling.Object);
 
             threadHandling.Reset();
-            threadHandling.Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
+            threadHandling.Setup(x => x.RunOnUIThreadSync(It.IsAny<Action>()))
                 .Callback<Action>(op =>
                 {
                     statusBar.Verify(x => x.Animation(It.IsAny<int>(), ref It.Ref<object>.IsAny), Times.Never);
@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 
             testSubject.Notify(It.IsAny<string>(), It.IsAny<bool>());
 
-            threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
+            threadHandling.Verify(x => x.RunOnUIThreadSync(It.IsAny<Action>()), Times.Once);
         }
 
         private IServiceProvider SetupServiceProviderWithStatusBar(IVsStatusbar statusBar = null)

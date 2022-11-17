@@ -73,12 +73,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 
         public void Navigate(ITextView textView, SnapshotSpan snapshotSpan)
         {
-            threadHandling.RunOnUIThread(() =>
+            threadHandling.RunOnUIThreadSync(() =>
             {
                 ExpandSpan(textView, snapshotSpan);
 
                 SelectSpan(textView, snapshotSpan);
-            }).Forget();
+            });
         }
 
         private IVsTextView OpenDocument(string filePath)

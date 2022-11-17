@@ -51,10 +51,10 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
             this.textDocumentProvider = textDocumentProvider;
             this.threadHandling = threadHandling;
 
-            threadHandling.RunOnUIThread(() =>
+            threadHandling.RunOnUIThreadSync(() =>
             {
                 monitorSelection = serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
-            }).Forget();
+            });
         }
 
         public ITextDocument FindActiveDocument()

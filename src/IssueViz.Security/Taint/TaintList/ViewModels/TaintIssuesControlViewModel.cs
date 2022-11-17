@@ -267,7 +267,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         private void UpdateCaption()
         {
-            threadHandling.RunOnUIThread(() =>
+            threadHandling.RunOnUIThreadSync(() =>
             {
                 // We'll show the default caption if:
                 // * there are no underlying issues, or
@@ -284,7 +284,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
                 // Must run on the UI thread.
                 int GetFilteredIssuesCount() => IssuesView.OfType<object>().Count();
-            }).Forget();
+            });
         }
 
         private void Store_IssuesChanged(object sender, IssuesChangedEventArgs e)

@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             textDocument = Mock.Of<ITextDocument>();
             
             threadHandlingMock = new Mock<IThreadHandling>();
-            threadHandlingMock.Setup(x => x.RunOnUIThread(It.IsAny<Action>())).Callback<Action>(op => op());
+            threadHandlingMock.Setup(x => x.RunOnUIThreadSync(It.IsAny<Action>())).Callback<Action>(op => op());
 
             var serviceProviderMock = new Mock<IServiceProvider>();
             serviceProviderMock
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             _ = new ActiveDocumentLocator(serviceProvider.Object, textDocumentProviderMock.Object, threadHandling.Object);
 
-            threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
+            threadHandling.Verify(x => x.RunOnUIThreadSync(It.IsAny<Action>()), Times.Once);
         }
 
         [TestMethod]

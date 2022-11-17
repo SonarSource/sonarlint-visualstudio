@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
                 .Returns(editorOperationsMock.Object);
 
             threadHandlingMock = new Mock<IThreadHandling>();
-            threadHandlingMock.Setup(x => x.RunOnUIThread(It.IsAny<Action>())).Callback<Action>(op => op());
+            threadHandlingMock.Setup(x => x.RunOnUIThreadSync(It.IsAny<Action>())).Callback<Action>(op => op());
 
             testSubject = new DocumentNavigator(Mock.Of<IServiceProvider>(),
                 Mock.Of<IVsEditorAdaptersFactoryService>(),
@@ -137,7 +137,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         {
             threadHandlingMock.Reset();
 
-            threadHandlingMock.Setup(x => x.RunOnUIThread(It.IsAny<Action>())).Callback<Action>(op =>
+            threadHandlingMock.Setup(x => x.RunOnUIThreadSync(It.IsAny<Action>())).Callback<Action>(op =>
             {
                 outliningManagerServiceMock.Invocations.Count.Should().Be(0);
                 editorOperationsMock.Invocations.Count.Should().Be(0);
@@ -148,7 +148,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 
             testSubject.Navigate(mockTextView, mockSnapshotSpan);
 
-            threadHandlingMock.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
+            threadHandlingMock.Verify(x => x.RunOnUIThreadSync(It.IsAny<Action>()), Times.Once);
         }
     }
 }

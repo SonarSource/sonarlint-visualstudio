@@ -44,6 +44,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
 
         public async Task RunOnUIThread(Action op) => await VS.RunOnUIThread.RunAsync(op);
 
+        public void RunOnUIThreadSync(Action op) => VS.RunOnUIThread.Run(op);
+
         public async Task<T> RunOnBackgroundThread<T>(Func<Task<T>> asyncMethod)
         {
             CodeMarkers.Instance.Threading_RunOnBackgroundThread_Start();

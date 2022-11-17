@@ -59,11 +59,11 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
             this.textDocumentProvider = textDocumentProvider;
             this.threadHandling = threadHandling;
 
-            threadHandling.RunOnUIThread(() =>
+            threadHandling.RunOnUIThreadSync(() =>
             {
                 monitorSelection = serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
                 monitorSelection.AdviseSelectionEvents(this, out cookie);
-            }).Forget();
+            });
         }
 
         /// <summary>
