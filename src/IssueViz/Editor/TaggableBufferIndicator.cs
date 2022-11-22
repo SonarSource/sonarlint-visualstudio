@@ -19,8 +19,10 @@
  */
 
 using System.ComponentModel.Composition;
+using System.IO;
 using System.IO.Abstractions;
 using Microsoft.VisualStudio.Text;
+using SonarLint.VisualStudio.Core.Helpers;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor
 {
@@ -54,7 +56,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
                 return false;
             }
 
-            return fileSystem.File.Exists(filePath);
+            var exists = fileSystem.File.Exists(filePath);
+
+            if (!exists)
+            {
+                return false;
+            }
+
+            var isUnderTemp = PathHelper.IsPathRootedUnderRoot(filePath, Path.GetTempPath());
+
+            return !isUnderTemp;
         }
     }
 }
