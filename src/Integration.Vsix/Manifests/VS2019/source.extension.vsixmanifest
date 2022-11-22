@@ -39,8 +39,8 @@
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="IssueViz" Path="|IssueViz|" />
         <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="IssueViz" Path="|IssueViz;PkgdefProjectOutputGroup|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="IssueViz.Security" Path="|IssueViz.Security|" />
-      <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="IssueViz.Security" Path="|IssueViz.Security;PkgdefProjectOutputGroup|" />
-      <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Infrastructure.VS" Path="|Infrastructure.VS|" />
+        <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="IssueViz.Security" Path="|IssueViz.Security;PkgdefProjectOutputGroup|" />
+        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Infrastructure.VS" Path="|Infrastructure.VS|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="TypeScript" Path="|TypeScript|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="CFamily" Path="|CFamily|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="CloudSecrets" Path="|CloudSecrets|" />
@@ -55,6 +55,7 @@
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Roslyn.Suppressions" Path="|Roslyn.Suppressions|" />
         <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="Roslyn.Suppressions" Path="|Roslyn.Suppressions|" />
         <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="Roslyn.Suppressions" Path="SonarQube.Client.dll" />
+        <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="Roslyn.Suppressions" Path="BouncyCastle.Crypto.dll" />
         <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="Roslyn.Suppressions" Path="NewtonSoft.Json.dll" />
         <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="Roslyn.Suppressions" Path="System.IO.Abstractions.dll" />
         <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="Core" Path="|Core|" />
