@@ -24,7 +24,6 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.InfoBar;
-using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 {
@@ -41,19 +40,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
     {
         private readonly IInfoBarManager infoBarManager;
         private readonly IOutputWindowService outputWindowService;
+        private readonly IThreadHandling threadHandling;
         private IInfoBar currentInfoBar;
 
         [ImportingConstructor]
         public OpenInIDEFailureInfoBar(IInfoBarManager infoBarManager,
-            IOutputWindowService outputWindowService)
+            IOutputWindowService outputWindowService,
+            IThreadHandling threadHandling)
         {
             this.infoBarManager = infoBarManager;
             this.outputWindowService = outputWindowService;
+            this.threadHandling = threadHandling;
         }
 
         public async Task ShowAsync(Guid toolWindowId)
         {
-            await RunOnUIThread.RunAsync(() =>
+            await threadHandling.RunOnUIThread(() =>
             {
                 RemoveExistingInfoBar();
                 AddInfoBar(toolWindowId);
@@ -62,7 +64,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
         public async Task ClearAsync()
         {
-            await RunOnUIThread.RunAsync(() =>
+            await threadHandling.RunOnUIThread(() =>
             {
                 RemoveExistingInfoBar();
             });
