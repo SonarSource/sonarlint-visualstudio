@@ -167,16 +167,20 @@
       },
       "Microsoft.Owin": {
         "type": "Transitive",
-        "resolved": "4.1.1",
-        "contentHash": "KtjkRz4COQRqrwOBMf+XKW1ZsdiFMqipbmM0khhNJIx6U9VRprbwRGdSq1++PHlZrIwHMmwRHC0nILNSHGkcaA==",
+        "resolved": "4.2.2",
+        "contentHash": "jt410l/8dvCIguRdU7dupYdm4kGLepVdD8EOTKU4nYZcLRrn6kQYqI6pbJOTJp7Vlm/T2WUF5bzyKK2z29xtjg==",
         "dependencies": {
           "Owin": "1.0.0"
         }
       },
       "Microsoft.Owin.Host.HttpListener": {
         "type": "Transitive",
-        "resolved": "4.1.1",
-        "contentHash": "78BA/mqyG6DhteAeDpipyDM9RptdGnLve7nL33mFe/jSA3HEMvyF9HMvKxUvnOkcXwPFmZRlBaokBF3XsgY25w=="
+        "resolved": "4.2.2",
+        "contentHash": "Kl1A0sBzfMD3qvX6XcGU0FopN6POFFRpIEQnKIAbvsShadIG9/UxgDdHVlX/IzFHXwIHfY59Ae4RGDVKYNvIqQ==",
+        "dependencies": {
+          "Microsoft.Owin": "4.2.2",
+          "Owin": "1.0.0"
+        }
       },
       "Microsoft.ServiceHub.Analyzers": {
         "type": "Transitive",
@@ -1282,8 +1286,8 @@
       "SonarLint.VisualStudio.IssueVisualization.Security": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.Owin": "[4.1.1, )",
-          "Microsoft.Owin.Host.HttpListener": "[4.1.1, )",
+          "Microsoft.Owin": "[4.2.2, )",
+          "Microsoft.Owin.Host.HttpListener": "[4.2.2, )",
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.IssueVisualization": "[1.0.0, )"
