@@ -83,8 +83,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private async System.Threading.Tasks.Task InitOnUIThreadAsync()
         {
-            threadHandling.ThrowIfNotOnUIThread();
-
             try
             {
                 logger = await this.GetMefServiceAsync<ILogger>();
