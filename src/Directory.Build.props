@@ -14,6 +14,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
+	<AdditionalFiles Include="$(MSBuildThisFileDirectory)vs-threading.MainThreadAssertingMethods.txt">
+	      <Link>Properties\vs-threading.MainThreadAssertingMethods.txt</Link>
+    </AdditionalFiles>
   </ItemGroup>
 
 </Project>
