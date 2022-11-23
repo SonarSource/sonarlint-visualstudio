@@ -18,13 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
+using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using EnvDTE;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 
@@ -34,21 +35,28 @@ namespace SonarLint.VisualStudio.Integration.Binding
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class JsTsProjectTypeIndicator : IJsTsProjectTypeIndicator
     {
-        readonly ISonarLanguageRecognizer sonarLanguageRecognizer;
-        readonly IFolderWorkspaceService folderWorkspaceService;
-        readonly IFileSystem fileSystem;
+        private readonly ISonarLanguageRecognizer sonarLanguageRecognizer;
+        private readonly IFolderWorkspaceService folderWorkspaceService;
+        private readonly ILogger logger;
+        private readonly IFileSystem fileSystem;
 
         [ImportingConstructor]
-        public JsTsProjectTypeIndicator(ISonarLanguageRecognizer sonarLanguageRecognizer, IFolderWorkspaceService folderWorkspaceService)
-            : this(sonarLanguageRecognizer, folderWorkspaceService, new FileSystem())
+        public JsTsProjectTypeIndicator(ISonarLanguageRecognizer sonarLanguageRecognizer, 
+            IFolderWorkspaceService folderWorkspaceService,
+            ILogger logger)
+            : this(sonarLanguageRecognizer, folderWorkspaceService, logger, new FileSystem())
         {
 
         }
 
-        internal JsTsProjectTypeIndicator(ISonarLanguageRecognizer sonarLanguageRecognizer, IFolderWorkspaceService folderWorkspaceService, IFileSystem fileSystem)
+        internal JsTsProjectTypeIndicator(ISonarLanguageRecognizer sonarLanguageRecognizer,
+            IFolderWorkspaceService folderWorkspaceService,
+            ILogger logger, 
+            IFileSystem fileSystem)
         {
             this.sonarLanguageRecognizer = sonarLanguageRecognizer;
             this.folderWorkspaceService = folderWorkspaceService;
+            this.logger = logger;
             this.fileSystem = fileSystem;
         }
         
@@ -56,26 +64,35 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             //When opened as folder there can be a dteProject if a file is open
             //If there is a dteProject and it's opened as a folder
-            //Folder search takes precedense for consistency
+            //Folder search takes precedence for consistency
             if (folderWorkspaceService.IsFolderWorkspace())
             {
                 return HasJsTsFileOnDisk();
             }
-            else
-            {
-                Debug.Assert(dteProject != null, "When it's not folder workspace we expect dteProject not to be null");
 
-                return HasJsTsFileInProject(dteProject.ProjectItems);
-            }            
+            Debug.Assert(dteProject != null, "When it's not folder workspace we expect dteProject not to be null");
+
+            try
+            {
+                var hasJsTsFile = HasJsTsFileInProject(dteProject.ProjectItems);
+
+                return hasJsTsFile;
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(BindingStrings.FailedToIdentifyJsTs, dteProject.Name, ex);
+
+                return false;
+            }
         }
 
         private bool HasJsTsFileOnDisk()
         {
-            string root = folderWorkspaceService.FindRootDirectory();
+            var root = folderWorkspaceService.FindRootDirectory();
 
             var fileList = fileSystem.Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories).Where(x => !x.Contains("\\node_modules\\"));
 
-            return (fileList.Any(IsFileJsTs));
+            return fileList.Any(IsFileJsTs);
         }
 
         private bool IsFileJsTs(string fileName)
@@ -86,13 +103,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private bool HasJsTsFileInProject(ProjectItems projectItems)
         {
-
             foreach (ProjectItem item in projectItems)
             {
                 if (IsFileJsTs(item.Name))
                 {
                     return true;
                 }
+
                 if (item.ProjectItems?.Count > 0)
                 {
                     if (HasJsTsFileInProject(item.ProjectItems))
