@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
 
         [ImportingConstructor]
         public MefSonarQubeService(ILogger logger)
-            : this(logger, new ThreadHandling())
+            : this(logger, ThreadHandling.Instance)
         {
         }
 

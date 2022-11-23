@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             projectToLanguageMapper = host.GetMefService<IProjectToLanguageMapper>();
             folderWorkspaceService = host.GetMefService<IFolderWorkspaceService>();
 
-            this.threadHandling = threadHandling ?? new ThreadHandling();
+            this.threadHandling = threadHandling ?? ThreadHandling.Instance;
 
             Debug.Assert(bindingArgs.ProjectKey != null);
             Debug.Assert(bindingArgs.ProjectName != null);
