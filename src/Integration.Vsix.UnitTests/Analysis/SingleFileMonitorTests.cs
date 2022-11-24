@@ -414,6 +414,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
                 {
                     File.Delete(filePathToMonitor);
                 }
+
                 var numberOfOperations = testBody();
                 numberOfOperations.Should().BeInRange(0, 5);
                 totalEventCount += numberOfOperations;

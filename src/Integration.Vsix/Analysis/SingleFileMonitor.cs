@@ -119,23 +119,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
         }
 
-        private bool IsDuplicateChangeEvent(string fullPath)
+        private bool IsDuplicateChangeEvent(string path)
         {
             // We're trying to ignore duplicate events by checking the last-write time.
             // However, the precision of DateTime means that it is possible for separate events
             // that happen very close together to report the same last-write time. If that happens,
             // we'll be ignoring a "real" notification.
-            var currentTime = File.GetLastWriteTimeUtc(fullPath);
+            var currentTime = File.GetLastWriteTimeUtc(path);
             var timeDiff = currentTime - lastWriteTime;
 
-            // We are only ignoring events happening within 10 milliseconds of each other.
-            if (timeDiff.TotalMilliseconds >= 0 && timeDiff.TotalMilliseconds <= 10)
+            if (timeDiff.TotalMilliseconds >= 0 && timeDiff.TotalMilliseconds < 10)
             {
                 logger.WriteLine($"Ignoring duplicate change event: {WatcherChangeTypes.Changed}");
                 return true;
             }
 
             lastWriteTime = currentTime;
+
             return false;
         }
 
@@ -156,7 +156,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                     return;
                 }
 
-                logger.WriteLine(AnalysisStrings.FileMonitor_FileChanged, MonitoredFilePath.Substring(MonitoredFilePath.IndexOf("NoDuplicates")), args.ChangeType);
+                logger.WriteLine(AnalysisStrings.FileMonitor_FileChanged, MonitoredFilePath, args.ChangeType);
+
                 fileChangedHandlers(this, EventArgs.Empty);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
