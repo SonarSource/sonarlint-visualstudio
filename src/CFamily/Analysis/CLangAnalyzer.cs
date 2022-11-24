@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
             ICFamilyIssueConverterFactory issueConverterFactory,
             IRequestFactoryAggregate requestFactory,
             ILogger logger)
-            : this(telemetryManager, settings, analysisStatusNotifier, issueConverterFactory, requestFactory, logger, new FileSystem(), new ThreadHandling())
+            : this(telemetryManager, settings, analysisStatusNotifier, issueConverterFactory, requestFactory, logger, new FileSystem(), ThreadHandling.Instance)
         {
         }
 

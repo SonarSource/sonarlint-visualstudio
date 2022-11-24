@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 cFamilyRulesConfigProvider,
                 new FileConfigProvider(logger),
                 logger,
-                new ThreadHandling())
+                ThreadHandling.Instance)
         {
         }
 

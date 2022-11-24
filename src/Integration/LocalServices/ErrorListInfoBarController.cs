@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration
         private bool isDisposed;
 
         public ErrorListInfoBarController(IHost host, IBindingChecker bindingChecker, ILogger logger)
-            : this(host, bindingChecker, logger, new KnownUIContextsWrapper(), new ThreadHandling())
+            : this(host, bindingChecker, logger, new KnownUIContextsWrapper(), ThreadHandling.Instance)
         {
         }
 
