@@ -189,7 +189,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
                 eventCount.Should().Be(1);
             }
         }
-    
+
         [Ignore] // Note: started failing when we started using Microsoft.VisualStudio.Sdk.TestFramework
                  // to mock VS threading/JoinableTaskContext to fix the options/dialog tests
         [TestMethod]
@@ -393,7 +393,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
         #endregion Simple file operations
 
-        [Ignore] // Flaky -> disabled https://github.com/SonarSource/sonarlint-visualstudio/issues/3236
         [TestMethod]
         public void RealFile_MultipleOperations_NoDuplicates()
         {
@@ -415,7 +414,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
                 {
                     File.Delete(filePathToMonitor);
                 }
-                testBody();
+                var numberOfOperations = testBody();
+                numberOfOperations.Should().BeInRange(0, 5);
+                totalEventCount += numberOfOperations;
             }
 
             // We might lose some events if they happen too close together, but we should never
@@ -425,10 +426,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             TestContext.WriteLine($"Number of recorded events: {totalEventCount}");
             totalEventCount.Should().BeInRange(340, 500);
 
-            void testBody()
+            int testBody()
             {
                 const int pauseBetweenOpsInMs = 125;
-
+                var numberOfOperations = 0;
                 using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, testLogger))
                 {
                     var testWrapper = new WaitableFileMonitor(singleFileMonitor);
@@ -455,8 +456,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
                     File.Delete(filePathToMonitor);
                     testWrapper.PauseForEvent(pauseBetweenOpsInMs);
 
-                    totalEventCount += testWrapper.EventCount;
+                    numberOfOperations += testWrapper.EventCount;
                 }
+
+                return numberOfOperations;
             };
         }
 
