@@ -119,6 +119,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
         }
 
+        private bool IsDuplicateChangeEvent(string fullPath)
+        {
+            // We're trying to ignore duplicate events by checking the last-write time.
+            // However, the precision of DateTime means that it is possible for separate events
+            // that happen very close together to report the same last-write time. If that happens,
+            // we'll be ignoring a "real" notification.
+            var currentTime = File.GetLastWriteTimeUtc(fullPath);
+            var timeDiff = currentTime - lastWriteTime;
+            
+            // We are only ignoring events happening within 10 milliseconds of each other.
+            if (timeDiff.TotalMilliseconds >= 0 && timeDiff.TotalMilliseconds <= 10)
+            {
+                logger.WriteLine($"Ignoring duplicate change event: {WatcherChangeTypes.Changed}, PATH: {MonitoredFilePath.Substring(MonitoredFilePath.IndexOf("NoDuplicates"))}");
+                return true;
+            }
+
+            lastWriteTime = currentTime;
+            return false;
+        }
+
         private void OnFileChanged(object sender, System.IO.FileSystemEventArgs args)
         {
             Debug.Assert(fileChangedHandlers != null, "Not expecting file system events to be monitored if there are no listeners");
@@ -131,20 +151,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             {
                 fileWatcher.EnableRaisingEvents = false;
 
-                // We're trying to ignore duplicate events by checking the last-write time.
-                // However, the precision of DateTime means that it is possible for separate events
-                // that happen very close together to report the same last-write time. If that happens,
-                // we'll be ignoring a "real" notification.
-                var currentTime = File.GetLastWriteTimeUtc(args.FullPath);
-                if (args.ChangeType != WatcherChangeTypes.Renamed && currentTime == lastWriteTime)
+                if (args.ChangeType == WatcherChangeTypes.Changed && IsDuplicateChangeEvent(args.FullPath))
                 {
-                    logger.WriteLine($"Ignoring duplicate change event: {args.ChangeType}");
                     return;
                 }
 
-                lastWriteTime = currentTime;
-                logger.WriteLine(AnalysisStrings.FileMonitor_FileChanged, MonitoredFilePath, args.ChangeType);
-
+                logger.WriteLine(AnalysisStrings.FileMonitor_FileChanged, MonitoredFilePath.Substring(MonitoredFilePath.IndexOf("NoDuplicates")), args.ChangeType);
                 fileChangedHandlers(this, EventArgs.Empty);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
