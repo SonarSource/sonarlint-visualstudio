@@ -38,6 +38,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
     {
 #pragma warning disable S4277
         public static readonly IThreadHandling Instance = new ThreadHandling();
+#pragma warning restore S4277   
 
         public bool CheckAccess() => ThreadHelper.CheckAccess();
 
