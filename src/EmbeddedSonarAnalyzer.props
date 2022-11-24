@@ -1,14 +1,14 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  
+
   <!-- Manually set the version of the SonarC# and VB analyzers to embed.
        NB we assume that the SonarC# and SonarVB NuGet packages have the same version number. -->
   <PropertyGroup>
     <!-- Note: don't forget to upload the new packages to the package feed when changing 
          the SonarAnalyzer version -->
-    <EmbeddedSonarAnalyzerVersion>8.44.0.52574</EmbeddedSonarAnalyzerVersion>
-    <EmbeddedSonarCFamilyAnalyzerVersion>6.37.0.60132</EmbeddedSonarCFamilyAnalyzerVersion>
-    <EmbeddedSonarJSAnalyzerVersion>9.8.0.19239</EmbeddedSonarJSAnalyzerVersion>
+    <EmbeddedSonarAnalyzerVersion>8.49.0.57237</EmbeddedSonarAnalyzerVersion>
+    <EmbeddedSonarCFamilyAnalyzerVersion>6.39.0.60440</EmbeddedSonarCFamilyAnalyzerVersion>
+    <EmbeddedSonarJSAnalyzerVersion>9.11.0.20161</EmbeddedSonarJSAnalyzerVersion>
     <EmbeddedSonarSecretsAnalyzerVersion>1.0.3</EmbeddedSonarSecretsAnalyzerVersion>
   </PropertyGroup>
- 
+
 </Project>

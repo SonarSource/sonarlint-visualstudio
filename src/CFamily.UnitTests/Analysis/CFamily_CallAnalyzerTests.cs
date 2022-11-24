@@ -270,6 +270,9 @@ namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
                 Protocol.WriteInt(writer, 17);
                 Protocol.WriteUTF(writer, "Flow message");
 
+                // 0 Data Flow
+                Protocol.WriteInt(writer, 0);
+
                 // 0 fixes
                 writer.Write(false);
                 Protocol.WriteInt(writer, 0);

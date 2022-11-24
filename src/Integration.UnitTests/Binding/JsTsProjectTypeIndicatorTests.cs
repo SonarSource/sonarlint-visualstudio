@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
@@ -36,7 +37,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
     [TestClass]
     public class JsTsProjectTypeIndicatorTests
     {
-        
+        [TestMethod]
+        public void IsJsTs_NonCriticalExceptionInAccessingProjectProperties_False()
+        {
+            var folderWorkspaceService = CreateFolderWorkSpaceService(isFolderWorkspace: false);
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(folderWorkspaceService.Object, logger: logger);
+
+            var project = CreateProject(projectItems: null, projectName: "some project");
+            var result = testSubject.IsJsTs(project);
+
+            result.Should().BeFalse();
+
+            logger.AssertPartialOutputStringExists("some project", nameof(NullReferenceException));
+        }
+
+        [TestMethod]
+        public void IsJsTs_CriticalExceptionInAccessingProjectProperties_ExceptionNotCaught()
+        {
+            var folderWorkspaceService = CreateFolderWorkSpaceService(isFolderWorkspace: false);
+
+            var testSubject = CreateTestSubject(folderWorkspaceService.Object);
+
+            var project = CreateProject(exToThrow: new StackOverflowException("this is a test"));
+            Action act = () => testSubject.IsJsTs(project);
+
+            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("this is a test");
+        }
+
         [DataRow("script.js", true)]
         [DataRow("script.ts", true)]
         [DataRow("file.cs", false)]
@@ -55,7 +84,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var project = CreateProject(items);
 
             var actualResult = testSubject.IsJsTs(project);
-
 
             //Sanity Check to make sure no disk search is done
             folderWorkspaceService.Verify(f => f.FindRootDirectory(), Times.Never);
@@ -277,7 +305,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private IFileSystem CreateFileSystem(IDirectory directory = null)
         {
-            directory = directory ?? Mock.Of<IDirectory>();
+            directory ??= Mock.Of<IDirectory>();
 
             var fileSystem = new Mock<IFileSystem>();
             fileSystem.SetupGet(fs => fs.Directory).Returns(directory);
@@ -285,15 +313,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             return fileSystem.Object;
         }
 
-        private JsTsProjectTypeIndicator CreateTestSubject(IFolderWorkspaceService folderWorkspaceService = null, IDirectory directory = null, ISonarLanguageRecognizer sonarLanguageRecognizer = null)
+        private JsTsProjectTypeIndicator CreateTestSubject(IFolderWorkspaceService folderWorkspaceService = null,
+            IDirectory directory = null,
+            ISonarLanguageRecognizer sonarLanguageRecognizer = null,
+            ILogger logger = null)
         {
 
-            folderWorkspaceService = folderWorkspaceService ?? Mock.Of<IFolderWorkspaceService>();
-            sonarLanguageRecognizer = sonarLanguageRecognizer ?? CreateSonarLanguageRecognizer().Object;
+            folderWorkspaceService ??= Mock.Of<IFolderWorkspaceService>();
+            sonarLanguageRecognizer ??= CreateSonarLanguageRecognizer().Object;
+            logger ??= Mock.Of<ILogger>();
 
             var fileSystem = CreateFileSystem(directory); 
 
-            return new JsTsProjectTypeIndicator(sonarLanguageRecognizer, folderWorkspaceService, fileSystem);
+            return new JsTsProjectTypeIndicator(sonarLanguageRecognizer, folderWorkspaceService, logger, fileSystem);
         }
 
         private ProjectItem CreateItem(string itemName, params ProjectItem[] childItems)
@@ -321,10 +353,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             return projectItems.Object;
         }
 
-        private Project CreateProject(ProjectItems projectItems)
+        private Project CreateProject(ProjectItems projectItems = null, string projectName = null, Exception exToThrow = null)
         {
             var project = new Mock<Project>();
             project.SetupGet(p => p.ProjectItems).Returns(projectItems);
+            project.SetupGet(p => p.Name).Returns(projectName);
+
+            if (exToThrow != null)
+            {
+                project.SetupGet(x => x.ProjectItems).Throws(exToThrow);
+            }
 
             return project.Object;
         }
