@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             // We are only ignoring events happening within 10 milliseconds of each other.
             if (timeDiff.TotalMilliseconds >= 0 && timeDiff.TotalMilliseconds <= 10)
             {
-                logger.WriteLine($"Ignoring duplicate change event: {WatcherChangeTypes.Changed}, PATH: {MonitoredFilePath.Substring(MonitoredFilePath.IndexOf("NoDuplicates"))}");
+                logger.WriteLine($"Ignoring duplicate change event: {WatcherChangeTypes.Changed}");
                 return true;
             }
 
