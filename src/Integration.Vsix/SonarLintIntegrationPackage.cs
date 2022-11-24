@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         // Note: we don't currently have any tests for this class so we don't need to inject
         // thread handling wrapper. However, we'll still use it so our threading code is
         // consistent.
-        private readonly IThreadHandling threadHandling = new ThreadHandling();
+        private readonly IThreadHandling threadHandling = ThreadHandling.Instance;
 
         private PackageCommandManager commandManager;
 

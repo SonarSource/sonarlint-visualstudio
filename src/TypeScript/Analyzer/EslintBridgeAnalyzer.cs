@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             IAnalysisConfigMonitor analysisConfigMonitor,
             IEslintBridgeIssueConverter issueConverter,
             ILogger logger)
-            : this(rulesProvider, eslintBridgeClient, activeSolutionTracker, analysisConfigMonitor, issueConverter, new ThreadHandling(), logger)
+            : this(rulesProvider, eslintBridgeClient, activeSolutionTracker, analysisConfigMonitor, issueConverter, ThreadHandling.Instance, logger)
         {
         }
 

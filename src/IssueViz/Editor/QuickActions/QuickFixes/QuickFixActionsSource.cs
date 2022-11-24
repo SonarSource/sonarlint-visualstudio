@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
             ITextView textView,
             IQuickFixesTelemetryManager quickFixesTelemetryManager,
             ILogger logger)
-            : this(lightBulbBroker, bufferTagAggregatorFactoryService, textView, quickFixesTelemetryManager, logger, new ThreadHandling())
+            : this(lightBulbBroker, bufferTagAggregatorFactoryService, textView, quickFixesTelemetryManager, logger, ThreadHandling.Instance)
         {
         }
 

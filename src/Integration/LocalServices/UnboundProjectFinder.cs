@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IThreadHandling threadHandling;
 
         public UnboundProjectFinder(IServiceProvider serviceProvider, ILogger logger)
-            : this(serviceProvider, logger, new ProjectBinderFactory(serviceProvider, logger), new ThreadHandling())
+            : this(serviceProvider, logger, new ProjectBinderFactory(serviceProvider, logger), ThreadHandling.Instance)
         {
         }
 

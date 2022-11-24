@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         private readonly IThreadHandling threadHandling;
 
         public SonarQubeIssuesProvider(ISonarQubeService sonarQubeService, string sonarQubeProjectKey, ITimerFactory timerFactory,
-            ILogger logger) : this(sonarQubeService, sonarQubeProjectKey, timerFactory, logger, new ThreadHandling())
+            ILogger logger) : this(sonarQubeService, sonarQubeProjectKey, timerFactory, logger, ThreadHandling.Instance)
         {
 
         }

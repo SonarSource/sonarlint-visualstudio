@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
                 roslynSettingsFileStorage,
                 activeSolutionBoundTracker,
                 logger,
-                new ThreadHandling())
+                ThreadHandling.Instance)
         {
         }
 

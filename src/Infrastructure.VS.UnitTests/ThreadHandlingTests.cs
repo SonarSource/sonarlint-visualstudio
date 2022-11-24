@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             await RunOnUIThread(() =>
             {
-                var testSubject = new ThreadHandling();
+                var testSubject = ThreadHandling.Instance;
                 actual = testSubject.CheckAccess();
             });
 
@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             await RunOnBackgroundThread(() =>
             {
-                var testSubject = new ThreadHandling();
+                var testSubject = ThreadHandling.Instance;
                 actual = testSubject.CheckAccess();
             });
 
@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             await RunOnUIThread(() =>
             {
-                var testSubject = new ThreadHandling();
+                var testSubject = ThreadHandling.Instance;
                 actual = Throws(testSubject.ThrowIfOnUIThread);
             });
 
@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             await RunOnBackgroundThread(() =>
             {
-                var testSubject = new ThreadHandling();
+                var testSubject = ThreadHandling.Instance;
                 actual = Throws(testSubject.ThrowIfOnUIThread);
             });
 
@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             await RunOnUIThread(() =>
             {
-                var testSubject = new ThreadHandling();
+                var testSubject = ThreadHandling.Instance;
                 actual = Throws(testSubject.ThrowIfNotOnUIThread);
             });
 
@@ -113,7 +113,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             await RunOnBackgroundThread(() =>
             {
-                var testSubject = new ThreadHandling();
+                var testSubject = ThreadHandling.Instance;
                 actual = Throws(testSubject.ThrowIfNotOnUIThread);
             });
 

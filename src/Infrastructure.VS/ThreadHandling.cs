@@ -36,6 +36,10 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class ThreadHandling : IThreadHandling
     {
+#pragma warning disable S4277
+        public static readonly IThreadHandling Instance = new ThreadHandling();
+#pragma warning restore S4277   
+
         public bool CheckAccess() => ThreadHelper.CheckAccess();
 
         public void ThrowIfOnUIThread() => ThreadHelper.ThrowIfOnUIThread();
