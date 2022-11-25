@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         private void Log(string messageFormat, params object[] args)
         {
-            logger.WriteLine($"[{analyzerName}]: " + messageFormat, args);
+            logger.WriteLine($"[{analyzerName}] " + messageFormat, args);
         }
 
         private void Notify(string messageFormat, bool showSpinner)
