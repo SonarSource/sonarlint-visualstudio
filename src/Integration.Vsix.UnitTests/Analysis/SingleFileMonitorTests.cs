@@ -39,8 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void NonCriticalExceptions_AreSuppressed()
         {
             // Arrange
-            var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
+            var fileSystemMock = CreateFileSystemMock();
 
             var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
             var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
@@ -63,8 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void CriticalExceptions_AreNotSuppressed()
         {
             // Arrange
-            var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
+            var fileSystemMock = CreateFileSystemMock();
 
             var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
             Action act = () =>
@@ -169,8 +167,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             void DoRaise_Dispose_RaiseAgain(Action<Mock<IFileSystemWatcher>> raiseEvent)
             {
                 // Arrange
-                var fileSystemMock = new Mock<IFileSystem>();
-                fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
+                var fileSystemMock = CreateFileSystemMock();
 
                 var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
                 var testLogger = new TestLogger();
@@ -204,8 +201,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var timeout = System.Diagnostics.Debugger.IsAttached ? 1000 * 60 * 5 : 1000;
             var testLogger = new TestLogger();
 
-            var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
+            var fileSystemMock  = CreateFileSystemMock();
 
             var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
             var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, fileSystemMock.Object, "c:\\dummy\\file.txt", testLogger);
@@ -413,8 +409,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         {
             var filePath = "test\\";
 
-            var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
+            var fileSystemMock = CreateFileSystemMock();
 
             var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
             var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
@@ -434,6 +429,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
                 waitableFileMonitor.EventCount.Should().Be(2);
             }
+        }
+
+        private Mock<IFileSystem> CreateFileSystemMock()
+        {
+            var fileSystemMock = new Mock<IFileSystem>();
+            fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
+            fileSystemMock.Setup(x => x.File.GetLastWriteTimeUtc(It.IsAny<string>())).Returns(DateTime.MaxValue);
+
+            return fileSystemMock;
         }
 
         private static Mock<IFileSystemWatcherFactory> CreateFactoryAndWatcherMocks(out Mock<IFileSystemWatcher> watcherMock)
