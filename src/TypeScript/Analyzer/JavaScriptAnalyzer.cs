@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
     internal sealed class JavaScriptAnalyzer : IAnalyzer, IDisposable
     {
         private readonly ITelemetryManager telemetryManager;
-        private readonly IAnalysisStatusNotifier analysisStatusNotifier;
+        private readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
         private readonly IEslintBridgeAnalyzer eslintBridgeAnalyzer;
         private readonly IThreadHandling threadHandling;
 
@@ -46,12 +46,12 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         public JavaScriptAnalyzer(IJavaScriptEslintBridgeClient eslintBridgeClient,
             IRulesProviderFactory rulesProviderFactory,
             ITelemetryManager telemetryManager,
-            IAnalysisStatusNotifier analysisStatusNotifier,
+            IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
             IEslintBridgeAnalyzerFactory eslintBridgeAnalyzerFactory,
             IThreadHandling threadHandling)
         {
             this.telemetryManager = telemetryManager;
-            this.analysisStatusNotifier = analysisStatusNotifier;
+            this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
             this.threadHandling = threadHandling;
 
             var rulesProvider = rulesProviderFactory.Create("javascript", Language.Js);
@@ -78,17 +78,18 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         internal async Task ExecuteAnalysis(string filePath, IIssueConsumer consumer, CancellationToken cancellationToken)
         {
             telemetryManager.LanguageAnalyzed("js");
+            var analysisStatusNotifier = analysisStatusNotifierFactory.Create(filePath);
 
             // Switch to a background thread
             await threadHandling.SwitchToBackgroundThread();
 
-            analysisStatusNotifier.AnalysisStarted(filePath);
+            analysisStatusNotifier.AnalysisStarted();
 
             try
             {
                 var stopwatch = Stopwatch.StartNew();
                 var issues = await eslintBridgeAnalyzer.Analyze(filePath, null, cancellationToken);
-                analysisStatusNotifier.AnalysisFinished(filePath, issues.Count, stopwatch.Elapsed);
+                analysisStatusNotifier.AnalysisFinished(issues.Count, stopwatch.Elapsed);
 
                 if (issues.Any())
                 {
@@ -97,15 +98,15 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             }
             catch (TaskCanceledException)
             {
-                analysisStatusNotifier.AnalysisCancelled(filePath);
+                analysisStatusNotifier.AnalysisCancelled();
             }
             catch (EslintBridgeProcessLaunchException ex)
             {
-                analysisStatusNotifier.AnalysisFailed(filePath, ex.Message);
+                analysisStatusNotifier.AnalysisFailed(ex.Message);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                analysisStatusNotifier.AnalysisFailed(filePath, ex);
+                analysisStatusNotifier.AnalysisFailed(ex);
             }
         }
 

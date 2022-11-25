@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
         {
             var testSubject = new CLangAnalyzer(Mock.Of<ITelemetryManager>(),
                 Mock.Of<ISonarLintSettings>(),
-                Mock.Of<IAnalysisStatusNotifier>(),
+                Mock.Of<IAnalysisStatusNotifierFactory>(),
                 Mock.Of<ICFamilyIssueConverterFactory>(),
                 Mock.Of<IRequestFactoryAggregate>(),
                 Mock.Of<ILogger>());
@@ -192,8 +192,8 @@ namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
 
             testSubject.SubProcessCompleted.Should().BeTrue();
 
-            statusNotifier.Verify(x => x.AnalysisStarted(fileName), Times.Once);
-            statusNotifier.Verify(x => x.AnalysisFinished(fileName, 2, It.IsAny<TimeSpan>()), Times.Once);
+            statusNotifier.Verify(x => x.AnalysisStarted(), Times.Once);
+            statusNotifier.Verify(x => x.AnalysisFinished(2, It.IsAny<TimeSpan>()), Times.Once);
             statusNotifier.VerifyNoOtherCalls();
         }
 
@@ -208,8 +208,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
             var request = CreateRequest(filePath);
             var requestFactory = CreateRequestFactory(filePath, ValidAnalyzerOptions, request);
 
-            var testSubject = CreateTestableAnalyzer(statusNotifier: originalStatusNotifier.Object,
-                requestFactory: requestFactory.Object);
+            var testSubject = CreateTestableAnalyzer(requestFactory: requestFactory.Object);
 
             using var cts = new CancellationTokenSource();
 
@@ -226,8 +225,8 @@ namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
 
             testSubject.SubProcessCompleted.Should().BeTrue();
 
-            statusNotifier.Verify(x=> x.AnalysisStarted(filePath), Times.Once);
-            statusNotifier.Verify(x=> x.AnalysisCancelled(filePath), Times.Once);
+            statusNotifier.Verify(x => x.AnalysisStarted(), Times.Once);
+            statusNotifier.Verify(x => x.AnalysisCancelled(), Times.Once);
             statusNotifier.VerifyNoOtherCalls();
             originalStatusNotifier.Invocations.Count.Should().Be(0);
         }
@@ -251,8 +250,8 @@ namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
 
             await testSubject.TriggerAnalysisAsync(filePath, ValidDetectedLanguages, ValidIssueConsumer, ValidAnalyzerOptions, statusNotifier.Object, CancellationToken.None);
 
-            statusNotifier.Verify(x=> x.AnalysisStarted(filePath), Times.Once);
-            statusNotifier.Verify(x=> x.AnalysisFailed(filePath, It.Is<NullReferenceException>(e => e.Message == "test")), Times.Once);
+            statusNotifier.Verify(x => x.AnalysisStarted(), Times.Once);
+            statusNotifier.Verify(x => x.AnalysisFailed(It.Is<NullReferenceException>(e => e.Message == "test")), Times.Once);
             statusNotifier.VerifyNoOtherCalls();
         }
 
@@ -282,8 +281,8 @@ namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
 
             testSubject.SubProcessCompleted.Should().BeTrue();
 
-            statusNotifier.Verify(x => x.AnalysisStarted(fileName), Times.Once);
-            statusNotifier.Verify(x => x.AnalysisFailed(fileName, CFamilyStrings.MSG_GenericAnalysisFailed), Times.Once);
+            statusNotifier.Verify(x => x.AnalysisStarted(), Times.Once);
+            statusNotifier.Verify(x => x.AnalysisFailed(CFamilyStrings.MSG_GenericAnalysisFailed), Times.Once);
             statusNotifier.VerifyNoOtherCalls();
         }
 
@@ -329,7 +328,6 @@ namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
 
         private static TestableCLangAnalyzer CreateTestableAnalyzer(ITelemetryManager telemetryManager = null,
             ISonarLintSettings settings = null,
-            IAnalysisStatusNotifier statusNotifier = null,
             ICFamilyIssueConverterFactory issueConverterFactory = null,
             IRequestFactoryAggregate requestFactory = null,
             ILogger logger = null,
@@ -338,19 +336,18 @@ namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
         {
             telemetryManager ??= Mock.Of<ITelemetryManager>();
             settings ??= new ConfigurableSonarLintSettings();
-            statusNotifier ??= Mock.Of<IAnalysisStatusNotifier>();
             issueConverterFactory ??= Mock.Of<ICFamilyIssueConverterFactory>();
             requestFactory ??= Mock.Of<IRequestFactoryAggregate>();
             logger ??= new TestLogger();
             fileSystem ??= Mock.Of<IFileSystem>();
             threadHandling ??= new NoOpThreadHandler();
 
-            return new TestableCLangAnalyzer(telemetryManager, settings, statusNotifier, logger, issueConverterFactory, requestFactory, fileSystem, threadHandling);
+            return new TestableCLangAnalyzer(telemetryManager, settings, logger, issueConverterFactory, requestFactory, fileSystem, threadHandling);
         }
 
         private class TestableCLangAnalyzer : CLangAnalyzer
         {
-            public delegate void HandleCallSubProcess(Action<Message> handleMessage, IRequest request, 
+            public delegate void HandleCallSubProcess(Action<Message> handleMessage, IRequest request,
                 ISonarLintSettings settings, ILogger logger, CancellationToken cancellationToken);
 
             private HandleCallSubProcess onCallSubProcess;
@@ -362,12 +359,12 @@ namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
 
             public int SubProcessExecutedCount { get; private set; }
 
-            public TestableCLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, 
-                IAnalysisStatusNotifier analysisStatusNotifier, ILogger logger, 
+            public TestableCLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings,
+                ILogger logger,
                 ICFamilyIssueConverterFactory cFamilyIssueConverterFactory, IRequestFactoryAggregate requestFactory, IFileSystem fileSystem,
                 IThreadHandling threadHandling)
-                : base(telemetryManager, settings, analysisStatusNotifier, cFamilyIssueConverterFactory, requestFactory, logger, fileSystem, threadHandling)
-            {}
+                : base(telemetryManager, settings, Mock.Of<IAnalysisStatusNotifierFactory>(), cFamilyIssueConverterFactory, requestFactory, logger, fileSystem, threadHandling)
+            { }
 
             protected override void CallSubProcess(Action<Message> handleMessage, IRequest request,
                 ISonarLintSettings settings, ILogger logger, CancellationToken cancellationToken)
