@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
@@ -40,6 +41,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         public IAnalysisStatusNotifier Create(string filePath)
         {
+            if (filePath == null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
             return new AnalysisStatusNotifier(filePath, statusBarNotifier, logger);
         }
     }
