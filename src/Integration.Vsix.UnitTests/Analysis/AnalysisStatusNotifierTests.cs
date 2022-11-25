@@ -31,6 +31,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
     [TestClass]
     public class AnalysisStatusNotifierTests
     {
+        private const string AnalyzerName = "some analyzer";
+
         [TestMethod]
         [DataRow("foo-started.cpp", "foo-started.cpp")]
         [DataRow("c:\\test\\foo-started.cpp", "foo-started.cpp")]
@@ -56,7 +58,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             testSubject.AnalysisStarted();
 
             var expectedMessage = string.Format(AnalysisStrings.MSG_AnalysisStarted, filePath);
-            logger.AssertOutputStringExists(expectedMessage);
+            logger.AssertPartialOutputStringExists(AnalyzerName);
+            logger.AssertPartialOutputStringExists(expectedMessage);
             logger.OutputStrings.Count.Should().Be(1);
         }
 
@@ -87,10 +90,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             testSubject.AnalysisFinished(123, TimeSpan.FromSeconds(6.54321));
 
             var expectedMessage = string.Format(AnalysisStrings.MSG_AnalysisComplete, filePath, 6.543);
-            logger.AssertOutputStringExists(expectedMessage);
+            logger.AssertPartialOutputStringExists(expectedMessage);
 
             expectedMessage = string.Format($"Found {123} issue(s) for {filePath}");
-            logger.AssertOutputStringExists(expectedMessage);
+            logger.AssertPartialOutputStringExists(expectedMessage);
+
+            logger.AssertPartialOutputStringExists(AnalyzerName);
 
             logger.OutputStrings.Count.Should().Be(2);
         }
@@ -121,7 +126,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             testSubject.AnalysisCancelled();
 
             var expectedMessage = string.Format(AnalysisStrings.MSG_AnalysisAborted, filePath);
-            logger.AssertOutputStringExists(expectedMessage);
+            logger.AssertPartialOutputStringExists(AnalyzerName);
+            logger.AssertPartialOutputStringExists(expectedMessage);
             logger.OutputStrings.Count.Should().Be(1);
         }
 
@@ -171,7 +177,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             testSubject.AnalysisFailed(exception);
 
             var expectedMessage = string.Format(AnalysisStrings.MSG_AnalysisFailed, filePath, exception);
-            logger.AssertOutputStringExists(expectedMessage);
+            logger.AssertPartialOutputStringExists(AnalyzerName);
+            logger.AssertPartialOutputStringExists(expectedMessage);
             logger.OutputStrings.Count.Should().Be(1);
         }
 
@@ -186,7 +193,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             testSubject.AnalysisFailed("test message");
 
             var expectedMessage = string.Format(AnalysisStrings.MSG_AnalysisFailed, filePath, "test message");
-            logger.AssertOutputStringExists(expectedMessage);
+            logger.AssertPartialOutputStringExists(AnalyzerName);
+            logger.AssertPartialOutputStringExists(expectedMessage);
             logger.OutputStrings.Count.Should().Be(1);
         }
 
@@ -207,6 +215,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
 
             testSubject.AnalysisFailed(exception);
 
+            logger.AssertPartialOutputStringExists(AnalyzerName);
             logger.AssertPartialOutputStringExists("this is a test1");
             logger.AssertPartialOutputStringExists("this is a test2");
             logger.OutputStrings.Count.Should().Be(1);
@@ -226,7 +235,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             statusBarNotifier ??= Mock.Of<IStatusBarNotifier>();
             logger ??= new TestLogger();
 
-            return new AnalysisStatusNotifier(filePath, statusBarNotifier, logger);
+            return new AnalysisStatusNotifier("some analyzer", filePath, statusBarNotifier, logger);
         }
     }
 }

@@ -39,14 +39,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             this.logger = logger;
         }
 
-        public IAnalysisStatusNotifier Create(string filePath)
+        public IAnalysisStatusNotifier Create(string analyzerName, string filePath)
         {
+            if (analyzerName == null)
+            {
+                throw new ArgumentNullException(nameof(analyzerName));
+            }
+
             if (filePath == null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            return new AnalysisStatusNotifier(filePath, statusBarNotifier, logger);
+            return new AnalysisStatusNotifier(analyzerName, filePath, statusBarNotifier, logger);
         }
     }
 }

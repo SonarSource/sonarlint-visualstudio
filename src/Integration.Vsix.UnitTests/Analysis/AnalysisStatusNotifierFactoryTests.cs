@@ -42,11 +42,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         }
 
         [TestMethod]
+        public void Create_NullAnalyzerName_ArgumentNullException()
+        {
+            var testSubject = CreateTestSubject();
+
+            Action act = () => testSubject.Create(null, "file path");
+
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analyzerName");
+        }
+
+        [TestMethod]
         public void Create_NullFilePath_ArgumentNullException()
         {
             var testSubject = CreateTestSubject();
 
-            Action act = () => testSubject.Create(null);
+            Action act = () => testSubject.Create("analyzer", null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
         }
@@ -56,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         {
             var testSubject = CreateTestSubject();
 
-            var result = testSubject.Create("some path");
+            var result = testSubject.Create("some analyzer", "some path");
 
             result.Should().NotBeNull();
             result.Should().BeOfType<AnalysisStatusNotifier>();

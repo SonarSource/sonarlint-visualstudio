@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.CloudSecrets
             IAnalyzerOptions analyzerOptions,
             CancellationToken cancellationToken)
         {
-            var analysisStatusNotifier = analysisStatusNotifierFactory.Create(filePath);
+            var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SecretsAnalyzer), filePath);
 
             analysisStatusNotifier.AnalysisStarted();
 
