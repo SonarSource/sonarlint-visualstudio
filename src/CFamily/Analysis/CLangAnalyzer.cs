@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
     {
         private readonly ITelemetryManager telemetryManager;
         private readonly ISonarLintSettings settings;
-        private readonly IAnalysisStatusNotifier analysisStatusNotifier;
+        private readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
         private readonly ILogger logger;
         private readonly ICFamilyIssueConverterFactory issueConverterFactory;
         private readonly IRequestFactoryAggregate requestFactory;
@@ -65,17 +65,17 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
         [ImportingConstructor]
         public CLangAnalyzer(ITelemetryManager telemetryManager,
             ISonarLintSettings settings,
-            IAnalysisStatusNotifier analysisStatusNotifier,
+            IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
             ICFamilyIssueConverterFactory issueConverterFactory,
             IRequestFactoryAggregate requestFactory,
             ILogger logger)
-            : this(telemetryManager, settings, analysisStatusNotifier, issueConverterFactory, requestFactory, logger, new FileSystem(), ThreadHandling.Instance)
+            : this(telemetryManager, settings, analysisStatusNotifierFactory, issueConverterFactory, requestFactory, logger, new FileSystem(), ThreadHandling.Instance)
         {
         }
 
         internal /* for testing */ CLangAnalyzer(ITelemetryManager telemetryManager,
             ISonarLintSettings settings,
-            IAnalysisStatusNotifier analysisStatusNotifier,
+            IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
             ICFamilyIssueConverterFactory issueConverterFactory,
             IRequestFactoryAggregate requestFactory,
             ILogger logger,
@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
         {
             this.telemetryManager = telemetryManager;
             this.settings = settings;
-            this.analysisStatusNotifier = analysisStatusNotifier;
+            this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
             this.logger = logger;
             this.issueConverterFactory = issueConverterFactory;
             this.requestFactory = requestFactory;
@@ -102,6 +102,8 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
             IIssueConsumer consumer, IAnalyzerOptions analyzerOptions,
             CancellationToken cancellationToken)
         {
+            var analysisStatusNotifier = analysisStatusNotifierFactory.Create(path);
+
             ExecuteAnalysis(path, detectedLanguages, consumer, analyzerOptions, analysisStatusNotifier, cancellationToken);
         }
 
@@ -160,7 +162,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
         private void RunAnalysis(IRequest request, IIssueConsumer consumer, IAnalysisStatusNotifier statusNotifier, CancellationToken cancellationToken)
         {
             var analysisStartTime = DateTime.Now;
-            statusNotifier?.AnalysisStarted(request.Context.File);
+            statusNotifier?.AnalysisStarted();
 
             var messageHandler = consumer == null
                 ? NoOpMessageHandler.Instance
@@ -175,24 +177,24 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
 
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    statusNotifier?.AnalysisCancelled(request.Context.File);
+                    statusNotifier?.AnalysisCancelled();
                 }
                 else
                 {
                     if (messageHandler.AnalysisSucceeded)
                     {
                         var analysisTime = DateTime.Now - analysisStartTime;
-                        statusNotifier?.AnalysisFinished(request.Context.File, messageHandler.IssueCount, analysisTime);
+                        statusNotifier?.AnalysisFinished(messageHandler.IssueCount, analysisTime);
                     }
                     else
                     {
-                        statusNotifier?.AnalysisFailed(request.Context.File, CFamilyStrings.MSG_GenericAnalysisFailed);
+                        statusNotifier?.AnalysisFailed(CFamilyStrings.MSG_GenericAnalysisFailed);
                     }
                 }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                statusNotifier?.AnalysisFailed(request.Context.File, ex);
+                statusNotifier?.AnalysisFailed(ex);
             }
 
             telemetryManager.LanguageAnalyzed(request.Context.CFamilyLanguage); // different keys for C and C++
