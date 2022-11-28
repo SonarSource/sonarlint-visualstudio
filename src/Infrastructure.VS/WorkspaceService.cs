@@ -21,6 +21,9 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using EnvDTE;
+using System.IO;
+using System.Windows.Forms;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -31,9 +34,12 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
     public interface IWorkspaceService
     {
         /// <summary>
-        /// Returns the root directory for projects.
-        /// Will return null if the root directory could not be retrieved,
+        /// Returns the current solution directory, or null if there is not an open solution.
         /// </summary>
+        /// <remarks>
+        /// For "normal" solutions, returns the directory containing the solution file.
+        /// For folder workspaces, returns the path to the folder that was opened.
+        /// </remarks>
         string FindRootDirectory();
     }
 

@@ -121,7 +121,7 @@
     <value>Failed to calculate VS version, error: {0}</value>
   </data>
   <data name="NoOpenSolutionOrFolder" xml:space="preserve">
-    <value>No open solution or folder has been found</value>
+    <value>No open solution or folder</value>
   </data>
   <data name="VsVersionDetails" xml:space="preserve">
     <value>Current VS version:

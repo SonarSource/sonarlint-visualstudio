@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No open solution or folder has been found.
+        ///   Looks up a localized string similar to No open solution or folder.
         /// </summary>
         internal static string NoOpenSolutionOrFolder {
             get {
