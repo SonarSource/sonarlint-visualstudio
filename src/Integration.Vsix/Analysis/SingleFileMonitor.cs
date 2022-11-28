@@ -51,6 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     {
         private readonly IFileSystemWatcher fileWatcher;
         private readonly ILogger logger;
+        private readonly IFileSystem fileSystem;
         private DateTime lastWriteTime = DateTime.MinValue;
 
         public SingleFileMonitor(string filePathToMonitor, ILogger logger)
@@ -61,8 +62,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         public SingleFileMonitor(IFileSystemWatcherFactory factory, IFileSystem fileSystem, string filePathToMonitor, ILogger logger)
         {
             this.MonitoredFilePath = filePathToMonitor;
+            this.fileSystem = fileSystem;
 
-            EnsureDirectoryExists(filePathToMonitor, fileSystem, logger);
+            EnsureDirectoryExists(filePathToMonitor, logger);
 
             fileWatcher = factory.CreateNew();
             fileWatcher.Path = Path.GetDirectoryName(filePathToMonitor); // NB will throw if the directory does not exist
@@ -106,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
         }
 
-        private static void EnsureDirectoryExists(string filePath, IFileSystem fileSystem, ILogger logger)
+        private void EnsureDirectoryExists(string filePath, ILogger logger)
         {
             // Exception handling: not much point in catch exceptions here - if we can't 
             // create a missing directory then the creation of the file watcher will
@@ -135,7 +137,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 // However, the precision of DateTime means that it is possible for separate events
                 // that happen very close together to report the same last-write time. If that happens,
                 // we'll be ignoring a "real" notification.
-                var currentTime = File.GetLastWriteTimeUtc(args.FullPath);
+                var currentTime = fileSystem.File.GetLastWriteTimeUtc(args.FullPath);
+
                 if (args.ChangeType != WatcherChangeTypes.Renamed && currentTime == lastWriteTime)
                 {
                     logger.WriteLine($"Ignoring duplicate change event: {args.ChangeType}");

@@ -26,6 +26,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.Integration.UnitTests.Extensions;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 {
@@ -38,8 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void NonCriticalExceptions_AreSuppressed()
         {
             // Arrange
-            var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
+            var fileSystemMock = CreateFileSystemMock();
 
             var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
             var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
@@ -62,8 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void CriticalExceptions_AreNotSuppressed()
         {
             // Arrange
-            var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
+            var fileSystemMock = CreateFileSystemMock();
 
             var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
             Action act = () =>
@@ -168,8 +167,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             void DoRaise_Dispose_RaiseAgain(Action<Mock<IFileSystemWatcher>> raiseEvent)
             {
                 // Arrange
-                var fileSystemMock = new Mock<IFileSystem>();
-                fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
+                var fileSystemMock = CreateFileSystemMock();
 
                 var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
                 var testLogger = new TestLogger();
@@ -203,8 +201,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var timeout = System.Diagnostics.Debugger.IsAttached ? 1000 * 60 * 5 : 1000;
             var testLogger = new TestLogger();
 
-            var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
+            var fileSystemMock  = CreateFileSystemMock();
 
             var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
             var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, fileSystemMock.Object, "c:\\dummy\\file.txt", testLogger);
@@ -381,6 +378,63 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             }
         }
 
+
+        [TestMethod]
+        public void File_DuplicateChangesSameTime_AreIgnored()
+        {
+            var filePath = "test\\";
+
+            var fileSystemMock = CreateFileSystemMock();
+
+            var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
+            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
+
+            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, fileSystemMock.Object, filePath, testLogger))
+            {
+                var waitableFileMonitor = new WaitableFileMonitor(fileMonitor);
+                waitableFileMonitor.EventCount.Should().Be(0);
+                watcherMock.Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, filePath , ""));
+                watcherMock.Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, filePath, ""));
+                waitableFileMonitor.EventCount.Should().Be(1);
+            }
+        }
+
+        [TestMethod]
+        public void File_DuplicateChangesDifferentTime_NotIgnored()
+        {
+            var filePath = "test\\";
+
+            var fileSystemMock = CreateFileSystemMock();
+
+            var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
+            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
+
+            var dateTime = DateTime.Now;
+
+            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, fileSystemMock.Object, filePath, testLogger))
+            {
+                var waitableFileMonitor = new WaitableFileMonitor(fileMonitor);
+                waitableFileMonitor.EventCount.Should().Be(0);
+
+                fileSystemMock.Setup(x => x.File.GetLastWriteTimeUtc(filePath)).Returns(dateTime);
+                watcherMock.Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, filePath, ""));
+
+                fileSystemMock.Setup(x => x.File.GetLastWriteTimeUtc(filePath)).Returns(dateTime.AddMilliseconds(1));
+                watcherMock.Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, filePath, ""));
+
+                waitableFileMonitor.EventCount.Should().Be(2);
+            }
+        }
+
+        private Mock<IFileSystem> CreateFileSystemMock()
+        {
+            var fileSystemMock = new Mock<IFileSystem>();
+            fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
+            fileSystemMock.Setup(x => x.File.GetLastWriteTimeUtc(It.IsAny<string>())).Returns(DateTime.MaxValue);
+
+            return fileSystemMock;
+        }
+
         private static Mock<IFileSystemWatcherFactory> CreateFactoryAndWatcherMocks(out Mock<IFileSystemWatcher> watcherMock)
         {
             watcherMock = new Mock<IFileSystemWatcher>();
@@ -392,73 +446,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         }
 
         #endregion Simple file operations
-
-        [Ignore] // Flaky -> disabled https://github.com/SonarSource/sonarlint-visualstudio/issues/3236
-        [TestMethod]
-        public void RealFile_MultipleOperations_NoDuplicates()
-        {
-            // Repeated file operations will raise lots of events.
-            // We don't want duplicates.
-
-            // Arrange
-            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
-            var testDir = CreateTestSpecificDirectory();
-            var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
-
-            int totalEventCount = 0;
-            for (int i = 0; i < 100; i++)
-            {
-                TestContext.WriteLine($"Iteration: {i}");
-
-                // Cleanup
-                if (File.Exists(filePathToMonitor))
-                {
-                    File.Delete(filePathToMonitor);
-                }
-                testBody();
-            }
-
-            // We might lose some events if they happen too close together, but we should never
-            // have more events than there are logical file operations.
-            // There are 5 operations per iteration -> expecting close to 500.
-
-            TestContext.WriteLine($"Number of recorded events: {totalEventCount}");
-            totalEventCount.Should().BeInRange(340, 500);
-
-            void testBody()
-            {
-                const int pauseBetweenOpsInMs = 125;
-
-                using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, testLogger))
-                {
-                    var testWrapper = new WaitableFileMonitor(singleFileMonitor);
-                    testWrapper.EventCount.Should().Be(0);
-
-                    // 1. Create the file
-                    File.WriteAllText(filePathToMonitor, "initial text");
-                    testWrapper.PauseForEvent(pauseBetweenOpsInMs);
-
-                    // 2. Amend the file
-                    File.AppendAllText(filePathToMonitor, " more text");
-                    testWrapper.PauseForEvent(pauseBetweenOpsInMs);
-
-                    // 3. Rename from the tracked name
-                    var renamedFile = Path.ChangeExtension(filePathToMonitor, "moved");
-                    File.Move(filePathToMonitor, renamedFile);
-                    testWrapper.PauseForEvent(pauseBetweenOpsInMs);
-
-                    // 4. Rename back to the tracked name
-                    File.Move(renamedFile, filePathToMonitor);
-                    testWrapper.PauseForEvent(pauseBetweenOpsInMs);
-
-                    // 5. Delete
-                    File.Delete(filePathToMonitor);
-                    testWrapper.PauseForEvent(pauseBetweenOpsInMs);
-
-                    totalEventCount += testWrapper.EventCount;
-                }
-            };
-        }
 
         private string CreateTestSpecificDirectory()
         {
