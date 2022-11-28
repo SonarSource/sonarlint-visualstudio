@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         internal async Task ExecuteAnalysis(string filePath, IIssueConsumer consumer, CancellationToken cancellationToken)
         {
             telemetryManager.LanguageAnalyzed("ts");
-            var analysisStatusNotifier = analysisStatusNotifierFactory.Create(filePath);
+            var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(TypeScriptAnalyzer), filePath);
 
             // Switch to a background thread
             await threadHandling.SwitchToBackgroundThread();

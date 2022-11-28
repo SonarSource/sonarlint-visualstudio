@@ -344,7 +344,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         private IAnalysisStatusNotifierFactory SetupStatusNotifierFactory(IAnalysisStatusNotifier statusNotifier)
         {
             var statusNotifierFactory = new Mock<IAnalysisStatusNotifierFactory>();
-            statusNotifierFactory.Setup(x => x.Create(ValidFilePath)).Returns(statusNotifier);
+            statusNotifierFactory.Setup(x => x.Create(nameof(SecretsAnalyzer), ValidFilePath)).Returns(statusNotifier);
 
             return statusNotifierFactory.Object;
         }

@@ -27,12 +27,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
     internal class AnalysisStatusNotifier : IAnalysisStatusNotifier
     {
+        private readonly string analyzerName;
         private readonly string filePath;
         private readonly IStatusBarNotifier statusBarNotifier;
         private readonly ILogger logger;
 
-        public AnalysisStatusNotifier(string filePath, IStatusBarNotifier statusBarNotifier, ILogger logger)
+        public AnalysisStatusNotifier(string analyzerName, string filePath, IStatusBarNotifier statusBarNotifier, ILogger logger)
         {
+            this.analyzerName = analyzerName;
             this.filePath = filePath;
             this.statusBarNotifier = statusBarNotifier;
             this.logger = logger;
@@ -40,22 +42,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         public void AnalysisStarted()
         {
-            logger.WriteLine(AnalysisStrings.MSG_AnalysisStarted, filePath);
+            Log(AnalysisStrings.MSG_AnalysisStarted, filePath);
 
             Notify(AnalysisStrings.Notifier_AnalysisStarted, true);
         }
 
         public void AnalysisFinished(int issueCount, TimeSpan analysisTime)
         {
-            logger.WriteLine(AnalysisStrings.MSG_AnalysisComplete, filePath, Math.Round(analysisTime.TotalSeconds, 3));
-            logger.WriteLine(AnalysisStrings.MSG_FoundIssues, issueCount, filePath);
+            Log(AnalysisStrings.MSG_AnalysisComplete, filePath, Math.Round(analysisTime.TotalSeconds, 3));
+            Log(AnalysisStrings.MSG_FoundIssues, issueCount, filePath);
 
             Notify(AnalysisStrings.Notifier_AnalysisFinished, false);
         }
 
         public void AnalysisCancelled()
         {
-            logger.WriteLine(AnalysisStrings.MSG_AnalysisAborted, filePath);
+            Log(AnalysisStrings.MSG_AnalysisAborted, filePath);
             
             Notify("", false);
         }
@@ -67,9 +69,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         public void AnalysisFailed(string failureMessage)
         {
-            logger.WriteLine(AnalysisStrings.MSG_AnalysisFailed, filePath, failureMessage);
+            Log(AnalysisStrings.MSG_AnalysisFailed, filePath, failureMessage);
 
             Notify(AnalysisStrings.Notifier_AnalysisFailed, false);
+        }
+
+        private void Log(string messageFormat, params object[] args)
+        {
+            logger.WriteLine($"[{analyzerName}] " + messageFormat, args);
         }
 
         private void Notify(string messageFormat, bool showSpinner)
