@@ -384,12 +384,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         {
             var filePath = "test\\";
 
-            var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
-
-            var dateTime = DateTime.Now;
-
-            fileSystemMock.Setup(x => x.File.GetLastWriteTimeUtc(filePath)).Returns(dateTime);
+            var fileSystemMock = CreateFileSystemMock();
 
             var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
             var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
