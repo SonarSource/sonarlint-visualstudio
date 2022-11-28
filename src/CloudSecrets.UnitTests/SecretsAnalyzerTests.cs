@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             MefTestHelpers.CheckTypeCanBeImported<SecretsAnalyzer, IAnalyzer>(
                 MefTestHelpers.CreateExport<ITextDocumentFactoryService>(),
                 MefTestHelpers.CreateExport<IContentTypeRegistryService>(),
-                MefTestHelpers.CreateExport<IAnalysisStatusNotifier>(),
+                MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(),
                 MefTestHelpers.CreateExport<ICloudSecretsTelemetryManager>(),
                 MefTestHelpers.CreateExport<IUserSettingsProvider>());
         }
@@ -171,8 +171,8 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             var testSubject = CreateTestSubject(textDocumentFactoryService: textDocumentFactoryService.Object, statusNotifier: statusNotifier.Object);
             ExecuteAnalysis(testSubject, ValidFilePath, consumer.Object);
 
-            statusNotifier.Verify(x => x.AnalysisStarted(ValidFilePath), Times.Once);
-            statusNotifier.Verify(x => x.AnalysisFailed(ValidFilePath, exception), Times.Once);
+            statusNotifier.Verify(x => x.AnalysisStarted(), Times.Once);
+            statusNotifier.Verify(x => x.AnalysisFailed(exception), Times.Once);
             statusNotifier.VerifyNoOtherCalls();
         }
 
@@ -191,8 +191,8 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             var testSubject = CreateTestSubject(textDocumentFactoryService: textDocumentFactoryService, statusNotifier: statusNotifier.Object, detectors: secretDetector);
             ExecuteAnalysis(testSubject, ValidFilePath, consumer.Object);
 
-            statusNotifier.Verify(x => x.AnalysisStarted(ValidFilePath), Times.Once);
-            statusNotifier.Verify(x => x.AnalysisFinished(ValidFilePath, secrets.Length, It.IsAny<TimeSpan>()), Times.Once);
+            statusNotifier.Verify(x => x.AnalysisStarted(), Times.Once);
+            statusNotifier.Verify(x => x.AnalysisFinished(secrets.Length, It.IsAny<TimeSpan>()), Times.Once);
             statusNotifier.VerifyNoOtherCalls();
         }
 
@@ -281,6 +281,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             params Mock<ISecretDetector>[] detectors)
         {
             statusNotifier ??= Mock.Of<IAnalysisStatusNotifier>();
+
             detectors ??= Array.Empty<Mock<ISecretDetector>>();
             secretsToAnalysisIssueConverter ??= Mock.Of<ISecretsToAnalysisIssueConverter>();
             telemetryManager ??= Mock.Of<ICloudSecretsTelemetryManager>();
@@ -295,7 +296,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             return new SecretsAnalyzer(textDocumentFactoryService,
                 contentTypeRegistryService.Object,
                 detectors.Select(x => x.Object),
-                statusNotifier,
+                SetupStatusNotifierFactory(statusNotifier),
                 userSettingsProvider.Object,
                 telemetryManager,
                 secretsToAnalysisIssueConverter);
@@ -338,6 +339,14 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             }
 
             return converter.Object;
+        }
+
+        private IAnalysisStatusNotifierFactory SetupStatusNotifierFactory(IAnalysisStatusNotifier statusNotifier)
+        {
+            var statusNotifierFactory = new Mock<IAnalysisStatusNotifierFactory>();
+            statusNotifierFactory.Setup(x => x.Create(ValidFilePath)).Returns(statusNotifier);
+
+            return statusNotifierFactory.Object;
         }
     }
 }

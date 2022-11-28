@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.CloudSecrets
     {
         private readonly ITextDocumentFactoryService textDocumentFactoryService;
         private readonly IEnumerable<ISecretDetector> secretDetectors;
-        private readonly IAnalysisStatusNotifier analysisStatusNotifier;
+        private readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
         private readonly IUserSettingsProvider userSettingsProvider;
         private readonly ICloudSecretsTelemetryManager cloudSecretsTelemetryManager;
         private readonly ISecretsToAnalysisIssueConverter secretsToAnalysisIssueConverter;
@@ -48,13 +48,13 @@ namespace SonarLint.VisualStudio.CloudSecrets
             ITextDocumentFactoryService textDocumentFactoryService,
             IContentTypeRegistryService contentTypeRegistryService,
             [ImportMany] IEnumerable<ISecretDetector> secretDetectors,
-            IAnalysisStatusNotifier analysisStatusNotifier,
+            IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
             IUserSettingsProvider userSettingsProvider,
             ICloudSecretsTelemetryManager telemetryManager)
             : this(textDocumentFactoryService,
                 contentTypeRegistryService,
                 secretDetectors,
-                analysisStatusNotifier,
+                analysisStatusNotifierFactory,
                 userSettingsProvider,
                 telemetryManager,
                 new SecretsToAnalysisIssueConverter())
@@ -64,14 +64,14 @@ namespace SonarLint.VisualStudio.CloudSecrets
         internal SecretsAnalyzer(ITextDocumentFactoryService textDocumentFactoryService,
             IContentTypeRegistryService contentTypeRegistryService,
             IEnumerable<ISecretDetector> secretDetectors,
-            IAnalysisStatusNotifier analysisStatusNotifier,
+            IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
             IUserSettingsProvider userSettingsProvider,
             ICloudSecretsTelemetryManager cloudSecretsTelemetryManager,
             ISecretsToAnalysisIssueConverter secretsToAnalysisIssueConverter)
         {
             this.textDocumentFactoryService = textDocumentFactoryService;
             this.secretDetectors = secretDetectors;
-            this.analysisStatusNotifier = analysisStatusNotifier;
+            this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
             this.userSettingsProvider = userSettingsProvider;
             this.cloudSecretsTelemetryManager = cloudSecretsTelemetryManager;
             this.secretsToAnalysisIssueConverter = secretsToAnalysisIssueConverter;
@@ -90,7 +90,9 @@ namespace SonarLint.VisualStudio.CloudSecrets
             IAnalyzerOptions analyzerOptions,
             CancellationToken cancellationToken)
         {
-            analysisStatusNotifier.AnalysisStarted(filePath);
+            var analysisStatusNotifier = analysisStatusNotifierFactory.Create(filePath);
+
+            analysisStatusNotifier.AnalysisStarted();
 
             try
             {
@@ -120,7 +122,7 @@ namespace SonarLint.VisualStudio.CloudSecrets
                     issues.AddRange(detectedSecrets.Select(x => secretsToAnalysisIssueConverter.Convert(x, secretDetector, filePath, currentSnapshot)));
                 }
 
-                analysisStatusNotifier.AnalysisFinished(filePath, issues.Count, stopwatch.Elapsed);
+                analysisStatusNotifier.AnalysisFinished(issues.Count, stopwatch.Elapsed);
 
                 if (issues.Any())
                 {
@@ -129,7 +131,7 @@ namespace SonarLint.VisualStudio.CloudSecrets
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                analysisStatusNotifier.AnalysisFailed(filePath, ex);
+                analysisStatusNotifier.AnalysisFailed(ex);
             }
         }
 
