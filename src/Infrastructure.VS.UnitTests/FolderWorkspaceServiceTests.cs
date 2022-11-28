@@ -36,7 +36,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<FolderWorkspaceService, IFolderWorkspaceService>(
-                MefTestHelpers.CreateExport<SVsServiceProvider>());
+                MefTestHelpers.CreateExport<SVsServiceProvider>(),
+                MefTestHelpers.CreateExport<IWorkspaceService>());
         }
 
         [TestMethod]
@@ -92,27 +93,26 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             result.Should().BeTrue();
         }
 
-        private FolderWorkspaceService CreateTestSubject(bool? isOpenAsFolder, object solutionDirectory)
+        private FolderWorkspaceService CreateTestSubject(bool? isOpenAsFolder, string solutionDirectory)
         {
-            var vsSolution = SetupVsSolution(isOpenAsFolder, solutionDirectory);
+            var vsSolution = SetupVsSolution(isOpenAsFolder);
 
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(x => x.GetService(typeof(SVsSolution))).Returns(vsSolution.Object);
 
-            return new FolderWorkspaceService(serviceProvider.Object);
+            var workspaceService = new Mock<IWorkspaceService>();
+            workspaceService.Setup(x => x.FindRootDirectory()).Returns(solutionDirectory);
+
+            return new FolderWorkspaceService(serviceProvider.Object, workspaceService.Object);
         }
 
-        private static Mock<IVsSolution> SetupVsSolution(bool? isOpenAsFolder, object solutionDirectory)
+        private static Mock<IVsSolution> SetupVsSolution(bool? isOpenAsFolder)
         {
             object result = isOpenAsFolder;
             var vsSolution = new Mock<IVsSolution>();
 
             vsSolution
                 .Setup(x => x.GetProperty(FolderWorkspaceService.VSPROPID_IsInOpenFolderMode, out result))
-                .Returns(VSConstants.S_OK);
-
-            vsSolution
-                .Setup(x => x.GetProperty((int)__VSPROPID.VSPROPID_SolutionDirectory, out solutionDirectory))
                 .Returns(VSConstants.S_OK);
 
             return vsSolution;
