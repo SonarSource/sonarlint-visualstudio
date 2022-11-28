@@ -20,10 +20,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using EnvDTE;
-using System.IO;
-using System.Windows.Forms;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
