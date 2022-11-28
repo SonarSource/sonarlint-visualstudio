@@ -54,18 +54,20 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         internal const int VSPROPID_IsInOpenFolderMode = -8044;
 
         private readonly IVsSolution vsSolution;
+        private readonly IWorkspaceService workspaceService;
 
         [ImportingConstructor]
-        public FolderWorkspaceService([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public FolderWorkspaceService([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IWorkspaceService workspaceService)
         {
             vsSolution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
+            this.workspaceService = workspaceService;
         }
 
         public bool IsFolderWorkspace()
         {
             // "Open as Folder" was introduced in VS2017, so in VS2015 the hr result will be `E_NOTIMPL` and `isOpenAsFolder` will be null.
             var hr = vsSolution.GetProperty(VSPROPID_IsInOpenFolderMode, out var isOpenAsFolder);
-            Debug.Assert(hr == VSConstants.S_OK || hr == VSConstants.E_NOTIMPL, "Failed to retrieve VSPROPID_IsInOpenFolderMode");
+            Debug.Assert(hr == VSConstants.S_OK, "Failed to retrieve VSPROPID_IsInOpenFolderMode");
 
             return isOpenAsFolder != null && (bool)isOpenAsFolder;
         }
@@ -79,12 +81,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
 
             // For projects that are opened as folder, the root IVsHierarchy is the "Miscellaneous Files" folder.
             // This folder doesn't have a directory path so we need to take the directory path from IVsSolution.
-            var hr = vsSolution.GetProperty((int)__VSPROPID.VSPROPID_SolutionDirectory, out var solutionDirectory);
-
-            Debug.Assert(hr == VSConstants.S_OK || hr == VSConstants.E_NOTIMPL,
-                "Failed to retrieve VSPROPID_SolutionDirectory");
-
-            return (string)solutionDirectory;
+            return workspaceService.FindRootDirectory();
         }
     }
 }
