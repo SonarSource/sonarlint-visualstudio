@@ -329,7 +329,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         private IAnalysisStatusNotifierFactory SetupStatusNotifierFactory(IAnalysisStatusNotifier statusNotifier)
         {
             var statusNotifierFactory = new Mock<IAnalysisStatusNotifierFactory>();
-            statusNotifierFactory.Setup(x => x.Create(ValidFilePath)).Returns(statusNotifier);
+            statusNotifierFactory.Setup(x => x.Create(nameof(TypeScriptAnalyzer), ValidFilePath)).Returns(statusNotifier);
 
             return statusNotifierFactory.Object;
         }

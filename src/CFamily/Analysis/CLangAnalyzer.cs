@@ -102,7 +102,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
             IIssueConsumer consumer, IAnalyzerOptions analyzerOptions,
             CancellationToken cancellationToken)
         {
-            var analysisStatusNotifier = analysisStatusNotifierFactory.Create(path);
+            var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(CLangAnalyzer), path);
 
             ExecuteAnalysis(path, detectedLanguages, consumer, analyzerOptions, analysisStatusNotifier, cancellationToken);
         }
