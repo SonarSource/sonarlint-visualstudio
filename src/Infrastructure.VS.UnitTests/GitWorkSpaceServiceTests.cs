@@ -81,8 +81,26 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             logger.VerifyNoOtherCalls();
         }
 
-        private static GitWorkSpaceService CreateTestSubject(IWorkspaceService workSpaceService, ILogger logger, IFileSystem fileSystem)
+        [TestMethod]
+        public void GetRepoRoot_NoSolutionOpen_ReturnsNull()
         {
+            var workSpaceService = CreateWorkspaceService(null);
+
+            var logger = new Mock<ILogger>();
+
+            var testSubject = CreateTestSubject(workSpaceService.Object, logger.Object);
+
+            var gitRoot = testSubject.GetRepoRoot();
+
+            gitRoot.Should().BeNull();
+            logger.VerifyNoOtherCalls();
+        }
+
+
+        private static GitWorkSpaceService CreateTestSubject(IWorkspaceService workSpaceService, ILogger logger, IFileSystem fileSystem = null)
+        {
+            fileSystem ??= CreateFileSystem().Object;
+
             return new GitWorkSpaceService(workSpaceService, logger, fileSystem);
         }
 
