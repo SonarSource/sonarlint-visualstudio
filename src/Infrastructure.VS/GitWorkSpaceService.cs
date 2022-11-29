@@ -71,7 +71,9 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
                 gitRoot = Path.Combine(currentDir.FullName, gitFolder);
 
                 if (fileSystem.Directory.Exists(gitRoot))
+                {
                     return currentDir.FullName;
+                }
 
                 currentDir = currentDir.Parent;
             }
