@@ -120,6 +120,9 @@
   <data name="FailedToCalculateVsVersion" xml:space="preserve">
     <value>Failed to calculate VS version, error: {0}</value>
   </data>
+  <data name="NoGitFolder" xml:space="preserve">
+    <value>Workspace is not under git control</value>
+  </data>
   <data name="NoOpenSolutionOrFolder" xml:space="preserve">
     <value>No open solution or folder</value>
   </data>

@@ -70,6 +70,15 @@ namespace SonarLint.VisualStudio.Infrastructure.VS {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Workspace is not under git control.
+        /// </summary>
+        internal static string NoGitFolder {
+            get {
+                return ResourceManager.GetString("NoGitFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No open solution or folder.
         /// </summary>
         internal static string NoOpenSolutionOrFolder {
