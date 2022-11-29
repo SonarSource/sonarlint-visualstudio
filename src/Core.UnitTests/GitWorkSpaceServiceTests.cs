@@ -20,15 +20,26 @@
 
 using System.IO.Abstractions;
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
     [TestClass]
     public class GitWorkSpaceServiceTests
     {
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<GitWorkSpaceService, IGitWorkspaceService>(
+                MefTestHelpers.CreateExport<IWorkspaceService>(),
+                MefTestHelpers.CreateExport<ILogger>());
+        }
+
         [TestMethod]
         public void GetRepoRoot_GitFolderInSolutionFolder_ReturnsRepoFolder()
         {
@@ -47,13 +58,12 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
-        public void GetRepoRoot_GitFolderNotInSolutionFolder_ReturnsRepoFolder()
+        public void GetRepoRoot_GitFolderIsAboveSolutionFolder_ReturnsRepoFolder()
         {
-            var workSpaceService = CreateWorkspaceService("C:\\Repo\\Solution");
-
+            var workSpaceService = CreateWorkspaceService("C:\\Repo\\Code\\Solution");
             var logger = new Mock<ILogger>();
 
-            var fileSystem = CreateFileSystem("C:\\Repo\\.git", "C:\\Repo");
+            var fileSystem = CreateFileSystem("C:\\Repo\\.git", "C:\\Repo\\Code", "C:\\Repo");
 
             var testSubject = CreateTestSubject(workSpaceService.Object, logger.Object, fileSystem.Object);
 
@@ -77,7 +87,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             var gitRoot = testSubject.GetRepoRoot();
 
             gitRoot.Should().BeNull();
-            logger.Verify(l => l.WriteLine(Resources.NoGitFolder), Times.Once);
+            logger.Verify(l => l.WriteLine(CoreStrings.NoGitFolder), Times.Once);
             logger.VerifyNoOtherCalls();
         }
 

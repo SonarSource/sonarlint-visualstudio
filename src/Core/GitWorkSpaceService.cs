@@ -23,12 +23,12 @@ using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.Infrastructure.VS
+namespace SonarLint.VisualStudio.Core
 {
     public interface IGitWorkspaceService
     {
         /// <summary>
-        /// Returns the current Git repository root
+        /// Returns the file path to the current Git repository root
         /// Or null if not a git repo
         /// </summary>
         string GetRepoRoot();
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
             var workspaceRoot = workspaceService.FindRootDirectory();
             string gitRoot;
 
-            if(workspaceRoot == null)
+            if (workspaceRoot == null)
             {
                 return null;
             }
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
             }
             while (currentDir != null && fileSystem.Directory.Exists(currentDir.FullName));
 
-            logger.WriteLine(Resources.NoGitFolder);
+            logger.WriteLine(CoreStrings.NoGitFolder);
             return null;
         }
     }
