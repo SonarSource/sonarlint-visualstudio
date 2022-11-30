@@ -23,7 +23,7 @@
   <Commands package="guidSonarLintPackage">
 
     <Groups>
-      <Group guid="guidSonarLintPackageCmdSet" id="SonarLintMenuGroup " priority="0x0600">
+      <Group guid="guidSonarLintPackageCmdSet" id="SonarLintMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EXTENSIONS" />
       </Group>
       <!-- The sub menu that parents commands. -->
@@ -34,7 +34,7 @@
 
     <Menus>
       <Menu guid="guidSonarLintPackageCmdSet" id="SonarLintMenuItem" type="Menu" priority="0x0600">
-        <Parent guid="guidSonarLintPackageCmdSet" id="SonarLintMenuGroup " />
+        <Parent guid="guidSonarLintPackageCmdSet" id="SonarLintMenuGroup" />
         <Strings>
           <ButtonText>SonarLint</ButtonText>
         </Strings>
@@ -42,7 +42,6 @@
     </Menus>
 
   </Commands>
-  
   <Symbols>
     <!-- This is the package guid for the package. -->
     <GuidSymbol name="guidVsPackagePkgString" value="{68D6A325-11E8-4790-A4BA-0EDD001FB080}" />
