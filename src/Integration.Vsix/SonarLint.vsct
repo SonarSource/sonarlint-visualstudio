@@ -20,12 +20,48 @@
   <Include href="Commands\PackageCommands.vsct"/>
   <Include href="SonarLintDaemon\DaemonCommands.vsct"/>
 
+  <Commands package="guidSonarLintPackage">
+
+    <Groups>
+      <Group guid="guidSonarLintPackageCmdSet" id="MyMenuGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EXTENSIONS" />
+      </Group>
+      <!-- The sub menu that parents commands. -->
+      <Group guid="guidSonarLintPackageCmdSet" id="SonarLintCommandSubMenu" priority="0x0600">
+        <Parent guid="guidSonarLintPackageCmdSet" id="MyMenuItem" />
+      </Group>
+    </Groups>
+
+    <Menus>
+      <Menu guid="guidSonarLintPackageCmdSet" id="MyMenuItem" type="Menu" priority="0x0600">
+        <Parent guid="guidSonarLintPackageCmdSet" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>SonarLint</ButtonText>
+        </Strings>
+      </Menu>
+    </Menus>
+
+  </Commands>
+  
   <Symbols>
     <!-- This is the package guid for the package. -->
     <GuidSymbol name="guidVsPackagePkgString" value="{68D6A325-11E8-4790-A4BA-0EDD001FB080}" />
 
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}"/>
+
+    <!-- This is the package guid. -->
+    <GuidSymbol name="guidSonarLintPackage" value="{1c245612-96af-490c-ac3e-7ed2faf53ac1}" />
+
+    <!-- This is the guid used to group the menu commands together -->
+    <GuidSymbol name="guidSonarLintPackageCmdSet" value="{9d169479-372d-4b21-a855-d4449ad5b742}">
+      <IDSymbol name="MyMenuGroup" value="0x1020" />
+      <IDSymbol name="MyMenuItem" value="0x1021" />
+      <IDSymbol name="SonarLintCommandSubMenu" value="0x1022" />
+    </GuidSymbol>
+    <GuidSymbol name="guidSHLMainMenu" value="{d309f791-903f-11d0-9efc-00a0c911004f}">
+      <IDSymbol name="IDM_VS_MENU_EXTENSIONS" value="0x0091" />
+    </GuidSymbol>
   </Symbols>
   
 </CommandTable>
