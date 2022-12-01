@@ -1,6 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-  <!-- NOTE: this assembly should NOT have any dependencies on Visual Studio assemblies -->
   
   <Import Project="..\SonarLint.Product.props" />
 
