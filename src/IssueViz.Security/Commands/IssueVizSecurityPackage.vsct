@@ -7,7 +7,7 @@
   <Commands package="guidIssueVizSecurityPackage">
 
     <Menus>
-      <Menu guid="guidHotspotsCmdSet" id="SecuritySubMenu" type="Menu" priority="0x0100">
+      <Menu guid="guidHotspotsCmdSet" id="SecurityMenu" type="Menu" priority="0x0100">
         <Parent guid="guidCmdSet" id="SonarLintCommandSubMenu" />
         <Strings>
           <ButtonText>Security</ButtonText>
@@ -17,22 +17,22 @@
 
     <Groups>
       <!-- The sub menu that parents commands. -->
-      <Group guid="guidHotspotsCmdSet" id="SecurityCommandSubMenu" priority="0x0100">
-        <Parent guid="guidHotspotsCmdSet" id="SecuritySubMenu" />
+      <Group guid="guidHotspotsCmdSet" id="SecurityMenuGroup" priority="0x0100">
+        <Parent guid="guidHotspotsCmdSet" id="SecurityMenu" />
       </Group>
     </Groups>
 
     <Buttons>
 
       <Button guid="guidHotspotsCmdSet" id="HotspotsToolWindowCommandId" priority="0x0200" type="Button">
-        <Parent guid="guidHotspotsCmdSet" id="SecurityCommandSubMenu" />
+        <Parent guid="guidHotspotsCmdSet" id="SecurityMenuGroup" />
         <Strings>
           <ButtonText>View Security Hotspots</ButtonText>
         </Strings>
       </Button>
 
       <Button guid="guidHotspotsCmdSet" id="TaintToolWindowCommandId" priority="0x0201" type="Button">
-        <Parent guid="guidHotspotsCmdSet" id="SecurityCommandSubMenu" />
+        <Parent guid="guidHotspotsCmdSet" id="SecurityMenuGroup" />
         <Strings>
           <ButtonText>View Taint Vulnerabilities</ButtonText>
         </Strings>
@@ -49,8 +49,8 @@
 
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidHotspotsCmdSet" value="{97856422-20A2-4DB5-A468-1BAA9B6EEC38}">
-      <IDSymbol name="SecuritySubMenu" value="0x0300"/>
-      <IDSymbol name="SecurityCommandSubMenu" value="0x0400"/>
+      <IDSymbol name="SecurityMenu" value="0x0300"/>
+      <IDSymbol name="SecurityMenuGroup" value="0x0400"/>
       <IDSymbol name="HotspotsToolWindowCommandId" value="0x0100" />
       <IDSymbol name="TaintToolWindowCommandId" value="0x0101" />
     </GuidSymbol>
