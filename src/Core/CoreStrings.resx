@@ -187,4 +187,7 @@
   <data name="Notifications_DontShowAgainAction" xml:space="preserve">
     <value>Don't show this again</value>
   </data>
+  <data name="NoGitFolder" xml:space="preserve">
+    <value>Solution/folder is not in a git repository</value>
+  </data>
 </root>
