@@ -22,8 +22,8 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.CFamily.CMake
 {

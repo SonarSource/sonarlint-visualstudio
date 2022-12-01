@@ -24,25 +24,10 @@ using System.Diagnostics;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS
 {
-    public interface IFolderWorkspaceService
-    {
-        /// <summary>
-        /// Returns true/false if the workspace is in Open-As-Folder mode
-        /// </summary>
-        /// <remarks>Will always return false in VS2015 as that mode is not supported in 2015.</remarks>
-        bool IsFolderWorkspace();
-
-        /// <summary>
-        /// Returns the root directory for Open-As-Folder projects.
-        /// Will return null if the root directory could not be retrieved,
-        /// or if the workspace is not in Open-As-Folder mode.
-        /// </summary>
-        string FindRootDirectory();
-    }
-
     [Export(typeof(IFolderWorkspaceService))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class FolderWorkspaceService : IFolderWorkspaceService
