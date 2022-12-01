@@ -1524,6 +1524,9 @@
           "SonarLint.VisualStudio.Core": "[1.0.0, )"
         }
       },
+      "SonarLint.VisualStudio.ConnectedMode": {
+        "type": "Project"
+      },
       "SonarLint.VisualStudio.Core": {
         "type": "Project",
         "dependencies": {

@@ -153,6 +153,7 @@
       <Project>{BA771DF7-9F99-4DE3-B85B-3E5DB742A55C}</Project>
       <Name>SonarQube.Client.2015</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ConnectedMode\ConnectedMode.csproj" />
     <ProjectReference Include="..\Core\Core.csproj">
       <Name>Core</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
