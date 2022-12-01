@@ -27,14 +27,14 @@
       <Button guid="guidHotspotsCmdSet" id="HotspotsToolWindowCommandId" priority="0x0200" type="Button">
         <Parent guid="guidHotspotsCmdSet" id="SecurityCommandSubMenu" />
         <Strings>
-          <ButtonText>Security Hotspots</ButtonText>
+          <ButtonText>View Security Hotspots</ButtonText>
         </Strings>
       </Button>
 
       <Button guid="guidHotspotsCmdSet" id="TaintToolWindowCommandId" priority="0x0201" type="Button">
         <Parent guid="guidHotspotsCmdSet" id="SecurityCommandSubMenu" />
         <Strings>
-          <ButtonText>Taint Vulnerabilities</ButtonText>
+          <ButtonText>View Taint Vulnerabilities</ButtonText>
         </Strings>
       </Button>
 
