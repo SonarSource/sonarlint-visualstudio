@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\SonarLint.Test.props" />
+  
+  <PropertyGroup>
+    <ProjectGuid>2BD38A3A-6F0E-452B-A5B2-200113A32184</ProjectGuid>
+    <AssemblyName>SonarLint.VisualStudio.ConnectedMode.UnitTests</AssemblyName>
+    <RootNamespace>SonarLint.VisualStudio.ConnectedMode.UnitTests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup Label="Test framework">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
+
+    <PackageReference Include="Moq" Version="4.18.2" />
+    <PackageReference Include="FluentAssertions" Version="5.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ConnectedMode\ConnectedMode.csproj" />
+  </ItemGroup>
+
+</Project>
