@@ -153,6 +153,12 @@
       <Project>{BA771DF7-9F99-4DE3-B85B-3E5DB742A55C}</Project>
       <Name>SonarQube.Client.2015</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ConnectedMode\ConnectedMode.csproj" >
+      <Project>{0BE551DB-3C46-42A5-BB38-DA80E83F8ABD}</Project>
+      <Name>ConnectedMode</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+    </ProjectReference>
     <ProjectReference Include="..\Core\Core.csproj">
       <Name>Core</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
