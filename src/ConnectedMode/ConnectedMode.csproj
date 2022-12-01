@@ -9,5 +9,9 @@
     <AssemblyName>SonarLint.VisualStudio.ConnectedMode</AssemblyName>
     <RootNamespace>SonarLint.VisualStudio.ConnectedMode</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj" />
+  </ItemGroup>
   
 </Project>
