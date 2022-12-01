@@ -30,6 +30,9 @@
       <Group guid="guidCmdSet" id="SonarLintCommandSubMenu" priority="0x0100">
         <Parent guid="guidCmdSet" id="SonarLintMenuItem" />
       </Group>
+      <Group guid="guidCmdSet" id="SonarLintHelpMenuGroup">
+        <Parent guid="guidCmdSet" id="SonarLintHelpMenuItem"/>
+      </Group>
     </Groups>
 
     <Menus>
@@ -39,7 +42,22 @@
           <ButtonText>SonarLint</ButtonText>
         </Strings>
       </Menu>
+      <Menu guid="guidCmdSet" id="SonarLintHelpMenuItem" priority="0x9999">
+        <Parent guid="guidCmdSet" id="SonarLintCommandSubMenu"/>
+        <Strings>
+          <ButtonText>Help</ButtonText>
+        </Strings>
+      </Menu>
     </Menus>
+
+    <Buttons>
+      <Button guid="guidCmdSet" id="SonarLintHelpShowLogsCommand">
+        <Parent guid="guidCmdSet" id="SonarLintHelpMenuGroup"/>
+        <Strings>
+          <ButtonText>Show Logs</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
 
  <!-- Example of how to add a command to the sonarlint sub menu
     <Buttons>
@@ -61,6 +79,9 @@
       <IDSymbol name="SonarLintMenuGroup" value="0x1020" />
       <IDSymbol name="SonarLintMenuItem" value="0x1021" />
       <IDSymbol name="SonarLintCommandSubMenu" value="0x1022" />
+      <IDSymbol name="SonarLintHelpMenuItem" value="0x1023"/>
+      <IDSymbol name="SonarLintHelpMenuGroup" value="0x1024"/>
+      <IDSymbol name="SonarLintHelpShowLogsCommand" value="0x1025"/>
     </GuidSymbol>
     <!-- External Symbols -->
     <GuidSymbol name="guidSHLMainMenu" value="{d309f791-903f-11d0-9efc-00a0c911004f}">
