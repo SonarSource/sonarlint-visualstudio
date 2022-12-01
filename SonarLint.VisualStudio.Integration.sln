@@ -133,6 +133,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ConnectedMode", "ConnectedM
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConnectedMode", "src\ConnectedMode\ConnectedMode.csproj", "{0BE551DB-3C46-42A5-BB38-DA80E83F8ABD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConnectedMode.UnitTests", "src\ConnectedMode.UnitTests\ConnectedMode.UnitTests.csproj", "{2BD38A3A-6F0E-452B-A5B2-200113A32184}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -267,6 +269,10 @@ Global
 		{0BE551DB-3C46-42A5-BB38-DA80E83F8ABD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0BE551DB-3C46-42A5-BB38-DA80E83F8ABD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0BE551DB-3C46-42A5-BB38-DA80E83F8ABD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2BD38A3A-6F0E-452B-A5B2-200113A32184}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2BD38A3A-6F0E-452B-A5B2-200113A32184}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2BD38A3A-6F0E-452B-A5B2-200113A32184}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2BD38A3A-6F0E-452B-A5B2-200113A32184}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -306,6 +312,7 @@ Global
 		{082D5D8E-F914-4139-9AE3-3F48B679E3DA} = {16BF2D77-AE3B-4218-A3E8-875829D73B00}
 		{C478DAE7-58BC-4D02-929E-E413B40F2517} = {16BF2D77-AE3B-4218-A3E8-875829D73B00}
 		{0BE551DB-3C46-42A5-BB38-DA80E83F8ABD} = {3B4A8B40-9821-4964-8EAB-1D8A0B078292}
+		{2BD38A3A-6F0E-452B-A5B2-200113A32184} = {3B4A8B40-9821-4964-8EAB-1D8A0B078292}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DABC27C8-E761-4826-AD2D-056F677EF3C0}
