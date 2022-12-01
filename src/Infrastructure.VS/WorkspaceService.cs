@@ -23,22 +23,11 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS
 {
-    public interface IWorkspaceService
-    {
-        /// <summary>
-        /// Returns the current solution directory, or null if there is not an open solution.
-        /// </summary>
-        /// <remarks>
-        /// For "normal" solutions, returns the directory containing the solution file.
-        /// For folder workspaces, returns the path to the folder that was opened.
-        /// </remarks>
-        string FindRootDirectory();
-    }
-
     [Export(typeof(IWorkspaceService))]
     internal class WorkspaceService : IWorkspaceService
     {
