@@ -24,7 +24,7 @@ Include patterns:
 - 'Sonar*'
 Exclude patterns:
 - 'SonarLint.Secrets.DotNet*'
-# Number of matches: 18
+# Number of matches: 19
 
 ---
 Assembly: 'SonarAnalyzer.CFG, Version=8.50.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
@@ -156,6 +156,14 @@ Referenced assemblies:
 - 'System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 # Number of references: 8
+
+---
+Assembly: 'SonarLint.VisualStudio.ConnectedMode, Version=6.12.0.0, Culture=neutral, PublicKeyToken=null'
+Relative path: 'SonarLint.VisualStudio.ConnectedMode.dll'
+
+Referenced assemblies:
+- 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+# Number of references: 1
 
 ---
 Assembly: 'SonarLint.VisualStudio.Core, Version=6.12.0.0, Culture=neutral, PublicKeyToken=null'
