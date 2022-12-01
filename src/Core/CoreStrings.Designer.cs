@@ -88,6 +88,15 @@ namespace SonarLint.VisualStudio.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Solution/folder is not in a git repository.
+        /// </summary>
+        public static string NoGitFolder {
+            get {
+                return ResourceManager.GetString("NoGitFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Don&apos;t show this again.
         /// </summary>
         public static string Notifications_DontShowAgainAction {
