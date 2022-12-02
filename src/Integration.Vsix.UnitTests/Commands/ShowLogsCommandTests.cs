@@ -35,8 +35,10 @@ public class ShowLogsCommandTests
         var outputWindowService = new Mock<IOutputWindowService>();
         var showLogsCommand = new ShowLogsCommand(outputWindowService.Object);
 
+        outputWindowService.Verify(x => x.Show(), Times.Never);
+
         showLogsCommand.Invoke(command, null);
 
-        outputWindowService.Verify(x => x.Show(), Times.Exactly(1));
+        outputWindowService.Verify(x => x.Show(), Times.Once);
     }
 }
