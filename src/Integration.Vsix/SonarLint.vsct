@@ -19,6 +19,7 @@
   <!-- Include all package commands -->
   <Include href="Commands\PackageCommands.vsct"/>
   <Include href="Commands\HelpMenu\HelpMenu.vsct"/>
+  <Include href="Commands\ConnectedModeMenu\ConnectedModeMenu.vsct"/>
   <Include href="SonarLintDaemon\DaemonCommands.vsct"/>
 
   <Commands package="guidVsPackagePkgString">
@@ -46,17 +47,13 @@
           <ButtonText>Help</ButtonText>
         </Strings>
       </Menu>
-    </Menus>
-
-    <!-- Example of how to add a command to the sonarlint sub menu
-    <Buttons>
-      <Button guid="guidCmdSet" id="ExampleId" priority="0x0555" type="Button">
-        <Parent guid="guidCmdSet" id="SonarLintCommandSubMenu" />
+      <Menu guid="guidCmdSet" id="ConnectedModeMenu" priority="0x0100">
+        <Parent guid="guidCmdSet" id="SonarLintCommandSubMenu"/>
         <Strings>
-          <ButtonText>Invoke Example Command</ButtonText>
+          <ButtonText>Connected Mode</ButtonText>
         </Strings>
-      </Button>
-    </Buttons>--> 
+      </Menu>
+    </Menus>
     
   </Commands>
   <Symbols>
@@ -69,6 +66,7 @@
       <IDSymbol name="SonarLintMenuItem" value="0x1021" />
       <IDSymbol name="SonarLintCommandSubMenu" value="0x1022" />
       <IDSymbol name="HelpMenu" value="0x1023"/>
+      <IDSymbol name="ConnectedModeMenu" value="0x1024"/>
     </GuidSymbol>
     <!-- External Symbols -->
     <GuidSymbol name="guidSHLMainMenu" value="{d309f791-903f-11d0-9efc-00a0c911004f}">
