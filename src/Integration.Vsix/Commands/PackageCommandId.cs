@@ -31,7 +31,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         // Menus
         ProjectSonarLintMenu = 0x850,
         // Help menu buttons
-        SonarLintHelpShowLogs = 0x102,
-        ViewDocumentationCommand = 0x103
+        SonarLintHelpShowLogs = 0x102
     }
 }

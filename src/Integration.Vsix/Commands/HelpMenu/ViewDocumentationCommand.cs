@@ -24,6 +24,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands
 {
     internal class ViewDocumentationCommand : VsCommandBase
     {
+        internal const int ViewDocumentationCommandId = 0x103;
+
         private readonly IShowInBrowserService showInBrowserService;
 
         public ViewDocumentationCommand(IShowInBrowserService showInBrowserService)
