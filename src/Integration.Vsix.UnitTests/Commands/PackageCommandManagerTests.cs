@@ -87,6 +87,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 serviceProvider.GetMefService<IProjectPropertyManager>(),
                 Mock.Of<IProjectToLanguageMapper>(),
                 Mock.Of<IOutputWindowService>());
+                Mock.Of<IBrowserService>());
 
             // Assert
             menuService.Commands.Should().HaveCount(allCommands.Count, "Unexpected number of commands");
