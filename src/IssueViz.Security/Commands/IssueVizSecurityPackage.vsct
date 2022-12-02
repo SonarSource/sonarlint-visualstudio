@@ -6,19 +6,10 @@
 
   <Commands package="guidIssueVizSecurityPackage">
 
-    <Menus>
-      <Menu guid="SecurityMenuCmdSet" id="SecurityMenu" type="Menu" priority="0x0100">
-        <Parent guid="ConnectedModeMenuCmdSet" id="ConnectedModeGroup" />
-        <Strings>
-          <ButtonText>Security</ButtonText>
-        </Strings>
-      </Menu>
-    </Menus>
-
     <Groups>
       <!-- The sub menu that parents commands. -->
       <Group guid="SecurityMenuCmdSet" id="SecurityGroup" priority="0x0100">
-        <Parent guid="SecurityMenuCmdSet" id="SecurityMenu" />
+        <Parent guid="SonarLintMenuSet" id="ConnectedModeMenu" />
       </Group>
     </Groups>
 
@@ -49,15 +40,14 @@
 
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="SecurityMenuCmdSet" value="{97856422-20A2-4DB5-A468-1BAA9B6EEC38}">
-      <IDSymbol name="SecurityMenu" value="0x0300"/>
       <IDSymbol name="SecurityGroup" value="0x0400"/>
       <IDSymbol name="ViewHotspotsCommand" value="0x0100" />
       <IDSymbol name="ViewTaintCommand" value="0x0101" />
     </GuidSymbol>
 
     <!-- Reference the external ConnectedModeMenu.vsct menu group -->
-    <GuidSymbol name="ConnectedModeMenuCmdSet" value="{E5D50D82-248A-4300-A2B2-B640FCC4D4FD}">
-      <IDSymbol name="ConnectedModeGroup" value="0x101" />
+    <GuidSymbol name="SonarLintMenuSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
+      <IDSymbol name="ConnectedModeMenu" value="0x1024"/>
     </GuidSymbol>
 
   </Symbols>
