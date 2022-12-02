@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 this.commandManager.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
                     serviceProvider.GetMefService<IProjectPropertyManager>(),
                     serviceProvider.GetMefService<IProjectToLanguageMapper>(),
-                    serviceProvider.GetMefService<IOutputWindowService>());
+                    serviceProvider.GetMefService<IOutputWindowService>(),
                     serviceProvider.GetMefService<IBrowserService>());
 
                 this.roslynSettingsFileSynchronizer = await this.GetMefServiceAsync<IRoslynSettingsFileSynchronizer>();
