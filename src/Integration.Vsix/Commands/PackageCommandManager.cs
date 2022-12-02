@@ -21,7 +21,9 @@
 using System;
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpCommands;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -39,7 +41,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.menuService = menuService;
         }
 
-        public void Initialize(ITeamExplorerController teamExplorerController, IProjectPropertyManager projectPropertyManager, IProjectToLanguageMapper projectToLanguageMapper)
+        public void Initialize(ITeamExplorerController teamExplorerController,
+            IProjectPropertyManager projectPropertyManager,
+            IProjectToLanguageMapper projectToLanguageMapper,
+            IOutputWindowService outputWindowService)
         {
             // Buttons
             this.RegisterCommand((int)PackageCommandId.ManageConnections, new ManageConnectionsCommand(teamExplorerController));
@@ -50,11 +55,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // Menus
             this.RegisterCommand((int)PackageCommandId.ProjectSonarLintMenu, new ProjectSonarLintMenuCommand(projectPropertyManager, projectToLanguageMapper));
+
+            // Help menu buttons
+            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, (int)PackageCommandId.SonarLintHelpShowLogs, new ShowLogsCommand(outputWindowService));
         }
 
         internal /* testing purposes */ OleMenuCommand RegisterCommand(int commandId, VsCommandBase command)
         {
-            return this.AddCommand(new Guid(CommonGuids.CommandSet), commandId, command.Invoke, command.QueryStatus);
+            return RegisterCommand(CommonGuids.SonarLintMenuCommandSet, commandId, command);
+        }
+
+        internal /* testing purposes */ OleMenuCommand RegisterCommand(string commandSetGuid, int commandId, VsCommandBase command)
+        {
+            return this.AddCommand(new Guid(commandSetGuid), commandId, command.Invoke, command.QueryStatus);
         }
 
         private OleMenuCommand AddCommand(Guid commandGroupGuid, int commandId, EventHandler invokeHandler, EventHandler beforeQueryStatus)
