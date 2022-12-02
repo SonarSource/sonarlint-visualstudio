@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return RegisterCommand(CommonGuids.SonarLintMenuCommandSet, commandId, command);
         }
 
-        internal OleMenuCommand RegisterCommand(string commandSetGuid, int commandId, VsCommandBase command)
+        internal /* testing purposes */ OleMenuCommand RegisterCommand(string commandSetGuid, int commandId, VsCommandBase command)
         {
             return this.AddCommand(new Guid(commandSetGuid), commandId, command.Invoke, command.QueryStatus);
         }

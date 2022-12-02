@@ -97,7 +97,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void PackageCommandManager_RegisterCommand()
+        [DataRow(CommonGuids.SonarLintMenuCommandSet)]
+        [DataRow(CommonGuids.HelpMenuCommandSet)]
+        public void PackageCommandManager_RegisterCommandInCorrectCommandSet(string cmdSet)
+        {
+            // Arrange
+            int cmdId = 42;
+            Guid cmdSetGuid = new Guid(cmdSet);
+            CommandID commandIdObject = new CommandID(cmdSetGuid, cmdId);
+            var command = new ConfigurableVsCommand();
+
+            var testSubject = new PackageCommandManager(this.menuService);
+
+            // Act
+            testSubject.RegisterCommand(cmdSet, cmdId, command);
+
+            // Assert
+            var registeredCommand = menuService.Commands.Single().Value;
+            registeredCommand.CommandID.Should().Be(commandIdObject, $"Unexpected CommandID");
+        }
+
+        [TestMethod]
+        public void PackageCommandManager_RegisterCommandUsingDefaultCommandSet()
         {
             // Arrange
             int cmdId = 42;
