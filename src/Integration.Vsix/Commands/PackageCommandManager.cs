@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // Help menu buttons
             this.RegisterCommand(CommonGuids.HelpMenuCommandSet, (int)PackageCommandId.SonarLintHelpShowLogs, new ShowLogsCommand(outputWindowService));
-            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, (int)PackageCommandId.AboutCommand, new AboutCommand(browserService));
+            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, AboutCommand.AboutCommandId, new AboutCommand(browserService));
         }
 
         internal /* testing purposes */ OleMenuCommand RegisterCommand(int commandId, VsCommandBase command)
