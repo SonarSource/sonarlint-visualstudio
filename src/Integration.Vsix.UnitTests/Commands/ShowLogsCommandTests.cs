@@ -18,19 +18,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpCommands;
+
+namespace SonarLint.VisualStudio.Integration.UnitTests.Commands;
+
+[TestClass]
+public class ShowLogsCommandTests
 {
-    internal enum PackageCommandId
+    [TestMethod]
+    public void ShowLogsCommand_Invoke()
     {
-        // Buttons
-        ManageConnections = 0x100,
-        ProjectExcludePropertyToggle = 0x101,
-        ProjectTestPropertyAuto = 0x102,
-        ProjectTestPropertyTrue = 0x103,
-        ProjectTestPropertyFalse = 0x104,
-        // Menus
-        ProjectSonarLintMenu = 0x850,
-        // Help menu buttons
-        SonarLintHelpShowLogs = 0x102
+        var command = CommandHelper.CreateRandomOleMenuCommand();
+        var outputWindowService = new Mock<IOutputWindowService>();
+        var showLogsCommand = new ShowLogsCommand(outputWindowService.Object);
+
+        outputWindowService.Verify(x => x.Show(), Times.Never);
+
+        showLogsCommand.Invoke(command, null);
+
+        outputWindowService.Verify(x => x.Show(), Times.Once);
     }
 }

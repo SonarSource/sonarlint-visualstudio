@@ -94,7 +94,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 this.commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
                 this.commandManager.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
                     serviceProvider.GetMefService<IProjectPropertyManager>(),
-                    serviceProvider.GetMefService<IProjectToLanguageMapper>());
+                    serviceProvider.GetMefService<IProjectToLanguageMapper>(),
+                    serviceProvider.GetMefService<IOutputWindowService>());
 
                 this.roslynSettingsFileSynchronizer = await this.GetMefServiceAsync<IRoslynSettingsFileSynchronizer>();
                 roslynSettingsFileSynchronizer.UpdateFileStorageAsync().Forget(); // don't wait for it to finish
