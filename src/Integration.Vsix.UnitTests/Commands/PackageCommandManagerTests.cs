@@ -27,6 +27,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix;
 
@@ -75,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var testSubject = new PackageCommandManager(this.menuService);
 
-            var cmdSet = new Guid(CommonGuids.CommandSet);
+            var cmdSet = new Guid(CommonGuids.SonarLintMenuCommandSet);
             IList<CommandID> allCommands = Enum.GetValues(typeof(PackageCommandId))
                                                .Cast<int>()
                                                .Select(x => new CommandID(cmdSet, x))
@@ -84,7 +85,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             testSubject.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
                 serviceProvider.GetMefService<IProjectPropertyManager>(),
-                Mock.Of<IProjectToLanguageMapper>());
+                Mock.Of<IProjectToLanguageMapper>(),
+                Mock.Of<IOutputWindowService>());
 
             // Assert
             menuService.Commands.Should().HaveCount(allCommands.Count, "Unexpected number of commands");
@@ -95,11 +97,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void PackageCommandManager_RegisterCommand()
+        [DataRow(CommonGuids.SonarLintMenuCommandSet)]
+        [DataRow(CommonGuids.HelpMenuCommandSet)]
+        public void PackageCommandManager_RegisterCommandInCorrectCommandSet(string cmdSet)
         {
             // Arrange
             int cmdId = 42;
-            Guid cmdSetGuid = new Guid(CommonGuids.CommandSet);
+            Guid cmdSetGuid = new Guid(cmdSet);
+            CommandID commandIdObject = new CommandID(cmdSetGuid, cmdId);
+            var command = new ConfigurableVsCommand();
+
+            var testSubject = new PackageCommandManager(this.menuService);
+
+            // Act
+            testSubject.RegisterCommand(cmdSet, cmdId, command);
+
+            // Assert
+            var registeredCommand = menuService.Commands.Single().Value;
+            registeredCommand.CommandID.Should().Be(commandIdObject, $"Unexpected CommandID");
+        }
+
+        [TestMethod]
+        public void PackageCommandManager_RegisterCommandUsingDefaultCommandSet()
+        {
+            // Arrange
+            int cmdId = 42;
+            Guid cmdSetGuid = new Guid(CommonGuids.SonarLintMenuCommandSet);
             CommandID commandIdObject = new CommandID(cmdSetGuid, cmdId);
             var command = new ConfigurableVsCommand();
 
