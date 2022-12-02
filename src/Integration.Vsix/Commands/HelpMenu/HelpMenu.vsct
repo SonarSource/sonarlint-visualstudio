@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable"
+              xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <Commands package="guidVsPackagePkgString">
+    <Groups>
+      <Group guid="HelpMenuCmdSet" id="HelpGroup">
+        <Parent guid="SonarLintMenuSet" id="HelpMenu"/>
+      </Group>
+    </Groups>
+
+    <Buttons>
+      <Button guid="HelpMenuCmdSet" id="ShowLogsCommand">
+        <Parent guid="HelpMenuCmdSet" id="HelpGroup"/>
+        <Strings>
+          <ButtonText>Show Logs</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+
+  <Symbols>
+    <GuidSymbol name="HelpMenuCmdSet" value="{6CF262F0-082D-4AD5-9121-7D76EFE523C8}">
+      <IDSymbol name="HelpGroup" value="0x101"/>
+      <IDSymbol name="ShowLogsCommand" value="0x102"/>
+    </GuidSymbol>
+    <GuidSymbol name="SonarLintMenuSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
+      <IDSymbol name="HelpMenu" value="0x1023"/>
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>

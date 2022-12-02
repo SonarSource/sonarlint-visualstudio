@@ -52,15 +52,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.RegisterCommand((int)PackageCommandId.ProjectTestPropertyAuto, new ProjectTestPropertySetCommand(projectPropertyManager, projectToLanguageMapper, null));
             this.RegisterCommand((int)PackageCommandId.ProjectTestPropertyTrue, new ProjectTestPropertySetCommand(projectPropertyManager, projectToLanguageMapper, true));
             this.RegisterCommand((int)PackageCommandId.ProjectTestPropertyFalse, new ProjectTestPropertySetCommand(projectPropertyManager, projectToLanguageMapper, false));
-            this.RegisterCommand((int)PackageCommandId.SonarLintHelpShowLogs, new ShowLogsCommand(outputWindowService));
 
             // Menus
             this.RegisterCommand((int)PackageCommandId.ProjectSonarLintMenu, new ProjectSonarLintMenuCommand(projectPropertyManager, projectToLanguageMapper));
+
+            // Help menu buttons
+            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, (int)PackageCommandId.SonarLintHelpShowLogs, new ShowLogsCommand(outputWindowService));
         }
 
         internal /* testing purposes */ OleMenuCommand RegisterCommand(int commandId, VsCommandBase command)
         {
-            return this.AddCommand(new Guid(CommonGuids.CommandSet), commandId, command.Invoke, command.QueryStatus);
+            return RegisterCommand(CommonGuids.SonarLintMenuCommandSet, commandId, command);
+        }
+
+        internal OleMenuCommand RegisterCommand(string commandSetGuid, int commandId, VsCommandBase command)
+        {
+            return this.AddCommand(new Guid(commandSetGuid), commandId, command.Invoke, command.QueryStatus);
         }
 
         private OleMenuCommand AddCommand(Guid commandGroupGuid, int commandId, EventHandler invokeHandler, EventHandler beforeQueryStatus)

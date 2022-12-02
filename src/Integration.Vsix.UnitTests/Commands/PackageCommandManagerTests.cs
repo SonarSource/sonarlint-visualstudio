@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var testSubject = new PackageCommandManager(this.menuService);
 
-            var cmdSet = new Guid(CommonGuids.CommandSet);
+            var cmdSet = new Guid(CommonGuids.SonarLintMenuCommandSet);
             IList<CommandID> allCommands = Enum.GetValues(typeof(PackageCommandId))
                                                .Cast<int>()
                                                .Select(x => new CommandID(cmdSet, x))
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             int cmdId = 42;
-            Guid cmdSetGuid = new Guid(CommonGuids.CommandSet);
+            Guid cmdSetGuid = new Guid(CommonGuids.SonarLintMenuCommandSet);
             CommandID commandIdObject = new CommandID(cmdSetGuid, cmdId);
             var command = new ConfigurableVsCommand();
 
