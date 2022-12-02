@@ -18,20 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
+
+namespace SonarLint.VisualStudio.Integration.Vsix.Commands
 {
-    internal enum PackageCommandId
+    internal class ViewDocumentationCommand : VsCommandBase
     {
-        // Buttons
-        ManageConnections = 0x100,
-        ProjectExcludePropertyToggle = 0x101,
-        ProjectTestPropertyAuto = 0x102,
-        ProjectTestPropertyTrue = 0x103,
-        ProjectTestPropertyFalse = 0x104,
-        // Menus
-        ProjectSonarLintMenu = 0x850,
-        // Help menu buttons
-        SonarLintHelpShowLogs = 0x102,
-        ViewDocumentationCommand = 0x103
+        private readonly IShowInBrowserService showInBrowserService;
+
+        public ViewDocumentationCommand(IShowInBrowserService showInBrowserService)
+        {
+            this.showInBrowserService = showInBrowserService;
+        }
+
+        protected override void InvokeInternal()
+        {
+            showInBrowserService.ShowDocumentation();
+        }
     }
 }
