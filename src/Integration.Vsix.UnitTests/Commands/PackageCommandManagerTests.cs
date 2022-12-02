@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Mock.Of<IBrowserService>());
 
             // Assert
-            menuService.Commands.Should().HaveCount(allCommands.Count, "Unexpected number of commands");
+            menuService.Commands.Should().HaveCountGreaterOrEqualTo(allCommands.Count, "Unexpected number of commands");
 
             IList<CommandID> missingCommands = allCommands.Except(menuService.Commands.Select(x => x.Key)).ToList();
             IEnumerable<string> missingCommandNames = missingCommands.Select(x => Enum.GetName(typeof(PackageCommandId), x));
