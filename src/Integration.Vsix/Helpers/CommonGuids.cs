@@ -26,5 +26,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public const string PackageActivation = "063BA845-A14B-40A1-97B7-33BFD00272E2";
         public const string SonarLintMenuCommandSet = "DB0701CC-1E44-41F7-97D6-29B160A70BCB";
         public const string HelpMenuCommandSet = "6CF262F0-082D-4AD5-9121-7D76EFE523C8";
+        public const string ConnectedModeMenuCommandSet = "E5D50D82-248A-4300-A2B2-B640FCC4D4FD";
     }
 }

@@ -25,6 +25,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix.Commands;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu;
+using SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -50,8 +51,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             IShowInBrowserService showInBrowserService,
             IBrowserService browserService)
         {
-            // Buttons
-            this.RegisterCommand((int)PackageCommandId.ManageConnections, new ManageConnectionsCommand(teamExplorerController));
             this.RegisterCommand((int)PackageCommandId.ProjectExcludePropertyToggle, new ProjectExcludePropertyToggleCommand(projectPropertyManager, projectToLanguageMapper));
             this.RegisterCommand((int)PackageCommandId.ProjectTestPropertyAuto, new ProjectTestPropertySetCommand(projectPropertyManager, projectToLanguageMapper, null));
             this.RegisterCommand((int)PackageCommandId.ProjectTestPropertyTrue, new ProjectTestPropertySetCommand(projectPropertyManager, projectToLanguageMapper, true));
@@ -65,6 +64,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.RegisterCommand(CommonGuids.HelpMenuCommandSet, ViewDocumentationCommand.ViewDocumentationCommandId, new ViewDocumentationCommand(showInBrowserService));
             this.RegisterCommand(CommonGuids.HelpMenuCommandSet, AboutCommand.AboutCommandId, new AboutCommand(browserService));
             this.RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowCommunityPageCommand.Id, new ShowCommunityPageCommand(showInBrowserService));
+            
+            // Connected mode buttons
+            this.RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, ManageConnectionsCommand.Id, new ManageConnectionsCommand(teamExplorerController));
         }
 
         internal /* testing purposes */ OleMenuCommand RegisterCommand(int commandId, VsCommandBase command)
