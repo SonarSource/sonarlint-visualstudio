@@ -20,25 +20,25 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu;
-using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Commands;
+namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.HelpMenu;
 
 [TestClass]
-public class ReportProblemCommandTests
+public class ShowLogsCommandTests
 {
     [TestMethod]
-    public void ReportProblemCommand_Invoke()
+    public void ShowLogsCommand_Invoke()
     {
         var command = CommandHelper.CreateRandomOleMenuCommand();
-        var showInBrowserService = new Mock<IShowInBrowserService>();
-        var showLogsCommand = new ReportProblemCommand(showInBrowserService.Object);
+        var outputWindowService = new Mock<IOutputWindowService>();
+        var showLogsCommand = new ShowLogsCommand(outputWindowService.Object);
 
-        showInBrowserService.Verify(x => x.ShowProblemReportPage(), Times.Never);
+        outputWindowService.Verify(x => x.Show(), Times.Never);
 
         showLogsCommand.Invoke(command, null);
 
-        showInBrowserService.Verify(x => x.ShowProblemReportPage(), Times.Once);
+        outputWindowService.Verify(x => x.Show(), Times.Once);
     }
 }

@@ -16,7 +16,7 @@
         </Strings>
       </Button>
       <Buttons>
-        <Button guid="HelpMenuCmdSet" id="ViewDocumentationCommand">
+        <Button guid="HelpMenuCmdSet" id="ViewDocumentationCommand" priority="0x102">
           <Parent guid="HelpMenuCmdSet" id="HelpGroup" />
           <Strings>
             <ButtonText>View Documentation</ButtonText>
