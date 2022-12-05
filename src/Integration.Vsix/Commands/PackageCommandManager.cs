@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             IProjectPropertyManager projectPropertyManager,
             IProjectToLanguageMapper projectToLanguageMapper,
             IOutputWindowService outputWindowService,
-            IShowInBrowserService showInBrowserService)
+            IShowInBrowserService showInBrowserService,
             IBrowserService browserService)
         {
             // Buttons
