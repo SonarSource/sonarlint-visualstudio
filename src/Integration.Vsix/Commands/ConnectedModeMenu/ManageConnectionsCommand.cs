@@ -22,10 +22,12 @@ using System.Diagnostics;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 {
     internal class ManageConnectionsCommand : VsCommandBase
     {
+        internal const int Id = 0x102;
+
         private readonly ITeamExplorerController teamExplorer;
 
         public ManageConnectionsCommand(ITeamExplorerController teamExplorer)

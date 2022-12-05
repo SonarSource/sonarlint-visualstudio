@@ -9,7 +9,7 @@
     </Groups>
 
     <Buttons>
-      <Button guid="ConnectedModeMenuCmdSet" id="ManageSonarQubeConnectionsCommand">
+      <Button guid="ConnectedModeMenuCmdSet" id="ManageServerConnectionsCommand">
         <Parent guid="ConnectedModeMenuCmdSet" id="ConnectedModeGroup"/>
         <Icon guid="guidIcons" id="bmpSonarQube"/>
         <Strings>
@@ -27,7 +27,7 @@
   <Symbols>
     <GuidSymbol name="ConnectedModeMenuCmdSet" value="{E5D50D82-248A-4300-A2B2-B640FCC4D4FD}">
       <IDSymbol name="ConnectedModeGroup" value="0x101"/>
-      <IDSymbol name="ManageSonarQubeConnectionsCommand" value="0x102"/>
+      <IDSymbol name="ManageServerConnectionsCommand" value="0x102"/>
     </GuidSymbol>
 
     <GuidSymbol name="guidIcons" value="{216049B9-855E-4091-8781-186C91F0743F}">
