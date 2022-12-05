@@ -48,6 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             IProjectToLanguageMapper projectToLanguageMapper,
             IOutputWindowService outputWindowService,
             IShowInBrowserService showInBrowserService)
+            IBrowserService browserService)
         {
             // Buttons
             this.RegisterCommand((int)PackageCommandId.ManageConnections, new ManageConnectionsCommand(teamExplorerController));
@@ -62,6 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // Help menu buttons
             this.RegisterCommand(CommonGuids.HelpMenuCommandSet, (int)PackageCommandId.SonarLintHelpShowLogs, new ShowLogsCommand(outputWindowService));
             this.RegisterCommand(CommonGuids.HelpMenuCommandSet, ViewDocumentationCommand.ViewDocumentationCommandId, new ViewDocumentationCommand(showInBrowserService));
+            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, AboutCommand.AboutCommandId, new AboutCommand(browserService));
         }
 
         internal /* testing purposes */ OleMenuCommand RegisterCommand(int commandId, VsCommandBase command)

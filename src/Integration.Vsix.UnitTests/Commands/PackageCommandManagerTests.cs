@@ -89,6 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Mock.Of<IProjectToLanguageMapper>(),
                 Mock.Of<IOutputWindowService>(),
                 Mock.Of<IShowInBrowserService>());
+                Mock.Of<IBrowserService>());
 
             // Assert
             menuService.Commands.Should().HaveCountGreaterOrEqualTo(allCommands.Count, "Unexpected number of commands");
