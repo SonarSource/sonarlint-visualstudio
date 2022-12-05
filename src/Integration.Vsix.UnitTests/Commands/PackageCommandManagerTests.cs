@@ -30,6 +30,7 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -87,6 +88,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 serviceProvider.GetMefService<IProjectPropertyManager>(),
                 Mock.Of<IProjectToLanguageMapper>(),
                 Mock.Of<IOutputWindowService>(),
+                Mock.Of<IShowInBrowserService>(),
                 Mock.Of<IBrowserService>());
 
             // Assert

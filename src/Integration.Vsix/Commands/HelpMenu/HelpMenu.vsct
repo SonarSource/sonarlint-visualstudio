@@ -15,6 +15,14 @@
           <ButtonText>Show Logs</ButtonText>
         </Strings>
       </Button>
+      <Buttons>
+        <Button guid="HelpMenuCmdSet" id="ViewDocumentationCommand">
+          <Parent guid="HelpMenuCmdSet" id="HelpGroup" />
+          <Strings>
+            <ButtonText>View Documentation</ButtonText>
+          </Strings>
+        </Button>
+      </Buttons>
         <Button guid="HelpMenuCmdSet" id="AboutCommand">
           <Parent guid="HelpMenuCmdSet" id="HelpGroup" />
           <Icon guid="guidImages" id="sonarlint" />
@@ -33,6 +41,7 @@
     <GuidSymbol name="HelpMenuCmdSet" value="{6CF262F0-082D-4AD5-9121-7D76EFE523C8}">
       <IDSymbol name="HelpGroup" value="0x101"/>
       <IDSymbol name="ShowLogsCommand" value="0x102"/>
+      <IDSymbol name="ViewDocumentationCommand" value="0x103"/>
       <IDSymbol name="AboutCommand" value="0x104"/>
     </GuidSymbol>
     <GuidSymbol name="SonarLintMenuSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
