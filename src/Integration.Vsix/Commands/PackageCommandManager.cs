@@ -24,7 +24,6 @@ using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix.Commands;
-using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpCommands;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
