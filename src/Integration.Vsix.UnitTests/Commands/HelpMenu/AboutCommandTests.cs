@@ -32,13 +32,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         [TestMethod]
         public void Invoke_VerifyCallsBrowserServiceNavigate()
         {
-            OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
+            var command = CommandHelper.CreateRandomOleMenuCommand();
 
             var browserService = new Mock<IBrowserService>();
 
             var testSubject = new AboutCommand(browserService.Object);
 
-            var aboutUrl = "https://marketplace.visualstudio.com/items?itemName=SonarSource.SonarLintforVisualStudio2022";
+            const string aboutUrl = "https://marketplace.visualstudio.com/items?itemName=SonarSource.SonarLintforVisualStudio2022";
 
             browserService.Verify(x => x.Navigate(aboutUrl), Times.Never);
             testSubject.Invoke(command, null);
