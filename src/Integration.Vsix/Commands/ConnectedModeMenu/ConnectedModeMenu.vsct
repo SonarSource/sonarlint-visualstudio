@@ -10,10 +10,10 @@
 
     <Buttons>
       <Button guid="ConnectedModeMenuCmdSet" id="ManageSonarQubeConnectionsCommand">
-        <!--<Parent guid="ConnectedModeMenuCmdSet" id="ConnectedModeGroup"/>-->
+        <Parent guid="ConnectedModeMenuCmdSet" id="ConnectedModeGroup"/>
         <Icon guid="guidIcons" id="bmpSonarQube"/>
         <Strings>
-          <ButtonText>Manage Connections...</ButtonText>
+          <ButtonText>Manage Server Connections...</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -24,14 +24,6 @@
 
   </Commands>
 
-  <CommandPlacements>
-    <CommandPlacement guid="ConnectedModeMenuCmdSet" id="ManageSonarQubeConnectionsCommand" priority="0x900">
-      <Parent guid="ConnectedModeMenuCmdSet" id="ConnectedModeGroup"/>
-    </CommandPlacement>
-    <CommandPlacement guid="ConnectedModeMenuCmdSet" id="ManageSonarQubeConnectionsCommand" priority="0x900">
-      <Parent guid="guidCodeAnalysisMenuGroup" id="IDG_SOLUTION_ANALYZE"/>
-    </CommandPlacement>
-  </CommandPlacements>
   <Symbols>
     <GuidSymbol name="ConnectedModeMenuCmdSet" value="{E5D50D82-248A-4300-A2B2-B640FCC4D4FD}">
       <IDSymbol name="ConnectedModeGroup" value="0x101"/>
@@ -44,11 +36,6 @@
 
     <GuidSymbol name="SonarLintMenuSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
       <IDSymbol name="ConnectedModeMenu" value="0x1024"/>
-    </GuidSymbol>
-
-    <!-- VS Code Analysis menu/group Guid:IDs -->
-    <GuidSymbol name="guidCodeAnalysisMenuGroup" value="{FBC1A65B-A334-4EC8-8FBE-DB1C56335FB6}">
-      <IDSymbol name="IDG_SOLUTION_ANALYZE" value="0x217"/>
     </GuidSymbol>
   </Symbols>
 </CommandTable>
