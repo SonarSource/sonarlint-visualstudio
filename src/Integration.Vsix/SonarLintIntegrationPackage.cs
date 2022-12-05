@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
@@ -96,7 +97,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     serviceProvider.GetMefService<IProjectPropertyManager>(),
                     serviceProvider.GetMefService<IProjectToLanguageMapper>(),
                     serviceProvider.GetMefService<IOutputWindowService>(),
-                    serviceProvider.GetMefService<IBrowserService>());
+                    serviceProvider.GetMefService<IBrowserService>(),
+                    serviceProvider.GetMefService<IShowInBrowserService>());
 
                 this.roslynSettingsFileSynchronizer = await this.GetMefServiceAsync<IRoslynSettingsFileSynchronizer>();
                 roslynSettingsFileSynchronizer.UpdateFileStorageAsync().Forget(); // don't wait for it to finish

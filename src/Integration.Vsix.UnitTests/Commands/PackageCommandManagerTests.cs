@@ -30,6 +30,7 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -87,7 +88,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 serviceProvider.GetMefService<IProjectPropertyManager>(),
                 Mock.Of<IProjectToLanguageMapper>(),
                 Mock.Of<IOutputWindowService>(),
-                Mock.Of<IBrowserService>());
+                Mock.Of<IBrowserService>(),
+                Mock.Of<IShowInBrowserService>());
 
             // Assert
             menuService.Commands.Should().HaveCountGreaterOrEqualTo(allCommands.Count, "Unexpected number of commands");
