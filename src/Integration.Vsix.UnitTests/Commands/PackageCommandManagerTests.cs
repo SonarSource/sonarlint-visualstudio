@@ -30,6 +30,7 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -86,10 +87,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
                 serviceProvider.GetMefService<IProjectPropertyManager>(),
                 Mock.Of<IProjectToLanguageMapper>(),
-                Mock.Of<IOutputWindowService>());
+                Mock.Of<IOutputWindowService>(),
+                Mock.Of<IShowInBrowserService>(),
+                Mock.Of<IBrowserService>());
 
             // Assert
-            menuService.Commands.Should().HaveCount(allCommands.Count, "Unexpected number of commands");
+            menuService.Commands.Should().HaveCountGreaterOrEqualTo(allCommands.Count, "Unexpected number of commands");
 
             IList<CommandID> missingCommands = allCommands.Except(menuService.Commands.Select(x => x.Key)).ToList();
             IEnumerable<string> missingCommandNames = missingCommands.Select(x => Enum.GetName(typeof(PackageCommandId), x));

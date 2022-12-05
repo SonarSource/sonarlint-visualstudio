@@ -15,16 +15,40 @@
           <ButtonText>Show Logs</ButtonText>
         </Strings>
       </Button>
+      <Buttons>
+        <Button guid="HelpMenuCmdSet" id="ViewDocumentationCommand">
+          <Parent guid="HelpMenuCmdSet" id="HelpGroup" />
+          <Strings>
+            <ButtonText>View Documentation</ButtonText>
+          </Strings>
+        </Button>
+      </Buttons>
+        <Button guid="HelpMenuCmdSet" id="AboutCommand">
+          <Parent guid="HelpMenuCmdSet" id="HelpGroup" />
+          <Icon guid="guidImages" id="sonarlint" />
+          <Strings>
+            <ButtonText>About SonarLint</ButtonText>
+          </Strings>
+        </Button>
     </Buttons>
+
+    <Bitmaps>
+      <Bitmap guid="guidImages" href="..\..\Resources\sonarlint.png"/>
+    </Bitmaps>
   </Commands>
 
   <Symbols>
     <GuidSymbol name="HelpMenuCmdSet" value="{6CF262F0-082D-4AD5-9121-7D76EFE523C8}">
       <IDSymbol name="HelpGroup" value="0x101"/>
       <IDSymbol name="ShowLogsCommand" value="0x102"/>
+      <IDSymbol name="ViewDocumentationCommand" value="0x103"/>
+      <IDSymbol name="AboutCommand" value="0x104"/>
     </GuidSymbol>
     <GuidSymbol name="SonarLintMenuSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
       <IDSymbol name="HelpMenu" value="0x1023"/>
+    </GuidSymbol>
+    <GuidSymbol name="guidImages" value="{DA8715CC-ADBA-45C7-BBB3-DBAA608EF40A}" >
+      <IDSymbol name="sonarlint" value="1"/>
     </GuidSymbol>
   </Symbols>
 </CommandTable>

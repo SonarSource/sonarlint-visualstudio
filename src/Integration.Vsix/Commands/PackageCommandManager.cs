@@ -23,7 +23,9 @@ using System.ComponentModel.Design;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarLint.VisualStudio.Integration.Vsix.Commands;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpCommands;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -44,7 +46,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public void Initialize(ITeamExplorerController teamExplorerController,
             IProjectPropertyManager projectPropertyManager,
             IProjectToLanguageMapper projectToLanguageMapper,
-            IOutputWindowService outputWindowService)
+            IOutputWindowService outputWindowService,
+            IShowInBrowserService showInBrowserService,
+            IBrowserService browserService)
         {
             // Buttons
             this.RegisterCommand((int)PackageCommandId.ManageConnections, new ManageConnectionsCommand(teamExplorerController));
@@ -58,6 +62,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // Help menu buttons
             this.RegisterCommand(CommonGuids.HelpMenuCommandSet, (int)PackageCommandId.SonarLintHelpShowLogs, new ShowLogsCommand(outputWindowService));
+            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, ViewDocumentationCommand.ViewDocumentationCommandId, new ViewDocumentationCommand(showInBrowserService));
+            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, AboutCommand.AboutCommandId, new AboutCommand(browserService));
         }
 
         internal /* testing purposes */ OleMenuCommand RegisterCommand(int commandId, VsCommandBase command)
