@@ -18,14 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using FluentAssertions;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
+namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.ConnectedModeMenu
 {
     [TestClass]
     public class ManageConnectionsCommandTests
@@ -72,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             command.Enabled = false;
 
             var testSubject1 = new ManageConnectionsCommand(null);
-          
+
             // Act
             testSubject1.QueryStatus(command, null);
 

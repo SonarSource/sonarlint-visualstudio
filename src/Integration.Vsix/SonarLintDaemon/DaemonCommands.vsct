@@ -42,6 +42,11 @@
       <IDSymbol name="grpDaemonErrorList" value="0x100" />
       <IDSymbol name="cmdidCreateCFamilyReproducer" value="0x300" />
     </GuidSymbol>
+
+    <!-- VS Code Analysis menu/group Guid:IDs -->
+    <GuidSymbol name="guidCodeAnalysisMenuGroup" value="{FBC1A65B-A334-4EC8-8FBE-DB1C56335FB6}">
+      <IDSymbol name="IDG_CODEANALYSIS_TOPLEVEL" value="0x208"/>
+    </GuidSymbol>
         
   </Symbols>
 </CommandTable>
