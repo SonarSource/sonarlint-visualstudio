@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
 
         void ShowRuleDescription(string ruleKey);
 
-        void ShowProblemReportPage();
+        void ShowCommunityPage();
     }
 
     [Export(typeof(IShowInBrowserService))]
@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
             vsBrowserService.Navigate(helpLink);
         }
 
-        public void ShowProblemReportPage()
+        public void ShowCommunityPage()
         {
             vsBrowserService.Navigate("https://community.sonarsource.com/c/sl/visual-studio/35");
         }

@@ -110,6 +110,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
         }
 
         [TestMethod]
+        public void ShowCommunityPage_BrowserOpened()
+        {
+            var browserService = new Mock<IBrowserService>();
+
+            var testSubject = CreateTestSubject(browserService: browserService.Object);
+
+            testSubject.ShowCommunityPage();
+
+            browserService.Verify(x => x.Navigate("https://community.sonarsource.com/c/sl/visual-studio/35"), Times.Once());
+            browserService.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
         public void ShowRuleDescription_BrowserOpened()
         {
             const string ruleKey = "some key";

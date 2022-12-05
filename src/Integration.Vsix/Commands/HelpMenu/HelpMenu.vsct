@@ -9,6 +9,12 @@
     </Groups>
 
     <Buttons>
+      <Button guid="HelpMenuCmdSet" id="ReportProblemCommand" priority="0x100">
+        <Parent guid="HelpMenuCmdSet" id="HelpGroup"/>
+        <Strings>
+          <ButtonText>Report a problem</ButtonText>
+        </Strings>
+      </Button>
       <Button guid="HelpMenuCmdSet" id="ShowLogsCommand" priority="0x101">
         <Parent guid="HelpMenuCmdSet" id="HelpGroup"/>
         <Strings>
@@ -30,12 +36,6 @@
             <ButtonText>About SonarLint</ButtonText>
           </Strings>
         </Button>
-      <Button guid="HelpMenuCmdSet" id="ReportProblemCommand" priority="0x100">
-        <Parent guid="HelpMenuCmdSet" id="HelpGroup"/>
-        <Strings>
-          <ButtonText>Report a problem</ButtonText>
-        </Strings>
-      </Button>
     </Buttons>
 
     <Bitmaps>
