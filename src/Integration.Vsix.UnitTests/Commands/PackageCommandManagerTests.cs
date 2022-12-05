@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 serviceProvider.GetMefService<IProjectPropertyManager>(),
                 Mock.Of<IProjectToLanguageMapper>(),
                 Mock.Of<IOutputWindowService>(),
-                Mock.Of<IShowInBrowserService>());
+                Mock.Of<IShowInBrowserService>(),
                 Mock.Of<IBrowserService>());
 
             // Assert
