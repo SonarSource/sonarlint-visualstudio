@@ -112,8 +112,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             mockTimer.SetupSet(t => t.AutoReset = true).Verifiable();
 
             // 1. Construction -> timer initialised
-            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object,
-                testLogger, threadHandling.Object);
+            var issuesProvider = CreateTestSubject();
 
             // Assert
             mockTimerFactory.Verify(x => x.Create(), Times.Once);
