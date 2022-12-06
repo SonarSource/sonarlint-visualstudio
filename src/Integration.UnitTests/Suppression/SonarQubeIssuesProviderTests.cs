@@ -738,7 +738,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                     })
                 .Verifiable();
 
-            mockSqService.Setup(x => x.GetSuppressedIssuesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            mockSqService.Setup(x => x.GetSuppressedIssuesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(serviceFetchIssuesTask)
                 .Verifiable();
         }
@@ -763,12 +763,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
         private void VerifyServiceGetIssues(Times expected)
         {
-            mockSqService.Verify(x => x.GetSuppressedIssuesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), expected);
+            mockSqService.Verify(x => x.GetSuppressedIssuesAsync(It.IsAny<string>(), null, It.IsAny<CancellationToken>()), expected);
         }
 
         private void VerifyServiceGetIssues(Times expected, string sonarQubeProjectKey)
         {
-            mockSqService.Verify(x => x.GetSuppressedIssuesAsync(sonarQubeProjectKey, It.IsAny<CancellationToken>()), expected);
+            mockSqService.Verify(x => x.GetSuppressedIssuesAsync(sonarQubeProjectKey, null, It.IsAny<CancellationToken>()), expected);
         }
 
         private void VerifyServiceIsConnected(Times expected)
