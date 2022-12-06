@@ -4,7 +4,7 @@
   <Commands package="guidVsPackagePkgString">
     <Groups>
       <Group guid="ConnectedModeMenuCmdSet" id="ConnectedModeGroup">
-        <Parent guid="SonarLintMenuSet" id="ConnectedModeMenu"/>
+        <Parent guid="SonarLintCmdSet" id="ConnectedModeMenu"/>
       </Group>
     </Groups>
 
@@ -34,7 +34,7 @@
       <IDSymbol name="bmpSonarQube" value="1"/>
     </GuidSymbol>
 
-    <GuidSymbol name="SonarLintMenuSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
+    <GuidSymbol name="SonarLintCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
       <IDSymbol name="ConnectedModeMenu" value="0x1024"/>
     </GuidSymbol>
   </Symbols>

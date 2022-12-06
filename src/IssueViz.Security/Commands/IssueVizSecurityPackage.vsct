@@ -9,7 +9,7 @@
     <Groups>
       <!-- The sub menu that parents commands. -->
       <Group guid="SecurityMenuCmdSet" id="SecurityGroup" priority="0x0100">
-        <Parent guid="SonarLintMenuSet" id="ConnectedModeMenu" />
+        <Parent guid="SonarLintCmdSet" id="ConnectedModeMenu" />
       </Group>
     </Groups>
 
@@ -46,7 +46,7 @@
     </GuidSymbol>
 
     <!-- Reference the external ConnectedModeMenu.vsct menu group -->
-    <GuidSymbol name="SonarLintMenuSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
+    <GuidSymbol name="SonarLintCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
       <IDSymbol name="ConnectedModeMenu" value="0x1024"/>
     </GuidSymbol>
 

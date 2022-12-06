@@ -25,30 +25,30 @@
   <Commands package="guidVsPackagePkgString">
 
     <Groups>
-      <Group guid="guidCmdSet" id="SonarLintMenuGroup" priority="0x0100">
+      <Group guid="SonarLintCmdSet" id="SonarLintOuterGroup" priority="0x0100">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EXTENSIONS" />
       </Group>
       <!-- The sub menu that parents commands. -->
-      <Group guid="guidCmdSet" id="SonarLintCommandSubMenu" priority="0x0100">
-        <Parent guid="guidCmdSet" id="SonarLintMenuItem" />
+      <Group guid="SonarLintCmdSet" id="SonarLintGroup" priority="0x0100">
+        <Parent guid="SonarLintCmdSet" id="SonarLintMenu" />
       </Group>
     </Groups>
 
     <Menus>
-      <Menu guid="guidCmdSet" id="SonarLintMenuItem" type="Menu" priority="0x0100">
-        <Parent guid="guidCmdSet" id="SonarLintMenuGroup" />
+      <Menu guid="SonarLintCmdSet" id="SonarLintMenu" type="Menu" priority="0x0100">
+        <Parent guid="SonarLintCmdSet" id="SonarLintOuterGroup" />
         <Strings>
           <ButtonText>SonarLint</ButtonText>
         </Strings>
       </Menu>
-      <Menu guid="guidCmdSet" id="HelpMenu" priority="0x9999">
-        <Parent guid="guidCmdSet" id="SonarLintCommandSubMenu"/>
+      <Menu guid="SonarLintCmdSet" id="HelpMenu" priority="0x9999">
+        <Parent guid="SonarLintCmdSet" id="SonarLintGroup"/>
         <Strings>
           <ButtonText>Help</ButtonText>
         </Strings>
       </Menu>
-      <Menu guid="guidCmdSet" id="ConnectedModeMenu" priority="0x0100">
-        <Parent guid="guidCmdSet" id="SonarLintCommandSubMenu"/>
+      <Menu guid="SonarLintCmdSet" id="ConnectedModeMenu" priority="0x0100">
+        <Parent guid="SonarLintCmdSet" id="SonarLintGroup"/>
         <Strings>
           <ButtonText>Connected Mode</ButtonText>
         </Strings>
@@ -61,10 +61,10 @@
     <GuidSymbol name="guidVsPackagePkgString" value="{68D6A325-11E8-4790-A4BA-0EDD001FB080}" />
 
     <!-- This is the guid used to group the menu commands together -->
-    <GuidSymbol name="guidCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
-      <IDSymbol name="SonarLintMenuGroup" value="0x1020" />
-      <IDSymbol name="SonarLintMenuItem" value="0x1021" />
-      <IDSymbol name="SonarLintCommandSubMenu" value="0x1022" />
+    <GuidSymbol name="SonarLintCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
+      <IDSymbol name="SonarLintOuterGroup" value="0x1020" />
+      <IDSymbol name="SonarLintMenu" value="0x1021" />
+      <IDSymbol name="SonarLintGroup" value="0x1022" />
       <IDSymbol name="HelpMenu" value="0x1023"/>
       <IDSymbol name="ConnectedModeMenu" value="0x1024"/>
     </GuidSymbol>
