@@ -74,7 +74,13 @@ namespace SonarQube.Client
         Task<RoslynExportProfileResponse> GetRoslynExportProfileAsync(string qualityProfileName, string organizationKey,
             SonarQubeLanguage language, CancellationToken token);
 
-        Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string projectKey, CancellationToken token);
+        /// <summary>
+        /// Returns the suppressed issues for the specified project/branch.
+        /// </summary>
+        /// <param name="projectKey">The project identifier</param>
+        /// <param name="branch">(optional) The Sonar branch for which issues should be returned. If null/empty,
+        /// the issues for the "main" branch will be returned.</param>
+        Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string projectKey, string branch, CancellationToken token);
 
         Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(string projectKey,
             DateTimeOffset eventsSince, CancellationToken token);
