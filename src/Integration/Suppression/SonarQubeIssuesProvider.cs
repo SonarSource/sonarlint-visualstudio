@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 throw new ArgumentNullException(nameof(sonarQubeProjectKey));
             }
 
-            Debug.Assert(timerFactory != null, "timeFactory should not be null");
+            Debug.Assert(timerFactory != null, "timerFactory should not be null");
             Debug.Assert(threadHandling != null, "threadHandling should not be null");
 
             this.sonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
