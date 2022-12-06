@@ -33,12 +33,14 @@ namespace SonarQube.Client.Api.V8_6
         private readonly GetIssuesRequest getIssuesRequest = new GetIssuesRequest();
 
         public string ProjectKey { get; set; }
+        public string Branch { get; set; }
         public ILogger Logger { get; set; }
 
         public async Task<SonarQubeIssue[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
         {
             getIssuesRequest.Logger = Logger;
             getIssuesRequest.ProjectKey = ProjectKey;
+            getIssuesRequest.Branch = Branch;
             getIssuesRequest.Statuses = "OPEN,CONFIRMED,REOPENED";
             getIssuesRequest.Types = "VULNERABILITY";
 
