@@ -19,6 +19,8 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -31,6 +33,8 @@ namespace SonarQube.Client.Tests.Infra
     internal static class MocksHelper
     {
         public const string ValidBaseAddress = "http://localhost";
+
+        public const string EmptyGetIssuesResponse = @"{""total"":0,""p"":1,""ps"":10,""paging"":{""pageIndex"":1,""pageSize"":10,""total"":0},""effortTotal"":0,""debtTotal"":0,""issues"":[],""components"":[],""organizations"":[],""facets"":[]}";
 
         /// <summary>
         /// Sets up the HTTP message handler mock to respond to any request string 
@@ -67,5 +71,13 @@ namespace SonarQube.Client.Tests.Infra
                     Content = new StringContent(response)
                 }));
         }
+
+        /// <summary>
+        /// Returns the actual requests passed to the SendAsync method
+        /// </summary>
+        public static IEnumerable<HttpRequestMessage> GetSendAsyncRequests(this Mock<HttpMessageHandler> handler) =>
+            handler.Invocations.Where(x => x.Method.Name == "SendAsync")
+                .Select(x => (HttpRequestMessage)x.Arguments[0])
+                .ToArray();
     }
 }
