@@ -32,6 +32,26 @@ namespace SonarQube.Client.Tests.Infra
     {
         public const string ValidBaseAddress = "http://localhost";
 
+        /// <summary>
+        /// Sets up the HTTP message handler mock to respond to any request string 
+        /// </summary>
+        public static void SetupHttpRequest(Mock<HttpMessageHandler> messageHandlerMock, string response,
+            HttpStatusCode statusCode = HttpStatusCode.OK)
+        {
+            messageHandlerMock.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = statusCode,
+                    Content = new StringContent(response)
+                }));
+        }
+
+        /// <summary>
+        /// Sets up the HTTP message handler mock to reply to a specific request string
+        /// </summary>
         public static void SetupHttpRequest(Mock<HttpMessageHandler> messageHandlerMock, string requestRelativePath, string response,
             HttpStatusCode statusCode = HttpStatusCode.OK, string basePath = ValidBaseAddress)
         {

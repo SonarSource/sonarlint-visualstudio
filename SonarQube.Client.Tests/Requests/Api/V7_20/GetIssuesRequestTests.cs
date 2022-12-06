@@ -35,6 +35,8 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
     [TestClass]
     public class GetIssuesRequestTests
     {
+        private const string EmptyResponse = @"{""total"":0,""p"":1,""ps"":10,""paging"":{""pageIndex"":1,""pageSize"":10,""total"":0},""effortTotal"":0,""debtTotal"":0,""issues"":[],""components"":[],""organizations"":[],""facets"":[]}";
+
         [TestMethod]
         public async Task InvokeAsync_FilePathNormalized()
         {
@@ -313,14 +315,66 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
             seconFlowSecondLocation.TextRange.EndOffset.Should().Be(41);
         }
 
-        private static GetIssuesRequest CreateTestSubject(string projectKey, string statusesToRequest)
+        [TestMethod]
+        [DataRow("")]
+        [DataRow(null)]
+        public async Task InvokeAsync_BranchIsNotSpecified_BranchIsNotIncludedInQueryString(string emptyBranch)
+        {
+            var testSubject = CreateTestSubject("any", "any", emptyBranch);
+
+            var handlerMock = new Mock<HttpMessageHandler>();
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri(ValidBaseAddress)
+            };
+
+            SetupHttpRequest(handlerMock, EmptyResponse);
+            _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
+
+            // Branch is null/empty => should not be passed
+            var actualQueryString = GetSingleActualQueryString(handlerMock);
+            actualQueryString.Contains("branch").Should().BeFalse();
+        }
+
+        [TestMethod]
+        public async Task InvokeAsync_BranchIsSpecified_BranchIsIncludedInQueryString()
+        {
+            const string requestedBranch = "mybranch";
+
+            var testSubject = CreateTestSubject("any", "any", requestedBranch);
+
+            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri(ValidBaseAddress)
+            };
+
+            SetupHttpRequest(handlerMock, EmptyResponse);
+
+            _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
+
+
+            // Branch is not null/empty => should be passed
+            var actualQueryString = GetSingleActualQueryString(handlerMock);
+            actualQueryString.Contains($"&branch={requestedBranch}&").Should().BeTrue();
+        }
+
+        private static GetIssuesRequest CreateTestSubject(string projectKey, string statusesToRequest, string branch = null)
         {
             var testSubject = new GetIssuesRequest();
             testSubject.Logger = new TestLogger();
             testSubject.ProjectKey = projectKey;
             testSubject.Statuses = statusesToRequest;
+            testSubject.Branch = branch;
 
             return testSubject;
+        }
+
+        private static string GetSingleActualQueryString(Mock<HttpMessageHandler> handlerMock)
+        {
+            handlerMock.Invocations.Count.Should().Be(1);
+            var requestMessage = (HttpRequestMessage)handlerMock.Invocations[0].Arguments[0];
+            return requestMessage.RequestUri.Query;
         }
     }
 }
