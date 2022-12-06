@@ -29,5 +29,11 @@ namespace SonarQube.Client.Api
     public interface IGetTaintVulnerabilitiesRequest : IRequest<SonarQubeIssue[]>
     {
         string ProjectKey { get; set; }
+
+        /// <summary>
+        /// The branch name to fetch.
+        /// </summary>
+        /// <remarks>If the value is null/empty, the main branch will be fetched</remarks>
+        string Branch { get; set; }
     }
 }

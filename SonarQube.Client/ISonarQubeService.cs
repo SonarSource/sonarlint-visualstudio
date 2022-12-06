@@ -89,7 +89,13 @@ namespace SonarQube.Client
 
         Task<SonarQubeHotspot> GetHotspotAsync(string hotspotKey, CancellationToken token);
 
-        Task<IList<SonarQubeIssue>> GetTaintVulnerabilitiesAsync(string projectKey, CancellationToken token);
+        /// <summary>
+        /// Returns the taint issues for the specified project/branch.
+        /// </summary>
+        /// <param name="projectKey">The project identifier</param>
+        /// <param name="branch">(optional) The Sonar branch for which taint issues should be returned. If null/empty,
+        /// the issues for the "main" branch will be returned.</param>
+        Task<IList<SonarQubeIssue>> GetTaintVulnerabilitiesAsync(string projectKey, string branch, CancellationToken token);
 
         /// <summary>
         /// Returns the URI to view the specified issue on the server

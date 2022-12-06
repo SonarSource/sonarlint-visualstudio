@@ -20,12 +20,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarQube.Client.Models;
+using SonarQube.Client.Tests.Infra;
+using static SonarQube.Client.Tests.Infra.MocksHelper;
 
 namespace SonarQube.Client.Tests
 {
@@ -33,12 +36,12 @@ namespace SonarQube.Client.Tests
     public class SonarQubeService_GetTaintVulnerabilitiesRequest : SonarQubeService_TestBase
     {
         [TestMethod]
-        public void GetTaintVulnerabilities_NotConnected()
+        public void GetTaintVulnerabilitiesAsync_NotConnected()
         {
             // No calls to Connect
             // No need to setup request, the operation should fail
             Func<Task<IList<SonarQubeIssue>>> func = async () =>
-                await service.GetTaintVulnerabilitiesAsync(It.IsAny<string>(), CancellationToken.None);
+                await service.GetTaintVulnerabilitiesAsync(It.IsAny<string>(), It.IsAny<string>(), CancellationToken.None);
 
             func.Should().ThrowExactly<InvalidOperationException>().And
                 .Message.Should().Be("This operation expects the service to be connected.");
@@ -47,7 +50,7 @@ namespace SonarQube.Client.Tests
         }
 
         [TestMethod]
-        public async Task GetTaintVulnerabilities_Response_From_SonarQube()
+        public async Task GetTaintVulnerabilitiesAsync_Response_From_SonarQube()
         {
             await ConnectToSonarQube("8.6.0.0");
 
@@ -603,7 +606,7 @@ namespace SonarQube.Client.Tests
 }
 ");
 
-            var result = await service.GetTaintVulnerabilitiesAsync("shared", CancellationToken.None);
+            var result = await service.GetTaintVulnerabilitiesAsync("shared", null, CancellationToken.None);
 
             messageHandler.VerifyAll();
             secondaryIssueHashUpdater.Verify(x => x.UpdateHashesAsync(result, service, It.IsAny<CancellationToken>()));
@@ -650,6 +653,37 @@ namespace SonarQube.Client.Tests
             taint2.Flows[0].Locations[15].TextRange.Should().BeEquivalentTo(new IssueTextRange(34, 34, 20, 59));
             taint2.Flows[0].Locations[15].Message.Should().Be("this value can be controlled by the user");
             taint2.TextRange.Should().BeEquivalentTo(new IssueTextRange(20, 20, 6, 23));
+        }
+
+        [TestMethod]
+        [DataRow("")]
+        [DataRow(null)]
+        public async Task GetTaintVulnerabilitiesAsync_BranchIsNotSpecified_BranchIsNotIncludedInQueryString(string emptyBranch)
+        {
+            await ConnectToSonarQube("8.6.0.0");
+            messageHandler.Reset();
+
+            SetupHttpRequest(messageHandler, EmptyGetIssuesResponse);
+            _ = await service.GetTaintVulnerabilitiesAsync("any", emptyBranch, CancellationToken.None);
+
+            // Branch is null/empty => should not be passed
+            var actualRequests = messageHandler.GetSendAsyncRequests();
+            actualRequests.Count().Should().Be(1);
+            actualRequests[0].RequestUri.Query.Contains("branch").Should().BeFalse();
+        }
+
+        [TestMethod]
+        public async Task GetTaintVulnerabilitiesAsync_BranchIsSpecified_BranchIncludedInQueryString()
+        {
+            await ConnectToSonarQube("8.6.0.0");
+            messageHandler.Reset();
+
+            SetupHttpRequest(messageHandler, EmptyGetIssuesResponse);
+            _ = await service.GetTaintVulnerabilitiesAsync("any", "aBranch", CancellationToken.None);
+
+            var actualRequests = messageHandler.GetSendAsyncRequests();
+            actualRequests.Count().Should().Be(1);
+            actualRequests[0].RequestUri.Query.Contains("&branch=aBranch&").Should().BeTrue();
         }
     }
 }

@@ -75,7 +75,7 @@ namespace SonarQube.Client.Tests.Infra
         /// <summary>
         /// Returns the actual requests passed to the SendAsync method
         /// </summary>
-        public static IEnumerable<HttpRequestMessage> GetSendAsyncRequests(this Mock<HttpMessageHandler> handler) =>
+        public static HttpRequestMessage[] GetSendAsyncRequests(this Mock<HttpMessageHandler> handler) =>
             handler.Invocations.Where(x => x.Method.Name == "SendAsync")
                 .Select(x => (HttpRequestMessage)x.Arguments[0])
                 .ToArray();
