@@ -204,6 +204,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                     .ToDictionary(x => x.Key, x => x.RelativePathToRoot);
                 this.hasModules = moduleKeyToRelativePathToRoot.Keys.Count > 1;
                 this.allSuppressedIssues = await this.sonarQubeService.GetSuppressedIssuesAsync(sonarQubeProjectKey,
+                    null, // TODO - pass the current branch
                     cancellationTokenSource.Token);
                 this.suppressedModuleIssues = allSuppressedIssues.Where(x => string.IsNullOrEmpty(x.FilePath))
                     .GroupBy(x => x.ModuleKey)
