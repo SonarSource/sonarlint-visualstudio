@@ -28,6 +28,12 @@ namespace SonarQube.Client.Api
         string ProjectKey { get; set; }
         string Statuses { get; set; }
 
+        /// <summary>
+        /// The branch name to fetch.
+        /// </summary>
+        /// <remarks>If the value is null/empty, the main branch will be fetched</remarks>
+        string Branch { get; set; }
+
         // Update <see cref="V7_20.GetIssuesRequestWrapper"/> when adding properties here.
     }
 }

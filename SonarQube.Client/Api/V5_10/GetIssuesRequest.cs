@@ -48,6 +48,9 @@ namespace SonarQube.Client.Api.V5_10
             set { statuses = new HashSet<string>(value.Split(',')); }
         }
 
+        [JsonIgnore] // We don't support the branch parameter in v5.10
+        public string Branch { get; set; }
+
         protected override string Path => "batch/issues";
 
         protected async override Task<Result<SonarQubeIssue[]>> ReadResponseAsync(HttpResponseMessage httpResponse)

@@ -46,6 +46,8 @@ namespace SonarQube.Client.Api.V7_20
 
         public string Statuses { get; set; }
 
+        public string Branch { get; set; }
+
         public ILogger Logger { get; set; }
 
         public async Task<SonarQubeIssue[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
@@ -54,13 +56,14 @@ namespace SonarQube.Client.Api.V7_20
             // added to IGetIssuesRequest, this block should set them.
             innerRequest.ProjectKey = ProjectKey;
             innerRequest.Statuses = Statuses;
+            innerRequest.Branch = Branch;
             innerRequest.Logger = Logger;
 
             ResetInnerRequest();
             innerRequest.Types = "CODE_SMELL";
             var codeSmells = await innerRequest.InvokeAsync(httpClient, token);
             WarnForApiLimit(codeSmells, innerRequest, "code smells");
-
+            
             ResetInnerRequest();
             innerRequest.Types = "BUG";
             var bugs = await innerRequest.InvokeAsync(httpClient, token);
