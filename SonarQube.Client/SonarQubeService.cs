@@ -350,12 +350,13 @@ namespace SonarQube.Client
                 },
                 token);
 
-        public async Task<IList<SonarQubeIssue>> GetTaintVulnerabilitiesAsync(string projectKey, CancellationToken token)
+        public async Task<IList<SonarQubeIssue>> GetTaintVulnerabilitiesAsync(string projectKey, string branch, CancellationToken token)
         {
             var issues = await InvokeCheckedRequestAsync<IGetTaintVulnerabilitiesRequest, SonarQubeIssue[]>(
                 request =>
                 {
                     request.ProjectKey = projectKey;
+                    request.Branch = branch;
                 }, token);
 
             await secondaryIssueHashUpdater.UpdateHashesAsync(issues, this, token);
