@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -36,6 +37,14 @@ namespace SonarQube.Client.Api.V7_20
 
         [JsonProperty("statuses")]
         public string Statuses { get; set; }
+
+        // Notes:
+        // 1) Branch support is not available in SQ Community edition. SQ will just ignore it.
+        // 2) SonarQube has supported the parameter since v6.6. However, the LTS at the point
+        // we added added branch-awareness to SLVS was v8.9.10. To minimise the amount of 
+        // work on the SLVS side, we'll add branch support from SQ v7.2.
+        [JsonProperty("branch", DefaultValueHandling = DefaultValueHandling.Ignore), DefaultValue("")]
+        public string Branch { get; set; }
 
         // This property is not present in the IGetIssuesRequest interface, it is meant to be
         // set by the GetIssuesRequestWrapper to add additional parameters to the API calls.
