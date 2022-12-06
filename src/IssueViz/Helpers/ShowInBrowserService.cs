@@ -34,6 +34,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
         void ShowDocumentation();
 
         void ShowRuleDescription(string ruleKey);
+
+        void ShowCommunityPage();
     }
 
     [Export(typeof(IShowInBrowserService))]
@@ -94,6 +96,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
             var helpLink = ruleHelpLinkProvider.GetHelpLink(ruleKey);
 
             vsBrowserService.Navigate(helpLink);
+        }
+
+        public void ShowCommunityPage()
+        {
+            vsBrowserService.Navigate("https://community.sonarsource.com/c/sl/visual-studio/35");
         }
     }
 }

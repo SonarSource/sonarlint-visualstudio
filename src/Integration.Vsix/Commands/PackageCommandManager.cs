@@ -24,8 +24,8 @@ using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix.Commands;
+using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu;
-using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpCommands;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -63,10 +63,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.RegisterCommand(CommonGuids.HelpMenuCommandSet, (int)PackageCommandId.SonarLintHelpShowLogs, new ShowLogsCommand(outputWindowService));
             this.RegisterCommand(CommonGuids.HelpMenuCommandSet, ViewDocumentationCommand.ViewDocumentationCommandId, new ViewDocumentationCommand(showInBrowserService));
             this.RegisterCommand(CommonGuids.HelpMenuCommandSet, AboutCommand.AboutCommandId, new AboutCommand(browserService));
-
+            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowCommunityPageCommand.Id, new ShowCommunityPageCommand(showInBrowserService));
+            
             // Connected mode buttons
             this.RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, ManageConnectionsCommand.Id, new ManageConnectionsCommand(teamExplorerController));
-
         }
 
         internal /* testing purposes */ OleMenuCommand RegisterCommand(int commandId, VsCommandBase command)

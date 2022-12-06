@@ -18,22 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu
 {
-    internal class ShowLogsCommand : VsCommandBase
+    internal class ShowCommunityPageCommand : VsCommandBase
     {
-        private readonly IOutputWindowService outputWindowService;
+        internal const int Id = 0x105;
 
-        public ShowLogsCommand(IOutputWindowService outputWindowService)
+        private readonly IShowInBrowserService browserService;
+
+        public ShowCommunityPageCommand(IShowInBrowserService browserService)
         {
-            this.outputWindowService = outputWindowService;
+            this.browserService = browserService;
         }
 
         protected override void InvokeInternal()
         {
-            outputWindowService.Show();
+            browserService.ShowCommunityPage();
         }
     }
 }
