@@ -304,11 +304,12 @@ namespace SonarQube.Client
                 },
                 token);
 
-        public async Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string projectKey, CancellationToken token) =>
+        public async Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string projectKey, string branch, CancellationToken token) =>
             await InvokeCheckedRequestAsync<IGetIssuesRequest, SonarQubeIssue[]>(
                 request =>
                 {
                     request.ProjectKey = projectKey;
+                    request.Branch = branch;
                     request.Statuses = "RESOLVED"; // Resolved issues will be hidden in SLVS
                 },
                 token);
