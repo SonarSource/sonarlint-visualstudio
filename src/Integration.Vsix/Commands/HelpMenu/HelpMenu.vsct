@@ -9,21 +9,27 @@
     </Groups>
 
     <Buttons>
-      <Button guid="HelpMenuCmdSet" id="ShowLogsCommand">
+      <Button guid="HelpMenuCmdSet" id="ReportProblemCommand" priority="0x100">
+        <Parent guid="HelpMenuCmdSet" id="HelpGroup"/>
+        <Strings>
+          <ButtonText>Report a problem</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="HelpMenuCmdSet" id="ShowLogsCommand" priority="0x101">
         <Parent guid="HelpMenuCmdSet" id="HelpGroup"/>
         <Strings>
           <ButtonText>Show Logs</ButtonText>
         </Strings>
       </Button>
       <Buttons>
-        <Button guid="HelpMenuCmdSet" id="ViewDocumentationCommand">
+        <Button guid="HelpMenuCmdSet" id="ViewDocumentationCommand" priority="0x102">
           <Parent guid="HelpMenuCmdSet" id="HelpGroup" />
           <Strings>
             <ButtonText>View Documentation</ButtonText>
           </Strings>
         </Button>
       </Buttons>
-        <Button guid="HelpMenuCmdSet" id="AboutCommand">
+        <Button guid="HelpMenuCmdSet" id="AboutCommand" priority="0x200">
           <Parent guid="HelpMenuCmdSet" id="HelpGroup" />
           <Icon guid="guidImages" id="sonarlint" />
           <Strings>
@@ -43,6 +49,7 @@
       <IDSymbol name="ShowLogsCommand" value="0x102"/>
       <IDSymbol name="ViewDocumentationCommand" value="0x103"/>
       <IDSymbol name="AboutCommand" value="0x104"/>
+      <IDSymbol name="ReportProblemCommand" value="0x105"/>
     </GuidSymbol>
     <GuidSymbol name="SonarLintMenuSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
       <IDSymbol name="HelpMenu" value="0x1023"/>

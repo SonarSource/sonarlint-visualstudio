@@ -18,22 +18,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu
+namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.HelpMenu;
+
+[TestClass]
+public class ShowLogsCommandTests
 {
-    internal class ShowLogsCommand : VsCommandBase
+    [TestMethod]
+    public void ShowLogsCommand_Invoke()
     {
-        private readonly IOutputWindowService outputWindowService;
+        var command = CommandHelper.CreateRandomOleMenuCommand();
+        var outputWindowService = new Mock<IOutputWindowService>();
+        var showLogsCommand = new ShowLogsCommand(outputWindowService.Object);
 
-        public ShowLogsCommand(IOutputWindowService outputWindowService)
-        {
-            this.outputWindowService = outputWindowService;
-        }
+        outputWindowService.Verify(x => x.Show(), Times.Never);
 
-        protected override void InvokeInternal()
-        {
-            outputWindowService.Show();
-        }
+        showLogsCommand.Invoke(command, null);
+
+        outputWindowService.Verify(x => x.Show(), Times.Once);
     }
 }
