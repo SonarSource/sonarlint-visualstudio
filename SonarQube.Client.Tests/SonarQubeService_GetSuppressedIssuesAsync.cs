@@ -380,7 +380,7 @@ namespace SonarQube.Client.Tests
 
             // Branch is null/empty => should not be passed
             var actualRequests = messageHandler.GetSendAsyncRequests();
-            actualRequests.Count().Should().Be(3);
+            actualRequests.Should().HaveCount(3);
             actualRequests.All(x => x.RequestUri.Query.Contains("branch")).Should().BeFalse();
         }
 
@@ -395,9 +395,9 @@ namespace SonarQube.Client.Tests
 
             // The wrapper is expected to make three calls, for code smells, bugs, then vulnerabilities
             var actualRequests = messageHandler.GetSendAsyncRequests();
-            actualRequests.Count().Should().Be(3);
+            actualRequests.Should().HaveCount(3);
 
-            actualRequests.All(x => x.RequestUri.Query.Contains("&branch=aBranch&")).Should().BeTrue();
+            actualRequests.Should().OnlyContain(x => x.RequestUri.Query.Contains("&branch=aBranch&"));
         }
 
         [TestMethod]
@@ -456,7 +456,7 @@ namespace SonarQube.Client.Tests
                 SetupPageOfResponses(projectName, pageNumber, issuesOnNewPage, issueType);
 
                 pageNumber++;
-                remainingIssues = remainingIssues - issuesOnNewPage;
+                remainingIssues -= issuesOnNewPage;
             }
         }
 

@@ -146,7 +146,7 @@ namespace SonarQube.Client.Tests
 
             messageHandler.VerifyAll();
 
-            result.Should().HaveCount(1);
+            result.Should().ContainSingle();
             result.First().Key.Should().Be("rule1");
             result.First().RepositoryKey.Should().Be("repo1");
         }
@@ -168,11 +168,10 @@ namespace SonarQube.Client.Tests
 
             messageHandler.VerifyAll();
 
-            result.Should().HaveCount(1);
+            result.Should().ContainSingle();
             result.First().Key.Should().Be("rule1");
             result.First().RepositoryKey.Should().Be("repo1");
         }
-
 
         [TestMethod]
         public async Task GetAllRulesAsync_GetInactiveFails_ExceptionIsPropogated()

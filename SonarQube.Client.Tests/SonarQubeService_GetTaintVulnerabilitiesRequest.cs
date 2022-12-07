@@ -612,7 +612,7 @@ namespace SonarQube.Client.Tests
             secondaryIssueHashUpdater.Verify(x => x.UpdateHashesAsync(result, service, It.IsAny<CancellationToken>()));
 
             // should return only 2 taint out of 4 vulnerabilities
-            result.Count.Should().Be(2);
+            result.Should().HaveCount(2);
 
             var taint1 = result[0];
 
@@ -668,7 +668,7 @@ namespace SonarQube.Client.Tests
 
             // Branch is null/empty => should not be passed
             var actualRequests = messageHandler.GetSendAsyncRequests();
-            actualRequests.Count().Should().Be(1);
+            actualRequests.Should().ContainSingle();
             actualRequests[0].RequestUri.Query.Contains("branch").Should().BeFalse();
         }
 
@@ -682,7 +682,7 @@ namespace SonarQube.Client.Tests
             _ = await service.GetTaintVulnerabilitiesAsync("any", "aBranch", CancellationToken.None);
 
             var actualRequests = messageHandler.GetSendAsyncRequests();
-            actualRequests.Count().Should().Be(1);
+            actualRequests.Should().ContainSingle();
             actualRequests[0].RequestUri.Query.Contains("&branch=aBranch&").Should().BeTrue();
         }
     }

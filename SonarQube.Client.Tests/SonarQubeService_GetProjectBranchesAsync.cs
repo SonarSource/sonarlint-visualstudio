@@ -69,7 +69,7 @@ namespace SonarQube.Client.Tests
 
             messageHandler.VerifyAll();
 
-            result.Count.Should().Be(2);
+            result.Should().HaveCount(2);
             result[0].Name.Should().Be("feature/foo");
             result[0].IsMain.Should().Be(false);
             result[0].LastAnalysisTimestamp.Should().Be(new DateTimeOffset(2017, 4, 3, 13, 37, 0, TimeSpan.FromHours(1)));
