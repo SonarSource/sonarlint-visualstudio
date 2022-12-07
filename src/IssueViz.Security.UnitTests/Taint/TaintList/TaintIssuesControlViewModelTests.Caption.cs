@@ -143,7 +143,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             testCase.ChangeActiveDocument("file1.txt");
             testSubject.ServerType.Should().Be(ServerType.SonarCloud.ToString());
 
-            // 2. SC
+            // 2. SQ
 
             mock.Setup(x => x.GetServerInfo()).Returns(new ServerInfo(null, ServerType.SonarQube));
             testCase.ChangeActiveDocument("file2.txt");
