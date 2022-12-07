@@ -3,6 +3,7 @@
 
   <Extern href="stdidcmd.h"/>
   <Extern href="vsshlids.h"/>
+  <Extern href="KnownImageIds.vsct"/>
 
   <Commands package="guidIssueVizPackage">
 
@@ -15,10 +16,11 @@
     <Buttons>
 
       <Button guid="guidIssueVizPackageCmdSet" id="IssueVisualizationToolWindowCommandId" priority="0x0100" type="Button">
-        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
-        <Icon guid="guidImages" id="sonarlint" />
+        <Parent guid="SonarLintCmdSet" id="SonarLintGroup"/>
+        <Icon guid="ImageCatalogGuid" id="TreeView" /> <!-- known VS icon ID -->
+        <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
-          <ButtonText>SonarLint Issue Visualization</ButtonText>
+          <ButtonText>Show Issue Visualization</ButtonText>
         </Strings>
       </Button>
 
@@ -115,6 +117,10 @@
 
     <GuidSymbol name="guidDaemonCmdSet" value="{1F83EA11-3B07-45B3-BF39-307FD4F42194}">
       <IDSymbol name="grpDaemonErrorList" value="0x100" />
+    </GuidSymbol>
+
+    <GuidSymbol name="SonarLintCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
+      <IDSymbol name="SonarLintGroup" value="0x1022" />
     </GuidSymbol>
 
   </Symbols>
