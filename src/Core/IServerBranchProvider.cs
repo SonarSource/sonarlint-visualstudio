@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Threading.Tasks;
+
 namespace SonarLint.VisualStudio.Core
 {
     public interface IServerBranchProvider
@@ -31,6 +33,6 @@ namespace SonarLint.VisualStudio.Core
         /// "null" is a valid value to pass to the branch-aware Sonar webclient APIs; they will fetch
         /// the data for the "main" branch in that case.
         /// </remarks>
-        string GetServerBranchName();
+        Task<string> GetServerBranchNameAsync();
     }
 }

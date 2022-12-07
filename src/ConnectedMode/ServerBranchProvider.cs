@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 
@@ -35,14 +36,14 @@ namespace SonarLint.VisualStudio.ConnectedMode
             this.logger = logger;
         }
 
-        public string GetServerBranchName()
+        public Task<string> GetServerBranchNameAsync()
         {
             string branchName = null;
 
             // TODO: calculate branch name
             logger.WriteLine(Resources.BranchProvider_ServerBranchName, branchName ?? Resources.NullBranchName);
 
-            return branchName;
+            return Task.FromResult(branchName);
         }
     }
 }

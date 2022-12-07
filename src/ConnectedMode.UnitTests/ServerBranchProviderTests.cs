@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
@@ -35,11 +36,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         }
 
         [TestMethod]
-        public void GetServerBranchName()
+        public async Task GetServerBranchNameAsync()
         {
             var testSubject = CreateTestSubject();
 
-            testSubject.GetServerBranchName().Should().BeNull();
+            var actual = await testSubject.GetServerBranchNameAsync();
+            
+            actual.Should().BeNull();
         }
 
         private static ServerBranchProvider CreateTestSubject(ILogger logger = null)
