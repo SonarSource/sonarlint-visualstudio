@@ -20,7 +20,7 @@
 
             <ContextMenu x:Key="RowMenu" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                 <MenuItem Header="{Binding DataContext.ServerType, Mode=OneWay, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}"
-                          HeaderStringFormat="VIew in {0}"
+                          HeaderStringFormat="View in {0}"
                           CommandParameter="{Binding}"
                           Command="{Binding DataContext.ShowInBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}">
                     <MenuItem.Icon>
