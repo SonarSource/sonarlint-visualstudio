@@ -725,7 +725,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             telemetryManager ??= Mock.Of<ITelemetryManager>();
             selectionService ??= Mock.Of<IIssueSelectionService>();
             menuCommandService ??= Mock.Of<IMenuCommandService>();
-            sonarQubeService ??= Mock.Of<SonarQubeService>();
+            sonarQubeService ??= Mock.Of<ISonarQubeService>();
 
             return new TaintIssuesControlViewModel(store.Object,
                 locationNavigator,
