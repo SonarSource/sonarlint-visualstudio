@@ -61,38 +61,60 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         [TestMethod]
-        public void SynchronizeWithServer_FailureToCheckServerConnection_CriticalException_ExceptionThrown()
+        public async Task SynchronizeWithServer_NonCriticalException_ExceptionCaughtAndLogged()
         {
-            var sonarQubeServer = new Mock<ISonarQubeService>();
-            sonarQubeServer.Setup(x => x.GetServerInfo()).Throws(new StackOverflowException());
+            var logger = new TestLogger();
+
+            var sonarServer = CreateSonarService();
+            sonarServer.Setup(x => x.GetTaintVulnerabilitiesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Throws(new Exception("this is a test"));
 
             var testSubject = CreateTestSubject(
                 bindingConfig: BindingConfig_Connected,
-                sonarService: sonarQubeServer.Object);
+                logger: logger,
+                sonarService: sonarServer.Object);
 
             Func<Task> act = testSubject.SynchronizeWithServer;
+            await act.Should().NotThrowAsync();
 
-            act.Should().Throw<StackOverflowException>();
+            logger.AssertPartialOutputStringExists("this is a test");
         }
 
         [TestMethod]
-        public void SynchronizeWithServer_FailureToCheckServerConnection_NonCriticalException_ExceptionIsCaught()
+        public async Task SynchronizeWithServer_NonCriticalException_UIContextAndStoreCleared()
         {
-            var sonarQubeServer = new Mock<ISonarQubeService>();
-            sonarQubeServer.Setup(x => x.GetServerInfo()).Throws(new NotImplementedException("this is a test"));
+            var sonarServer = CreateSonarService();
+            sonarServer.Setup(x => x.GetTaintVulnerabilitiesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Throws(new Exception("this is a test"));
 
-            var logger = new TestLogger();
+            var taintStore = new Mock<ITaintStore>();
+            const uint cookie = 123;
+            var monitor = CreateMonitorSelectionMock(cookie);
 
             var testSubject = CreateTestSubject(
                 bindingConfig: BindingConfig_Connected,
-                sonarService: sonarQubeServer.Object,
-                logger: logger);
+                sonarService: sonarServer.Object,
+                taintStore: taintStore.Object,
+                vsMonitor: monitor.Object);
 
             Func<Task> act = testSubject.SynchronizeWithServer;
+            await act.Should().NotThrowAsync();
 
-            act.Should().NotThrow();
+            CheckStoreIsCleared(taintStore);
+            CheckUIContextIsCleared(monitor, cookie);
+        }
 
-            logger.AssertPartialOutputStringExists("this is a test");
+        [TestMethod]
+        public async Task SynchronizeWithServer_CriticalException_ExceptionNotCaught()
+        {
+            var sonarServer = CreateSonarService();
+            sonarServer.Setup(x => x.GetTaintVulnerabilitiesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Throws(new StackOverflowException());
+
+            var testSubject = CreateTestSubject(sonarService: sonarServer.Object);
+
+            Func<Task> act = testSubject.SynchronizeWithServer;
+            await act.Should().ThrowAsync<StackOverflowException>();
         }
 
         [TestMethod]
@@ -120,7 +142,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         [TestMethod]
-        public async Task SynchronizeWithServer_NotInConnectedMode_ServerComponentsNotCalledAndStoreCleared()
+        public async Task SynchronizeWithServer_StandaloneMode_StoreAndUIContextCleared()
         {
             var sonarQubeServer = new Mock<ISonarQubeService>();
             var converter = new Mock<ITaintIssueToIssueVisualizationConverter>();
@@ -128,41 +150,85 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var serverBranchProvider = new Mock<IServerBranchProvider>();
             var logger = new TestLogger();
 
+            const uint cookie = 123;
+            var monitor = CreateMonitorSelectionMock(cookie);
+            var toolWindowService = new Mock<IToolWindowService>();
+
             var testSubject = CreateTestSubject(
                 bindingConfig: BindingConfig_Standalone,
                 taintStore: taintStore.Object,
                 sonarService: sonarQubeServer.Object,
                 converter: converter.Object,
                 serverBranchProvider: serverBranchProvider.Object,
+                vsMonitor: monitor.Object,
+                toolWindowService: toolWindowService.Object,
                 logger: logger);
 
             await testSubject.SynchronizeWithServer();
 
             CheckStoreIsCleared(taintStore);
+            CheckUIContextIsCleared(monitor, cookie);
+            logger.AssertPartialOutputStringExists("not in connected mode");
 
             // Server components should not be called
-            logger.AssertPartialOutputStringExists("not in connected mode");
             sonarQubeServer.Invocations.Should().HaveCount(0);
             converter.Invocations.Should().HaveCount(0);
             serverBranchProvider.Invocations.Should().HaveCount(0);
+            toolWindowService.Invocations.Should().HaveCount(0);
+        }
+
+        [TestMethod]
+        public async Task SynchronizeWithServer_SonarQubeServerNotYetConnected_StoreAndUIContextCleared()
+        {
+            var sonarService = CreateSonarService(isConnected: false);
+            var converter = new Mock<ITaintIssueToIssueVisualizationConverter>();
+            var taintStore = new Mock<ITaintStore>();
+            var logger = new TestLogger();
+
+            const uint cookie = 999;
+            var monitor = CreateMonitorSelectionMock(cookie);
+            var toolWindowService = new Mock<IToolWindowService>();
+
+            var testSubject = CreateTestSubject(
+                bindingConfig: BindingConfig_Connected,
+                taintStore: taintStore.Object,
+                converter: converter.Object,
+                sonarService: sonarService.Object,
+                vsMonitor: monitor.Object,
+                toolWindowService: toolWindowService.Object,
+                logger: logger);
+
+            await testSubject.SynchronizeWithServer();
+
+            logger.AssertPartialOutputStringExists("not yet established");
+            CheckConnectedStatusIsChecked(sonarService);
+            CheckIssuesAreNotFetched(sonarService);
+
+            CheckStoreIsCleared(taintStore);
+            CheckUIContextIsCleared(monitor, cookie);
+
+            // Should be nothing to convert or display in the tool window
+            converter.Invocations.Should().HaveCount(0);
+            toolWindowService.Invocations.Should().HaveCount(0);
         }
 
         [TestMethod]
         [DataRow("7.9")]
         [DataRow("8.5.9.9")]
-        public async Task SynchronizeWithServer_UnsupportedServerVersion_StoreCleared(string versionString)
+        public async Task SynchronizeWithServer_UnsupportedServerVersion_StoreAndUIContextCleared(string versionString)
         {
-            const uint cookie = 999;
             var sonarQubeServer = CreateSonarService(isConnected: true, serverType: ServerType.SonarQube, versionString);
-            var taintStore = new Mock<ITaintStore>();
-            var monitorMock = CreateMonitorSelectionMock(cookie);
             var logger = new TestLogger();
+
+            const uint cookie = 999;
+            var monitor = CreateMonitorSelectionMock(cookie);
+            var taintStore = new Mock<ITaintStore>();
 
             var testSubject = CreateTestSubject(
                 bindingConfig: BindingConfig_Connected,
                 taintStore: taintStore.Object,
                 sonarService: sonarQubeServer.Object,
-                vsMonitor: monitorMock.Object,
+                vsMonitor: monitor.Object,
                 logger: logger);
 
             await testSubject.SynchronizeWithServer();
@@ -172,7 +238,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
             CheckIssuesAreNotFetched(sonarQubeServer);
             CheckStoreIsCleared(taintStore);
-            CheckUIContextUpdated(monitorMock, cookie, 0);
+            CheckUIContextIsCleared(monitor, cookie);
         }
 
         [TestMethod]
@@ -201,153 +267,43 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         [TestMethod]
-        public async Task SynchronizeWithServer_SonarQubeServerNotYetConnected_StoreCleared()
+        [DataRow(SonarLintMode.Connected)]
+        [DataRow(SonarLintMode.LegacyConnected)]
+        public async Task SynchronizeWithServer_ConnectedModeWithNoIssues_StoreAndUIContextCleared(SonarLintMode sonarLintMode)
         {
-            var converter = new Mock<ITaintIssueToIssueVisualizationConverter>();
-            var taintStore = new Mock<ITaintStore>();
-            var sonarService = CreateSonarService(isConnected: false);
-            var logger = new TestLogger();
-
-            var testSubject = CreateTestSubject(
-                bindingConfig: BindingConfig_Connected,
-                taintStore: taintStore.Object,
-                converter: converter.Object,
-                sonarService: sonarService.Object,
-                logger: logger);
-            
-            await testSubject.SynchronizeWithServer();
-
-            logger.AssertPartialOutputStringExists("not yet established");
-            CheckIssuesAreNotFetched(sonarService);
-            CheckStoreIsCleared(taintStore);
-        }
-
-        [TestMethod]
-        public async Task SynchronizeWithServer_ConnectedModeWithNoIssues_StoreCleared()
-        {
-            var converter = new Mock<ITaintIssueToIssueVisualizationConverter>();
-            var taintStore = new Mock<ITaintStore>();
             var sonarService = CreateSonarService(isConnected: true);
-            SetupTaintIssues(sonarService /* no issues */);
-
-            var testSubject = CreateTestSubject(
-                taintStore: taintStore.Object,
-                converter: converter.Object,
-                sonarService: sonarService.Object);
-
-            await testSubject.SynchronizeWithServer();
-
-            converter.Invocations.Should().HaveCount(0);
-            CheckStoreIsCleared(taintStore);
-        }
-
-        [TestMethod]
-        public async Task SynchronizeWithServer_FailureToSync_StoreCleared()
-        {
-            var sonarServerMock = CreateSonarService();
-            sonarServerMock.Setup(x => x.GetTaintVulnerabilitiesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .Throws(new Exception("this is a test"));
+            var bindingConfig = CreateBindingConfig(sonarLintMode, "my-project-key");
+            var serverBranchProvider = CreateServerBranchProvider("my-branch");
+            SetupTaintIssues(sonarService, "my-project-key", "my-branch" /* no issues */);
 
             var taintStore = new Mock<ITaintStore>();
-            var testSubject = CreateTestSubject(
-                taintStore: taintStore.Object,
-                sonarService: sonarServerMock.Object);
-
-            await testSubject.SynchronizeWithServer();
-
-            CheckStoreIsCleared(taintStore);
-        }
-
-        [TestMethod]
-        public async Task SynchronizeWithServer_NonCriticalException_ExceptionCaughtAndLogged()
-        {
-            var logger = new TestLogger();
-
-            var sonarServerMock = CreateSonarService();
-            sonarServerMock.Setup(x => x.GetTaintVulnerabilitiesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .Throws(new Exception("this is a test"));
-
-            var testSubject = CreateTestSubject(
-                bindingConfig: BindingConfig_Connected,
-                logger: logger,
-                sonarService: sonarServerMock.Object);
-
-            Func<Task> act = testSubject.SynchronizeWithServer;
-            await act.Should().NotThrowAsync();
-
-            logger.AssertPartialOutputStringExists("this is a test");
-        }
-
-        [TestMethod]
-        public async Task SynchronizeWithServer_CriticalException_ExceptionNotCaught()
-        {
-            var sonarServerMock = CreateSonarService();
-            sonarServerMock.Setup(x => x.GetTaintVulnerabilitiesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .Throws(new StackOverflowException());
-
-            var testSubject = CreateTestSubject(sonarService: sonarServerMock.Object);
-
-            Func<Task> act = testSubject.SynchronizeWithServer;
-            await act.Should().ThrowAsync<StackOverflowException>();
-        }
-
-        [TestMethod]
-        public async Task SynchronizeWithServer_ConnectedModeWithIssues_IssuesAddedToStore()
-        {
-            var serverIssue1 = new TestSonarQubeIssue();
-            var serverIssue2 = new TestSonarQubeIssue();
-            var issueViz1 = Mock.Of<IAnalysisIssueVisualization>();
-            var issueViz2 = Mock.Of<IAnalysisIssueVisualization>();
-
             var converter = new Mock<ITaintIssueToIssueVisualizationConverter>();
-            converter.Setup(x => x.Convert(serverIssue1)).Returns(issueViz1);
-            converter.Setup(x => x.Convert(serverIssue2)).Returns(issueViz2);
 
-            var taintStore = new Mock<ITaintStore>();
-
-            var analysisInformation = new AnalysisInformation("some branch", DateTimeOffset.Now);
-
-            var sonarServerMock = CreateSonarService();
-
-            var serverBranchProvider = CreateServerBranchProvider("a branch");
-            var bindingConfig = CreateBindingConfig(SonarLintMode.Connected, "projectKey123");
-            SetupTaintIssues(sonarServerMock, "projectKey123", "a branch", serverIssue1, serverIssue2);
-            SetupAnalysisInformation(sonarServerMock, "projectKey123", analysisInformation);
+            const uint cookie = 999;
+            var monitor = CreateMonitorSelectionMock(cookie);
+            var toolWindowService = new Mock<IToolWindowService>();
 
             var testSubject = CreateTestSubject(
                 bindingConfig: bindingConfig,
                 taintStore: taintStore.Object,
                 converter: converter.Object,
-                sonarService: sonarServerMock.Object,
-                serverBranchProvider: serverBranchProvider.Object);
+                sonarService: sonarService.Object,
+                serverBranchProvider: serverBranchProvider.Object,
+                vsMonitor: monitor.Object,
+                toolWindowService: toolWindowService.Object);
 
             await testSubject.SynchronizeWithServer();
 
-            taintStore.Verify(x => x.Set(new[] {issueViz1, issueViz2},
-                It.Is((AnalysisInformation a) =>
-                    a.AnalysisTimestamp == analysisInformation.AnalysisTimestamp &&
-                    a.BranchName == analysisInformation.BranchName)), Times.Once);
-        }
+            CheckConnectedStatusIsChecked(sonarService);
+            CheckIssuesAreFetched(sonarService, "my-project-key", "my-branch");
 
-        [TestMethod]
-        public async Task SynchronizeWithServer_StandaloneMode_UIContextIsCleared()
-        {
-            const uint cookie = 123;
-            var sonarServiceMock = new Mock<ISonarQubeService>();
+            CheckStoreIsCleared(taintStore);
+            CheckUIContextIsCleared(monitor, cookie);
 
-            var monitorMock = CreateMonitorSelectionMock(cookie);
-            var toolWindowServiceMock = new Mock<IToolWindowService>();
-
-            var testSubject = CreateTestSubject(
-                bindingConfig: BindingConfig_Standalone,
-                sonarService: sonarServiceMock.Object,
-                vsMonitor: monitorMock.Object);
-
-            await testSubject.SynchronizeWithServer();
-
-            sonarServiceMock.Invocations.Should().HaveCount(0);
-            CheckUIContextUpdated(monitorMock, cookie, 0);
-            toolWindowServiceMock.Invocations.Should().HaveCount(0);
+            // Should be nothing to convert or display in the tool window
+            sonarService.Verify(x => x.GetProjectBranchesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+            converter.Invocations.Should().HaveCount(0);
+            toolWindowService.Invocations.Should().HaveCount(0);
         }
 
         [TestMethod]
@@ -377,108 +333,41 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         [TestMethod]
         [DataRow(SonarLintMode.Connected)]
         [DataRow(SonarLintMode.LegacyConnected)]
-        public async Task SynchronizeWithServer_ServerNotConnected_UIContextIsCleared(SonarLintMode sonarLintMode)
+        public async Task SynchronizeWithServer_ConnectedModeWithIssues_IssuesAddedToStore(SonarLintMode sonarLintMode)
         {
-            const uint cookie = 222;
-            var sonarServiceMock = CreateSonarService(isConnected: false);
+            var serverIssue1 = new TestSonarQubeIssue();
+            var serverIssue2 = new TestSonarQubeIssue();
+            var issueViz1 = Mock.Of<IAnalysisIssueVisualization>();
+            var issueViz2 = Mock.Of<IAnalysisIssueVisualization>();
 
-            var monitorMock = CreateMonitorSelectionMock(cookie);
-            var toolWindowServiceMock = new Mock<IToolWindowService>();
+            var converter = new Mock<ITaintIssueToIssueVisualizationConverter>();
+            converter.Setup(x => x.Convert(serverIssue1)).Returns(issueViz1);
+            converter.Setup(x => x.Convert(serverIssue2)).Returns(issueViz2);
 
-            var bindingConfig = CreateBindingConfig(sonarLintMode);
+            var taintStore = new Mock<ITaintStore>();
+
+            var analysisInformation = new AnalysisInformation("some branch", DateTimeOffset.Now);
+
+            var sonarServer = CreateSonarService();
+
+            var serverBranchProvider = CreateServerBranchProvider("a branch");
+            var bindingConfig = CreateBindingConfig(sonarLintMode, "projectKey123");
+            SetupTaintIssues(sonarServer, "projectKey123", "a branch", serverIssue1, serverIssue2);
+            SetupAnalysisInformation(sonarServer, "projectKey123", analysisInformation);
 
             var testSubject = CreateTestSubject(
                 bindingConfig: bindingConfig,
-                sonarService: sonarServiceMock.Object,
-                vsMonitor: monitorMock.Object,
-                toolWindowService: toolWindowServiceMock.Object);
+                taintStore: taintStore.Object,
+                converter: converter.Object,
+                sonarService: sonarServer.Object,
+                serverBranchProvider: serverBranchProvider.Object);
 
             await testSubject.SynchronizeWithServer();
 
-            CheckConnectedStatusIsChecked(sonarServiceMock);
-            CheckIssuesAreNotFetched(sonarServiceMock);
-            CheckUIContextUpdated(monitorMock, cookie, 0);
-            toolWindowServiceMock.Invocations.Should().HaveCount(0);
-        }
-
-        [TestMethod]
-        [DataRow("7.9")]
-        [DataRow("8.5.9.9")]
-        public async Task SynchronizeWithServer_UnsupportedServerVersion_UIContextIsCleared(string versionString)
-        {
-            const uint cookie = 999;
-            var sonarQubeServer = CreateSonarService(isConnected: true, serverType: ServerType.SonarQube, versionString);
-            var monitorMock = CreateMonitorSelectionMock(cookie);
-            var logger = new TestLogger();
-
-            var testSubject = CreateTestSubject(
-                bindingConfig: BindingConfig_Connected,
-                sonarService: sonarQubeServer.Object,
-                vsMonitor: monitorMock.Object,
-                logger: logger);
-
-            await testSubject.SynchronizeWithServer();
-
-            CheckUIContextUpdated(monitorMock, cookie, 0);
-            logger.AssertPartialOutputStringExists(versionString);
-        }
-
-        [TestMethod]
-        [DataRow(SonarLintMode.Connected)]
-        [DataRow(SonarLintMode.LegacyConnected)]
-        public async Task SynchronizeWithServer_ConnectedModeWithNoIssues_UIContextIsCleared(SonarLintMode sonarLintMode)
-        {
-            const uint cookie = 999;
-
-            var sonarServiceMock = CreateSonarService();
-
-            var bindingConfig = CreateBindingConfig(sonarLintMode, "my-project-key");
-            var serverBranchProvider = CreateServerBranchProvider("my-branch");
-
-            SetupTaintIssues(sonarServiceMock, "my-project-key", "my-branch", Array.Empty<SonarQubeIssue>());
-
-            var monitorMock = CreateMonitorSelectionMock(cookie);
-            var toolWindowServiceMock = new Mock<IToolWindowService>();
-            
-            var testSubject = CreateTestSubject(
-                bindingConfig: bindingConfig,
-                serverBranchProvider: serverBranchProvider.Object,
-                sonarService: sonarServiceMock.Object,
-                vsMonitor: monitorMock.Object,
-                toolWindowService: toolWindowServiceMock.Object);
-
-            await testSubject.SynchronizeWithServer();
-
-            CheckConnectedStatusIsChecked(sonarServiceMock);
-            CheckIssuesAreFetched(sonarServiceMock, "my-project-key", "my-branch");
-            CheckUIContextUpdated(monitorMock, cookie, 0);
-            toolWindowServiceMock.Invocations.Count.Should().Be(0);
-        }
-
-        [TestMethod]
-        [DataRow(SonarLintMode.Connected)]
-        [DataRow(SonarLintMode.LegacyConnected)]
-        public async Task SynchronizeWithServer_FailureToSync_UIContextIsCleared(SonarLintMode sonarLintMode)
-        {
-            const uint cookie = 1001;
-
-            var sonarServerMock = CreateSonarService();
-            sonarServerMock.Setup(x => x.GetTaintVulnerabilitiesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .Throws(new Exception("this is a test"));
-
-            var bindingConfig = CreateBindingConfig(sonarLintMode);
-
-            var monitorMock = CreateMonitorSelectionMock(cookie);
-            var toolWindowServiceMock = new Mock<IToolWindowService>();
-
-            var testSubject = CreateTestSubject(
-                bindingConfig: bindingConfig,
-                sonarService: sonarServerMock.Object,
-                vsMonitor: monitorMock.Object);
-
-            await testSubject.SynchronizeWithServer();
-
-            CheckUIContextUpdated(monitorMock, cookie, 0);
+            taintStore.Verify(x => x.Set(new[] { issueViz1, issueViz2 },
+                It.Is((AnalysisInformation a) =>
+                    a.AnalysisTimestamp == analysisInformation.AnalysisTimestamp &&
+                    a.BranchName == analysisInformation.BranchName)), Times.Once);
         }
 
         [TestMethod]
@@ -486,49 +375,30 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         [DataRow(SonarLintMode.LegacyConnected)]
         public async Task SynchronizeWithServer_ConnectedModeWithIssues_UIContextIsSetAndToolWindowCalled(SonarLintMode sonarLintMode)
         {
-            const uint cookie = 212;
-
-            var sonarServiceMock = CreateSonarService();
+            var sonarService = CreateSonarService();
             
             var bindingConfig = CreateBindingConfig(sonarLintMode, "myProjectKey___");
             var serverBranchProvider = CreateServerBranchProvider("branchYYY");
-            SetupTaintIssues(sonarServiceMock, "myProjectKey___", "branchYYY", new TestSonarQubeIssue());
-            SetupAnalysisInformation(sonarServiceMock, "myProjectKey___", new AnalysisInformation("some branch", DateTimeOffset.Now));
+            SetupTaintIssues(sonarService, "myProjectKey___", "branchYYY", new TestSonarQubeIssue());
+            SetupAnalysisInformation(sonarService, "myProjectKey___", new AnalysisInformation("some branch", DateTimeOffset.Now));
 
-            var monitorMock = CreateMonitorSelectionMock(cookie);
-            var toolWindowServiceMock = new Mock<IToolWindowService>();
+            const uint cookie = 212;
+            var monitor = CreateMonitorSelectionMock(cookie);
+            var toolWindowService = new Mock<IToolWindowService>();
 
             var testSubject = CreateTestSubject(
                 bindingConfig: bindingConfig,
                 serverBranchProvider: serverBranchProvider.Object,
-                sonarService: sonarServiceMock.Object,
-                vsMonitor: monitorMock.Object,
-                toolWindowService: toolWindowServiceMock.Object);
+                sonarService: sonarService.Object,
+                vsMonitor: monitor.Object,
+                toolWindowService: toolWindowService.Object);
 
             await testSubject.SynchronizeWithServer();
 
-            CheckConnectedStatusIsChecked(sonarServiceMock);
-            CheckIssuesAreFetched(sonarServiceMock, "myProjectKey___", "branchYYY");
-            CheckUIContextUpdated(monitorMock, cookie, 1);
-            CheckToolWindowServiceIsCalled(toolWindowServiceMock);
-        }
-
-        [TestMethod]
-        [DataRow(SonarLintMode.Connected)]
-        [DataRow(SonarLintMode.LegacyConnected)]
-        public async Task SynchronizeWithServer_ConnectedModeWithNoIssues_BranchInformationNotFetched(SonarLintMode sonarLintMode)
-        {
-            var bindingConfig = CreateBindingConfig(sonarLintMode);
-            var sonarServiceMock = CreateSonarService();
-            SetupTaintIssues(sonarServiceMock, Array.Empty<SonarQubeIssue>());
-
-            var testSubject = CreateTestSubject(
-                bindingConfig: bindingConfig,
-                sonarService: sonarServiceMock.Object);
-
-            await testSubject.SynchronizeWithServer();
-
-            sonarServiceMock.Verify(x => x.GetProjectBranchesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+            CheckConnectedStatusIsChecked(sonarService);
+            CheckIssuesAreFetched(sonarService, "myProjectKey___", "branchYYY");
+            CheckUIContextIsSet(monitor, cookie);
+            CheckToolWindowServiceIsCalled(toolWindowService);
         }
 
         private static BindingConfiguration CreateBindingConfig(SonarLintMode mode = SonarLintMode.Connected, string projectKey = "any")
@@ -568,9 +438,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
         private static Mock<IServerBranchProvider> CreateServerBranchProvider(string branchName)
         {
-            var mock = new Mock<IServerBranchProvider>();
-            mock.Setup(x => x.GetServerBranchNameAsync()).ReturnsAsync(branchName);
-            return mock;
+            var serverBranchProvider = new Mock<IServerBranchProvider>();
+            serverBranchProvider.Setup(x => x.GetServerBranchNameAsync()).ReturnsAsync(branchName);
+            return serverBranchProvider;
         }
 
         private static Mock<ISonarQubeService> CreateSonarService(bool isConnected = true,
@@ -585,13 +455,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             return sonarQubeService;
         }
 
-        private static Mock<IVsMonitorSelection> CreateMonitorSelectionMock(uint cookieToReturn)
+        private static Mock<IVsMonitorSelection> CreateMonitorSelectionMock(uint cookie)
         {
-            var monitorMock = new Mock<IVsMonitorSelection>();
+            var monitor = new Mock<IVsMonitorSelection>();
             var localGuid = TaintIssuesExistUIContext.Guid;
-            monitorMock.Setup(x => x.GetCmdUIContextCookie(ref localGuid, out cookieToReturn));
+            monitor.Setup(x => x.GetCmdUIContextCookie(ref localGuid, out cookie));
 
-            return monitorMock;
+            return monitor;
         }
 
         private static IServiceProvider CreateServiceProvider(IVsMonitorSelection vsMonitor = null)
@@ -601,6 +471,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             serviceProvider.Setup(x => x.GetService(typeof(SVsShellMonitorSelection))).Returns(vsMonitor);
             return serviceProvider.Object;
         }
+
+        private static void CheckUIContextIsCleared(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie) =>
+            CheckUIContextUpdated(monitorMock, expectedCookie, 0);
+
+        private static void CheckUIContextIsSet(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie) =>
+            CheckUIContextUpdated(monitorMock, expectedCookie, 1);
 
         private static void CheckUIContextUpdated(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie, int expectedState) => 
             monitorMock.Verify(x => x.SetCmdUIContext(expectedCookie, expectedState), Times.Once);
@@ -640,13 +516,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
             sonarQubeService.Setup(x => x.GetProjectBranchesAsync(projectKey, CancellationToken.None))
                 .ReturnsAsync(projectBranches);
-        }
-
-        private void SetupTaintIssues(Mock<ISonarQubeService> sonarQubeService, params SonarQubeIssue[] issues)
-        {
-            sonarQubeService
-                .Setup(x => x.GetTaintVulnerabilitiesAsync(It.IsAny<string>(), It.IsAny<string>(), CancellationToken.None))
-                .ReturnsAsync(issues);
         }
 
         private void SetupTaintIssues(Mock<ISonarQubeService> sonarQubeService, string projectKey, string branch, params SonarQubeIssue[] issues)
