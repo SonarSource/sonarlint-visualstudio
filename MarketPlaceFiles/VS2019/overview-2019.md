@@ -25,7 +25,7 @@ SonarLint for Visual Studio is more than your average linting tool.
 
 SonarLint provides Visual Studio developers a comprehensive in-IDE solution for improving the quality and security of the code they deliver. 
 
-[Learn More](https://www.sonarlint.org/visualstudio)
+[Learn More](https://www.sonarsource.com/products/sonarlint/features/visual-studio/)
 
 
 ![sonarlint-warnings](https://raw.githubusercontent.com/wiki/SonarSource/sonarlint-visualstudio/images/Marketplace/squiggly.png)
