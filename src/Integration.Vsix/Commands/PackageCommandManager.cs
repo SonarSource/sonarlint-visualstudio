@@ -23,7 +23,6 @@ using System.ComponentModel.Design;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarLint.VisualStudio.Integration.Vsix.Commands;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
@@ -60,9 +59,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.RegisterCommand((int)PackageCommandId.ProjectSonarLintMenu, new ProjectSonarLintMenuCommand(projectPropertyManager, projectToLanguageMapper));
 
             // Help menu buttons
-            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, (int)PackageCommandId.SonarLintHelpShowLogs, new ShowLogsCommand(outputWindowService));
-            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, ViewDocumentationCommand.ViewDocumentationCommandId, new ViewDocumentationCommand(showInBrowserService));
-            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, AboutCommand.AboutCommandId, new AboutCommand(browserService));
+            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowLogsCommand.Id, new ShowLogsCommand(outputWindowService));
+            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, ViewDocumentationCommand.Id, new ViewDocumentationCommand(showInBrowserService));
+            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, AboutCommand.Id, new AboutCommand(browserService));
             this.RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowCommunityPageCommand.Id, new ShowCommunityPageCommand(showInBrowserService));
             
             // Connected mode buttons
@@ -76,15 +75,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal /* testing purposes */ OleMenuCommand RegisterCommand(string commandSetGuid, int commandId, VsCommandBase command)
         {
-            return this.AddCommand(new Guid(commandSetGuid), commandId, command.Invoke, command.QueryStatus);
+            return AddCommand(new Guid(commandSetGuid), commandId, command.Invoke, command.QueryStatus);
         }
 
         private OleMenuCommand AddCommand(Guid commandGroupGuid, int commandId, EventHandler invokeHandler, EventHandler beforeQueryStatus)
         {
-            CommandID idObject = new CommandID(commandGroupGuid, commandId);
-            OleMenuCommand command = new OleMenuCommand(invokeHandler, delegate
-            { }, beforeQueryStatus, idObject);
-            this.menuService.AddCommand(command);
+            var idObject = new CommandID(commandGroupGuid, commandId);
+            var command = new OleMenuCommand(invokeHandler, delegate { }, beforeQueryStatus, idObject);
+            
+            menuService.AddCommand(command);
+            
             return command;
         }
     }
