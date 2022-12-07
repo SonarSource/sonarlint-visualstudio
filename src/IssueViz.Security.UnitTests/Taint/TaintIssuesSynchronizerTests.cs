@@ -222,7 +222,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         public async Task SynchronizeWithServer_FailureToSync_StoreCleared()
         {
             var sonarServerMock = CreateSonarService();
-            sonarServerMock.Setup(x => x.GetTaintVulnerabilitiesAsync(SharedProjectKey, CancellationToken.None))
+            sonarServerMock.Setup(x => x.GetTaintVulnerabilitiesAsync(SharedProjectKey, null, CancellationToken.None))
                 .Throws(new Exception("this is a test"));
 
             var taintStore = new Mock<ITaintStore>();
@@ -239,7 +239,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var logger = new TestLogger();
 
             var sonarServerMock = CreateSonarService();
-            sonarServerMock.Setup(x => x.GetTaintVulnerabilitiesAsync(SharedProjectKey, CancellationToken.None))
+            sonarServerMock.Setup(x => x.GetTaintVulnerabilitiesAsync(SharedProjectKey, null, CancellationToken.None))
                 .Throws(new Exception("this is a test"));
 
             var testSubject = CreateTestSubject(logger: logger, sonarService: sonarServerMock.Object);
@@ -254,7 +254,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         public async Task SynchronizeWithServer_CriticalException_ExceptionNotCaught()
         {
             var sonarServerMock = CreateSonarService();
-            sonarServerMock.Setup(x => x.GetTaintVulnerabilitiesAsync(SharedProjectKey, CancellationToken.None))
+            sonarServerMock.Setup(x => x.GetTaintVulnerabilitiesAsync(SharedProjectKey, null, CancellationToken.None))
                 .Throws(new StackOverflowException());
 
             var testSubject = CreateTestSubject(sonarService: sonarServerMock.Object);
@@ -391,7 +391,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             const uint cookie = 1001;
 
             var sonarServerMock = CreateSonarService();
-            sonarServerMock.Setup(x => x.GetTaintVulnerabilitiesAsync(SharedProjectKey, CancellationToken.None))
+            sonarServerMock.Setup(x => x.GetTaintVulnerabilitiesAsync(SharedProjectKey, null, CancellationToken.None))
                 .Throws(new Exception("this is a test"));
 
             var monitorMock = CreateMonitorSelectionMock(cookie);
@@ -513,10 +513,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             serviceMock.Verify(x => x.GetServerInfo(), Times.Once);
 
         private static void CheckIssuesAreFetched(Mock<ISonarQubeService> serviceMock) =>
-            serviceMock.Verify(x => x.GetTaintVulnerabilitiesAsync(SharedProjectKey, It.IsAny<CancellationToken>()), Times.Once);
+            serviceMock.Verify(x => x.GetTaintVulnerabilitiesAsync(SharedProjectKey, null, It.IsAny<CancellationToken>()), Times.Once);
 
         private static void CheckIssuesAreNotFetched(Mock<ISonarQubeService> serviceMock) =>
-            serviceMock.Verify(x => x.GetTaintVulnerabilitiesAsync(SharedProjectKey, It.IsAny<CancellationToken>()), Times.Never);
+            serviceMock.Verify(x => x.GetTaintVulnerabilitiesAsync(SharedProjectKey, null, It.IsAny<CancellationToken>()), Times.Never);
 
         private static void CheckToolWindowServiceIsCalled(Mock<IToolWindowService> toolWindowServiceMock) =>
             toolWindowServiceMock.Verify(x => x.EnsureToolWindowExists(TaintToolWindow.ToolWindowId), Times.Once);
@@ -549,7 +549,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         private void SetupTaintIssues(Mock<ISonarQubeService> sonarQubeService, params SonarQubeIssue[] issues)
         {
             sonarQubeService
-                .Setup(x => x.GetTaintVulnerabilitiesAsync(SharedProjectKey, CancellationToken.None))
+                .Setup(x => x.GetTaintVulnerabilitiesAsync(SharedProjectKey, null, CancellationToken.None))
                 .ReturnsAsync(issues);
         }
     }
