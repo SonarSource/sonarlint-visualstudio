@@ -139,9 +139,9 @@ namespace SonarQube.Client.Tests.Helpers
 
         public class PrivateProperties
         {
-#pragma warning disable IDE0051 // Remove unused private members
+#pragma warning disable IDE0051, S1144 // Remove unused private members
             private int a { get; set; }
-#pragma warning restore IDE0051 // Remove unused private members
+#pragma warning restore IDE0051, S1144 // Remove unused private members
             protected int b { get; set; }
             internal int c { get; set; }
         }

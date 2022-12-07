@@ -66,7 +66,7 @@ namespace SonarQube.Client.Tests
             // No calls to Connect
             // No need to setup request, the operation should fail
 
-            Action action = () => { var result = service.HasOrganizations(CancellationToken.None).Result; };
+            Action action = () => { _ = service.HasOrganizations(CancellationToken.None).Result; };
 
             action.Should().ThrowExactly<InvalidOperationException>()
                 .WithMessage("This operation expects the service to be connected.");

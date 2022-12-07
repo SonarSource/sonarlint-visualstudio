@@ -27,7 +27,7 @@ namespace SonarQube.Client.Tests
     /// <summary>
     /// Some of the tests cover exceptions in which we have asserts as well, we want to ignore those asserts during tests
     /// </summary>
-    public class AssertIgnoreScope : IDisposable
+    public sealed class AssertIgnoreScope : IDisposable
     {
         public AssertIgnoreScope()
         {
