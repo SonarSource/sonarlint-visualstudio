@@ -53,7 +53,7 @@ namespace SonarQube.Client.Api.V2_10
         private SonarQubeProject ToProject(ProjectResponse projectResponse) =>
             new SonarQubeProject(projectResponse.Key, projectResponse.Name);
 
-        private class ProjectResponse
+        private sealed class ProjectResponse
         {
             [JsonProperty("k")]
             public string Key { get; set; }

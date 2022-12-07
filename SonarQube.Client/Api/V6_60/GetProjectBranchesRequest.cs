@@ -43,7 +43,7 @@ namespace SonarQube.Client.Api.V6_60
         private SonarQubeProjectBranch ToProjectBranch(ServerProjectBranch serverBranch) =>
             new SonarQubeProjectBranch(serverBranch.Name, serverBranch.IsMain, serverBranch.AnalysisDate);
 
-        private class ServerProjectBranch
+        private sealed class ServerProjectBranch
         {
             [JsonProperty("name")]
             public string Name { get; set; }

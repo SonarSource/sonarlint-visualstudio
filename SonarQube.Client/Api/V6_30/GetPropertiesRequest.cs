@@ -85,7 +85,7 @@ namespace SonarQube.Client.Api.V6_30
             }
         }
 
-        private class PropertyResponse
+        private sealed class PropertyResponse
         {
             [JsonProperty("key")]
             public string Key { get; set; }

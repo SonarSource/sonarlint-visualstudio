@@ -73,7 +73,7 @@ namespace SonarQube.Client.Api.V5_20
                 .Select(x => x.Date)
                 .ToArray();
 
-        private class QualityProfileChangeItemResponse
+        private sealed class QualityProfileChangeItemResponse
         {
             [JsonProperty("date")]
             public DateTime Date { get; set; }

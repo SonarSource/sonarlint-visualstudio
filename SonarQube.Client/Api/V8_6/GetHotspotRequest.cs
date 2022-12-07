@@ -71,7 +71,7 @@ namespace SonarQube.Client.Api.V8_6
         private static IssueTextRange ToIssueTextRange(ServerTextRange serverIssueTextRange) =>
             new IssueTextRange(serverIssueTextRange.StartLine, serverIssueTextRange.EndLine, serverIssueTextRange.StartOffset, serverIssueTextRange.EndOffset);
 
-        private class GetHotspotResponse
+        private sealed class GetHotspotResponse
         {
             [JsonProperty("key")]
             public string Key { get; set; }
@@ -107,7 +107,7 @@ namespace SonarQube.Client.Api.V8_6
             public ServerTextRange TextRange { get; set; }
         }
 
-        private class ServerComponent
+        private sealed class ServerComponent
         {
             [JsonProperty("key")]
             public string Key { get; set; }
@@ -116,7 +116,7 @@ namespace SonarQube.Client.Api.V8_6
             public string Path { get; set; }
         }
 
-        private class ServerProject
+        private sealed class ServerProject
         {
             [JsonProperty("organization")]
             public string Organization { get; set; }
@@ -128,7 +128,7 @@ namespace SonarQube.Client.Api.V8_6
             public string Name { get; set; }
         }
 
-        private class ServerRule
+        private sealed class ServerRule
         {
             [JsonProperty("key")]
             public string Key { get; set; }
@@ -152,7 +152,7 @@ namespace SonarQube.Client.Api.V8_6
             public string FixRecommendations { get; set; }
         }
 
-        private class ServerTextRange
+        private sealed class ServerTextRange
         {
             [JsonProperty("startLine")]
             public int StartLine { get; set; }
