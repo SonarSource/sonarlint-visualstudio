@@ -35,8 +35,6 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
     [TestClass]
     public class GetIssuesRequestWrapperTests
     {
-        private const string EmptyResponse = @"{""total"":0,""p"":1,""ps"":10,""paging"":{""pageIndex"":1,""pageSize"":10,""total"":0},""effortTotal"":0,""debtTotal"":0,""issues"":[],""components"":[],""organizations"":[],""facets"":[]}";
-
         [TestMethod]
         public async Task InvokeAsync_ExpectedPropertiesArePassed()
         {
@@ -48,7 +46,7 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
                 BaseAddress = new Uri(ValidBaseAddress)
             };
 
-            SetupHttpRequest(handlerMock, EmptyResponse);
+            SetupHttpRequest(handlerMock, EmptyGetIssuesResponse);
 
             _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
 
@@ -61,11 +59,13 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
 
         private static GetIssuesRequestWrapper CreateTestSubject(string projectKey, string statusesToRequest, string branch)
         {
-            var testSubject = new GetIssuesRequestWrapper();
-            testSubject.Logger = new TestLogger();
-            testSubject.ProjectKey = projectKey;
-            testSubject.Statuses = statusesToRequest;
-            testSubject.Branch = branch;
+            var testSubject = new GetIssuesRequestWrapper
+            {
+                Logger = new TestLogger(),
+                ProjectKey = projectKey,
+                Statuses = statusesToRequest,
+                Branch = branch
+            };
 
             return testSubject;
         }

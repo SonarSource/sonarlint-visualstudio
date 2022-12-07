@@ -81,8 +81,10 @@ namespace SonarQube.Client.Tests.Models
             var securePwd = InitializeSecureString(password);
             var org = InitializeOrganization(orgKey);
 
-            var testSubject = new ConnectionInformation(new Uri(serverUrl), userName, securePwd);
-            testSubject.Organization = org;
+            var testSubject = new ConnectionInformation(new Uri(serverUrl), userName, securePwd)
+            {
+                Organization = org
+            };
 
             var cloneObj = ((ICloneable)testSubject).Clone();
             cloneObj.Should().BeOfType<ConnectionInformation>();
@@ -106,7 +108,7 @@ namespace SonarQube.Client.Tests.Models
 
         private static SecureString InitializeSecureString(string password) =>
             // The "ToSecureString" doesn't expect nulls, which we want to use in the tests
-            password == null ? null : password.ToSecureString();
+            password?.ToSecureString();
 
         private static SonarQubeOrganization InitializeOrganization(string orgKey) =>
             orgKey == null ? null : new SonarQubeOrganization(orgKey, Guid.NewGuid().ToString());
