@@ -32,6 +32,7 @@ using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
 {
@@ -56,7 +57,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
                 componentModel.GetService<ITelemetryManager>(),
                 componentModel.GetService<IIssueSelectionService>(),
                 componentModel.GetService<INavigateToDocumentationCommand>(),
-                GetService(typeof(IMenuCommandService)) as IMenuCommandService
+                GetService(typeof(IMenuCommandService)) as IMenuCommandService,
+                componentModel.GetService<ISonarQubeService>()
             );
 
             Initialize(viewModel);

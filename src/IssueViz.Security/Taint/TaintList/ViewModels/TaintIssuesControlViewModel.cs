@@ -38,6 +38,7 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels
 {
@@ -59,6 +60,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         string WindowCaption { get; }
 
+        string ServerType { get; }
+
         AnalysisInformation AnalysisInformation { get; }
     }
 
@@ -74,6 +77,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         private readonly IIssueSelectionService selectionService;
         private readonly ITaintStore store;
         private readonly IMenuCommandService menuCommandService;
+        private readonly ISonarQubeService sonarQubeService;
         private readonly object Lock = new object();
         private string activeDocumentFilePath;
         private string windowCaption;
@@ -121,6 +125,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         public AnalysisInformation AnalysisInformation { get; private set; }
 
+        public string ServerType { get; set; }
+
         public TaintIssuesControlViewModel(ITaintStore store,
             ILocationNavigator locationNavigator,
             IActiveDocumentTracker activeDocumentTracker,
@@ -129,12 +135,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             ITelemetryManager telemetryManager,
             IIssueSelectionService selectionService,
             ICommand navigateToDocumentationCommand,
-            IMenuCommandService menuCommandService)
+            IMenuCommandService menuCommandService,
+            ISonarQubeService sonarQubeService)
         {
             unfilteredIssues = new ObservableCollection<ITaintIssueViewModel>();
             AllowMultiThreadedAccessToIssuesCollection();
 
             this.menuCommandService = menuCommandService;
+            this.sonarQubeService = sonarQubeService;
             activeDocumentFilePath = activeDocumentLocator.FindActiveDocument()?.FilePath;
             this.activeDocumentTracker = activeDocumentTracker;
             activeDocumentTracker.ActiveDocumentChanged += ActiveDocumentTracker_OnDocumentFocused;
@@ -156,6 +164,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
             SetCommands(locationNavigator);
             ApplyViewFilter(ActiveDocumentFilter);
+            UpdateServerType();
             SetDefaultSortOrder();
             UpdateCaption();
         }
@@ -164,7 +173,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         {
             activeDocumentFilePath = e.ActiveTextDocument?.FilePath;
             ApplyViewFilter(ActiveDocumentFilter);
+            UpdateServerType();
             UpdateCaption();
+        }
+
+        private void UpdateServerType()
+        {
+            var serverInfo = sonarQubeService.GetServerInfo();
+            if (serverInfo == null)
+            {
+                return;
+            }
+
+            ServerType = serverInfo.ServerType.ToString();
+            NotifyPropertyChanged(nameof(ServerType));
         }
 
         private void ApplyViewFilter(Predicate<object> filter) =>

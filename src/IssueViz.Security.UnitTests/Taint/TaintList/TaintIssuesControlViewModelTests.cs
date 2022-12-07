@@ -40,6 +40,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.TaintList
 {
@@ -710,7 +711,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             ITelemetryManager telemetryManager = null,
             IShowInBrowserService showInBrowserService = null,
             IIssueSelectionService selectionService = null,
-            IMenuCommandService menuCommandService = null)
+            IMenuCommandService menuCommandService = null,
+            ISonarQubeService sonarQubeService = null)
         {
             issueVizs ??= Array.Empty<IAnalysisIssueVisualization>();
             store ??= new Mock<ITaintStore>();
@@ -723,6 +725,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             telemetryManager ??= Mock.Of<ITelemetryManager>();
             selectionService ??= Mock.Of<IIssueSelectionService>();
             menuCommandService ??= Mock.Of<IMenuCommandService>();
+            sonarQubeService ??= Mock.Of<SonarQubeService>();
 
             return new TaintIssuesControlViewModel(store.Object,
                 locationNavigator,
@@ -732,7 +735,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                 telemetryManager,
                 selectionService,
                 Mock.Of<ICommand>(),
-                menuCommandService);
+                menuCommandService,
+                sonarQubeService);
         }
 
         private static IActiveDocumentLocator CreateLocatorAndSetActiveDocument(string activeFilePath)
