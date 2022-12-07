@@ -180,12 +180,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         private void UpdateServerType()
         {
             var serverInfo = sonarQubeService.GetServerInfo();
-            if (serverInfo == null)
-            {
-                return;
-            }
-
-            ServerType = serverInfo.ServerType.ToString();
+            ServerType = (serverInfo?.ServerType)?.ToString() ?? string.Empty;
             NotifyPropertyChanged(nameof(ServerType));
         }
 

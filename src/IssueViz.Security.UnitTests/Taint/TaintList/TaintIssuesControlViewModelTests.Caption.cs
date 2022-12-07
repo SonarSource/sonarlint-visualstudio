@@ -122,6 +122,46 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         }
 
         [TestMethod]
+        public void ActiveDocChanged_ExpectedServerTypeSet()
+        {
+            var testCase = new TestCase()
+                .ChangeStoreContents("file1.txt", "file2.txt", "file2.txt");
+
+            var mock = new Mock<ISonarQubeService>();
+
+            var testSubject = testCase.CreateTestSubject(mock.Object);
+            int eventCount = 0;
+            testSubject.PropertyChanged += (sender, args) => {
+                if (args is { PropertyName: nameof(testSubject.ServerType) })
+                {
+                    eventCount++;
+                }
+            };
+
+            // 1. SC
+            mock.Setup(x => x.GetServerInfo()).Returns(new ServerInfo(null, ServerType.SonarCloud));
+            testCase.ChangeActiveDocument("file1.txt");
+            testSubject.ServerType.Should().Be(ServerType.SonarCloud.ToString());
+
+            // 2. SC
+
+            mock.Setup(x => x.GetServerInfo()).Returns(new ServerInfo(null, ServerType.SonarQube));
+            testCase.ChangeActiveDocument("file2.txt");
+            testSubject.ServerType.Should().Be(ServerType.SonarQube.ToString());
+
+            // 3. Standalone
+            mock.Setup(x => x.GetServerInfo()).Returns((ServerInfo)null);
+            testCase.ChangeActiveDocument("fileWithNoIssues.txt");
+            testSubject.ServerType.Should().Be(string.Empty);
+
+            // 4. No active file
+            testCase.ChangeActiveDocument(null);
+            testSubject.ServerType.Should().Be(string.Empty);
+
+            eventCount.Should().Be(4);
+        }
+
+        [TestMethod]
         public void StoreChanges_ExpectedCaptionSet()
         {
             var testCase = new TestCase().
@@ -195,7 +235,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                 return this;
             }
 
-            public TaintIssuesControlViewModel CreateTestSubject()
+            public TaintIssuesControlViewModel CreateTestSubject(ISonarQubeService sonarQubeService = null)
             {
                 // The ViewModel needs to be created on the UI thread
                 ThreadHelper.SetCurrentThreadAsUIThread();
@@ -210,7 +250,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                     Mock.Of<IIssueSelectionService>(),
                     Mock.Of<ICommand>(),
                     Mock.Of<IMenuCommandService>(),
-                    Mock.Of<ISonarQubeService>());
+                    sonarQubeService ?? Mock.Of<ISonarQubeService>());
             }
 
             public void ChangeActiveDocument(string filePath)
