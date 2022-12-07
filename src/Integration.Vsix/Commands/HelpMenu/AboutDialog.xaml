@@ -1,0 +1,39 @@
+﻿<platformUi:DialogWindow x:Class="SonarLint.VisualStudio.Integration.Vsix.Commands.AboutDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+    Title="SonarLint"
+    ResizeMode="NoResize"
+    SizeToContent="WidthAndHeight"
+    UseLayoutRounding="True">
+    <Window.Resources>
+        <Style x:Key="Mave" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="..\..\Resources\MavenPro-Regular.ttf #Maven Pro"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+    </Window.Resources>
+    <Grid Background="#290042">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <Image Source="..\..\Resources\sonarlint-white.png" Grid.Row="0" Grid.Column="0" Stretch="None"/>
+        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Vertical" VerticalAlignment="Center" Margin="10,0,10,0">
+            <TextBlock  FontWeight="Bold" Text="Clean As You Code" Foreground="White" FontSize="25" FontFamily="..\..\Resources\Saira-Bold.ttf #Saira Bold"/>
+            <TextBlock Text="{Binding SLVersion}" Margin="0,10,0,10" Style="{StaticResource Mave}"/>
+            <TextBlock>
+                <Hyperlink NavigateUri="https://www.sonarsource.com/products/sonarlint/" RequestNavigate="ViewWebsite">
+                   <TextBlock Text="Visit our Website" Style="{StaticResource Mave}"/>
+                 </Hyperlink>
+            </TextBlock>
+        </StackPanel>
+        <TextBlock Text="Copyright (C) 2016-2022 SonarSource SA" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="Gray" Style="{StaticResource Mave}" Margin="5,5,0,5"/>
+        <platformUi:DialogButton Content="Close" Grid.Row="1" Grid.Column="1" IsCancel="True" VerticalAlignment="Center" HorizontalAlignment="Right" FontFamily="..\..\Resources\MavenPro-Regular.ttf #Maven Pro" Margin="0,5,5,5"/>
+    </Grid>
+
+</platformUi:DialogWindow>

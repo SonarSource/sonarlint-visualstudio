@@ -26,8 +26,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands
     {
         internal const int AboutCommandId = 0x104;
 
-        private readonly string aboutUrl = "https://marketplace.visualstudio.com/items?itemName=SonarSource.SonarLintforVisualStudio2022";
-
         private readonly IBrowserService browserService;
 
         public AboutCommand(IBrowserService browserService)
@@ -37,7 +35,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands
 
         protected override void InvokeInternal()
         {
-            browserService.Navigate(aboutUrl);
+            var aboutdialog = new AboutDialog(browserService);
+            aboutdialog.ShowModal();
         }
     }
 }

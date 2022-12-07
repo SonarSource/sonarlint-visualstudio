@@ -261,6 +261,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Commands\HelpMenu\AboutDialog.xaml" />
+    <None Remove="Resources\MavenPro-Regular.ttf" />
+    <None Remove="Resources\Saira-Bold.ttf" />
+    <None Remove="Resources\sonarlint-white.png" />
     <None Remove="Resources\sonarlint_200.png" />
     <None Remove="Resources\sonarlint_32.png" />
     <None Remove="Resources\sonarlint_wave_128px.png" />
@@ -285,6 +289,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Page Include="Commands\HelpMenu\AboutDialog.xaml" />
 
     <Page Include="Settings\GeneralOptionsDialogControl.xaml" />
     <Page Include="Settings\OtherOptionsDialogControl.xaml" />
@@ -489,6 +494,11 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\MavenPro-Regular.ttf" />
+    <Resource Include="Resources\Saira-Bold.ttf" />
+    <Resource Include="Resources\sonarlint-white.png" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Properties\Settings.settings">
