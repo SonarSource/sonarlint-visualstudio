@@ -165,7 +165,7 @@ namespace SonarQube.Client.Api.V7_20
             public ServerIssueFlow[] Flows { get; set; }
         }
 
-        private class ServerComponent
+        private sealed class ServerComponent
         {
             [JsonProperty("key")]
             public string Key { get; set; }
@@ -180,13 +180,13 @@ namespace SonarQube.Client.Api.V7_20
             }
         }
 
-        private class ServerIssueFlow
+        private sealed class ServerIssueFlow
         {
             [JsonProperty("locations")]
             public ServerIssueLocation[] Locations { get; set; }
         }
 
-        private class ServerIssueLocation
+        private sealed class ServerIssueLocation
         {
             [JsonProperty("component")]
             public string Component { get; set; }
@@ -196,7 +196,7 @@ namespace SonarQube.Client.Api.V7_20
             public string Message { get; set; }
         }
 
-        private class ServerIssueTextRange
+        private sealed class ServerIssueTextRange
         {
             [JsonProperty("startLine")]
             public int StartLine { get; set; }

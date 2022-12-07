@@ -67,7 +67,7 @@ namespace SonarQube.Client.Api.V6_30
             return group.Success ? group.Value : "0";
         }
 
-        private class PluginResponse
+        private sealed class PluginResponse
         {
             [JsonProperty("key")]
             public string Key { get; set; }

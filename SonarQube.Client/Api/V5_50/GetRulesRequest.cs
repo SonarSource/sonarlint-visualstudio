@@ -94,7 +94,7 @@ namespace SonarQube.Client.Api.V5_50
         private static string GetRuleKey(string compositeKey) =>
             compositeKey.Substring(compositeKey.IndexOf(':') + 1);
 
-        private class RuleResponse
+        private sealed class RuleResponse
         {
             [JsonProperty("key")]
             public string Key { get; set; }
@@ -106,7 +106,7 @@ namespace SonarQube.Client.Api.V5_50
             public string Type { get; set; }
         }
 
-        private class QualityProfileResponse
+        private sealed class QualityProfileResponse
         {
             [JsonProperty("qProfile")]
             public string Key { get; set; }
@@ -118,7 +118,7 @@ namespace SonarQube.Client.Api.V5_50
             public ParameterResponse[] Parameters { get; set; }
         }
 
-        private class ParameterResponse
+        private sealed class ParameterResponse
         {
             [JsonProperty("key")]
             public string Key { get; set; }

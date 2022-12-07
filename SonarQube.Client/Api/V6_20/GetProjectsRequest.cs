@@ -59,7 +59,7 @@ namespace SonarQube.Client.Api.V6_20
         private SonarQubeProject ToProject(ComponentResponse response) =>
             new SonarQubeProject(response.Key, response.Name);
 
-        private class ComponentResponse
+        private sealed class ComponentResponse
         {
             [JsonProperty("organization")]
             public string Organization { get; set; }

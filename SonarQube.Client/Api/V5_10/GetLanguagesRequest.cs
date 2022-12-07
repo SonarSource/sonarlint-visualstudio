@@ -39,7 +39,7 @@ namespace SonarQube.Client.Api.V5_10
         private SonarQubeLanguage ToLanguage(LanguageResponse language) =>
             new SonarQubeLanguage(language.Key, language.Name);
 
-        private class LanguageResponse
+        private sealed class LanguageResponse
         {
             [JsonProperty("key")]
             public string Key { get; set; }

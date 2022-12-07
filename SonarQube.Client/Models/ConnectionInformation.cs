@@ -29,7 +29,10 @@ namespace SonarQube.Client.Models
     /// </summary>
     public sealed class ConnectionInformation : ICloneable, IDisposable
     {
+#pragma warning disable S1075
         internal static readonly Uri FixedSonarCloudUri = new Uri("https://sonarcloud.io/");
+#pragma warning restore S1075
+
         private bool isDisposed;
 
         public ConnectionInformation(Uri serverUri, string userName, SecureString password)
