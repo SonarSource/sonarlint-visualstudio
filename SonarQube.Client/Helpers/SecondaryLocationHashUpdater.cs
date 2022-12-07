@@ -114,7 +114,7 @@ namespace SonarQube.Client.Helpers
         /// <summary>
         /// Provide a lookup from module key -> source code line
         /// </summary>
-        private class ModuleKeyToSourceMap
+        private sealed class ModuleKeyToSourceMap
         {
             private readonly IDictionary<string, string[]> keyToLinesMap = new Dictionary<string, string[]>();
 

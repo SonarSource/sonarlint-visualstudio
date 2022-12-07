@@ -73,7 +73,7 @@ namespace SonarQube.Client.Api.V5_20
             new SonarQubeQualityProfile(
                 response.Key, response.Name, response.Language, response.IsDefault, response.LastRuleChange);
 
-        private class QualityProfileResponse
+        private sealed class QualityProfileResponse
         {
             [JsonProperty("key")]
             public string Key { get; set; }

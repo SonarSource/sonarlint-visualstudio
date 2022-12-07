@@ -61,7 +61,7 @@ namespace SonarQube.Client.Api.V5_40
         private SonarQubeModule ToSonarQubeModule(ModuleResponse response) =>
             new SonarQubeModule(response.Key, response.Name, FilePathNormalizer.NormalizeSonarQubePath(response.Path));
 
-        private class ModuleResponse
+        private sealed class ModuleResponse
         {
             [JsonProperty("key")]
             public string Key { get; set; }

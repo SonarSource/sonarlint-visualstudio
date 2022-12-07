@@ -118,7 +118,7 @@ namespace SonarQube.Client
         /// <summary>
         /// Returns branch information for the specified project key
         /// </summary>
-        Task<IList<SonarQubeProjectBranch>> GetProjectBranchesAsync(string projectKey, CancellationToken cancellation);
+        Task<IList<SonarQubeProjectBranch>> GetProjectBranchesAsync(string projectKey, CancellationToken token);
 
         /// <summary>
         /// Returns the inclusions/exclusions

@@ -53,7 +53,7 @@ namespace SonarQube.Client.Api.V6_20
         private SonarQubeOrganization ToOrganization(OrganizationResponse response) =>
             new SonarQubeOrganization(response.Key, response.Name);
 
-        private class OrganizationResponse
+        private sealed class OrganizationResponse
         {
             [JsonProperty("key")]
             public string Key { get; set; }
