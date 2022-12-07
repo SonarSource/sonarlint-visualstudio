@@ -1,6 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable"
               xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <Extern href="KnownImageIds.vsct"/>
+
   <Commands package="guidVsPackagePkgString">
     <Groups>
       <Group guid="HelpMenuCmdSet" id="HelpGroup">
@@ -9,10 +11,12 @@
     </Groups>
 
     <Buttons>
-      <Button guid="HelpMenuCmdSet" id="ReportProblemCommand" priority="0x100">
-        <Parent guid="HelpMenuCmdSet" id="HelpGroup"/>
+      <Button guid="HelpMenuCmdSet" id="ViewDocumentationCommand" priority="0x100">
+        <Parent guid="HelpMenuCmdSet" id="HelpGroup" />
+        <Icon guid="ImageCatalogGuid" id="StatusHelp" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
-          <ButtonText>Report a problem</ButtonText>
+          <ButtonText>View Documentation</ButtonText>
         </Strings>
       </Button>
       <Button guid="HelpMenuCmdSet" id="ShowLogsCommand" priority="0x101">
@@ -21,21 +25,19 @@
           <ButtonText>Show Logs</ButtonText>
         </Strings>
       </Button>
-      <Buttons>
-        <Button guid="HelpMenuCmdSet" id="ViewDocumentationCommand" priority="0x102">
-          <Parent guid="HelpMenuCmdSet" id="HelpGroup" />
-          <Strings>
-            <ButtonText>View Documentation</ButtonText>
-          </Strings>
-        </Button>
-      </Buttons>
-        <Button guid="HelpMenuCmdSet" id="AboutCommand" priority="0x200">
-          <Parent guid="HelpMenuCmdSet" id="HelpGroup" />
-          <Icon guid="guidImages" id="sonarlint" />
-          <Strings>
-            <ButtonText>About SonarLint</ButtonText>
-          </Strings>
-        </Button>
+      <Button guid="HelpMenuCmdSet" id="ReportProblemCommand" priority="0x102">
+        <Parent guid="HelpMenuCmdSet" id="HelpGroup"/>
+        <Strings>
+          <ButtonText>Report a Problem</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="HelpMenuCmdSet" id="AboutCommand" priority="0x200">
+        <Parent guid="HelpMenuCmdSet" id="HelpGroup" />
+        <Icon guid="guidImages" id="sonarlint" />
+        <Strings>
+          <ButtonText>About SonarLint</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
 
     <Bitmaps>
