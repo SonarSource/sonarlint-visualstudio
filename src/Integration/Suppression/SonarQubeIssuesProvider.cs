@@ -55,36 +55,25 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         private CancellationTokenSource cancellationTokenSource;
         private readonly IThreadHandling threadHandling;
 
-        public SonarQubeIssuesProvider(ISonarQubeService sonarQubeService, string sonarQubeProjectKey, ITimerFactory timerFactory,
-            ILogger logger) : this(sonarQubeService, sonarQubeProjectKey, timerFactory, logger, ThreadHandling.Instance)
+        public SonarQubeIssuesProvider(ISonarQubeService sonarQubeService, string sonarQubeProjectKey,
+            ILogger logger) : this(sonarQubeService, sonarQubeProjectKey, logger, new TimerFactory(), ThreadHandling.Instance)
         {
-
         }
 
-
-        internal SonarQubeIssuesProvider(ISonarQubeService sonarQubeService, string sonarQubeProjectKey, ITimerFactory timerFactory,
-            ILogger logger, IThreadHandling threadHandling)
+        internal /* for testing */ SonarQubeIssuesProvider(ISonarQubeService sonarQubeService, string sonarQubeProjectKey,
+            ILogger logger, ITimerFactory timerFactory, IThreadHandling threadHandling)
         {
-            if (sonarQubeService == null)
-            {
-                throw new ArgumentNullException(nameof(sonarQubeService));
-            }
             if (string.IsNullOrWhiteSpace(sonarQubeProjectKey))
             {
                 throw new ArgumentNullException(nameof(sonarQubeProjectKey));
             }
-            if (timerFactory == null)
-            {
-                throw new ArgumentNullException(nameof(timerFactory));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
 
-            this.sonarQubeService = sonarQubeService;
+            Debug.Assert(timerFactory != null, "timerFactory should not be null");
+            Debug.Assert(threadHandling != null, "threadHandling should not be null");
+
+            this.sonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
             this.sonarQubeProjectKey = sonarQubeProjectKey;
-            this.logger = logger;
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.threadHandling = threadHandling;
 
             refreshTimer = timerFactory.Create();
