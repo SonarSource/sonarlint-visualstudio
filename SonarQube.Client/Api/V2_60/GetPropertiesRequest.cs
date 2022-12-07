@@ -41,7 +41,7 @@ namespace SonarQube.Client.Api.V2_60
         private SonarQubeProperty ToProperty(PropertyResponse arg) =>
             new SonarQubeProperty(arg.Key, arg.Value);
 
-        private class PropertyResponse
+        private sealed class PropertyResponse
         {
             [JsonProperty("key")]
             public string Key { get; set; }

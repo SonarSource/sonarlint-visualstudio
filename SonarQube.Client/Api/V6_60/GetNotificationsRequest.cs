@@ -70,7 +70,7 @@ namespace SonarQube.Client.Api.V6_60
         private SonarQubeNotification ToNotification(NotificationsResponse response) =>
             new SonarQubeNotification(response.Category, response.Message, response.Link, response.Date);
 
-        private class NotificationsResponse
+        private sealed class NotificationsResponse
         {
             [JsonProperty("category")]
             public string Category { get; set; }

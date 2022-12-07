@@ -50,7 +50,7 @@ namespace SonarQube.Client
         {
             EnsureIsConnected();
 
-            var hasOrganisations = this.httpClient.BaseAddress.Host.Equals("sonarcloud.io", StringComparison.OrdinalIgnoreCase);
+            var hasOrganisations = httpClient.BaseAddress.Host.Equals("sonarcloud.io", StringComparison.OrdinalIgnoreCase);
 
             return await Task.FromResult<bool>(hasOrganisations);
         }

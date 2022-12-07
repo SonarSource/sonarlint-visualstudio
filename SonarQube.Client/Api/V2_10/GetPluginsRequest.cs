@@ -38,7 +38,7 @@ namespace SonarQube.Client.Api.V2_10
         private SonarQubePlugin ToPlugin(PluginResponse response) =>
             new SonarQubePlugin(response.Key, response.Version);
 
-        private class PluginResponse
+        private sealed class PluginResponse
         {
             [JsonProperty("key")]
             public string Key { get; set; }
