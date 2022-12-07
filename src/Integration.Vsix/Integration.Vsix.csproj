@@ -262,11 +262,11 @@
 
   <ItemGroup>
     <None Remove="Commands\HelpMenu\AboutDialog.xaml" />
-    <None Remove="Resources\MavenPro-Regular.ttf" />
-    <None Remove="Resources\Saira-Bold.ttf" />
+    <None Remove="Resources\sonarlint%402x.png" />
     <None Remove="Resources\sonarlint-white.png" />
     <None Remove="Resources\sonarlint_200.png" />
     <None Remove="Resources\sonarlint_32.png" />
+    <None Remove="Resources\sonarlint_nobg.png" />
     <None Remove="Resources\sonarlint_wave_128px.png" />
     <None Remove="secrets\LICENSE.txt" />
     <None Remove="Settings\GeneralOptionsDialogControl.xaml" />
@@ -496,9 +496,9 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\MavenPro-Regular.ttf" />
-    <Resource Include="Resources\Saira-Bold.ttf" />
     <Resource Include="Resources\sonarlint-white.png" />
+    <Resource Include="Resources\sonarlint@2x.png" />
+    <Resource Include="Resources\sonarlint_nobg.png" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Properties\Settings.settings">

@@ -38,8 +38,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
             var testSubject = new AboutCommand(browserService.Object);
 
-            const string aboutUrl = "https://marketplace.visualstudio.com/items?itemName=SonarSource.SonarLintforVisualStudio2022";
-
             browserService.Verify(x => x.Navigate(aboutUrl), Times.Never);
             testSubject.Invoke(command, null);
             browserService.Verify(x => x.Navigate(aboutUrl), Times.Once);
