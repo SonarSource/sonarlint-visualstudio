@@ -13,7 +13,7 @@
         <Parent guid="ConnectedModeMenuCmdSet" id="ConnectedModeGroup"/>
         <Icon guid="guidIcons" id="bmpSonarQube"/>
         <Strings>
-          <ButtonText>Bind in SonarQube\SonarCloud</ButtonText>
+          <ButtonText>Bind to SonarQube/SonarCloud</ButtonText>
         </Strings>
       </Button>
     </Buttons>
