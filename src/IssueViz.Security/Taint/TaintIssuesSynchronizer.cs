@@ -92,7 +92,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 }
 
                 var projectKey = bindingConfiguration.Project.ProjectKey;
-                var taintVulnerabilities = await sonarQubeService.GetTaintVulnerabilitiesAsync(projectKey, CancellationToken.None);
+                var taintVulnerabilities = await sonarQubeService.GetTaintVulnerabilitiesAsync(projectKey,
+                    null, // TODO - pass the current branch
+                    CancellationToken.None);
 
                 logger.WriteLine(TaintResources.Synchronizer_NumberOfServerIssues, taintVulnerabilities.Count);
 
