@@ -32,6 +32,7 @@ using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Suppression;
 using SonarQube.Client;
 using SonarQube.Client.Models;
+using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 {
