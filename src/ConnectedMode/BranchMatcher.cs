@@ -29,6 +29,14 @@ namespace SonarLint.VisualStudio.ConnectedMode
 {
     public interface IBranchMatcher
     {
+        /// <summary>
+        /// Calculates the nearest branch to the head branch.
+        /// Returns null if there are no head branches
+        /// </summary>
+        /// <remarks>
+        /// Compares branches by name and calculates distances by the number of different commits
+        /// Defaults to main branch when no match found
+        /// </remarks>
         Task<string> GetMatchedBranch(string projectKey);
     }
 

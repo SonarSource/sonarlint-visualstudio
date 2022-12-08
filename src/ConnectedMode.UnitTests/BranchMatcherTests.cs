@@ -32,16 +32,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
     [TestClass]
     public class BranchMatcherTests
     {
+        [DataRow("BRANCH")]
+        [DataRow("branch")]
+        [DataRow("Branch")]
         [TestMethod]
-        public async Task GetMatchedBranch_ChooseBranchWithSameName()
+        public async Task GetMatchedBranch_ChooseBranchWithSameName(string serverBranchName)
         {
-            var service = CreateService("master", "branch");
+            var service = CreateSonarQubeService("master", serverBranchName);
 
-            var masterCommit = new CommitWrapper(1);
-            var branchCommit = new CommitWrapper(2);
-
-            var masterBranch = CreateBranch("master", masterCommit);
-            var headBranch = CreateBranch("branch", branchCommit, masterCommit);
+            var masterBranch = CreateBranch("master");
+            var headBranch = CreateBranch("branch");
 
             var repo = CreateRepo(headBranch, masterBranch);
 
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         [TestMethod]
         public async Task GetMatchedBranch_NoBranchWithSameName_ChooseClosestMatch()
         {
-            var service = CreateService("master", "dev");
+            var service = CreateSonarQubeService("master", "dev");
 
             var masterCommit = new CommitWrapper(1);
             var devBranchCommit = new CommitWrapper(2);
@@ -66,6 +66,30 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             var headBranch = CreateBranch("branch", headBranchCommit, devBranchCommit, masterCommit);
 
             var repo = CreateRepo(headBranch, masterBranch, devBranch);
+
+            var testSubject = new BranchMatcher(service, repo);
+
+            var result = await testSubject.GetMatchedBranch("projectKey");
+
+            result.Should().Be("dev");
+        }
+
+        [TestMethod]
+        public async Task GetMatchedBranch_ClosesBranchNotOnTheServer_IgnoreClosest()
+        {
+            var service = CreateSonarQubeService("master", "dev");
+
+            var masterCommit = new CommitWrapper(1);
+            var devBranchCommit = new CommitWrapper(2);
+            var closestBranchCommit = new CommitWrapper(3);
+            var headBranchCommit = new CommitWrapper(4);
+
+            var masterBranch = CreateBranch("master", masterCommit);
+            var devBranch = CreateBranch("dev", devBranchCommit, masterCommit);
+            var closestBranch = CreateBranch("closest_branch", closestBranchCommit, devBranchCommit, masterCommit);
+            var headBranch = CreateBranch("branch",headBranchCommit,  closestBranchCommit, devBranchCommit, masterCommit);
+
+            var repo = CreateRepo(headBranch,closestBranch, masterBranch, devBranch);
 
             var testSubject = new BranchMatcher(service, repo);
 
@@ -109,7 +133,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         [TestMethod]
         public async Task GetMatchedBranch_MultipleCandidate_ChooseClosestMatch()
         {
-            var service = CreateService("master", "Branch1", "Branch2");
+            var service = CreateSonarQubeService("master", "Branch1", "Branch2");
 
             var commit1 = new CommitWrapper(1);
             var commit2 = new CommitWrapper(2);
@@ -139,14 +163,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         [TestMethod]
         public async Task GetMatchedBranch_NoMatchingBranch_ChooseMain()
         {
-            var service = CreateService("master", "branch1", "branch2");
+            var service = CreateSonarQubeService("premier", "branch1", "branch2");
 
             var masterCommit = new CommitWrapper(1);
             var branch1Commit = new CommitWrapper(2);
             var branch2Commit = new CommitWrapper(3);
             var headCommit = new CommitWrapper(4);
 
-            var masterBranch = CreateBranch("master", masterCommit);
+            var masterBranch = CreateBranch("premier", masterCommit);
             var branch1 = CreateBranch("branch1", branch1Commit, masterCommit);
             var branch2 = CreateBranch("branch2", branch2Commit, masterCommit);
             var headBranch = CreateBranch("head", headCommit);
@@ -157,7 +181,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var result = await testSubject.GetMatchedBranch("projectKey");
 
-            result.Should().Be("master");
+            result.Should().Be("premier");
         }
 
         [TestMethod]
@@ -185,14 +209,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             return repo.Object;
         }
 
-        //Order of the commits matter. Commits should be in descending order. 
+        //Order of the commits matter. Commits should be in descending order by time. 
         private static BranchWrapper CreateBranch(string branchName, params CommitWrapper[] commits)
         {
             var masterBranch = new BranchWrapper(branchName, new CommitLogWrapper(commits));
             return masterBranch;
         }
 
-        private static ISonarQubeService CreateService(string mainBranch, params string[] branches)
+        private static ISonarQubeService CreateSonarQubeService(string mainBranch, params string[] branches)
         {
             var service = new Mock<ISonarQubeService>();
 

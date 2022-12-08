@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.LibGit2SharpWrappers
     {
         private readonly IEnumerable<Branch> branches;
 
-        internal BranchCollectionWrapper(IEnumerable<Branch> branches) : base()
+        internal BranchCollectionWrapper(IEnumerable<Branch> branches)
         {
             this.branches = branches;
         }
