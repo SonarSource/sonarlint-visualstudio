@@ -82,6 +82,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         private string activeDocumentFilePath;
         private string windowCaption;
         private ITaintIssueViewModel selectedIssue;
+        private ServerType? serverType = null;
 
         private readonly ObservableCollection<ITaintIssueViewModel> unfilteredIssues;
 
@@ -125,7 +126,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         public AnalysisInformation AnalysisInformation { get; private set; }
 
-        public string ServerType { get; set; }
+        public string ServerType => serverType.ToString();
 
         public TaintIssuesControlViewModel(ITaintStore store,
             ILocationNavigator locationNavigator,
@@ -179,9 +180,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         private void UpdateServerType()
         {
-            var serverInfo = sonarQubeService.GetServerInfo();
-            ServerType = (serverInfo?.ServerType)?.ToString() ?? string.Empty;
-            NotifyPropertyChanged(nameof(ServerType));
+            var newServerType = sonarQubeService.GetServerInfo()?.ServerType;
+            if (!newServerType.Equals(serverType))
+            {
+                serverType = newServerType;
+                NotifyPropertyChanged(nameof(ServerType));
+            }
         }
 
         private void ApplyViewFilter(Predicate<object> filter) =>

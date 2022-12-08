@@ -193,6 +193,28 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         }
 
         [TestMethod]
+        public void Ctor_ExpectedServerTypeSet()
+        {
+            var sonarQubeServiceMock = new Mock<ISonarQubeService>();
+
+            // 1. SC
+            sonarQubeServiceMock.Setup(x => x.GetServerInfo()).Returns(new ServerInfo(null, ServerType.SonarCloud));
+            var testSubject = CreateTestSubject(sonarQubeService: sonarQubeServiceMock.Object);
+            testSubject.ServerType.Should().Be(ServerType.SonarCloud.ToString());
+
+            // 2. SQ
+
+            sonarQubeServiceMock.Setup(x => x.GetServerInfo()).Returns(new ServerInfo(null, ServerType.SonarQube));
+            testSubject = CreateTestSubject(sonarQubeService: sonarQubeServiceMock.Object);
+            testSubject.ServerType.Should().Be(ServerType.SonarQube.ToString());
+
+            // 3. Standalone
+            sonarQubeServiceMock.Setup(x => x.GetServerInfo()).Returns((ServerInfo)null);
+            testSubject = CreateTestSubject(sonarQubeService: sonarQubeServiceMock.Object);
+            testSubject.ServerType.Should().Be(string.Empty);
+        }
+
+        [TestMethod]
         public void Dispose_UnregisterFromActiveDocumentChanges()
         {
             var activeDocumentTracker = new Mock<IActiveDocumentTracker>();
@@ -702,6 +724,44 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             testSubject.AnalysisInformation.Should().BeSameAs(analysisInformation);
         }
 
+        [TestMethod]
+        public void ActiveDocChanged_ExpectedServerTypeSetOnlyWhenItIsChanged()
+        {
+
+            var activeDocumentTrackerMock = new Mock<IActiveDocumentTracker>();
+            var sonarQubeServiceMock = new Mock<ISonarQubeService>();
+
+            var testSubject = CreateTestSubject(activeDocumentTracker: activeDocumentTrackerMock.Object, sonarQubeService:sonarQubeServiceMock.Object);
+            int eventCount = 0;
+            testSubject.PropertyChanged += (sender, args) => {
+                if (args is { PropertyName: nameof(testSubject.ServerType) })
+                {
+                    eventCount++;
+                }
+            };
+
+            // 1. SC
+            sonarQubeServiceMock.Setup(x => x.GetServerInfo()).Returns(new ServerInfo(null, ServerType.SonarCloud));
+            RaiseActiveDocumentChangedEvent(activeDocumentTrackerMock);
+            RaiseActiveDocumentChangedEvent(activeDocumentTrackerMock);
+            testSubject.ServerType.Should().Be(ServerType.SonarCloud.ToString());
+
+            // 2. SQ
+
+            sonarQubeServiceMock.Setup(x => x.GetServerInfo()).Returns(new ServerInfo(null, ServerType.SonarQube));
+            RaiseActiveDocumentChangedEvent(activeDocumentTrackerMock);
+            RaiseActiveDocumentChangedEvent(activeDocumentTrackerMock);
+            testSubject.ServerType.Should().Be(ServerType.SonarQube.ToString());
+
+            // 3. Standalone
+            sonarQubeServiceMock.Setup(x => x.GetServerInfo()).Returns((ServerInfo)null);
+            RaiseActiveDocumentChangedEvent(activeDocumentTrackerMock);
+            RaiseActiveDocumentChangedEvent(activeDocumentTrackerMock);
+            testSubject.ServerType.Should().Be(string.Empty);
+
+            eventCount.Should().Be(3);
+        }
+
         private static TaintIssuesControlViewModel CreateTestSubject(
             IAnalysisIssueVisualization[] issueVizs = null,
             ILocationNavigator locationNavigator = null,
@@ -816,6 +876,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         {
             selectionService.Setup(x => x.SelectedIssue).Returns(selectedIssue);
             selectionService.Raise(x => x.SelectedIssueChanged += null, EventArgs.Empty);
+        }
+
+        private static void RaiseActiveDocumentChangedEvent(Mock<IActiveDocumentTracker> activeDocTracker)
+        {
+            activeDocTracker.Raise(x => x.ActiveDocumentChanged += null, new ActiveDocumentChangedEventArgs(Mock.Of<ITextDocument>()));
         }
 
         private void VerifyPropertyChangedWasRaised(Mock<PropertyChangedEventHandler> eventHandler, string expectedProperty)
