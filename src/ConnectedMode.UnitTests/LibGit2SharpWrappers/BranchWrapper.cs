@@ -35,6 +35,5 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.LibGit2SharpWrappers
         public override string FriendlyName { get; }
 
         public override ICommitLog Commits { get; }
-
     }
 }

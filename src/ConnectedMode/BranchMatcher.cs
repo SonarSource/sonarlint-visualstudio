@@ -54,9 +54,9 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
             var remoteBranches = await sonarQubeService.GetProjectBranchesAsync(projectKey, CancellationToken.None);
 
-            if(remoteBranches.Any(rb=> string.Equals(rb.Name, gitRepo.Head.FriendlyName, StringComparison.InvariantCultureIgnoreCase)))
+            if(remoteBranches.Any(rb=> string.Equals(rb.Name, head.FriendlyName, StringComparison.InvariantCultureIgnoreCase)))
             {
-                return gitRepo.Head.FriendlyName;
+                return head.FriendlyName;
             }
 
             string closestBranch = null;
@@ -81,10 +81,10 @@ namespace SonarLint.VisualStudio.ConnectedMode
             {
                 return remoteBranches.First(rb => rb.IsMain == true).Name;
             }
-
             return closestBranch;
         }
 
+        //Commits are in descending order by time
         private int GetDistance(Branch head, Branch branch)
         {
             var headCommits = head.Commits.ToList();

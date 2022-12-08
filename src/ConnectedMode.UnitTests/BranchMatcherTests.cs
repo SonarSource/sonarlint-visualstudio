@@ -122,7 +122,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             var commit9 = new CommitWrapper(9);
             var commit10 = new CommitWrapper(10);
             
-
             var masterBranch = CreateBranch("master", commit10, commit9, commit8, commit3, commit2, commit1);
             var branch1 = CreateBranch("branch1", commit5, commit4, commit3, commit2, commit1);
             var branch2 = CreateBranch("branch2", commit6, commit3, commit2, commit1);
@@ -159,7 +158,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             var result = await testSubject.GetMatchedBranch("projectKey");
 
             result.Should().Be("master");
-
         }
 
         [TestMethod]
