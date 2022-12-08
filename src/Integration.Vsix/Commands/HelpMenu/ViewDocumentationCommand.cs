@@ -20,11 +20,11 @@
 
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Commands
+namespace SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu
 {
     internal class ViewDocumentationCommand : VsCommandBase
     {
-        internal const int ViewDocumentationCommandId = 0x103;
+        internal const int Id = 0x103;
 
         private readonly IShowInBrowserService showInBrowserService;
 

@@ -24,6 +24,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu
 {
     internal class ShowLogsCommand : VsCommandBase
     {
+        internal const int Id = 0x102;
+
         private readonly IOutputWindowService outputWindowService;
 
         public ShowLogsCommand(IOutputWindowService outputWindowService)

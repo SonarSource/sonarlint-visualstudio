@@ -28,8 +28,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         ProjectTestPropertyTrue = 0x103,
         ProjectTestPropertyFalse = 0x104,
         // Menus
-        ProjectSonarLintMenu = 0x850,
-        // Help menu buttons
-        SonarLintHelpShowLogs = 0x102
+        ProjectSonarLintMenu = 0x850
     }
 }

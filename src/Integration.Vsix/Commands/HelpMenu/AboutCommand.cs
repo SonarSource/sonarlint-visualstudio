@@ -20,11 +20,11 @@
 
 using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Commands
+namespace SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu
 {
     internal class AboutCommand : VsCommandBase
     {
-        internal const int AboutCommandId = 0x104;
+        internal const int Id = 0x104;
 
         private readonly string aboutUrl = "https://marketplace.visualstudio.com/items?itemName=SonarSource.SonarLintforVisualStudio2022";
 
