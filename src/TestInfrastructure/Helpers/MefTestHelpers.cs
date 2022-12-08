@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             importer.AssertImportIsInstanceOf<TTypeToCheck>();
             return importer;
         }
-
+        
         /// <summary>
         /// Tests that the <typeparamref name="TTypeToCheck"/> can be imported using MEF.
         /// If required exports are supplied then the test also checks that the type cannot be
@@ -120,18 +120,37 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         /// <param name="typeToExport">The type to of export being tested</param>
         /// <param name="additionalExports">Any other exports that are required. Can be empty.</param>
         public static void Compose(object importer, Type typeToExport, params Export[] additionalExports)
+            => Compose(
+                new object[]{ importer },
+                new Type[]{ typeToExport },
+                additionalExports);
+
+        /// <summary>
+        /// Performs a MEF compose with the supplied objects
+        /// </summary>
+        /// <param name="importers">The instance that is importing the exported type</param>
+        /// <param name="typesToExport">The types of export being tested</param>
+        /// <param name="additionalExports">Any other exports that are required. Can be empty.</param>
+        /// <remarks>Note: this overload is useful for testing types that have multiple exports
+        /// i.e. that export multiple types.</remarks>
+        public static void Compose(object[] importers, Type[] typesToExport, params Export[] additionalExports)
         {
             // Create a type catalog that only contains the type to be checked to
             // make sure we don't pick up any other types
-            var catalog = new TypeCatalog(typeToExport);
+            var catalog = new TypeCatalog(typesToExport);
 
             var batch = new CompositionBatch();
-            batch.AddPart(importer);
+            
+            foreach(var importer in importers)
+            {
+                batch.AddPart(importer);
+            }
+
             foreach (Export item in additionalExports)
             {
                 batch.AddExport(item);
             }
-            
+
             using var container = new CompositionContainer(catalog);
             container.Compose(batch);
         }

@@ -81,21 +81,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestMethod]
         public void Constructor_ThrowsOnNull()
         {
-            string validProjectKey = "key1";
+            var sqService = Mock.Of<ISonarQubeService>();
+            var serverBranchProvider = Mock.Of<IServerBranchProvider>();
+            var logger = Mock.Of<ILogger>();
+            const string validProjectKey = "key1";
 
-            Action op = () => new SonarQubeIssuesProvider(null, validProjectKey, testLogger);
+            Action op = () => new SonarQubeIssuesProvider(null, serverBranchProvider, validProjectKey, logger);
             op.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
 
-            op = () => new SonarQubeIssuesProvider(mockSqService.Object, null, testLogger);
+            op = () => new SonarQubeIssuesProvider(sqService, null, validProjectKey, logger);
+            op.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverBranchProvider");
+
+            op = () => new SonarQubeIssuesProvider(sqService, serverBranchProvider, null, logger);
             op.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeProjectKey");
 
-            op = () => new SonarQubeIssuesProvider(mockSqService.Object, "", testLogger);
+            op = () => new SonarQubeIssuesProvider(sqService, serverBranchProvider, "", logger);
             op.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeProjectKey");
 
-            op = () => new SonarQubeIssuesProvider(mockSqService.Object, "\r\n ", testLogger);
+            op = () => new SonarQubeIssuesProvider(sqService, serverBranchProvider, "\r\n ", logger);
             op.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeProjectKey");
 
-            op = () => new SonarQubeIssuesProvider(mockSqService.Object, validProjectKey, null);
+            op = () => new SonarQubeIssuesProvider(sqService, serverBranchProvider, validProjectKey, null);
             op.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
@@ -105,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // Arrange
             // The provider will attempt to fetch issues at start up and will loop if it
             // is not connected to the server, so we'll initialise it as connected.
-            SetupSolutionBinding(isConnected: true, issues: null);
+            SetupSolutionBinding(isConnected: true);
             mockTimer.SetupSet(t => t.AutoReset = true).Verifiable();
 
             // 1. Construction -> timer initialised
@@ -153,7 +159,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Dispose_Disconnected_TimerDisposed()
         {
             // Arrange
-            SetupSolutionBinding(isConnected: true, issues: null);
+            SetupSolutionBinding(isConnected: true);
 
             var issuesProvider = CreateTestSubject();
             WaitForInitialFetchTaskToStart();
@@ -171,7 +177,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Dispose_Connected_TimerDisposed()
         {
             // Arrange
-            SetupSolutionBinding(isConnected: true, issues: new List<SonarQubeIssue>());
+            SetupSolutionBinding(isConnected: true);
 
             var issuesProvider = CreateTestSubject();
 
@@ -189,7 +195,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestMethod]
         public void GetIssues_NoIssuesOnServer_ReturnsEmptyList()
         {
-            SetupSolutionBinding(isConnected: true, issues: null);
+            SetupSolutionBinding(isConnected: true);
 
             // 1. Created -> issues fetch in background
             var issuesProvider = CreateTestSubject("sqkey");
@@ -198,13 +204,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             VerifyServiceGetIssues(Times.Exactly(1), "sqkey");
 
             // 2. SonarQube project key doesn't match -> no issues
-            var matches = issuesProvider.GetSuppressedIssues("any project", "any file");
+            var matches = issuesProvider.GetSuppressedIssues("any project", "c:\\anyfile");
             matches.Should().NotBeNull();
             matches.Should().BeEmpty();
 
             // Cached issues should be used after first fetch. Should not refetch just
             // because the initial fetch returned no items.
             VerifyServiceGetIssues(Times.Exactly(1));
+        }
+
+        [TestMethod]
+        public void GetIssues_UsesExpectedBranch()
+        {
+            SetupSolutionBinding(isConnected: true);
+
+            var serverBranchProvider = CreateServerBranchProvider("branch-XXX");
+            var issuesProvider = CreateTestSubject("sqkey", serverBranchProvider.Object);
+            WaitForInitialFetchTaskToStart();
+
+            serverBranchProvider.Verify(x => x.GetServerBranchNameAsync(), Times.Once);
+
+            VerifyServiceGetIssues(Times.Exactly(1), "sqkey", "branch-XXX");
         }
 
         [TestMethod]
@@ -535,7 +555,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void GetIssues_NotConnected_NoErrors()
         {
             // Arrange
-            SetupSolutionBinding(isConnected: false, issues: null);
+            SetupSolutionBinding(isConnected: false);
 
             int callCount = 0;
 
@@ -637,7 +657,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestMethod]
         public async Task GetAllSuppressedIssues_NoIssuesOnServer_ReturnsEmptyList()
         {
-            SetupSolutionBinding(isConnected: true, issues: null);
+            SetupSolutionBinding(isConnected: true);
 
             // 1. Created -> issues fetch in background
             var issuesProvider = CreateTestSubject("sqkey");
@@ -682,9 +702,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
         #endregion
 
-        private SonarQubeIssuesProvider CreateTestSubject(string projectKey = "any")
+        private SonarQubeIssuesProvider CreateTestSubject(string projectKey = "any",
+            IServerBranchProvider serverBranchProvider = null)
         {
+            serverBranchProvider ??= Mock.Of<IServerBranchProvider>();
+
             var testSubject = new SonarQubeIssuesProvider(mockSqService.Object,
+                serverBranchProvider,
                 projectKey,
                 testLogger,
                 mockTimerFactory.Object,
@@ -700,12 +724,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         /// <summary>
         /// Configures the mock service to return the specified values
         /// </summary>
-        private void SetupSolutionBinding(bool isConnected, IList<SonarQubeIssue> issues, IList<SonarQubeModule> modules = null)
+        private void SetupSolutionBinding(bool isConnected, IList<SonarQubeIssue> issues = null, IList<SonarQubeModule> modules = null)
         {
             Func<IList<SonarQubeIssue>> serviceFetchIssuesTask = () =>
             {
                 InitialFetchWaitHandle?.Set(); // signal so the test can continue
-                return issues;
+                return issues ?? new List<SonarQubeIssue>();
             };
 
             SetupSolutionBinding(isConnected, serviceFetchIssuesTask, modules);
@@ -739,6 +763,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 .Verifiable();
         }
 
+        private static Mock<IServerBranchProvider> CreateServerBranchProvider(string branch)
+        {
+            var serverBranchProvider = new Mock<IServerBranchProvider>();
+            serverBranchProvider.Setup(x => x.GetServerBranchNameAsync()).ReturnsAsync(branch);
+            return serverBranchProvider;
+        }
+
         private void WaitForInitialFetchTaskToStart()
         {
             // Only applicable for solutions that are both connected and bound
@@ -762,9 +793,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             mockSqService.Verify(x => x.GetSuppressedIssuesAsync(It.IsAny<string>(), null, It.IsAny<CancellationToken>()), expected);
         }
 
-        private void VerifyServiceGetIssues(Times expected, string sonarQubeProjectKey)
+        private void VerifyServiceGetIssues(Times expected, string sonarQubeProjectKey, string branch = null)
         {
-            mockSqService.Verify(x => x.GetSuppressedIssuesAsync(sonarQubeProjectKey, null, It.IsAny<CancellationToken>()), expected);
+            mockSqService.Verify(x => x.GetSuppressedIssuesAsync(sonarQubeProjectKey, branch, It.IsAny<CancellationToken>()), expected);
         }
 
         private void VerifyServiceIsConnected(Times expected)
