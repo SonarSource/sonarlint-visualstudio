@@ -62,12 +62,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         private static void SetupAndExecute(bool shouldLog, Action<TestLogger> testOp)
         {
             var logger = new TestLogger();
-            var mockSettings = new Mock<IEnvironmentSettings>();
-            mockSettings.Setup(x => x.ShouldLogDebugMessages()).Returns(shouldLog);
 
             try
             {
-                ILoggerExtensions.Initialize(mockSettings.Object);
+                ILoggerExtensions.Initialize(shouldLog);
 
                 // Act
                 testOp(logger);
@@ -75,7 +73,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             finally
             {
                 // Re-initialize from whatever the real environment settings are
-                ILoggerExtensions.Initialize(new EnvironmentSettings());
+                ILoggerExtensions.Initialize(shouldLog);
             }
         }
     }

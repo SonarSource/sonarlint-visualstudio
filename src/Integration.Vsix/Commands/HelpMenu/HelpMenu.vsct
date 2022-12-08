@@ -5,20 +5,20 @@
 
   <Commands package="guidVsPackagePkgString">
     <Groups>
-      <Group guid="HelpMenuCmdSet" id="HelpGroupMain">
+      <Group guid="HelpMenuCmdSet" id="HelpMainGroup">
         <Parent guid="SonarLintCmdSet" id="HelpMenu"/>
       </Group>
-      <Group guid="HelpMenuCmdSet" id="HelpGroupLogs">
+      <Group guid="HelpMenuCmdSet" id="HelpLogsGroup">
         <Parent guid="SonarLintCmdSet" id="HelpMenu"/>
       </Group>
-      <Group guid="HelpMenuCmdSet" id="HelpGroupAbout">
+      <Group guid="HelpMenuCmdSet" id="HelpAboutGroup">
         <Parent guid="SonarLintCmdSet" id="HelpMenu"/>
       </Group>
     </Groups>
 
     <Buttons>
       <Button guid="HelpMenuCmdSet" id="ViewDocumentationCommand" priority="0x100">
-        <Parent guid="HelpMenuCmdSet" id="HelpGroupMain" />
+        <Parent guid="HelpMenuCmdSet" id="HelpMainGroup" />
         <Icon guid="ImageCatalogGuid" id="StatusHelp" />
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
@@ -26,26 +26,26 @@
         </Strings>
       </Button>
       <Button guid="HelpMenuCmdSet" id="ShowLogsCommand" priority="0x101">
-        <Parent guid="HelpMenuCmdSet" id="HelpGroupLogs"/>
+        <Parent guid="HelpMenuCmdSet" id="HelpLogsGroup"/>
         <Strings>
           <ButtonText>Show Logs</ButtonText>
         </Strings>
       </Button>
       <Button guid="HelpMenuCmdSet" id="ToggleDebugLogsCommand" priority="0x102">
-        <Parent guid="HelpMenuCmdSet" id="HelpGroupLogs"/>
+        <Parent guid="HelpMenuCmdSet" id="HelpLogsGroup"/>
         <CommandFlag>TextChanges</CommandFlag>
         <Strings>
           <ButtonText>Enable Debug Logs</ButtonText>
         </Strings>
       </Button>
       <Button guid="HelpMenuCmdSet" id="ReportProblemCommand" priority="0x103">
-        <Parent guid="HelpMenuCmdSet" id="HelpGroupAbout"/>
+        <Parent guid="HelpMenuCmdSet" id="HelpAboutGroup"/>
         <Strings>
           <ButtonText>Report a Problem...</ButtonText>
         </Strings>
       </Button>
       <Button guid="HelpMenuCmdSet" id="AboutCommand" priority="0x200">
-        <Parent guid="HelpMenuCmdSet" id="HelpGroupAbout"/>
+        <Parent guid="HelpMenuCmdSet" id="HelpAboutGroup"/>
         <Icon guid="guidImages" id="sonarlint" />
         <Strings>
           <ButtonText>About SonarLint</ButtonText>
@@ -60,13 +60,13 @@
 
   <Symbols>
     <GuidSymbol name="HelpMenuCmdSet" value="{6CF262F0-082D-4AD5-9121-7D76EFE523C8}">
-      <IDSymbol name="HelpGroupMain" value="0x101"/>
+      <IDSymbol name="HelpMainGroup" value="0x101"/>
       <IDSymbol name="ShowLogsCommand" value="0x102"/>
       <IDSymbol name="ViewDocumentationCommand" value="0x103"/>
       <IDSymbol name="AboutCommand" value="0x104"/>
       <IDSymbol name="ReportProblemCommand" value="0x105"/>
-      <IDSymbol name="HelpGroupLogs" value="0x106"/>
-      <IDSymbol name="HelpGroupAbout" value="0x107"/>
+      <IDSymbol name="HelpLogsGroup" value="0x106"/>
+      <IDSymbol name="HelpAboutGroup" value="0x107"/>
       <IDSymbol name="ToggleDebugLogsCommand" value="0x108"/>
     </GuidSymbol>
     <GuidSymbol name="SonarLintCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
