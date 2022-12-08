@@ -58,8 +58,8 @@
       <IDSymbol name="ViewDocumentationCommand" value="0x103"/>
       <IDSymbol name="AboutCommand" value="0x104"/>
       <IDSymbol name="ReportProblemCommand" value="0x105"/>
-      <IDSymbol name="HelpGroupLogs" value="0x107"/>
-      <IDSymbol name="HelpGroupAbout" value="0x108"/>
+      <IDSymbol name="HelpGroupLogs" value="0x106"/>
+      <IDSymbol name="HelpGroupAbout" value="0x107"/>
     </GuidSymbol>
     <GuidSymbol name="SonarLintCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
       <IDSymbol name="HelpMenu" value="0x1023"/>
