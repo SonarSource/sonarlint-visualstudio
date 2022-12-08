@@ -32,17 +32,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands
 
         internal AboutDialog(IBrowserService browserService)
         {
-            SetVersion();
+            CacheExtensionVersion();
             this.browser = browserService;
             InitializeComponent();
             this.DataContext = this;
         }
 
-        private void SetVersion()
+        private void CacheExtensionVersion()
         {
-            System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
-            System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
-            SLVersion = "Version: " + fvi.FileVersion;
+            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+            SLVersion = fvi.FileVersion;
         }
 
         public void ViewWebsite(object sender, RequestNavigateEventArgs e)

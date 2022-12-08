@@ -7,7 +7,7 @@
     SizeToContent="WidthAndHeight"
     Background="WhiteSmoke">
     <Window.Resources>
-        <Style x:Key="TextBlocks" TargetType="TextBlock">
+        <Style x:Key="TextBlockStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Foreground" Value="Black"/>
         </Style>
@@ -21,22 +21,22 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
-        <Image Source="..\..\Resources\sonarlint_nobg.png" Grid.Row="0" Grid.Column="0" Stretch="None"/>
+        <Image Grid.Row="0" Grid.Column="0" Source="..\..\Resources\sonarlint_nobg.png" Stretch="None"/>
         <Grid Grid.Row="0" Grid.Column="1" Margin="15,10,0,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Text="Clean As You Code" Style="{StaticResource TextBlocks}" FontWeight="Bold"/>
-            <TextBlock Grid.Row="1" Text="{Binding SLVersion}" Style="{StaticResource TextBlocks}"/>
+            <TextBlock Grid.Row="0" Text="Clean As You Code" Style="{StaticResource TextBlockStyle}" FontWeight="Bold"/>
+            <TextBlock Grid.Row="1" Text="{Binding Path=SLVersion, StringFormat=Version: {0}}" Style="{StaticResource TextBlockStyle}"/>
             <TextBlock Grid.Row="2">
                 <Hyperlink NavigateUri="https://www.sonarsource.com/products/sonarlint/" RequestNavigate="ViewWebsite">
-                   <TextBlock Text="Visit our Website" Style="{StaticResource TextBlocks}"/>
+                   <TextBlock Text="Visit our Website" Style="{StaticResource TextBlockStyle}"/>
                  </Hyperlink>
             </TextBlock>
         </Grid>
-        <TextBlock Text="Copyright © 2016-2022 SonarSource SA" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="Gray" Style="{StaticResource TextBlocks}" Margin="0,8,0,0"/>
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Copyright © 2016-2022 SonarSource SA" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="Gray" Style="{StaticResource TextBlockStyle}" Margin="0,8,0,0"/>
         <platformUi:DialogButton Content="Close" Grid.Row="1" Grid.Column="1" IsCancel="True" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,8,0,0"/>
     </Grid>
 

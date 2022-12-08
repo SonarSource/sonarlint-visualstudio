@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // Help menu buttons
             this.RegisterCommand(CommonGuids.HelpMenuCommandSet, (int)PackageCommandId.SonarLintHelpShowLogs, new ShowLogsCommand(outputWindowService));
             this.RegisterCommand(CommonGuids.HelpMenuCommandSet, ViewDocumentationCommand.ViewDocumentationCommandId, new ViewDocumentationCommand(showInBrowserService));
-            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, AboutCommand.AboutCommandId, new AboutCommand(browserService));
+            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, AboutCommand.Id, new AboutCommand(browserService));
             this.RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowCommunityPageCommand.Id, new ShowCommunityPageCommand(showInBrowserService));
             
             // Connected mode buttons
