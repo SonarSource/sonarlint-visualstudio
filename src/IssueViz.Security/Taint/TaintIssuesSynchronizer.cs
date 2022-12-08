@@ -53,6 +53,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         private readonly ITaintIssueToIssueVisualizationConverter converter;
         private readonly IConfigurationProvider configurationProvider;
         private readonly IToolWindowService toolWindowService;
+        private readonly IServerBranchProvider serverBranchProvider;
         private readonly ILogger logger;
 
         private readonly VSShellInterop.IVsMonitorSelection vsMonitorSelection;
@@ -64,6 +65,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             ITaintIssueToIssueVisualizationConverter converter,
             IConfigurationProvider configurationProvider,
             IToolWindowService toolWindowService,
+            IServerBranchProvider serverBranchProvider,
             [Import(typeof(VSShell.SVsServiceProvider))] IServiceProvider serviceProvider,
             ILogger logger)
         {
@@ -72,6 +74,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             this.converter = converter;
             this.configurationProvider = configurationProvider;
             this.toolWindowService = toolWindowService;
+            this.serverBranchProvider = serverBranchProvider;
             this.logger = logger;
 
             vsMonitorSelection = (VSShellInterop.IVsMonitorSelection)serviceProvider.GetService(typeof(VSShellInterop.SVsShellMonitorSelection));
@@ -79,7 +82,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             vsMonitorSelection.GetCmdUIContextCookie(ref localGuid, out contextCookie);
         }
 
-        public async Task SynchronizeWithServer()
+        public async Task SynchronizeWithServer() 
         {
             try
             {
@@ -92,8 +95,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 }
 
                 var projectKey = bindingConfiguration.Project.ProjectKey;
+                var serverBranch = await serverBranchProvider.GetServerBranchNameAsync();
+
                 var taintVulnerabilities = await sonarQubeService.GetTaintVulnerabilitiesAsync(projectKey,
-                    null, // TODO - pass the current branch
+                    serverBranch,
                     CancellationToken.None);
 
                 logger.WriteLine(TaintResources.Synchronizer_NumberOfServerIssues, taintVulnerabilities.Count);
