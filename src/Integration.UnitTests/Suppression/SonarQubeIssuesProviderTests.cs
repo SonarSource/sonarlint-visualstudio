@@ -790,10 +790,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
         private void VerifyServiceGetIssues(Times expected)
         {
-            mockSqService.Verify(x => x.GetSuppressedIssuesAsync(It.IsAny<string>(), null, It.IsAny<CancellationToken>()), expected);
+            mockSqService.Verify(x => x.GetSuppressedIssuesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), expected);
         }
 
-        private void VerifyServiceGetIssues(Times expected, string sonarQubeProjectKey, string branch = null)
+        private void VerifyServiceGetIssues(Times expected, string sonarQubeProjectKey)
+        {
+            mockSqService.Verify(x => x.GetSuppressedIssuesAsync(sonarQubeProjectKey, It.IsAny<string>(), It.IsAny<CancellationToken>()), expected);
+        }
+
+        private void VerifyServiceGetIssues(Times expected, string sonarQubeProjectKey, string branch)
         {
             mockSqService.Verify(x => x.GetSuppressedIssuesAsync(sonarQubeProjectKey, branch, It.IsAny<CancellationToken>()), expected);
         }
