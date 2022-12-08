@@ -263,7 +263,6 @@
   <ItemGroup>
     <None Remove="Commands\HelpMenu\AboutDialog.xaml" />
     <None Remove="Resources\sonarlint%402x.png" />
-    <None Remove="Resources\sonarlint-white.png" />
     <None Remove="Resources\sonarlint_200.png" />
     <None Remove="Resources\sonarlint_32.png" />
     <None Remove="Resources\sonarlint_nobg.png" />
@@ -496,7 +495,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\sonarlint-white.png" />
     <Resource Include="Resources\sonarlint@2x.png" />
     <Resource Include="Resources\sonarlint_nobg.png" />
   </ItemGroup>

@@ -18,15 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Controls;
 using Microsoft.VisualStudio.PlatformUI;
-using System.Windows.Forms;
-using System.Reflection;
-using System.Diagnostics;
 using SonarLint.VisualStudio.Core;
 using System.Windows.Navigation;
-using System;
-using System.Windows.Media.Imaging;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Commands
 {
