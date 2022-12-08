@@ -58,7 +58,6 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             return bindingConfiguration => new SonarQubeIssuesProvider(
                 sonarQubeService,
                 bindingConfiguration.Project.ProjectKey,
-                new TimerFactory(),
                 logger);
         }
 
