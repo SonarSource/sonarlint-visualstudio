@@ -261,8 +261,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Commands\HelpMenu\AboutDialog.xaml" />
     <None Remove="Resources\sonarlint_200.png" />
     <None Remove="Resources\sonarlint_32.png" />
+    <None Remove="Resources\sonarlint_nobg.png" />
     <None Remove="Resources\sonarlint_wave_128px.png" />
     <None Remove="secrets\LICENSE.txt" />
     <None Remove="Settings\GeneralOptionsDialogControl.xaml" />
@@ -285,6 +287,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Page Include="Commands\HelpMenu\AboutDialog.xaml" />
 
     <Page Include="Settings\GeneralOptionsDialogControl.xaml" />
     <Page Include="Settings\OtherOptionsDialogControl.xaml" />
@@ -489,6 +492,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\sonarlint_nobg.png" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Properties\Settings.settings">

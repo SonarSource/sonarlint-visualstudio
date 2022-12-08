@@ -18,25 +18,36 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.Core;
+using System.Windows.Navigation;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu
+namespace SonarLint.VisualStudio.Integration.Vsix.Commands
 {
-    internal class AboutCommand : VsCommandBase
+    public sealed partial class AboutDialog : DialogWindow
     {
-        internal const int Id = 0x104;
+        public string SLVersion { get; private set; }
 
-        private readonly IBrowserService browserService;
+        private readonly IBrowserService browser;
 
-        public AboutCommand(IBrowserService browserService)
+        internal AboutDialog(IBrowserService browserService)
         {
-            this.browserService = browserService;
+            CacheExtensionVersion();
+            this.browser = browserService;
+            InitializeComponent();
+            this.DataContext = this;
         }
 
-        protected override void InvokeInternal()
+        private void CacheExtensionVersion()
         {
-            var aboutdialog = new AboutDialog(browserService);
-            aboutdialog.ShowModal();
+            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+            SLVersion = fvi.FileVersion;
+        }
+
+        public void ViewWebsite(object sender, RequestNavigateEventArgs e)
+        {
+            browser.Navigate(e.Uri.AbsoluteUri);
         }
     }
 }
