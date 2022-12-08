@@ -18,13 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Integration.Vsix.Commands;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
+namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.HelpMenu
 {
     [TestClass]
     public class AboutCommandTests
