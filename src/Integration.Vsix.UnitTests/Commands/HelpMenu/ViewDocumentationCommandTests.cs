@@ -18,13 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
-using SonarLint.VisualStudio.Integration.Vsix.Commands;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
+namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.HelpMenu
 {
     [TestClass]
     public class ViewDocumentationCommandTests
@@ -32,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         [TestMethod]
         public void Invoke_VerifyCallsShowDocumentation()
         {
-            OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
+            var command = CommandHelper.CreateRandomOleMenuCommand();
 
             var showInBrowserService = new Mock<IShowInBrowserService>();
 
