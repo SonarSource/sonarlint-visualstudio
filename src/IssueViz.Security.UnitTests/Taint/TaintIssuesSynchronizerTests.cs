@@ -61,28 +61,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         [TestMethod]
-        public async Task SynchronizeWithServer_NonCriticalException_ExceptionCaughtAndLogged()
+        public async Task SynchronizeWithServer_NonCriticalException_UIContextAndStoreCleared()
         {
             var logger = new TestLogger();
 
-            var sonarServer = CreateSonarService();
-            sonarServer.Setup(x => x.GetTaintVulnerabilitiesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .Throws(new Exception("this is a test"));
-
-            var testSubject = CreateTestSubject(
-                bindingConfig: BindingConfig_Connected,
-                logger: logger,
-                sonarService: sonarServer.Object);
-
-            Func<Task> act = testSubject.SynchronizeWithServer;
-            await act.Should().NotThrowAsync();
-
-            logger.AssertPartialOutputStringExists("this is a test");
-        }
-
-        [TestMethod]
-        public async Task SynchronizeWithServer_NonCriticalException_UIContextAndStoreCleared()
-        {
             var sonarServer = CreateSonarService();
             sonarServer.Setup(x => x.GetTaintVulnerabilitiesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .Throws(new Exception("this is a test"));
@@ -95,13 +77,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                 bindingConfig: BindingConfig_Connected,
                 sonarService: sonarServer.Object,
                 taintStore: taintStore.Object,
-                vsMonitor: monitor.Object);
+                vsMonitor: monitor.Object,
+                logger: logger);
 
             Func<Task> act = testSubject.SynchronizeWithServer;
             await act.Should().NotThrowAsync();
 
             CheckStoreIsCleared(taintStore);
             CheckUIContextIsCleared(monitor, cookie);
+            logger.AssertPartialOutputStringExists("this is a test");
         }
 
         [TestMethod]
