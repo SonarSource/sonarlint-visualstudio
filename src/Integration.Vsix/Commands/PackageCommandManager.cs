@@ -64,6 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.RegisterCommand(CommonGuids.HelpMenuCommandSet, ViewDocumentationCommand.ViewDocumentationCommandId, new ViewDocumentationCommand(showInBrowserService));
             this.RegisterCommand(CommonGuids.HelpMenuCommandSet, AboutCommand.AboutCommandId, new AboutCommand(browserService));
             this.RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowCommunityPageCommand.Id, new ShowCommunityPageCommand(showInBrowserService));
+            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, ToggleDebugLogsCommand.Id, new ToggleDebugLogsCommand());
             
             // Connected mode buttons
             this.RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, ManageConnectionsCommand.Id, new ManageConnectionsCommand(teamExplorerController));

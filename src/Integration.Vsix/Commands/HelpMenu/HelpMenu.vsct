@@ -31,7 +31,14 @@
           <ButtonText>Show Logs</ButtonText>
         </Strings>
       </Button>
-      <Button guid="HelpMenuCmdSet" id="ReportProblemCommand" priority="0x102">
+      <Button guid="HelpMenuCmdSet" id="ToggleDebugLogsCommand" priority="0x102">
+        <Parent guid="HelpMenuCmdSet" id="HelpGroupLogs"/>
+        <CommandFlag>TextChanges</CommandFlag>
+        <Strings>
+          <ButtonText>Enable Debug Logs</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="HelpMenuCmdSet" id="ReportProblemCommand" priority="0x103">
         <Parent guid="HelpMenuCmdSet" id="HelpGroupAbout"/>
         <Strings>
           <ButtonText>Report a Problem...</ButtonText>
@@ -58,8 +65,9 @@
       <IDSymbol name="ViewDocumentationCommand" value="0x103"/>
       <IDSymbol name="AboutCommand" value="0x104"/>
       <IDSymbol name="ReportProblemCommand" value="0x105"/>
-      <IDSymbol name="HelpGroupLogs" value="0x107"/>
-      <IDSymbol name="HelpGroupAbout" value="0x108"/>
+      <IDSymbol name="HelpGroupLogs" value="0x106"/>
+      <IDSymbol name="HelpGroupAbout" value="0x107"/>
+      <IDSymbol name="ToggleDebugLogsCommand" value="0x108"/>
     </GuidSymbol>
     <GuidSymbol name="SonarLintCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
       <IDSymbol name="HelpMenu" value="0x1023"/>
