@@ -193,25 +193,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         }
 
         [TestMethod]
-        public void Ctor_ExpectedServerTypeSet()
+        [DataRow(ServerType.SonarCloud, nameof(ServerType.SonarCloud))]
+        [DataRow(ServerType.SonarQube, nameof(ServerType.SonarQube))]
+        [DataRow(null, "")]
+        public void Ctor_ExpectedServerTypeSet(ServerType? serverType, string expectedValue)
         {
             var sonarQubeServiceMock = new Mock<ISonarQubeService>();
+            SetServerType(serverType, sonarQubeServiceMock);
 
-            // 1. SC
-            sonarQubeServiceMock.Setup(x => x.GetServerInfo()).Returns(new ServerInfo(null, ServerType.SonarCloud));
             var testSubject = CreateTestSubject(sonarQubeService: sonarQubeServiceMock.Object);
-            testSubject.ServerType.Should().Be(ServerType.SonarCloud.ToString());
 
-            // 2. SQ
-
-            sonarQubeServiceMock.Setup(x => x.GetServerInfo()).Returns(new ServerInfo(null, ServerType.SonarQube));
-            testSubject = CreateTestSubject(sonarQubeService: sonarQubeServiceMock.Object);
-            testSubject.ServerType.Should().Be(ServerType.SonarQube.ToString());
-
-            // 3. Standalone
-            sonarQubeServiceMock.Setup(x => x.GetServerInfo()).Returns((ServerInfo)null);
-            testSubject = CreateTestSubject(sonarQubeService: sonarQubeServiceMock.Object);
-            testSubject.ServerType.Should().Be(string.Empty);
+            testSubject.ServerType.Should().Be(expectedValue);
         }
 
         [TestMethod]
@@ -725,41 +717,31 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         }
 
         [TestMethod]
-        public void ActiveDocChanged_ExpectedServerTypeSetOnlyWhenItIsChanged()
+        [DataRow(null, ServerType.SonarCloud, nameof(ServerType.SonarCloud), true)]
+        [DataRow(null, null, "", false)]
+        [DataRow(ServerType.SonarCloud, null, "", true)]
+        [DataRow(ServerType.SonarCloud, ServerType.SonarCloud, nameof(ServerType.SonarCloud), false)]
+        [DataRow(ServerType.SonarCloud, ServerType.SonarQube, nameof(ServerType.SonarQube), true)]
+        public void ActiveDocChanged_ExpectedServerTypeSetOnlyWhenItIsChanged(ServerType? originalServerType,
+            ServerType? newServerType, string expectedValue, bool expectedRaiseEvent)
         {
-
             var activeDocumentTrackerMock = new Mock<IActiveDocumentTracker>();
             var sonarQubeServiceMock = new Mock<ISonarQubeService>();
-
+            SetServerType(originalServerType, sonarQubeServiceMock);
             var testSubject = CreateTestSubject(activeDocumentTracker: activeDocumentTrackerMock.Object, sonarQubeService:sonarQubeServiceMock.Object);
-            int eventCount = 0;
+            var eventCount = 0;
             testSubject.PropertyChanged += (sender, args) => {
                 if (args is { PropertyName: nameof(testSubject.ServerType) })
                 {
                     eventCount++;
                 }
             };
+            SetServerType(newServerType, sonarQubeServiceMock);
 
-            // 1. SC
-            sonarQubeServiceMock.Setup(x => x.GetServerInfo()).Returns(new ServerInfo(null, ServerType.SonarCloud));
             RaiseActiveDocumentChangedEvent(activeDocumentTrackerMock);
-            RaiseActiveDocumentChangedEvent(activeDocumentTrackerMock);
-            testSubject.ServerType.Should().Be(ServerType.SonarCloud.ToString());
 
-            // 2. SQ
-
-            sonarQubeServiceMock.Setup(x => x.GetServerInfo()).Returns(new ServerInfo(null, ServerType.SonarQube));
-            RaiseActiveDocumentChangedEvent(activeDocumentTrackerMock);
-            RaiseActiveDocumentChangedEvent(activeDocumentTrackerMock);
-            testSubject.ServerType.Should().Be(ServerType.SonarQube.ToString());
-
-            // 3. Standalone
-            sonarQubeServiceMock.Setup(x => x.GetServerInfo()).Returns((ServerInfo)null);
-            RaiseActiveDocumentChangedEvent(activeDocumentTrackerMock);
-            RaiseActiveDocumentChangedEvent(activeDocumentTrackerMock);
-            testSubject.ServerType.Should().Be(string.Empty);
-
-            eventCount.Should().Be(3);
+            testSubject.ServerType.Should().Be(expectedValue);
+            eventCount.Should().Be(expectedRaiseEvent ? 1 : 0);
         }
 
         private static TaintIssuesControlViewModel CreateTestSubject(
@@ -797,6 +779,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                 Mock.Of<ICommand>(),
                 menuCommandService,
                 sonarQubeService);
+        }
+
+        private static void SetServerType(ServerType? serverType, Mock<ISonarQubeService> sonarQubeServiceMock)
+        {
+            sonarQubeServiceMock.Setup(x => x.GetServerInfo())
+                .Returns(serverType.HasValue ? new ServerInfo(null, serverType.Value) : null);
         }
 
         private static IActiveDocumentLocator CreateLocatorAndSetActiveDocument(string activeFilePath)
