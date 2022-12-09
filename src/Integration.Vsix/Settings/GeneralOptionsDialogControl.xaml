@@ -42,7 +42,7 @@
 
         <StackPanel x:Name="VerbosityPanel" Grid.Row="2" Grid.ColumnSpan="2">
 
-            <TextBlock Text="SonarLint output verbosity for the analysis of additional languages:"
+            <TextBlock Text="Logging level:"
                        Margin="5" TextWrapping="Wrap" />
 
             <ComboBox x:Name="DaemonVerbosity" SelectedIndex="2" HorizontalContentAlignment="Stretch" Margin="5" Padding="5,2.5"/>
