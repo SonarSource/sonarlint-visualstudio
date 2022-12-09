@@ -18,31 +18,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Vsix.Commands;
-using SonarLint.VisualStudio.Core;
-using System.Windows.Navigation;
+using SonarLint.VisualStudio.Integration.Vsix;
+using Microsoft.VisualStudio.Shell;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.HelpMenu
+namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 {
     [TestClass]
-    public class AboutDialogTests
+    public class OptionsCommandTests
     {
         [TestMethod]
-        public void Invoke_VerifyCallsNavigateOnce()
+        public void Invoke_VerifyCallsShowOptionsOnce()
         {
-            var eventArgs = new Mock<RequestNavigateEventArgs>();
-            string path = "test";
-            eventArgs.Setup(x => x.Uri.AbsoluteUri).Returns(path);
+            var showOptionsCallback = new Mock<PackageCommandManager.ShowOptionsPage>();
 
-            var browserService = new Mock<IBrowserService>();
+            var testSubject = new OptionsCommand(showOptionsCallback.Object);
 
-            var testSubject = new AboutDialog(browserService.Object);
+            showOptionsCallback.Verify(x => x(It.IsAny<Type>()), Times.Never);
 
-            browserService.Verify(x => x.Navigate(path), Times.Never);
-            testSubject.ViewWebsite(It.IsAny<object>(), eventArgs.Object);
-            browserService.Verify(x => x.Navigate(path), Times.Once);
+            var dummyCommand = CommandHelper.CreateRandomOleMenuCommand();
+            testSubject.Invoke(dummyCommand, null);
+
+            showOptionsCallback.Verify(x => x(typeof(GeneralOptionsDialogPage)), Times.Once);
+            showOptionsCallback.VerifyNoOtherCalls();
         }
     }
 }
