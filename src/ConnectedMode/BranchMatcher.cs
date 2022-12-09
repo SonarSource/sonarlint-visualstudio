@@ -76,13 +76,15 @@ namespace SonarLint.VisualStudio.ConnectedMode
             string closestBranch = null;
             int closestDistance = int.MaxValue;
 
+            Lazy<Commit[]> headCommits = new Lazy<Commit[]>(() => head.Commits.ToArray());
+
             foreach (var remoteBranch in remoteBranches)
             {
                 var localBranch = gitRepo.Branches.FirstOrDefault(r => string.Equals(r.FriendlyName, remoteBranch.Name, StringComparison.InvariantCultureIgnoreCase));
 
                 if (localBranch == null) { continue; }
 
-                var distance = GetDistance(head, localBranch);
+                var distance = GetDistance(headCommits.Value, localBranch);
 
                 if (distance < closestDistance)
                 {
@@ -99,13 +101,17 @@ namespace SonarLint.VisualStudio.ConnectedMode
         }
 
         //Commits are in descending order by time
-        private int GetDistance(Branch head, Branch branch)
+        private int GetDistance(Commit[] headCommits, Branch branch)
         {
-            var headCommits = head.Commits.ToList();
-            for (int i = 0; i < headCommits.Count; i++)
+            for (int i = 0; i < headCommits.Length; i++)
             {
                 var commitID = headCommits[i].Id;
 
+                // TODO: using ToList means we're fetching the entire commit history for the branch,
+                // and then searching it. We're then repeating that for each branch.
+                // It would be much more efficient enumerate the branch history one item at a time
+                // and stop as soon as possible i.e. if we find a match, or the distance is greater
+                // than the current closest distance.
                 var branchCommitIndex = branch.Commits.ToList().FindIndex(bc => bc.Id == commitID);
 
                 if (branchCommitIndex == -1) { continue; }
