@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             var declarations = ruleSetInfoProvider.GetProjectRuleSetsDeclarations(project).ToArray();
 
-            logger.LogDebug(Strings.Bind_ProjectRulesetDeclarations,
+            logger.LogVerbose(Strings.Bind_ProjectRulesetDeclarations,
                 project.Name,
                 string.Join(Environment.NewLine + "   ", declarations.Select(x => x.ToString())));
 

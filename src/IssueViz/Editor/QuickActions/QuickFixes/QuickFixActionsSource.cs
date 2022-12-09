@@ -155,7 +155,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.LogDebug($"[QuickFixActionsSource] Exception handling TagsChanged event: {ex}");
+                logger.LogVerbose($"[QuickFixActionsSource] Exception handling TagsChanged event: {ex}");
             }
         }
     }

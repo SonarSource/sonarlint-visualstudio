@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 return null;
             }
 
-            logger.LogDebug($"[CompilationConfigProvider] Reading compilation database from '{compilationDatabaseLocation}'");
+            logger.LogVerbose($"[CompilationConfigProvider] Reading compilation database from '{compilationDatabaseLocation}'");
 
             try
             {
@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                     : LocateExactCodeEntry(filePath, compilationDatabaseEntries);
 
                 // todo: remove before release
-                logger.LogDebug("***** [CompilationConfigProvider] time (ms) to locate entry: " + stopwatch.ElapsedMilliseconds);
+                logger.LogVerbose("***** [CompilationConfigProvider] time (ms) to locate entry: " + stopwatch.ElapsedMilliseconds);
 
                 return entry;
             }
@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
         private CompilationDatabaseEntry LocateExactCodeEntry(string filePath, IEnumerable<CompilationDatabaseEntry> compilationDatabaseEntries)
         {
-            logger.LogDebug($"[CompilationConfigProvider] Code file detected, searching for exact match. File: {filePath}");
+            logger.LogVerbose($"[CompilationConfigProvider] Code file detected, searching for exact match. File: {filePath}");
 
             var entry = LocateCodeEntry(filePath, compilationDatabaseEntries);
 
@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
         private CompilationDatabaseEntry LocateMatchingCodeEntry(string headerFilePath, IEnumerable<CompilationDatabaseEntry> compilationDatabaseEntries)
         {
-            logger.LogDebug($"[CompilationConfigProvider] Header file detected, searching for matching code file. File: {headerFilePath}");
+            logger.LogVerbose($"[CompilationConfigProvider] Header file detected, searching for matching code file. File: {headerFilePath}");
 
             var codeFilesWithSameNameAndSamePath =
                 CFamilyShared.KnownExtensions.Select(ext => Path.ChangeExtension(headerFilePath, ext));
@@ -155,7 +155,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
                 if (entry != null)
                 {
-                    logger.LogDebug($"[CompilationConfigProvider] Header file: located matching code file with same name and path: {entry.File}");
+                    logger.LogVerbose($"[CompilationConfigProvider] Header file: located matching code file with same name and path: {entry.File}");
                     return entry;
                 }
             }
@@ -175,7 +175,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
                 if (entry != null)
                 {
-                    logger.LogDebug($"[CompilationConfigProvider] Header file: located matching code file with same name: {entry.File}");
+                    logger.LogVerbose($"[CompilationConfigProvider] Header file: located matching code file with same name: {entry.File}");
                     return entry;
                 }
             }
@@ -193,7 +193,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
             if (entry != null)
             {
-                logger.LogDebug($"[CompilationConfigProvider] Header file: located code file under same root: {entry.File}");
+                logger.LogVerbose($"[CompilationConfigProvider] Header file: located code file under same root: {entry.File}");
             }
 
             return entry;
@@ -205,7 +205,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
             if (entry != null)
             {
-                logger.LogDebug($"[CompilationConfigProvider] Header file: using first entry: {entry.File}");
+                logger.LogVerbose($"[CompilationConfigProvider] Header file: using first entry: {entry.File}");
             }
 
             return entry;

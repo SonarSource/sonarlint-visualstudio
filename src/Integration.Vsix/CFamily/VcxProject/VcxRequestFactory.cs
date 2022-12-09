@@ -172,7 +172,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
         private void LogDebug(string message)
         {
-            logger.LogDebug($"[VCX:VcxRequestFactory] [Thread id: {System.Threading.Thread.CurrentThread.ManagedThreadId}] {message}");
+            logger.LogVerbose($"[VCX:VcxRequestFactory] [Thread id: {System.Threading.Thread.CurrentThread.ManagedThreadId}] {message}");
         }
     }
 }

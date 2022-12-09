@@ -77,14 +77,14 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
             if (settingsFiles == null)
             {
-                logger.LogDebug($"[CMakeSettingsProvider] No matching CMakeSettings.json was found under {rootDirectory}");
+                logger.LogVerbose($"[CMakeSettingsProvider] No matching CMakeSettings.json was found under {rootDirectory}");
                 return null;
             }
 
             var cmakeSettingsFullPath = settingsFiles.Item1;
             var cmakeListsFullPath = settingsFiles.Item2;
 
-            logger.LogDebug($"[CMakeSettingsProvider] Reading {cmakeSettingsFullPath}...");
+            logger.LogVerbose($"[CMakeSettingsProvider] Reading {cmakeSettingsFullPath}...");
 
             try
             {
@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
                 foreach (var cmakeSettingsFile in cmakeSettingsFiles)
                 {
-                    logger.LogDebug($"[CMakeSettingsProvider] Found candidate CMakeSettings.json: {cmakeSettingsFile}...");
+                    logger.LogVerbose($"[CMakeSettingsProvider] Found candidate CMakeSettings.json: {cmakeSettingsFile}...");
 
                     var directory = Path.GetDirectoryName(cmakeSettingsFile);
                     var cmakeListsFile = Path.Combine(directory, CMakeListsFileName);
@@ -121,12 +121,12 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                         return new Tuple<string, string>(cmakeSettingsFile, cmakeListsFile);
                     }
 
-                    logger.LogDebug($"[CMakeSettingsProvider] No CMakeLists.txt was found next to {cmakeSettingsFile}");
+                    logger.LogVerbose($"[CMakeSettingsProvider] No CMakeLists.txt was found next to {cmakeSettingsFile}");
                 }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.LogDebug($"[CMakeSettingsProvider] Failed to locate CMakeSettings.json: {ex}");
+                logger.LogVerbose($"[CMakeSettingsProvider] Failed to locate CMakeSettings.json: {ex}");
                 logger.WriteLine(Resources.FailedToFindCMakeSettings, ex.Message);
             }
 

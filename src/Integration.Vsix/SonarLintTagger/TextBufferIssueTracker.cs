@@ -189,7 +189,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.LogDebug(Strings.TextBufferIssueTracker_ProjectGuidError, FilePath, ex);
+                logger.LogVerbose(Strings.TextBufferIssueTracker_ProjectGuidError, FilePath, ex);
 
                 return Guid.Empty;
             }

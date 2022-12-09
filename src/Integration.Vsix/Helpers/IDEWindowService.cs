@@ -101,6 +101,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         private void LogWinApiFailure(string apiName) =>
-            logger.LogDebug(Strings.IDEWindowService_WinAPICallFailed, apiName, Marshal.GetLastWin32Error());
+            logger.LogVerbose(Strings.IDEWindowService_WinAPICallFailed, apiName, Marshal.GetLastWin32Error());
     }
 }

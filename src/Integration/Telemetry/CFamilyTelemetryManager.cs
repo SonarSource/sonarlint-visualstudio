@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.Telemetry
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.LogDebug("[CFamilyTelemetryManager] Failed to calculate cfamily project types: {0}", ex);
+                logger.LogVerbose("[CFamilyTelemetryManager] Failed to calculate cfamily project types: {0}", ex);
             }
         }
 

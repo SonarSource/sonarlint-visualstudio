@@ -160,7 +160,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             // and so that if any messages are logged after Process is set to null we know which process it related to.
             processId = Process.Id;
             logger.WriteLine(Resources.INFO_ServerProcessId, processId);
-            logger.LogDebug($"[eslint-bridge] [process id: {processId}] Server process HasExited: {Process.HasExited}.");
+            logger.LogVerbose($"[eslint-bridge] [process id: {processId}] Server process HasExited: {Process.HasExited}.");
 
             Process.BeginErrorReadLine();
             Process.BeginOutputReadLine();
@@ -176,7 +176,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         {
             if(sender is Process terminatedProcess)
             {
-                logger.LogDebug($"[eslint-bridge] [process id: {terminatedProcess.Id}] Process exited.");
+                logger.LogVerbose($"[eslint-bridge] [process id: {terminatedProcess.Id}] Process exited.");
                 terminatedProcess.Exited -= Process_Exited;
             }
         }
@@ -188,7 +188,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 return;
             }
 
-            logger.LogDebug($"[eslint-bridge node output] [process id: {processId}] : {e.Data}");
+            logger.LogVerbose($"[eslint-bridge node output] [process id: {processId}] : {e.Data}");
 
             var portMessage = Regex.Matches(e.Data, @"port\s+(\d+)");
 
@@ -211,7 +211,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 return;
             }
 
-            logger.LogDebug($"eslint-bridge node error] [process id: {processId}] : {e.Data}");
+            logger.LogVerbose($"eslint-bridge node error] [process id: {processId}] : {e.Data}");
         }
 
         private void TerminateRunningProcess()

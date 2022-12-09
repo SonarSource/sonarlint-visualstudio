@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration
             VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, messageFormat, args);
         }
 
-        public void LogDebug(string messageFormat, params object[] args)
+        public void LogVerbose(string messageFormat, params object[] args)
         {
             if (shouldLogDebug)
             {

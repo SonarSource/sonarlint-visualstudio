@@ -226,7 +226,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules
                     }
                     else
                     {
-                        logger.LogDebug($"[CFamily] Translating legacy rule key: {inputKey} -> {newKey}");
+                        logger.LogVerbose($"[CFamily] Translating legacy rule key: {inputKey} -> {newKey}");
                         settings.Rules[newKey] = inputConfig;
                     }
                 }

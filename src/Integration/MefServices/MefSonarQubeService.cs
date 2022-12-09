@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
 
             public void Debug(string message) =>
                 // This will only be logged if an env var is set
-                logger.LogDebug(message);
+                logger.LogVerbose(message);
 
             public void Error(string message) =>
                 logger.WriteLine($"ERROR: {message}");
