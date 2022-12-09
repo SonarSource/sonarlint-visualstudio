@@ -113,6 +113,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             {
                 // no-op
             }
+
+            public void LogDebug(string message, params object[] args)
+            {
+                // no-op
+            }
         }
     }
 }

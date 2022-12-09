@@ -29,7 +29,6 @@ using SonarLint.VisualStudio.Core.ETW;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 using SonarQube.Client.Models;
 
@@ -98,7 +97,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 // Squash non-critical exceptions
-                logger.LogDebugExtended(ex.ToString());
+                logger.LogDebug(ex.ToString());
             }
         }
 

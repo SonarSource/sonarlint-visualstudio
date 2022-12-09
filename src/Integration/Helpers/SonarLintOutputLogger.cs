@@ -29,15 +29,12 @@ namespace SonarLint.VisualStudio.Integration
     public class SonarLintOutputLogger : ILogger
     {
         private readonly IServiceProvider serviceProvider;
+        private bool shouldLogDebug = false;
 
         [ImportingConstructor]
         public SonarLintOutputLogger([Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider)
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-            this.serviceProvider = serviceProvider;
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
         public void WriteLine(string message)
@@ -48,6 +45,15 @@ namespace SonarLint.VisualStudio.Integration
         public void WriteLine(string messageFormat, params object[] args)
         {
             VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, messageFormat, args);
+        }
+
+        public void LogDebug(string messageFormat, params object[] args)
+        {
+            if (shouldLogDebug)
+            {
+                var text = args.Length == 0 ? messageFormat : string.Format(messageFormat, args);
+                WriteLine(text);
+            }
         }
     }
 }
