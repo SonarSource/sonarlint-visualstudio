@@ -27,5 +27,6 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         void WriteLine(string message);
         void WriteLine(string messageFormat, params object[] args);
+        void LogDebug(string messageFormat, params object[] args);
     }
 }

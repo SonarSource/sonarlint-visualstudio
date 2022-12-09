@@ -31,7 +31,6 @@ using Microsoft.VisualStudio;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.Helpers;
 using IThreadHandling = SonarLint.VisualStudio.Core.IThreadHandling;
 
 namespace SonarLint.VisualStudio.CFamily.CMake

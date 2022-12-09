@@ -22,7 +22,6 @@ using System.Collections.Concurrent;
 using System.Text;
 using System.Text.RegularExpressions;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.Core
 {
