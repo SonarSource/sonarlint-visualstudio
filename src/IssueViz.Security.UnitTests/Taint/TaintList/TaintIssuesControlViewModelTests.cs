@@ -722,12 +722,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         [DataRow(ServerType.SonarCloud, null, "", true)]
         [DataRow(ServerType.SonarCloud, ServerType.SonarCloud, nameof(ServerType.SonarCloud), false)]
         [DataRow(ServerType.SonarCloud, ServerType.SonarQube, nameof(ServerType.SonarQube), true)]
-        public void ActiveDocChanged_ExpectedServerTypeSetOnlyWhenItIsChanged(ServerType? originalServerType,
-            ServerType? newServerType, string expectedValue, bool expectedRaiseEvent)
+        public void ActiveDocChanged_ExpectedServerTypeSetOnlyWhenItIsChanged(
+            ServerType? originalServerType,
+            ServerType? newServerType, 
+            string expectedValue,
+            bool expectedRaiseEvent)
         {
             var activeDocumentTrackerMock = new Mock<IActiveDocumentTracker>();
             var sonarQubeServiceMock = new Mock<ISonarQubeService>();
             SetServerType(originalServerType, sonarQubeServiceMock);
+
             var testSubject = CreateTestSubject(activeDocumentTracker: activeDocumentTrackerMock.Object, sonarQubeService:sonarQubeServiceMock.Object);
             var eventCount = 0;
             testSubject.PropertyChanged += (sender, args) => {
