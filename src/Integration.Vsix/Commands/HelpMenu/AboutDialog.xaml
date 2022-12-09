@@ -21,7 +21,7 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
-        <Image Margin="5,0,2,0" Grid.Row="0" Grid.Column="0" Source="..\..\Resources\sonarlint_nobg.png" Stretch="None"/>
+        <Image Grid.Row="0" Grid.Column="0" Source="..\..\Resources\sonarlint_nobg.png" Stretch="None" Margin="5,0,2,0" />
         <Grid Grid.Row="0" Grid.Column="1" Margin="15,10,5,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
