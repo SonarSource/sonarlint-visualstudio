@@ -29,12 +29,14 @@ namespace SonarLint.VisualStudio.Integration
     public class SonarLintOutputLogger : ILogger
     {
         private readonly IServiceProvider serviceProvider;
-        private bool shouldLogDebug = false;
+        private readonly ISonarLintSettings sonarLintSettings;
 
         [ImportingConstructor]
-        public SonarLintOutputLogger([Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider)
+        public SonarLintOutputLogger([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            ISonarLintSettings sonarLintSettings)
         {
-            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.serviceProvider = serviceProvider;
+            this.sonarLintSettings = sonarLintSettings;
         }
 
         public void WriteLine(string message)
@@ -47,12 +49,12 @@ namespace SonarLint.VisualStudio.Integration
             VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, messageFormat, args);
         }
 
-        public void LogDebug(string messageFormat, params object[] args)
+        public void LogVerbose(string messageFormat, params object[] args)
         {
-            if (shouldLogDebug)
+            if (sonarLintSettings.DaemonLogLevel == DaemonLogLevel.Verbose)
             {
                 var text = args.Length == 0 ? messageFormat : string.Format(messageFormat, args);
-                WriteLine(text);
+                WriteLine("DEBUG: " + text);
             }
         }
     }

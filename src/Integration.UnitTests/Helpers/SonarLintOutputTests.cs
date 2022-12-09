@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -31,20 +29,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
     public class SonarLintOutputTests
     {
         [TestMethod]
-        public void Ctor_WithNullSettings_ThrowsArgumentNullException()
-        {
-            // Arrange & Act
-            Action act = () => new SonarLintOutputLogger(null);
-
-            // Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
-        }
-
-        [TestMethod]
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<SonarLintOutputLogger, ILogger>(
-                MefTestHelpers.CreateExport<SVsServiceProvider>());
+                MefTestHelpers.CreateExport<SVsServiceProvider>(),
+                MefTestHelpers.CreateExport<ISonarLintSettings>());
         }
 
         [TestMethod]
@@ -56,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             var serviceProviderMock = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: true);
             serviceProviderMock.RegisterService(typeof(SVsOutputWindow), windowMock);
 
-            SonarLintOutputLogger logger = new SonarLintOutputLogger(serviceProviderMock);
+            var logger = new SonarLintOutputLogger(serviceProviderMock, Mock.Of<ISonarLintSettings>());
 
             // Act
             logger.WriteLine("123");
@@ -65,6 +54,45 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             // Assert
             var outputPane = windowMock.AssertPaneExists(VsShellUtils.SonarLintOutputPaneGuid);
             outputPane.AssertOutputStrings("123", "abc");
+        }
+
+        [TestMethod]
+        [DataRow(DaemonLogLevel.Info, false)]
+        [DataRow(DaemonLogLevel.Minimal, false)]
+        [DataRow(DaemonLogLevel.Verbose, true)]
+        public void LogVerbose_OutputsToWindowIfLogLevelIsVerbose(DaemonLogLevel logLevel, bool shouldLogMessage)
+        {
+            // Arrange
+            var windowMock = new ConfigurableVsOutputWindow();
+
+            var serviceProviderMock = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: true);
+            serviceProviderMock.RegisterService(typeof(SVsOutputWindow), windowMock);
+
+            var sonarLintSettings = new Mock<ISonarLintSettings>();
+            sonarLintSettings.Setup(x => x.DaemonLogLevel).Returns(logLevel);
+
+            var logger = new SonarLintOutputLogger(serviceProviderMock, sonarLintSettings.Object);
+
+            logger.WriteLine("create window pane");
+
+            var outputPane = windowMock.AssertPaneExists(VsShellUtils.SonarLintOutputPaneGuid);
+            outputPane.Reset();
+
+            // Act
+            logger.LogVerbose("123 {0} {1}", "param 1", 2);
+            logger.LogVerbose("{0} {1} abc", 1, "param 2");
+
+            // Assert
+
+            if (shouldLogMessage)
+            {
+                outputPane.AssertOutputStrings("DEBUG: 123 param 1 2", "DEBUG: 1 param 2 abc");
+                outputPane.AssertOutputStrings(2);
+            }
+            else
+            {
+                outputPane.AssertOutputStrings(0);
+            }
         }
     }
 }
