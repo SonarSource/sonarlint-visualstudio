@@ -19,7 +19,7 @@
 #
 ################################
 
-# Base directory: D:\repos\sq\slvs\src\Integration.Vsix\bin\Debug\VS2022\net472
+# Base directory: C:\Code\sonarlint-visualstudio\src\Integration.Vsix\bin\Debug\VS2022\net472
 Include patterns:
 - 'Sonar*'
 Exclude patterns:
@@ -162,11 +162,14 @@ Assembly: 'SonarLint.VisualStudio.ConnectedMode, Version=6.12.0.0, Culture=neutr
 Relative path: 'SonarLint.VisualStudio.ConnectedMode.dll'
 
 Referenced assemblies:
+- 'LibGit2Sharp, Version=0.26.0.0, Culture=neutral, PublicKeyToken=7cbde695407f0333'
 - 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'SonarLint.VisualStudio.Core, Version=6.11.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
+- 'SonarQube.Client, Version=6.11.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-# Number of references: 4
+- 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+# Number of references: 7
 
 ---
 Assembly: 'SonarLint.VisualStudio.Core, Version=6.12.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
