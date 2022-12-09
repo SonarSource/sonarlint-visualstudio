@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 // Squash non-critical exceptions
-                logger.LogVerbose(ex.ToString());
+                logger.LogDebug(ex.ToString());
             }
         }
 
