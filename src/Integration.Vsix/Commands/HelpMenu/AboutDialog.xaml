@@ -21,8 +21,8 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
-        <Image Grid.Row="0" Grid.Column="0" Source="..\..\Resources\sonarlint_nobg.png" Stretch="None"/>
-        <Grid Grid.Row="0" Grid.Column="1" Margin="15,10,0,0">
+        <Image Margin="5,0,2,0" Grid.Row="0" Grid.Column="0" Source="..\..\Resources\sonarlint_nobg.png" Stretch="None"/>
+        <Grid Grid.Row="0" Grid.Column="1" Margin="15,10,5,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -32,7 +32,7 @@
             <TextBlock Grid.Row="1" Text="{Binding Path=SLVersion, StringFormat=Version: {0}}" Style="{StaticResource TextBlockStyle}"/>
             <TextBlock Grid.Row="2">
                 <Hyperlink NavigateUri="https://www.sonarsource.com/products/sonarlint/" RequestNavigate="ViewWebsite">
-                   <TextBlock Text="Visit our Website" Style="{StaticResource TextBlockStyle}"/>
+                   <TextBlock Text="Visit our Website" />
                  </Hyperlink>
             </TextBlock>
         </Grid>
