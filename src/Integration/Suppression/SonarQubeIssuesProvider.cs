@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         public IEnumerable<SonarQubeIssue> GetSuppressedIssues(string projectGuid, string filePath)
         {
-           // Block the call while the cache is being built.
+            // Block the call while the cache is being built.
             // If the task has already completed then this will return immediately
             // (e.g. on subsequent calls)
             // If we time out waiting for the initial fetch then we won't suppress any issues.
@@ -118,7 +118,6 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             this.initialFetch?.Wait(MillisecondsToWaitForInitialFetch);
 
             if (this.suppressedFileIssues == null ||
-                this.suppressedFileIssues.Count == 0 ||
                 this.isDisposed)
             {
                 return Enumerable.Empty<SonarQubeIssue>();
@@ -208,6 +207,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 cancellationTokenSource?.Cancel();
                 cancellationTokenSource = new CancellationTokenSource();
 
+                // TODO - pass the cancellation token
                 var serverBranch = await serverBranchProvider.GetServerBranchNameAsync();
 
                 // TODO: Handle race conditions
