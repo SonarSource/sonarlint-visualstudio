@@ -23,9 +23,9 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppression;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 
@@ -48,15 +48,18 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         [ImportingConstructor]
         public SuppressedIssuesProvider(IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ISonarQubeService sonarQubeService,
+            IServerBranchProvider serverBranchProvider,
             ILogger logger)
-            : this(activeSolutionBoundTracker, GetCreateProviderFunc(sonarQubeService, logger))
+            : this(activeSolutionBoundTracker, GetCreateProviderFunc(sonarQubeService, serverBranchProvider, logger))
         {
         }
 
-        private static CreateProviderFunc GetCreateProviderFunc(ISonarQubeService sonarQubeService, ILogger logger)
+        private static CreateProviderFunc GetCreateProviderFunc(ISonarQubeService sonarQubeService,
+            IServerBranchProvider serverBranchProvider, ILogger logger)
         {
             return bindingConfiguration => new SonarQubeIssuesProvider(
                 sonarQubeService,
+                serverBranchProvider,
                 bindingConfiguration.Project.ProjectKey,
                 logger);
         }
