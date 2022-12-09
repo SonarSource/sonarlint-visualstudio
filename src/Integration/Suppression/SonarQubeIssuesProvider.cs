@@ -207,8 +207,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 cancellationTokenSource?.Cancel();
                 cancellationTokenSource = new CancellationTokenSource();
 
-                // TODO - pass the cancellation token
-                var serverBranch = await serverBranchProvider.GetServerBranchNameAsync();
+                var serverBranch = await serverBranchProvider.GetServerBranchNameAsync(cancellationTokenSource.Token);
 
                 // TODO: Handle race conditions
                 var moduleKeyToRelativePathToRoot = (await this.sonarQubeService.GetAllModulesAsync(sonarQubeProjectKey,
