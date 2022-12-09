@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
             {
                 if (!fileSystem.File.Exists(FilePath)) 
                 { 
-                    logger.LogDebug($"[Notifications] Disabled notifications file does not exist. File: {FilePath}");
+                    logger.LogVerbose($"[Notifications] Disabled notifications file does not exist. File: {FilePath}");
                     return new NotificationSettings(); 
                 }
 
@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
                     return result;
                 }
 
-                logger.LogDebug($"[Notifications] Disabled notifications file corrupted it will be overriden. File: {FilePath}");
+                logger.LogVerbose($"[Notifications] Disabled notifications file corrupted it will be overriden. File: {FilePath}");
                 return new NotificationSettings();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))

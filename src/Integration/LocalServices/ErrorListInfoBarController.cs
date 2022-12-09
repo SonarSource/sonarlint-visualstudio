@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public void Refresh()
         {
-            logger.LogDebug("[ErrorListInfoBarController] In Refresh");
+            logger.LogVerbose("[ErrorListInfoBarController] In Refresh");
 
             // This is public method, so it's the caller's responsibility to handle uncaught exception
             threadHandling.ThrowIfNotOnUIThread();
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration
             // when the delegate will execute, and we should handle those cases
             if (this.IsActiveSolutionBound)
             {
-                logger.LogDebug("[ErrorListInfoBarController] Queuing binding check to run on idle");
+                logger.LogVerbose("[ErrorListInfoBarController] Queuing binding check to run on idle");
                 this.InvokeWhenIdle(this.ProcessSolutionBinding);
             }
         }
@@ -182,7 +182,7 @@ namespace SonarLint.VisualStudio.Integration
 
         internal/* for testing */ async Task ProcessSolutionBindingAsync()
         {
-            logger.LogDebug("[ErrorListInfoBarController] Processing solution binding...");
+            logger.LogVerbose("[ErrorListInfoBarController] Processing solution binding...");
 
             CodeMarkers.Instance.ErrorListControllerProcessStart();
 

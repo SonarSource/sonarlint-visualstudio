@@ -56,14 +56,14 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
 
             if (serverExclusions == null)
             {
-                logger.LogDebug("[AnalyzableFileIndicator] No server settings were found.");
+                logger.LogVerbose("[AnalyzableFileIndicator] No server settings were found.");
                 return true;
             }
             //Sonarqube uses unix-style directory seperators, so we should replace windows style seperators. 
             filePath = filePath.Replace("\\", "/");
             var shouldAnalyze = IsIncluded(serverExclusions, filePath) && !IsExcluded(serverExclusions, filePath);
 
-            logger.LogDebug($"[AnalyzableFileIndicator]" +
+            logger.LogVerbose($"[AnalyzableFileIndicator]" +
                             $"\n  {serverExclusions}" +
                             $"\n  file: '{filePath}'" +
                             $"\n  should analyze: {shouldAnalyze} ");

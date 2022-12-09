@@ -71,13 +71,13 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
             if (notificationsStorage.IsNotificationDisabled(notification.Id))
             {
-                logger.LogDebug($"[NotificationService] notification '{notification.Id}' will not be shown: notification is blocked.");
+                logger.LogVerbose($"[NotificationService] notification '{notification.Id}' will not be shown: notification is blocked.");
                 return;
             }
 
             if (oncePerSessionNotifications.Contains(notification.Id))
             {
-                logger.LogDebug($"[NotificationService] notification '{notification.Id}' will not be shown: notification has already been displayed.");
+                logger.LogVerbose($"[NotificationService] notification '{notification.Id}' will not be shown: notification has already been displayed.");
                 return;
             }
 

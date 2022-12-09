@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
             Debug.WriteLine(messageFormat, args);
         }
 
-        public void LogDebug(string messageFormat, params object[] args)
+        public void LogVerbose(string messageFormat, params object[] args)
         {
             WriteLine(messageFormat, args);
         }

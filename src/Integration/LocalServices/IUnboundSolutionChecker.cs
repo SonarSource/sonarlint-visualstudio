@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.LogDebug("[UnboundSolutionChecker] Failed to check for settings: {0}", ex.ToString());
+                logger.LogVerbose("[UnboundSolutionChecker] Failed to check for settings: {0}", ex.ToString());
                 logger.WriteLine(Strings.BindingUpdateFailedToCheckSettings, ex.Message);
 
                 return false;

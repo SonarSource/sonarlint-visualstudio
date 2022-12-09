@@ -85,14 +85,14 @@ namespace SonarLint.VisualStudio.Integration
 
             CodeMarkers.Instance.UnboundProjectFinderStart();
 
-            logger.LogDebug($"[Binding check] Checking for unbound projects...");
+            logger.LogVerbose($"[Binding check] Checking for unbound projects...");
 
             // Only applicable in connected mode (legacy or new)
             var bindingConfig = configProvider.GetConfiguration();
-            logger.LogDebug($"[Binding check] Binding mode: {bindingConfig.Mode}");
+            logger.LogVerbose($"[Binding check] Binding mode: {bindingConfig.Mode}");
 
             var unbound = bindingConfig.Mode.IsInAConnectedMode() ? GetUnboundProjects(bindingConfig) : Array.Empty<Project>();
-            logger.LogDebug($"[Binding check] Number of unbound projects: {unbound.Length}");
+            logger.LogVerbose($"[Binding check] Number of unbound projects: {unbound.Length}");
 
             CodeMarkers.Instance.UnboundProjectFinderStop();
             return unbound;
@@ -147,7 +147,7 @@ namespace SonarLint.VisualStudio.Integration
             await threadHandling.RunOnUIThread(() =>
             {
                 filteredSolutionProjects = projectSystem.GetFilteredSolutionProjects().ToArray();
-                logger.LogDebug($"[Binding check] Number of bindable projects: {filteredSolutionProjects.Length}");
+                logger.LogVerbose($"[Binding check] Number of bindable projects: {filteredSolutionProjects.Length}");
             });
 
             return filteredSolutionProjects;
@@ -169,15 +169,15 @@ namespace SonarLint.VisualStudio.Integration
 
             if (configProjectBinder == null)
             {
-                logger.LogDebug($"[Binding check] No project binder found for '{projectName}'.");
+                logger.LogVerbose($"[Binding check] No project binder found for '{projectName}'.");
                 return false;
             }
 
             CodeMarkers.Instance.CheckProjectBindingStart(projectName);
 
-            logger.LogDebug($"[Binding check] Checking binding for project '{projectName}'. Binder type: {configProjectBinder.GetType().Name}");
+            logger.LogVerbose($"[Binding check] Checking binding for project '{projectName}'. Binder type: {configProjectBinder.GetType().Name}");
             var required = configProjectBinder.IsBindingRequired(binding, project);
-            logger.LogDebug($"[Binding check] Is binding required: {required} (project: {projectName})");
+            logger.LogVerbose($"[Binding check] Is binding required: {required} (project: {projectName})");
 
             CodeMarkers.Instance.CheckProjectBindingStop();
 

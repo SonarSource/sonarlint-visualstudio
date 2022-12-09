@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
             if (!handled)
             {
-                logger.LogDebug($"[AnalyzerController] No analyzer supported analysis of {path}");
+                logger.LogVerbose($"[AnalyzerController] No analyzer supported analysis of {path}");
             }
         }
 

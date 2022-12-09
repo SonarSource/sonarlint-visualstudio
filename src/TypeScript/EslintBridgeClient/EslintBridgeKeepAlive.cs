@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.LogDebug($"[EsLintBridgeClient] Error sending keep-alive: {ex}");
+                logger.LogVerbose($"[EsLintBridgeClient] Error sending keep-alive: {ex}");
             }
             finally
             {

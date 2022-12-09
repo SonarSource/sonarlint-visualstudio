@@ -115,7 +115,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             WriteLine(string.Format(System.Globalization.CultureInfo.CurrentCulture, messageFormat, args));
         }
 
-        public void LogDebug(string message, params object[] args)
+        public void LogVerbose(string message, params object[] args)
         {
             // no-op
         }

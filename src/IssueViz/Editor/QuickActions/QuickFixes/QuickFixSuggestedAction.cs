@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
 
             if (!quickFixVisualization.CanBeApplied(textBuffer.CurrentSnapshot))
             {
-                logger.LogDebug("[Quick Fixes] Quick fix cannot be applied as the text has changed. Issue: " + issueViz.RuleId);
+                logger.LogVerbose("[Quick Fixes] Quick fix cannot be applied as the text has changed. Issue: " + issueViz.RuleId);
                 return;
             }
 

@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Core
             var wildcardPattern = WildcardPattern.create(pattern);
             var isMatch = wildcardPattern.match(input);
 
-            logger.LogDebug("[GlobPatternMatcher]" +
+            logger.LogVerbose("[GlobPatternMatcher]" +
                             $"\n  Pattern: {pattern}" +
                             $"\n  Regex: {wildcardPattern.pattern}" +
                             $"\n  Input: {input}" +
