@@ -16,6 +16,8 @@
   <Extern href="stdidcmd.h"/>
   <!--This header contains the command ids for the menus provided by the shell. -->
   <Extern href="vsshlids.h"/>
+  <Extern href="KnownImageIds.vsct"/>
+
   <!-- Include all package commands -->
   <Include href="Commands\PackageCommands.vsct"/>
   <Include href="Commands\HelpMenu\HelpMenu.vsct"/>
@@ -65,6 +67,8 @@
     <Buttons>
       <Button guid="SonarLintCmdSet" id="OptionsCommand" priority="0x9999">
         <Parent guid="SonarLintCmdSet" id="SonarLintCommandsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Settings" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Options...</ButtonText>
         </Strings>
