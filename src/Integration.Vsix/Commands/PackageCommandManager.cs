@@ -23,6 +23,7 @@ using System.ComponentModel.Design;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarLint.VisualStudio.Integration.Vsix.Commands;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
@@ -31,16 +32,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal class PackageCommandManager
     {
+        internal delegate void ShowOptionsPage(Type optionsPageToOpen);
+
         private readonly IMenuCommandService menuService;
 
         public PackageCommandManager(IMenuCommandService menuService)
         {
-            if (menuService == null)
-            {
-                throw new ArgumentNullException(nameof(menuService));
-            }
-
-            this.menuService = menuService;
+            this.menuService = menuService ?? throw new ArgumentNullException(nameof(menuService));
         }
 
         public void Initialize(ITeamExplorerController teamExplorerController,
@@ -48,24 +46,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             IProjectToLanguageMapper projectToLanguageMapper,
             IOutputWindowService outputWindowService,
             IShowInBrowserService showInBrowserService,
-            IBrowserService browserService)
+            IBrowserService browserService,
+            ShowOptionsPage showOptionsPage)
         {
-            this.RegisterCommand((int)PackageCommandId.ProjectExcludePropertyToggle, new ProjectExcludePropertyToggleCommand(projectPropertyManager, projectToLanguageMapper));
-            this.RegisterCommand((int)PackageCommandId.ProjectTestPropertyAuto, new ProjectTestPropertySetCommand(projectPropertyManager, projectToLanguageMapper, null));
-            this.RegisterCommand((int)PackageCommandId.ProjectTestPropertyTrue, new ProjectTestPropertySetCommand(projectPropertyManager, projectToLanguageMapper, true));
-            this.RegisterCommand((int)PackageCommandId.ProjectTestPropertyFalse, new ProjectTestPropertySetCommand(projectPropertyManager, projectToLanguageMapper, false));
+            RegisterCommand((int)PackageCommandId.ProjectExcludePropertyToggle, new ProjectExcludePropertyToggleCommand(projectPropertyManager, projectToLanguageMapper));
+            RegisterCommand((int)PackageCommandId.ProjectTestPropertyAuto, new ProjectTestPropertySetCommand(projectPropertyManager, projectToLanguageMapper, null));
+            RegisterCommand((int)PackageCommandId.ProjectTestPropertyTrue, new ProjectTestPropertySetCommand(projectPropertyManager, projectToLanguageMapper, true));
+            RegisterCommand((int)PackageCommandId.ProjectTestPropertyFalse, new ProjectTestPropertySetCommand(projectPropertyManager, projectToLanguageMapper, false));
 
             // Menus
-            this.RegisterCommand((int)PackageCommandId.ProjectSonarLintMenu, new ProjectSonarLintMenuCommand(projectPropertyManager, projectToLanguageMapper));
+            RegisterCommand((int)PackageCommandId.ProjectSonarLintMenu, new ProjectSonarLintMenuCommand(projectPropertyManager, projectToLanguageMapper));
+
+            // Commands
+            RegisterCommand(CommonGuids.SonarLintMenuCommandSet, OptionsCommand.Id, new OptionsCommand(showOptionsPage));
 
             // Help menu buttons
-            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowLogsCommand.Id, new ShowLogsCommand(outputWindowService));
-            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, ViewDocumentationCommand.Id, new ViewDocumentationCommand(showInBrowserService));
-            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, AboutCommand.Id, new AboutCommand(browserService));
-            this.RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowCommunityPageCommand.Id, new ShowCommunityPageCommand(showInBrowserService));
+            RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowLogsCommand.Id, new ShowLogsCommand(outputWindowService));
+            RegisterCommand(CommonGuids.HelpMenuCommandSet, ViewDocumentationCommand.Id, new ViewDocumentationCommand(showInBrowserService));
+            RegisterCommand(CommonGuids.HelpMenuCommandSet, AboutCommand.Id, new AboutCommand(browserService));
+            RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowCommunityPageCommand.Id, new ShowCommunityPageCommand(showInBrowserService));
             
             // Connected mode buttons
-            this.RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, ManageConnectionsCommand.Id, new ManageConnectionsCommand(teamExplorerController));
+            RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, ManageConnectionsCommand.Id, new ManageConnectionsCommand(teamExplorerController));
         }
 
         internal /* testing purposes */ OleMenuCommand RegisterCommand(int commandId, VsCommandBase command)
