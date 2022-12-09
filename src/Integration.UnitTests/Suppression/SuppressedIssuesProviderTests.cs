@@ -20,14 +20,19 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition.Primitives;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Suppression;
+using SonarQube.Client;
 using SonarQube.Client.Models;
+using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 {
@@ -47,6 +52,45 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             activeSolutionBoundTracker.CurrentConfiguration = BindingConfiguration.Standalone;
 
             testSubject = new SuppressedIssuesProvider(activeSolutionBoundTracker, createProviderFunc.Object);
+        }
+
+        [TestMethod]
+        public void MefCtor_TwoExports_Singleton()
+        {
+            // SuppressIssuesProvider is unusual as it exports two types via MEF.
+            // We expect both types to be exportable, and for them to return the
+            // same instance.
+
+            var providerImporter = new SingleObjectImporter<ISonarQubeIssuesProvider>();
+            var monitorImporter = new SingleObjectImporter<ISuppressedIssuesMonitor>();
+
+            var exports = GetRequiredMefDependencies();
+
+            MefTestHelpers.Compose(
+                new object[] { providerImporter, monitorImporter },
+                new Type[] { typeof(SuppressedIssuesProvider) },
+                exports);
+
+            providerImporter.Import.Should().NotBeNull();
+            monitorImporter.Import.Should().NotBeNull();
+
+            providerImporter.Import.Should().BeSameAs(monitorImporter.Import);
+        }
+
+        private static Export[] GetRequiredMefDependencies()
+        {
+            // The constructor executes some initialization code, so we need
+            // to provide a valid configuration to prevent it throwing.
+            var tracker = new Mock<IActiveSolutionBoundTracker>();
+            tracker.Setup(x => x.CurrentConfiguration).Returns(BindingConfiguration.Standalone);
+
+            return new[]
+            {
+                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(tracker.Object),
+                MefTestHelpers.CreateExport<ISonarQubeService>(),
+                MefTestHelpers.CreateExport<IServerBranchProvider>(),
+                MefTestHelpers.CreateExport<ILogger>()
+            };
         }
 
         [TestMethod]
