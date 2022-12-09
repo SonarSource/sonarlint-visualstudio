@@ -39,6 +39,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.TaintList
 {
@@ -208,7 +209,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                     Mock.Of<ITelemetryManager>(),
                     Mock.Of<IIssueSelectionService>(),
                     Mock.Of<ICommand>(),
-                    Mock.Of<IMenuCommandService>());
+                    Mock.Of<IMenuCommandService>(),
+                    Mock.Of<ISonarQubeService>());
             }
 
             public void ChangeActiveDocument(string filePath)
