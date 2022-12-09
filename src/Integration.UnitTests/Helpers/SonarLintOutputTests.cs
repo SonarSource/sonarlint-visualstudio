@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             var outputPane = windowMock.AssertPaneExists(VsShellUtils.SonarLintOutputPaneGuid);
             outputPane.AssertOutputStrings("DEBUG: 123");
         }
-/*
+
         [TestMethod]
         public void LogDebug_Info_DoesNotOutputToWindow()
         {
@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             // Assert
             windowMock.HasPane(VsShellUtils.SonarLintOutputPaneGuid).Should().Be(false);
         }
-*/
+
         private ConfigurableServiceProvider InitializeServiceProvider(ConfigurableVsOutputWindow window, ISonarLintSettings sonarLintSettings = null)
         {
             sonarLintSettings ??= Mock.Of<ISonarLintSettings>();
