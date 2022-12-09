@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2022 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -19,7 +19,6 @@
  */
 
 using System;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Progress;
@@ -40,14 +39,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ProgressNotificationListener_RespondToStepExecutionChangedEvent()
         {
             // Arrange
-            var serviceProvider = new ConfigurableServiceProvider();
-
-            var outputWindow = new ConfigurableVsOutputWindow();
-            var outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
-            serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
+            var logger = new TestLogger();
 
             var progressEvents = new ConfigurableProgressEvents();
-            var testSubject = new ProgressNotificationListener(progressEvents, new SonarLintOutputLogger(serviceProvider));
+            var testSubject = new ProgressNotificationListener(progressEvents, logger);
             string message1 = "Hello world";
             string formattedMessage2 = "Bye bye";
 
@@ -56,21 +51,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             progressEvents.SimulateStepExecutionChanged(message1, 0);
 
             // Assert
-            outputWindowPane.AssertOutputStrings(message1);
+            logger.AssertOutputStrings(message1);
 
             // Step 2: same message as before (ignore)
             // Act
             progressEvents.SimulateStepExecutionChanged(message1, 0);
 
             // Assert
-            outputWindowPane.AssertOutputStrings(message1);
+            logger.AssertOutputStrings(message1);
 
             // Step 3: whitespace message
             // Act
             progressEvents.SimulateStepExecutionChanged(" \t", 0);
 
             // Assert
-            outputWindowPane.AssertOutputStrings(message1);
+            logger.AssertOutputStrings(message1);
 
             // Step 4: formatting
             testSubject.MessageFormat = "XXX{0}YYY";
@@ -78,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             progressEvents.SimulateStepExecutionChanged(formattedMessage2, 0);
 
             // Assert
-            outputWindowPane.AssertOutputStrings(message1, "XXX" + formattedMessage2 + "YYY");
+            logger.AssertOutputStrings(message1, "XXX" + formattedMessage2 + "YYY");
 
             // Step 5: different message than the previous one
             testSubject.MessageFormat = null;
@@ -86,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             progressEvents.SimulateStepExecutionChanged(message1, 0);
 
             // Assert
-            outputWindowPane.AssertOutputStrings(message1, "XXX" + formattedMessage2 + "YYY", message1);
+            logger.AssertOutputStrings(message1, "XXX" + formattedMessage2 + "YYY", message1);
 
             // Step 6: dispose
             testSubject.Dispose();
@@ -94,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             progressEvents.SimulateStepExecutionChanged("123", 0);
 
             // Assert
-            outputWindowPane.AssertOutputStrings(message1, "XXX" + formattedMessage2 + "YYY", message1);
+            logger.AssertOutputStrings(message1, "XXX" + formattedMessage2 + "YYY", message1);
         }
     }
 }

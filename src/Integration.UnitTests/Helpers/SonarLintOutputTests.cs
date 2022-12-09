@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         {
             // Arrange
             var windowMock = new ConfigurableVsOutputWindow();
-            
+
             var serviceProviderMock = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: true);
             serviceProviderMock.RegisterService(typeof(SVsOutputWindow), windowMock);
 

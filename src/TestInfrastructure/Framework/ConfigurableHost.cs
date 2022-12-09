@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider = sp;
             this.UIDispatcher = dispatcher;
             this.VisualStateManager = new ConfigurableStateManager { Host = this };
-            Logger = new SonarLintOutputLogger(serviceProvider);
+            Logger = new TestLogger();
         }
 
         #region IHost

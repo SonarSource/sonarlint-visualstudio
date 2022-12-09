@@ -48,7 +48,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private DTEMock dte;
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
-        private ConfigurableVsOutputWindowPane outputPane;
         private SolutionMock solutionMock;
         private ProjectMock projectMock;
         private const string SolutionRoot = @"c:\solution";
@@ -68,8 +67,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.serviceProvider = new ConfigurableServiceProvider();
             this.solutionMock = new SolutionMock(dte, Path.Combine(SolutionRoot, "xxx.sln"));
             this.projectMock = this.solutionMock.AddOrGetProject(Path.Combine(SolutionRoot, @"Project\project.proj"));
-            this.outputPane = new ConfigurableVsOutputWindowPane();
-            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputPane);
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             this.sccFileSystem = new ConfigurableSourceControlledFileSystem(fileSystem);
             this.ruleSetFS = new ConfigurableRuleSetSerializer(fileSystem);

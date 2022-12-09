@@ -44,8 +44,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private RuleSetInspector testSubject;
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsShell shell;
-        private ConfigurableVsOutputWindowPane outputPane;
         private TempFileCollection temporaryFiles;
+        private TestLogger logger;
 
         #region Test plumbing
 
@@ -55,9 +55,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void TestInitialize()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
-
-            this.outputPane = new ConfigurableVsOutputWindowPane();
-            this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputPane);
 
             this.shell = new ConfigurableVsShell();
             this.shell.RegisterPropertyGetter((int)__VSSPROPID2.VSSPROPID_InstallRootDir, () => this.VsInstallRoot);
@@ -71,13 +68,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Directory.CreateDirectory(this.SolutionSharedRuleSetFolder);
 
             this.temporaryFiles = new TempFileCollection();
+
+            logger = new TestLogger();
+            serviceProvider.RegisterService(typeof(ILogger), logger);
         }
 
         [TestCleanup]
         public void TestCleanup()
         {
             // Catch release-build issues that would otherwise be ignored because Debug.Assert will not be called
-            this.outputPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
             ((IDisposable)this.temporaryFiles).Dispose();
         }
 
