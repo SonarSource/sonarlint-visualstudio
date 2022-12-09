@@ -27,6 +27,10 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         void WriteLine(string message);
         void WriteLine(string messageFormat, params object[] args);
+
+        /// <summary>
+        /// Logs a message and appends a new line if logging is set to verbose. Otherwise does nothing.
+        /// </summary>
         void LogDebug(string messageFormat, params object[] args);
     }
 }
