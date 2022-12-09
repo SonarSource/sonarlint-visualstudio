@@ -16,6 +16,8 @@
   <Extern href="stdidcmd.h"/>
   <!--This header contains the command ids for the menus provided by the shell. -->
   <Extern href="vsshlids.h"/>
+  <Extern href="KnownImageIds.vsct"/>
+
   <!-- Include all package commands -->
   <Include href="Commands\PackageCommands.vsct"/>
   <Include href="Commands\HelpMenu\HelpMenu.vsct"/>
@@ -28,8 +30,13 @@
       <Group guid="SonarLintCmdSet" id="SonarLintOuterGroup" priority="0x0100">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EXTENSIONS" />
       </Group>
-      <!-- The sub menu that parents commands. -->
-      <Group guid="SonarLintCmdSet" id="SonarLintGroup" priority="0x0100">
+      <Group guid="SonarLintCmdSet" id="SonarLintConnectedModeGroup" priority="0x0100">
+        <Parent guid="SonarLintCmdSet" id="SonarLintMenu" />
+      </Group>
+      <Group guid="SonarLintCmdSet" id="SonarLintCommandsGroup" priority="0x0101">
+        <Parent guid="SonarLintCmdSet" id="SonarLintMenu" />
+      </Group>
+      <Group guid="SonarLintCmdSet" id="SonarLintHelpGroup" priority="0x0200">
         <Parent guid="SonarLintCmdSet" id="SonarLintMenu" />
       </Group>
     </Groups>
@@ -41,19 +48,32 @@
           <ButtonText>SonarLint</ButtonText>
         </Strings>
       </Menu>
-      <Menu guid="SonarLintCmdSet" id="HelpMenu" priority="0x9999">
-        <Parent guid="SonarLintCmdSet" id="SonarLintGroup"/>
-        <Strings>
-          <ButtonText>Help</ButtonText>
-        </Strings>
-      </Menu>
-      <Menu guid="SonarLintCmdSet" id="ConnectedModeMenu" priority="0x0100">
-        <Parent guid="SonarLintCmdSet" id="SonarLintGroup"/>
+
+      <Menu guid="SonarLintCmdSet" id="ConnectedModeMenu">
+        <Parent guid="SonarLintCmdSet" id="SonarLintConnectedModeGroup"/>
         <Strings>
           <ButtonText>Connected Mode</ButtonText>
         </Strings>
       </Menu>
+      <Menu guid="SonarLintCmdSet" id="HelpMenu">
+        <Parent guid="SonarLintCmdSet" id="SonarLintHelpGroup"/>
+        <Strings>
+          <ButtonText>Help</ButtonText>
+        </Strings>
+      </Menu>
+
     </Menus>
+
+    <Buttons>
+      <Button guid="SonarLintCmdSet" id="OptionsCommand" priority="0x9999">
+        <Parent guid="SonarLintCmdSet" id="SonarLintCommandsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Settings" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Options...</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
     
   </Commands>
   <Symbols>
@@ -64,9 +84,12 @@
     <GuidSymbol name="SonarLintCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
       <IDSymbol name="SonarLintOuterGroup" value="0x1020" />
       <IDSymbol name="SonarLintMenu" value="0x1021" />
-      <IDSymbol name="SonarLintGroup" value="0x1022" />
+      <IDSymbol name="SonarLintCommandsGroup" value="0x1022" />
       <IDSymbol name="HelpMenu" value="0x1023"/>
       <IDSymbol name="ConnectedModeMenu" value="0x1024"/>
+      <IDSymbol name="OptionsCommand" value="0x1025"/>
+      <IDSymbol name="SonarLintHelpGroup" value="0x1026"/>
+      <IDSymbol name="SonarLintConnectedModeGroup" value="0x1027"/>
     </GuidSymbol>
     <!-- External Symbols -->
     <GuidSymbol name="guidSHLMainMenu" value="{d309f791-903f-11d0-9efc-00a0c911004f}">
