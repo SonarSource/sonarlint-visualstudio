@@ -35,10 +35,10 @@ namespace SonarLint.VisualStudio.Integration
         private readonly ISonarLintSettings sonarLintSettings;
 
         [ImportingConstructor]
-        public SonarLintOutputLogger([Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider, ISonarLintSettings sonarLintSettings)
+        public SonarLintOutputLogger([Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            this.sonarLintSettings = sonarLintSettings ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.sonarLintSettings = serviceProvider.GetService<ISonarLintSettings>();
         }
 
         public void WriteLine(string message)

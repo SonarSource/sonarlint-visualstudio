@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
     public class SonarLintOutputTests
     {
         [TestMethod]
-        public void Ctor_WithNullSettings_ThrowsArgumentNullException()
+        public void Ctor_WithNullServiceProvider_ThrowsArgumentNullException()
         {
             // Arrange & Act
             Action act = () => new SonarLintOutputLogger(null);
@@ -52,11 +52,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         {
             // Arrange
             var windowMock = new ConfigurableVsOutputWindow();
-            
-            var serviceProviderMock = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: true);
-            serviceProviderMock.RegisterService(typeof(SVsOutputWindow), windowMock);
+            var serviceProvider = InitializeServiceProvider(windowMock);
 
-            SonarLintOutputLogger logger = new SonarLintOutputLogger(serviceProviderMock);
+            SonarLintOutputLogger logger = new SonarLintOutputLogger(serviceProvider);
 
             // Act
             logger.WriteLine("123");
@@ -65,6 +63,80 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             // Assert
             var outputPane = windowMock.AssertPaneExists(VsShellUtils.SonarLintOutputPaneGuid);
             outputPane.AssertOutputStrings("123", "abc");
+        }
+
+        [TestMethod]
+        public void LogDebug_Verbose_OutputsToWindow()
+        {
+            // Arrange
+            var sonarLintSettings = InitializeSonarLintSettingsWithDaemonLogLevel(DaemonLogLevel.Verbose);
+
+            var windowMock = new ConfigurableVsOutputWindow();
+            var serviceProvider = InitializeServiceProvider(windowMock, sonarLintSettings);
+
+            SonarLintOutputLogger logger = new SonarLintOutputLogger(serviceProvider);
+
+            // Act
+            logger.LogDebug("123");
+
+            // Assert
+            var outputPane = windowMock.AssertPaneExists(VsShellUtils.SonarLintOutputPaneGuid);
+            outputPane.AssertOutputStrings("DEBUG: 123");
+        }
+/*
+        [TestMethod]
+        public void LogDebug_Info_DoesNotOutputToWindow()
+        {
+            // Arrange
+            var sonarLintSettings = InitializeSonarLintSettingsWithDaemonLogLevel(DaemonLogLevel.Info);
+
+            var windowMock = new ConfigurableVsOutputWindow();
+            var serviceProvider = InitializeServiceProvider(windowMock, sonarLintSettings);
+
+            SonarLintOutputLogger logger = new SonarLintOutputLogger(serviceProvider);
+
+            // Act
+            logger.LogDebug("123");
+
+            // Assert
+           windowMock.HasPane(VsShellUtils.SonarLintOutputPaneGuid).Should().Be(false);
+        }
+
+        [TestMethod]
+        public void LogDebug_Minimal_DoesNotOutputToWindow()
+        {
+            // Arrange
+            var sonarLintSettings = InitializeSonarLintSettingsWithDaemonLogLevel(DaemonLogLevel.Minimal);
+
+            var windowMock = new ConfigurableVsOutputWindow();
+            var serviceProvider = InitializeServiceProvider(windowMock, sonarLintSettings);
+
+            SonarLintOutputLogger logger = new SonarLintOutputLogger(serviceProvider);
+
+            // Act
+            logger.LogDebug("123");
+
+            // Assert
+            windowMock.HasPane(VsShellUtils.SonarLintOutputPaneGuid).Should().Be(false);
+        }
+*/
+        private ConfigurableServiceProvider InitializeServiceProvider(ConfigurableVsOutputWindow window, ISonarLintSettings sonarLintSettings = null)
+        {
+            sonarLintSettings ??= Mock.Of<ISonarLintSettings>();
+
+            var serviceProviderMock = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: true);
+            serviceProviderMock.RegisterService(typeof(SVsOutputWindow), window);
+            serviceProviderMock.RegisterService(typeof(ISonarLintSettings), sonarLintSettings);
+
+            return serviceProviderMock;
+        }
+
+        private ISonarLintSettings InitializeSonarLintSettingsWithDaemonLogLevel(DaemonLogLevel logLevel)
+        {
+            var sonarLintSettingsMock = new Mock<ISonarLintSettings>();
+            sonarLintSettingsMock.Setup(x => x.DaemonLogLevel).Returns(logLevel);
+
+            return sonarLintSettingsMock.Object;
         }
     }
 }
