@@ -24,7 +24,6 @@ using System.IO.Abstractions;
 using Microsoft.VisualStudio;
 using Newtonsoft.Json.Linq;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.CFamily.CMake
 {
