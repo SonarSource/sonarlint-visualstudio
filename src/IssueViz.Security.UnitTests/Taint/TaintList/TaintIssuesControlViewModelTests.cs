@@ -40,6 +40,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.TaintList
 {
@@ -189,6 +190,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             activeDocumentTracker.VerifyAdd(x => x.ActiveDocumentChanged += It.IsAny<EventHandler<ActiveDocumentChangedEventArgs>>(), Times.Once);
             activeDocumentTracker.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        [DataRow(ServerType.SonarCloud, nameof(ServerType.SonarCloud))]
+        [DataRow(ServerType.SonarQube, nameof(ServerType.SonarQube))]
+        [DataRow(null, "")]
+        public void Ctor_ExpectedServerTypeSet(ServerType? serverType, string expectedValue)
+        {
+            var sonarQubeServiceMock = new Mock<ISonarQubeService>();
+            SetServerType(serverType, sonarQubeServiceMock);
+
+            var testSubject = CreateTestSubject(sonarQubeService: sonarQubeServiceMock.Object);
+
+            testSubject.ServerType.Should().Be(expectedValue);
         }
 
         [TestMethod]
@@ -701,6 +716,38 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             testSubject.AnalysisInformation.Should().BeSameAs(analysisInformation);
         }
 
+        [TestMethod]
+        [DataRow(null, ServerType.SonarCloud, nameof(ServerType.SonarCloud), true)]
+        [DataRow(null, null, "", false)]
+        [DataRow(ServerType.SonarCloud, null, "", true)]
+        [DataRow(ServerType.SonarCloud, ServerType.SonarCloud, nameof(ServerType.SonarCloud), false)]
+        [DataRow(ServerType.SonarCloud, ServerType.SonarQube, nameof(ServerType.SonarQube), true)]
+        public void ActiveDocChanged_ExpectedServerTypeSetOnlyWhenItIsChanged(
+            ServerType? originalServerType,
+            ServerType? newServerType, 
+            string expectedValue,
+            bool expectedRaiseEvent)
+        {
+            var activeDocumentTrackerMock = new Mock<IActiveDocumentTracker>();
+            var sonarQubeServiceMock = new Mock<ISonarQubeService>();
+            SetServerType(originalServerType, sonarQubeServiceMock);
+
+            var testSubject = CreateTestSubject(activeDocumentTracker: activeDocumentTrackerMock.Object, sonarQubeService:sonarQubeServiceMock.Object);
+            var eventCount = 0;
+            testSubject.PropertyChanged += (sender, args) => {
+                if (args is { PropertyName: nameof(testSubject.ServerType) })
+                {
+                    eventCount++;
+                }
+            };
+            SetServerType(newServerType, sonarQubeServiceMock);
+
+            RaiseActiveDocumentChangedEvent(activeDocumentTrackerMock);
+
+            testSubject.ServerType.Should().Be(expectedValue);
+            eventCount.Should().Be(expectedRaiseEvent ? 1 : 0);
+        }
+
         private static TaintIssuesControlViewModel CreateTestSubject(
             IAnalysisIssueVisualization[] issueVizs = null,
             ILocationNavigator locationNavigator = null,
@@ -710,7 +757,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             ITelemetryManager telemetryManager = null,
             IShowInBrowserService showInBrowserService = null,
             IIssueSelectionService selectionService = null,
-            IMenuCommandService menuCommandService = null)
+            IMenuCommandService menuCommandService = null,
+            ISonarQubeService sonarQubeService = null)
         {
             issueVizs ??= Array.Empty<IAnalysisIssueVisualization>();
             store ??= new Mock<ITaintStore>();
@@ -723,6 +771,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             telemetryManager ??= Mock.Of<ITelemetryManager>();
             selectionService ??= Mock.Of<IIssueSelectionService>();
             menuCommandService ??= Mock.Of<IMenuCommandService>();
+            sonarQubeService ??= Mock.Of<ISonarQubeService>();
 
             return new TaintIssuesControlViewModel(store.Object,
                 locationNavigator,
@@ -732,7 +781,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                 telemetryManager,
                 selectionService,
                 Mock.Of<ICommand>(),
-                menuCommandService);
+                menuCommandService,
+                sonarQubeService);
+        }
+
+        private static void SetServerType(ServerType? serverType, Mock<ISonarQubeService> sonarQubeServiceMock)
+        {
+            sonarQubeServiceMock.Setup(x => x.GetServerInfo())
+                .Returns(serverType.HasValue ? new ServerInfo(null, serverType.Value) : null);
         }
 
         private static IActiveDocumentLocator CreateLocatorAndSetActiveDocument(string activeFilePath)
@@ -812,6 +868,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         {
             selectionService.Setup(x => x.SelectedIssue).Returns(selectedIssue);
             selectionService.Raise(x => x.SelectedIssueChanged += null, EventArgs.Empty);
+        }
+
+        private static void RaiseActiveDocumentChangedEvent(Mock<IActiveDocumentTracker> activeDocTracker)
+        {
+            activeDocTracker.Raise(x => x.ActiveDocumentChanged += null, new ActiveDocumentChangedEventArgs(Mock.Of<ITextDocument>()));
         }
 
         private void VerifyPropertyChangedWasRaised(Mock<PropertyChangedEventHandler> eventHandler, string expectedProperty)
