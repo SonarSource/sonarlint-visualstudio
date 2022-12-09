@@ -55,9 +55,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private DTEMock dteMock;
         private ConfigurableRuleSetConflictsController conflictsController;
         private ConfigurableConfigurationProvider configProvider;
-        private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableSolutionRuleSetsInformationProvider ruleSetsInformationProvider;
         private Mock<IFolderWorkspaceService> folderWorkspaceServiceMock;
+        private TestLogger logger;
 
         private readonly BoundSonarQubeProject ValidProject = new BoundSonarQubeProject(new Uri("http://any"), "projectKey", "Project Name");
         private readonly BindCommandArgs ValidBindingArgs = new BindCommandArgs("any key", "any name", new ConnectionInformation(new Uri("http://anyXXX")));
@@ -75,6 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             projectSystemHelper = new ConfigurableVsProjectSystemHelper(serviceProvider);
             conflictsController = new ConfigurableRuleSetConflictsController();
             configProvider = new ConfigurableConfigurationProvider();
+
             ruleSetsInformationProvider = new ConfigurableSolutionRuleSetsInformationProvider();
             serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper);
             serviceProvider.RegisterService(typeof(IRuleSetConflictsController), conflictsController);
@@ -82,9 +83,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), ruleSetsInformationProvider);
             serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem(new MockFileSystem()));
 
-            var outputWindow = new ConfigurableVsOutputWindow();
-            outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
-            serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
+            logger = new TestLogger();
+            serviceProvider.RegisterService(typeof(ILogger), logger);
 
             folderWorkspaceServiceMock = new Mock<IFolderWorkspaceService>();
             var mefHost = ConfigurableComponentModel.CreateWithExports(
@@ -94,7 +94,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             host = new ConfigurableHost(serviceProvider, Dispatcher.CurrentDispatcher)
             {
-                SonarQubeService = sonarQubeService.Object
+                SonarQubeService = sonarQubeService.Object,
+                Logger = logger
             };
 
             configProvider.FolderPathToReturn = "c:\\test";
@@ -411,7 +412,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Assert
             actual.Should().BeOfType<BindingProcessImpl>();
-            outputWindowPane.AssertOutputStrings(Strings.Bind_UpdatingLegacyBinding);
+            logger.AssertOutputStrings(Strings.Bind_UpdatingLegacyBinding);
             ((BindingProcessImpl)actual).InternalState.IsFirstBinding.Should().BeFalse();
         }
 
@@ -429,7 +430,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             actual.Should().BeOfType<BindingProcessImpl>();
             var bindingProcessImpl = (BindingProcessImpl)actual;
             bindingProcessImpl.NuGetBindingOperation.Should().BeOfType<NoOpNuGetBindingOperation>();
-            outputWindowPane.AssertOutputStrings(Strings.Bind_FirstTimeBinding);
+            logger.AssertOutputStrings(Strings.Bind_FirstTimeBinding);
             bindingProcessImpl.InternalState.IsFirstBinding.Should().BeTrue();
         }
 
@@ -448,7 +449,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var bindingProcessImpl = (BindingProcessImpl)actual;
             bindingProcessImpl.NuGetBindingOperation.Should().BeOfType<NoOpNuGetBindingOperation>();
             bindingProcessImpl.InternalState.IsFirstBinding.Should().BeFalse();
-            outputWindowPane.AssertOutputStrings(Strings.Bind_UpdatingNewStyleBinding);
+            logger.AssertOutputStrings(Strings.Bind_UpdatingNewStyleBinding);
         }
 
         [TestMethod]

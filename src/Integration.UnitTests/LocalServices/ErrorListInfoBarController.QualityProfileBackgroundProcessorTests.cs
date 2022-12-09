@@ -25,7 +25,6 @@ using System.Threading;
 using System.Windows.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
@@ -45,8 +44,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableHost host;
         private ConfigurableVsProjectSystemHelper projectSystem;
-        private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableConfigurationProvider configProvider;
+        private TestLogger logger;
 
         [TestInitialize]
         public void TestInit()
@@ -57,16 +56,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.projectSystem = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystem);
 
-            var outputWindow = new ConfigurableVsOutputWindow();
-            this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
-            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
-
             this.configProvider = new ConfigurableConfigurationProvider {FolderPathToReturn = "c:\\test"};
             this.serviceProvider.RegisterService(typeof(IConfigurationProviderService), this.configProvider);
 
             var mefHost = ConfigurableComponentModel.CreateWithExports(
                 MefTestHelpers.CreateExport<IProjectToLanguageMapper>(new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), Mock.Of<IJsTsProjectTypeIndicator>())));
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefHost);
+
+            logger = new TestLogger();
+            host.Logger = logger;
+            serviceProvider.RegisterService(typeof(ILogger), logger);
         }
 
         #region Tests
@@ -118,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.QueueCheckIfUpdateIsRequired(this.AssertIfCalled);
 
             // Assert
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -133,7 +132,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.QueueCheckIfUpdateIsRequired(this.AssertIfCalled);
 
             // Assert
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -154,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             called.Should().Be(1, "Expected the update action to be called");
-            this.outputWindowPane.AssertOutputStrings(Strings.SonarLintProfileCheckNoProfiles);
+            logger.AssertOutputStrings(Strings.SonarLintProfileCheckNoProfiles);
         }
 
         [TestMethod]
@@ -403,7 +402,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 called.Should().Be(0, "Not expected to call the update action");
             }
 
-            this.outputWindowPane.AssertOutputStrings(expectedOutput);
+            logger.AssertOutputStrings(expectedOutput);
         }
 
         private ErrorListInfoBarController.QualityProfileBackgroundProcessor GetTestSubject()

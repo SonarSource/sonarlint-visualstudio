@@ -23,7 +23,6 @@ using System.Globalization;
 using System.Windows.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Connection;
@@ -42,25 +41,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private Mock<IConnectionWorkflowExecutor> connectionWorkflowMock;
         private ConfigurableConnectionInformationProvider connectionProvider;
         private ConfigurableServiceProvider serviceProvider;
-        private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableSonarLintSettings settings;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
+        private TestLogger logger;
 
         [TestInitialize]
         public void TestInit()
         {
+            this.serviceProvider = new ConfigurableServiceProvider();
+
+            logger = new TestLogger();
+            serviceProvider.RegisterService(typeof(ILogger), logger);
+
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
             this.connectionWorkflowMock = new Mock<IConnectionWorkflowExecutor>();
             this.connectionProvider = new ConfigurableConnectionInformationProvider();
-            this.serviceProvider = new ConfigurableServiceProvider();
-            var outputWindow = new ConfigurableVsOutputWindow();
-            this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
-            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
             this.settings = new ConfigurableSonarLintSettings();
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher)
             {
-                SonarQubeService = this.sonarQubeServiceMock.Object
+                SonarQubeService = this.sonarQubeServiceMock.Object,
+                Logger = logger
             };
 
             IComponentModel componentModel = ConfigurableComponentModel.CreateWithExports(
@@ -295,7 +296,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             foreach (var controllerResult in (ProgressControllerResult[])Enum.GetValues(typeof(ProgressControllerResult)))
             {
-                this.outputWindowPane.Reset();
+                logger.Reset();
 
                 // Act - disable
                 testSubject.SetConnectionInProgress(progressEvents);
@@ -303,14 +304,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 // Assert
                 testSubject.ConnectCommand.CanExecute().Should().BeFalse("Connection is in progress so should not be enabled");
                 testSubject.RefreshCommand.CanExecute(connectionInfo).Should().BeFalse("Connection is in progress so should not be enabled");
-                this.outputWindowPane.AssertOutputStrings(0);
+                logger.AssertOutputStrings(0);
 
                 // Act - log progress
                 string message = controllerResult.ToString();
                 progressEvents.SimulateStepExecutionChanged(message, double.NaN);
 
                 // Assert prefix
-                this.outputWindowPane.AssertOutputStrings(string.Format(CultureInfo.CurrentCulture, Strings.ConnectingToSonarQubePrefixMessageFormat, message));
+                logger.AssertOutputStrings(string.Format(CultureInfo.CurrentCulture, Strings.ConnectingToSonarQubePrefixMessageFormat, message));
 
                 // Act - finish
                 progressEvents.SimulateFinished(controllerResult);

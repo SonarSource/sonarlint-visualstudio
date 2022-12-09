@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             var propertyManager = new ProjectPropertyManager(host);
             var mefExport1 = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
-            var mefExport2 = MefTestHelpers.CreateExport<ILogger>(new SonarLintOutputLogger(serviceProvider));
+            var mefExport2 = MefTestHelpers.CreateExport<ILogger>(new TestLogger());
             var mefExport3 = MefTestHelpers.CreateExport<IProjectToLanguageMapper>(Mock.Of<IProjectToLanguageMapper>());
             var mefModel = ConfigurableComponentModel.CreateWithExports(mefExport1, mefExport2, mefExport3);
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);

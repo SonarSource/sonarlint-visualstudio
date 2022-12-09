@@ -313,7 +313,7 @@ namespace SonarLint.VisualStudio.Integration
 
             this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this, projectToLanguageMapper)));
             this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));
-            this.localServices.Add(typeof(IRuleSetConflictsController), new Lazy<ILocalService>(() => new RuleSetConflictsController(this, new ConflictsManager(this, Logger))));
+            this.localServices.Add(typeof(IRuleSetConflictsController), new Lazy<ILocalService>(() => new RuleSetConflictsController(this, new ConflictsManager(this, Logger), Logger)));
             this.localServices.Add(typeof(IProjectSystemFilter), new Lazy<ILocalService>(() =>
             {
                 var testProjectIndicators = new List<ITestProjectIndicator>
