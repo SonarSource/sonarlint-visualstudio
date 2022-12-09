@@ -32,12 +32,13 @@ namespace SonarLint.VisualStudio.Integration
     public class SonarLintOutputLogger : ILogger
     {
         private readonly IServiceProvider serviceProvider;
-        private bool shouldLogDebug = true;
+        private readonly ISonarLintSettings sonarLintSettings;
 
         [ImportingConstructor]
-        public SonarLintOutputLogger([Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider)
+        public SonarLintOutputLogger([Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider, ISonarLintSettings sonarLintSettings)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.sonarLintSettings = sonarLintSettings ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
         public void WriteLine(string message)
@@ -52,26 +53,11 @@ namespace SonarLint.VisualStudio.Integration
 
         public void LogDebug(string messageFormat, params object[] args)
         {
-            if (shouldLogDebug)
+            if (sonarLintSettings.DaemonLogLevel == DaemonLogLevel.Verbose)
             {
                 var text = args.Length == 0 ? messageFormat : string.Format(messageFormat, args);
                 WriteLine("DEBUG: " + text);
             }
-        }
-
-        /// <summary>
-        /// Extended debug logging that includes file, caller, thread and timestamp.
-        /// </summary>
-        private void LogDebugExtended(string message, [CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerMemberName = null)
-        {
-            if (!shouldLogDebug)
-            {
-                return;
-            }
-
-            var fileName = Path.GetFileNameWithoutExtension(callerFilePath);
-            var text = $"DEBUG: [{fileName}] [{callerMemberName}] [Thread: {Thread.CurrentThread.ManagedThreadId}, {DateTime.Now.ToString("hh:mm:ss.fff")}]  {message}";
-            WriteLine(text);
         }
     }
 }
