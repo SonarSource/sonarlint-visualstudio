@@ -26,13 +26,10 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Core.JsTs;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
@@ -48,10 +45,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private MockFileSystem fileSystem;
         private ConfigurableConfigurationProvider configProvider;
         private ConfigurableRuleSetInspector inspector;
-        private ConfigurableVsOutputWindowPane outputWindowPane;
         private DTEMock dte;
         private ConflictsManager testSubject;
         private IProjectToLanguageMapper projectToLanguageMapper;
+        private TestLogger logger;
 
         public TestContext TestContext { get; set; }
 
@@ -79,9 +76,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.inspector = new ConfigurableRuleSetInspector();
             this.serviceProvider.RegisterService(typeof(IRuleSetInspector), this.inspector);
 
-            var outputWindow = new ConfigurableVsOutputWindow();
-            this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
-            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
+            logger = new TestLogger();
+            serviceProvider.RegisterService(typeof(ILogger), logger);
 
             projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), Mock.Of<IJsTsProjectTypeIndicator>());
 
@@ -94,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.dte = new DTEMock();
             this.projectHelper.CurrentActiveSolution = new SolutionMock(dte);
 
-            this.testSubject = new ConflictsManager(serviceProvider, new SonarLintOutputLogger(serviceProvider), new ProjectBinderFactory(serviceProvider, Mock.Of<ILogger>(), fileSystem), fileSystem);
+            this.testSubject = new ConflictsManager(serviceProvider, logger, new ProjectBinderFactory(serviceProvider, Mock.Of<ILogger>(), fileSystem), fileSystem);
         }
 
         [TestMethod]
@@ -119,7 +115,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Assert
             testSubject.GetCurrentConflicts().Should().BeEmpty("Not expecting any conflicts since solution is not bound");
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -132,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Assert
             testSubject.GetCurrentConflicts().Should().BeEmpty("Not expecting any conflicts since solution is not bound");
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -145,7 +141,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Assert
             testSubject.GetCurrentConflicts().Should().BeEmpty("Not expecting any conflicts since solution is not legacy bound");
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -156,7 +152,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Assert
             testSubject.GetCurrentConflicts().Should().BeEmpty("Not expecting any conflicts since there are no projects");
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -168,14 +164,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Assert
             testSubject.GetCurrentConflicts().Should().BeEmpty("Not expecting any conflicts since the solution baseline is missing");
-            this.outputWindowPane.AssertOutputStrings(1);
+            logger.AssertOutputStrings(1);
 
             var expectedBaselineLocation = configProvider.GetConfiguration()
                 .BuildPathUnderConfigDirectory(projectToLanguageMapper
                     .GetAllBindingLanguagesForProject(projectHelper.FilteredProjects.First()).FirstOrDefault().FileSuffixAndExtension);
 
-            outputWindowPane.AssertOutputStrings(1);
-            this.outputWindowPane.AssertPartialOutputStrings(expectedBaselineLocation);
+            logger.AssertOutputStrings(1);
+            logger.AssertPartialOutputStrings(expectedBaselineLocation);
         }
 
         [TestMethod]
@@ -188,7 +184,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Assert
             testSubject.GetCurrentConflicts().Should().BeEmpty("Not expecting any conflicts since there are no project rulesets specified");
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -209,7 +205,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Assert
             testSubject.GetCurrentConflicts().Should().BeEmpty("Not expecting any conflicts since there are no conflicts");
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
             findConflictsWasCalled.Should().BeTrue();
         }
 
@@ -236,9 +232,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
 
             conflicts.Should().Be(0, "Expect 0 conflicts since failed each time");
-            this.outputWindowPane.AssertOutputStrings(2);
-            this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(0, new[] { "Hello", "world1" });
-            this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(1, new[] { "Hello", "world2" });
+            logger.AssertOutputStrings(2);
+            logger.AssertPartialOutputStringExists("Hello", "world1");
+            logger.AssertPartialOutputStringExists("Hello", "world2");
+
             findConflictCalls.Should().Be(2);
         }
 
@@ -259,7 +256,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Assert
             testSubject.GetCurrentConflicts().Should().HaveCount(3, "Expect 3 conflicts (1st call is not a conflict)");
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
             findConflictCalls.Should().Be(4);
         }
 
@@ -282,7 +279,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Assert
             testSubject.GetCurrentConflicts().Should().HaveCount(6, "Expecting 6 conflicts (3 projects x 2 configuration)");
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -304,7 +301,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Assert
             testSubject.GetCurrentConflicts().Should().HaveCount(3, "Expecting 3 conflicts (1 per project) since the ruleset declaration for project configuration are the same");
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
         }
 
         #region Helpers

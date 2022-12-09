@@ -37,7 +37,6 @@ using NuGet;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Core.JsTs;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
@@ -53,21 +52,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private ConfigurableServiceProvider serviceProvider;
         private Mock<ISonarQubeService> sonarQubeServiceMock;
-        private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private ConfigurableSolutionRuleSetsInformationProvider ruleSetsInformationProvider;
         private ConfigurableHost host;
         private Mock<IFolderWorkspaceService> folderWorkspaceService;
         private Mock<IJsTsProjectTypeIndicator> jstsIndicator;
+        private TestLogger logger;
 
         [TestInitialize]
         public void TestInitialize()
         {
             this.serviceProvider = new ConfigurableServiceProvider();
 
-            var outputWindow = new ConfigurableVsOutputWindow();
-            this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
-            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
+            logger = new TestLogger();
+            serviceProvider.RegisterService(typeof(ILogger), logger);
 
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
@@ -95,6 +93,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             serviceProvider.RegisterService(typeof(SComponentModel), mefProjectToLanguageMapper);
 
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
+            host.Logger = logger;
         }
 
         #region Tests
@@ -158,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             await testSubject.SaveServerExclusionsAsync(CancellationToken.None);
 
             exclusionSettingsStorage.Verify(fs => fs.SaveSettings(settings), Times.Once);
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -176,8 +175,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var result = await testSubject.SaveServerExclusionsAsync(CancellationToken.None);
 
             result.Should().BeFalse();
-            this.outputWindowPane.AssertOutputStrings(1);
-            this.outputWindowPane.AssertPartialOutputStrings("Expected Error");
+            logger.AssertOutputStrings(1);
+            logger.AssertPartialOutputStrings("Expected Error");
         }
 
         [TestMethod]
@@ -195,7 +194,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Func<Task<bool>> act = async () =>  await testSubject.SaveServerExclusionsAsync(CancellationToken.None);
 
             act.Should().ThrowExactly<StackOverflowException>().WithMessage("Critical Error");
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
             
         }
 
@@ -261,10 +260,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             notifications.AssertProgress(0.0, 1.0);
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage, string.Empty);
 
-            this.outputWindowPane.AssertOutputStrings(1);
+            logger.AssertOutputStrings(1);
             var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
                 string.Format(Strings.QualityProfileDownloadSuccessfulMessageFormat, QualityProfileName, string.Empty, language.Name));
-            this.outputWindowPane.AssertOutputStrings(expectedOutput);
+            logger.AssertOutputStrings(expectedOutput);
         }
 
         [TestMethod]
@@ -332,10 +331,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
 
-            this.outputWindowPane.AssertOutputStrings(1);
+            logger.AssertOutputStrings(1);
             var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
                 string.Format(Strings.CannotDownloadQualityProfileForLanguage, language.Name));
-            this.outputWindowPane.AssertOutputStrings(expectedOutput);
+            logger.AssertOutputStrings(expectedOutput);
         }
 
         [TestMethod]
@@ -372,10 +371,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             notifications.AssertProgress(0.0);
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
 
-            this.outputWindowPane.AssertOutputStrings(1);
+            logger.AssertOutputStrings(1);
             var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
                 string.Format(Strings.FailedToCreateBindingConfigForLanguage, language.Name));
-            this.outputWindowPane.AssertOutputStrings(expectedOutput);
+            logger.AssertOutputStrings(expectedOutput);
         }
 
         [TestMethod]
@@ -567,7 +566,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var result = testSubject.PromptSaveSolutionIfDirty();
             // Assert
             result.Should().BeTrue();
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
 
             // Case 2: Users cancels the save
             solution.SaveSolutionElementAction = (options, hierarchy, docCookie) => VSConstants.S_FALSE;
@@ -575,7 +574,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result = testSubject.PromptSaveSolutionIfDirty();
             // Assert
             result.Should().BeFalse();
-            this.outputWindowPane.AssertOutputStrings(Strings.SolutionSaveCancelledBindAborted);
+            logger.AssertOutputStrings(Strings.SolutionSaveCancelledBindAborted);
         }
 
         [TestMethod]
@@ -591,7 +590,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.SilentSaveSolutionIfDirty();
 
             // Assert
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -642,7 +641,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             result.Should().Be(expectedResult);
             testSubject.InternalState.BindingProjects.Should().HaveCount(numberOfProjectsToInclude, "Expected " + numberOfProjectsToInclude + " project(s) selected for binding");
-            this.outputWindowPane.AssertOutputStrings(1);
+            logger.AssertOutputStrings(1);
 
             // Returns expected output message
             var expectedOutput = new StringBuilder();
@@ -670,7 +669,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
             expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, Strings.FilteredOutProjectFromBindingEnding);
 
-            this.outputWindowPane.AssertOutputStrings(expectedOutput.ToString());
+            logger.AssertOutputStrings(expectedOutput.ToString());
         }
 
         [TestMethod]
@@ -727,7 +726,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             result.Should().Be(true);
             testSubject.InternalState.BindingProjects.Should().BeEmpty();
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -744,7 +743,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             result.Should().Be(false);
             testSubject.InternalState.BindingProjects.Should().BeEmpty();
-            this.outputWindowPane.AssertOutputStrings(1);
+            logger.AssertOutputStrings(1);
 
             // Returns expected output message
             var expectedOutput = new StringBuilder();
@@ -762,7 +761,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, msg).AppendLine();
             expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, Strings.FilteredOutProjectFromBindingEnding);
 
-            this.outputWindowPane.AssertOutputStrings(expectedOutput.ToString());
+            logger.AssertOutputStrings(expectedOutput.ToString());
         }
 
         [TestMethod]

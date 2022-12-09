@@ -36,11 +36,13 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 
         private readonly IHost host;
         private readonly IConflictsManager conflictsManager;
+        private readonly ILogger logger;
 
-        public RuleSetConflictsController(IHost host, IConflictsManager conflictsManager)
+        public RuleSetConflictsController(IHost host, IConflictsManager conflictsManager, ILogger logger)
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
             this.conflictsManager = conflictsManager ?? throw new ArgumentNullException(nameof(conflictsManager));
+            this.logger = logger;
             this.FixConflictsCommand = new RelayCommand<IEnumerable<ProjectRuleSetConflict>>(this.OnFixConflicts, this.OnFixConflictsStatus);
         }
 
@@ -143,7 +145,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
                 WriteSummaryInformation(conflictInfo, builder);
             }
 
-            VsShellUtils.WriteToSonarLintOutputPane(this.host, builder.ToString());
+            logger.WriteLine(builder.ToString());
         }
 
         private static void WriteSummaryInformation(ProjectRuleSetConflict conflictInfo, StringBuilder output)
@@ -192,7 +194,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
                 WriteSummaryInformation(fixInfo, builder);
             }
 
-            VsShellUtils.WriteToSonarLintOutputPane(this.host, builder.ToString());
+            logger.WriteLine(builder.ToString());
         }
 
         private static void WriteSummaryInformation(FixedRuleSetInfo fixInfo, StringBuilder output)

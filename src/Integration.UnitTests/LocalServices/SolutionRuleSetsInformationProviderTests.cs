@@ -37,12 +37,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private const string SolutionRoot = @"c:\solution";
         private DTEMock dte;
         private ConfigurableServiceProvider serviceProvider;
-        private ConfigurableVsOutputWindowPane outputPane;
         private SolutionMock solutionMock;
         private ProjectMock projectMock;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private SolutionRuleSetsInformationProvider testSubject;
         private MockFileSystem fileSystem;
+        private TestLogger logger;
 
         [TestInitialize]
         public void TestInitialize()
@@ -54,12 +54,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.projectMock = this.solutionMock.AddOrGetProject(Path.Combine(SolutionRoot, @"Project\project.proj"));
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
 
-            var outputWindow = new ConfigurableVsOutputWindow();
-            this.outputPane = outputWindow.GetOrCreateSonarLintPane();
-            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
+            logger = new TestLogger();
+            serviceProvider.RegisterService(typeof(ILogger), logger);
+
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper);
 
-            this.testSubject = new SolutionRuleSetsInformationProvider(serviceProvider, new SonarLintOutputLogger(serviceProvider), fileSystem);
+            this.testSubject = new SolutionRuleSetsInformationProvider(serviceProvider, logger, fileSystem);
         }
 
         #region Tests
@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             info.Should().HaveCount(1, "Unexpected number of results");
             VerifyRuleSetInformation(info[0], prop1);
-            this.outputPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             info.Should().HaveCount(2, "Unexpected number of results");
             VerifyRuleSetInformation(info[0], prop1);
             VerifyRuleSetInformation(info[1], prop2);
-            this.outputPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyRuleSetInformation(info[0], prop1);
             VerifyRuleSetInformation(info[1], prop2);
             VerifyRuleSetInformation(info[2], prop3);
-            this.outputPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             info.Should().BeEmpty("Unexpected number of results");
-            this.outputPane.AssertOutputStrings(1);
+            logger.AssertOutputStrings(1);
         }
 
         [TestMethod]
@@ -161,7 +161,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             info.Should().HaveCount(2, "Unexpected number of results");
             VerifyRuleSetInformation(info[0], ruleSet1);
             VerifyRuleSetInformation(info[1], ruleSet2);
-            this.outputPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
         }
       
         [TestMethod]

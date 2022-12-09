@@ -27,7 +27,6 @@ using System.Windows.Threading;
 using FluentAssertions;
 using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -51,11 +50,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private ConfigurableHost host;
         private ConfigurableSonarLintSettings settings;
         private ConfigurableProjectSystemFilter filter;
-        private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private Mock<ICredentialStoreService> credentialStoreMock;
         private Mock<ITestProjectRegexSetter> testProjectRegexSetter;
         private Mock<IFolderWorkspaceService> folderWorkspaceService;
+        private TestLogger logger;
 
         [TestInitialize]
         public void TestInit()
@@ -88,9 +87,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.filter = new ConfigurableProjectSystemFilter();
             this.serviceProvider.RegisterService(typeof(IProjectSystemFilter), this.filter);
 
-            var outputWindow = new ConfigurableVsOutputWindow();
-            this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
-            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
 
             this.credentialStoreMock = new Mock<ICredentialStoreService>();
@@ -98,6 +94,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             this.testProjectRegexSetter = new Mock<ITestProjectRegexSetter>();
             this.serviceProvider.RegisterService(typeof(ITestProjectRegexSetter), testProjectRegexSetter.Object);
+
+            logger = new TestLogger();
+            host.Logger = logger;
+            serviceProvider.RegisterService(typeof(ILogger), logger);
         }
 
         #region Tests
@@ -546,7 +546,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             AssertCredentialsStored(connectionInfo);
 
-            this.outputWindowPane.AssertOutputStrings(4);
+            logger.AssertOutputStrings(4);
         }
 
         [TestMethod]
@@ -599,7 +599,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             AssertCredentialsStored(connectionInfo);
 
-            this.outputWindowPane.AssertOutputStrings(2);
+            logger.AssertOutputStrings(2);
         }
 
         [TestMethod]

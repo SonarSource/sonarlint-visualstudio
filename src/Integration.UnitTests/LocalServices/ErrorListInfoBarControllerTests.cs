@@ -28,14 +28,12 @@ using System.Windows.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Imaging;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.InfoBar;
-using SonarLint.VisualStudio.Core.JsTs;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -54,7 +52,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableTeamExplorerController teamExplorerController;
         private ConfigurableInfoBarManager infoBarManager;
         private Mock<IBindingChecker> bindingRequiredIndicator;
-        private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableConfigurationProvider configProvider;
         private ConfigurableStateManager stateManager;
         private Mock<IKnownUIContexts> knownUIContexts;
@@ -83,10 +80,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             this.bindingRequiredIndicator = new Mock<IBindingChecker>();
 
-            var outputWindow = new ConfigurableVsOutputWindow();
-            this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
-            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
-
             this.configProvider = new ConfigurableConfigurationProvider {FolderPathToReturn = "c:\\test"};
 
             this.serviceProvider.RegisterService(typeof(IConfigurationProviderService), this.configProvider);
@@ -94,6 +87,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.stateManager = (ConfigurableStateManager)this.host.VisualStateManager;
             this.logger = new TestLogger();
+            host.Logger = logger;
         
             this.knownUIContexts = new Mock<IKnownUIContexts>();
         }
@@ -139,7 +133,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RunAsyncAction();
 
             // Assert
-            this.outputWindowPane.AssertOutputStrings(2);
+            logger.AssertOutputStrings(2);
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
         }
 
@@ -159,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RunAsyncAction();
 
             // Assert
-            this.outputWindowPane.AssertOutputStrings(1);
+            logger.AssertOutputStrings(1);
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
             VerifyInfoBar(infoBar);
         }
@@ -180,7 +174,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RunAsyncAction();
 
             // Assert
-            this.outputWindowPane.AssertOutputStrings(1);
+            logger.AssertOutputStrings(1);
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
             VerifyInfoBar(infoBar);
         }
@@ -203,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Action should have been queued because the context is not active
             uiContext.Verify(x => x.WhenActivated(It.IsAny<Action>()), Times.Once());
 
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
 
             // Act (simulate solution fully loaded event)
@@ -214,7 +208,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Action should not have been queued because the context is active
             uiContext.Verify(x => x.WhenActivated(It.IsAny<Action>()), Times.Never);
 
-            this.outputWindowPane.AssertOutputStrings(1);
+            logger.AssertOutputStrings(1);
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
             VerifyInfoBar(infoBar);
         }
@@ -232,7 +226,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RunAsyncAction();
 
             // Assert
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
         }
 
@@ -250,7 +244,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RunAsyncAction();
 
             // Assert
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
         }
 
@@ -389,7 +383,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
             testSubject.Refresh();
             RunAsyncAction();
-            this.outputWindowPane.Reset();
+            logger.Reset();
 
             // Sanity
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
@@ -404,7 +398,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             this.teamExplorerController.ShowConnectionsPageCallsCount.Should().Be(0);
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
-            this.outputWindowPane.AssertOutputStrings(1);
+            logger.AssertOutputStrings(1);
         }
 
         [TestMethod]
@@ -417,7 +411,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
             testSubject.Refresh();
             RunAsyncAction();
-            this.outputWindowPane.Reset();
+            logger.Reset();
 
             // Sanity
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
@@ -432,7 +426,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             this.teamExplorerController.ShowConnectionsPageCallsCount.Should().Be(0);
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
-            this.outputWindowPane.AssertOutputStrings(1);
+            logger.AssertOutputStrings(1);
         }
 
         [TestMethod]
@@ -461,7 +455,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SetBindingMode(SonarLintMode.LegacyConnected);
             testSubject.Refresh();
             RunAsyncAction();
-            this.outputWindowPane.Reset();
+            logger.Reset();
 
             // Sanity
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
@@ -485,7 +479,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             disconnectCalled.Should().Be(0, "Not expected to disconnect");
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
             infoBar.VerifyAllEventsUnregistered();
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
         }
 
         [TestMethod]
@@ -510,7 +504,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }, connection => false);
             testSubject.Refresh();
             RunAsyncAction();
-            this.outputWindowPane.Reset();
+            logger.Reset();
 
             // Sanity
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
@@ -522,7 +516,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             refreshCalled.Should().Be(0, "Expected to connect once");
             bindingCalled.Should().Be(0, "Not expected to bind yet");
-            this.outputWindowPane.AssertOutputStrings(1);
+            logger.AssertOutputStrings(1);
             infoBar.VerifyAllEventsRegistered();
             this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
         }
@@ -554,7 +548,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             project = this.ConfigureProjectViewModel(section);
             testSubject.Refresh();
             RunAsyncAction();
-            this.outputWindowPane.Reset();
+            logger.Reset();
 
             // Sanity
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
@@ -566,7 +560,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             this.teamExplorerController.ShowConnectionsPageCallsCount.Should().Be(1);
             bindExecuted.Should().Be(0, "Update was not expected to be executed");
-            this.outputWindowPane.AssertOutputStrings(1);
+            logger.AssertOutputStrings(1);
 
             // Act (command enabled)
             canExecute = true;
@@ -577,7 +571,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             bindExecuted.Should().Be(1, "Update was expected to be executed");
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
             infoBar.VerifyAllEventsUnregistered();
-            this.outputWindowPane.AssertOutputStrings(1);
+            logger.AssertOutputStrings(1);
         }
 
         [TestMethod]
@@ -832,7 +826,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ConfigureProjectViewModel(section);
             testSubject.Refresh();
             RunAsyncAction();
-            this.outputWindowPane.Reset();
+            logger.Reset();
 
             // Sanity
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
@@ -844,7 +838,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
             infoBar.VerifyAllEventsUnregistered();
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
             this.teamExplorerController.ShowConnectionsPageCallsCount.Should().Be(0);
         }
 
@@ -859,7 +853,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ConfigureProjectViewModel(section);
             testSubject.Refresh();
             RunAsyncAction();
-            this.outputWindowPane.Reset();
+            logger.Reset();
 
             // Sanity
             ConfigurableInfoBar infoBar = this.infoBarManager.AssertHasAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
@@ -871,7 +865,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             this.infoBarManager.AssertHasNoAttachedInfoBar(ErrorListInfoBarController.ErrorListToolWindowGuid);
             infoBar.VerifyAllEventsUnregistered();
-            this.outputWindowPane.AssertOutputStrings(0);
+            logger.AssertOutputStrings(0);
             this.teamExplorerController.ShowConnectionsPageCallsCount.Should().Be(0);
         }
 
