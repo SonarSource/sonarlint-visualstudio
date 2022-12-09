@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,8 +35,10 @@ namespace SonarLint.VisualStudio.ConnectedMode
         /// Returns null if there are no head branches
         /// </summary>
         /// <remarks>
-        /// Compares branches by name and calculates distances by the number of different commits
-        /// Defaults to main branch when no match found
+        /// Compares branches by name and calculates distances by the number of different commits.
+        /// Defaults to branch marked as "main" when no match found.
+        /// This is the same algorithm as the other SonarLint flavours (?except in how we treated branch histories.
+        /// We treat branch histories as series of linear commits ordered by time, even if there are merges).
         /// </remarks>
         Task<string> GetMatchedBranch(string projectKey);
     }
@@ -53,6 +56,9 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
         public async Task<string> GetMatchedBranch(string projectKey)
         {
+            Debug.Assert(sonarQubeService.IsConnected,
+                "Not expecting GetMatchedBranch to be called unless we are in Connected Mode");
+
             var head = gitRepo.Head;
 
             if (head == null)
@@ -62,7 +68,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
             var remoteBranches = await sonarQubeService.GetProjectBranchesAsync(projectKey, CancellationToken.None);
 
-            if(remoteBranches.Any(rb=> string.Equals(rb.Name, head.FriendlyName, StringComparison.InvariantCultureIgnoreCase)))
+            if (remoteBranches.Any(rb => string.Equals(rb.Name, head.FriendlyName, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return head.FriendlyName;
             }
@@ -71,23 +77,23 @@ namespace SonarLint.VisualStudio.ConnectedMode
             int closestDistance = int.MaxValue;
 
             foreach (var remoteBranch in remoteBranches)
-            {                
+            {
                 var localBranch = gitRepo.Branches.FirstOrDefault(r => string.Equals(r.FriendlyName, remoteBranch.Name, StringComparison.InvariantCultureIgnoreCase));
-                
-                if(localBranch == null) { continue; }
+
+                if (localBranch == null) { continue; }
 
                 var distance = GetDistance(head, localBranch);
 
-                if(distance < closestDistance)
+                if (distance < closestDistance)
                 {
                     closestBranch = localBranch.FriendlyName;
                     closestDistance = distance;
                 }
             }
-            
-            if(closestBranch == null)
+
+            if (closestBranch == null)
             {
-                return remoteBranches.First(rb => rb.IsMain == true).Name;
+                return remoteBranches.First(rb => rb.IsMain).Name;
             }
             return closestBranch;
         }
@@ -102,7 +108,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
                 var branchCommitIndex = branch.Commits.ToList().FindIndex(bc => bc.Id == commitID);
 
-                if(branchCommitIndex == -1) { continue; }
+                if (branchCommitIndex == -1) { continue; }
 
                 return i + branchCommitIndex;
             }
