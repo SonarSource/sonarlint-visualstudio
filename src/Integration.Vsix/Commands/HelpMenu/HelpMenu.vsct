@@ -34,7 +34,7 @@
       <Button guid="HelpMenuCmdSet" id="ReportProblemCommand" priority="0x102">
         <Parent guid="HelpMenuCmdSet" id="HelpAboutGroup"/>
         <Strings>
-          <ButtonText>Report a Problem...</ButtonText>
+          <ButtonText>Report a Bug or Send Feedback...</ButtonText>
         </Strings>
       </Button>
       <Button guid="HelpMenuCmdSet" id="AboutCommand" priority="0x200">
