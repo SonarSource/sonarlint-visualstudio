@@ -24,7 +24,6 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.Core.Notifications
 {

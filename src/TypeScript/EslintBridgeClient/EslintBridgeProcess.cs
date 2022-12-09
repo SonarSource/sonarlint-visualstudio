@@ -27,7 +27,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.JsTs;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 {
