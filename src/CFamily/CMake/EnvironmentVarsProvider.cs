@@ -102,7 +102,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
         private void LogDebug(string message)
         {
-            logger.LogDebug($"[CMake:EnvVars] [Thread id: {Thread.CurrentThread.ManagedThreadId}] {message}");
+            logger.LogVerbose($"[CMake:EnvVars] [Thread id: {Thread.CurrentThread.ManagedThreadId}] {message}");
         }
     }
 }

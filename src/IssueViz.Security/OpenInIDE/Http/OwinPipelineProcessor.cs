@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
             {
                 // Log then rethrow. We expect the handler pipeline to convert the error into an HTML 500 response
                 logger.WriteLine(OpenInIDEResources.Pipeline_UnhandledError, ex.Message);
-                logger.LogDebug(string.Format(OpenInIDEResources.Pipeline_UnhandledError_Detailed, ex));
+                logger.LogVerbose(string.Format(OpenInIDEResources.Pipeline_UnhandledError_Detailed, ex));
                 throw;
             }
         }

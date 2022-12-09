@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
         private void LogDebug(string message)
         {
-            logger.LogDebug($"[CMake:MacroEval] [Thread id: {Thread.CurrentThread.ManagedThreadId}] {message}");
+            logger.LogVerbose($"[CMake:MacroEval] [Thread id: {Thread.CurrentThread.ManagedThreadId}] {message}");
         }
     }
 }

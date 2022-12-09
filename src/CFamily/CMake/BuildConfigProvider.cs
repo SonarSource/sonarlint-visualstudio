@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
         private void LogDebug(string message)
         {
-            logger.LogDebug("[CMake:ActiveConfigProvider] " + message);
+            logger.LogVerbose("[CMake:ActiveConfigProvider] " + message);
         }
     }
 }

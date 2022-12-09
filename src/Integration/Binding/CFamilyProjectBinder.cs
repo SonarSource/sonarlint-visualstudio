@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 var slnLevelBindingConfigFilepath = binding.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
 
                 var configFileExists = fileSystem.File.Exists(slnLevelBindingConfigFilepath);
-                logger.LogDebug($"[Binding check] Does config file exists: {configFileExists} (language: '{language}', file path: '{slnLevelBindingConfigFilepath}')");
+                logger.LogVerbose($"[Binding check] Does config file exists: {configFileExists} (language: '{language}', file path: '{slnLevelBindingConfigFilepath}')");
                 return !configFileExists;
             });
         }

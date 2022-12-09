@@ -111,20 +111,20 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private bool IsFullyBoundProject(BindingConfiguration binding, Project project, Language language)
         {
-            logger.LogDebug($"[Binding check] Checking binding for project '{project.Name}', language '{language}'");
+            logger.LogVerbose($"[Binding check] Checking binding for project '{project.Name}', language '{language}'");
 
             // PERF: don't need to check the solution binding for every project
             var isSolutionBound = IsSolutionBound(binding, language, out var solutionRuleSetFilePath, out var additionalFilePath);
-            logger.LogDebug($"[Binding check] Is solution bound: {isSolutionBound}");
+            logger.LogVerbose($"[Binding check] Is solution bound: {isSolutionBound}");
 
             if (!isSolutionBound)
             {
-                logger.LogDebug("[Binding check] Solution is not bound. Skipping project-level checks.");
+                logger.LogVerbose("[Binding check] Solution is not bound. Skipping project-level checks.");
                 return false;
             }
 
             var isAdditionalFileBound = additionalFileReferenceChecker.IsReferenced(project, additionalFilePath);
-            logger.LogDebug($"[Binding check] Is additional file referenced: {isAdditionalFileBound} (file path: '{additionalFilePath}')");
+            logger.LogVerbose($"[Binding check] Is additional file referenced: {isAdditionalFileBound} (file path: '{additionalFilePath}')");
 
             if (!isAdditionalFileBound)
             {
@@ -132,7 +132,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             var isRuleSetBound = ruleSetReferenceChecker.IsReferencedByAllDeclarations(project, solutionRuleSetFilePath);
-            logger.LogDebug($"[Binding check] Is ruleset referenced: {isRuleSetBound}.  (file path: {solutionRuleSetFilePath})");
+            logger.LogVerbose($"[Binding check] Is ruleset referenced: {isRuleSetBound}.  (file path: {solutionRuleSetFilePath})");
             return isRuleSetBound;
         }
 
@@ -142,7 +142,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             additionalFilePath = CSharpVBBindingConfigProvider.GetSolutionAdditionalFilePath(language, binding);
 
             var additionalFileExists = fileSystem.File.Exists(additionalFilePath);
-            logger.LogDebug($"[Binding check] Solution-level additional file exists: {additionalFileExists} (file path: '{additionalFilePath}')");
+            logger.LogVerbose($"[Binding check] Solution-level additional file exists: {additionalFileExists} (file path: '{additionalFilePath}')");
             if (!additionalFileExists)
             {
                 return false;
@@ -152,7 +152,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             solutionRuleSetFilePath = solutionRuleSet?.FilePath;
 
             var rulesetExists = solutionRuleSet != null;
-            logger.LogDebug($"[Binding check] Solution-level ruleset exists: {rulesetExists} (file path: '{solutionRuleSetFilePath}')");
+            logger.LogVerbose($"[Binding check] Solution-level ruleset exists: {rulesetExists} (file path: '{solutionRuleSetFilePath}')");
 
             return rulesetExists;
         }

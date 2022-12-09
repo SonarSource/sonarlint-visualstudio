@@ -56,25 +56,25 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             var serializedRequest = request == null
                 ? string.Empty
                 : JsonConvert.SerializeObject(request, Formatting.Indented);
-            logger.LogDebug("[eslint-bridge POST] Endpoint: {0}, request:{1}{2}", serverEndpoint, Environment.NewLine, serializedRequest);
+            logger.LogVerbose("[eslint-bridge POST] Endpoint: {0}, request:{1}{2}", serverEndpoint, Environment.NewLine, serializedRequest);
 
             var content = new StringContent(serializedRequest, Encoding.UTF8, "application/json");
             var response = await httpClient.PostAsync(serverEndpoint, content, cancellationToken);
             var responseString = await response.Content.ReadAsStringAsync();
 
-            logger.LogDebug("[eslint-bridge POST] Endpoint: {0}, response:{1}{2}", serverEndpoint, Environment.NewLine, responseString);
+            logger.LogVerbose("[eslint-bridge POST] Endpoint: {0}, response:{1}{2}", serverEndpoint, Environment.NewLine, responseString);
 
             return responseString;
         }
 
         public async Task<string> GetAsync(Uri serverEndpoint, CancellationToken cancellationToken)
         {
-            logger.LogDebug("[eslint-bridge GET] Endpoint: {0}", serverEndpoint);
+            logger.LogVerbose("[eslint-bridge GET] Endpoint: {0}", serverEndpoint);
 
             var response = await httpClient.GetAsync(serverEndpoint, cancellationToken);
             var responseString = await response.Content.ReadAsStringAsync();
 
-            logger.LogDebug("[eslint-bridge GET] Endpoint: {0}, response:{1}", serverEndpoint, responseString);
+            logger.LogVerbose("[eslint-bridge GET] Endpoint: {0}, response:{1}", serverEndpoint, responseString);
 
             return responseString;
         }

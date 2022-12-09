@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
         {
             var allTsConfigsFilePaths = tsConfigsLocator.Locate(sourceFilePath);
 
-            logger.LogDebug(Resources.INFO_FoundTsConfigs, string.Join(Path.PathSeparator.ToString(), allTsConfigsFilePaths));
+            logger.LogVerbose(Resources.INFO_FoundTsConfigs, string.Join(Path.PathSeparator.ToString(), allTsConfigsFilePaths));
 
             var tsConfigFile = await GetConfigForFile(sourceFilePath,
                 allTsConfigsFilePaths,
@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
 
                 if (response.ProjectReferences != null && response.ProjectReferences.Any())
                 {
-                    logger.LogDebug(Resources.INFO_CheckingReferencedTsConfigs, tsConfigToCheck, string.Join(Path.DirectorySeparatorChar.ToString(), response.ProjectReferences));
+                    logger.LogVerbose(Resources.INFO_CheckingReferencedTsConfigs, tsConfigToCheck, string.Join(Path.DirectorySeparatorChar.ToString(), response.ProjectReferences));
 
                     var matchingConfig = await GetConfigForFile(sourceFilePath,
                         response.ProjectReferences,

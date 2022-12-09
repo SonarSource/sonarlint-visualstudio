@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
             if (string.IsNullOrEmpty(rootDirectory))
             {
-                logger.LogDebug("[CompilationDatabaseLocator] Could not find project root directory");
+                logger.LogVerbose("[CompilationDatabaseLocator] Could not find project root directory");
                 return null;
             }
 
@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             var defaultDirectory = Path.GetFullPath(string.Format(DefaultLocationFormat, rootDirectory, activeConfiguration));
             var defaultLocation = Path.Combine(defaultDirectory, CompilationDatabaseFileName);
 
-            logger.LogDebug($"[CompilationDatabaseLocator] No CMakeSettings file was found under {rootDirectory}, returning default location: {defaultLocation}");
+            logger.LogVerbose($"[CompilationDatabaseLocator] No CMakeSettings file was found under {rootDirectory}, returning default location: {defaultLocation}");
 
             return defaultLocation;
         }

@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.VsVersion
             }
             catch (Exception ex)
             {
-                logger.LogDebug(Resources.FailedToCalculateVsVersion, ex);
+                logger.LogVerbose(Resources.FailedToCalculateVsVersion, ex);
 
                 return null;
             }
