@@ -43,6 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         private readonly ISonarQubeService sonarQubeService;
         private readonly string sonarQubeProjectKey;
+        private readonly IServerBranchProvider serverBranchProvider;
         private readonly ITimer refreshTimer;
         private readonly ILogger logger;
 
@@ -55,13 +56,20 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         private CancellationTokenSource cancellationTokenSource;
         private readonly IThreadHandling threadHandling;
 
-        public SonarQubeIssuesProvider(ISonarQubeService sonarQubeService, string sonarQubeProjectKey,
-            ILogger logger) : this(sonarQubeService, sonarQubeProjectKey, logger, new TimerFactory(), new ThreadHandling())
+        public SonarQubeIssuesProvider(ISonarQubeService sonarQubeService,
+            IServerBranchProvider serverBranchProvider,
+            string sonarQubeProjectKey,
+            ILogger logger)
+            : this(sonarQubeService, serverBranchProvider, sonarQubeProjectKey, logger, new TimerFactory(), new ThreadHandling())
         {
         }
 
-        internal /* for testing */ SonarQubeIssuesProvider(ISonarQubeService sonarQubeService, string sonarQubeProjectKey,
-            ILogger logger, ITimerFactory timerFactory, IThreadHandling threadHandling)
+        internal /* for testing */ SonarQubeIssuesProvider(ISonarQubeService sonarQubeService,
+            IServerBranchProvider serverBranchProvider,
+            string sonarQubeProjectKey,
+            ILogger logger,
+            ITimerFactory timerFactory,
+            IThreadHandling threadHandling)
         {
             if (string.IsNullOrWhiteSpace(sonarQubeProjectKey))
             {
@@ -73,6 +81,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
             this.sonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
             this.sonarQubeProjectKey = sonarQubeProjectKey;
+            this.serverBranchProvider = serverBranchProvider ?? throw new ArgumentNullException(nameof(serverBranchProvider));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.threadHandling = threadHandling;
 
@@ -101,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         public IEnumerable<SonarQubeIssue> GetSuppressedIssues(string projectGuid, string filePath)
         {
-           // Block the call while the cache is being built.
+            // Block the call while the cache is being built.
             // If the task has already completed then this will return immediately
             // (e.g. on subsequent calls)
             // If we time out waiting for the initial fetch then we won't suppress any issues.
@@ -198,14 +207,18 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 cancellationTokenSource?.Cancel();
                 cancellationTokenSource = new CancellationTokenSource();
 
+                // TODO - pass the cancellation token
+                var serverBranch = await serverBranchProvider.GetServerBranchNameAsync();
+
                 // TODO: Handle race conditions
                 var moduleKeyToRelativePathToRoot = (await this.sonarQubeService.GetAllModulesAsync(sonarQubeProjectKey,
                         cancellationTokenSource.Token))
                     .ToDictionary(x => x.Key, x => x.RelativePathToRoot);
                 this.hasModules = moduleKeyToRelativePathToRoot.Keys.Count > 1;
+                
                 this.allSuppressedIssues = await this.sonarQubeService.GetSuppressedIssuesAsync(sonarQubeProjectKey,
-                    null, // TODO - pass the current branch
-                    cancellationTokenSource.Token);
+                    serverBranch, cancellationTokenSource.Token);
+                
                 this.suppressedModuleIssues = allSuppressedIssues.Where(x => string.IsNullOrEmpty(x.FilePath))
                     .GroupBy(x => x.ModuleKey)
                     .ToDictionary(x => x.Key, x => x.ToList());
