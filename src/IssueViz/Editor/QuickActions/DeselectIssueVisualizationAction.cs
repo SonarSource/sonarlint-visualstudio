@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
             cachedSelectedIssueRuleId = selectionService.SelectedIssue.RuleId;
         }
 
-        public override string DisplayText => $"SonarLint: hide issue visualization ({cachedSelectedIssueRuleId})";
+        public override string DisplayText => $"SonarLint: Hide Issue Visualization ({cachedSelectedIssueRuleId})";
 
         public override void Invoke(CancellationToken cancellationToken)
         {
