@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
@@ -40,7 +41,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         {
             var testSubject = CreateTestSubject();
 
-            var actual = await testSubject.GetServerBranchNameAsync();
+            var actual = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
             
             actual.Should().BeNull();
         }
