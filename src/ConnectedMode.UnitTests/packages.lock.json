@@ -8,6 +8,15 @@
         "resolved": "5.9.0",
         "contentHash": "JZxb5DuspmuH4A5p9bfj060evQnwIUkxxfFMG9F/pa7gl1Ry2r2nuQbu5G4UWGQQTtpTxPpVowqNDdBkA0G2Mw=="
       },
+      "LibGit2Sharp": {
+        "type": "Direct",
+        "requested": "[0.26.2, )",
+        "resolved": "0.26.2",
+        "contentHash": "qHLhuI8VEtMf7jiurT/Ypquh37S6ngllCx+aq9uqOY2evok7Fb2AzhJgvNctsXOzHaJwveBs+30sPQJFn/pISg==",
+        "dependencies": {
+          "LibGit2Sharp.NativeBinaries": "[2.0.306]"
+        }
+      },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
         "requested": "[16.5.0, )",
@@ -98,14 +107,6 @@
         "type": "Transitive",
         "resolved": "1.4.1",
         "contentHash": "D5AcNr0yPFz5dqftJYKnMtwg6AEMUics+UysxTXKVuZtresqWUcHIrnscM+KsAIreG7wvdumWzjdIXRIMekCLg=="
-      },
-      "LibGit2Sharp": {
-        "type": "Transitive",
-        "resolved": "0.26.2",
-        "contentHash": "qHLhuI8VEtMf7jiurT/Ypquh37S6ngllCx+aq9uqOY2evok7Fb2AzhJgvNctsXOzHaJwveBs+30sPQJFn/pISg==",
-        "dependencies": {
-          "LibGit2Sharp.NativeBinaries": "[2.0.306]"
-        }
       },
       "LibGit2Sharp.NativeBinaries": {
         "type": "Transitive",
@@ -1219,7 +1220,6 @@
       "SonarLint.VisualStudio.ConnectedMode": {
         "type": "Project",
         "dependencies": {
-          "LibGit2Sharp": "[0.26.2, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )"
         }
       },
