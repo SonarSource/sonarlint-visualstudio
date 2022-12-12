@@ -67,6 +67,7 @@
     <RequiresVCProjectEngine>true</RequiresVCProjectEngine>
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
     <RequiresSystemIOAbstractions>true</RequiresSystemIOAbstractions>
+    <RequiresLibGit>true</RequiresLibGit>
   </PropertyGroup>
 
   <!-- This project references the SonarLint TeamExplorer assembly which is VS-version specific -->
@@ -153,7 +154,7 @@
       <Project>{BA771DF7-9F99-4DE3-B85B-3E5DB742A55C}</Project>
       <Name>SonarQube.Client.2015</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ConnectedMode\ConnectedMode.csproj" >
+    <ProjectReference Include="..\ConnectedMode\ConnectedMode.csproj">
       <Project>{0BE551DB-3C46-42A5-BB38-DA80E83F8ABD}</Project>
       <Name>ConnectedMode</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
@@ -436,6 +437,7 @@
     <ItemGroup>
       <VSIXSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'System.IO.Abstractions'" />
       <VSIXSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'BouncyCastle'" />
+      <VSIXSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'LibGit2Sharp'" />
     </ItemGroup>
   </Target>
 

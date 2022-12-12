@@ -52,6 +52,7 @@
   <ItemGroup Label="NuGet packages">
     <PackageReference Include="Newtonsoft.Json" Condition=" $(RequiresNewtonsoft)=='true'" Version="$(NewtonsoftVersion)" />
     <PackageReference Include="System.IO.Abstractions" Condition=" $(RequiresSystemIOAbstractions)=='true'" Version="9.0.4" />
+    <PackageReference Include="LibGit2Sharp" Version="0.26.2" Condition="$(RequiresLibGit)=='true'" GeneratePathProperty="true" PrivateAssets="all"  />
   </ItemGroup>
 
 </Project>

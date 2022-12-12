@@ -6,6 +6,8 @@
     <ProjectGuid>2BD38A3A-6F0E-452B-A5B2-200113A32184</ProjectGuid>
     <AssemblyName>SonarLint.VisualStudio.ConnectedMode.UnitTests</AssemblyName>
     <RootNamespace>SonarLint.VisualStudio.ConnectedMode.UnitTests</RootNamespace>
+
+    <RequiresLibGit>true</RequiresLibGit>
   </PropertyGroup>
 
   <ItemGroup Label="Test framework">
