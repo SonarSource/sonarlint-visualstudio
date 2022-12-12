@@ -27,7 +27,6 @@ namespace SonarLint.VisualStudio.Core
         internal const string TreatBlockerAsErrorEnvVar = "SONAR_INTERNAL_TREAT_BLOCKER_AS_ERROR";
         internal const string AnalysisTimeoutEnvVar = "SONARLINT_INTERNAL_ANALYSIS_TIMEOUT_MS";
         internal const string PchGenerationTimeoutEnvVar = "SONARLINT_INTERNAL_PCH_GENERATION_TIMEOUT_MS";
-        internal const string LogDebugMessagesEnvVar = "SONARLINT_INTERNAL_LOG_DEBUG";
 
         public bool TreatBlockerSeverityAsError()
             => ParseBool(TreatBlockerAsErrorEnvVar);
@@ -41,9 +40,6 @@ namespace SonarLint.VisualStudio.Core
 
             return userValue > 0 ? userValue : defaultValue;
         }
-
-        public bool ShouldLogDebugMessages() 
-            => ParseBool(LogDebugMessagesEnvVar);
 
         private static int ParseInt(string setting)
         {

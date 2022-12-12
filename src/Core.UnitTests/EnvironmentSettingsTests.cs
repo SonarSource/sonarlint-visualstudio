@@ -90,23 +90,5 @@ namespace SonarLint.VisualStudio.Core.UnitTests
                 new EnvironmentSettings().PCHGenerationTimeoutInMs(PchGenerationDefaultValue).Should().Be(expected);
             }
         }
-
-        [TestMethod]
-        [DataRow(null, false)]
-        [DataRow("true", true)]
-        [DataRow("TRUE", true)]
-        [DataRow("false", false)]
-        [DataRow("FALSE", false)]
-        [DataRow("1", false)]
-        [DataRow("0", false)]
-        [DataRow("not a boolean", false)]
-        public void LogDebugMessages_CorrectlyMapped(string envVarValue, bool expected)
-        {
-            using (var scope = new EnvironmentVariableScope())
-            {
-                scope.SetVariable(EnvironmentSettings.LogDebugMessagesEnvVar, envVarValue);
-                new EnvironmentSettings().ShouldLogDebugMessages().Should().Be(expected);
-            }
-        }
     }
 }
