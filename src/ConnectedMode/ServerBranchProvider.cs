@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
@@ -36,7 +37,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             this.logger = logger;
         }
 
-        public Task<string> GetServerBranchNameAsync()
+        public Task<string> GetServerBranchNameAsync(CancellationToken token)
         {
             string branchName = null;
 

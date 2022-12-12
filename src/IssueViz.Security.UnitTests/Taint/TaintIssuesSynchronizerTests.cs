@@ -423,7 +423,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         private static Mock<IServerBranchProvider> CreateServerBranchProvider(string branchName)
         {
             var serverBranchProvider = new Mock<IServerBranchProvider>();
-            serverBranchProvider.Setup(x => x.GetServerBranchNameAsync()).ReturnsAsync(branchName);
+            serverBranchProvider.Setup(x => x.GetServerBranchNameAsync(It.IsAny<CancellationToken>())).ReturnsAsync(branchName);
             return serverBranchProvider;
         }
 

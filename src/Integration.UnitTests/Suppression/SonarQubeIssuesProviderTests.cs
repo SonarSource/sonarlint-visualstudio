@@ -222,7 +222,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             var issuesProvider = CreateTestSubject("sqkey", serverBranchProvider.Object);
             WaitForInitialFetchTaskToStart();
 
-            serverBranchProvider.Verify(x => x.GetServerBranchNameAsync(), Times.Once);
+            serverBranchProvider.Verify(x => x.GetServerBranchNameAsync(It.IsAny<CancellationToken>()), Times.Once);
+
+            // Should have been passed an actual cancellation token
+            serverBranchProvider.Invocations.Should().HaveCount(1);
+            var actualCancellationToken = (CancellationToken)serverBranchProvider.Invocations[0].Arguments[0];
+            actualCancellationToken.Should().NotBe(CancellationToken.None);
+            actualCancellationToken.IsCancellationRequested.Should().BeFalse();
 
             VerifyServiceGetIssues(Times.Exactly(1), "sqkey", "branch-XXX");
         }
@@ -766,7 +772,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         private static Mock<IServerBranchProvider> CreateServerBranchProvider(string branch)
         {
             var serverBranchProvider = new Mock<IServerBranchProvider>();
-            serverBranchProvider.Setup(x => x.GetServerBranchNameAsync()).ReturnsAsync(branch);
+            serverBranchProvider.Setup(x => x.GetServerBranchNameAsync(It.IsAny<CancellationToken>())).ReturnsAsync(branch);
             return serverBranchProvider;
         }
 
