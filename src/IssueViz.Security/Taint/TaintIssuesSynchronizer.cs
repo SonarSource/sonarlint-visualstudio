@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 }
 
                 var projectKey = bindingConfiguration.Project.ProjectKey;
-                var serverBranch = await serverBranchProvider.GetServerBranchNameAsync();
+                var serverBranch = await serverBranchProvider.GetServerBranchNameAsync(CancellationToken.None);
 
                 var taintVulnerabilities = await sonarQubeService.GetTaintVulnerabilitiesAsync(projectKey,
                     serverBranch,
