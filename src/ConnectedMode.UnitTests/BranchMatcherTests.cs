@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var testSubject = new BranchMatcher(service);
 
-            var result = await testSubject.GetMatchedBranch("projectKey", repo);
+            var result = await testSubject.GetMatchingBranch("projectKey", repo);
 
             result.Should().Be("branch");
         }
@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var testSubject = new BranchMatcher(service);
 
-            var result = await testSubject.GetMatchedBranch("projectKey", repo);
+            var result = await testSubject.GetMatchingBranch("projectKey", repo);
 
             result.Should().Be("dev");
         }
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var testSubject = new BranchMatcher(service);
 
-            var result = await testSubject.GetMatchedBranch("projectKey", repo);
+            var result = await testSubject.GetMatchingBranch("projectKey", repo);
 
             result.Should().Be("dev");
         }
@@ -163,7 +163,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var testSubject = new BranchMatcher(service);
 
-            var result = await testSubject.GetMatchedBranch("projectKey", repo);
+            var result = await testSubject.GetMatchingBranch("projectKey", repo);
 
             result.Should().Be("branch2");
         }
@@ -187,7 +187,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var testSubject = new BranchMatcher(service);
 
-            var result = await testSubject.GetMatchedBranch("projectKey", repo);
+            var result = await testSubject.GetMatchingBranch("projectKey", repo);
 
             result.Should().Be("premier");
         }
@@ -197,7 +197,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         {
             var testSubject = new BranchMatcher(CreateSonarQubeService("any"));
 
-            var result = await testSubject.GetMatchedBranch("projectKey", Mock.Of<IRepository>());
+            var result = await testSubject.GetMatchingBranch("projectKey", Mock.Of<IRepository>());
 
             result.Should().BeNull();
         }
