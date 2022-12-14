@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -31,7 +32,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
     public interface IBranchMatcher
     {
         /// <summary>
-        /// Calculates the nearest branch to the head branch.
+        /// Calculates the Sonar server branch that is the closest match to the head branch.
         /// Returns null if there are no head branches
         /// </summary>
         /// <remarks>
@@ -40,21 +41,23 @@ namespace SonarLint.VisualStudio.ConnectedMode
         /// This is the same algorithm as the other SonarLint flavours (?except in how we treated branch histories.
         /// We treat branch histories as series of linear commits ordered by time, even if there are merges).
         /// </remarks>
-        Task<string> GetMatchedBranch(string projectKey);
+        Task<string> GetMatchingBranch(string projectKey, IRepository gitRepo);
     }
 
+    [Export(typeof(IBranchMatcher))]
+    // Note: this class doesn't *need* to be a singleton; it doesn't hold any unique state.
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class BranchMatcher : IBranchMatcher
     {
         private readonly ISonarQubeService sonarQubeService;
-        private readonly IRepository gitRepo;
 
-        public BranchMatcher(ISonarQubeService sonarQubeService, IRepository gitRepo)
+        [ImportingConstructor]
+        public BranchMatcher(ISonarQubeService sonarQubeService)
         {
             this.sonarQubeService = sonarQubeService;
-            this.gitRepo = gitRepo;
         }
 
-        public async Task<string> GetMatchedBranch(string projectKey)
+        public async Task<string> GetMatchingBranch(string projectKey, IRepository gitRepo)
         {
             Debug.Assert(sonarQubeService.IsConnected,
                 "Not expecting GetMatchedBranch to be called unless we are in Connected Mode");
