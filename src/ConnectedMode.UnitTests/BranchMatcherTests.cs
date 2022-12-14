@@ -24,6 +24,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using LibGit2Sharp;
 using SonarLint.VisualStudio.ConnectedMode.UnitTests.LibGit2SharpWrappers;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 
@@ -32,6 +33,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
     [TestClass]
     public class BranchMatcherTests
     {
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<BranchMatcher, IBranchMatcher>(
+                MefTestHelpers.CreateExport<ISonarQubeService>());
+        }
+
         [DataRow("BRANCH")]
         [DataRow("branch")]
         [DataRow("Branch")]
@@ -45,9 +53,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var repo = CreateRepo(headBranch, masterBranch);
 
-            var testSubject = new BranchMatcher(service, repo);
+            var testSubject = new BranchMatcher(service);
 
-            var result = await testSubject.GetMatchedBranch("projectKey");
+            var result = await testSubject.GetMatchingBranch("projectKey", repo);
 
             result.Should().Be("branch");
         }
@@ -67,9 +75,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var repo = CreateRepo(headBranch, masterBranch, devBranch);
 
-            var testSubject = new BranchMatcher(service, repo);
+            var testSubject = new BranchMatcher(service);
 
-            var result = await testSubject.GetMatchedBranch("projectKey");
+            var result = await testSubject.GetMatchingBranch("projectKey", repo);
 
             result.Should().Be("dev");
         }
@@ -91,9 +99,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var repo = CreateRepo(headBranch, closestBranch, masterBranch, devBranch);
 
-            var testSubject = new BranchMatcher(service, repo);
+            var testSubject = new BranchMatcher(service);
 
-            var result = await testSubject.GetMatchedBranch("projectKey");
+            var result = await testSubject.GetMatchingBranch("projectKey", repo);
 
             result.Should().Be("dev");
         }
@@ -153,9 +161,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var repo = CreateRepo(headBranch: branch3, masterBranch, branch1, branch2);
 
-            var testSubject = new BranchMatcher(service, repo);
+            var testSubject = new BranchMatcher(service);
 
-            var result = await testSubject.GetMatchedBranch("projectKey");
+            var result = await testSubject.GetMatchingBranch("projectKey", repo);
 
             result.Should().Be("branch2");
         }
@@ -177,9 +185,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var repo = CreateRepo(headBranch, masterBranch, branch1, branch2);
 
-            var testSubject = new BranchMatcher(service, repo);
+            var testSubject = new BranchMatcher(service);
 
-            var result = await testSubject.GetMatchedBranch("projectKey");
+            var result = await testSubject.GetMatchingBranch("projectKey", repo);
 
             result.Should().Be("premier");
         }
@@ -187,9 +195,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         [TestMethod]
         public async Task GetMatchedBranch_RepoHasNoHead_ReturnsNull()
         {
-            var testSubject = new BranchMatcher(CreateSonarQubeService("any"), Mock.Of<IRepository>());
+            var testSubject = new BranchMatcher(CreateSonarQubeService("any"));
 
-            var result = await testSubject.GetMatchedBranch("projectKey");
+            var result = await testSubject.GetMatchingBranch("projectKey", Mock.Of<IRepository>());
 
             result.Should().BeNull();
         }
