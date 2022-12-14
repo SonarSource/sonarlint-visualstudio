@@ -7,7 +7,7 @@
          the SonarAnalyzer version -->
     <EmbeddedSonarAnalyzerVersion>8.49.0.57237</EmbeddedSonarAnalyzerVersion>
     <EmbeddedSonarCFamilyAnalyzerVersion>6.40.0.60596</EmbeddedSonarCFamilyAnalyzerVersion>
-    <EmbeddedSonarJSAnalyzerVersion>9.11.0.20161</EmbeddedSonarJSAnalyzerVersion>
+    <EmbeddedSonarJSAnalyzerVersion>9.12.0.20319</EmbeddedSonarJSAnalyzerVersion>
     <EmbeddedSonarSecretsAnalyzerVersion>1.0.3</EmbeddedSonarSecretsAnalyzerVersion>
   </PropertyGroup>
 
