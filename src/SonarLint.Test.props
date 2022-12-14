@@ -9,6 +9,9 @@
     <IsTestProject>true</IsTestProject>
     <RequiresSigning>false</RequiresSigning>
     <SonarQubeTestProject>true</SonarQubeTestProject>
+
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)TestProjects.ruleset</CodeAnalysisRuleSet>
+
   </PropertyGroup>
   
 </Project>
