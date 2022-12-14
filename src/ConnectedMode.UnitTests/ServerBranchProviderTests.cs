@@ -18,11 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Data.Odbc;
 using System.Threading;
 using System.Threading.Tasks;
 using LibGit2Sharp;
-using Microsoft.VisualStudio.OLE.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;

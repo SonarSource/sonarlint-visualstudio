@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             var repo = createRepo(gitRepoRoot);
             branchName = await branchMatcher.GetMatchingBranch(config.Project.ProjectKey, repo);
 
-            logger.WriteLine(Resources.BranchProvider_MarchingServerBranchName, branchName ?? Resources.NullBranchName);
+            logger.WriteLine(Resources.BranchProvider_MatchingServerBranchName, branchName ?? Resources.NullBranchName);
 
             return branchName;
         }
