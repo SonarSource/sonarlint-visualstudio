@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             return int.MaxValue;
         }
 
-        internal /*For Testing*/ int GetIndexOfCommit(ICommitLog commits, ObjectId commitId)
+        private int GetIndexOfCommit(ICommitLog commits, ObjectId commitId)
         {
             int i = 0;
             foreach (var commit in commits)
