@@ -45,6 +45,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
     }
 
     [Export(typeof(IBranchMatcher))]
+    // Note: this class doesn't *need* to be a singleton; it doesn't hold any unique state.
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class BranchMatcher : IBranchMatcher
     {
         private readonly ISonarQubeService sonarQubeService;
