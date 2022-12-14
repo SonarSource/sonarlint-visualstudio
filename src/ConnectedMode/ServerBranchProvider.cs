@@ -21,7 +21,9 @@
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using LibGit2Sharp;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode
@@ -29,22 +31,63 @@ namespace SonarLint.VisualStudio.ConnectedMode
     [Export(typeof(IServerBranchProvider))]
     internal class ServerBranchProvider : IServerBranchProvider
     {
+        /// <summary>
+        /// Factory method to create and return an <see cref="IRepository"/> instance.
+        /// </summary>
+        /// <remarks>Only used for testing</remarks>
+        internal delegate IRepository CreateRepositoryObject(string repoRootPath);
+
+        private readonly IConfigurationProvider configurationProvider;
+        private readonly IGitWorkspaceService gitWorkspaceService;
+        private readonly IBranchMatcher branchMatcher;
         private readonly ILogger logger;
+        private readonly CreateRepositoryObject createRepo;
 
         [ImportingConstructor]
-        public ServerBranchProvider(ILogger logger)
+        public ServerBranchProvider(IConfigurationProvider configurationProvider, IGitWorkspaceService gitWorkspaceService, IBranchMatcher branchMatcher, ILogger logger)
+            : this(configurationProvider, gitWorkspaceService, branchMatcher, logger, DoCreateRepo)
         {
-            this.logger = logger;
         }
 
-        public Task<string> GetServerBranchNameAsync(CancellationToken token)
+        internal /* for testing */ ServerBranchProvider(IConfigurationProvider configurationProvider,
+            IGitWorkspaceService gitWorkspaceService,
+            IBranchMatcher branchMatcher,
+            ILogger logger,
+            CreateRepositoryObject createRepo)
+        {
+            this.configurationProvider = configurationProvider;
+            this.gitWorkspaceService = gitWorkspaceService;
+            this.branchMatcher = branchMatcher;
+            this.logger = logger;
+            this.createRepo = createRepo;
+        }
+
+        public async Task<string> GetServerBranchNameAsync(CancellationToken token)
         {
             string branchName = null;
 
-            // TODO: calculate branch name
-            logger.WriteLine(Resources.BranchProvider_ServerBranchName, branchName ?? Resources.NullBranchName);
+            var config = configurationProvider.GetConfiguration();
+            if (config.Mode == SonarLintMode.Standalone)
+            {
+                logger.LogVerbose(Resources.BranchProvider_NotInConnectedMode);
+                return null;
+            }
 
-            return Task.FromResult(branchName);
+            var gitRepoRoot = gitWorkspaceService.GetRepoRoot();
+            if (gitRepoRoot == null)
+            {
+                logger.LogVerbose(Resources.BranchProvider_CouldNotDetectGitRepo);
+                return null;
+            }
+
+            var repo = createRepo(gitRepoRoot);
+            branchName = await branchMatcher.GetMatchingBranch(config.Project.ProjectKey, repo);
+
+            logger.WriteLine(Resources.BranchProvider_MarchingServerBranchName, branchName ?? Resources.NullBranchName);
+
+            return branchName;
         }
+
+        private static IRepository DoCreateRepo(string repoRootPath) => new Repository(repoRootPath);
     }
 }
