@@ -80,7 +80,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             var result = await testSubject.GetMatchingBranch("projectKey", repo);
 
             result.Should().Be("dev");
-
         }
 
         [TestMethod]
