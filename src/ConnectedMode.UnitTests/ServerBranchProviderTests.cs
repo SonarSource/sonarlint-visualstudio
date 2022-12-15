@@ -118,7 +118,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             configProvider.VerifyAll();
             gitWorkspace.Verify(x => x.GetRepoRoot(), Times.Once);
             createRepoOp.Verify(x => x.Invoke("c:\\aaa\\reporoot"), Times.Once);
-            branchMatcher.Verify(x => x.GetMatchingBranch("my project key", repo), Times.Once);
+            branchMatcher.Verify(x => x.GetMatchingBranch("my project key", repo, It.IsAny<CancellationToken>()), Times.Once);
 
             gitWorkspace.Invocations.Should().HaveCount(1);
             branchMatcher.Invocations.Should().HaveCount(1);
@@ -146,7 +146,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             var actual = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
 
             actual.Should().BeNull();
-            branchMatcher.Verify(x => x.GetMatchingBranch("my project key", repo), Times.Once);
+            branchMatcher.Verify(x => x.GetMatchingBranch("my project key", repo, It.IsAny<CancellationToken>()), Times.Once);
             logger.AssertPartialOutputStringExists(Resources.NullBranchName);
         }
 
@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         private static Mock<IBranchMatcher> CreateBranchMatcher(string branchToReturn)
         {
             var branchMatcher = new Mock<IBranchMatcher>();
-            branchMatcher.Setup(x => x.GetMatchingBranch(It.IsAny<string>(), It.IsAny<IRepository>()))
+            branchMatcher.Setup(x => x.GetMatchingBranch(It.IsAny<string>(), It.IsAny<IRepository>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(branchToReturn);
             return branchMatcher;
         }

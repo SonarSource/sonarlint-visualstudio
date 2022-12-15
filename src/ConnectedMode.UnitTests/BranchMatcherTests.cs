@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         [TestMethod]
         public async Task GetMatchedBranch_ShorterPathFoundBefore_EarlyOut()
         {
-            var service = CreateSonarQubeService("serverBranch", "master");
+            var service = CreateSonarQubeService("serverBranch", "master").Object;
 
             var masterCommit1 = new CommitWrapper(11);
             var masterCommit2 = new CommitWrapper(12);
@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var testSubject = new BranchMatcher(service);
 
-            var result = await testSubject.GetMatchingBranch("projectKey", repo);
+            var result = await testSubject.GetMatchingBranch("projectKey", repo, CancellationToken.None);
 
             result.Should().Be("serverbranch");
             ((CommitLogWrapper)serverBranch.Commits).EnumerateCount.Should().Be(8);
