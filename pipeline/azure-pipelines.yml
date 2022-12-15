@@ -129,6 +129,28 @@ jobs:
       configuration: $(BuildConfiguration)
       maximumCpuCount: true
       logFileVerbosity: diagnostic
+      
+      
+  - task: VSTest@2
+    displayName: VsTest - testAssemblies
+    inputs:
+      testAssemblyVer2: |
+        **\$(BuildConfiguration)\**\*test*.dll
+        !**\obj\**
+      runInParallel: false
+      runTestsInIsolation: false
+      codeCoverageEnabled: true
+      platform: $(BuildPlatform)
+      configuration: $(BuildConfiguration)
+      rerunFailedTests: false
+
+  - task: SonarCloudAnalyze@1
+    displayName: Run Code Analysis (VS2022 only)
+    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+
+  - task: SonarCloudPublish@1
+    displayName: Publish Quality Gate Result (VS2022 only)
+    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
 
   - task: UniversalPackages@0
     displayName: Download WhiteSource agent
@@ -220,27 +242,6 @@ jobs:
     displayName: 'Publish Artifact: vsix'
     inputs:
       ArtifactName: vsix
-
-  - task: VSTest@2
-    displayName: VsTest - testAssemblies
-    inputs:
-      testAssemblyVer2: |
-        **\$(BuildConfiguration)\**\*test*.dll
-        !**\obj\**
-      runInParallel: false
-      runTestsInIsolation: false
-      codeCoverageEnabled: true
-      platform: $(BuildPlatform)
-      configuration: $(BuildConfiguration)
-      rerunFailedTests: false
-
-  - task: SonarCloudAnalyze@1
-    displayName: Run Code Analysis (VS2022 only)
-    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
-
-  - task: SonarCloudPublish@1
-    displayName: Publish Quality Gate Result (VS2022 only)
-    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
 
   - task: PowerShell@2
     displayName: Set trigger dogfood VSIX build tag (VS2022 only)
