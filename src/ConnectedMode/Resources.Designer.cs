@@ -61,11 +61,29 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [ConnectedMode] Calculated server branch name: {0}.
+        ///   Looks up a localized string similar to [ConnectedMode] Could not detect a git repo for the current solution.
         /// </summary>
-        internal static string BranchProvider_ServerBranchName {
+        internal static string BranchProvider_CouldNotDetectGitRepo {
             get {
-                return ResourceManager.GetString("BranchProvider_ServerBranchName", resourceCulture);
+                return ResourceManager.GetString("BranchProvider_CouldNotDetectGitRepo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode] Matching Sonar server branch: {0}.
+        /// </summary>
+        internal static string BranchProvider_MatchingServerBranchName {
+            get {
+                return ResourceManager.GetString("BranchProvider_MatchingServerBranchName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode] Solution is not bound.
+        /// </summary>
+        internal static string BranchProvider_NotInConnectedMode {
+            get {
+                return ResourceManager.GetString("BranchProvider_NotInConnectedMode", resourceCulture);
             }
         }
         
