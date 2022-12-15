@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
         /// This is the same algorithm as the other SonarLint flavours (?except in how we treated branch histories.
         /// We treat branch histories as series of linear commits ordered by time, even if there are merges).
         /// </remarks>
-        Task<string> GetMatchingBranch(string projectKey, IRepository gitRepo);
+        Task<string> GetMatchingBranch(string projectKey, IRepository gitRepo, CancellationToken token);
     }
 
     [Export(typeof(IBranchMatcher))]
@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             this.sonarQubeService = sonarQubeService;
         }
 
-        public async Task<string> GetMatchingBranch(string projectKey, IRepository gitRepo)
+        public async Task<string> GetMatchingBranch(string projectKey, IRepository gitRepo, CancellationToken token)
         {
             Debug.Assert(sonarQubeService.IsConnected,
                 "Not expecting GetMatchedBranch to be called unless we are in Connected Mode");
@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 return null;
             }
 
-            var remoteBranches = await sonarQubeService.GetProjectBranchesAsync(projectKey, CancellationToken.None);
+            var remoteBranches = await sonarQubeService.GetProjectBranchesAsync(projectKey, token);
 
             if (remoteBranches.Any(rb => string.Equals(rb.Name, head.FriendlyName, StringComparison.InvariantCultureIgnoreCase)))
             {
