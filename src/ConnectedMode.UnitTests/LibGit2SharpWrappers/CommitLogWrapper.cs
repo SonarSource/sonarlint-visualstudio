@@ -18,8 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using LibGit2Sharp;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.LibGit2SharpWrappers
@@ -28,21 +30,73 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.LibGit2SharpWrappers
     {
         private readonly IEnumerable<Commit> commits;
 
+        public int EnumerateCount { 
+            get; 
+            private set; }
+
         public CommitLogWrapper(IEnumerable<Commit> commits)
         {
             this.commits = commits;
+            EnumerateCount = 0;
         }
 
         public CommitSortStrategies SortedBy => throw new System.NotImplementedException();
 
         public IEnumerator<Commit> GetEnumerator()
         {
-            return commits.GetEnumerator();
+            return GetCustomEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return commits.GetEnumerator();
+            return GetCustomEnumerator();
         }
+
+        private CommitLogEnumerator GetCustomEnumerator()
+        {
+            return new CommitLogEnumerator(commits.ToArray(), () => EnumerateCount++);
+        }
+    }
+
+    internal class CommitLogEnumerator : IEnumerator, IEnumerator<Commit>
+    {
+        private Commit[] commits;
+
+        int position = -1;
+        Action incrementEnumCount;
+
+        public CommitLogEnumerator(Commit[] commits, Action incrementEnumCount)
+        {
+            this.commits = commits;
+            this.incrementEnumCount = incrementEnumCount;
+        }
+
+        public Commit Current
+        {
+            get
+            {
+                try
+                {
+                    return commits[position];
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    throw new InvalidOperationException();
+                }
+            }
+        }
+
+        object IEnumerator.Current => Current;
+
+        public void Dispose() { }
+
+        public bool MoveNext()
+        {
+            incrementEnumCount();
+            position++;
+            return position < commits.Length;
+        }
+
+        public void Reset() => position = -1;
     }
 }

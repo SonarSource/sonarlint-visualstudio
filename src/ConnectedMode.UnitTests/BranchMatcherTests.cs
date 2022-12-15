@@ -80,6 +80,35 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             var result = await testSubject.GetMatchingBranch("projectKey", repo);
 
             result.Should().Be("dev");
+
+        }
+
+        [TestMethod]
+        public async Task GetMatchedBranch_ShorterPathFoundBefore_EarlyOut()
+        {
+            var service = CreateSonarQubeService("serverBranch", "master");
+
+            var masterCommit1 = new CommitWrapper(11);
+            var masterCommit2 = new CommitWrapper(12);
+            var masterCommit3 = new CommitWrapper(13);
+            var serverBranchCommit1 = new CommitWrapper(21);
+            var serverBranchCommit2 = new CommitWrapper(22);
+            var serverBranchCommit3 = new CommitWrapper(23);
+            var localBranchCommit = new CommitWrapper(30);
+
+            var masterBranch = CreateBranch("master", masterCommit3, masterCommit2, masterCommit1);
+            var serverBranch = CreateBranch("serverbranch", serverBranchCommit3, serverBranchCommit2, serverBranchCommit1, masterCommit3, masterCommit2, masterCommit1);
+            var localBranch = CreateBranch("localbranch", localBranchCommit, serverBranchCommit3, serverBranchCommit2, serverBranchCommit1, masterCommit3, masterCommit2, masterCommit1);
+
+            var repo = CreateRepo(localBranch, serverBranch, masterBranch);
+
+            var testSubject = new BranchMatcher(service);
+
+            var result = await testSubject.GetMatchingBranch("projectKey", repo);
+
+            result.Should().Be("serverbranch");
+            ((CommitLogWrapper)serverBranch.Commits).EnumerateCount.Should().Be(8);
+            ((CommitLogWrapper)masterBranch.Commits).EnumerateCount.Should().Be(4);
         }
 
         [TestMethod]
