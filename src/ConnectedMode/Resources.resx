@@ -117,8 +117,14 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="BranchProvider_ServerBranchName" xml:space="preserve">
-    <value>[ConnectedMode] Calculated server branch name: {0}</value>
+  <data name="BranchProvider_CouldNotDetectGitRepo" xml:space="preserve">
+    <value>[ConnectedMode] Could not detect a git repo for the current solution</value>
+  </data>
+  <data name="BranchProvider_MatchingServerBranchName" xml:space="preserve">
+    <value>[ConnectedMode] Matching Sonar server branch: {0}</value>
+  </data>
+  <data name="BranchProvider_NotInConnectedMode" xml:space="preserve">
+    <value>[ConnectedMode] Solution is not bound</value>
   </data>
   <data name="NullBranchName" xml:space="preserve">
     <value>{null}</value>
