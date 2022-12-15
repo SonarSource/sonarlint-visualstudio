@@ -4,40 +4,50 @@
     xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
     Title="About SonarLint"
     ResizeMode="NoResize"
-    SizeToContent="WidthAndHeight"
-    Background="WhiteSmoke">
+    SizeToContent="WidthAndHeight">
     <Window.Resources>
+        <Style TargetType="{x:Type Hyperlink}">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Foreground" Value="Blue" />
+            <Setter Property="TextBlock.TextDecorations" Value="{x:Null}" />
+            <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
+            <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+            <Setter Property="FontFamily" Value="..\..\Resources\MavenPro-Regular.ttf #Maven Pro"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="Red" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
         <Style x:Key="TextBlockStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12"/>
             <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
+            <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+            <Setter Property="FontFamily" Value="..\..\Resources\MavenPro-Regular.ttf #Maven Pro"/>
         </Style>
     </Window.Resources>
-    <Grid Margin="8,8,8,8">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
-        </Grid.ColumnDefinitions>
-        <Image Grid.Row="0" Grid.Column="0" Source="..\..\Resources\sonarlint_nobg.png" Stretch="None" Margin="5,0,2,0" />
-        <Grid Grid.Row="0" Grid.Column="1" Margin="15,10,5,0">
+    <StackPanel Height="200" Width="600">
+        <StackPanel.Background>
+            <ImageBrush Stretch="Fill" ImageSource="..\..\Resources\SonarLint_About_For Export.jpg"/>
+        </StackPanel.Background>
+        <Grid Margin="42,102,10,0">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Text="Clean As You Code" Style="{StaticResource TextBlockStyle}" FontWeight="Bold"/>
-            <TextBlock Grid.Row="1" Text="{Binding Path=SLVersion, StringFormat=Version: {0}}" Style="{StaticResource TextBlockStyle}"/>
-            <TextBlock Grid.Row="2">
-                <Hyperlink NavigateUri="https://www.sonarsource.com/products/sonarlint/" RequestNavigate="ViewWebsite">
-                   <TextBlock Text="Visit our Website" />
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Row="0" Grid.Column="0"  Style="{StaticResource TextBlockStyle}" Text="{Binding Path=SLVersion, StringFormat=Version: {0}}" FontSize="14" Margin="0,30,0,0" VerticalAlignment="Top"/>
+            <TextBlock Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="37,0,0,0">
+                <Hyperlink NavigateUri="https://www.sonarsource.com/products/sonarlint/" RequestNavigate="ViewWebsite" FontSize="16">
+                   <TextBlock Text="www.sonarsource.com"/>
                  </Hyperlink>
-            </TextBlock>
+        </TextBlock>
+            <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource TextBlockStyle}" Text="Copyright © 2016-2022 SonarSource SA" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Gray" FontSize="11" Margin="30,30,0,0"/>
+            <platformUi:DialogButton Grid.Row="1" Grid.Column="1" Content="Close" IsCancel="True" HorizontalAlignment="Right" VerticalAlignment="Bottom" FontSize="11" Margin="0,0,0,0"/>
         </Grid>
-        <TextBlock Grid.Row="1" Grid.Column="0" Text="Copyright © 2016-2022 SonarSource SA" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="Gray" Style="{StaticResource TextBlockStyle}" Margin="0,8,0,0"/>
-        <platformUi:DialogButton Content="Close" Grid.Row="1" Grid.Column="1" IsCancel="True" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,8,0,0"/>
-    </Grid>
+    </StackPanel>
 
 </platformUi:DialogWindow>
