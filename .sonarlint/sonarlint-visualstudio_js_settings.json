@@ -1,5 +1,379 @@
 {
   "sonarlint.rules": {
+    "jssecurity:S2631": {
+      "level": "On",
+      "severity": "Critical"
+    },
+    "jssecurity:S5883": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "jssecurity:S5146": {
+      "level": "On",
+      "severity": "Blocker"
+    },
+    "jssecurity:S2076": {
+      "level": "On",
+      "severity": "Blocker"
+    },
+    "jssecurity:S5147": {
+      "level": "On",
+      "severity": "Blocker"
+    },
+    "jssecurity:S5334": {
+      "level": "On",
+      "severity": "Blocker"
+    },
+    "jssecurity:S5131": {
+      "level": "On",
+      "severity": "Blocker"
+    },
+    "jssecurity:S5144": {
+      "level": "On",
+      "severity": "Major"
+    },
+    "jssecurity:S2083": {
+      "level": "On",
+      "severity": "Blocker"
+    },
+    "jssecurity:S6287": {
+      "level": "On",
+      "severity": "Blocker"
+    },
+    "jssecurity:S6350": {
+      "level": "On",
+      "severity": "Major"
+    },
+    "jssecurity:S6096": {
+      "level": "On",
+      "severity": "Blocker"
+    },
+    "javascript:S5732": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S5734": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S6268": {
+      "level": "On",
+      "severity": "Blocker"
+    },
+    "javascript:S5852": {
+      "level": "On",
+      "severity": "Critical"
+    },
+    "javascript:S5730": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S5736": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S5739": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S6265": {
+      "level": "On",
+      "severity": "Blocker"
+    },
+    "javascript:S5743": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S5742": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S6275": {
+      "level": "On",
+      "severity": "Major"
+    },
+    "javascript:S6270": {
+      "level": "On",
+      "severity": "Blocker"
+    },
+    "javascript:S6249": {
+      "level": "On",
+      "severity": "Critical"
+    },
+    "javascript:S4502": {
+      "level": "On",
+      "severity": "Critical"
+    },
+    "javascript:S6245": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S4507": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S5604": {
+      "level": "On",
+      "parameters": {
+        "permissions": "geolocation"
+      },
+      "severity": "Major"
+    },
+    "javascript:S5725": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S5728": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S5042": {
+      "level": "On",
+      "severity": "Critical"
+    },
+    "javascript:S6252": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S2245": {
+      "level": "On",
+      "severity": "Critical"
+    },
+    "javascript:S5757": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S3330": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S5759": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S6281": {
+      "level": "On",
+      "severity": "Critical"
+    },
+    "javascript:S4790": {
+      "level": "On",
+      "severity": "Critical"
+    },
+    "javascript:S6299": {
+      "level": "On",
+      "severity": "Blocker"
+    },
+    "javascript:S5332": {
+      "level": "On",
+      "severity": "Critical"
+    },
+    "javascript:S2068": {
+      "level": "On",
+      "parameters": {
+        "credentialWords": "password, pwd, passwd"
+      },
+      "severity": "Blocker"
+    },
+    "javascript:S6303": {
+      "level": "On",
+      "severity": "Major"
+    },
+    "javascript:S6302": {
+      "level": "On",
+      "severity": "Blocker"
+    },
+    "javascript:S6308": {
+      "level": "On",
+      "severity": "Major"
+    },
+    "javascript:S5691": {
+      "level": "On",
+      "severity": "Major"
+    },
+    "javascript:S5693": {
+      "level": "On",
+      "parameters": {
+        "standardSizeLimit": "2000000",
+        "fileUploadSizeLimit": "8000000"
+      },
+      "severity": "Major"
+    },
+    "javascript:S2077": {
+      "level": "On",
+      "severity": "Major"
+    },
+    "javascript:S6319": {
+      "level": "On",
+      "severity": "Major"
+    },
+    "javascript:S5689": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S5443": {
+      "level": "On",
+      "severity": "Critical"
+    },
+    "javascript:S2612": {
+      "level": "On",
+      "severity": "Major"
+    },
+    "javascript:S1523": {
+      "level": "On",
+      "severity": "Critical"
+    },
+    "javascript:S4721": {
+      "level": "On",
+      "severity": "Major"
+    },
+    "javascript:S5148": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S1313": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S6327": {
+      "level": "On",
+      "severity": "Major"
+    },
+    "javascript:S6329": {
+      "level": "On",
+      "severity": "Blocker"
+    },
+    "javascript:S4036": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S6333": {
+      "level": "On",
+      "severity": "Blocker"
+    },
+    "javascript:S5247": {
+      "level": "On",
+      "severity": "Major"
+    },
+    "javascript:S6330": {
+      "level": "On",
+      "severity": "Major"
+    },
+    "javascript:S5122": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S6332": {
+      "level": "On",
+      "severity": "Major"
+    },
+    "javascript:S2092": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S6480": {
+      "level": "On",
+      "severity": "Major"
+    },
+    "javascript:S6486": {
+      "level": "On",
+      "severity": "Major"
+    },
+    "javascript:S6481": {
+      "level": "On",
+      "severity": "Major"
+    },
+    "javascript:S6477": {
+      "level": "On",
+      "severity": "Major"
+    },
+    "javascript:S6479": {
+      "level": "On",
+      "severity": "Major"
+    },
+    "javascript:S6478": {
+      "level": "On",
+      "severity": "Major"
+    },
+    "javascript:S5542": {
+      "level": "On",
+      "severity": "Critical"
+    },
+    "javascript:S6317": {
+      "level": "On",
+      "severity": "Critical"
+    },
+    "javascript:S3972": {
+      "level": "On",
+      "severity": "Critical"
+    },
+    "javascript:S6321": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "jssecurity:S3649": {
+      "level": "On",
+      "severity": "Blocker"
+    },
+    "javascript:S4423": {
+      "level": "On",
+      "severity": "Critical"
+    },
+    "javascript:S103": {
+      "level": "On",
+      "parameters": {
+        "maximumLineLength": "120"
+      },
+      "severity": "Major"
+    },
+    "javascript:S105": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S107": {
+      "level": "On",
+      "parameters": {
+        "maximumFunctionParameters": "7"
+      },
+      "severity": "Major"
+    },
+    "javascript:S4138": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S1226": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S1105": {
+      "level": "On",
+      "parameters": {
+        "braceStyle": "1tbs"
+      },
+      "severity": "Minor"
+    },
+    "javascript:S1438": {
+      "level": "On",
+      "severity": "Minor"
+    },
+    "javascript:S1441": {
+      "level": "On",
+      "parameters": {
+        "singleQuotes": "true"
+      },
+      "severity": "Minor"
+    },
+    "javascript:S5547": {
+      "level": "On",
+      "severity": "Critical"
+    },
+    "javascript:S4426": {
+      "level": "On",
+      "severity": "Critical"
+    },
+    "javascript:S2688": {
+      "level": "On",
+      "severity": "Major"
+    },
     "javascript:S5863": {
       "level": "On",
       "severity": "Major"
@@ -44,10 +418,6 @@
       "level": "On",
       "severity": "Major"
     },
-    "javascript:S2077": {
-      "level": "On",
-      "severity": "Major"
-    },
     "javascript:S6080": {
       "level": "On",
       "severity": "Major"
@@ -59,14 +429,6 @@
     "javascript:S6092": {
       "level": "On",
       "severity": "Major"
-    },
-    "javascript:S5148": {
-      "level": "On",
-      "severity": "Minor"
-    },
-    "javascript:S1313": {
-      "level": "On",
-      "severity": "Minor"
     },
     "javascript:S6443": {
       "level": "On",
@@ -84,23 +446,7 @@
       "level": "On",
       "severity": "Major"
     },
-    "jssecurity:S2631": {
-      "level": "On",
-      "severity": "Critical"
-    },
-    "jssecurity:S5883": {
-      "level": "On",
-      "severity": "Minor"
-    },
-    "jssecurity:S5146": {
-      "level": "On",
-      "severity": "Blocker"
-    },
     "jssecurity:S5696": {
-      "level": "On",
-      "severity": "Blocker"
-    },
-    "jssecurity:S2076": {
       "level": "On",
       "severity": "Blocker"
     },
@@ -108,93 +454,9 @@
       "level": "On",
       "severity": "Blocker"
     },
-    "jssecurity:S5147": {
-      "level": "On",
-      "severity": "Blocker"
-    },
-    "jssecurity:S5334": {
-      "level": "On",
-      "severity": "Blocker"
-    },
-    "jssecurity:S3649": {
-      "level": "On",
-      "severity": "Blocker"
-    },
-    "jssecurity:S5131": {
-      "level": "On",
-      "severity": "Blocker"
-    },
-    "jssecurity:S5144": {
-      "level": "On",
-      "severity": "Major"
-    },
-    "jssecurity:S2083": {
-      "level": "On",
-      "severity": "Blocker"
-    },
-    "jssecurity:S6287": {
-      "level": "On",
-      "severity": "Blocker"
-    },
-    "jssecurity:S6350": {
-      "level": "On",
-      "severity": "Major"
-    },
-    "jssecurity:S6096": {
-      "level": "On",
-      "severity": "Blocker"
-    },
-    "javascript:S6268": {
-      "level": "On",
-      "severity": "Blocker"
-    },
-    "javascript:S5852": {
-      "level": "On",
-      "severity": "Critical"
-    },
-    "javascript:S5736": {
-      "level": "On",
-      "severity": "Minor"
-    },
-    "javascript:S6265": {
-      "level": "On",
-      "severity": "Blocker"
-    },
-    "javascript:S5743": {
-      "level": "On",
-      "severity": "Minor"
-    },
     "javascript:S2598": {
       "level": "On",
       "severity": "Critical"
-    },
-    "javascript:S6249": {
-      "level": "On",
-      "severity": "Critical"
-    },
-    "javascript:S4502": {
-      "level": "On",
-      "severity": "Critical"
-    },
-    "javascript:S6245": {
-      "level": "On",
-      "severity": "Minor"
-    },
-    "javascript:S1116": {
-      "level": "On",
-      "severity": "Minor"
-    },
-    "javascript:S5725": {
-      "level": "On",
-      "severity": "Minor"
-    },
-    "javascript:S5042": {
-      "level": "On",
-      "severity": "Critical"
-    },
-    "javascript:S6252": {
-      "level": "On",
-      "severity": "Minor"
     },
     "javascript:S3358": {
       "level": "On",
@@ -212,14 +474,6 @@
       "level": "On",
       "severity": "Critical"
     },
-    "javascript:S5547": {
-      "level": "On",
-      "severity": "Critical"
-    },
-    "javascript:S5542": {
-      "level": "On",
-      "severity": "Critical"
-    },
     "javascript:S1186": {
       "level": "On",
       "severity": "Critical"
@@ -228,60 +482,9 @@
       "level": "On",
       "severity": "Critical"
     },
-    "javascript:S4423": {
-      "level": "On",
-      "severity": "Critical"
-    },
-    "javascript:S2245": {
-      "level": "On",
-      "severity": "Critical"
-    },
-    "javascript:S4426": {
-      "level": "On",
-      "severity": "Critical"
-    },
-    "javascript:S5757": {
-      "level": "On",
-      "severity": "Minor"
-    },
-    "javascript:S3330": {
-      "level": "On",
-      "severity": "Minor"
-    },
-    "javascript:S6281": {
-      "level": "On",
-      "severity": "Critical"
-    },
     "javascript:S5527": {
       "level": "On",
       "severity": "Critical"
-    },
-    "javascript:S4790": {
-      "level": "On",
-      "severity": "Critical"
-    },
-    "javascript:S6299": {
-      "level": "On",
-      "severity": "Blocker"
-    },
-    "javascript:S5332": {
-      "level": "On",
-      "severity": "Critical"
-    },
-    "javascript:S2068": {
-      "level": "On",
-      "parameters": {
-        "credentialWords": "password, pwd, passwd"
-      },
-      "severity": "Blocker"
-    },
-    "javascript:S5693": {
-      "level": "On",
-      "parameters": {
-        "standardSizeLimit": "2000000",
-        "fileUploadSizeLimit": "8000000"
-      },
-      "severity": "Major"
     },
     "javascript:S2755": {
       "level": "On",
@@ -291,26 +494,6 @@
       "level": "On",
       "severity": "Minor"
     },
-    "javascript:S5689": {
-      "level": "On",
-      "severity": "Minor"
-    },
-    "javascript:S5443": {
-      "level": "On",
-      "severity": "Critical"
-    },
-    "javascript:S2612": {
-      "level": "On",
-      "severity": "Major"
-    },
-    "javascript:S1523": {
-      "level": "On",
-      "severity": "Critical"
-    },
-    "javascript:S4721": {
-      "level": "On",
-      "severity": "Major"
-    },
     "javascript:S4144": {
       "level": "On",
       "severity": "Major"
@@ -319,44 +502,13 @@
       "level": "On",
       "severity": "Critical"
     },
-    "javascript:S5247": {
-      "level": "On",
-      "severity": "Major"
-    },
-    "javascript:S5122": {
-      "level": "On",
-      "severity": "Minor"
-    },
-    "javascript:S2092": {
-      "level": "On",
-      "severity": "Minor"
-    },
     "javascript:S1143": {
       "level": "On",
       "severity": "Critical"
     },
-    "javascript:S4507": {
-      "level": "On",
-      "severity": "Minor"
-    },
-    "javascript:S5604": {
-      "level": "On",
-      "parameters": {
-        "permissions": "geolocation"
-      },
-      "severity": "Major"
-    },
     "javascript:S1534": {
       "level": "On",
       "severity": "Major"
-    },
-    "javascript:S5691": {
-      "level": "On",
-      "severity": "Major"
-    },
-    "javascript:S4036": {
-      "level": "On",
-      "severity": "Minor"
     },
     "javascript:S1788": {
       "level": "On",
@@ -369,10 +521,6 @@
     "javascript:S2589": {
       "level": "On",
       "severity": "Major"
-    },
-    "javascript:S5732": {
-      "level": "On",
-      "severity": "Minor"
     },
     "javascript:S1135": {
       "level": "On",
@@ -424,30 +572,6 @@
     "javascript:S6331": {
       "level": "On",
       "severity": "Major"
-    },
-    "javascript:S5734": {
-      "level": "On",
-      "severity": "Minor"
-    },
-    "javascript:S5730": {
-      "level": "On",
-      "severity": "Minor"
-    },
-    "javascript:S5739": {
-      "level": "On",
-      "severity": "Minor"
-    },
-    "javascript:S5742": {
-      "level": "On",
-      "severity": "Minor"
-    },
-    "javascript:S5728": {
-      "level": "On",
-      "severity": "Minor"
-    },
-    "javascript:S5759": {
-      "level": "On",
-      "severity": "Minor"
     },
     "javascript:S3500": {
       "level": "On",
@@ -508,10 +632,6 @@
       "level": "On",
       "severity": "Critical"
     },
-    "javascript:S4138": {
-      "level": "On",
-      "severity": "Minor"
-    },
     "javascript:S3001": {
       "level": "On",
       "severity": "Minor"
@@ -526,10 +646,6 @@
     "javascript:S1439": {
       "level": "On",
       "severity": "Major"
-    },
-    "javascript:S4326": {
-      "level": "On",
-      "severity": "Minor"
     },
     "javascript:S5869": {
       "level": "On",
@@ -595,10 +711,6 @@
       "level": "On",
       "severity": "Minor"
     },
-    "javascript:S2688": {
-      "level": "On",
-      "severity": "Major"
-    },
     "javascript:S4624": {
       "level": "On",
       "severity": "Major"
@@ -608,10 +720,6 @@
       "severity": "Major"
     },
     "javascript:S2685": {
-      "level": "On",
-      "severity": "Major"
-    },
-    "javascript:S1110": {
       "level": "On",
       "severity": "Major"
     },
@@ -761,10 +869,6 @@
       "level": "On",
       "severity": "Minor"
     },
-    "javascript:S1226": {
-      "level": "On",
-      "severity": "Minor"
-    },
     "javascript:S4822": {
       "level": "On",
       "severity": "Major"
@@ -808,13 +912,6 @@
       "level": "On",
       "severity": "Major"
     },
-    "javascript:S1105": {
-      "level": "On",
-      "parameters": {
-        "braceStyle": "1tbs"
-      },
-      "severity": "Minor"
-    },
     "javascript:S3854": {
       "level": "On",
       "severity": "Critical"
@@ -834,13 +931,6 @@
     "javascript:S3812": {
       "level": "On",
       "severity": "Critical"
-    },
-    "javascript:S103": {
-      "level": "On",
-      "parameters": {
-        "maximumLineLength": "120"
-      },
-      "severity": "Major"
     },
     "javascript:S1940": {
       "level": "On",
@@ -905,10 +995,6 @@
       "level": "On",
       "severity": "Major"
     },
-    "javascript:S105": {
-      "level": "On",
-      "severity": "Minor"
-    },
     "javascript:S3626": {
       "level": "On",
       "severity": "Minor"
@@ -924,13 +1010,6 @@
       },
       "severity": "Major"
     },
-    "javascript:S107": {
-      "level": "On",
-      "parameters": {
-        "maximumFunctionParameters": "7"
-      },
-      "severity": "Major"
-    },
     "javascript:S108": {
       "level": "On",
       "severity": "Major"
@@ -939,24 +1018,9 @@
       "level": "On",
       "severity": "Major"
     },
-    "javascript:S3972": {
-      "level": "On",
-      "severity": "Critical"
-    },
-    "javascript:S1438": {
-      "level": "On",
-      "severity": "Minor"
-    },
     "javascript:S4140": {
       "level": "On",
       "severity": "Major"
-    },
-    "javascript:S1441": {
-      "level": "On",
-      "parameters": {
-        "singleQuotes": "true"
-      },
-      "severity": "Minor"
     },
     "javascript:S3984": {
       "level": "On",
@@ -1002,19 +1066,9 @@
       "level": "On",
       "severity": "Major"
     },
-    "javascript:S3973": {
-      "level": "On",
-      "severity": "Critical"
-    },
     "javascript:S4030": {
       "level": "On",
       "severity": "Major"
-    },
-    "javascript:S1192": {
-      "level": "Off"
-    },
-    "javascript:S2255": {
-      "level": "Off"
     },
     "javascript:S4787": {
       "level": "Off"
@@ -1022,10 +1076,10 @@
     "javascript:S4784": {
       "level": "Off"
     },
-    "javascript:S2817": {
+    "javascript:S2255": {
       "level": "Off"
     },
-    "javascript:S106": {
+    "javascript:S6304": {
       "level": "Off"
     },
     "javascript:S4817": {
@@ -1034,22 +1088,79 @@
     "javascript:S4818": {
       "level": "Off"
     },
-    "javascript:S1525": {
+    "javascript:S4829": {
       "level": "Off"
     },
     "javascript:S4823": {
       "level": "Off"
     },
+    "common-js:FailedUnitTests": {
+      "level": "Off"
+    },
+    "common-js:SkippedUnitTests": {
+      "level": "Off"
+    },
+    "common-js:DuplicatedBlocks": {
+      "level": "Off"
+    },
+    "common-js:InsufficientCommentDensity": {
+      "level": "Off"
+    },
+    "common-js:InsufficientLineCoverage": {
+      "level": "Off"
+    },
+    "common-js:InsufficientBranchCoverage": {
+      "level": "Off"
+    },
     "javascript:S1442": {
+      "level": "Off"
+    },
+    "javascript:S1131": {
+      "level": "Off"
+    },
+    "javascript:S1110": {
+      "level": "Off"
+    },
+    "javascript:S1116": {
+      "level": "Off"
+    },
+    "javascript:S4326": {
+      "level": "Off"
+    },
+    "javascript:S139": {
+      "level": "Off"
+    },
+    "javascript:S1537": {
+      "level": "Off"
+    },
+    "javascript:S122": {
+      "level": "Off"
+    },
+    "javascript:S3723": {
+      "level": "Off"
+    },
+    "javascript:S113": {
+      "level": "Off"
+    },
+    "javascript:S3973": {
+      "level": "Off"
+    },
+    "javascript:S1192": {
+      "level": "Off"
+    },
+    "javascript:S2817": {
+      "level": "Off"
+    },
+    "javascript:S106": {
+      "level": "Off"
+    },
+    "javascript:S1525": {
       "level": "Off"
     },
     "javascript:S131": {
       "level": "Off"
     },
     "javascript:S138": {
-      "level": "Off"
-    },
-    "javascript:S4829": {
       "level": "Off"
     },
     "javascript:S117": {
@@ -1085,9 +1196,6 @@
     "javascript:S1488": {
       "level": "Off"
     },
-    "common-js:InsufficientLineCoverage": {
-      "level": "Off"
-    },
     "javascript:S1451": {
       "level": "Off"
     },
@@ -1097,16 +1205,10 @@
     "javascript:S5867": {
       "level": "Off"
     },
-    "javascript:S3723": {
-      "level": "Off"
-    },
     "javascript:S121": {
       "level": "Off"
     },
     "javascript:S3798": {
-      "level": "Off"
-    },
-    "javascript:S1131": {
       "level": "Off"
     },
     "javascript:S881": {
@@ -1125,9 +1227,6 @@
       "level": "Off"
     },
     "javascript:S135": {
-      "level": "Off"
-    },
-    "javascript:S1537": {
       "level": "Off"
     },
     "javascript:S4139": {
@@ -1154,40 +1253,16 @@
     "javascript:S3003": {
       "level": "Off"
     },
-    "javascript:S122": {
-      "level": "Off"
-    },
     "javascript:S1541": {
       "level": "Off"
     },
     "javascript:S3786": {
       "level": "Off"
     },
-    "javascript:S139": {
-      "level": "Off"
-    },
     "javascript:S1539": {
       "level": "Off"
     },
     "javascript:S909": {
-      "level": "Off"
-    },
-    "javascript:S113": {
-      "level": "Off"
-    },
-    "common-js:InsufficientBranchCoverage": {
-      "level": "Off"
-    },
-    "common-js:DuplicatedBlocks": {
-      "level": "Off"
-    },
-    "common-js:FailedUnitTests": {
-      "level": "Off"
-    },
-    "common-js:InsufficientCommentDensity": {
-      "level": "Off"
-    },
-    "common-js:SkippedUnitTests": {
       "level": "Off"
     },
     "javascript:S2138": {
