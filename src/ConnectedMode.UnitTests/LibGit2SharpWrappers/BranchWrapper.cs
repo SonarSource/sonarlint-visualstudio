@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.LibGit2SharpWrappers
 {
     internal class BranchWrapper : Branch
     {
-        internal BranchWrapper(string friendlyName, CommitLogWrapper commits)
+        internal BranchWrapper(string friendlyName, ICommitLog commits)
         {
             FriendlyName = friendlyName;
             Commits = commits;

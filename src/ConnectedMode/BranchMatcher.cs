@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 if(i >= closestDistance) { break; }
 
                 var commitID = headCommits[i].Id;
-                var branchCommitIndex = GetIndexOfCommit(branch.Commits, commitID);
+                var branchCommitIndex = GetIndexOfCommit(branch.Commits, commitID, closestDistance - i);
 
                 if (branchCommitIndex == -1) { continue; }
 
@@ -121,13 +121,14 @@ namespace SonarLint.VisualStudio.ConnectedMode
             return int.MaxValue;
         }
 
-        private int GetIndexOfCommit(ICommitLog commits, ObjectId commitId)
+        private int GetIndexOfCommit(ICommitLog commits, ObjectId commitId, int remainingStepsToClosestDistance)
         {
             int i = 0;
             foreach (var commit in commits)
             {
-                if(commit.Id == commitId) { return i; }
+                if (commit.Id == commitId) { return i; }
                 i++;
+                if (i >= remainingStepsToClosestDistance) { break; }
             }
             return -1;
         }
