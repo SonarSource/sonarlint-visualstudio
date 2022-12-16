@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="SLVSTestProjects" Description="SLVS - ruleset for test projects" ToolsVersion="17.0">
+  <Include Path="..\.sonarlint\sonarlint-visualstudiocsharp.ruleset" Action="Default" />
+  <Rules AnalyzerId="Microsoft.VisualStudio.SDK.Analyzers" RuleNamespace="Microsoft.VisualStudio.SDK.Analyzers">
+    <Rule Id="VSSDK001" Action="None" />
+    <Rule Id="VSSDK002" Action="None" />
+    <Rule Id="VSSDK003" Action="None" />
+    <Rule Id="VSSDK004" Action="None" />
+    <Rule Id="VSSDK005" Action="None" />
+    <Rule Id="VSSDK006" Action="None" />
+  </Rules>
+  <Rules AnalyzerId="Microsoft.VisualStudio.Threading.Analyzers" RuleNamespace="Microsoft.VisualStudio.Threading.Analyzers">
+    <Rule Id="VSTHRD001" Action="None" />
+    <Rule Id="VSTHRD002" Action="None" />
+    <Rule Id="VSTHRD003" Action="None" />
+    <Rule Id="VSTHRD004" Action="None" />
+    <Rule Id="VSTHRD010" Action="None" />
+    <Rule Id="VSTHRD011" Action="None" />
+    <Rule Id="VSTHRD012" Action="None" />
+    <Rule Id="VSTHRD100" Action="None" />
+    <Rule Id="VSTHRD101" Action="None" />
+    <Rule Id="VSTHRD102" Action="None" />
+    <Rule Id="VSTHRD103" Action="None" />
+    <Rule Id="VSTHRD104" Action="None" />
+    <Rule Id="VSTHRD105" Action="None" />
+    <Rule Id="VSTHRD106" Action="None" />
+    <Rule Id="VSTHRD107" Action="None" />
+    <Rule Id="VSTHRD108" Action="None" />
+    <Rule Id="VSTHRD109" Action="None" />
+    <Rule Id="VSTHRD110" Action="None" />
+    <Rule Id="VSTHRD111" Action="None" />
+    <Rule Id="VSTHRD113" Action="None" />
+    <Rule Id="VSTHRD200" Action="None" />
+  </Rules>
+  <Rules AnalyzerId="Microsoft.VisualStudio.Threading.Analyzers.CSharp" RuleNamespace="Microsoft.VisualStudio.Threading.Analyzers.CSharp">
+    <Rule Id="VSTHRD001" Action="None" />
+    <Rule Id="VSTHRD002" Action="None" />
+    <Rule Id="VSTHRD003" Action="None" />
+    <Rule Id="VSTHRD004" Action="None" />
+    <Rule Id="VSTHRD010" Action="None" />
+    <Rule Id="VSTHRD011" Action="None" />
+    <Rule Id="VSTHRD012" Action="None" />
+    <Rule Id="VSTHRD102" Action="None" />
+    <Rule Id="VSTHRD103" Action="None" />
+    <Rule Id="VSTHRD104" Action="None" />
+    <Rule Id="VSTHRD105" Action="None" />
+    <Rule Id="VSTHRD107" Action="None" />
+    <Rule Id="VSTHRD108" Action="None" />
+    <Rule Id="VSTHRD109" Action="None" />
+    <Rule Id="VSTHRD110" Action="None" />
+    <Rule Id="VSTHRD112" Action="None" />
+    <Rule Id="VSTHRD114" Action="None" />
+  </Rules>
+</RuleSet>
