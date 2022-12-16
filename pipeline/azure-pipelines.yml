@@ -153,7 +153,7 @@ jobs:
 ### SBOM generation start ###
   - task: DotNetCoreCLI@2
     displayName: Install cycloneDX tool
-    condition: and(succeeded(), or(eq(variables['ForceSbomGeneration'], 'true'), eq(variables['Build.SourceBranch'], 'master')))
+    condition: and(succeeded(), or(eq(variables['ForceSbomGeneration'], 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
     inputs:
       command: custom
       custom: tool
@@ -161,7 +161,7 @@ jobs:
 
   - task: DotNetCoreCLI@2
     displayName: Generate cycloneDX sbom file
-    condition: and(succeeded(), or(eq(variables['ForceSbomGeneration'], 'true'), eq(variables['Build.SourceBranch'], 'master')))
+    condition: and(succeeded(), or(eq(variables['ForceSbomGeneration'], 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
     inputs:
       command: custom
       projects: SonarLint.VisualStudio.Integration.sln
@@ -171,13 +171,13 @@ jobs:
   - task: DownloadSecureFile@1
     name: signKey
     displayName: Download sign key
-    condition: and(succeeded(), or(eq(variables['ForceSbomGeneration'], 'true'), eq(variables['Build.SourceBranch'], 'master')))
+    condition: and(succeeded(), or(eq(variables['ForceSbomGeneration'], 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
     inputs:
       secureFile: sign-key.asc
 
   - task: PowerShell@2
     displayName: Rename and sign SBOM file
-    condition: and(succeeded(), or(eq(variables['ForceSbomGeneration'], 'true'), eq(variables['Build.SourceBranch'], 'master')))
+    condition: and(succeeded(), or(eq(variables['ForceSbomGeneration'], 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
     env:
       PGP_PASSPHRASE: $(PGP_PASSPHRASE)
     inputs:
