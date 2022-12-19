@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
                 if (localBranch == null) { continue; }
 
-                var distance = GetDistance(headCommits.Value, localBranch);
+                var distance = GetDistance(headCommits.Value, localBranch, closestDistance);
 
                 if (distance < closestDistance)
                 {
@@ -104,18 +104,14 @@ namespace SonarLint.VisualStudio.ConnectedMode
         }
 
         //Commits are in descending order by time
-        private int GetDistance(Commit[] headCommits, Branch branch)
+        private int GetDistance(Commit[] headCommits, Branch branch, int closestDistance)
         {
             for (int i = 0; i < headCommits.Length; i++)
             {
-                var commitID = headCommits[i].Id;
+                if(i >= closestDistance) { break; }
 
-                // TODO: using ToList means we're fetching the entire commit history for the branch,
-                // and then searching it. We're then repeating that for each branch.
-                // It would be much more efficient enumerate the branch history one item at a time
-                // and stop as soon as possible i.e. if we find a match, or the distance is greater
-                // than the current closest distance.
-                var branchCommitIndex = branch.Commits.ToList().FindIndex(bc => bc.Id == commitID);
+                var commitID = headCommits[i].Id;
+                var branchCommitIndex = GetIndexOfCommit(branch.Commits, commitID, closestDistance - i);
 
                 if (branchCommitIndex == -1) { continue; }
 
@@ -123,6 +119,18 @@ namespace SonarLint.VisualStudio.ConnectedMode
             }
 
             return int.MaxValue;
+        }
+
+        private int GetIndexOfCommit(ICommitLog commits, ObjectId commitId, int remainingStepsToClosestDistance)
+        {
+            int i = 0;
+            foreach (var commit in commits)
+            {
+                if (commit.Id == commitId) { return i; }
+                i++;
+                if (i >= remainingStepsToClosestDistance) { break; }
+            }
+            return -1;
         }
     }
 }

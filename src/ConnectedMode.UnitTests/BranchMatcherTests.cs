@@ -83,6 +83,47 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         }
 
         [TestMethod]
+        public async Task GetMatchedBranch_ShorterPathFoundBefore_EarlyOut()
+        {
+            var service = CreateSonarQubeService("serverBranch", "master").Object;
+
+            var masterCommit1 = new CommitWrapper(11);
+            var masterCommit2 = new CommitWrapper(12);
+            var masterCommit3 = new CommitWrapper(13);
+            var serverBranchCommit1 = new CommitWrapper(21);
+            var serverBranchCommit2 = new CommitWrapper(22);
+            var serverBranchCommit3 = new CommitWrapper(23);
+            var localBranchCommit1 = new CommitWrapper(31);
+            var localBranchCommit2 = new CommitWrapper(32);
+
+            var masterBranch = CreateBranchWithEnumerationCount("master", masterCommit3, masterCommit2, masterCommit1);
+            var serverBranch = CreateBranchWithEnumerationCount("serverbranch", serverBranchCommit3, serverBranchCommit2, serverBranchCommit1, masterCommit3, masterCommit2, masterCommit1);
+            var localBranch = CreateBranch("localbranch", localBranchCommit2, localBranchCommit1 , serverBranchCommit3, serverBranchCommit2, serverBranchCommit1, masterCommit3, masterCommit2, masterCommit1);
+
+            var repo = CreateRepo(localBranch, serverBranch, masterBranch);
+
+            var testSubject = new BranchMatcher(service);
+
+            var result = await testSubject.GetMatchingBranch("projectKey", repo, CancellationToken.None);
+
+            result.Should().Be("serverbranch");
+
+            // Compares local commits to server branch and can't match so loops server branch twice 
+            // ServerBranchCommit3 matches the first one on serverbranch 
+            // * 6 = localbranchCommit2 -> serverBranchCommit3, serverBranchCommit2, serverBranchCommit1, masterCommit3, masterCommit2, masterCommit1
+            // * 6 = localbranchCommit1 -> serverBranchCommit3, serverBranchCommit2, serverBranchCommit1, masterCommit3, masterCommit2, masterCommit1
+            // * 1 = serverBranchCommit3 -> serverBranchCommit3
+            // Total = 6 + 6 + 1 = 13, and closestMatch = 2
+            ((CommitLogWrapperWithEnumerationCount)serverBranch.Commits).EnumerateCount.Should().Be(13);
+
+            // ClosestDistance is now 2 so any tries passes those should fail
+            // in first try on head branch we try 2 times on master
+            // * 2 = localBranchCommit2 -> masterCommit3, masterCommit2, no match -> early out after 2
+            // * 1 + 1 = localBranchCommit1 -> masterCommit3, no match -> early out after [head commit index (1) + master commit index (1) = 2]
+            ((CommitLogWrapperWithEnumerationCount)masterBranch.Commits).EnumerateCount.Should().Be(3);
+        }
+
+        [TestMethod]
         public async Task GetMatchedBranch_ClosestBranchNotOnTheServer_IgnoreClosest()
         {
             var service = CreateSonarQubeService("master", "dev").Object;
@@ -240,6 +281,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         //Order of the commits matter. Commits should be in descending order by time i.e. newest first. 
         private static BranchWrapper CreateBranch(string branchName, params CommitWrapper[] commits)
             =>  new(branchName, new CommitLogWrapper(commits));
+
+        private static BranchWrapper CreateBranchWithEnumerationCount(string branchName, params CommitWrapper[] commits)
+    => new(branchName, new CommitLogWrapperWithEnumerationCount(commits));
 
         private static Mock<ISonarQubeService> CreateSonarQubeService(string mainBranch, params string[] branches)
         {
