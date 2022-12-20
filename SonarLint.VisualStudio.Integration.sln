@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.0.31815.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration.Vsix", "src\Integration.Vsix\Integration.Vsix.csproj", "{FF2AD819-28F4-493A-8E9B-1D3F16BD4689}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0E50D9A0-693D-4B4E-81E2-8B8028231CFA} = {0E50D9A0-693D-4B4E-81E2-8B8028231CFA}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration", "src\Integration\Integration.csproj", "{03278C1A-EE78-4FA7-A5B0-1AB0A81EA76F}"
 EndProject
@@ -128,6 +131,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.Suppressions", "src\Roslyn.Suppressions\Roslyn.Suppressions\Roslyn.Suppressions.csproj", "{082D5D8E-F914-4139-9AE3-3F48B679E3DA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.Suppressions.UnitTests", "src\Roslyn.Suppressions\Roslyn.Suppressions.UnitTests\Roslyn.Suppressions.UnitTests.csproj", "{C478DAE7-58BC-4D02-929E-E413B40F2517}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{628A579F-0D27-4F9F-A756-8CC0A67A7B3D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CFamilyJarPreProcessor", "build\tools\CFamilyJarPreProcessor\CFamilyJarPreProcessor.csproj", "{0E50D9A0-693D-4B4E-81E2-8B8028231CFA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -259,6 +266,10 @@ Global
 		{C478DAE7-58BC-4D02-929E-E413B40F2517}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C478DAE7-58BC-4D02-929E-E413B40F2517}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C478DAE7-58BC-4D02-929E-E413B40F2517}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E50D9A0-693D-4B4E-81E2-8B8028231CFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E50D9A0-693D-4B4E-81E2-8B8028231CFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E50D9A0-693D-4B4E-81E2-8B8028231CFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E50D9A0-693D-4B4E-81E2-8B8028231CFA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -297,6 +308,8 @@ Global
 		{EF311D7C-8A38-41BD-9883-05B079FDB45A} = {1FDABBEB-D1DC-4319-B390-98CB68D2EFB6}
 		{082D5D8E-F914-4139-9AE3-3F48B679E3DA} = {16BF2D77-AE3B-4218-A3E8-875829D73B00}
 		{C478DAE7-58BC-4D02-929E-E413B40F2517} = {16BF2D77-AE3B-4218-A3E8-875829D73B00}
+		{628A579F-0D27-4F9F-A756-8CC0A67A7B3D} = {E93C2CF9-69A6-4669-BE8A-6060B18FEDCA}
+		{0E50D9A0-693D-4B4E-81E2-8B8028231CFA} = {628A579F-0D27-4F9F-A756-8CC0A67A7B3D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DABC27C8-E761-4826-AD2D-056F677EF3C0}
