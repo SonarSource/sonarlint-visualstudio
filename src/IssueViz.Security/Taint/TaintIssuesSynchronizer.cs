@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             ITaintIssueToIssueVisualizationConverter converter,
             IConfigurationProvider configurationProvider,
             IToolWindowService toolWindowService,
-            IServerBranchProvider serverBranchProvider,
+            [Import(typeof(IStatefulServerBranchProvider))] IServerBranchProvider serverBranchProvider,
             [Import(typeof(VSShell.SVsServiceProvider))] IServiceProvider serviceProvider,
             ILogger logger)
         {
