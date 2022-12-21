@@ -36,4 +36,9 @@ namespace SonarLint.VisualStudio.Core
         /// </remarks>
         Task<string> GetServerBranchNameAsync(CancellationToken token);
     }
+
+    // TODO: consumers need to import this class instead
+    public interface IStatefulServerBranchProvider : IServerBranchProvider
+    {
+    }
 }

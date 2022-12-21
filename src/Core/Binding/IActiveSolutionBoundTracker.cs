@@ -46,6 +46,18 @@ namespace SonarLint.VisualStudio.Core.Binding
         event EventHandler SolutionBindingUpdated;
     }
 
+    /// <summary>
+    /// Interface implemented by objects that need to be notified when the solution binding changes
+    /// </summary>
+    /// <remarks>The notification is handled by the <see cref="IActiveSolutionBoundTracker"/>.
+    /// The objects will be notified *before* the <see cref="IActiveSolutionBoundTracker.SolutionBindingChanged"/>
+    /// event is raised.
+    /// It should be implemented by classes that cache solution-level binidng information.</remarks>
+    public interface IBoundSolutionObserver
+    {
+        void OnSolutionBindingChanged();
+    }
+
     public class ActiveSolutionBindingEventArgs : EventArgs
     {
         public ActiveSolutionBindingEventArgs(BindingConfiguration configuration)

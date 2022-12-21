@@ -20,10 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Drawing.Text;
 using System.IO;
-using System.Security.Permissions;
-using Org.BouncyCastle.Crypto.Engines;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Core
@@ -60,7 +57,10 @@ namespace SonarLint.VisualStudio.Core
     /// Higher-level class that only raises Git events for bound solutions
     /// </summary>
     [Export(typeof(IGitEvents))]
-    internal sealed class BoundSolutionGitRepoMonitor : IGitEvents, IDisposable
+    [Export(typeof(IBoundSolutionObserver))]
+    // Singleton - stateful.
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal sealed class BoundSolutionGitMonitor : IGitEvents, IBoundSolutionObserver, IDisposable
     {
         /// <summary>
         /// Factory to create a new object that will monitor the local git repo
@@ -78,39 +78,42 @@ namespace SonarLint.VisualStudio.Core
         private bool disposedValue;
 
         [ImportingConstructor]
-        public BoundSolutionGitRepoMonitor(IGitWorkspaceService gitWorkspaceService, IActiveSolutionBoundTracker activeSolutionBoundTracker)
-            : this(gitWorkspaceService, activeSolutionBoundTracker, CreateGitEvents)
+        public BoundSolutionGitMonitor(IGitWorkspaceService gitWorkspaceService)
+            : this(gitWorkspaceService, CreateGitEvents)
         {
         }
 
-        internal /* for testing */ BoundSolutionGitRepoMonitor(IGitWorkspaceService gitWorkspaceService,
-            IActiveSolutionBoundTracker activeSolutionBoundTracker,
+        internal /* for testing */ BoundSolutionGitMonitor(IGitWorkspaceService gitWorkspaceService,
             GitEventFactory gitEventFactory)
         {
             this.gitWorkspaceService = gitWorkspaceService;
-            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
-            this.createLocalGitMonitor = gitEventFactory;
-
-            activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
+            createLocalGitMonitor = gitEventFactory;
         }
+
         private static IGitEvents CreateGitEvents(string repoRootPath) => new GitRepoMonitor(repoRootPath);
 
         private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
         {
-            CleanupLocalGitEventResources();
-
-            if (e.Configuration.Mode != SonarLintMode.Standalone)
-            {
-                var rootPath = gitWorkspaceService.GetRepoRoot();
-                currentRepoEvents = createLocalGitMonitor(rootPath);
-                currentRepoEvents.HeadChanged += OnHeadChanged;
-            }
+            Refresh();
         }
 
         private void OnHeadChanged(object sender, EventArgs e)
         {
             // Forward the event
             HeadChanged?.Invoke(this, e);
+        }
+
+        public void Refresh()
+        {
+            CleanupLocalGitEventResources();
+
+            var rootPath = gitWorkspaceService.GetRepoRoot();
+
+            if (rootPath != null)
+            {
+                currentRepoEvents = createLocalGitMonitor(rootPath);
+                currentRepoEvents.HeadChanged += OnHeadChanged;
+            }
         }
 
         private void CleanupLocalGitEventResources()
@@ -144,6 +147,11 @@ namespace SonarLint.VisualStudio.Core
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        public void OnSolutionBindingChanged()
+        {
+            throw new NotImplementedException();
         }
 
         #endregion // IDisposable

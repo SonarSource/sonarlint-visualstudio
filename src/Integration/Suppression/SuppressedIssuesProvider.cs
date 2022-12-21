@@ -41,7 +41,6 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly CreateProviderFunc createProviderFunc;
-        private readonly IGitEvents gitEvents;
 
         private ISonarQubeIssuesProvider instance;
         private bool disposed;
@@ -50,7 +49,6 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         public SuppressedIssuesProvider(IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ISonarQubeService sonarQubeService,
             IServerBranchProvider serverBranchProvider,
-            IGitEvents gitEvents,
             ILogger logger)
             : this(activeSolutionBoundTracker, GetCreateProviderFunc(sonarQubeService, serverBranchProvider, logger))
         {
@@ -67,7 +65,6 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         }
 
         internal SuppressedIssuesProvider(IActiveSolutionBoundTracker activeSolutionBoundTracker,
-            IGitEvents gitEvents,
             CreateProviderFunc createProviderFunc)
         {
             this.createProviderFunc = createProviderFunc ??

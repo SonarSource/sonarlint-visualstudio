@@ -28,8 +28,7 @@ using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode
 {
-    [Export(typeof(IServerBranchProvider))]
-    internal class ServerBranchProvider : IServerBranchProvider
+    internal class ServerBranchProvider : IStatefulServerBranchProvider
     {
         /// <summary>
         /// Factory method to create and return an <see cref="IRepository"/> instance.

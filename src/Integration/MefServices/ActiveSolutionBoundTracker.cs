@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
@@ -52,13 +53,19 @@ namespace SonarLint.VisualStudio.Integration
         private readonly ILogger logger;
         private readonly uint boundSolutionContextCookie;
 
+        private readonly IEnumerable<IBoundSolutionObserver> boundSolutionObservers;
+        private readonly IGitEvents gitEvents;
+
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
         public event EventHandler SolutionBindingUpdated;
 
         public BindingConfiguration CurrentConfiguration { get; private set; }
 
         [ImportingConstructor]
-        public ActiveSolutionBoundTracker(IHost host, IActiveSolutionTracker activeSolutionTracker, ILogger logger)
+        public ActiveSolutionBoundTracker(IHost host, IActiveSolutionTracker activeSolutionTracker,
+            IGitEvents gitEvents,
+            IEnumerable<IBoundSolutionObserver> boundSolutionObservers,
+            ILogger logger)
         {
             extensionHost = host ?? throw new ArgumentNullException(nameof(host));
             solutionTracker = activeSolutionTracker ?? throw new ArgumentNullException(nameof(activeSolutionTracker));
@@ -67,11 +74,16 @@ namespace SonarLint.VisualStudio.Integration
             vsMonitorSelection = host.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
             vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
 
+            this.gitEvents = gitEvents;
+            gitEvents.HeadChanged += OnGitHeadChanged;
+
             configurationProvider = extensionHost.GetService<IConfigurationProviderService>();
             configurationProvider.AssertLocalServiceIsNotNull();
 
             errorListInfoBarController = extensionHost.GetService<IErrorListInfoBarController>();
             errorListInfoBarController.AssertLocalServiceIsNotNull();
+
+            this.boundSolutionObservers = boundSolutionObservers;
 
             // The user changed the binding through the Team Explorer
             extensionHost.VisualStateManager.BindingStateChanged += OnBindingStateChanged;
@@ -82,6 +94,14 @@ namespace SonarLint.VisualStudio.Integration
             CurrentConfiguration = configurationProvider.GetConfiguration();
 
             SetBoundSolutionUIContext();
+        }
+
+        private void OnGitHeadChanged(object sender, EventArgs e)
+        {
+            // TODO: tidy up. Hacky - we're pretending the git change is the same as a solution change,
+            // since the suppressed issues provider and taint synchronizer both already listen to that event.
+            // We could add a specific new event.
+            OnActiveSolutionChanged(sender, null);
         }
 
         private async void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs args)
@@ -138,6 +158,8 @@ namespace SonarLint.VisualStudio.Integration
         {
             var newBindingConfiguration = configurationProvider.GetConfiguration();
 
+            NotifyObservers();
+
             if (!CurrentConfiguration.Equals(newBindingConfiguration))
             {
                 CurrentConfiguration = newBindingConfiguration;
@@ -149,6 +171,16 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             SetBoundSolutionUIContext();
+        }
+
+        private void NotifyObservers()
+        {
+            // TODO: error handling
+            // TODO: async?
+            foreach(var observer in boundSolutionObservers)
+            {
+                observer.OnSolutionBindingChanged();
+            }
         }
 
         private void SetBoundSolutionUIContext()
@@ -175,6 +207,7 @@ namespace SonarLint.VisualStudio.Integration
                 this.errorListInfoBarController.Reset();
                 this.solutionTracker.ActiveSolutionChanged -= this.OnActiveSolutionChanged;
                 this.extensionHost.VisualStateManager.BindingStateChanged -= this.OnBindingStateChanged;
+                this.gitEvents.HeadChanged -= OnGitHeadChanged;
             }
         }
 
