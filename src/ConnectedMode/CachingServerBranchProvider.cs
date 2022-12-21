@@ -7,6 +7,7 @@ using SonarLint.VisualStudio.Core.Binding;
 namespace SonarLint.VisualStudio.ConnectedMode
 {
     [Export(typeof(IStatefulServerBranchProvider))]
+    [Export(typeof(IBoundSolutionObserver))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     /// <summary>
     /// Stateful decorator for <see cref="ServerBranchProvider"/> that updates when the bound solution changes
