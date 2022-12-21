@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode
 {
+    [Export(typeof(IServerBranchProvider))]
     internal class ServerBranchProvider : IStatefulServerBranchProvider
     {
         /// <summary>

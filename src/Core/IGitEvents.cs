@@ -71,7 +71,6 @@ namespace SonarLint.VisualStudio.Core
         public event EventHandler HeadChanged;
 
         private readonly IGitWorkspaceService gitWorkspaceService;
-        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly GitEventFactory createLocalGitMonitor;
 
         private IGitEvents currentRepoEvents;
@@ -92,7 +91,7 @@ namespace SonarLint.VisualStudio.Core
 
         private static IGitEvents CreateGitEvents(string repoRootPath) => new GitRepoMonitor(repoRootPath);
 
-        private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
+        public void OnSolutionBindingChanged()
         {
             Refresh();
         }
@@ -135,7 +134,6 @@ namespace SonarLint.VisualStudio.Core
                 if (disposing)
                 {
                     CleanupLocalGitEventResources();
-                    activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
                 }
 
                 disposedValue = true;
@@ -147,11 +145,6 @@ namespace SonarLint.VisualStudio.Core
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
-        }
-
-        public void OnSolutionBindingChanged()
-        {
-            throw new NotImplementedException();
         }
 
         #endregion // IDisposable
