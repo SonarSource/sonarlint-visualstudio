@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration
         [ImportingConstructor]
         public ActiveSolutionBoundTracker(IHost host, IActiveSolutionTracker activeSolutionTracker,
             IGitEvents gitEvents,
-            IEnumerable<IBoundSolutionObserver> boundSolutionObservers,
+            [ImportMany]IEnumerable<IBoundSolutionObserver> boundSolutionObservers,
             ILogger logger)
         {
             extensionHost = host ?? throw new ArgumentNullException(nameof(host));
