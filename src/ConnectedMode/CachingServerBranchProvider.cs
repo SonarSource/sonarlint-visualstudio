@@ -29,9 +29,10 @@ namespace SonarLint.VisualStudio.ConnectedMode
             return await branchProvider.GetServerBranchNameAsync(token);
         }
 
-        public void OnSolutionBindingChanged()
+        public Task OnSolutionBindingChangedAsync()
         {
             // TODO: cache refresh
+            return Task.CompletedTask;
         }
     }
 }

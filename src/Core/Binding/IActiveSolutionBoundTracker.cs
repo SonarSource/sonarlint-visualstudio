@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Core.Binding
 {
@@ -55,7 +56,7 @@ namespace SonarLint.VisualStudio.Core.Binding
     /// It should be implemented by classes that cache solution-level binidng information.</remarks>
     public interface IBoundSolutionObserver
     {
-        void OnSolutionBindingChanged();
+        Task OnSolutionBindingChangedAsync();
     }
 
     public class ActiveSolutionBindingEventArgs : EventArgs

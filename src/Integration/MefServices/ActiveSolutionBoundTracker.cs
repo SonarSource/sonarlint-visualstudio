@@ -25,8 +25,10 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.State;
 using SonarQube.Client;
@@ -55,6 +57,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private readonly IEnumerable<IBoundSolutionObserver> boundSolutionObservers;
         private readonly IGitEvents gitEvents;
+        private readonly IThreadHandling threadHandling;
 
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
         public event EventHandler SolutionBindingUpdated;
@@ -64,12 +67,26 @@ namespace SonarLint.VisualStudio.Integration
         [ImportingConstructor]
         public ActiveSolutionBoundTracker(IHost host, IActiveSolutionTracker activeSolutionTracker,
             IGitEvents gitEvents,
-            [ImportMany]IEnumerable<IBoundSolutionObserver> boundSolutionObservers,
-            ILogger logger)
+            [ImportMany] IEnumerable<IBoundSolutionObserver> boundSolutionObservers,
+            ILogger logger) : this(host,
+                activeSolutionTracker,
+                gitEvents,
+                boundSolutionObservers,
+                logger,
+                ThreadHandling.Instance)
+        { }
+
+        internal /* for testing */ ActiveSolutionBoundTracker(IHost host,
+            IActiveSolutionTracker activeSolutionTracker,
+            IGitEvents gitEvents,
+            IEnumerable<IBoundSolutionObserver> boundSolutionObservers,
+            ILogger logger,
+            IThreadHandling threadHandling)
         {
             extensionHost = host ?? throw new ArgumentNullException(nameof(host));
             solutionTracker = activeSolutionTracker ?? throw new ArgumentNullException(nameof(activeSolutionTracker));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.threadHandling = threadHandling;
 
             vsMonitorSelection = host.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
             vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
@@ -158,7 +175,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             var newBindingConfiguration = configurationProvider.GetConfiguration();
 
-            NotifyObservers();
+            NotifyObserversAsync();
 
             if (!CurrentConfiguration.Equals(newBindingConfiguration))
             {
@@ -173,13 +190,13 @@ namespace SonarLint.VisualStudio.Integration
             SetBoundSolutionUIContext();
         }
 
-        private void NotifyObservers()
+        private async Task NotifyObserversAsync()
         {
             // TODO: error handling
             // TODO: async?
             foreach(var observer in boundSolutionObservers)
             {
-                observer.OnSolutionBindingChanged();
+                await observer.OnSolutionBindingChangedAsync();
             }
         }
 

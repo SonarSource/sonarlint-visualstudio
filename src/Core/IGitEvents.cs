@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Core
@@ -91,9 +92,10 @@ namespace SonarLint.VisualStudio.Core
 
         private static IGitEvents CreateGitEvents(string repoRootPath) => new GitRepoMonitor(repoRootPath);
 
-        public void OnSolutionBindingChanged()
+        public Task OnSolutionBindingChangedAsync()
         {
             Refresh();
+            return Task.CompletedTask;
         }
 
         private void OnHeadChanged(object sender, EventArgs e)
@@ -102,7 +104,7 @@ namespace SonarLint.VisualStudio.Core
             HeadChanged?.Invoke(this, e);
         }
 
-        public void Refresh()
+        private void Refresh()
         {
             CleanupLocalGitEventResources();
 
