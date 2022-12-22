@@ -48,14 +48,14 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         [ImportingConstructor]
         public SuppressedIssuesProvider(IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ISonarQubeService sonarQubeService,
-            IServerBranchProvider serverBranchProvider,
+            IStatefulServerBranchProvider serverBranchProvider,
             ILogger logger)
             : this(activeSolutionBoundTracker, GetCreateProviderFunc(sonarQubeService, serverBranchProvider, logger))
         {
         }
 
         private static CreateProviderFunc GetCreateProviderFunc(ISonarQubeService sonarQubeService,
-            IServerBranchProvider serverBranchProvider, ILogger logger)
+            IStatefulServerBranchProvider serverBranchProvider, ILogger logger)
         {
             return bindingConfiguration => new SonarQubeIssuesProvider(
                 sonarQubeService,
