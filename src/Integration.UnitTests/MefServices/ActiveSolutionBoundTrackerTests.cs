@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Net.Http;
 using System.Threading;
@@ -33,11 +34,9 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
-using SonarQube.Client.Models;
 using SonarQube.Client;
+using SonarQube.Client.Models;
 using IVsMonitorSelection = Microsoft.VisualStudio.Shell.Interop.IVsMonitorSelection;
-using System.Collections.Generic;
-using System.Windows.Converters;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -193,6 +192,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.errorListController.ResetCalledCount.Should().Be(0);
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(0, "no events raised during construction");
                 eventCounter.SolutionBindingChangedCount.Should().Be(0, "no events raised during construction");
+                eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "no events raised during construction");
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(0, "no events raised during construction");
                 VerifyAndResetBoundSolutionUIContextMock(isActive: true);
 
@@ -208,6 +208,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.errorListController.ResetCalledCount.Should().Be(0);
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(1, "Unbind should trigger reanalysis");
                 eventCounter.SolutionBindingChangedCount.Should().Be(1, "Unbind should trigger reanalysis");
+                eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "Unbind should not trigger change");
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(0, "Unbind should not trigger change");
                 VerifyAndResetBoundSolutionUIContextMock(isActive: false);
 
@@ -225,6 +226,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.errorListController.ResetCalledCount.Should().Be(0);
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(2, "Bind should trigger reanalysis");
                 eventCounter.SolutionBindingChangedCount.Should().Be(2, "Bind should trigger reanalysis");
+                eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "Bind should not trigger update event");
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(0, "Bind should not trigger update event");
                 VerifyAndResetBoundSolutionUIContextMock(isActive: true);
 
@@ -243,6 +245,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.errorListController.ResetCalledCount.Should().Be(0);
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(3, "Solution change should trigger reanalysis");
                 eventCounter.SolutionBindingChangedCount.Should().Be(3, "Solution change should trigger reanalysis");
+                eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "Solution change should not trigger update event");
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(0, "Solution change should not trigger update event");
                 VerifyAndResetBoundSolutionUIContextMock(isActive: false);
 
@@ -261,6 +264,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.errorListController.ResetCalledCount.Should().Be(0);
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(4, "Solution change should trigger reanalysis");
                 eventCounter.SolutionBindingChangedCount.Should().Be(4, "Solution change should trigger reanalysis");
+                eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "Bind should not trigger update event");
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(0, "Bind should not trigger update event");
                 VerifyAndResetBoundSolutionUIContextMock(isActive: true);
 
@@ -278,6 +282,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.errorListController.ResetCalledCount.Should().Be(0);
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(5, "Solution change should trigger reanalysis");
                 eventCounter.SolutionBindingChangedCount.Should().Be(5, "Solution change should trigger reanalysis");
+                eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "Solution change should not trigger update event");
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(0, "Solution change should not trigger update event");
                 VerifyAndResetBoundSolutionUIContextMock(isActive: false);
 
@@ -332,7 +337,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Assert
                 // Different config so event should be raised
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(1);
-                eventCounter.SolutionBindingChangedCount.Should().Be(1);
+                eventCounter.SolutionBindingUpdatedCount.Should().Be(0);
+                eventCounter.PreSolutionBindingChangedCount.Should().Be(1);
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(0);
 
                 eventCounter.RaisedEventNames.Should().HaveCount(2);
@@ -497,6 +503,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 host.VisualStateManager.ClearBoundProject();
 
                 // Assert
+                eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0);
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(0);
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(0);
                 eventCounter.SolutionBindingChangedCount.Should().Be(0);
@@ -504,7 +511,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SolutionBindingUpdated_WhenSetBoundProject_Raised()
+        public void SolutionBindingUpdated_WhenSetBoundProject_EventsRaisedInExpectedOrder()
         {
             // Arrange
             using (var testSubject = new ActiveSolutionBoundTracker(this.host, this.activeSolutionTracker, loggerMock.Object))
@@ -515,9 +522,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 host.VisualStateManager.SetBoundProject(new Uri("http://localhost"), null, "project123");
 
                 // Assert
+                eventCounter.PreSolutionBindingUpdatedCount.Should().Be(1);
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(1);
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(0);
                 eventCounter.SolutionBindingChangedCount.Should().Be(0);
+
+                eventCounter.RaisedEventNames.Should().HaveCount(2);
+                eventCounter.RaisedEventNames[0].Should().Be("PreSolutionBindingUpdated");
+                eventCounter.RaisedEventNames[1].Should().Be("SolutionBindingUpdated");
             }
         }
 
@@ -569,6 +581,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             public int PreSolutionBindingChangedCount { get; private set; }
             public int SolutionBindingChangedCount { get; private set; }
+            public int PreSolutionBindingUpdatedCount { get; private set; }
             public int SolutionBindingUpdatedCount { get; private set; }
 
             public IReadOnlyList<string> RaisedEventNames => raisedEventNames;
@@ -585,6 +598,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 {
                     SolutionBindingChangedCount++;
                     raisedEventNames.Add(nameof(IActiveSolutionBoundTracker.SolutionBindingChanged));
+                };
+
+                tracker.PreSolutionBindingUpdated += (_, _) =>
+                {
+                    PreSolutionBindingUpdatedCount++;
+                    raisedEventNames.Add(nameof(IActiveSolutionBoundTracker.PreSolutionBindingUpdated));
                 };
 
                 tracker.SolutionBindingUpdated += (_, _) =>

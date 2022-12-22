@@ -52,6 +52,15 @@ namespace SonarLint.VisualStudio.Core.Binding
         /// </summary>
         event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
 
+        /// <summary>
+        /// Raised when an existing binding has been updated, and before the <see cref="SolutionBindingUpdated"/> event
+        /// </summary>
+        event EventHandler PreSolutionBindingUpdated;
+
+        /// <summary>
+        /// Raised when an existing binding has been updated i.e. the solution is still bound to the same
+        /// Sonar project (e.g. the user updated the binding via the Team Explorer)
+        /// </summary>
         event EventHandler SolutionBindingUpdated;
     }
 

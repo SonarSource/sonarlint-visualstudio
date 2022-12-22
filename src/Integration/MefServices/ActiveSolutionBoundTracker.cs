@@ -54,6 +54,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public event EventHandler<ActiveSolutionBindingEventArgs> PreSolutionBindingChanged;
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
+        public event EventHandler PreSolutionBindingUpdated;
         public event EventHandler SolutionBindingUpdated;
 
         public BindingConfiguration CurrentConfiguration { get; private set; }
@@ -149,6 +150,7 @@ namespace SonarLint.VisualStudio.Integration
             }
             else if (isBindingCleared == false)
             {
+                PreSolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
                 SolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
             }
 
