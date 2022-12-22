@@ -56,6 +56,8 @@ namespace SonarLint.VisualStudio.Core
 
         private void WatchGitEvents(string repoFolder, IFileSystemWatcherFactory fileSystemFactory)
         {
+            if(repoFolder == null) { return; }
+
             var gitFolderPath = Path.Combine(repoFolder, GitFolder);
 
             fileSystemWatcher = fileSystemFactory.FromPath(gitFolderPath);
