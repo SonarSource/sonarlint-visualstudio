@@ -36,6 +36,8 @@ using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarQube.Client.Models;
 using SonarQube.Client;
 using IVsMonitorSelection = Microsoft.VisualStudio.Shell.Interop.IVsMonitorSelection;
+using System.Collections.Generic;
+using System.Windows.Converters;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -301,7 +303,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void OnBindingStateChanged_NewConfiguration_EventRaised()
+        public void OnBindingStateChanged_NewConfiguration_EventsRaisedInCorrectOrder()
         {
             // Arrange
             var initialProject = new BoundSonarQubeProject(
@@ -332,6 +334,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(1);
                 eventCounter.SolutionBindingChangedCount.Should().Be(1);
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(0);
+
+                eventCounter.RaisedEventNames.Should().HaveCount(2);
+                eventCounter.RaisedEventNames[0].Should().Be("PreSolutionBindingChanged");
+                eventCounter.RaisedEventNames[1].Should().Be("SolutionBindingChanged");                    
             }
         }
 
@@ -559,15 +565,33 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private class EventCounter
         {
+            private readonly List<string> raisedEventNames = new List<string>();
+
             public int PreSolutionBindingChangedCount { get; private set; }
             public int SolutionBindingChangedCount { get; private set; }
             public int SolutionBindingUpdatedCount { get; private set; }
 
+            public IReadOnlyList<string> RaisedEventNames => raisedEventNames;
+
             public EventCounter(IActiveSolutionBoundTracker tracker)
             {
-                tracker.PreSolutionBindingChanged += (_, _) => PreSolutionBindingChangedCount++;
-                tracker.SolutionBindingChanged += (_, _) => SolutionBindingChangedCount++;
-                tracker.SolutionBindingUpdated += (_, _) => SolutionBindingUpdatedCount++;
+                tracker.PreSolutionBindingChanged += (_, _) =>
+                {
+                    PreSolutionBindingChangedCount++;
+                    raisedEventNames.Add(nameof(IActiveSolutionBoundTracker.PreSolutionBindingChanged));
+                };
+
+                tracker.SolutionBindingChanged += (_, _) =>
+                {
+                    SolutionBindingChangedCount++;
+                    raisedEventNames.Add(nameof(IActiveSolutionBoundTracker.SolutionBindingChanged));
+                };
+
+                tracker.SolutionBindingUpdated += (_, _) =>
+                {
+                    SolutionBindingUpdatedCount++;
+                    raisedEventNames.Add(nameof(IActiveSolutionBoundTracker.SolutionBindingUpdated));
+                };
             }
         }
     }
