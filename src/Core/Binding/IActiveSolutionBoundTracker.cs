@@ -36,6 +36,15 @@ namespace SonarLint.VisualStudio.Core.Binding
         BindingConfiguration CurrentConfiguration { get; }
 
         /// <summary>
+        /// Raised after the binding has been updated, and before the <see cref="SolutionBindingUpdated"/> event
+        /// </summary>
+        /// <remarks>Most listeners should use the <see cref="SolutionBindingChanged"> event.
+        /// This event is intended for components that need to recalculate/refresh data that
+        /// is then used by listeners that consume the <see cref="SolutionBindingChanged"/> event
+        /// e.g. components that cache solution-level data.</remarks>
+        event EventHandler<ActiveSolutionBindingEventArgs> PreSolutionBindingChanged;
+
+        /// <summary>
         /// Event to notify subscribers when the binding status of a solution have changed.
         /// This occurs when a new solution is opened, or the SonarQube binding status of the solution changes.
         /// The event is raised after the <see cref="ISonarQubeService"/> connection has finished

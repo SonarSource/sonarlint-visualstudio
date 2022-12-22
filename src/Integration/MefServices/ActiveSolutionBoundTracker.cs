@@ -52,6 +52,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly ILogger logger;
         private readonly uint boundSolutionContextCookie;
 
+        public event EventHandler<ActiveSolutionBindingEventArgs> PreSolutionBindingChanged;
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
         public event EventHandler SolutionBindingUpdated;
 
@@ -141,7 +142,10 @@ namespace SonarLint.VisualStudio.Integration
             if (!CurrentConfiguration.Equals(newBindingConfiguration))
             {
                 CurrentConfiguration = newBindingConfiguration;
-                SolutionBindingChanged?.Invoke(this, new ActiveSolutionBindingEventArgs(newBindingConfiguration));
+
+                var args = new ActiveSolutionBindingEventArgs(newBindingConfiguration);
+                PreSolutionBindingChanged?.Invoke(this, args);
+                SolutionBindingChanged?.Invoke(this, args);
             }
             else if (isBindingCleared == false)
             {
