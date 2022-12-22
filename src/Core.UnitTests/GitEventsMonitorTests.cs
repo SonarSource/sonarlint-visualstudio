@@ -35,14 +35,12 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         {
             int counter = 0;
 
-            var gitWorkspaceService = CreateWorkSpaceService("C:\\Some Path");
-
             var fileSystemWatcher = new Mock<IFileSystemWatcher>();
 
             var fileSystemWatcherFactory = new Mock<IFileSystemWatcherFactory>();
             fileSystemWatcherFactory.Setup(f => f.FromPath("C:\\Some Path\\.git")).Returns(fileSystemWatcher.Object);
 
-            GitEventsMonitor testSubject = CreateTestSubject(gitWorkspaceService, fileSystemWatcherFactory);
+            GitEventsMonitor testSubject = CreateTestSubject("C:\\Some Path", fileSystemWatcherFactory);
 
             fileSystemWatcher.VerifySet(w => w.Filter = "HEAD", Times.Once);
             fileSystemWatcher.VerifySet(w => w.EnableRaisingEvents = true, Times.Once);
@@ -57,26 +55,16 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [TestMethod]
         public void NoGit_FileWatcherNotCreated()
         {
-            var gitWorkspaceService = CreateWorkSpaceService(null);
-
             var fileSystemWatcherFactory = new Mock<IFileSystemWatcherFactory>();
 
-            _ = CreateTestSubject(gitWorkspaceService, fileSystemWatcherFactory);
+            _ = CreateTestSubject(null, fileSystemWatcherFactory);
 
             fileSystemWatcherFactory.VerifyNoOtherCalls();
         }
 
-
-        private IGitWorkspaceService CreateWorkSpaceService(string path)
+        private GitEventsMonitor CreateTestSubject(string repoFolder, Mock<IFileSystemWatcherFactory> fileSystemWatcherFactory)
         {
-            var gitWorkspaceService = new Mock<IGitWorkspaceService>();
-            gitWorkspaceService.Setup(s => s.GetRepoRoot()).Returns(path);
-            return gitWorkspaceService.Object;
-        }
-
-        private GitEventsMonitor CreateTestSubject(IGitWorkspaceService gitWorkspaceService, Mock<IFileSystemWatcherFactory> fileSystemWatcherFactory)
-        {
-            return new GitEventsMonitor(gitWorkspaceService, fileSystemWatcherFactory.Object);
+            return new GitEventsMonitor(repoFolder, fileSystemWatcherFactory.Object);
         }
     }
 }

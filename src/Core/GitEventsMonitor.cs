@@ -44,22 +44,18 @@ namespace SonarLint.VisualStudio.Core
         private const string HEADFile = "HEAD";
 
 
-        public GitEventsMonitor(IGitWorkspaceService gitWorkspaceService) : this(gitWorkspaceService, new FileSystemWatcherFactory())
+        public GitEventsMonitor(string repoFolder) : this(repoFolder, new FileSystemWatcherFactory())
         {
 
         }
 
-        internal GitEventsMonitor(IGitWorkspaceService gitWorkspaceService, IFileSystemWatcherFactory fileSystemFactory)
+        internal GitEventsMonitor(string repoFolder, IFileSystemWatcherFactory fileSystemFactory)
         {
-            WatchGitEvents(gitWorkspaceService, fileSystemFactory);
+            WatchGitEvents(repoFolder, fileSystemFactory);
         }
 
-        private void WatchGitEvents(IGitWorkspaceService gitWorkspaceService, IFileSystemWatcherFactory fileSystemFactory)
+        private void WatchGitEvents(string repoFolder, IFileSystemWatcherFactory fileSystemFactory)
         {
-            var repoFolder = gitWorkspaceService.GetRepoRoot();
-            
-            if(repoFolder == null) { return; }
-
             var gitFolderPath = Path.Combine(repoFolder, GitFolder);
 
             fileSystemWatcher = fileSystemFactory.FromPath(gitFolderPath);
