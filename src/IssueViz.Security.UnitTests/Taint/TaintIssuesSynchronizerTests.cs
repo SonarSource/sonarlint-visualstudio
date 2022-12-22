@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<ITaintIssueToIssueVisualizationConverter>(),
                 MefTestHelpers.CreateExport<IConfigurationProvider>(),
-                MefTestHelpers.CreateExport<IServerBranchProvider>(),
+                MefTestHelpers.CreateExport<IStatefulServerBranchProvider>(),
                 // The constructor calls the service provider so we need to pass a correctly-configured one
                 MefTestHelpers.CreateExport<SVsServiceProvider>(CreateServiceProvider()),
                 MefTestHelpers.CreateExport<IToolWindowService>(),
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var sonarQubeServer = new Mock<ISonarQubeService>();
             var converter = new Mock<ITaintIssueToIssueVisualizationConverter>();
             var taintStore = new Mock<ITaintStore>();
-            var serverBranchProvider = new Mock<IServerBranchProvider>();
+            var serverBranchProvider = new Mock<IStatefulServerBranchProvider>();
             var logger = new TestLogger();
 
             const uint cookie = 123;
@@ -394,7 +394,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             ITaintIssueToIssueVisualizationConverter converter = null,
             ILogger logger = null,
             ISonarQubeService sonarService = null,
-            IServerBranchProvider serverBranchProvider = null,
+            IStatefulServerBranchProvider serverBranchProvider = null,
             IVsMonitorSelection vsMonitor = null,
             IToolWindowService toolWindowService = null)
         {
@@ -411,7 +411,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                 .Returns(bindingConfig);
 
             sonarService ??= CreateSonarService().Object;
-            serverBranchProvider ??= Mock.Of<IServerBranchProvider>();
+            serverBranchProvider ??= Mock.Of<IStatefulServerBranchProvider>();
             toolWindowService ??= Mock.Of<IToolWindowService>();
 
             logger ??= Mock.Of<ILogger>();
@@ -420,9 +420,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                 toolWindowService, serverBranchProvider, serviceProvider, logger);
         }
 
-        private static Mock<IServerBranchProvider> CreateServerBranchProvider(string branchName)
+        private static Mock<IStatefulServerBranchProvider> CreateServerBranchProvider(string branchName)
         {
-            var serverBranchProvider = new Mock<IServerBranchProvider>();
+            var serverBranchProvider = new Mock<IStatefulServerBranchProvider>();
             serverBranchProvider.Setup(x => x.GetServerBranchNameAsync(It.IsAny<CancellationToken>())).ReturnsAsync(branchName);
             return serverBranchProvider;
         }
