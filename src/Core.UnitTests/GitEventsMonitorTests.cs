@@ -36,9 +36,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             int counter = 0;
 
             var fileSystemWatcher = new Mock<IFileSystemWatcher>();
-
-            var fileSystemWatcherFactory = new Mock<IFileSystemWatcherFactory>();
-            fileSystemWatcherFactory.Setup(f => f.FromPath("C:\\Some Path\\.git")).Returns(fileSystemWatcher.Object);
+            var fileSystemWatcherFactory = CreateFileSystemWatcherFactory(fileSystemWatcher, "C:\\Some Path\\.git");
 
             var testSubject = CreateTestSubject("C:\\Some Path", fileSystemWatcherFactory);
 
@@ -57,13 +55,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         {
             var fileSystemWatcher = new Mock<IFileSystemWatcher>();
 
-            var fileSystemWatcherFactory = new Mock<IFileSystemWatcherFactory>();
-            fileSystemWatcherFactory.Setup(f => f.FromPath("C:\\Some Path\\.git")).Returns(fileSystemWatcher.Object);
+            var fileSystemWatcherFactory = CreateFileSystemWatcherFactory(fileSystemWatcher, "C:\\Some Path\\.git");
 
             var testSubject = CreateTestSubject("C:\\Some Path", fileSystemWatcherFactory);
-
-            fileSystemWatcher.VerifySet(w => w.Filter = "HEAD", Times.Once);
-            fileSystemWatcher.VerifySet(w => w.EnableRaisingEvents = true, Times.Once);
 
             testSubject.Dispose();
 
@@ -75,15 +69,13 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         {
             var fileSystemWatcher = new Mock<IFileSystemWatcher>();
 
-            var fileSystemWatcherFactory = new Mock<IFileSystemWatcherFactory>();
-            fileSystemWatcherFactory.Setup(f => f.FromPath("C:\\Some Path\\.git")).Returns(fileSystemWatcher.Object);
+            var fileSystemWatcherFactory = CreateFileSystemWatcherFactory(fileSystemWatcher, "C:\\Some Path\\.git");
 
             _ = CreateTestSubject("C:\\Some Path", fileSystemWatcherFactory);
 
-            fileSystemWatcher.VerifySet(w => w.Filter = "HEAD", Times.Once);
-            fileSystemWatcher.VerifySet(w => w.EnableRaisingEvents = true, Times.Once);
+            Action act = () => fileSystemWatcher.Raise(w => w.Changed += null, null, null);
 
-            fileSystemWatcher.Raise(w => w.Changed += null, null, null);
+            act.Should().NotThrow();
         }
 
         [TestMethod]
@@ -91,14 +83,21 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         {
             var fileSystemWatcherFactory = new Mock<IFileSystemWatcherFactory>();
 
-            _ = CreateTestSubject(null, fileSystemWatcherFactory);
+            _ = CreateTestSubject(null, fileSystemWatcherFactory.Object);
 
             fileSystemWatcherFactory.VerifyNoOtherCalls();
         }
 
-        private GitEventsMonitor CreateTestSubject(string repoFolder, Mock<IFileSystemWatcherFactory> fileSystemWatcherFactory)
+        private GitEventsMonitor CreateTestSubject(string repoFolder, IFileSystemWatcherFactory fileSystemWatcherFactory)
         {
-            return new GitEventsMonitor(repoFolder, fileSystemWatcherFactory.Object);
+            return new GitEventsMonitor(repoFolder, fileSystemWatcherFactory);
+        }
+
+        private IFileSystemWatcherFactory CreateFileSystemWatcherFactory(Mock<IFileSystemWatcher> fileSystemWatcher, string path)
+        {
+            var fileSystemWatcherFactory = new Mock<IFileSystemWatcherFactory>();
+            fileSystemWatcherFactory.Setup(f => f.FromPath(path)).Returns(fileSystemWatcher.Object);
+            return fileSystemWatcherFactory.Object;
         }
     }
 }
