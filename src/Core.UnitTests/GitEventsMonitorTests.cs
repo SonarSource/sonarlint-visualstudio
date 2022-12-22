@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             var fileSystemWatcherFactory = new Mock<IFileSystemWatcherFactory>();
             fileSystemWatcherFactory.Setup(f => f.FromPath("C:\\Some Path\\.git")).Returns(fileSystemWatcher.Object);
 
-            GitEventsMonitor testSubject = CreateTestSubject("C:\\Some Path", fileSystemWatcherFactory);
+            var testSubject = CreateTestSubject("C:\\Some Path", fileSystemWatcherFactory);
 
             fileSystemWatcher.VerifySet(w => w.Filter = "HEAD", Times.Once);
             fileSystemWatcher.VerifySet(w => w.EnableRaisingEvents = true, Times.Once);
@@ -50,7 +50,41 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             fileSystemWatcher.Raise(w => w.Changed += null, null, null);
 
             counter.Should().Be(1);
-        }       
+        }
+
+        [TestMethod]
+        public void HeadChanged_MonitorDisposed_FileSystemWatcherDisposed()
+        {
+            var fileSystemWatcher = new Mock<IFileSystemWatcher>();
+
+            var fileSystemWatcherFactory = new Mock<IFileSystemWatcherFactory>();
+            fileSystemWatcherFactory.Setup(f => f.FromPath("C:\\Some Path\\.git")).Returns(fileSystemWatcher.Object);
+
+            var testSubject = CreateTestSubject("C:\\Some Path", fileSystemWatcherFactory);
+
+            fileSystemWatcher.VerifySet(w => w.Filter = "HEAD", Times.Once);
+            fileSystemWatcher.VerifySet(w => w.EnableRaisingEvents = true, Times.Once);
+
+            testSubject.Dispose();
+
+            fileSystemWatcher.Verify(w => w.Dispose(), Times.Once);
+        }
+
+        [TestMethod]
+        public void HeadChanged_NoListeners_DoNotThrow()
+        {
+            var fileSystemWatcher = new Mock<IFileSystemWatcher>();
+
+            var fileSystemWatcherFactory = new Mock<IFileSystemWatcherFactory>();
+            fileSystemWatcherFactory.Setup(f => f.FromPath("C:\\Some Path\\.git")).Returns(fileSystemWatcher.Object);
+
+            _ = CreateTestSubject("C:\\Some Path", fileSystemWatcherFactory);
+
+            fileSystemWatcher.VerifySet(w => w.Filter = "HEAD", Times.Once);
+            fileSystemWatcher.VerifySet(w => w.EnableRaisingEvents = true, Times.Once);
+
+            fileSystemWatcher.Raise(w => w.Changed += null, null, null);
+        }
 
         [TestMethod]
         public void NoGit_FileWatcherNotCreated()

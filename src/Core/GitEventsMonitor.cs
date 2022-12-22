@@ -35,10 +35,11 @@ namespace SonarLint.VisualStudio.Core
         event EventHandler HeadChanged;
     }
 
-    public class GitEventsMonitor : IGitEvents
+    public sealed class GitEventsMonitor : IGitEvents, IDisposable
     {
         public event EventHandler HeadChanged;
         private IFileSystemWatcher fileSystemWatcher;
+        private bool disposed = false;
 
         private const string GitFolder = ".git";
         private const string HEADFile = "HEAD";
@@ -56,7 +57,7 @@ namespace SonarLint.VisualStudio.Core
 
         private void WatchGitEvents(string repoFolder, IFileSystemWatcherFactory fileSystemFactory)
         {
-            if(repoFolder == null) { return; }
+            if (repoFolder == null) { return; }
 
             var gitFolderPath = Path.Combine(repoFolder, GitFolder);
 
@@ -71,7 +72,25 @@ namespace SonarLint.VisualStudio.Core
 
         private void HeadFileChanged(object sender, FileSystemEventArgs e)
         {
-            HeadChanged.Invoke(this, EventArgs.Empty);
+            HeadChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    fileSystemWatcher?.Dispose();
+                }
+
+                disposed = true;
+            }
         }
     }
 }
