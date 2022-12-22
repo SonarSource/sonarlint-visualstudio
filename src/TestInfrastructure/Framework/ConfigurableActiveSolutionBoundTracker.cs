@@ -27,7 +27,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         public BindingConfiguration CurrentConfiguration { get; set; }
 
+        public event EventHandler<ActiveSolutionBindingEventArgs> PreSolutionBindingChanged;
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
+        public event EventHandler PreSolutionBindingUpdated;
         public event EventHandler SolutionBindingUpdated;
 
         public void SimulateSolutionBindingChanged(ActiveSolutionBindingEventArgs binding)
