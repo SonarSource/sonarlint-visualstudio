@@ -124,16 +124,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        private static ActiveSolutionBoundTracker CreateTestSubject(IHost host,
-            IActiveSolutionTracker solutionTracker,
-            ILogger logger = null,
-            IBoundSolutionGitMonitor gitEvents = null)
-        {
-            logger ??= new TestLogger(logToConsole: true);
-            gitEvents ??= Mock.Of<IBoundSolutionGitMonitor>();
-            return new ActiveSolutionBoundTracker(host, solutionTracker, gitEvents, logger);
-        }
-
         [TestMethod]
         public void ActiveSolutionBoundTracker_When_ConnectAsync_Throws_Write_To_Output()
         {
@@ -529,6 +519,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 eventCounter.RaisedEventNames[0].Should().Be("PreSolutionBindingUpdated");
                 eventCounter.RaisedEventNames[1].Should().Be("SolutionBindingUpdated");
             }
+        }
+
+        private static ActiveSolutionBoundTracker CreateTestSubject(IHost host,
+            IActiveSolutionTracker solutionTracker,
+            ILogger logger = null,
+            IBoundSolutionGitMonitor gitEvents = null)
+        {
+            logger ??= new TestLogger(logToConsole: true);
+            gitEvents ??= Mock.Of<IBoundSolutionGitMonitor>();
+            return new ActiveSolutionBoundTracker(host, solutionTracker, gitEvents, logger);
         }
 
         private void ConfigureService(bool isConnected)
