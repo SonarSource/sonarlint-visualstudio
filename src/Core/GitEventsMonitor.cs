@@ -25,7 +25,7 @@ using System.IO.Abstractions;
 namespace SonarLint.VisualStudio.Core
 {
     /// <summary>
-    /// Raises events for changes to the git repo
+    /// Raises events for changes to a single git repo
     /// </summary>
     public interface IGitEvents
     {
