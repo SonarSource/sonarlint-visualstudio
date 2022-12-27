@@ -49,6 +49,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IErrorListInfoBarController errorListInfoBarController;
         private readonly IConfigurationProviderService configurationProvider;
         private readonly IVsMonitorSelection vsMonitorSelection;
+        private readonly IBoundSolutionGitMonitor gitEvents;
         private readonly ILogger logger;
         private readonly uint boundSolutionContextCookie;
 
@@ -60,12 +61,15 @@ namespace SonarLint.VisualStudio.Integration
         public BindingConfiguration CurrentConfiguration { get; private set; }
 
         [ImportingConstructor]
-        public ActiveSolutionBoundTracker(IHost host, IActiveSolutionTracker activeSolutionTracker, ILogger logger, IGitEvents gitEventsMonitor)
+        public ActiveSolutionBoundTracker(IHost host,
+            IActiveSolutionTracker activeSolutionTracker,
+            IBoundSolutionGitMonitor gitEvents,
+            ILogger logger)
         {
-            extensionHost = host ?? throw new ArgumentNullException(nameof(host));
-            solutionTracker = activeSolutionTracker ?? throw new ArgumentNullException(nameof(activeSolutionTracker));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            if (gitEventsMonitor == null) { throw new ArgumentNullException(nameof(gitEventsMonitor)); }
+            extensionHost = host;
+            solutionTracker = activeSolutionTracker;
+            this.gitEvents = gitEvents;
+            this.logger = logger;
 
             vsMonitorSelection = host.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
             vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
@@ -100,6 +104,8 @@ namespace SonarLint.VisualStudio.Integration
             try
             {
                 await UpdateConnectionAsync();
+
+                gitEvents.Refresh();
 
                 this.RaiseAnalyzersChangedIfBindingChanged();
                 this.errorListInfoBarController.Refresh();
