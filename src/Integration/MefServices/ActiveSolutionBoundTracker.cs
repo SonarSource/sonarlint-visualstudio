@@ -60,11 +60,12 @@ namespace SonarLint.VisualStudio.Integration
         public BindingConfiguration CurrentConfiguration { get; private set; }
 
         [ImportingConstructor]
-        public ActiveSolutionBoundTracker(IHost host, IActiveSolutionTracker activeSolutionTracker, ILogger logger)
+        public ActiveSolutionBoundTracker(IHost host, IActiveSolutionTracker activeSolutionTracker, ILogger logger, IGitEvents gitEventsMonitor)
         {
             extensionHost = host ?? throw new ArgumentNullException(nameof(host));
             solutionTracker = activeSolutionTracker ?? throw new ArgumentNullException(nameof(activeSolutionTracker));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            if (gitEventsMonitor == null) { throw new ArgumentNullException(nameof(gitEventsMonitor)); }
 
             vsMonitorSelection = host.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
             vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
@@ -84,6 +85,13 @@ namespace SonarLint.VisualStudio.Integration
             CurrentConfiguration = configurationProvider.GetConfiguration();
 
             SetBoundSolutionUIContext();
+
+            gitEventsMonitor.HeadChanged += GitEventsMonitor_HeadChanged;
+        }
+
+        private void GitEventsMonitor_HeadChanged(object sender, EventArgs e)
+        {
+            SolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
         }
 
         private async void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs args)
