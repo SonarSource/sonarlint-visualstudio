@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration
 
             SetBoundSolutionUIContext();
 
-            gitEventsMonitor.HeadChanged += GitEventsMonitor_HeadChanged;
+            this.gitEvents.HeadChanged += GitEventsMonitor_HeadChanged;
         }
 
         private void GitEventsMonitor_HeadChanged(object sender, EventArgs e)
