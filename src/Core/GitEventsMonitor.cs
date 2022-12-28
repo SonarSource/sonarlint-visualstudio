@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Core
 
             fileSystemWatcher.Filter = HEADFile;
             
-            fileSystemWatcher.Changed += HeadFileChanged;
+            fileSystemWatcher.Renamed += HeadFileChanged;
 
             fileSystemWatcher.EnableRaisingEvents = true;
         }
