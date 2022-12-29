@@ -33,6 +33,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
         private readonly IServerBranchProvider branchProvider;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private bool disposedValue;
+        private string selectedBranch;
 
         [ImportingConstructor]
         public StatefulServerBranchProvider(IServerBranchProvider serverBranchProvider, IActiveSolutionBoundTracker activeSolutionBoundTracker)
@@ -41,19 +42,21 @@ namespace SonarLint.VisualStudio.ConnectedMode
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
 
             activeSolutionBoundTracker.PreSolutionBindingChanged += OnPreSolutionBindingChanged; 
-
         }
 
         private void OnPreSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
         {
-            // TODO: cache refresh
+            selectedBranch = null;
         }
 
         public async Task<string> GetServerBranchNameAsync(CancellationToken token)
         {
-            // TODO: caching
+            if(selectedBranch == null)
+            {
+                selectedBranch = await branchProvider.GetServerBranchNameAsync(token);
+            }
 
-            return await branchProvider.GetServerBranchNameAsync(token);
+            return selectedBranch;
         }
 
         #region IDisposable
