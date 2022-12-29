@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         private readonly ISonarQubeService sonarQubeService;
         private readonly string sonarQubeProjectKey;
-        private readonly IServerBranchProvider serverBranchProvider;
+        private readonly IStatefulServerBranchProvider serverBranchProvider;
         private readonly ITimer refreshTimer;
         private readonly ILogger logger;
 
@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         private readonly IThreadHandling threadHandling;
 
         public SonarQubeIssuesProvider(ISonarQubeService sonarQubeService,
-            IServerBranchProvider serverBranchProvider,
+            IStatefulServerBranchProvider serverBranchProvider,
             string sonarQubeProjectKey,
             ILogger logger)
             : this(sonarQubeService, serverBranchProvider, sonarQubeProjectKey, logger, new TimerFactory(), ThreadHandling.Instance)
@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         }
 
         internal /* for testing */ SonarQubeIssuesProvider(ISonarQubeService sonarQubeService,
-            IServerBranchProvider serverBranchProvider,
+            IStatefulServerBranchProvider serverBranchProvider,
             string sonarQubeProjectKey,
             ILogger logger,
             ITimerFactory timerFactory,
