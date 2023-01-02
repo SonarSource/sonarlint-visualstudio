@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         private readonly ITaintIssueToIssueVisualizationConverter converter;
         private readonly IConfigurationProvider configurationProvider;
         private readonly IToolWindowService toolWindowService;
-        private readonly IServerBranchProvider serverBranchProvider;
+        private readonly IStatefulServerBranchProvider serverBranchProvider;
         private readonly ILogger logger;
 
         private readonly VSShellInterop.IVsMonitorSelection vsMonitorSelection;
@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             ITaintIssueToIssueVisualizationConverter converter,
             IConfigurationProvider configurationProvider,
             IToolWindowService toolWindowService,
-            IServerBranchProvider serverBranchProvider,
+            IStatefulServerBranchProvider serverBranchProvider,
             [Import(typeof(VSShell.SVsServiceProvider))] IServiceProvider serviceProvider,
             ILogger logger)
         {

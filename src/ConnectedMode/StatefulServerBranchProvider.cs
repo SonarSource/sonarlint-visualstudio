@@ -41,7 +41,13 @@ namespace SonarLint.VisualStudio.ConnectedMode
             this.branchProvider = serverBranchProvider;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
 
-            activeSolutionBoundTracker.PreSolutionBindingChanged += OnPreSolutionBindingChanged; 
+            activeSolutionBoundTracker.PreSolutionBindingChanged += OnPreSolutionBindingChanged;
+            activeSolutionBoundTracker.PreSolutionBindingUpdated += OnPreSolutionBindingUpdated;
+        }
+
+        private void OnPreSolutionBindingUpdated(object sender, EventArgs e)
+        {
+            selectedBranch = null;
         }
 
         private void OnPreSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
@@ -68,6 +74,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 if (disposing)
                 {
                     activeSolutionBoundTracker.PreSolutionBindingChanged -= OnPreSolutionBindingChanged;
+                    activeSolutionBoundTracker.PreSolutionBindingUpdated -= OnPreSolutionBindingUpdated;
                 }
                 disposedValue = true;
             }
