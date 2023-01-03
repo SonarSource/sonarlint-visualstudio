@@ -50,8 +50,8 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IErrorListInfoBarController errorListInfoBarController;
         private readonly IConfigurationProviderService configurationProvider;
         private readonly IVsMonitorSelection vsMonitorSelection;
+        private readonly IBoundSolutionGitMonitor gitEventsMonitor;
         private readonly ILogger logger;
-        private readonly IGitEvents gitEventsMonitor;
         private readonly uint boundSolutionContextCookie;
 
         public event EventHandler<ActiveSolutionBindingEventArgs> PreSolutionBindingChanged;
@@ -62,12 +62,12 @@ namespace SonarLint.VisualStudio.Integration
         public BindingConfiguration CurrentConfiguration { get; private set; }
 
         [ImportingConstructor]
-        public ActiveSolutionBoundTracker(IHost host, IActiveSolutionTracker activeSolutionTracker, ILogger logger, IGitEvents gitEventsMonitor)
+        public ActiveSolutionBoundTracker(IHost host, IActiveSolutionTracker activeSolutionTracker, ILogger logger, IBoundSolutionGitMonitor gitEventsMonitor)
         {
-            extensionHost = host ?? throw new ArgumentNullException(nameof(host));
-            solutionTracker = activeSolutionTracker ?? throw new ArgumentNullException(nameof(activeSolutionTracker));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.gitEventsMonitor =  gitEventsMonitor ?? throw new ArgumentNullException(nameof(gitEventsMonitor));
+            extensionHost = host;
+            solutionTracker = activeSolutionTracker;
+            this.gitEventsMonitor = gitEventsMonitor;
+            this.logger = logger;
 
             vsMonitorSelection = host.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
             vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
@@ -108,6 +108,8 @@ namespace SonarLint.VisualStudio.Integration
             try
             {
                 await UpdateConnectionAsync();
+
+                gitEventsMonitor.Refresh();
 
                 this.RaiseAnalyzersChangedIfBindingChanged();
                 this.errorListInfoBarController.Refresh();

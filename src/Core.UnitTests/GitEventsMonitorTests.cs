@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 
             testSubject.HeadChanged += (o, e) => counter++;
 
-            fileSystemWatcher.Raise(w => w.Changed += null, null, null);
+            fileSystemWatcher.Raise(w => w.Renamed += null, null, null);
 
             counter.Should().Be(1);
         }
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 
             _ = CreateTestSubject("C:\\Some Path", fileSystemWatcherFactory);
 
-            Action act = () => fileSystemWatcher.Raise(w => w.Changed += null, null, null);
+            Action act = () => fileSystemWatcher.Raise(w => w.Renamed += null, null, null);
 
             act.Should().NotThrow();
         }
