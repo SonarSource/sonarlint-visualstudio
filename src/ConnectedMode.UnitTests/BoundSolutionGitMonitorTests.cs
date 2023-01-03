@@ -19,6 +19,7 @@
  */
 
 using System;
+using SonarLint.VisualStudio.ConnectedMode.UnitTests.Extensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using static SonarLint.VisualStudio.ConnectedMode.BoundSolutionGitMonitor;
@@ -36,30 +37,35 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         }
 
         [TestMethod]
+        public void Initialize_NoRepo_FactoryNotCalledAndNoError()
+        {
+            var gitWorkspaceService = CreateGitWorkSpaceService(null);
+            var factory = new Mock<GitEventFactory>();
+
+            var testSubject = CreateTestSubject(gitWorkspaceService.Object, factory.Object);
+
+            gitWorkspaceService.Verify(x => x.GetRepoRoot(), Times.Once);
+            factory.Invocations.Should().HaveCount(0);
+        }
+
+        [TestMethod]
         public void Initialize_ForwardsLowLevelEvent()
         {
             string repoPath = "some path";
-            int counter = 0;
-
             var gitWorkspaceService = CreateGitWorkSpaceService(repoPath);
 
             var gitEventsMonitor = new Mock<IGitEvents>();
+            var factory = CreateFactory(gitEventsMonitor.Object);
 
-            GitEventFactory gitEventFactory = (string path) =>
-            {
-                if (path != repoPath)
-                {
-                    throw new Exception("Test Error: Wrong path is passed to low level event monitor");
-                }
+            // first, check the factory is called
+            BoundSolutionGitMonitor testSubject = CreateTestSubject(gitWorkspaceService.Object, factory.Object);
+            factory.Verify(x => x.Invoke(repoPath), Times.Once);
 
-                return gitEventsMonitor.Object;
-            };
-            BoundSolutionGitMonitor testSubject = CreateTestSubject(gitWorkspaceService, gitEventFactory);
-
+            // second, register for then trigger an event
+            int counter = 0;
             testSubject.HeadChanged += (o, e) => counter++;
 
-            gitEventsMonitor.Raise(em => em.HeadChanged += null, null, null);
-
+            gitEventsMonitor.RaiseHeadChangedEvent();
             counter.Should().Be(1);
         }
 
@@ -86,24 +92,83 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
                 return path == originalPath ? originalEventsMonitor.Object : newEventsMonitor.Object;
             };
 
-            BoundSolutionGitMonitor testSubject = CreateTestSubject(gitWorkspaceService, gitEventFactory);
+            BoundSolutionGitMonitor testSubject = CreateTestSubject(gitWorkspaceService.Object, gitEventFactory);
             testSubject.HeadChanged += (o, e) => counter++;
 
-            newEventsMonitor.Raise(em => em.HeadChanged += null, null, null);
+            newEventsMonitor.RaiseHeadChangedEvent();
             counter.Should().Be(0);
 
-            originalEventsMonitor.Raise(em => em.HeadChanged += null, null, null);
+            originalEventsMonitor.RaiseHeadChangedEvent();
             counter.Should().Be(1);
 
             gitWorkspaceService.Setup(ws => ws.GetRepoRoot()).Returns(newPath);
+            originalEventsMonitor.VerifyEventUnregistered(Times.Never);
 
+            // Act
             testSubject.Refresh();
 
-            originalEventsMonitor.Raise(em => em.HeadChanged += null, null, null);
+            // Old event handler should be unregistered
+            originalEventsMonitor.VerifyEventUnregistered(Times.Once);
+            originalEventsMonitor.RaiseHeadChangedEvent();
             counter.Should().Be(1);
 
-            newEventsMonitor.Raise(em => em.HeadChanged += null, null, null);
+            newEventsMonitor.RaiseHeadChangedEvent();
             counter.Should().Be(2);
+        }
+
+        [TestMethod]
+        public void Dispose_UnregistersGitEventHandlerAndDisposesIGitEvents()
+        {
+            var gitWorkspaceService = CreateGitWorkSpaceService("any");
+
+            var gitEvents = new Mock<IGitEvents>();
+            var disposableGitEvents = gitEvents.As<IDisposable>();
+
+            var factory = CreateFactory(gitEvents.Object);
+            var testSubject = CreateTestSubject(gitWorkspaceService.Object, factory.Object);
+
+            gitEvents.VerifyEventRegistered(Times.Once);
+            gitEvents.VerifyEventUnregistered(Times.Never);
+            disposableGitEvents.Verify(x => x.Dispose(), Times.Never);
+
+            // Act
+            testSubject.Dispose();
+
+            gitEvents.VerifyEventRegistered(Times.Once); // still only once
+            gitEvents.VerifyEventUnregistered(Times.Once); // unregistered once
+            disposableGitEvents.Verify(x => x.Dispose(), Times.Once);
+        }
+
+        [TestMethod]
+        public void OnHeadChanged_NonCriticalExceptionInHandler_IsSuppressed()
+        {
+            var gitWorkspaceService = CreateGitWorkSpaceService("any");
+
+            var gitEvents = new Mock<IGitEvents>();
+            var factory = CreateFactory(gitEvents.Object);
+            var testSubject = CreateTestSubject(gitWorkspaceService.Object, factory.Object);
+
+            testSubject.HeadChanged += (sender, args) => throw new InvalidOperationException("thrown from a test");
+
+            Action op = gitEvents.RaiseHeadChangedEvent;
+
+            op.Should().NotThrow();
+        }
+
+        [TestMethod]
+        public void OnHeadChanged_CriticalExceptionInHandler_IsNotSuppressed()
+        {
+            var gitWorkspaceService = CreateGitWorkSpaceService("any");
+
+            var gitEvents = new Mock<IGitEvents>();
+            var factory = CreateFactory(gitEvents.Object);
+            var testSubject = CreateTestSubject(gitWorkspaceService.Object, factory.Object);
+
+            testSubject.HeadChanged += (sender, args) => throw new StackOverflowException("thrown from a test");
+
+            Action op = gitEvents.RaiseHeadChangedEvent;
+
+            op.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("thrown from a test");
         }
 
         private Mock<IGitWorkspaceService> CreateGitWorkSpaceService(string repoPath)
@@ -112,10 +177,32 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             gitWorkspaceService.Setup(ws => ws.GetRepoRoot()).Returns(repoPath);
             return gitWorkspaceService;
         }
-        
-        private BoundSolutionGitMonitor CreateTestSubject(Mock<IGitWorkspaceService> gitWorkspaceService, GitEventFactory gitEventFactory)
+
+        private static Mock<GitEventFactory> CreateFactory(IGitEvents gitEvents)
         {
-            return new BoundSolutionGitMonitor(gitWorkspaceService.Object, gitEventFactory);
+            var factory = new Mock<GitEventFactory>();
+            factory.Setup(x => x.Invoke(It.IsAny<string>())).Returns(gitEvents);
+            return factory;
+        }
+
+        private BoundSolutionGitMonitor CreateTestSubject(IGitWorkspaceService gitWorkspaceService, GitEventFactory gitEventFactory)
+            => new BoundSolutionGitMonitor(gitWorkspaceService, gitEventFactory);
+    }
+
+    // Separate namespace so the extension methods don't pollute the main namespace
+    namespace Extensions
+    {
+        internal static class BoundSolutionGitMonitorTestsExtensions
+        {
+            public static void RaiseHeadChangedEvent(this Mock<IGitEvents> gitEvents)
+                => gitEvents.Raise(em => em.HeadChanged += null, null, null);
+
+            public static void VerifyEventRegistered(this Mock<IGitEvents> gitEvents, Func<Times> times)
+                => gitEvents.VerifyAdd(x => x.HeadChanged += It.IsAny<EventHandler>(), times);
+
+            public static void VerifyEventUnregistered(this Mock<IGitEvents> gitEvents, Func<Times> times)
+                => gitEvents.VerifyRemove(x => x.HeadChanged -= It.IsAny<EventHandler>(), times);
         }
     }
+
 }

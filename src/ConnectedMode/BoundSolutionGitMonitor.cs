@@ -88,17 +88,25 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
             if (rootPath != null)
             {
-                currentRepoEvents = createLocalGitMonitor(rootPath);
-                currentRepoEvents.HeadChanged += OnHeadChanged;
+                // Avoid one potential race condition - initialize first, then set
+                // the class-level variable.
+                var local = createLocalGitMonitor(rootPath);
+                local.HeadChanged += OnHeadChanged;
+
+                currentRepoEvents = local;
             }
         }
 
         private void CleanupLocalGitEventResources()
         {
-            if (currentRepoEvents != null)
+            // Avoid potential race condition - copy the variable
+            // and clean up the copy
+            var local = currentRepoEvents;
+
+            if (local != null)
             {
-                currentRepoEvents.HeadChanged -= OnHeadChanged;
-                (currentRepoEvents as IDisposable)?.Dispose();
+                local.HeadChanged -= OnHeadChanged;
+                (local as IDisposable)?.Dispose();
             }
             currentRepoEvents = null;
         }
