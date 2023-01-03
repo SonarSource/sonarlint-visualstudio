@@ -95,7 +95,6 @@ namespace SonarLint.VisualStudio.Integration
 
         private void GitEventsMonitor_HeadChanged(object sender, EventArgs e)
         {
-            PreSolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
             SolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
         }
 

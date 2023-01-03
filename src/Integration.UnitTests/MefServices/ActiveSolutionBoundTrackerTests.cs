@@ -545,14 +545,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 gitEvents.Raise(x => x.HeadChanged += null, null, null);
 
                 // Assert
-                eventCounter.PreSolutionBindingUpdatedCount.Should().Be(1);
+                eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0);
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(1);
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(0);
                 eventCounter.SolutionBindingChangedCount.Should().Be(0);
 
-                eventCounter.RaisedEventNames.Should().HaveCount(2);
-                eventCounter.RaisedEventNames[0].Should().Be("PreSolutionBindingUpdated");
-                eventCounter.RaisedEventNames[1].Should().Be("SolutionBindingUpdated");
+                eventCounter.RaisedEventNames.Should().HaveCount(1);
+                eventCounter.RaisedEventNames[0].Should().Be("SolutionBindingUpdated");
             }
         }
 
