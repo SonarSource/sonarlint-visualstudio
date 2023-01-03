@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration
 
             CurrentConfiguration = configurationProvider.GetConfiguration();
 
-            SetBoundSolutionUIContext();
+            SetBoundSolutionUIContext(); 
 
             this.gitEvents.HeadChanged += GitEventsMonitor_HeadChanged;
         }
