@@ -29,6 +29,7 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.State;
 using SonarQube.Client;
+using SonarQube.Client.Api.V5_10;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -50,6 +51,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IConfigurationProviderService configurationProvider;
         private readonly IVsMonitorSelection vsMonitorSelection;
         private readonly ILogger logger;
+        private readonly IGitEvents gitEventsMonitor;
         private readonly uint boundSolutionContextCookie;
 
         public event EventHandler<ActiveSolutionBindingEventArgs> PreSolutionBindingChanged;
@@ -65,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration
             extensionHost = host ?? throw new ArgumentNullException(nameof(host));
             solutionTracker = activeSolutionTracker ?? throw new ArgumentNullException(nameof(activeSolutionTracker));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            if (gitEventsMonitor == null) { throw new ArgumentNullException(nameof(gitEventsMonitor)); }
+            this.gitEventsMonitor =  gitEventsMonitor ?? throw new ArgumentNullException(nameof(gitEventsMonitor));
 
             vsMonitorSelection = host.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
             vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
@@ -86,12 +88,17 @@ namespace SonarLint.VisualStudio.Integration
 
             SetBoundSolutionUIContext();
 
-            gitEventsMonitor.HeadChanged += GitEventsMonitor_HeadChanged;
+            this.gitEventsMonitor.HeadChanged += GitEventsMonitor_HeadChanged;
         }
 
         private void GitEventsMonitor_HeadChanged(object sender, EventArgs e)
         {
-            SolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
+            var boundProject = this.configurationProvider.GetConfiguration().Project;
+
+            if (boundProject != null)
+            {
+                SolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         private async void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs args)
@@ -189,6 +196,7 @@ namespace SonarLint.VisualStudio.Integration
                 this.errorListInfoBarController.Reset();
                 this.solutionTracker.ActiveSolutionChanged -= this.OnActiveSolutionChanged;
                 this.extensionHost.VisualStateManager.BindingStateChanged -= this.OnBindingStateChanged;
+                this.gitEventsMonitor.HeadChanged -= GitEventsMonitor_HeadChanged;
             }
         }
 
