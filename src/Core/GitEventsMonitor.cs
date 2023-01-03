@@ -64,7 +64,8 @@ namespace SonarLint.VisualStudio.Core
             fileSystemWatcher = fileSystemFactory.FromPath(gitFolderPath);
 
             fileSystemWatcher.Filter = HEADFile;
-            
+            //When you change head Git does not change existing head file instead it creates a temp file first and renames it to "head" after deleting the original file.
+            //Because of that we are listening the "renamed" event instead of "changed"
             fileSystemWatcher.Renamed += HeadFileChanged;
 
             fileSystemWatcher.EnableRaisingEvents = true;

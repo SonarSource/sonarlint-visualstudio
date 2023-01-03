@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             {
                 if (path != repoPath)
                 {
-                    throw new Exception();
+                    throw new Exception("Test Error: Wrong path is passed to low level event monitor");
                 }
 
                 return gitEventsMonitor.Object;
@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             {
                 if (path != originalPath && path != newPath)
                 {
-                    throw new Exception();
+                    throw new Exception("Test Error: Wrong path is passed to low level event monitor");
                 }
 
                 return path == originalPath ? originalEventsMonitor.Object : newEventsMonitor.Object;
