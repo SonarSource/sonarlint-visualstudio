@@ -59,6 +59,12 @@ namespace SonarLint.VisualStudio.Core.ETW
         private const int GetProjectRuleSetsDeclarationsStartId = 1009;
         private const int GetProjectRuleSetsDeclarationsStopId = 1010;
 
+        private const int GetMatchingBranchStartId = 1011;
+        private const int GetMatchingBranchStopId = 1012;
+
+        private const int GetDistanceStartId = 1013;
+        private const int GetDistanceStopId = 1014;
+
         [Event(ErrorListControllerProcessStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
         public void ErrorListControllerProcessStart() => Write(ErrorListControllerProcessStartId);
 
@@ -91,6 +97,18 @@ namespace SonarLint.VisualStudio.Core.ETW
 
         [Event(GetProjectRuleSetsDeclarationsStopId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
         public void GetProjectRuleSetsDeclarationsStop() => Write(GetProjectRuleSetsDeclarationsStopId);
+
+        [Event(GetMatchingBranchStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
+        public void GetMatchingBranchStart(string projectKey) => Write(GetMatchingBranchStartId, projectKey);
+
+        [Event(GetMatchingBranchStopId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
+        public void GetMatchingBranchStop() => Write(GetMatchingBranchStopId);
+
+        [Event(GetDistanceStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
+        public void GetDistanceStart(string branchName) => Write(GetDistanceStartId, branchName);
+
+        [Event(GetDistanceStopId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
+        public void GetDistanceStop() => Write(GetDistanceStopId);
 
         #endregion
 
