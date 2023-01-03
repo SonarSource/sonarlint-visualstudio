@@ -125,6 +125,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             }
         }
 
+        [TestMethod]
+        public void Dispose_UnhooksEventHandlers()
+        {
+            var serverBranchProvider = Mock.Of<IServerBranchProvider>();
+            var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
+
+            var testSubject = CreateTestSubject(serverBranchProvider, activeSolutionBoundTracker.Object);
+
+            testSubject.Dispose();
+
+            // Should only unhook the "Pre-" event handlers
+            activeSolutionBoundTracker.VerifyRemove(x => x.PreSolutionBindingChanged -= It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>(), Times.Once);
+            activeSolutionBoundTracker.VerifyRemove(x => x.PreSolutionBindingUpdated -= It.IsAny<EventHandler>(), Times.Once);
+
+            activeSolutionBoundTracker.VerifyRemove(x => x.SolutionBindingChanged -= It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>(), Times.Never);
+            activeSolutionBoundTracker.VerifyRemove(x => x.SolutionBindingUpdated -= It.IsAny<EventHandler>(), Times.Never);
+        }
+
         private static Mock<IServerBranchProvider> CreateServerBranchProvider(string branchName)
         {
             var serverBranchProvider = new Mock<IServerBranchProvider>();
