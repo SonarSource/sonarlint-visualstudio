@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.Core.ETW
         public void GetProjectRuleSetsDeclarationsStop() => Write(GetProjectRuleSetsDeclarationsStopId);
 
         [Event(GetMatchingBranchStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
-        public void GetMatchingBranchStart(string projectName) => Write(GetMatchingBranchStartId, projectName);
+        public void GetMatchingBranchStart(string projectKey) => Write(GetMatchingBranchStartId, projectKey);
 
         [Event(GetMatchingBranchStopId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
         public void GetMatchingBranchStop() => Write(GetMatchingBranchStopId);
