@@ -36,4 +36,13 @@ namespace SonarLint.VisualStudio.Core
         /// </remarks>
         Task<string> GetServerBranchNameAsync(CancellationToken token);
     }
+
+    /// <summary>
+    /// Stateful version of <see cref="IServerBranchProvider"/>
+    /// </summary>
+    /// <remarks>The implementation is a singleton that recalculates the Sonar branch name
+    /// automatically when necessary e.g. when a different solution is opened
+    /// </remarks>
+    public interface IStatefulServerBranchProvider : IServerBranchProvider { }
+
 }
