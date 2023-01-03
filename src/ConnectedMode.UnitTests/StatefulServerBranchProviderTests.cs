@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
@@ -41,7 +42,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         public async Task GetServerBranchNameAsync_WhenCalled_UsesCache()
         {
             var serverBranchProvider = CreateServerBranchProvider("Branch");
-
             var activeSolutionBoundTracker = Mock.Of<IActiveSolutionBoundTracker>();
 
             var testSubject = CreateTestSubject(serverBranchProvider.Object, activeSolutionBoundTracker);
@@ -50,24 +50,50 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             var serverBranch = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
 
             serverBranch.Should().Be("Branch");
+            serverBranchProvider.VerifyGetServerBranchNameCalled(Times.Once);
 
-            serverBranchProvider.Verify(sbp => sbp.GetServerBranchNameAsync(It.IsAny<CancellationToken>()), Times.Once);
-
-            serverBranchProvider.Setup(sbp => sbp.GetServerBranchNameAsync(It.IsAny<CancellationToken>())).ReturnsAsync("NewBranch");
 
             //second call: Should use cache
+            serverBranchProvider.SetBranchNameToReturn("branch name that should not be returned - should use cached value");
+
             serverBranch = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
 
             serverBranch.Should().Be("Branch");
-
-            serverBranchProvider.Verify(sbp => sbp.GetServerBranchNameAsync(It.IsAny<CancellationToken>()), Times.Once);
+            serverBranchProvider.VerifyGetServerBranchNameCalled(Times.Once);
         }
 
         [TestMethod]
-        public async Task GetServerBranchNameAsync_WhenSolutionBindingChanged_ClearCache()
+        public async Task GetServerBranchNameAsync_PreSolutionBindingChanged_CacheIsCleared()
         {
-            var serverBranchProvider = CreateServerBranchProvider("Branch");
+            await TestEffectOfRaisingEventOnCache(asbt => asbt.PreSolutionBindingChanged += null,
+                shouldClearCache: true);
+        }
 
+        [TestMethod]
+        public async Task GetServerBranchNameAsync_PreSolutionBindingUpdated_CacheIsCleared()
+        {
+            await TestEffectOfRaisingEventOnCache(asbt => asbt.PreSolutionBindingChanged += null,
+                shouldClearCache: true);
+        }
+
+        [TestMethod]
+        public async Task GetServerBranchNameAsync_SolutionBindingChanged_CacheIsNotCleared()
+        {
+            await TestEffectOfRaisingEventOnCache(asbt => asbt.SolutionBindingChanged += null,
+                shouldClearCache: false);
+        }
+
+        [TestMethod]
+        public async Task GetServerBranchNameAsync_SolutionBindingUpdated_CacheIsNotCleared()
+        {
+            await TestEffectOfRaisingEventOnCache(asbt => asbt.SolutionBindingChanged += null,
+                shouldClearCache: false);
+        }
+
+        private static async Task TestEffectOfRaisingEventOnCache(Action<IActiveSolutionBoundTracker> eventAction,
+            bool shouldClearCache)
+        {
+            var serverBranchProvider = CreateServerBranchProvider("OriginalBranch");
             var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
 
             var testSubject = CreateTestSubject(serverBranchProvider.Object, activeSolutionBoundTracker.Object);
@@ -75,33 +101,53 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             //first call: Should use IServerBranchProvider
             var serverBranch = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
 
-            serverBranch.Should().Be("Branch");
+            serverBranch.Should().Be("OriginalBranch");
+            serverBranchProvider.VerifyGetServerBranchNameCalled(Times.Once);
 
-            serverBranchProvider.Verify(sbp => sbp.GetServerBranchNameAsync(It.IsAny<CancellationToken>()), Times.Once);
+            serverBranchProvider.SetBranchNameToReturn("NewBranch");
 
-            serverBranchProvider.Setup(sbp => sbp.GetServerBranchNameAsync(It.IsAny<CancellationToken>())).ReturnsAsync("NewBranch");
+            // Raise event - should *not* trigger clearing the cache
+            activeSolutionBoundTracker.Raise(eventAction, null, null);
 
-            activeSolutionBoundTracker.Raise(asbt => asbt.PreSolutionBindingChanged += null, null, null);
-
-            //second call: Should use cache
+            //second call: may or may not use the cache
             serverBranch = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
 
-            serverBranch.Should().Be("NewBranch");
+            if (shouldClearCache)
+            {
+                serverBranch.Should().Be("NewBranch");
+                serverBranchProvider.VerifyGetServerBranchNameCalled(Times.Exactly(2));
 
-            serverBranchProvider.Verify(sbp => sbp.GetServerBranchNameAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
+            }
+            else
+            {
+                serverBranch.Should().Be("OriginalBranch");
+                serverBranchProvider.VerifyGetServerBranchNameCalled(Times.Once);
+            }
         }
 
-        private Mock<IServerBranchProvider> CreateServerBranchProvider(string branchName)
+        private static Mock<IServerBranchProvider> CreateServerBranchProvider(string branchName)
         {
             var serverBranchProvider = new Mock<IServerBranchProvider>();
-            serverBranchProvider.Setup(sbp => sbp.GetServerBranchNameAsync(It.IsAny<CancellationToken>())).ReturnsAsync(branchName);
+            serverBranchProvider.SetBranchNameToReturn(branchName);
 
             return serverBranchProvider;
         }
 
-        private StatefulServerBranchProvider CreateTestSubject(IServerBranchProvider provider, IActiveSolutionBoundTracker tracker)
+        private static StatefulServerBranchProvider CreateTestSubject(IServerBranchProvider provider, IActiveSolutionBoundTracker tracker)
         {
             return new StatefulServerBranchProvider(provider, tracker);
         }
+    }
+
+    internal static class StatefulServerBranchProviderTestsExtensions
+    {
+        public static void VerifyGetServerBranchNameCalled(this Mock<IServerBranchProvider> serverBranchProvider, Func<Times> times)
+            => serverBranchProvider.Verify(sbp => sbp.GetServerBranchNameAsync(It.IsAny<CancellationToken>()), times());
+
+        public static void VerifyGetServerBranchNameCalled(this Mock<IServerBranchProvider> serverBranchProvider, Times times)
+            => serverBranchProvider.Verify(sbp => sbp.GetServerBranchNameAsync(It.IsAny<CancellationToken>()), times);
+
+        public static void SetBranchNameToReturn(this Mock<IServerBranchProvider> serverBranchProvider, string branchName)
+            => serverBranchProvider.Setup(sbp => sbp.GetServerBranchNameAsync(It.IsAny<CancellationToken>())).ReturnsAsync(branchName);
     }
 }
