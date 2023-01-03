@@ -542,16 +542,37 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var eventCounter = new EventCounter(testSubject);
 
                 // Act
+                ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://foo"), "projectKey", "projectName"));
                 gitEvents.Raise(x => x.HeadChanged += null, null, null);
 
                 // Assert
-                eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0);
+                eventCounter.PreSolutionBindingUpdatedCount.Should().Be(1);
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(1);
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(0);
                 eventCounter.SolutionBindingChangedCount.Should().Be(0);
 
-                eventCounter.RaisedEventNames.Should().HaveCount(1);
-                eventCounter.RaisedEventNames[0].Should().Be("SolutionBindingUpdated");
+                eventCounter.RaisedEventNames.Should().HaveCount(2);
+                eventCounter.RaisedEventNames[0].Should().Be("PreSolutionBindingUpdated");
+                eventCounter.RaisedEventNames[1].Should().Be("SolutionBindingUpdated");
+            }
+        }
+
+        [TestMethod]
+        public void GitRepoUpdated_UnBoundProject_SolutionBingingUpdatedNotInvoked()
+        {
+            var gitEventsMonitor = new Mock<IBoundSolutionGitMonitor>();
+
+            // Arrange
+            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, loggerMock.Object, gitEventsMonitor.Object))
+            {
+                var eventCounter = new EventCounter(testSubject);
+
+                // Act
+                ConfigureSolutionBinding(null);
+                gitEventsMonitor.Raise(x => x.HeadChanged += null, null, null);
+
+                // Assert
+                eventCounter.RaisedEventNames.Should().HaveCount(0);
             }
         }
 

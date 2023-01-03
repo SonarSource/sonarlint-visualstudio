@@ -29,6 +29,7 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.State;
 using SonarQube.Client;
+using SonarQube.Client.Api.V5_10;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -95,7 +96,13 @@ namespace SonarLint.VisualStudio.Integration
 
         private void GitEventsMonitor_HeadChanged(object sender, EventArgs e)
         {
-            SolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
+            var boundProject = this.configurationProvider.GetConfiguration().Project;
+
+            if (boundProject != null)
+            {
+                PreSolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
+                SolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         private async void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs args)
@@ -195,6 +202,7 @@ namespace SonarLint.VisualStudio.Integration
                 this.errorListInfoBarController.Reset();
                 this.solutionTracker.ActiveSolutionChanged -= this.OnActiveSolutionChanged;
                 this.extensionHost.VisualStateManager.BindingStateChanged -= this.OnBindingStateChanged;
+                this.gitEvents.HeadChanged -= GitEventsMonitor_HeadChanged;
             }
         }
 
