@@ -97,6 +97,7 @@ namespace SonarLint.VisualStudio.Integration
 
             if (boundProject != null)
             {
+                PreSolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
                 SolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
             }
         }
