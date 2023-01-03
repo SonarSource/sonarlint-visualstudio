@@ -25,6 +25,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using LibGit2Sharp;
+using SonarLint.VisualStudio.Core.ETW;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode
@@ -61,64 +62,79 @@ namespace SonarLint.VisualStudio.ConnectedMode
         {
             Debug.Assert(sonarQubeService.IsConnected,
                 "Not expecting GetMatchedBranch to be called unless we are in Connected Mode");
-
-            var head = gitRepo.Head;
-
-            if (head == null)
+            try
             {
-                return null;
-            }
+                CodeMarkers.Instance.GetMatchingBranchStart(projectKey);
+                var head = gitRepo.Head;
 
-            var remoteBranches = await sonarQubeService.GetProjectBranchesAsync(projectKey, token);
-
-            if (remoteBranches.Any(rb => string.Equals(rb.Name, head.FriendlyName, StringComparison.InvariantCultureIgnoreCase)))
-            {
-                return head.FriendlyName;
-            }
-
-            string closestBranch = null;
-            int closestDistance = int.MaxValue;
-
-            Lazy<Commit[]> headCommits = new Lazy<Commit[]>(() => head.Commits.ToArray());
-
-            foreach (var remoteBranch in remoteBranches)
-            {
-                var localBranch = gitRepo.Branches.FirstOrDefault(r => string.Equals(r.FriendlyName, remoteBranch.Name, StringComparison.InvariantCultureIgnoreCase));
-
-                if (localBranch == null) { continue; }
-
-                var distance = GetDistance(headCommits.Value, localBranch, closestDistance);
-
-                if (distance < closestDistance)
+                if (head == null)
                 {
-                    closestBranch = localBranch.FriendlyName;
-                    closestDistance = distance;
+                    return null;
                 }
-            }
 
-            if (closestBranch == null)
-            {
-                return remoteBranches.First(rb => rb.IsMain).Name;
+                var remoteBranches = await sonarQubeService.GetProjectBranchesAsync(projectKey, token);
+
+                if (remoteBranches.Any(rb => string.Equals(rb.Name, head.FriendlyName, StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    return head.FriendlyName;
+                }
+
+                string closestBranch = null;
+                int closestDistance = int.MaxValue;
+
+                Lazy<Commit[]> headCommits = new Lazy<Commit[]>(() => head.Commits.ToArray());
+
+                foreach (var remoteBranch in remoteBranches)
+                {
+                    var localBranch = gitRepo.Branches.FirstOrDefault(r => string.Equals(r.FriendlyName, remoteBranch.Name, StringComparison.InvariantCultureIgnoreCase));
+
+                    if (localBranch == null) { continue; }
+
+                    var distance = GetDistance(headCommits.Value, localBranch, closestDistance);
+
+                    if (distance < closestDistance)
+                    {
+                        closestBranch = localBranch.FriendlyName;
+                        closestDistance = distance;
+                    }
+                }
+
+                if (closestBranch == null)
+                {
+                    return remoteBranches.First(rb => rb.IsMain).Name;
+                }
+                return closestBranch;
             }
-            return closestBranch;
+            finally
+            {
+                CodeMarkers.Instance.GetMatchingBranchStop();
+            }
         }
 
         //Commits are in descending order by time
         private int GetDistance(Commit[] headCommits, Branch branch, int closestDistance)
         {
-            for (int i = 0; i < headCommits.Length; i++)
+            try
             {
-                if(i >= closestDistance) { break; }
+                CodeMarkers.Instance.GetDistanceStart(branch.FriendlyName);
+                for (int i = 0; i < headCommits.Length; i++)
+                {
+                    if (i >= closestDistance) { break; }
 
-                var commitID = headCommits[i].Id;
-                var branchCommitIndex = GetIndexOfCommit(branch.Commits, commitID, closestDistance - i);
+                    var commitID = headCommits[i].Id;
+                    var branchCommitIndex = GetIndexOfCommit(branch.Commits, commitID, closestDistance - i);
 
-                if (branchCommitIndex == -1) { continue; }
+                    if (branchCommitIndex == -1) { continue; }
 
-                return i + branchCommitIndex;
+                    return i + branchCommitIndex;
+                }
+
+                return int.MaxValue;
             }
-
-            return int.MaxValue;
+            finally
+            {
+                CodeMarkers.Instance.GetDistanceStop();
+            }
         }
 
         private int GetIndexOfCommit(ICommitLog commits, ObjectId commitId, int remainingStepsToClosestDistance)
