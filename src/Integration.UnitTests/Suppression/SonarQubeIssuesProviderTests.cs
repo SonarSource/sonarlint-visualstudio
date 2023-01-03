@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Constructor_ThrowsOnNull()
         {
             var sqService = Mock.Of<ISonarQubeService>();
-            var serverBranchProvider = Mock.Of<IServerBranchProvider>();
+            var serverBranchProvider = Mock.Of<IStatefulServerBranchProvider>();
             var logger = Mock.Of<ILogger>();
             const string validProjectKey = "key1";
 
@@ -709,9 +709,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         #endregion
 
         private SonarQubeIssuesProvider CreateTestSubject(string projectKey = "any",
-            IServerBranchProvider serverBranchProvider = null)
+            IStatefulServerBranchProvider serverBranchProvider = null)
         {
-            serverBranchProvider ??= Mock.Of<IServerBranchProvider>();
+            serverBranchProvider ??= Mock.Of<IStatefulServerBranchProvider>();
 
             var testSubject = new SonarQubeIssuesProvider(mockSqService.Object,
                 serverBranchProvider,
@@ -769,9 +769,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 .Verifiable();
         }
 
-        private static Mock<IServerBranchProvider> CreateServerBranchProvider(string branch)
+        private static Mock<IStatefulServerBranchProvider> CreateServerBranchProvider(string branch)
         {
-            var serverBranchProvider = new Mock<IServerBranchProvider>();
+            var serverBranchProvider = new Mock<IStatefulServerBranchProvider>();
             serverBranchProvider.Setup(x => x.GetServerBranchNameAsync(It.IsAny<CancellationToken>())).ReturnsAsync(branch);
             return serverBranchProvider;
         }

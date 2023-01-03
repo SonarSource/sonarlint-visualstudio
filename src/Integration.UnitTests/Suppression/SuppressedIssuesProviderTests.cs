@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             {
                 MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(tracker.Object),
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
-                MefTestHelpers.CreateExport<IServerBranchProvider>(),
+                MefTestHelpers.CreateExport<IStatefulServerBranchProvider>(),
                 MefTestHelpers.CreateExport<ILogger>()
             };
         }
