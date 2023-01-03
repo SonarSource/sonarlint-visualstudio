@@ -521,16 +521,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        private static ActiveSolutionBoundTracker CreateTestSubject(IHost host,
-            IActiveSolutionTracker solutionTracker,
-            ILogger logger = null,
-            IBoundSolutionGitMonitor gitEvents = null)
-        {
-            logger ??= new TestLogger(logToConsole: true);
-            gitEvents ??= Mock.Of<IBoundSolutionGitMonitor>();
-            return new ActiveSolutionBoundTracker(host, solutionTracker, gitEvents, logger);
-        }
-
         [TestMethod]
         public void GitRepoUpdated_SolutionBingingUpdatedInvoked()
         {
@@ -574,6 +564,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Assert
                 eventCounter.RaisedEventNames.Should().HaveCount(0);
             }
+        }
+
+        private static ActiveSolutionBoundTracker CreateTestSubject(IHost host, IActiveSolutionTracker solutionTracker, ILogger logger = null, IBoundSolutionGitMonitor gitEvents = null)
+        {
+            logger ??= new TestLogger(logToConsole: true);
+            gitEvents ??= Mock.Of<IBoundSolutionGitMonitor>();
+            return new ActiveSolutionBoundTracker(host, solutionTracker, gitEvents, logger);
         }
 
         private void ConfigureService(bool isConnected)
