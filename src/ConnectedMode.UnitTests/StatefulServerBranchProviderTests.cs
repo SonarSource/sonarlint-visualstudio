@@ -25,7 +25,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
-using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 {
@@ -75,7 +74,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         [TestMethod]
         public async Task GetServerBranchNameAsync_PreSolutionBindingUpdated_CacheIsCleared()
         {
-            await TestEffectOfRaisingEventOnCache(asbt => asbt.PreSolutionBindingChanged += null,
+            await TestEffectOfRaisingEventOnCache(asbt => asbt.PreSolutionBindingUpdated += null,
                 shouldClearCache: true);
         }
 
@@ -89,7 +88,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         [TestMethod]
         public async Task GetServerBranchNameAsync_SolutionBindingUpdated_CacheIsNotCleared()
         {
-            await TestEffectOfRaisingEventOnCache(asbt => asbt.SolutionBindingChanged += null,
+            await TestEffectOfRaisingEventOnCache(asbt => asbt.SolutionBindingUpdated += null,
                 shouldClearCache: false);
         }
 
