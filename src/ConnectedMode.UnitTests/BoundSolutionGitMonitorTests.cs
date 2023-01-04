@@ -186,7 +186,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         }
 
         private BoundSolutionGitMonitor CreateTestSubject(IGitWorkspaceService gitWorkspaceService, GitEventFactory gitEventFactory)
-            => new BoundSolutionGitMonitor(gitWorkspaceService, gitEventFactory);
+            => new BoundSolutionGitMonitor(gitWorkspaceService, new TestLogger(logToConsole: true), gitEventFactory);
     }
 
     // Separate namespace so the extension methods don't pollute the main namespace

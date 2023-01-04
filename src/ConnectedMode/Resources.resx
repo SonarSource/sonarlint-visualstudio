@@ -147,6 +147,22 @@
   <data name="BranchProvider_NotInConnectedMode" xml:space="preserve">
     <value>[ConnectedMode/BranchMapping] Solution is not bound</value>
   </data>
+  <data name="GitMonitor_EventError" xml:space="preserve">
+    <value>[ConnectedMode] Error handling repo change notification: {0}</value>
+  </data>
+  <data name="GitMonitor_GitBranchChanged" xml:space="preserve">
+    <value>[ConnectedMode/GitMonitor] Git head branch changed</value>
+    <comment>i.e. changed to a different branch</comment>
+  </data>
+  <data name="GitMonitor_MonitoringRepoStarted" xml:space="preserve">
+    <value>[ConnectedMode/GitMonitor] Monitoring git repo. Root path: {0}</value>
+  </data>
+  <data name="GitMonitor_MonitoringRepoStopped" xml:space="preserve">
+    <value>[ConnectedMode/GitMonitor] Stopped monitoring repo</value>
+  </data>
+  <data name="GitMonitor_NoRepo" xml:space="preserve">
+    <value>[ConnectedMode/GitMonitor] No repo detected - nothing to monitor</value>
+  </data>
   <data name="NullBranchName" xml:space="preserve">
     <value>{null}</value>
   </data>
