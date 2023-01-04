@@ -117,16 +117,52 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="BranchMapper_CalculatingServerBranch_Finished" xml:space="preserve">
+    <value>[ConnectedMode/BranchMapping] Finished calculating closest Sonar server branch. Result: {0}</value>
+  </data>
+  <data name="BranchMapper_CalculatingServerBranch_Started" xml:space="preserve">
+    <value>[ConnectedMode/BranchMapping] Calculating closest Sonar server branch...</value>
+  </data>
+  <data name="BranchMapper_CheckingSonarBranches" xml:space="preserve">
+    <value>[ConnectedMode/BranchMapping]     Checking Sonar server branches...</value>
+  </data>
+  <data name="BranchMapper_Match_SameSonarBranchName" xml:space="preserve">
+    <value>[ConnectedMode/BranchMapping]     Match found: same Sonar branch name: {0}</value>
+  </data>
+  <data name="BranchMapper_NoHead" xml:space="preserve">
+    <value>[ConnectedMode/BranchMapping]     No head branch detected </value>
+  </data>
+  <data name="BranchMapper_NoMatchingBranchFound" xml:space="preserve">
+    <value>[ConnectedMode/BranchMapping]     No match found - using Sonar server "main" branch</value>
+  </data>
+  <data name="BranchMapper_UpdatingClosestMatch" xml:space="preserve">
+    <value>[ConnectedMode/BranchMapping]     Updating closest match: branch = {0}, distance = {1}</value>
+  </data>
   <data name="BranchProvider_CouldNotDetectGitRepo" xml:space="preserve">
-    <value>[ConnectedMode] Could not detect a git repo for the current solution</value>
+    <value>[ConnectedMode/BranchMapping] Could not detect a git repo for the current solution</value>
   </data>
   <data name="BranchProvider_MatchingServerBranchName" xml:space="preserve">
-    <value>[ConnectedMode] Matching Sonar server branch: {0}</value>
+    <value>[ConnectedMode/BranchMapping] Matching Sonar server branch: {0}</value>
   </data>
   <data name="BranchProvider_NotInConnectedMode" xml:space="preserve">
-    <value>[ConnectedMode] Solution is not bound</value>
+    <value>[ConnectedMode/BranchMapping] Solution is not bound</value>
   </data>
   <data name="NullBranchName" xml:space="preserve">
     <value>{null}</value>
+  </data>
+  <data name="StatefulBranchProvider_BindingChanged" xml:space="preserve">
+    <value>[ConnectedMode/BranchMapping] Binding changed -&gt; cache cleared</value>
+  </data>
+  <data name="StatefulBranchProvider_BindingUpdated" xml:space="preserve">
+    <value>[ConnectedMode/BranchMapping] Binding updated -&gt; cache cleared</value>
+  </data>
+  <data name="StatefulBranchProvider_CacheHit" xml:space="preserve">
+    <value>[ConnectedMode/BranchMapping] Cache hit</value>
+  </data>
+  <data name="StatefulBranchProvider_CacheMiss" xml:space="preserve">
+    <value>[ConnectedMode/BranchMapping] Cache miss. Recalculating server branch mapping...</value>
+  </data>
+  <data name="StatefulBranchProvider_ReturnValue" xml:space="preserve">
+    <value>[ConnectedMode/BranchMapping] Closest Sonar server branch: {0}</value>
   </data>
 </root>

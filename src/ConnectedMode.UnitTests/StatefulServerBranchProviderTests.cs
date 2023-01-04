@@ -23,7 +23,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 {
@@ -35,7 +37,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         {
             MefTestHelpers.CheckTypeCanBeImported<StatefulServerBranchProvider, IStatefulServerBranchProvider>(
                 MefTestHelpers.CreateExport<IServerBranchProvider>(),
-                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>());
+                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]
@@ -153,7 +156,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
         private static StatefulServerBranchProvider CreateTestSubject(IServerBranchProvider provider, IActiveSolutionBoundTracker tracker)
         {
-            return new StatefulServerBranchProvider(provider, tracker);
+            return new StatefulServerBranchProvider(provider, tracker, new TestLogger(logToConsole: true));
         }
     }
 
