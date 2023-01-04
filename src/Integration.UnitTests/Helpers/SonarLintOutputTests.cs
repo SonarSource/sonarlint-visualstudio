@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -41,15 +43,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         {
             // Arrange
             var windowMock = new ConfigurableVsOutputWindow();
+            var serviceProviderMock = CreateConfiguredServiceProvider(windowMock);
 
-            var serviceProviderMock = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: true);
-            serviceProviderMock.RegisterService(typeof(SVsOutputWindow), windowMock);
-
-            var logger = new SonarLintOutputLogger(serviceProviderMock, Mock.Of<ISonarLintSettings>());
+            var testSubject = CreateTestSubject(serviceProviderMock);
 
             // Act
-            logger.WriteLine("123");
-            logger.WriteLine("abc");
+            testSubject.WriteLine("123");
+            testSubject.WriteLine("abc");
 
             // Assert
             var outputPane = windowMock.AssertPaneExists(VsShellUtils.SonarLintOutputPaneGuid);
@@ -64,35 +64,95 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         {
             // Arrange
             var windowMock = new ConfigurableVsOutputWindow();
+            var serviceProviderMock = CreateConfiguredServiceProvider(windowMock);
 
-            var serviceProviderMock = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: true);
-            serviceProviderMock.RegisterService(typeof(SVsOutputWindow), windowMock);
+            var sonarLintSettings = CreateSonarLintSettings(logLevel);
 
-            var sonarLintSettings = new Mock<ISonarLintSettings>();
-            sonarLintSettings.Setup(x => x.DaemonLogLevel).Returns(logLevel);
+            var testSubject = CreateTestSubject(serviceProviderMock, sonarLintSettings);
 
-            var logger = new SonarLintOutputLogger(serviceProviderMock, sonarLintSettings.Object);
-
-            logger.WriteLine("create window pane");
-
+            testSubject.WriteLine("create window pane");
             var outputPane = windowMock.AssertPaneExists(VsShellUtils.SonarLintOutputPaneGuid);
             outputPane.Reset();
 
             // Act
-            logger.LogVerbose("123 {0} {1}", "param 1", 2);
-            logger.LogVerbose("{0} {1} abc", 1, "param 2");
+            testSubject.LogVerbose("123 {0} {1}", "param 1", 2);
+            testSubject.LogVerbose("{0} {1} abc", 1, "param 2");
 
             // Assert
 
             if (shouldLogMessage)
             {
-                outputPane.AssertOutputStrings("DEBUG: 123 param 1 2", "DEBUG: 1 param 2 abc");
+                outputPane.AssertOutputStrings("[DEBUG] 123 param 1 2", "[DEBUG] 1 param 2 abc");
                 outputPane.AssertOutputStrings(2);
             }
             else
             {
                 outputPane.AssertOutputStrings(0);
             }
+        }
+
+        [TestMethod]
+        [DataRow(DaemonLogLevel.Info)]
+        [DataRow(DaemonLogLevel.Minimal)]
+        [DataRow(DaemonLogLevel.Verbose)]
+        public void LogVerbose_PrefixIsAddedIfLogLevelIsVerbose(DaemonLogLevel logLevel)
+        {
+            // Arrange
+            var windowMock = new ConfigurableVsOutputWindow();
+            var serviceProviderMock = CreateConfiguredServiceProvider(windowMock);
+
+            var sonarLintSettings = CreateSonarLintSettings(logLevel);
+
+            var testSubject = CreateTestSubject(serviceProviderMock, sonarLintSettings);
+
+            testSubject.WriteLine("create window pane");
+            var outputPane = windowMock.AssertPaneExists(VsShellUtils.SonarLintOutputPaneGuid);
+            outputPane.Reset();
+
+            // Act
+            testSubject.WriteLine("writeline, no params");
+            testSubject.WriteLine("writeline, with params: {0}", "zzz");
+            testSubject.LogVerbose("verbose");
+
+            if (logLevel == DaemonLogLevel.Verbose)
+            {
+                outputPane.AssertOutputStrings(3);
+
+                var currentThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+                outputPane.AssertOutputStrings(
+                    $"[ThreadId {currentThreadId}] writeline, no params",
+                    $"[ThreadId {currentThreadId}] writeline, with params: zzz",
+                    $"[ThreadId {currentThreadId}] [DEBUG] verbose");
+            }
+            else
+            {
+                outputPane.AssertOutputStrings(2);
+
+                outputPane.AssertOutputStrings(
+                    $"writeline, no params",
+                    $"writeline, with params: zzz");
+            }
+        }
+
+        private static IServiceProvider CreateConfiguredServiceProvider(IVsOutputWindow outputWindow)
+        {
+            var serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: true);
+            serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
+            return serviceProvider;
+        }
+
+        private static ISonarLintSettings CreateSonarLintSettings(DaemonLogLevel logLevel)
+        {
+            var sonarLintSettings = new Mock<ISonarLintSettings>();
+            sonarLintSettings.Setup(x => x.DaemonLogLevel).Returns(logLevel);
+            return sonarLintSettings.Object;
+        }
+
+        private static SonarLintOutputLogger CreateTestSubject(IServiceProvider serviceProvider,
+            ISonarLintSettings sonarLintSettings = null)
+        {
+            sonarLintSettings ??= Mock.Of<ISonarLintSettings>();
+            return new SonarLintOutputLogger(serviceProvider, sonarLintSettings);
         }
     }
 }
