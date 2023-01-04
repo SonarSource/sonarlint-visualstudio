@@ -566,6 +566,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
+        [TestMethod]
+        public void ActiveSolutionChanged_GitEventsMonitorRefreshInvoked()
+        {
+            var gitEventsMonitor = new Mock<IBoundSolutionGitMonitor>();
+
+            // Arrange
+            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, loggerMock.Object, gitEventsMonitor.Object))
+            {
+                var eventCounter = new EventCounter(testSubject);
+
+                // Act
+                ConfigureService(true);
+                ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://foo"), "projectKey", "projectName"));
+                this.activeSolutionTracker.SimulateActiveSolutionChanged(true);
+
+                // Assert
+                gitEventsMonitor.Verify(x => x.Refresh(), Times.Once);
+            }
+        }
+
         private static ActiveSolutionBoundTracker CreateTestSubject(IHost host, IActiveSolutionTracker solutionTracker, ILogger logger = null, IBoundSolutionGitMonitor gitEvents = null)
         {
             logger ??= new TestLogger(logToConsole: true);
