@@ -42,9 +42,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         {
             // Arrange
             var windowMock = new ConfigurableVsOutputWindow();
+            var sonarLintSettings = CreateSonarLintSettings(DaemonLogLevel.Info);
             var serviceProviderMock = CreateConfiguredServiceProvider(windowMock);
 
-            var testSubject = CreateTestSubject(serviceProviderMock);
+            var testSubject = CreateTestSubject(serviceProviderMock, sonarLintSettings);
 
             // Act
             testSubject.WriteLine("123");
@@ -81,7 +82,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 
             if (shouldLogMessage)
             {
-                outputPane.AssertOutputStrings("[DEBUG] 123 param 1 2", "[DEBUG] 1 param 2 abc");
+                var currentThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+
+                outputPane.AssertOutputStrings(
+                    $"[ThreadId {currentThreadId}] [DEBUG] 123 param 1 2",
+                    $"[ThreadId {currentThreadId}] [DEBUG] 1 param 2 abc");
                 outputPane.AssertOutputStrings(2);
             }
             else
@@ -94,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [DataRow(DaemonLogLevel.Info)]
         [DataRow(DaemonLogLevel.Minimal)]
         [DataRow(DaemonLogLevel.Verbose)]
-        public void LogVerbose_PrefixIsAddedIfLogLevelIsVerbose(DaemonLogLevel logLevel)
+        public void LogVerbose_PrefixIsAddedToAllMessagesIfLogLevelIsVerbose(DaemonLogLevel logLevel)
         {
             // Arrange
             var windowMock = new ConfigurableVsOutputWindow();
