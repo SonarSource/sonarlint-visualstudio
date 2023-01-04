@@ -23,6 +23,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
@@ -35,7 +36,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         {
             MefTestHelpers.CheckTypeCanBeImported<StatefulServerBranchProvider, IStatefulServerBranchProvider>(
                 MefTestHelpers.CreateExport<IServerBranchProvider>(),
-                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>());
+                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]
@@ -72,7 +74,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         [TestMethod]
         public async Task GetServerBranchNameAsync_PreSolutionBindingUpdated_CacheIsCleared()
         {
-            await TestEffectOfRaisingEventOnCache(asbt => asbt.PreSolutionBindingChanged += null,
+            await TestEffectOfRaisingEventOnCache(asbt => asbt.PreSolutionBindingUpdated += null,
                 shouldClearCache: true);
         }
 
@@ -86,7 +88,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         [TestMethod]
         public async Task GetServerBranchNameAsync_SolutionBindingUpdated_CacheIsNotCleared()
         {
-            await TestEffectOfRaisingEventOnCache(asbt => asbt.SolutionBindingChanged += null,
+            await TestEffectOfRaisingEventOnCache(asbt => asbt.SolutionBindingUpdated += null,
                 shouldClearCache: false);
         }
 
@@ -153,7 +155,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
         private static StatefulServerBranchProvider CreateTestSubject(IServerBranchProvider provider, IActiveSolutionBoundTracker tracker)
         {
-            return new StatefulServerBranchProvider(provider, tracker);
+            return new StatefulServerBranchProvider(provider, tracker, new TestLogger(logToConsole: true));
         }
     }
 

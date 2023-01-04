@@ -24,6 +24,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode
 {
@@ -32,14 +33,16 @@ namespace SonarLint.VisualStudio.ConnectedMode
     {
         private readonly IServerBranchProvider serverBranchProvider;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private readonly ILogger logger;
         private bool disposedValue;
         private string selectedBranch;
 
         [ImportingConstructor]
-        public StatefulServerBranchProvider(IServerBranchProvider serverBranchProvider, IActiveSolutionBoundTracker activeSolutionBoundTracker)
+        public StatefulServerBranchProvider(IServerBranchProvider serverBranchProvider, IActiveSolutionBoundTracker activeSolutionBoundTracker, ILogger logger)
         {
             this.serverBranchProvider = serverBranchProvider;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+            this.logger = logger;
 
             activeSolutionBoundTracker.PreSolutionBindingChanged += OnPreSolutionBindingChanged;
             activeSolutionBoundTracker.PreSolutionBindingUpdated += OnPreSolutionBindingUpdated;
@@ -47,11 +50,13 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
         private void OnPreSolutionBindingUpdated(object sender, EventArgs e)
         {
+            logger.LogVerbose(Resources.StatefulBranchProvider_BindingUpdated);
             selectedBranch = null;
         }
 
         private void OnPreSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
         {
+            logger.LogVerbose(Resources.StatefulBranchProvider_BindingChanged);
             selectedBranch = null;
         }
 
@@ -59,13 +64,20 @@ namespace SonarLint.VisualStudio.ConnectedMode
         {
             if (selectedBranch == null)
             {
+                logger.LogVerbose(Resources.StatefulBranchProvider_CacheMiss);
+
                 // Note: we're using null to indicate that a refresh is required.
                 // However, the serverBranchProvider will return null in some cases e.g. standalone mode, not a git repo.
                 // In these cases we expect the serverBranchProvider to return quickly so the impact of making unnecessary
                 // calls is not significant.
                 selectedBranch = await serverBranchProvider.GetServerBranchNameAsync(token);
             }
+            else
+            {
+                logger.LogVerbose(Resources.StatefulBranchProvider_CacheHit);
+            }
 
+            logger.WriteLine(Resources.StatefulBranchProvider_ReturnValue, selectedBranch ?? Resources.NullBranchName);
             return selectedBranch;
         }
 

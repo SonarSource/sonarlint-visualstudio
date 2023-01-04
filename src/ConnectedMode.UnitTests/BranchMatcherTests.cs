@@ -24,6 +24,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using LibGit2Sharp;
 using SonarLint.VisualStudio.ConnectedMode.UnitTests.LibGit2SharpWrappers;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarQube.Client;
 using SonarQube.Client.Models;
@@ -37,7 +38,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<BranchMatcher, IBranchMatcher>(
-                MefTestHelpers.CreateExport<ISonarQubeService>());
+                MefTestHelpers.CreateExport<ISonarQubeService>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [DataRow("BRANCH")]
@@ -53,7 +55,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var repo = CreateRepo(headBranch, masterBranch);
 
-            var testSubject = new BranchMatcher(service);
+            var testSubject = CreateTestSubject(service);
 
             var result = await testSubject.GetMatchingBranch("projectKey", repo, CancellationToken.None);
 
@@ -75,7 +77,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var repo = CreateRepo(headBranch, masterBranch, devBranch);
 
-            var testSubject = new BranchMatcher(service);
+            var testSubject = CreateTestSubject(service);
 
             var result = await testSubject.GetMatchingBranch("projectKey", repo, CancellationToken.None);
 
@@ -102,7 +104,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var repo = CreateRepo(localBranch, serverBranch, masterBranch);
 
-            var testSubject = new BranchMatcher(service);
+            var testSubject = CreateTestSubject(service);
 
             var result = await testSubject.GetMatchingBranch("projectKey", repo, CancellationToken.None);
 
@@ -140,7 +142,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var repo = CreateRepo(headBranch, closestBranch, masterBranch, devBranch);
 
-            var testSubject = new BranchMatcher(service);
+            var testSubject = CreateTestSubject(service);
 
             var result = await testSubject.GetMatchingBranch("projectKey", repo, CancellationToken.None);
 
@@ -202,7 +204,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var repo = CreateRepo(headBranch: branch3, masterBranch, branch1, branch2);
 
-            var testSubject = new BranchMatcher(service);
+            var testSubject = CreateTestSubject(service);
 
             var result = await testSubject.GetMatchingBranch("projectKey", repo, CancellationToken.None);
 
@@ -226,7 +228,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var repo = CreateRepo(headBranch, masterBranch, branch1, branch2);
 
-            var testSubject = new BranchMatcher(service);
+            var testSubject = CreateTestSubject(service);
 
             var result = await testSubject.GetMatchingBranch("projectKey", repo, CancellationToken.None);
 
@@ -236,7 +238,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         [TestMethod]
         public async Task GetMatchedBranch_RepoHasNoHead_ReturnsNull()
         {
-            var testSubject = new BranchMatcher(CreateSonarQubeService("any").Object);
+            var testSubject = CreateTestSubject(CreateSonarQubeService("any").Object);
 
             var result = await testSubject.GetMatchingBranch("projectKey", Mock.Of<IRepository>(), CancellationToken.None);
 
@@ -254,7 +256,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var source = new CancellationTokenSource();
 
-            var testSubject = new BranchMatcher(service.Object);
+            var testSubject = CreateTestSubject(service.Object);
 
             _ = await testSubject.GetMatchingBranch("projectKey", repo, source.Token);
 
@@ -280,10 +282,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
         //Order of the commits matter. Commits should be in descending order by time i.e. newest first. 
         private static BranchWrapper CreateBranch(string branchName, params CommitWrapper[] commits)
-            =>  new(branchName, new CommitLogWrapper(commits));
+            => new(branchName, new CommitLogWrapper(commits));
 
         private static BranchWrapper CreateBranchWithEnumerationCount(string branchName, params CommitWrapper[] commits)
-    => new(branchName, new CommitLogWrapperWithEnumerationCount(commits));
+            => new(branchName, new CommitLogWrapperWithEnumerationCount(commits));
 
         private static Mock<ISonarQubeService> CreateSonarQubeService(string mainBranch, params string[] branches)
         {
@@ -303,5 +305,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             return service;
         }
+
+        private static BranchMatcher CreateTestSubject(ISonarQubeService sonarQubeService)
+            => new BranchMatcher(sonarQubeService, new TestLogger(logToConsole: true));
     }
 }
