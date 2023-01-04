@@ -26,6 +26,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using LibGit2Sharp;
 using SonarLint.VisualStudio.Core.ETW;
+using SonarLint.VisualStudio.Integration;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode
@@ -51,64 +52,85 @@ namespace SonarLint.VisualStudio.ConnectedMode
     internal class BranchMatcher : IBranchMatcher
     {
         private readonly ISonarQubeService sonarQubeService;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
-        public BranchMatcher(ISonarQubeService sonarQubeService)
+        public BranchMatcher(ISonarQubeService sonarQubeService, ILogger logger)
         {
             this.sonarQubeService = sonarQubeService;
+            this.logger = logger;
         }
 
         public async Task<string> GetMatchingBranch(string projectKey, IRepository gitRepo, CancellationToken token)
         {
             Debug.Assert(sonarQubeService.IsConnected,
                 "Not expecting GetMatchedBranch to be called unless we are in Connected Mode");
+
+            logger.LogVerbose(Resources.BranchMapper_CalculatingServerBranch_Started);
+
+            string closestBranch;
             try
             {
                 CodeMarkers.Instance.GetMatchingBranchStart(projectKey);
-                var head = gitRepo.Head;
-
-                if (head == null)
-                {
-                    return null;
-                }
-
-                var remoteBranches = await sonarQubeService.GetProjectBranchesAsync(projectKey, token);
-
-                if (remoteBranches.Any(rb => string.Equals(rb.Name, head.FriendlyName, StringComparison.InvariantCultureIgnoreCase)))
-                {
-                    return head.FriendlyName;
-                }
-
-                string closestBranch = null;
-                int closestDistance = int.MaxValue;
-
-                Lazy<Commit[]> headCommits = new Lazy<Commit[]>(() => head.Commits.ToArray());
-
-                foreach (var remoteBranch in remoteBranches)
-                {
-                    var localBranch = gitRepo.Branches.FirstOrDefault(r => string.Equals(r.FriendlyName, remoteBranch.Name, StringComparison.InvariantCultureIgnoreCase));
-
-                    if (localBranch == null) { continue; }
-
-                    var distance = GetDistance(headCommits.Value, localBranch, closestDistance);
-
-                    if (distance < closestDistance)
-                    {
-                        closestBranch = localBranch.FriendlyName;
-                        closestDistance = distance;
-                    }
-                }
-
-                if (closestBranch == null)
-                {
-                    return remoteBranches.First(rb => rb.IsMain).Name;
-                }
-                return closestBranch;
+                closestBranch = await DoGetMatchingBranch(projectKey, gitRepo, token);
             }
             finally
             {
                 CodeMarkers.Instance.GetMatchingBranchStop();
             }
+
+            logger.LogVerbose(Resources.BranchMapper_CalculatingServerBranch_Finished, closestBranch ?? Resources.NullBranchName);
+            return closestBranch;
+        }
+
+        private async Task<string> DoGetMatchingBranch(string projectKey, IRepository gitRepo, CancellationToken token)
+        {
+            var head = gitRepo.Head;
+
+            if (head == null)
+            {
+                logger.LogVerbose(Resources.BranchMapper_NoHead);
+                return null;
+            }
+
+            var remoteBranches = await sonarQubeService.GetProjectBranchesAsync(projectKey, token);
+
+            if (remoteBranches.Any(rb => string.Equals(rb.Name, head.FriendlyName, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                logger.LogVerbose(Resources.BranchMapper_Match_SameSonarBranchName, head.FriendlyName);
+                return head.FriendlyName;
+            }
+
+            string closestBranch = null;
+            int closestDistance = int.MaxValue;
+
+            Lazy<Commit[]> headCommits = new Lazy<Commit[]>(() => head.Commits.ToArray());
+
+            logger.LogVerbose(Resources.BranchMapper_CheckingSonarBranches);
+            foreach (var remoteBranch in remoteBranches)
+            {
+
+                var localBranch = gitRepo.Branches.FirstOrDefault(r => string.Equals(r.FriendlyName, remoteBranch.Name, StringComparison.InvariantCultureIgnoreCase));
+
+                if (localBranch == null) { continue; }
+
+                var distance = GetDistance(headCommits.Value, localBranch, closestDistance);
+
+                if (distance < closestDistance)
+                {
+                    closestBranch = localBranch.FriendlyName;
+                    closestDistance = distance;
+                    logger.LogVerbose(Resources.BranchMapper_UpdatingClosestMatch, closestBranch, distance);
+                }
+            }
+
+            if (closestBranch == null)
+            {
+                logger.LogVerbose(Resources.BranchMapper_NoMatchingBranchFound);
+                closestBranch = remoteBranches.First(rb => rb.IsMain).Name;
+            }
+
+            return closestBranch;
         }
 
         //Commits are in descending order by time

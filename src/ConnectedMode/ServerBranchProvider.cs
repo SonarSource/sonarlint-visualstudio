@@ -84,7 +84,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
             branchName = await branchMatcher.GetMatchingBranch(config.Project.ProjectKey, repo, token);
 
             logger.WriteLine(Resources.BranchProvider_MatchingServerBranchName, branchName ?? Resources.NullBranchName);
-
             return branchName;
         }
 
