@@ -20,8 +20,8 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode
 {
@@ -46,20 +46,23 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
         private readonly IGitWorkspaceService gitWorkspaceService;
         private readonly GitEventFactory createLocalGitMonitor;
+        private readonly ILogger logger;
 
         private IGitEvents currentRepoEvents;
         private bool disposedValue;
 
         [ImportingConstructor]
-        public BoundSolutionGitMonitor(IGitWorkspaceService gitWorkspaceService)
-            : this(gitWorkspaceService, CreateGitEvents)
+        public BoundSolutionGitMonitor(IGitWorkspaceService gitWorkspaceService, ILogger logger)
+            : this(gitWorkspaceService, logger, CreateGitEvents)
         {
         }
 
         internal /* for testing */ BoundSolutionGitMonitor(IGitWorkspaceService gitWorkspaceService,
+            ILogger logger,
             GitEventFactory gitEventFactory)
         {
             this.gitWorkspaceService = gitWorkspaceService;
+            this.logger = logger;
             createLocalGitMonitor = gitEventFactory;
 
             Refresh();
@@ -72,11 +75,12 @@ namespace SonarLint.VisualStudio.ConnectedMode
             // Forward the notification that the local repo head has changed
             try
             {
+                logger.LogVerbose(Resources.GitMonitor_GitBranchChanged);
                 HeadChanged?.Invoke(this, e);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                Debug.WriteLine($"[ConnectedMode] Error handling repo change notification: {ex}");
+                logger.WriteLine(Resources.GitMonitor_EventError, ex);
             }
         }
 
@@ -86,8 +90,13 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
             var rootPath = gitWorkspaceService.GetRepoRoot();
 
-            if (rootPath != null)
+            if (rootPath == null)
             {
+                logger.LogVerbose(Resources.GitMonitor_NoRepo);
+            }
+            else
+            {
+                logger.LogVerbose(Resources.GitMonitor_MonitoringRepoStarted, rootPath);
                 // Avoid one potential race condition - initialize first, then set
                 // the class-level variable.
                 var local = createLocalGitMonitor(rootPath);
@@ -105,6 +114,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
             if (local != null)
             {
+                logger.LogVerbose(Resources.GitMonitor_MonitoringRepoStopped);
                 local.HeadChanged -= OnHeadChanged;
                 (local as IDisposable)?.Dispose();
             }

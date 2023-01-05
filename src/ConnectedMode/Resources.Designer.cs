@@ -151,6 +151,51 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode] Error handling repo change notification: {0}.
+        /// </summary>
+        internal static string GitMonitor_EventError {
+            get {
+                return ResourceManager.GetString("GitMonitor_EventError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode/GitMonitor] Git head branch changed.
+        /// </summary>
+        internal static string GitMonitor_GitBranchChanged {
+            get {
+                return ResourceManager.GetString("GitMonitor_GitBranchChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode/GitMonitor] Monitoring git repo. Root path: {0}.
+        /// </summary>
+        internal static string GitMonitor_MonitoringRepoStarted {
+            get {
+                return ResourceManager.GetString("GitMonitor_MonitoringRepoStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode/GitMonitor] Stopped monitoring repo.
+        /// </summary>
+        internal static string GitMonitor_MonitoringRepoStopped {
+            get {
+                return ResourceManager.GetString("GitMonitor_MonitoringRepoStopped", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode/GitMonitor] No repo detected - nothing to monitor.
+        /// </summary>
+        internal static string GitMonitor_NoRepo {
+            get {
+                return ResourceManager.GetString("GitMonitor_NoRepo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {null}.
         /// </summary>
         internal static string NullBranchName {
