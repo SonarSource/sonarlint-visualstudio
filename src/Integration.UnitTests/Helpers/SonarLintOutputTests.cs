@@ -57,10 +57,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         }
 
         [TestMethod]
-        [DataRow(DaemonLogLevel.Info, false)]
-        [DataRow(DaemonLogLevel.Minimal, false)]
-        [DataRow(DaemonLogLevel.Verbose, true)]
-        public void LogVerbose_OutputsToWindowIfLogLevelIsVerbose(DaemonLogLevel logLevel, bool shouldLogMessage)
+        [DataRow(DaemonLogLevel.Info)]
+        [DataRow(DaemonLogLevel.Minimal)]
+        [DataRow(DaemonLogLevel.Verbose)]
+        public void LogVerbose_OnlyOutputsToWindowIfLogLevelIsVerbose(DaemonLogLevel logLevel)
         {
             // Arrange
             var windowMock = new ConfigurableVsOutputWindow();
@@ -79,8 +79,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             testSubject.LogVerbose("{0} {1} abc", 1, "param 2");
 
             // Assert
-
-            if (shouldLogMessage)
+            if (logLevel == DaemonLogLevel.Verbose)
             {
                 var currentThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
 
@@ -99,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [DataRow(DaemonLogLevel.Info)]
         [DataRow(DaemonLogLevel.Minimal)]
         [DataRow(DaemonLogLevel.Verbose)]
-        public void LogVerbose_PrefixIsAddedToAllMessagesIfLogLevelIsVerbose(DaemonLogLevel logLevel)
+        public void WriteLine_ThreadIdIsAddedIfLogLevelIsVerbose(DaemonLogLevel logLevel)
         {
             // Arrange
             var windowMock = new ConfigurableVsOutputWindow();
@@ -116,26 +115,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             // Act
             testSubject.WriteLine("writeline, no params");
             testSubject.WriteLine("writeline, with params: {0}", "zzz");
-            testSubject.LogVerbose("verbose");
 
+            outputPane.AssertOutputStrings(2);
+
+            string expectedPrefix;
             if (logLevel == DaemonLogLevel.Verbose)
             {
-                outputPane.AssertOutputStrings(3);
-
                 var currentThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
-                outputPane.AssertOutputStrings(
-                    $"[ThreadId {currentThreadId}] writeline, no params",
-                    $"[ThreadId {currentThreadId}] writeline, with params: zzz",
-                    $"[ThreadId {currentThreadId}] [DEBUG] verbose");
+                expectedPrefix = $"[ThreadId {currentThreadId}] ";
             }
             else
             {
-                outputPane.AssertOutputStrings(2);
-
-                outputPane.AssertOutputStrings(
-                    $"writeline, no params",
-                    $"writeline, with params: zzz");
+                expectedPrefix = string.Empty;
             }
+
+            outputPane.AssertOutputStrings(
+                $"{expectedPrefix}writeline, no params",
+                $"{expectedPrefix}writeline, with params: zzz");
         }
 
         private static IServiceProvider CreateConfiguredServiceProvider(IVsOutputWindow outputWindow)
