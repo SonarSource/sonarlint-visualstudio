@@ -34,15 +34,21 @@ namespace SonarLint.VisualStudio.ConnectedMode
         private readonly IServerBranchProvider serverBranchProvider;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ILogger logger;
+        private readonly IThreadHandling threadHandling;
         private bool disposedValue;
         private string selectedBranch;
 
         [ImportingConstructor]
-        public StatefulServerBranchProvider(IServerBranchProvider serverBranchProvider, IActiveSolutionBoundTracker activeSolutionBoundTracker, ILogger logger)
+        public StatefulServerBranchProvider(
+            IServerBranchProvider serverBranchProvider,
+            IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            ILogger logger,
+            IThreadHandling threadHandling)
         {
             this.serverBranchProvider = serverBranchProvider;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.logger = logger;
+            this.threadHandling = threadHandling;
 
             activeSolutionBoundTracker.PreSolutionBindingChanged += OnPreSolutionBindingChanged;
             activeSolutionBoundTracker.PreSolutionBindingUpdated += OnPreSolutionBindingUpdated;
@@ -70,7 +76,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 // However, the serverBranchProvider will return null in some cases e.g. standalone mode, not a git repo.
                 // In these cases we expect the serverBranchProvider to return quickly so the impact of making unnecessary
                 // calls is not significant.
-                selectedBranch = await serverBranchProvider.GetServerBranchNameAsync(token);
+                selectedBranch = await DoGetServerBranchNameAsync(token);
             }
             else
             {
@@ -79,6 +85,14 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
             logger.WriteLine(Resources.StatefulBranchProvider_ReturnValue, selectedBranch ?? Resources.NullBranchName);
             return selectedBranch;
+        }
+
+        private Task<string> DoGetServerBranchNameAsync(CancellationToken token)
+        {
+            return threadHandling.RunOnBackgroundThread(() =>
+            {
+                return serverBranchProvider.GetServerBranchNameAsync(token);
+            });
         }
 
         #region IDisposable

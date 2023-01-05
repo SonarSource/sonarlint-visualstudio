@@ -37,7 +37,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             MefTestHelpers.CheckTypeCanBeImported<StatefulServerBranchProvider, IStatefulServerBranchProvider>(
                 MefTestHelpers.CreateExport<IServerBranchProvider>(),
                 MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
-                MefTestHelpers.CreateExport<ILogger>());
+                MefTestHelpers.CreateExport<ILogger>(),
+                MefTestHelpers.CreateExport<IThreadHandling>());
         }
 
         [TestMethod]
@@ -46,20 +47,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             var serverBranchProvider = CreateServerBranchProvider("Branch");
             var activeSolutionBoundTracker = Mock.Of<IActiveSolutionBoundTracker>();
 
-            var testSubject = CreateTestSubject(serverBranchProvider.Object, activeSolutionBoundTracker);
+            var threadHandling = new Mock<IThreadHandling>();
+            threadHandling.Setup(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<string>>>()))
+                .Returns<Func<Task<string>>>(x => x()); // passthrough - call whatever was passed
 
-            //first call: Should use IServerBranchProvider
+            var testSubject = CreateTestSubject(serverBranchProvider.Object, activeSolutionBoundTracker, threadHandling.Object);
+
+            // First call: Should use IServerBranchProvider
             var serverBranch = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
+
+            threadHandling.Verify(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<string>>>()), Times.Once);
+            threadHandling.Invocations.Should().HaveCount(1);
 
             serverBranch.Should().Be("Branch");
             serverBranchProvider.VerifyGetServerBranchNameCalled(Times.Once);
 
-
-            //second call: Should use cache
+            // Second call: Should use cache
             serverBranchProvider.SetBranchNameToReturn("branch name that should not be returned - should use cached value");
 
             serverBranch = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
 
+            // Not expecting any more threading calls since using the cache
+            threadHandling.Invocations.Should().HaveCount(1);
             serverBranch.Should().Be("Branch");
             serverBranchProvider.VerifyGetServerBranchNameCalled(Times.Once);
         }
@@ -153,9 +162,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             return serverBranchProvider;
         }
 
-        private static StatefulServerBranchProvider CreateTestSubject(IServerBranchProvider provider, IActiveSolutionBoundTracker tracker)
+        private static StatefulServerBranchProvider CreateTestSubject(
+            IServerBranchProvider provider,
+            IActiveSolutionBoundTracker tracker,
+            IThreadHandling threadHandling = null)
         {
-            return new StatefulServerBranchProvider(provider, tracker, new TestLogger(logToConsole: true));
+            threadHandling ??= new NoOpThreadHandler();
+            return new StatefulServerBranchProvider(provider, tracker, new TestLogger(logToConsole: true), threadHandling);
         }
     }
 
