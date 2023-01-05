@@ -41,12 +41,14 @@ namespace SonarLint.VisualStudio.Integration
 
         public void WriteLine(string message)
         {
-            VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, message);
+            var prefixedMessage = AddPrefixIfVerboseLogging(message);
+            VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, prefixedMessage);
         }
 
         public void WriteLine(string messageFormat, params object[] args)
         {
-            VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, messageFormat, args);
+            var prefixedMessageFormat = AddPrefixIfVerboseLogging(messageFormat);
+            VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, prefixedMessageFormat, args);
         }
 
         public void LogVerbose(string messageFormat, params object[] args)
@@ -54,8 +56,17 @@ namespace SonarLint.VisualStudio.Integration
             if (sonarLintSettings.DaemonLogLevel == DaemonLogLevel.Verbose)
             {
                 var text = args.Length == 0 ? messageFormat : string.Format(messageFormat, args);
-                WriteLine("DEBUG: " + text);
+                WriteLine("[DEBUG] " + text);
             }
+        }
+
+        private string AddPrefixIfVerboseLogging(string message)
+        {
+            if (sonarLintSettings.DaemonLogLevel == DaemonLogLevel.Verbose)
+            {
+                message = $"[ThreadId {System.Threading.Thread.CurrentThread.ManagedThreadId}] " + message;
+            }
+            return message;
         }
     }
 }
