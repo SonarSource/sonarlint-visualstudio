@@ -21,6 +21,7 @@
 using System;
 using SonarLint.VisualStudio.ConnectedMode.UnitTests.Extensions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using static SonarLint.VisualStudio.ConnectedMode.BoundSolutionGitMonitor;
 
@@ -33,7 +34,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<BoundSolutionGitMonitor, IBoundSolutionGitMonitor>(
-                MefTestHelpers.CreateExport<IGitWorkspaceService>());
+                MefTestHelpers.CreateExport<IGitWorkspaceService>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]
@@ -186,7 +188,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         }
 
         private BoundSolutionGitMonitor CreateTestSubject(IGitWorkspaceService gitWorkspaceService, GitEventFactory gitEventFactory)
-            => new BoundSolutionGitMonitor(gitWorkspaceService, gitEventFactory);
+            => new BoundSolutionGitMonitor(gitWorkspaceService, new TestLogger(logToConsole: true), gitEventFactory);
     }
 
     // Separate namespace so the extension methods don't pollute the main namespace

@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.IO;
 using System.IO.Abstractions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
