@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("SonarQube.Client.Tests")]
-[assembly: AssemblyCopyright("Copyright © SonarSource SA 2016-2022")]
+[assembly: AssemblyCopyright("Copyright © SonarSource SA 2016-2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
