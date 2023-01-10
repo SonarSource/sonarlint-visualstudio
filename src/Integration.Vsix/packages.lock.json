@@ -1507,6 +1507,9 @@
           "Microsoft.VisualStudio.Interop": "17.0.31902.203"
         }
       },
+      "education": {
+        "type": "Project"
+      },
       "SonarLint.VisualStudio.CFamily": {
         "type": "Project",
         "dependencies": {
