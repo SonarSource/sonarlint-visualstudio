@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net4.7.2</TargetFramework>
     <RootNamespace>SonarLint.VisualStudio.Education</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.Education</AssemblyName>
   </PropertyGroup>
 
 </Project>
