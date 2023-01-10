@@ -1507,9 +1507,6 @@
           "Microsoft.VisualStudio.Interop": "17.0.31902.203"
         }
       },
-      "education": {
-        "type": "Project"
-      },
       "SonarLint.VisualStudio.CFamily": {
         "type": "Project",
         "dependencies": {
@@ -1534,6 +1531,9 @@
           "SonarQube.Client": "[1.0.0, )",
           "System.IO.Abstractions": "[9.0.4, )"
         }
+      },
+      "SonarLint.VisualStudio.Education": {
+        "type": "Project"
       },
       "SonarLint.VisualStudio.Infrastructure.VS": {
         "type": "Project",
