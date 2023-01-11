@@ -1,5 +1,16 @@
 {
   "sonarlint.rules": {
+    "javascript:S100": {
+      "level": "On",
+      "parameters": {
+        "format": "^[_a-zA-Z][a-zA-Z0-9]*$"
+      },
+      "severity": "Minor"
+    },
+    "javascript:S4138": {
+      "level": "On",
+      "severity": "Minor"
+    },
     "jssecurity:S2631": {
       "level": "On",
       "severity": "Critical"
@@ -336,10 +347,6 @@
       },
       "severity": "Major"
     },
-    "javascript:S4138": {
-      "level": "On",
-      "severity": "Minor"
-    },
     "javascript:S1226": {
       "level": "On",
       "severity": "Minor"
@@ -557,13 +564,6 @@
     "javascript:S1763": {
       "level": "On",
       "severity": "Major"
-    },
-    "javascript:S100": {
-      "level": "On",
-      "parameters": {
-        "format": "^[_a-zA-Z][a-zA-Z0-9]*$"
-      },
-      "severity": "Minor"
     },
     "javascript:S888": {
       "level": "On",
