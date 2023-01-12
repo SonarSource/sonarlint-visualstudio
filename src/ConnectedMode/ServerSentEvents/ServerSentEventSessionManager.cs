@@ -31,6 +31,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
     }
 
     [Export(typeof(IServerSentEventSessionManager))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ServerSentEventSessionManager : IServerSentEventSessionManager
     {
         [ImportingConstructor]
