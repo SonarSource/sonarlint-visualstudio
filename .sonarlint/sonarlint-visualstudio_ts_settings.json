@@ -1,21 +1,5 @@
 {
   "sonarlint.rules": {
-    "typescript:S6480": {
-      "level": "On",
-      "severity": "Major"
-    },
-    "typescript:S4123": {
-      "level": "On",
-      "severity": "Critical"
-    },
-    "typescript:S3863": {
-      "level": "On",
-      "severity": "Minor"
-    },
-    "typescript:S1128": {
-      "level": "On",
-      "severity": "Minor"
-    },
     "typescript:S5732": {
       "level": "On",
       "severity": "Minor"
@@ -286,6 +270,10 @@
       "level": "On",
       "severity": "Major"
     },
+    "typescript:S6480": {
+      "level": "On",
+      "severity": "Major"
+    },
     "typescript:S6481": {
       "level": "On",
       "severity": "Major"
@@ -307,6 +295,10 @@
       "severity": "Minor"
     },
     "typescript:S5542": {
+      "level": "On",
+      "severity": "Critical"
+    },
+    "typescript:S4123": {
       "level": "On",
       "severity": "Critical"
     },
@@ -472,6 +464,10 @@
     "typescript:S6092": {
       "level": "On",
       "severity": "Major"
+    },
+    "typescript:S1128": {
+      "level": "On",
+      "severity": "Minor"
     },
     "typescript:S2598": {
       "level": "On",
@@ -1018,12 +1014,13 @@
       "level": "On",
       "severity": "Major"
     },
-    "typescript:S4156": {
+    "typescript:S3863": {
       "level": "On",
       "severity": "Minor"
     },
-    "typescript:S1440": {
-      "level": "Off"
+    "typescript:S4156": {
+      "level": "On",
+      "severity": "Minor"
     },
     "typescript:S6270": {
       "level": "On",
@@ -1198,6 +1195,9 @@
       "level": "Off"
     },
     "typescript:S3525": {
+      "level": "Off"
+    },
+    "typescript:S1440": {
       "level": "Off"
     },
     "typescript:S4157": {
