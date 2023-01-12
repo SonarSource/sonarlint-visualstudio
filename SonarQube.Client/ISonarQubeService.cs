@@ -25,6 +25,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarQube.Client.Messages;
 using SonarQube.Client.Models;
+using SonarQube.Client.Models.ServerSentEvents;
 
 namespace SonarQube.Client
 {
@@ -124,5 +125,10 @@ namespace SonarQube.Client
         /// Returns the inclusions/exclusions
         /// </summary>
         Task<ServerExclusions> GetServerExclusions(string projectKey, CancellationToken token);
+
+        /// <summary>
+        /// Creates a new <see cref="IServerSentEventsSession"/> for the given <see cref="projectKey"/>
+        /// </summary>
+        Task<IServerSentEventsSession> CreateServerSentEventsSession(string projectKey, CancellationToken token);
     }
 }
