@@ -164,6 +164,9 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
+    <ProjectReference Include="..\Education\Education.csproj">
+      <Name>Education</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Infrastructure.VS\Infrastructure.VS.csproj">
       <Project>{9CBAB074-AB53-4AC5-85E0-FD064D71B170}</Project>
       <Name>Infrastructure.VS</Name>
@@ -390,7 +393,7 @@
     -->
     <Message Importance="high" Text="Fetching the CFamily files..." />
 
-    <Exec Command="&quot;..\..\build\tools\CFamilyJarPreProcessor\bin\$(Configuration)\net472\CFamilyJarPreProcessor.exe&quot; $(PluginUrl) &quot;$(CFamilyTargetDirectory)&quot;" IgnoreExitCode="false" ContinueOnError="false" LogStandardErrorAsError ="true" />
+    <Exec Command="&quot;..\..\build\tools\CFamilyJarPreProcessor\bin\$(Configuration)\net472\CFamilyJarPreProcessor.exe&quot; $(PluginUrl) &quot;$(CFamilyTargetDirectory)&quot;" IgnoreExitCode="false" ContinueOnError="false" LogStandardErrorAsError="true" />
     
     <!-- Copy the license file to the same directory -->
     <Copy SourceFiles=".\CFamily\LICENSE.txt" DestinationFolder="$(CFamilyTargetDirectory)" SkipUnchangedFiles="true" />

@@ -191,6 +191,14 @@ Referenced assemblies:
 # Number of references: 12
 
 ---
+Assembly: 'SonarLint.VisualStudio.Education, Version=6.13.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
+Relative path: 'SonarLint.VisualStudio.Education.dll'
+
+Referenced assemblies:
+- 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+# Number of references: 1
+
+---
 Assembly: 'SonarLint.VisualStudio.Infrastructure.VS, Version=6.13.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 Relative path: 'SonarLint.VisualStudio.Infrastructure.VS.dll'
 
