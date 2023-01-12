@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.TEMP;
+using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
 namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.TaintVulnerabilities
 {

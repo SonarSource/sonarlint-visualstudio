@@ -19,7 +19,7 @@
  */
 
 using System.Threading.Tasks;
-using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.TEMP;
+using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
 namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 {
@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
     /// The publishing side for the <see cref="IServerSentEventSource{T}"/>
     /// </summary>
     /// <typeparam name="T">Server sent event type inherited from <see cref="IServerSentEvent"/></typeparam>
-    internal interface IServerSentEventSourcePublisher<T> where T : IServerSentEvent
+    internal interface IServerSentEventSourcePublisher<T> where T : IServerEvent
     {
         /// <summary>
         /// Publishes the event to the consumer channel.

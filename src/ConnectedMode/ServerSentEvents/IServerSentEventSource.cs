@@ -19,18 +19,18 @@
  */
 
 using System.Threading.Tasks;
-using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.TEMP;
+using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
 namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 {
     /// <summary>
     /// Source for the server sent events about certain server side changes to the SQ/SC project
     /// </summary>
-    /// <typeparam name="T">Server sent event type inherited from <see cref="IServerSentEvent"/></typeparam>
-    internal interface IServerSentEventSource<T> where T : IServerSentEvent
+    /// <typeparam name="T">Server sent event type inherited from <see cref="IServerEvent"/></typeparam>
+    internal interface IServerSentEventSource<T> where T : IServerEvent
     {
         /// <summary>
-        /// Method that is used to await for the next server sent event <see cref="IServerSentEvent"/>.
+        /// Method that is used to await for the next server sent event <see cref="IServerEvent"/>.
         /// Does not throw.
         /// </summary>
         /// <returns>
