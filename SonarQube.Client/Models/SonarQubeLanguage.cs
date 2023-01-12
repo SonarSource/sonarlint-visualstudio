@@ -30,6 +30,11 @@ namespace SonarQube.Client.Models
         public static readonly SonarQubeLanguage Ts = new SonarQubeLanguage("ts", "TypeScript", "typescript");
         public static readonly SonarQubeLanguage Secrets = new SonarQubeLanguage("secrets", "Secrets", "SonarSecrets");
 
+        public static readonly SonarQubeLanguage[] AllLanguages =
+        {
+            CSharp, VbNet, Cpp, C, Js, Ts
+        };
+
         public string Key { get; }
 
         public string Name { get; }
