@@ -30,6 +30,7 @@ using SonarQube.Client.Helpers;
 using SonarQube.Client.Logging;
 using SonarQube.Client.Messages;
 using SonarQube.Client.Models;
+using SonarQube.Client.Models.ServerSentEvents;
 using SonarQube.Client.Requests;
 
 namespace SonarQube.Client
@@ -414,6 +415,11 @@ namespace SonarQube.Client
                 {
                     request.ProjectKey = projectKey;
                 }, token);
+
+        public Task<IServerSentEventsSession> CreateServerSentEventsSession(string projectKey, CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
 
         #region IDisposable Support
         private bool disposedValue; // To detect redundant calls
