@@ -20,7 +20,8 @@
 
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.TEMP;
 
-namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
+namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.TaintVulnerabilities
 {
+    /// <inheritdoc cref="IServerSentEventSourcePublisher{T}"/>
     internal interface ITaintServerEventSourcePublisher : IServerSentEventSourcePublisher<ITaintServerEvent> { }
 }

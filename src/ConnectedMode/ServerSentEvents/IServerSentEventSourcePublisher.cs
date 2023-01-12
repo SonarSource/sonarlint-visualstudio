@@ -23,8 +23,18 @@ using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.TEMP;
 
 namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 {
+    /// <summary>
+    /// The publishing side for the <see cref="IServerSentEventSource{T}"/>
+    /// </summary>
+    /// <typeparam name="T">Server sent event type inherited from <see cref="IServerSentEvent"/></typeparam>
     internal interface IServerSentEventSourcePublisher<T> where T : IServerSentEvent
     {
-        Task Publish(T serverEvent);
+        /// <summary>
+        /// Publishes the event to the consumer channel.
+        /// Does not throw.
+        /// </summary>
+        /// <param name="serverEvent">Server event (<see cref="IServerSentEvent"/>) that needs to be delivered to the consumer</param>
+        /// <returns></returns>
+        Task PublishAsync(T serverEvent);
     }
 }

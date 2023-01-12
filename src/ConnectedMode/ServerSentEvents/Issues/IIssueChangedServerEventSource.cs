@@ -20,7 +20,8 @@
 
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.TEMP;
 
-namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
+namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issues
 {
-    internal interface IIssueChangedServerEventSourcePublisher : IServerSentEventSourcePublisher<IIssueChangedServerEvent>{}
+    /// <inheritdoc cref="IServerSentEventSource{IIssueChangedServerEvent}"/>
+    internal interface IIssueChangedServerEventSource : IServerSentEventSource<IIssueChangedServerEvent> { }
 }
