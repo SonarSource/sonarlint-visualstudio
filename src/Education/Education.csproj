@@ -1,0 +1,7 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\SonarLint.Product.props" />
+  <PropertyGroup>
+    <RootNamespace>SonarLint.VisualStudio.Education</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.Education</AssemblyName>
+  </PropertyGroup>
+</Project>
