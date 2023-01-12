@@ -1674,6 +1674,7 @@
           "SonarLint.VisualStudio.CFamily": "[1.0.0, )",
           "SonarLint.VisualStudio.CloudSecrets": "[1.0.0, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
+          "SonarLint.VisualStudio.Education": "[1.0.0, )",
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
           "SonarLint.VisualStudio.Integration": "[1.0.0, )",
           "SonarLint.VisualStudio.Integration.TeamExplorer": "[1.0.0, )",
@@ -1711,6 +1712,9 @@
           "SonarQube.Client": "[1.0.0, )",
           "System.IO.Abstractions": "[9.0.4, )"
         }
+      },
+      "SonarLint.VisualStudio.Education": {
+        "type": "Project"
       },
       "SonarLint.VisualStudio.Infrastructure.VS": {
         "type": "Project",

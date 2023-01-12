@@ -1532,6 +1532,9 @@
           "System.IO.Abstractions": "[9.0.4, )"
         }
       },
+      "SonarLint.VisualStudio.Education": {
+        "type": "Project"
+      },
       "SonarLint.VisualStudio.Infrastructure.VS": {
         "type": "Project",
         "dependencies": {
