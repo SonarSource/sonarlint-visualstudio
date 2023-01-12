@@ -19,29 +19,13 @@
  */
 
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using SonarQube.Client.Models.ServerSentEvents.ClientContract;
+using SonarQube.Client.Requests;
 
-namespace SonarQube.Client.Models.ServerSentEvents
+namespace SonarQube.Client.Api
 {
-    /// <summary>
-    /// Wraps the stream response from the server and reads from it
-    /// </summary>
-    public interface IServerSentEventsSession
+    internal interface IGetSonarLintEventStream : IRequest<Stream>
     {
-        Task<IServerEvent> ReadAsync();
-    }
-
-    internal class ServerSentEventsSession : IServerSentEventsSession
-    {
-        public ServerSentEventsSession(Stream stream, CancellationToken cancellationToken)
-        {
-        }
-
-        public Task<IServerEvent> ReadAsync()
-        {
-            throw new System.NotImplementedException();
-        }
+        string Languages { get; set; }
+        string ProjectKey { get; set; }
     }
 }

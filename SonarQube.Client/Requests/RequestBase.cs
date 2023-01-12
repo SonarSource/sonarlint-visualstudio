@@ -20,6 +20,7 @@
 
 using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -46,6 +47,9 @@ namespace SonarQube.Client.Requests
         /// </summary>
         [JsonIgnore]
         protected virtual HttpMethod HttpMethod => HttpMethod.Get;
+
+        [JsonIgnore]
+        protected virtual MediaTypeWithQualityHeaderValue[] AllowedMediaTypeHeaders => Array.Empty<MediaTypeWithQualityHeaderValue>();
 
         [JsonIgnore]
         public ILogger Logger { get; set; }
@@ -82,11 +86,16 @@ namespace SonarQube.Client.Requests
         {
             Logger.Debug("Sending Http request:");
 
-            string query = QueryStringSerializer.ToQueryString(this);
+            var query = QueryStringSerializer.ToQueryString(this);
 
             var pathAndQuery = string.IsNullOrEmpty(query) ? Path : $"{Path}?{query}";
 
             var httpRequest = new HttpRequestMessage(HttpMethod, new Uri(pathAndQuery, UriKind.Relative));
+
+            foreach (var header in AllowedMediaTypeHeaders)
+            {
+                httpRequest.Headers.Accept.Add(header);
+            }
 
             Logger.Debug(httpRequest.ToString());
 

@@ -22,6 +22,7 @@ using System;
 using System.Globalization;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,6 +70,9 @@ namespace SonarQube.Client.Tests
 
         protected void SetupRequest(string relativePath, string response, HttpStatusCode statusCode = HttpStatusCode.OK, string serverUrl = DefaultBasePath) =>
             MocksHelper.SetupHttpRequest(messageHandler, relativePath, response, statusCode, serverUrl);
+
+        protected void SetupRequest(string relativePath, HttpResponseMessage response, params MediaTypeHeaderValue[] expectedHeaderValues) =>
+            MocksHelper.SetupHttpRequest(messageHandler, relativePath, response, DefaultBasePath, expectedHeaderValues);
 
         protected void SetupRequestWithOperation(string relativePath, Func<Task<HttpResponseMessage>> op, string serverUrl = DefaultBasePath)
         {
