@@ -416,9 +416,16 @@ namespace SonarQube.Client
                     request.ProjectKey = projectKey;
                 }, token);
 
-        public Task<IServerSentEventsSession> CreateServerSentEventsSession(string projectKey, CancellationToken token)
+        public async Task<IServerSentEventsSession> CreateServerSentEventsSession(string projectKey, CancellationToken token)
         {
-            throw new NotImplementedException();
+            var stream = await InvokeCheckedRequestAsync<IGetSonarLintEventStream, Stream>(
+                request =>
+                {
+                    request.ProjectKey = projectKey;
+                },
+                token);
+
+            return new ServerSentEventsSession(stream, token);
         }
 
         #region IDisposable Support

@@ -19,10 +19,10 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -59,17 +59,30 @@ namespace SonarQube.Client.Tests.Infra
         public static void SetupHttpRequest(Mock<HttpMessageHandler> messageHandlerMock, string requestRelativePath, string response,
             HttpStatusCode statusCode = HttpStatusCode.OK, string basePath = ValidBaseAddress)
         {
+            var responseMessage = new HttpResponseMessage
+            {
+                StatusCode = statusCode,
+                Content = new StringContent(response)
+            };
+
+            SetupHttpRequest(messageHandlerMock, requestRelativePath, responseMessage, basePath);
+        }
+
+        public static void SetupHttpRequest(Mock<HttpMessageHandler> messageHandlerMock,
+            string requestRelativePath, 
+            HttpResponseMessage responseMessage, 
+            string basePath = ValidBaseAddress,
+            params MediaTypeHeaderValue[] headers)
+        {
             var baseUri = new Uri(basePath);
+
             messageHandlerMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync",
                     ItExpr.Is<HttpRequestMessage>(m =>
-                        m.RequestUri == new Uri(baseUri, requestRelativePath)),
+                        m.RequestUri == new Uri(baseUri, requestRelativePath) &&
+                        headers.All(header => m.Headers.Accept.Contains(header))),
                     ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = statusCode,
-                    Content = new StringContent(response)
-                }));
+                .Returns(Task.FromResult(responseMessage));
         }
 
         /// <summary>
