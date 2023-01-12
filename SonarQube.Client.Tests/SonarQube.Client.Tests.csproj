@@ -9,6 +9,8 @@
     <RootNamespace>SonarQube.Client.Tests</RootNamespace>
 
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
+
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
