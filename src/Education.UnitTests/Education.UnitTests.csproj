@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
+  <Import Project="..\SonarLint.Test.props" />
   <PropertyGroup>
-    <TargetFramework>net4.8</TargetFramework>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>

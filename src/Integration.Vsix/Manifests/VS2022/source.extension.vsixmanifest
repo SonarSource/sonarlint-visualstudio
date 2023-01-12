@@ -48,6 +48,7 @@
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="CFamily" Path="|CFamily|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="CloudSecrets" Path="|CloudSecrets|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Core" Path="|Core|" />
+        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Education" Path="|Education|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="secrets\SonarLint.Secrets.DotNet.dll" />
 
         <!-- The Roslyn.Suppressions assembly is a MEF component and an analyzer. 
