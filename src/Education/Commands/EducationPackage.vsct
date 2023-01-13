@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <Extern href="stdidcmd.h"/>
+  <Extern href="vsshlids.h"/>
+  <Extern href="KnownImageIds.vsct"/>
+
+  <Commands package="guidEducationPackage">
+    <Buttons>
+      <Button guid="guidEducationPackageCmdSet" id="RuleDescriptionWindowCommandId" priority="0x0100" type="Button">
+        <Parent guid="SonarLintCmdSet" id="SonarLintGroup"/>
+        <Strings>
+          <ButtonText>Open Rule Description</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+    
+  </Commands>
+  <Symbols>
+    <!-- This is the package guid. -->
+    <GuidSymbol name="guidEducationPackage" value="{7ef4a2de-4035-48c3-b273-4195d0f1186b}" />
+
+    <!-- This is the guid used to group the menu commands together -->
+    <GuidSymbol name="guidEducationPackageCmdSet" value="{80127033-1819-4996-8C45-E9C96F75E2A8}">
+      <IDSymbol name="RuleDescriptionWindowCommandId" value="0x0100" />
+      <IDSymbol name="SonarLintMenuGroup" value="0x1020" />
+    </GuidSymbol>
+
+    <GuidSymbol name="SonarLintCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
+      <IDSymbol name="SonarLintGroup" value="0x1022" />
+    </GuidSymbol>
+
+  </Symbols>
+</CommandTable>

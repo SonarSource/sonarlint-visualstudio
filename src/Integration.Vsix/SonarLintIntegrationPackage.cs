@@ -81,8 +81,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             await base.InitializeAsync(cancellationToken, progress);
             await JoinableTaskFactory.SwitchToMainThreadAsync();
             await InitOnUIThreadAsync();
-            
-
         }
 
         private async System.Threading.Tasks.Task InitOnUIThreadAsync()

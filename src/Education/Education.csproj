@@ -23,12 +23,18 @@
     
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Commands\**" />
-    <EmbeddedResource Remove="Commands\**" />
-    <None Remove="Commands\**" />
+    <None Remove="Commands\RuleDescriptionUserControl.xaml" />
+    <Page Include="Commands\RuleDescriptionUserControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   
   <ItemGroup>
+    <VSCTCompile Include="Commands\EducationPackage.vsct">
+      <ResourceName>Menus.ctmenu</ResourceName>
+      <SubType>Designer</SubType>
+    </VSCTCompile>
+    
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
 
