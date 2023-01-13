@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net46</TargetFrameworks>
+    <TargetFrameworks>net472</TargetFrameworks>
     <AssemblyName>SonarQube.Client</AssemblyName>
     <LangVersion>6</LangVersion>
     <RootNamespace>SonarQube.Client</RootNamespace>
