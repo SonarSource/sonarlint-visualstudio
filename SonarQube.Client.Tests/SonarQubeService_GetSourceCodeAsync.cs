@@ -41,7 +41,7 @@ b
 
 ccc";
 
-            SetupRequest("api/sources/raw?key=my_project:src%2Ffoo%2FBar.php",
+            SetupRequest("api/sources/raw?key=my_project%3Asrc%2Ffoo%2FBar.php",
                 sourceCode);
 
             var result = await service.GetSourceCodeAsync("my_project:src/foo/Bar.php", CancellationToken.None);
