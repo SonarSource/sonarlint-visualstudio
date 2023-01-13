@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio.Shell;
@@ -27,6 +28,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Education
 {
+    [ExcludeFromCodeCoverage]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid("7ef4a2de-4035-48c3-b273-4195d0f1186b")]
     [ProvideMenuResource("Menus.ctmenu", 1)]
