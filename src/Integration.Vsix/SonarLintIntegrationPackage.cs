@@ -30,6 +30,7 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
+using Microsoft.VisualStudio.Shell.Interop;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -80,6 +81,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             await base.InitializeAsync(cancellationToken, progress);
             await JoinableTaskFactory.SwitchToMainThreadAsync();
             await InitOnUIThreadAsync();
+            
+
         }
 
         private async System.Threading.Tasks.Task InitOnUIThreadAsync()
