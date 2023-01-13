@@ -26,13 +26,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
     /// <summary>
     /// Source for the server sent events about certain server side changes to the SQ/SC project
     /// </summary>
+    /// <remarks>This interface is not intended to be thread safe</remarks>
     /// <typeparam name="T">Server sent event type inherited from <see cref="IServerEvent"/></typeparam>
-    internal interface IServerSentEventSource<T> where T : IServerEvent
+    internal interface IServerSentEventSource<T> where T : class, IServerEvent
     {
         /// <summary>
         /// Method that is used to await for the next server sent event <see cref="IServerEvent"/>.
-        /// Does not throw.
         /// </summary>
+        /// <remarks>Does not throw, always returns null after it's disposed</remarks>
         /// <returns>
         /// Task which result is:
         ///     <list type="bullet">
@@ -40,7 +41,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
         ///             <description>Next server event in queue</description>
         ///         </item>
         ///         <item>
-        ///             <description>Or null, when the channel has been shut down</description>
+        ///             <description>Or null, when the channel has been Disposed</description>
         ///         </item>
         ///     </list>
         /// </returns>
