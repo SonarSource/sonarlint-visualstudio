@@ -1,15 +1,12 @@
 {
   "version": 1,
   "dependencies": {
-    ".NETFramework,Version=v4.6": {
+    ".NETFramework,Version=v4.7.2": {
       "FluentAssertions": {
         "type": "Direct",
         "requested": "[5.6.0, )",
         "resolved": "5.6.0",
-        "contentHash": "f4dbuhV21i1Icv0vRnOI62fvNVpVR4s238ezEgwajL1HyITWZUQnMMW0UgpV4P/kqL31fSrplAm8pLSxFtzhIg==",
-        "dependencies": {
-          "System.ValueTuple": "4.4.0"
-        }
+        "contentHash": "f4dbuhV21i1Icv0vRnOI62fvNVpVR4s238ezEgwajL1HyITWZUQnMMW0UgpV4P/kqL31fSrplAm8pLSxFtzhIg=="
       },
       "FluentAssertions.Analyzers": {
         "type": "Direct",
@@ -98,19 +95,14 @@
           "System.Runtime.CompilerServices.Unsafe": "4.5.0"
         }
       },
-      "System.ValueTuple": {
-        "type": "Transitive",
-        "resolved": "4.4.0",
-        "contentHash": "BahUww/+mdP4ARCAh2RQhQTg13wYLVrBb9SYVgW8ZlrwjraGCXHGjo0oIiUfZ34LUZkMMR+RAzR7dEY4S1HeQQ=="
-      },
       "sonarqube.client": {
         "type": "Project",
         "dependencies": {
-          "BouncyCastle": "1.8.9",
-          "Google.Protobuf": "3.6.1",
-          "Grpc.Tools": "1.4.1",
-          "Newtonsoft.Json": "13.0.1",
-          "System.Net.Http": "4.0.0"
+          "BouncyCastle": "[1.8.9, )",
+          "Google.Protobuf": "[3.6.1, )",
+          "Grpc.Tools": "[1.4.1, )",
+          "Newtonsoft.Json": "[13.0.1, )",
+          "System.Net.Http": "[4.0.0, )"
         }
       }
     }

@@ -1,7 +1,7 @@
 {
   "version": 1,
   "dependencies": {
-    ".NETFramework,Version=v4.6": {
+    ".NETFramework,Version=v4.7.2": {
       "BouncyCastle": {
         "type": "Direct",
         "requested": "[1.8.9, )",
