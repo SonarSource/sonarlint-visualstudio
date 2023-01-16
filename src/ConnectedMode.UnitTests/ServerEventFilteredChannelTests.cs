@@ -125,6 +125,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         }
 
         [TestMethod]
+        public void Publish_WhenEventIsNull_ThrowsArgumentNullException()
+        {
+            var testSubject = CreateTestSubject();
+
+            Assert.ThrowsException<ArgumentNullException>(() => testSubject.Publish(null));
+        }
+
+        [TestMethod]
         public void Dispose_IsIdempotent()
         {
             var testSubject = CreateTestSubject();
