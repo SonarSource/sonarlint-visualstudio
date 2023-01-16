@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Education.Commands
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
 
             this.toolWindowService = toolWindowService ?? throw new ArgumentNullException(nameof(toolWindowService));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger)); ;
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             var menuCommandID = new CommandID(commandSet, commandId);
             var menuItem = new MenuCommand(this.Execute, menuCommandID);

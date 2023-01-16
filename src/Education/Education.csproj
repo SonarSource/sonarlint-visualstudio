@@ -30,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup Label="Framework references">
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="WindowsBase" />
