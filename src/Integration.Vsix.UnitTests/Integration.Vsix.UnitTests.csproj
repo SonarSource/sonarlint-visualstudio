@@ -39,7 +39,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
   </ItemGroup>
@@ -49,14 +48,6 @@
   <ItemGroup Label="Embedded SonarLint analyzers">
     <!-- Reference the packages we want to import, but we don't want to include them as analyzers for project -->
     <PackageReference Include="SonarAnalyzer.CSharp" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" />
-  </ItemGroup>
-
-  <ItemGroup Label="Test framework">
-    <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
-    <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
-
-    <PackageReference Include="Moq" Version="4.18.2" /> <!-- Needs to use the same version as the MS.VS.SDK.TestFramework -->
-    <PackageReference Include="FluentAssertions" Version="5.9.0" />
   </ItemGroup>
 
   <ItemGroup Label="VSSDK Test framework">

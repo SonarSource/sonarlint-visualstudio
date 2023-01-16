@@ -8,13 +8,6 @@
     <AssemblyName>SonarLint.VisualStudio.Progress.TestFramework</AssemblyName>
   </PropertyGroup>
   
-  <ItemGroup Label="Test framework">
-    <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
-
-    <PackageReference Include="Moq" Version="4.18.2" />
-    <PackageReference Include="FluentAssertions" Version="5.9.0" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\ProgressVS\ProgressVS.csproj" />
     <ProjectReference Include="..\Progress\Progress.csproj" />
