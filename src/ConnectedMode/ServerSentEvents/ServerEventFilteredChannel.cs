@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
     /// This means that calling <see cref="GetNextEventOrNullAsync"/> and <see cref="Publish"/>/<see cref="Dispose"/> at the same time is allowed, while calling <see cref="GetNextEventOrNullAsync"/> and <see cref="GetNextEventOrNullAsync"/>, <see cref="Publish"/> and <see cref="Dispose"/>, etc. is not.
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    internal abstract class ServerEventFilteredChannel<T> : IServerSentEventSource<T>, IServerSentEventSourcePublisher<T> where T : class, IServerEvent
+    internal class ServerEventFilteredChannel<T> : IServerSentEventSource<T>, IServerSentEventSourcePublisher<T> where T : class, IServerEvent
     {
         private bool disposed;
         /// <summary>
@@ -47,6 +47,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
         /// So in short, the reason for this assumption was to simplify our channel wrapper code. 
         /// </remarks>
         private readonly Channel<T> channel = Channel.CreateUnbounded<T>(new UnboundedChannelOptions{SingleReader = true, SingleWriter = true});
+
+        protected ServerEventFilteredChannel(){}
 
         public async Task<T> GetNextEventOrNullAsync()
         {
