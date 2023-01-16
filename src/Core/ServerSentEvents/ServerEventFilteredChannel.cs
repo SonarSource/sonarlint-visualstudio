@@ -23,17 +23,17 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
-namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
+namespace SonarLint.VisualStudio.Core.ServerSentEvents
 {
     /// <summary>
     /// Base class for channels of server events divided by topics
     /// </summary>
     /// <remarks>
-    /// Even though <see cref="IServerSentEventSource{T}"/> and <see cref="IServerSentEventSourcePublisher{T}"/> do not allow their own methods to be called concurrently, this class was designed to allow the calls to two different interfaces' methods to be made concurrent.
-    /// This means that calling <see cref="GetNextEventOrNullAsync"/> and <see cref="Publish"/>/<see cref="Dispose"/> at the same time is allowed, while calling <see cref="GetNextEventOrNullAsync"/> and <see cref="GetNextEventOrNullAsync"/>, <see cref="Publish"/> and <see cref="Dispose"/>, etc. is not.
+    /// Even though <see cref="IServerSentEventSource{T}"/> and <see cref="IServerSentEventSourcePublisher{T}"/> do not allow their own methods to be called from different threads, this class was designed to allow the calls to two different interfaces' methods to be made from different threads at the same time.
+    /// This means that calling from one thread <see cref="GetNextEventOrNullAsync"/> and calling <see cref="Publish"/> or <see cref="Dispose"/> from a different thread at the same time is allowed, while calling methods of the same interface from different threads is not.
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    internal class ServerEventFilteredChannel<T> : IServerSentEventSource<T>, IServerSentEventSourcePublisher<T> where T : class, IServerEvent
+    public class ServerEventFilteredChannel<T> : IServerSentEventSource<T>, IServerSentEventSourcePublisher<T> where T : class, IServerEvent
     {
         private bool disposed;
         /// <summary>
@@ -42,13 +42,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
         /// <remarks>
         /// The behaviour for TryWrite depends, in some aspects, on the type of the channel we use. In particular, what we are interested in is what it returns before and after marking the channel as complete.
         /// Because we specifically create an unbound channel with the SingleReader = true, SingleWriter = true settings, we actually get a SingleConsumerUnboundedChannel instance that has the following behaviour: TryWrite always returns true before the channel is marked as complete, and always returns false afterwards.
-        /// This behaviour allows us to be sure that the only way we can interpret the false result is that the channel was closed. \
+        /// This behaviour allows us to be sure that the only way we can interpret the false result is that the channel was closed.
         /// This is valuable for us because the only other way of knowing that would be calling WriteAsync and catching the exception, as the ChannelReader.Completed task is only resolved when there's no more items in the channel, and that may not happen at the same time as we called ChannelWriter.Complete.
         /// So in short, the reason for this assumption was to simplify our channel wrapper code. 
         /// </remarks>
         private readonly Channel<T> channel = Channel.CreateUnbounded<T>(new UnboundedChannelOptions{SingleReader = true, SingleWriter = true});
-
-        protected ServerEventFilteredChannel(){}
 
         public async Task<T> GetNextEventOrNullAsync()
         {

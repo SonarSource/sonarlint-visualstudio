@@ -11,15 +11,6 @@
           "LibGit2Sharp.NativeBinaries": "[2.0.306]"
         }
       },
-      "System.Threading.Channels": {
-        "type": "Direct",
-        "requested": "[7.0.0, )",
-        "resolved": "7.0.0",
-        "contentHash": "qmeeYNROMsONF6ndEZcIQ+VxR4Q/TX/7uIVLJqtwIWL7dDWeh0l1UIqgo4wYyjG//5lUNhwkLDSFl+pAWO6oiA==",
-        "dependencies": {
-          "System.Threading.Tasks.Extensions": "4.5.4"
-        }
-      },
       "BouncyCastle": {
         "type": "Transitive",
         "resolved": "1.8.9",
@@ -60,6 +51,14 @@
         "resolved": "4.5.3",
         "contentHash": "3TIsJhD1EiiT0w2CcDMN/iSSwnNnsrnbzeVHSKkaEgV85txMprmuO+Yq2AdSbeVGcg28pdNDTPK87tJhX7VFHw=="
       },
+      "System.Threading.Channels": {
+        "type": "Transitive",
+        "resolved": "7.0.0",
+        "contentHash": "qmeeYNROMsONF6ndEZcIQ+VxR4Q/TX/7uIVLJqtwIWL7dDWeh0l1UIqgo4wYyjG//5lUNhwkLDSFl+pAWO6oiA==",
+        "dependencies": {
+          "System.Threading.Tasks.Extensions": "4.5.4"
+        }
+      },
       "System.Threading.Tasks.Extensions": {
         "type": "Transitive",
         "resolved": "4.5.4",
@@ -73,7 +72,8 @@
         "dependencies": {
           "Newtonsoft.Json": "[13.0.1, )",
           "SonarQube.Client": "[1.0.0, )",
-          "System.IO.Abstractions": "[9.0.4, )"
+          "System.IO.Abstractions": "[9.0.4, )",
+          "System.Threading.Channels": "[7.0.0, )"
         }
       },
       "sonarqube.client": {

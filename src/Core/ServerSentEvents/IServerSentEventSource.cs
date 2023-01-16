@@ -21,14 +21,14 @@
 using System.Threading.Tasks;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
-namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
+namespace SonarLint.VisualStudio.Core.ServerSentEvents
 {
     /// <summary>
     /// Source for the server sent events about certain server side changes to the SQ/SC project
     /// </summary>
     /// <remarks>This interface is not intended to be thread safe</remarks>
     /// <typeparam name="T">Server sent event type inherited from <see cref="IServerEvent"/></typeparam>
-    internal interface IServerSentEventSource<T> where T : class, IServerEvent
+    public interface IServerSentEventSource<T> where T : class, IServerEvent
     {
         /// <summary>
         /// Method that is used to await for the next server sent event <see cref="IServerEvent"/>.

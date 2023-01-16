@@ -18,18 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
+using System;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
-namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issues
+namespace SonarLint.VisualStudio.Core.ServerSentEvents
 {
     /// <summary>
-    /// A concrete mef-exportable implementation of <see cref="ServerEventFilteredChannel{T}"/> for <see cref="IIssueChangedServerEvent"/>
+    /// The publishing side for the <see cref="IServerSentEventSource{T}"/>
     /// </summary>
-    [Export(typeof(IIssueChangedServerEventSource))]
-    [Export(typeof(IIssueChangedServerEventSourcePublisher))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class IssueChangedServerEventChannel : ServerEventFilteredChannel<IIssueChangedServerEvent>, IIssueChangedServerEventSource, IIssueChangedServerEventSourcePublisher
+    /// <remarks>This interface is not intended to be thread safe</remarks>
+    /// <typeparam name="T">Server sent event type inherited from <see cref="IServerEvent"/></typeparam>
+    public interface IServerSentEventSourcePublisher<T> : IDisposable where T : class, IServerEvent
     {
+        /// <summary>
+        /// Publishes the event to the consumer channel.
+        /// <exception cref="ObjectDisposedException">After the instance has been disposed</exception>.
+        /// </summary>
+        /// <param name="serverEvent">Server event (<see cref="IServerEvent"/>) that needs to be delivered to the consumer</param>
+        /// <returns></returns>
+        void Publish(T serverEvent);
     }
 }

@@ -20,8 +20,8 @@
 
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
-namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issues
+namespace SonarLint.VisualStudio.Core.ServerSentEvents.TaintVulnerabilities
 {
-    /// <inheritdoc cref="IServerSentEventSource{IIssueChangedServerEvent}"/>
-    internal interface IIssueChangedServerEventSource : IServerSentEventSource<IIssueChangedServerEvent> { }
+    /// <inheritdoc cref="IServerSentEventSource{ITaintServerEvent}"/>
+    public interface ITaintServerEventSource : IServerSentEventSource<ITaintServerEvent> { }
 }

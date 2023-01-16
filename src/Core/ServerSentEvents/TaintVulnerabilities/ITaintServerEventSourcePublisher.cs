@@ -18,24 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
-namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
+namespace SonarLint.VisualStudio.Core.ServerSentEvents.TaintVulnerabilities
 {
-    /// <summary>
-    /// The publishing side for the <see cref="IServerSentEventSource{T}"/>
-    /// </summary>
-    /// <remarks>This interface is not intended to be thread safe</remarks>
-    /// <typeparam name="T">Server sent event type inherited from <see cref="IServerEvent"/></typeparam>
-    internal interface IServerSentEventSourcePublisher<T> : IDisposable where T : class, IServerEvent
-    {
-        /// <summary>
-        /// Publishes the event to the consumer channel.
-        /// <exception cref="ObjectDisposedException">After the instance has been disposed</exception>.
-        /// </summary>
-        /// <param name="serverEvent">Server event (<see cref="IServerEvent"/>) that needs to be delivered to the consumer</param>
-        /// <returns></returns>
-        void Publish(T serverEvent);
-    }
+    /// <inheritdoc cref="IServerSentEventSourcePublisher{T}"/>
+    public interface ITaintServerEventSourcePublisher : IServerSentEventSourcePublisher<ITaintServerEvent> { }
 }

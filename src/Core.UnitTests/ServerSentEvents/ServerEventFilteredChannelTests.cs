@@ -22,31 +22,22 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issues;
-using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.TaintVulnerabilities; 
-using SonarLint.VisualStudio.Integration.UnitTests;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Core.ServerSentEvents;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
+namespace SonarLint.VisualStudio.Core.UnitTests.ServerSentEvents
 {
-    // since TaintServerEventChannel and IssueChangedServerEventChannel only differ in the value of the type parameter and in mef export contract, the tests results are the same for both
     [TestClass]
     public class ServerEventFilteredChannelTests
     {
         [TestMethod]
-        public void TaintAndIssuesMefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<TaintServerEventChannel, ITaintServerEventSource>();
-            MefTestHelpers.CheckTypeCanBeImported<TaintServerEventChannel, ITaintServerEventSourcePublisher>();
-            MefTestHelpers.CheckTypeCanBeImported<IssueChangedServerEventChannel, IIssueChangedServerEventSource>();
-            MefTestHelpers.CheckTypeCanBeImported<IssueChangedServerEventChannel, IIssueChangedServerEventSourcePublisher>();
-        }
-
-        [TestMethod]
         public async Task Get_AfterPublish_ReturnsCorrectValue()
         {
             var testSubject = CreateTestSubject();
-            var serverEvent = Mock.Of<ITaintServerEvent>();
+            var serverEvent = Mock.Of<IServerEvent>();
 
             testSubject.Publish(serverEvent);
             var receivedEvent = await testSubject.GetNextEventOrNullAsync();
@@ -58,7 +49,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         public async Task Get_AwaitsForPublishBeforeReturning()
         {
             var testSubject = CreateTestSubject();
-            var serverEvent = Mock.Of<ITaintServerEvent>();
+            var serverEvent = Mock.Of<IServerEvent>();
 
             var getTask =  testSubject.GetNextEventOrNullAsync();
             testSubject.Publish(serverEvent);
@@ -71,8 +62,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         public async Task Get_ReturnsMultiplePublishedItemsInCorrectOrder()
         {
             var testSubject = CreateTestSubject();
-            var serverEvents = Enumerable.Range(0, 5).Select(_ => Mock.Of<ITaintServerEvent>()).ToList();
-            var receivedEvents = new List<ITaintServerEvent>();
+            var serverEvents = Enumerable.Range(0, 5).Select(_ => Mock.Of<IServerEvent>()).ToList();
+            var receivedEvents = new List<IServerEvent>();
 
             foreach (var serverEvent in serverEvents)
             {
@@ -87,18 +78,34 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         }
 
         [TestMethod]
-        public async Task Get_AlreadyDisposedAndNoMoreItems_ReturnsNull()
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task Get_AlreadyDisposedAndNoMoreItems_ReturnsNull(bool isEmptyChannel)
         {
             var testSubject = CreateTestSubject();
-            var serverEvent = Mock.Of<ITaintServerEvent>();
+            var serverEvent = Mock.Of<IServerEvent>();
 
-            testSubject.Publish(serverEvent);
+            if (!isEmptyChannel)
+            {
+                testSubject.Publish(serverEvent);
+            }
             testSubject.Dispose();
             var receivedEvent = await testSubject.GetNextEventOrNullAsync();
             var receivedEvent2 = await testSubject.GetNextEventOrNullAsync();
 
-            receivedEvent.Should().BeSameAs(serverEvent);
+            receivedEvent.Should().BeSameAs(isEmptyChannel ? null : serverEvent);
             receivedEvent2.Should().BeNull();
+        }
+
+        [TestMethod]
+        public async Task Get_AfterDispose_ReturnsNull()
+        {
+            var testSubject = CreateTestSubject();
+
+            testSubject.Dispose();
+            var receivedEvent = await testSubject.GetNextEventOrNullAsync();
+
+            receivedEvent.Should().BeNull();
         }
 
         [TestMethod]
@@ -117,7 +124,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         public void Publish_AlreadyDisposed_ThrowsObjectDisposedException()
         {
             var testSubject = CreateTestSubject();
-            var serverEvent = Mock.Of<ITaintServerEvent>();
+            var serverEvent = Mock.Of<IServerEvent>();
 
             testSubject.Publish(serverEvent);
             testSubject.Dispose();
@@ -136,7 +143,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         public void Dispose_IsIdempotent()
         {
             var testSubject = CreateTestSubject();
-            var serverEvent = Mock.Of<ITaintServerEvent>();
+            var serverEvent = Mock.Of<IServerEvent>();
 
             testSubject.Dispose();
             testSubject.Dispose();
@@ -144,9 +151,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             Assert.ThrowsException<ObjectDisposedException>(() => testSubject.Publish(serverEvent));
         }
 
-        private TaintServerEventChannel CreateTestSubject()
+        private ServerEventFilteredChannel<IServerEvent> CreateTestSubject()
         {
-            return new TaintServerEventChannel();
+            return new ServerEventFilteredChannel<IServerEvent>();
         }
     }
 }
