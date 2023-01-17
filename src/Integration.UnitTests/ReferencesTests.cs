@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
             else
             {
-                Assert.Fail("Test setup error: Expecting the path to the test dll to contain one of 'VS2015', 'VS2017', 'VS2019' or 'VS2022'.");
+                Assert.Fail("Test setup error: Expecting the path to the test dll to contain one of 'VS2015', 'VS2017', 'VS2019' or 'VS2022'. Actual path: " + executingAssemblyLocation);
             }
         }
     }
