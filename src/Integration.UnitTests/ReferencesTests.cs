@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Linq;
 using System.Reflection;
 using FluentAssertions;
@@ -43,7 +44,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             executingAssemblyLocation.Should()
                 .NotBeNull()
                 .And.EndWith("Integration.UnitTests.dll");
-            
+
+            Console.WriteLine("Test assembly location: " + executingAssemblyLocation);
+
             if (executingAssemblyLocation.Contains("\\VS2019\\"))
             {
                 dllMajorVersion.Should().Be(16);
