@@ -17,35 +17,84 @@
   <PropertyGroup>
     <JarDownloadDir>$(SONARLINT_INTERNAL_PLUGIN_CACHE_DIR)</JarDownloadDir>
     <JarDownloadDir Condition="$(JarDownloadDir) == ''">$(LOCALAPPDATA)\SLVS_Build_DownloadedJars</JarDownloadDir>
+
+    <Education_Temp_WorkingDir>$(JarDownloadDir)\WorkingFolder\</Education_Temp_WorkingDir>
+
+    <RuleExtractorJar>$(MSBuildThisFileDirectory)..\..\build\tools\binaries\sonarlint-rule-extractor-cli-8.13.0.60036-jar-with-dependencies.jar</RuleExtractorJar>
   </PropertyGroup>
 
-  <ItemGroup Label="JarsToDownload">    
-    <JarsToDownload Include="https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar">
-    </JarsToDownload>
+  <ItemGroup Label="Plugin Jars to download">
+    <PluginJars Include="CPP">
+      <JarName>sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar</JarName>
+      <URL>https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/%(JarName)</URL>
+      <Language>cpp</Language>
+    </PluginJars>
 
-    <JarsToDownload Include="https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar">
-    </JarsToDownload>
+    <PluginJars Include="C">
+      <JarName>sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar</JarName>
+      <URL>https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/%(JarName)</URL>
+      <Language>c</Language>
+    </PluginJars>
 
-    <JarsToDownload Include="https://binaries.sonarsource.com/Distribution/sonar-csharp-plugin/sonar-csharp-plugin-$(EmbeddedSonarAnalyzerVersion).jar">
-    </JarsToDownload>
+    <PluginJars Include="JavaScript">
+      <JarName>sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</JarName>
+      <URL>https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/%(JarName)</URL>
+      <Language>TypeScript</Language>
+    </PluginJars>
 
-    <JarsToDownload Include="https://binaries.sonarsource.com/Distribution/sonar-vbnet-plugin/sonar-vbnet-plugin-$(EmbeddedSonarAnalyzerVersion).jar">
-    </JarsToDownload>
+    <PluginJars Include="TypeScript">
+      <JarName>sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</JarName>
+      <URL>https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/%(JarName)</URL>
+      <Language>JavaScript</Language>
+    </PluginJars>
+
+    <PluginJars Include="C#">
+      <JarName>sonar-csharp-plugin-$(EmbeddedSonarAnalyzerVersion).jar</JarName>
+      <URL>https://binaries.sonarsource.com/Distribution/sonar-csharp-plugin/%(JarName)</URL>
+      <Language>C#</Language>
+    </PluginJars>
+
+    <!-- TODO: the Java extractor does not yet support VB.NET -->
+    <!--<PluginJars Include="VB.NET">
+      <JarName>sonar-vbnet-plugin-$(EmbeddedSonarAnalyzerVersion).jar</JarName>
+      <URL>https://binaries.sonarsource.com/Distribution/sonar-vbnet-plugin/%(JarName)</URL>
+      <Language>vbnet</Language>
+    </PluginJars>-->
+
   </ItemGroup>
 
   <!-- TODO: Set Inputs and Outputs so the target only runs if the embedded jars have changed -->
-  <Target Name="DownloadJars" BeforeTargets="Build" DependsOnTargets="Education_PrepDownload;Education_DownloadIndividualJars" />
+  <Target Name="DownloadJars"
+          BeforeTargets="Build">
+    <CallTarget Targets="Education_PrepDirectories"/>
+    <CallTarget Targets="Education_DownloadIndividualJars"/>
+    <CallTarget Targets="Education_ExtractJson"/>
+  </Target>
 
-  <Target Name="Education_PrepDownload">
+  <Target Name="Education_PrepDirectories">
     <Message Importance="high" Text="[Education] Ensuring download directory exists ..." />
     <MakeDir Directories="$(JarDownloadDir)" />
     <Message Importance="high" Text="[Education] Download directory: $(JarDownloadDir)" />
+
+    <!--<Message Importance="high" Text="[Education] Clearing temporary working directory ..." />
+    <RemoveDir Directories="$(Education_Temp_WorkingDir)" />-->
+    <Message Importance="high" Text="[Education] Ensuring temporary working directory exists ..." />
+    <MakeDir Directories="$(Education_Temp_WorkingDir)" />
+    <Message Importance="high" Text="[Education] Temporary working directory : $(Education_Temp_WorkingDir)" />
   </Target>
 
   <Target Name="Education_DownloadIndividualJars">
-    <DownloadFile SourceUrl="%(JarsToDownload.Identity)"
+    <Message Importance="high" Text="[Education] Downloading jar ..." />
+    <DownloadFile SourceUrl="%(PluginJars.URL)"
                   DestinationFolder="$(JarDownloadDir)"
-                  SkipUnchangedFiles="true" Retries="3" />
+                  SkipUnchangedFiles="true" Retries="3">
+      <Output TaskParameter="DownloadedFile" ItemName="DownloadedJars" />
+    </DownloadFile>
+  </Target>
+
+  <Target Name="Education_ExtractJson">
+    <Message Importance="high" Text="[Education] Extracting json files to $(Education_Temp_WorkingDir) ..." />
+    <Exec Command="java -jar $(RuleExtractorJar) --plugins $(JarDownloadDir)\%(PluginJars.JarName) --languages=%(PluginJars.Language) --output=$(Education_Temp_WorkingDir)\%(PluginJars.Language)-rules.json" />
   </Target>
   
 </Project>
