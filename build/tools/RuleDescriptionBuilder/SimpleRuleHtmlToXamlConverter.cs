@@ -27,8 +27,19 @@ namespace RuleDescriptionBuilder
     {
         public static string Convert(Rule rule)
         {
-            // Extract the HTML description for each rule
-            return "TODO";
+            // TODO: extract the HTML description for each rule
+
+            var placeholder = @$"
+<FlowDocument xml:space=""preserve"" xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
+    <Paragraph>Rule: {rule.Key}</Paragraph>
+    <Paragraph>TODO: rule description</Paragraph>
+    <Paragraph FontSize=""20pt"">Noncompliant Code Example</Paragraph>
+    <Paragraph FontSize=""8pt"" TextAlignment=""Left"" FontFamily=""Courier New"">non-compliant code</Paragraph>
+    <Paragraph FontSize=""20pt"">Compliant Solution</Paragraph>
+    <Paragraph FontSize=""8pt"" TextAlignment=""Left"" FontFamily=""Courier New"">compliant code</Paragraph>
+</FlowDocument>";
+
+            return placeholder;
         }
     }
 }
