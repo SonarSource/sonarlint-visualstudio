@@ -1,0 +1,51 @@
+﻿<Project>
+
+  <!-- Downloads the plugin jars.
+       
+       The default download directory can be overridden by specifying the %SONARLINT_INTERNAL_PLUGIN_CACHE_DIR% environment property.
+  -->
+  
+  
+  <!-- We need to download the jars for all supported languages so we can extract the rule help information from them.
+       The EmbeddedSonarAnalyzer.props file tells us which version to download.
+  -->
+  <Import Project="..\EmbeddedSonarAnalyzer.props" />
+  <ItemGroup>
+    <InputSourceFile Include="..\EmbeddedSonarAnalyzer.props" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <JarDownloadDir>$(SONARLINT_INTERNAL_PLUGIN_CACHE_DIR)</JarDownloadDir>
+    <JarDownloadDir Condition="$(JarDownloadDir) == ''">$(LOCALAPPDATA)\SLVS_Build_DownloadedJars</JarDownloadDir>
+  </PropertyGroup>
+
+  <ItemGroup Label="JarsToDownload">    
+    <JarsToDownload Include="https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar">
+    </JarsToDownload>
+
+    <JarsToDownload Include="https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar">
+    </JarsToDownload>
+
+    <JarsToDownload Include="https://binaries.sonarsource.com/Distribution/sonar-csharp-plugin/sonar-csharp-plugin-$(EmbeddedSonarAnalyzerVersion).jar">
+    </JarsToDownload>
+
+    <JarsToDownload Include="https://binaries.sonarsource.com/Distribution/sonar-vbnet-plugin/sonar-vbnet-plugin-$(EmbeddedSonarAnalyzerVersion).jar">
+    </JarsToDownload>
+  </ItemGroup>
+
+  <!-- TODO: Set Inputs and Outputs so the target only runs if the embedded jars have changed -->
+  <Target Name="DownloadJars" BeforeTargets="Build" DependsOnTargets="Education_PrepDownload;Education_DownloadIndividualJars" />
+
+  <Target Name="Education_PrepDownload">
+    <Message Importance="high" Text="[Education] Ensuring download directory exists ..." />
+    <MakeDir Directories="$(JarDownloadDir)" />
+    <Message Importance="high" Text="[Education] Download directory: $(JarDownloadDir)" />
+  </Target>
+
+  <Target Name="Education_DownloadIndividualJars">
+    <DownloadFile SourceUrl="%(JarsToDownload.Identity)"
+                  DestinationFolder="$(JarDownloadDir)"
+                  SkipUnchangedFiles="true" Retries="3" />
+  </Target>
+  
+</Project>
