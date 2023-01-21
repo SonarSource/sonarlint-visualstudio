@@ -167,3 +167,5 @@ $RECYCLE.BIN/
 /build/DownloadCFamilyPlugin/ManualTestOutput
 /src/EmbeddedVsix/ts
 /build/DownloadSonarPlugin/ManualTestOutput
+/src/Integration.Vsix/Properties/launchSettings.json
+/build/tools/RuleDescriptionBuilder/Properties/launchSettings.json
