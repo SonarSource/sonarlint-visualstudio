@@ -127,34 +127,6 @@ namespace DownloadCFamilyPlugin
             LogElapsedTime("Unzipped jar file", timer, logger);
         }
 
-        public static void UncompressAndUnzipTgx(string tarFilePath, string destinationFolder, TaskLoggingHelper logger)
-        {
-            // The txz file is compressed using XZ compression and zipped using the tar format.
-            // There is no built-in framework support for these format so we are using two
-            // open source libraries, both licensed under the MIT license.
-            Common.EnsureWorkingDirectoryExist(destinationFolder, logger);
-
-            var uncompresssedFile = Common.DecompressXZFile(tarFilePath, destinationFolder, logger);
-            Common.ExtractTarToDirectory(uncompresssedFile, destinationFolder, logger);
-        }
-
-        public static string DecompressXZFile(string sourceFilePath, string destinationDirectory, TaskLoggingHelper logger)
-        {
-            var destFile = Path.Combine(destinationDirectory, Path.GetFileName(sourceFilePath)) + ".uncompressed";
-            if (File.Exists(destFile))
-            {
-                LogMessage($"Uncompressed tar file already exists: {destFile}", logger);
-                return destFile;
-            }
-
-            using (Stream xz = new XZStream(File.OpenRead(sourceFilePath)))
-            using (Stream outputStream = new FileStream(destFile, FileMode.CreateNew))
-            {
-                xz.CopyTo(outputStream);
-            }
-            return destFile;
-        }
-
         public static void UncompressAndUnzipTgz(string tarFilePath, string destinationFolder, TaskLoggingHelper logger)
         {
             // The txz file is compressed using XZ compression and zipped using the tar format.
@@ -199,27 +171,6 @@ namespace DownloadCFamilyPlugin
             foreach (var file in patterns)
             {
                 files.Add(FindSingleFile(searchRoot, file, logger));
-            }
-
-            return files;
-        }
-
-        public static List<string> FindMultipleFiles(string searchRoot, IEnumerable<string> patterns, TaskLoggingHelper logger)
-        {
-            var files = new List<string>();
-
-            foreach (var pattern in patterns)
-            {
-                var matches = Directory.GetFiles(searchRoot, pattern, SearchOption.AllDirectories);
-                if (matches.Any())
-                {
-                    LogMessage($"Found {matches.Count()} files matching for '{pattern}'", logger);
-                    files.AddRange(matches);
-                }
-                else
-                {
-                    throw new InvalidOperationException($"Failed to find any files matching the pattern '{pattern}'");
-                }
             }
 
             return files;
