@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Education.Commands
 
         public RuleDescriptionToolWindow()
         {
-            Caption = "Rule Description";
+            Caption = Resources.RuleDescriptionToolWindowCaption;
             Content = new RuleDescriptionUserControl();
         }
     }

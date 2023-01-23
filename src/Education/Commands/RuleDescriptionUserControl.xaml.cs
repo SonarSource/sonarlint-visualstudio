@@ -27,7 +27,6 @@ namespace SonarLint.VisualStudio.Education.Commands
         internal RuleDescriptionUserControl()
         {
             InitializeComponent();
-            this.DataContext = this;
         }
     }
 }

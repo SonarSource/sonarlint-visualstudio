@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Education.Commands
             }
             catch (Exception ex) when (!Core.ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(ex.ToString());
+                logger.WriteLine(string.Format(Resources.ERR_RuleDescriptionToolWindow_Exception, ex));
             }
         }
     }
