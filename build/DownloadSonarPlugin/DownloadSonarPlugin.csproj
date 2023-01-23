@@ -22,28 +22,6 @@
        We then need to execute the CopyEmbeddedFiles task to execute the task and copy the files. -->
 
   <!-- ******************************************** -->
-  <!-- CFamily jar handling -->
-  <!-- ******************************************** -->
-  <UsingTask TaskName="DownloadAndExtractCFamily" AssemblyFile="$(OutputPath)DownloadSonarPlugin.dll" />  
-
-  <Target Name="EmbedCFamilyFiles" DependsOnTargets="ValidateInputs" >
-    <Message Importance="high" Text="Fetching CFamily files..." />
-
-    <DownloadAndExtractCFamily DownloadUrl="$(PluginUrl)">
-      <Output TaskParameter="FilesToEmbed" ItemName="FilesToEmbed" />
-    </DownloadAndExtractCFamily>
-
-    <Message Importance="high" Text="List of CFamily files to be embedded in the VSIX:" />
-    <Message Importance="high" Text="  %(FilesToEmbed.Identity)" />
-
-    <Message Importance="high" Text="Copying files to $(TargetDirectory)..." />
-    <MakeDir Directories="$(TargetDirectory)" />
-    <Copy DestinationFolder="$(TargetDirectory)" SkipUnchangedFiles="true" SourceFiles="@(FilesToEmbed)" />
-    
-  </Target>
-
-
-  <!-- ******************************************** -->
   <!-- TypeScript jar handling -->
   <!-- ******************************************** -->
   <UsingTask TaskName="DownloadAndExtractSonarJS" AssemblyFile="$(OutputPath)DownloadSonarPlugin.dll" />
