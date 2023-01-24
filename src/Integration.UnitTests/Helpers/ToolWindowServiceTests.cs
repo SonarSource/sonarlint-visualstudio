@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Runtime.InteropServices;
 using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
@@ -126,6 +127,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 
             // Should never attempt to show the frame
             frameMock.Invocations.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void GetToolWindow_ReturnsCorrectType()
+        {
+            var serviceProviderMock = new Mock<IServiceProvider>();
+            var uiShellMock = new Mock<IVsUIShell>();
+
+            object obj = new MyDummyToolWindow();
+            var frameMock = new Mock<IVsWindowFrame>();
+            frameMock.Setup(x => x.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out obj));
+
+            SetupFindToolWindow(serviceProviderMock, uiShellMock, VSConstants.S_OK, new Guid(MyDummyToolWindow.GuidAsString), frameMock.Object);
+
+            var testSubject = new ToolWindowService(serviceProviderMock.Object);
+            var result = testSubject.GetToolWindow<MyDummyToolWindow>();
+
+            result.Should().BeSameAs(obj);
+        }
+
+        [Guid(GuidAsString)]
+        private class MyDummyToolWindow
+        {
+            public const string GuidAsString = "45C7FC01-5569-4FE1-AB13-99F32B840D76";
         }
 
         private void SetupFindToolWindow(Mock<IServiceProvider> serviceProvider, Mock<IVsUIShell> uiShell, int hrResult, Guid toolWindowId, IVsWindowFrame toolWindowObject)
