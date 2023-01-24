@@ -87,24 +87,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         }
 
         [TestMethod]
-        public void GetToolWindow_ReturnsCorrectType()
+        public void Show_FindWindowSucceededAndNonNullToolWindow_ToolWindowShown()
         {
             var serviceProviderMock = new Mock<IServiceProvider>();
             var uiShellMock = new Mock<IVsUIShell>();
-
-            var windowPane = Mock.Of<ToolWindowPane>();
-
-            var obj = (object)windowPane;
             var frameMock = new Mock<IVsWindowFrame>();
-            frameMock.Setup(x => x.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out obj));
 
-            SetupFindToolWindow(serviceProviderMock, uiShellMock, VSConstants.S_OK, typeof(ToolWindowPane).GUID, frameMock.Object);
+            SetupFindToolWindow(serviceProviderMock, uiShellMock, VSConstants.S_OK, ValidToolWindowId, frameMock.Object);
 
             var testSubject = new ToolWindowService(serviceProviderMock.Object);
 
-            var result = testSubject.GetToolWindow<ToolWindowPane>();
+            // Act
+            testSubject.Show(ValidToolWindowId);
 
-            result.GetType().Should().Be(windowPane.GetType());
+            frameMock.Verify(x => x.Show(), Times.Once);
         }
 
         [TestMethod]
@@ -134,26 +130,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         }
 
         [TestMethod]
-        public void EnsureToolWindowExists_VsServiceCalled()
+        public void GetToolWindow_ReturnsCorrectType()
         {
             var serviceProviderMock = new Mock<IServiceProvider>();
             var uiShellMock = new Mock<IVsUIShell>();
-            var frameMock = new Mock<IVsWindowFrame>();
 
-            SetupFindToolWindow(serviceProviderMock, uiShellMock, VSConstants.S_OK, ValidToolWindowId, frameMock.Object);
+            var windowPane = Mock.Of<ToolWindowPane>();
+
+            var obj = (object)windowPane;
+            var frameMock = new Mock<IVsWindowFrame>();
+            frameMock.Setup(x => x.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out obj));
+
+            SetupFindToolWindow(serviceProviderMock, uiShellMock, VSConstants.S_OK, typeof(ToolWindowPane).GUID, frameMock.Object);
 
             var testSubject = new ToolWindowService(serviceProviderMock.Object);
 
-            // Act
-            using (new AssertIgnoreScope())
-            {
-                testSubject.EnsureToolWindowExists(ValidToolWindowId);
-            }
+            var result = testSubject.GetToolWindow<ToolWindowPane>();
 
-            uiShellMock.VerifyAll();
-
-            // Should never attempt to show the frame
-            frameMock.Invocations.Should().BeEmpty();
+            result.GetType().Should().Be(windowPane.GetType());
         }
 
         private void SetupFindToolWindow(Mock<IServiceProvider> serviceProvider, Mock<IVsUIShell> uiShell, int hrResult, Guid toolWindowId, IVsWindowFrame toolWindowObject)
