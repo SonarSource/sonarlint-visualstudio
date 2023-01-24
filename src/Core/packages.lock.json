@@ -37,11 +37,11 @@
       "sonarqube.client": {
         "type": "Project",
         "dependencies": {
-          "BouncyCastle": "[1.8.9, )",
-          "Google.Protobuf": "[3.6.1, )",
-          "Grpc.Tools": "[1.4.1, )",
-          "Newtonsoft.Json": "[13.0.1, )",
-          "System.Net.Http": "[4.0.0, )"
+          "BouncyCastle": "1.8.9",
+          "Google.Protobuf": "3.6.1",
+          "Grpc.Tools": "1.4.1",
+          "Newtonsoft.Json": "13.0.1",
+          "System.Net.Http": "4.0.0"
         }
       }
     }
