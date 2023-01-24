@@ -44,6 +44,10 @@ namespace SonarLint.VisualStudio.Core
         /// </remarks>
         void EnsureToolWindowExists(Guid toolWindowId);
 
+        /// <summary>
+        /// Returns a tool window of the specified type, or null if one could not be found.
+        /// </summary>
+        /// <typeparam name="T">The type of tool window. Should be a subclass of <see cref="Microsoft.VisualStudio.Shell.ToolWindowPane"/></typeparam>
         T GetToolWindow<T>() where T : class;
     }
 }
