@@ -1,0 +1,58 @@
+﻿<Project >
+
+  <!-- ************************************************************** -->
+  <!-- Entry point - the Build target -->
+  <!-- ************************************************************** -->
+  
+  <!-- Set Inputs and Outputs so the target only runs if the reference jars have changed -->
+  <ItemGroup>
+    <InputFile Include="..\..\src\EmbeddedSonarAnalyzer.props" Visible="false" />
+    <OutputFile Include="$(_WorkingDirectory)\lastrun.txt" Visible="false" />
+  </ItemGroup>
+
+  <Target Name="Build" Inputs="@(InputFile)" Outputs="@(OutputFile)">
+    <Message Importance="high" Text="Processing analyzer jar files..." />
+    <CallTarget Targets="PrepareDownloadDirectory" />
+    <CallTarget Targets="DownloadIndividualJars" />
+    <CallTarget Targets="WriteOutputFile" />
+  </Target>
+
+  <!-- ************************************************************** -->
+  <!-- Jar processing targets -->
+  <!-- ************************************************************** -->
+  <Target Name="PrepareDownloadDirectory">
+    <Message Importance="high" Text="[DownloadJarFiles] Ensuring download directory exists ..." />
+    <MakeDir Directories="$(JarDownloadDir)" />
+    <Message Importance="high" Text="[DownloadJarFiles] Download directory: $(JarDownloadDir)" />
+  </Target>
+
+  <Target Name="DownloadIndividualJars">
+    <DownloadFile SourceUrl="%(JarsToDownload.Identity)" DestinationFolder="$(JarDownloadDir)" SkipUnchangedFiles="true" Retries="3" />
+  </Target>
+ 
+ <Target Name="WriteOutputFile">
+    <!-- The timestamp on the output file is used by MSBuild to decide whether to build this project or not.
+         If the timestamp on the EmbeddedSonarAnalyzer.props file is later than that of the output file then
+         MSBuild will rebuild the project. 
+         
+         We use a copy of the EmbeddedSonarAnalyzer.props file as the output file so we easily see which
+         plugins were processed last.
+         -->
+    <Message Importance="high" Text="Completed successfully. Writing timestamp file: @(OutputFile)" />
+    <Copy SourceFiles="@(InputFile)" DestinationFiles="@(OutputFile)" />
+  </Target>
+  
+ 
+  <!-- ************************************************************** -->
+  <!-- Common MSBuild targets -->
+  <!-- ************************************************************** -->
+  <!-- We aren't importing any of the common MS targets, so we need to define these targets
+       so we can clean and rebuild from the command line as normal. -->
+  <Target Name="Clean">
+    <ItemGroup>
+      <TempFilesToClean Include="$(_WorkingDirectory)\**\*.*" />
+    </ItemGroup>
+    <Delete Files="@(TempFilesToClean)" />
+  </Target>
+  <Target Name="Rebuild" DependsOnTargets="Clean;Build" />
+</Project>
