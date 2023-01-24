@@ -43,5 +43,7 @@ namespace SonarLint.VisualStudio.Core
         /// </para>
         /// </remarks>
         void EnsureToolWindowExists(Guid toolWindowId);
+
+        T GetToolWindow<T>() where T : class;
     }
 }
