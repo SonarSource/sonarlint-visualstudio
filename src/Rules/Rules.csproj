@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- NOTE: this assembly should NOT have any dependencies on Visual Studio assemblies -->
+
+  <Import Project="..\SonarLint.Product.props" />
+
+  <PropertyGroup>
+    <RootNamespace>SonarLint.VisualStudio.Rules</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.Rules</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup Label="Framework references">
+    <Reference Include="System.ComponentModel.Composition" />
+  </ItemGroup>
+
+
+</Project>
