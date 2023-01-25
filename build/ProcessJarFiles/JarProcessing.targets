@@ -24,22 +24,38 @@
   
   <Target Name="Build" Inputs="@(InputFile)" Outputs="@(OutputFile)">
     <Message Importance="high" Text="Processing analyzer jar files..." />
-    <CallTarget Targets="PrepareDownloadDirectory" />
+    <CallTarget Targets="PrepareDirectories" />
     <CallTarget Targets="DownloadIndividualJars" />
+    <CallTarget Targets="ExtractJsonFromJars" />
     <CallTarget Targets="WriteOutputFile" />
   </Target>
 
   <!-- ************************************************************** -->
   <!-- Jar processing targets -->
   <!-- ************************************************************** -->
-  <Target Name="PrepareDownloadDirectory">
-    <Message Importance="high" Text="[DownloadJarFiles] Ensuring download directory exists ..." />
+  <Target Name="PrepareDirectories">
+    <Message Importance="high" Text="[ProcessJarFiles] Ensuring download directory exists ..." />
     <MakeDir Directories="$(JarDownloadDir)" />
-    <Message Importance="high" Text="[DownloadJarFiles] Download directory: $(JarDownloadDir)" />
+    <Message Importance="high" Text="[ProcessJarFiles] Download directory: $(JarDownloadDir)" />
+
+    <Message Importance="high" Text="[ProcessJarFiles] Ensuring tmp directory exists ..." />
+    <MakeDir Directories="$(_WorkingDirectory)" />
+    <Message Importance="high" Text="[ProcessJarFiles] Temporary directory: $(_WorkingDirectory)" />
   </Target>
 
   <Target Name="DownloadIndividualJars">
-    <DownloadFile SourceUrl="%(JarsToDownload.Identity)" DestinationFolder="$(JarDownloadDir)" SkipUnchangedFiles="true" Retries="3" />
+    <DownloadFile SourceUrl="%(PluginJars.URL)" DestinationFolder="$(JarDownloadDir)" SkipUnchangedFiles="true" Retries="3" />
+  </Target>
+
+  <Target Name="ExtractJsonFromJars">
+    <Message Importance="high" Text="[ProcessJarFiles] Removing existing json files ..." />
+    <ItemGroup>
+      <TempJsonFilesToClean Include="$(_WorkingDirectory)\*.json" />
+    </ItemGroup>
+    <Delete Files="@(TempJsonFilesToClean)" />
+
+    <Message Importance="high" Text="[ProcessJarFiles] Extracting json files to $(_WorkingDirectory) ..." />
+    <Exec Command="java -jar $(RuleExtractorJar) --plugins $(JarDownloadDir)\%(PluginJars.JarName) --languages=%(PluginJars.LanguageKey) --output=$(_WorkingDirectory)\%(PluginJars.LanguageKey)-rules.json" />
   </Target>
 
   <Target Name="WriteOutputFile">
@@ -50,7 +66,7 @@
          We use a copy of the EmbeddedSonarAnalyzer.props file as the output file so we easily see which
          plugins were processed last.
          -->
-    <Message Importance="high" Text="Completed successfully. Writing timestamp file: @(OutputFile)" />
+    <Message Importance="high" Text="[ProcessJarFiles] Completed successfully. Writing timestamp file: @(OutputFile)" />
     <Copy SourceFiles="@(InputFile)" DestinationFiles="@(OutputFile)" />
   </Target>
 
