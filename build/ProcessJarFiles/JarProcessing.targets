@@ -72,4 +72,6 @@
   <Target Name="BuiltProjectOutputGroup" />
   <Target Name="BuiltProjectOutputGroupDependencies" />
   <Target Name="GetCopyToOutputDirectoryItems" />
+  <Target Name="SatelliteDllsProjectOutputGroup" />
+  <Target Name="DebugSymbolsProjectOutputGroup" />
 </Project>
