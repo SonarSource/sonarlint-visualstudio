@@ -167,3 +167,4 @@ $RECYCLE.BIN/
 /build/DownloadCFamilyPlugin/ManualTestOutput
 /src/EmbeddedVsix/ts
 /build/DownloadSonarPlugin/ManualTestOutput
+/build/ProcessJarFiles/tmp
