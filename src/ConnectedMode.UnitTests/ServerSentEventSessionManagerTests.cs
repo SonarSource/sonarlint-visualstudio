@@ -19,10 +19,10 @@
  */
 
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
-using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issues;
-using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.TaintVulnerabilities;
+using SonarLint.VisualStudio.Core.ServerSentEvents.Issues;
+using SonarLint.VisualStudio.Core.ServerSentEvents.TaintVulnerabilities;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests

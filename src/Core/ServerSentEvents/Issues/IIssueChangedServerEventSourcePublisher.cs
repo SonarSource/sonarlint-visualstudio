@@ -20,8 +20,8 @@
 
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
-namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issues
+namespace SonarLint.VisualStudio.Core.ServerSentEvents.Issues
 {
     /// <inheritdoc cref="IServerSentEventSourcePublisher{IIssueChangedServerEvent}"/>
-    internal interface IIssueChangedServerEventSourcePublisher : IServerSentEventSourcePublisher<IIssueChangedServerEvent> { }
+    public interface IIssueChangedServerEventSourcePublisher : IServerSentEventSourcePublisher<IIssueChangedServerEvent> { }
 }
