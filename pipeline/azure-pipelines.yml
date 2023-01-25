@@ -109,6 +109,14 @@ jobs:
       secureFile: SonarSource-2021-2023.pfx
       retryCount: 5
 
+  # Specify the version of Java to use.
+  # See https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/java-tool-installer-v0?view=azure-pipelines
+  - task: JavaToolInstaller@0
+    inputs:
+      versionSpec: '11'
+      jdkArchitectureOption: 'x64'
+      jdkSourceOption: 'PreInstalled'
+
   - task: SonarCloudPrepare@1
     displayName: Prepare analysis on SonarCloud (VS2022 only)
     condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
