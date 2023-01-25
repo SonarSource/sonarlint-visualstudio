@@ -17,5 +17,9 @@
     <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
 
+  <ItemGroup Label="Help files">
+    <None Remove="Help\**\*.*"/>
+    <EmbeddedResource Include="Help\**\*.*"/>
+  </ItemGroup>
 
 </Project>
