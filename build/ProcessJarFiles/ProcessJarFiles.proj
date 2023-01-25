@@ -6,6 +6,7 @@
   <PropertyGroup>
     <ProjectGuid>{3ECCAF9D-3B23-4980-83E2-8ACEE0FC6BEB}</ProjectGuid>
   </PropertyGroup>
+  <Import Project="$(MSBuildThisFileDirectory)CommonMSBuild.targets" />
   <Import Project="$(MSBuildThisFileDirectory)CommonProperties.props" />
   <Import Project="$(MSBuildThisFileDirectory)JarProcessing.targets" />
   <ItemGroup>

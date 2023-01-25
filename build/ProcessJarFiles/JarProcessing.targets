@@ -21,7 +21,7 @@
     <InputFile Include="..\..\src\EmbeddedSonarAnalyzer.props" Visible="false" />
     <OutputFile Include="$(_WorkingDirectory)\lastrun.txt" Visible="false" />
   </ItemGroup>
-
+  
   <Target Name="Build" Inputs="@(InputFile)" Outputs="@(OutputFile)">
     <Message Importance="high" Text="Processing analyzer jar files..." />
     <CallTarget Targets="PrepareDownloadDirectory" />
@@ -41,8 +41,8 @@
   <Target Name="DownloadIndividualJars">
     <DownloadFile SourceUrl="%(JarsToDownload.Identity)" DestinationFolder="$(JarDownloadDir)" SkipUnchangedFiles="true" Retries="3" />
   </Target>
- 
- <Target Name="WriteOutputFile">
+
+  <Target Name="WriteOutputFile">
     <!-- The timestamp on the output file is used by MSBuild to decide whether to build this project or not.
          If the timestamp on the EmbeddedSonarAnalyzer.props file is later than that of the output file then
          MSBuild will rebuild the project. 
@@ -53,25 +53,5 @@
     <Message Importance="high" Text="Completed successfully. Writing timestamp file: @(OutputFile)" />
     <Copy SourceFiles="@(InputFile)" DestinationFiles="@(OutputFile)" />
   </Target>
-  
- 
-  <!-- ************************************************************** -->
-  <!-- Common MSBuild targets -->
-  <!-- ************************************************************** -->
-  <!-- We aren't importing any of the common MS targets, so we need to define these targets
-       so we can clean and rebuild from the command line as normal. -->
-  <Target Name="Clean">
-    <ItemGroup>
-      <TempFilesToClean Include="$(_WorkingDirectory)\**\*.*" />
-    </ItemGroup>
-    <Delete Files="@(TempFilesToClean)" />
-  </Target>
-  <Target Name="Rebuild" DependsOnTargets="Clean;Build" />
 
-    <!-- No-op. Called by MSBuild when building other projects that reference this one.-->
-  <Target Name="BuiltProjectOutputGroup" />
-  <Target Name="BuiltProjectOutputGroupDependencies" />
-  <Target Name="GetCopyToOutputDirectoryItems" />
-  <Target Name="SatelliteDllsProjectOutputGroup" />
-  <Target Name="DebugSymbolsProjectOutputGroup" />
 </Project>
