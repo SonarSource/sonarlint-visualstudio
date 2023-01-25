@@ -28,12 +28,12 @@ namespace SonarLint.VisualStudio.Education
 {
     internal interface IRuleHelpXamlBuilder
     {
-        FlowDocument CreateFromHTML(IRuleHelp ruleHelp);
+        FlowDocument Create(IRuleHelp ruleHelp);
     }
 
     internal class RuleHelpXamlBuilder : IRuleHelpXamlBuilder
     {
-        public FlowDocument CreateFromHTML(IRuleHelp ruleHelp)
+        public FlowDocument Create(IRuleHelp ruleHelp)
         {
             // TODO: Convert HTML to FlowChart
 
