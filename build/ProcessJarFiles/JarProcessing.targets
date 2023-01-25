@@ -71,4 +71,5 @@
     <!-- No-op. Called by MSBuild when building other projects that reference this one.-->
   <Target Name="BuiltProjectOutputGroup" />
   <Target Name="BuiltProjectOutputGroupDependencies" />
+  <Target Name="GetCopyToOutputDirectoryItems" />
 </Project>
