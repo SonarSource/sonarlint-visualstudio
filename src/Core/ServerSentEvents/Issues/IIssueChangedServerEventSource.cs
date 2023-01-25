@@ -18,23 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
-namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
+namespace SonarLint.VisualStudio.Core.ServerSentEvents.Issues
 {
-    /// <summary>
-    /// The publishing side for the <see cref="IServerSentEventSource{T}"/>
-    /// </summary>
-    /// <typeparam name="T">Server sent event type inherited from <see cref="IServerSentEvent"/></typeparam>
-    internal interface IServerSentEventSourcePublisher<T> where T : IServerEvent
-    {
-        /// <summary>
-        /// Publishes the event to the consumer channel.
-        /// Does not throw.
-        /// </summary>
-        /// <param name="serverEvent">Server event (<see cref="IServerSentEvent"/>) that needs to be delivered to the consumer</param>
-        /// <returns></returns>
-        Task PublishAsync(T serverEvent);
-    }
+    /// <inheritdoc cref="IServerSentEventSource{IIssueChangedServerEvent}"/>
+    public interface IIssueChangedServerEventSource : IServerSentEventSource<IIssueChangedServerEvent> { }
 }
