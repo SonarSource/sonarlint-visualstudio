@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Education
             var placeholder = $@"
                 <FlowDocument xml:space=""preserve"" xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
                     <Paragraph>Rule: {ruleHelp.RuleKey}</Paragraph>
-                    <Paragraph>Language: {ruleHelp.Language}</Paragraph>
+                    <Paragraph>Language: {ruleHelp.Language.Name}</Paragraph>
                     <Paragraph>TODO: rule description</Paragraph>
                     <Paragraph FontSize=""20pt"">Noncompliant Code Example</Paragraph>
                     <Paragraph FontSize=""8pt"" TextAlignment=""Left"" FontFamily=""Courier New"">non-compliant code</Paragraph>
@@ -48,11 +48,12 @@ namespace SonarLint.VisualStudio.Education
                     <Paragraph FontSize=""8pt"" TextAlignment=""Left"" FontFamily=""Courier New"">compliant code</Paragraph>
                 </FlowDocument>";
 
-            var stringReader = new StringReader(placeholder);
-            var xamlReader = XmlReader.Create(stringReader);
-            var flowDocument = (FlowDocument)XamlReader.Load(xamlReader);
-
-            return flowDocument;
+            using (var stringReader = new StringReader(placeholder))
+            {
+                var xamlReader = XmlReader.Create(stringReader);
+                var flowDocument = (FlowDocument)XamlReader.Load(xamlReader);
+                return flowDocument;
+            }
         }
     }
 }
