@@ -58,7 +58,7 @@
     <Delete Files="@(TempJsonFilesToClean)" />
 
     <Message Importance="high" Text="[ProcessJarFiles] Extracting json files to $(_WorkingDirectory) ..." />
-    <Exec Command="java -jar $(RuleExtractorJar) --plugins $(JarDownloadDir)\%(PluginJars.JarName) --languages=%(PluginJars.LanguageKey) --output=$(_WorkingDirectory)\%(PluginJars.LanguageKey)-rules.json" />
+    <Exec Command="java -jar $(RuleJsonExtractorJar) --plugins $(JarDownloadDir)\%(PluginJars.JarName) --languages=%(PluginJars.LanguageKey) --output=$(_WorkingDirectory)\%(PluginJars.LanguageKey)-rules.json" />
   </Target>
 
 
@@ -67,7 +67,10 @@
     <Error Condition="!Exists($(RuleDescExtractorExe))" Text="Rule description extractor exe does not exist: $(RuleDescExtractorExe)" />
     <Message Importance="high" Text="[ProcessJarFiles]    ... exe exists." />
 
-    <!-- TODO - call exe -->
+    <!-- Parameters: [full path to rule json] [full path to destination directory] -->
+    <Exec Command="$(RuleDescExtractorExe) $(_WorkingDirectory)\%(PluginJars.LanguageKey)-rules.json $(BaseRuleDescFileTargetDirectory)%(PluginJars.LanguageKey)" />
+
+    <Exec Command="dir $(BaseRuleDescFileTargetDirectory)%(PluginJars.LanguageKey)" />
   </Target>
   
   
