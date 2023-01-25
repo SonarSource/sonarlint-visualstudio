@@ -67,7 +67,8 @@
     <Delete Files="@(TempFilesToClean)" />
   </Target>
   <Target Name="Rebuild" DependsOnTargets="Clean;Build" />
-  <Target Name="BuiltProjectOutputGroupDependencies">
+
     <!-- No-op. Called by MSBuild when building other projects that reference this one.-->
-  </Target>
+  <Target Name="BuiltProjectOutputGroup" />
+  <Target Name="BuiltProjectOutputGroupDependencies" />
 </Project>
