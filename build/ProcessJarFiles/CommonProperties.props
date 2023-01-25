@@ -17,9 +17,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <!-- Jar used to extract rule metadata from a plugin file, created for us by the SL Java folk. -->
+    <!-- Jar used to extract rule metadata from a plugin file, created for us by the SL Java folk.
+         For simplicity, the file is checked in under build\tools\binaries. -->
     <!-- Obtained from https://repox.jfrog.io/ui/native/sonarsource/org/sonarsource/sonarlint/core/sonarlint-rule-extractor-cli/8.13.0.60370/ -->
-    <RuleExtractorJar>$(MSBuildThisFileDirectory)..\..\build\tools\binaries\sonarlint-rule-extractor-cli-8.13.0.60370-jar-with-dependencies.jar</RuleExtractorJar>
+    <RuleExtractorJar>$(MSBuildThisFileDirectory)..\tools\binaries\sonarlint-rule-extractor-cli-8.13.0.60370-jar-with-dependencies.jar</RuleExtractorJar>
   </PropertyGroup>
   
 
