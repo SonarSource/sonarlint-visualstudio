@@ -21,9 +21,14 @@
          For simplicity, the file is checked in under build\tools\binaries. -->
     <!-- Obtained from https://repox.jfrog.io/ui/native/sonarsource/org/sonarsource/sonarlint/core/sonarlint-rule-extractor-cli/8.13.0.60370/ -->
     <RuleExtractorJar>$(MSBuildThisFileDirectory)..\tools\binaries\sonarlint-rule-extractor-cli-8.13.0.60370-jar-with-dependencies.jar</RuleExtractorJar>
+
+    <!-- .net6 exe used to extract rule descriptions from the json file.
+          The exe is not checked in; it is built from source.
+    -->
+    <Configuration Condition="$(Configuration) == '' ">Debug</Configuration>
+    <RuleDescExtractorExe>$(MSBuildThisFileDirectory)..\tools\ExtractRuleDescFromJson\bin\$(Configuration)\net6.0\ExtractRuleHtmlFromJson.exe</RuleDescExtractorExe>
   </PropertyGroup>
   
-
 
   <!-- ************************************************************** -->
   <!-- Information about the individual language plugins we need to download -->
