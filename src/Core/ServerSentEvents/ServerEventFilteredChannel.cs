@@ -59,6 +59,11 @@ namespace SonarLint.VisualStudio.Core.ServerSentEvents
 
         public void Publish(T serverEvent)
         {
+            // The behaviour for TryWrite depends, in some aspects, on the type of the channel we use.In particular, what we are interested in is what it returns before and after marking the channel as complete.
+            // Because we specifically create an unbound channel with the SingleReader = true, SingleWriter = true settings, we actually get a SingleConsumerUnboundedChannel instance that has the following behaviour: TryWrite always returns true before the channel is marked as complete, and always returns false afterwards.
+            // This behaviour allows us to be sure that the only way we can interpret the false result is that the channel was closed.
+            // This is valuable for us because the only other way of knowing that would be calling WriteAsync and catching the exception, as the ChannelReader.Completed task is only resolved when there's no more items in the channel, and that may not happen at the same time as we called ChannelWriter.Complete.
+            // So in short, the reason for this assumption was to simplify our channel wrapper code.
             if (!channel.Writer.TryWrite(serverEvent ?? throw new ArgumentNullException(nameof(serverEvent))))
             {
                 throw new ObjectDisposedException(nameof(ServerEventFilteredChannel<T>));
