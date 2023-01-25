@@ -1265,25 +1265,6 @@
           "System.IO.Abstractions.TestingHelpers": "[9.0.4, )"
         }
       },
-      "SonarLint.VisualStudio.Integration.UnitTests": {
-        "type": "Project",
-        "dependencies": {
-          "FluentAssertions": "[5.9.0, )",
-          "MSTest.TestAdapter": "[1.4.0, )",
-          "MSTest.TestFramework": "[1.4.0, )",
-          "Microsoft.Alm.Authentication": "[4.0.0.1, )",
-          "Microsoft.NET.Test.Sdk": "[16.5.0, )",
-          "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
-          "Moq": "[4.18.2, )",
-          "Newtonsoft.Json": "[13.0.1, )",
-          "NuGet.Core": "[2.12.0, )",
-          "NuGet.VisualStudio": "[3.3.0, )",
-          "SonarLint.VisualStudio.Integration": "[1.0.0, )",
-          "SonarLint.VisualStudio.Integration.TestInfrastructure": "[1.0.0, )",
-          "StrongNamer": "[0.0.8, )",
-          "System.IO.Abstractions": "[9.0.4, )"
-        }
-      },
       "SonarLint.VisualStudio.Progress": {
         "type": "Project"
       },
