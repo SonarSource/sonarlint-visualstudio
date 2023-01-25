@@ -24,7 +24,7 @@
   
   <Target Name="Build" Inputs="@(InputFile)" Outputs="@(OutputFile)">
     <Message Importance="high" Text="Processing analyzer jar files..." />
-    <CallTarget Targets="PrepareDownloadDirectory" />
+    <CallTarget Targets="PrepareDirectories" />
     <CallTarget Targets="DownloadIndividualJars" />
     <CallTarget Targets="ExtractJsonFromJars" />
     <CallTarget Targets="WriteOutputFile" />
@@ -33,10 +33,14 @@
   <!-- ************************************************************** -->
   <!-- Jar processing targets -->
   <!-- ************************************************************** -->
-  <Target Name="PrepareDownloadDirectory">
+  <Target Name="PrepareDirectories">
     <Message Importance="high" Text="[ProcessJarFiles] Ensuring download directory exists ..." />
     <MakeDir Directories="$(JarDownloadDir)" />
     <Message Importance="high" Text="[ProcessJarFiles] Download directory: $(JarDownloadDir)" />
+
+    <Message Importance="high" Text="[ProcessJarFiles] Ensuring tmp directory exists ..." />
+    <MakeDir Directories="$(_WorkingDirectory)" />
+    <Message Importance="high" Text="[ProcessJarFiles] Temporary directory: $(_WorkingDirectory)" />
   </Target>
 
   <Target Name="DownloadIndividualJars">
