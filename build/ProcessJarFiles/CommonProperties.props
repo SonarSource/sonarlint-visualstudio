@@ -25,8 +25,7 @@
     <!-- .net6 exe used to extract rule descriptions from the json file.
           The exe is not checked in; it is built from source.
     -->
-    <Configuration Condition="$(Configuration) == '' ">Debug</Configuration>
-    <RuleDescExtractorExe>$(MSBuildThisFileDirectory)..\tools\ExtractRuleDescFromJson\bin\$(Configuration)\net6.0\ExtractRuleHtmlFromJson.exe</RuleDescExtractorExe>
+    <RuleDescExtractorExe>$(MSBuildThisFileDirectory)..\tools\ExtractRuleDescFromJson\bin\net6.0\ExtractRuleDescFromJson.exe</RuleDescExtractorExe>
   </PropertyGroup>
   
 

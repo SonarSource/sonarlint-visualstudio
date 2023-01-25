@@ -156,7 +156,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ProcessJarFiles", "ProcessJ
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessJarFiles", "build\ProcessJarFiles\ProcessJarFiles.proj", "{3ECCAF9D-3B23-4980-83E2-8ACEE0FC6BEB}"
 	ProjectSection(ProjectDependencies) = postProject
-		{0E50D9A0-693D-4B4E-81E2-8B8028231CFA} = {0E50D9A0-693D-4B4E-81E2-8B8028231CFA}
 		{E47E649E-5044-485B-A077-8FB282094A7D} = {E47E649E-5044-485B-A077-8FB282094A7D}
 	EndProjectSection
 EndProject
