@@ -9,6 +9,10 @@
     <AssemblyName>SonarLint.VisualStudio.Rules</AssemblyName>
   </PropertyGroup>
 
+  <ItemGroup Label="Project references">
+    <ProjectReference Include="..\Core\Core.csproj" />
+  </ItemGroup>
+
   <ItemGroup Label="Framework references">
     <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
