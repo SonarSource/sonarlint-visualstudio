@@ -18,29 +18,109 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
+using System.Threading;
+using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ServerSentEvents.Issues;
 using SonarLint.VisualStudio.Core.ServerSentEvents.TaintVulnerabilities;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 {
-    internal interface IServerSentEventSessionManager
+    internal interface IServerSentEventSessionManager : IDisposable
     {
     }
 
     [Export(typeof(IServerSentEventSessionManager))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ServerSentEventSessionManager : IServerSentEventSessionManager
+    internal sealed class ServerSentEventSessionManager : IServerSentEventSessionManager
     {
+        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private readonly IIssueChangedServerEventSourcePublisher issueChangedServerEventSourcePublisher;
+        private readonly ISonarQubeService sonarQubeClient;
+        private readonly IServerSentEventPump eventPump;
+        private readonly ITaintServerEventSourcePublisher taintServerEventSourcePublisher;
+        private readonly IThreadHandling threadHandling;
+        private bool disposed;
+        private CancellationTokenSource sessionTokenSource;
+
         [ImportingConstructor]
         public ServerSentEventSessionManager(
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ISonarQubeService sonarQubeClient,
+            IServerSentEventPump eventPump,
             IIssueChangedServerEventSourcePublisher issueChangedServerEventSourcePublisher,
-            ITaintServerEventSourcePublisher taintServerEventSourcePublisher)
+            ITaintServerEventSourcePublisher taintServerEventSourcePublisher,
+            IThreadHandling threadHandling)
         {
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+            this.sonarQubeClient = sonarQubeClient;
+            this.eventPump = eventPump;
+            this.issueChangedServerEventSourcePublisher = issueChangedServerEventSourcePublisher;
+            this.taintServerEventSourcePublisher = taintServerEventSourcePublisher;
+            this.threadHandling = threadHandling;
+            activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionChanged;
+        }
+
+        public void Dispose()
+        {
+            if (disposed)
+            {
+                return;
+            }
+
+            activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionChanged;
+            sessionTokenSource?.Cancel();
+            issueChangedServerEventSourcePublisher?.Dispose();
+            taintServerEventSourcePublisher?.Dispose();
+            disposed = true;
+        }
+
+        internal /*for testing*/ void OnSolutionChanged(object sender, ActiveSolutionBindingEventArgs activeSolutionBindingEventArgs)
+        {
+            var bindingConfiguration = activeSolutionBindingEventArgs.Configuration;
+            var isOpen = !bindingConfiguration.Equals(BindingConfiguration.Standalone);
+
+            if (isOpen)
+            {
+                var projectKey = bindingConfiguration.Project.ProjectKey;
+                Connect(projectKey);
+            }
+            else
+            {
+                Disconnect();
+            }
+        }
+
+        private void Connect(string projectKey)
+        {
+            sessionTokenSource = new CancellationTokenSource();
+
+            // fire and forget
+            threadHandling.RunOnBackgroundThread(async () =>
+            {
+                var serverSentEventsSession =
+                    await sonarQubeClient.CreateServerSentEventsSession(projectKey,
+                        sessionTokenSource.Token); //todo what kind of errors it throws? Sync with Rita
+
+                if (serverSentEventsSession == null)
+                {
+                    return false;
+                }
+
+                await eventPump.PumpAllAsync(serverSentEventsSession, issueChangedServerEventSourcePublisher, taintServerEventSourcePublisher);
+                return true;
+
+            }).Forget();
+        }
+
+        private void Disconnect()
+        {
+            sessionTokenSource?.Cancel();
+            sessionTokenSource = null;
         }
     }
 }
