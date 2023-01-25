@@ -4,7 +4,19 @@
   <!-- Entry point - the Build target -->
   <!-- ************************************************************** -->
   
-  <!-- Set Inputs and Outputs so the target only runs if the reference jars have changed -->
+  <!-- Set Inputs and Outputs so the target only runs if the referenced jars have changed.
+       We use the "EmbeddedSonarAnalyzer.props" file as the sole input file, as it specifies
+       the jars to download. At the end of a build we will write a single timestamp output
+       file and treat that as the sole output file.
+       
+       If the EmbeddedSonarAnalyzer.props file changes, it will have a newer timestamp than
+       the timestamp output file, and MSBuild will build the project.
+       If the project fails to build correctly the output file will not be updated, so the
+       next time we trigger a build MSBuild will attempt to build the project again.
+       
+       Cleaning/rebuilding the project will delete the output file, so the project will then
+       be built again.
+    -->
   <ItemGroup>
     <InputFile Include="..\..\src\EmbeddedSonarAnalyzer.props" Visible="false" />
     <OutputFile Include="$(_WorkingDirectory)\lastrun.txt" Visible="false" />

@@ -6,6 +6,7 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration.Vsix", "src\Integration.Vsix\Integration.Vsix.csproj", "{FF2AD819-28F4-493A-8E9B-1D3F16BD4689}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0E50D9A0-693D-4B4E-81E2-8B8028231CFA} = {0E50D9A0-693D-4B4E-81E2-8B8028231CFA}
+		{3ECCAF9D-3B23-4980-83E2-8ACEE0FC6BEB} = {3ECCAF9D-3B23-4980-83E2-8ACEE0FC6BEB}
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration", "src\Integration\Integration.csproj", "{03278C1A-EE78-4FA7-A5B0-1AB0A81EA76F}"
@@ -111,6 +112,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EmbeddedVsix", "EmbeddedVsix", "{D0993E3E-A109-4AAE-973E-678CB745127E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmbeddedVsix", "src\EmbeddedVsix\EmbeddedVsix.csproj", "{4BBE7B39-E00A-40FE-88FC-A53C7E49731F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3ECCAF9D-3B23-4980-83E2-8ACEE0FC6BEB} = {3ECCAF9D-3B23-4980-83E2-8ACEE0FC6BEB}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmbeddedVsix.UnitTests", "src\EmbeddedVsix.UnitTests\EmbeddedVsix.UnitTests.csproj", "{BCE50F3E-7916-4D8A-902E-1B2CB202385F}"
 EndProject
