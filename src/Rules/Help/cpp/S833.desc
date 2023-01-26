@@ -1,8 +1,0 @@
-<p>This rule is a strict implementation of a MISRA (Motor Industry Software Reliability Association) rule. MISRA defines best practices for developing
-safety-critical software. You can learn more about this rule in the MISRA documents referenced below.</p>
-<h2>See</h2>
-<ul>
-  <li> MISRA C++ 2008, 3-3-2 </li>
-  <li> MISRA C 2004, 8.11 </li>
-  <li> MISRA C 2012, 8.8 </li>
-</ul>

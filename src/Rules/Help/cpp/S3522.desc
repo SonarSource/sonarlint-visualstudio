@@ -1,9 +1,0 @@
-<p>According to ISO/IEC 14882 (third edition 2011-09-01) : C++11</p>
-<blockquote>
-  <p>The register specifier shall be applied only to names of variables declared in a block or to function parameters. It specifies that the named
-  variable has automatic storage duration. A variable declared without a storage-class-specifier at block scope or declared as a function parameter
-  has automatic storage duration by default.</p>
-  <p>A register specifier is a hint to the implementation that the variable so declared will be heavily used.[ Note: The hint can be ignored and in
-  most implementations it will be ignored if the address of the variable is taken. This use is <strong>deprecated</strong> - end note ]</p>
-</blockquote>
-<p>In upcoming versions of C/C++ we can expect this deprecated specifier to not be supported anymore.</p>

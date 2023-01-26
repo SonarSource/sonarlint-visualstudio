@@ -1,6 +1,0 @@
-<p>A coroutine that grows too large tends to aggregate too many responsibilities.</p>
-<p>Such coroutines inevitably become harder to understand and therefore harder to maintain.</p>
-<p>Above a specific threshold, it is strongly advised to refactor into smaller functions which focus on well-defined tasks. It might be difficult to
-split the parts of a coroutine that contain <code>co_yield</code> or <code>co_await</code> statements, but the other parts can be split into normal
-functions.</p>
-<p>These smaller functions will not only be easier to understand, but also probably easier to test.</p>

@@ -1,9 +1,0 @@
-<p>Implicit casts discard information when the resulting type has a lower precision than the original type.</p>
-<h2>Noncompliant Code Example</h2>
-<pre>
-int a = 2.1f; // Noncompliant
-
-long double f();
-double d = 0;
-d += f(); // Noncompliant
-</pre>

@@ -1,6 +1,0 @@
-<p>This rule creates a issue whenever an <code>#error</code> preprocessor directive is reached during the project’s analysis. In most cases, this
-indicates that the preprocessor was badly configured. Some predefined macros or library include paths might be required to fix the configuration.</p>
-<h2>Noncompliant Code Example</h2>
-<pre>
-#error This is an error
-</pre>
