@@ -17,5 +17,9 @@
     <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
 
+  <ItemGroup Label="Embedded rule data files">
+    <None Remove="Embedded\**\*.*" />
+    <EmbeddedResource Include="Embedded\**\*.*" />
+  </ItemGroup>
 
 </Project>
