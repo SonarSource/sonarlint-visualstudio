@@ -115,8 +115,28 @@ jobs:
     inputs:
       versionSpec: '11'
       jdkArchitectureOption: 'x64'
-      jdkSourceOption: 'PreInstalled'
+      jdkSourceOption: PreInstalled
 
+  #*********************************************************
+  # HACK - explicitly build the projects that download and process the jar files ###
+  #
+  # Building the VS2019 version from the command line does not work correctly (CI or locally).
+  # For some reason, the Rules.csproj build does not embed any files.
+  - task: VSBuild@1
+    displayName: Build rule description extractor
+    inputs:
+      solution: build\tools\ExtractRuleDescFromJson\ExtractRuleDescFromJson.csproj
+      vsVersion: 17.0
+
+  - task: VSBuild@1
+    displayName: Pre-process jar files
+    inputs:
+      solution: build\ProcessJarFiles\ProcessJarFiles.proj
+      vsVersion: 17.0
+
+  # End of hack
+  #*********************************************************
+  
   - task: SonarCloudPrepare@1
     displayName: Prepare analysis on SonarCloud (VS2022 only)
     condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
