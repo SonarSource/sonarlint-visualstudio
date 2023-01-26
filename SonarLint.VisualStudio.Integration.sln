@@ -162,6 +162,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Rules", "Rules", "{EFA34F81-1751-49D7-8F62-4085E75FA5F2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rules", "src\Rules\Rules.csproj", "{BA48309C-FB66-47D3-997D-D3068C4F719B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3ECCAF9D-3B23-4980-83E2-8ACEE0FC6BEB} = {3ECCAF9D-3B23-4980-83E2-8ACEE0FC6BEB}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rules.UnitTests", "src\Rules.UnitTests\Rules.UnitTests.csproj", "{B8E86E46-8EC6-4147-AB0D-2C8912F4590F}"
 EndProject
