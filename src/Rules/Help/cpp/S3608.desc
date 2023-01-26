@@ -1,0 +1,29 @@
+<p>Lambdas can use variables from their enclosing scope (called "capture") either by reference or by value. Since lambdas may run asynchronously,
+reference capture should be used with caution because by the time the lambda runs, the referenced variable may be out of scope, resulting in an access
+violation at run time.</p>
+<p>You can specify default capture by reference (<code>[&amp;]</code>), or by value (<code>[=]</code>). Clearly default reference capture can cause
+scope issues, but default value capture can also lead to problems. That’s because both forms of default capture implicitly also capture
+<code>*this</code>, which would automatically be used if for example you referenced a method from the enclosing scope.</p>
+<p>If the lambda is used immediately (for instance, passed as an argument to <code>std::sort</code>), there is no risk of dangling reference. For
+those lambdas, it is safe to pass everything through a default capture by reference. See also {rule:cpp:S5495}.</p>
+<p>This rule raises an issue when default capture is used, unless the lambda is immediately executed.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void fun() {
+  Foo foo;
+  ...
+  executor-&gt;Schedule([&amp;] {  // Noncompliant
+    maybeMember(foo);  // implicit use of *this reference if maybeMember is a member function. foo and maybeMember may both be gone by the time this is invoked
+  });
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void fun() {
+  Foo foo;
+  ...
+  executor-&gt;Schedule([&amp;foo] { // it is clear that foo is captured by reference and compilation is going to fail if maybeMember is a member function
+    maybeMember(foo);
+  });
+}
+</pre>

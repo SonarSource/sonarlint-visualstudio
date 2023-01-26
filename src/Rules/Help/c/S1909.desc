@@ -1,0 +1,51 @@
+<p>Use of <code>goto</code> can lead to programs that are extremely difficult to comprehend and analyse, and possibly to unspecified behavior.</p>
+<p>Unfortunately, removing <code>goto</code> from some code can lead to a rewritten version that is even more difficult to understand than the
+original. Therefore, limited use of <code>goto</code> is sometimes advised.</p>
+<p>However, the use of <code>goto</code> to jump into or out of a sub-block of code, such as into the body of a <code>for</code> loop is never
+acceptable, because it is extremely difficult to understand and will likely yield results other than what is intended.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void f1 (int a) {
+  if (a &lt;=0) {
+    goto L2;  // Noncompliant; jumps into a different block
+  }
+
+  if (a == 0) {
+  {
+    goto L1; // Compliant
+  }
+  goto L2;  // Noncompliant; jumps into a block
+
+L1:
+  for (int i = 0; i &lt; a; i++) {
+  L2:
+    //...  Should only have come here with a &gt;=0. Loop is infinite if a &lt; 0
+  }
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void f1 (int a) {
+  if (a &lt;=0) {
+    // ...
+  }
+
+  if (a == 0) {
+  {
+    goto L1; // Compliant
+  }
+
+L1:
+  for (int i = 0; i &lt; a; i++) {
+  L2:
+    //...
+  }
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C++:2008, 6-6-1 - Any label referenced by a goto statement shall be declared in the same block, or in a block enclosing the goto
+  statement </li>
+  <li> MISRA C:2012, 15.3 - Any label referenced by a goto statement shall be declared in the same block, or in a block enclosing the goto statement
+  </li>
+</ul>

@@ -1,0 +1,22 @@
+<p>It is a security vulnerability to call <code>printf</code> with a unique string argument which is not a string literal. Indeed, if this argument
+comes from a user input, this user can :</p>
+<ul>
+  <li> make the program crash, by executing code equivalent to: <code>printf("%s%s%s%s%s%s%s%s")</code> </li>
+  <li> view the stack or a memory at any location, by executing code equivalent to: <code>printf("%08x %08x %08x %08x %08x\n")</code> </li>
+</ul>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void f(char* userInput) {
+  printf(userInput); // Noncompliant
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void f(char* userInput) {
+  printf("%s", userInput); // Compliant
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://owasp.org/www-community/attacks/Format_string_attack">Owasp: format string attack</a> </li>
+</ul>

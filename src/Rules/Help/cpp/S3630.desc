@@ -1,0 +1,33 @@
+<p>Because <code>reinterpret_cast</code> does not perform any type safety validations, it is capable of performing dangerous conversions between
+unrelated types.</p>
+<p>Since C++20, a <code>std::bit_cast</code> should be used instead of <code>reinterpret_cast</code> to reinterpret a value as being of a different
+type of the same length preserving its binary representation, as the behavior of <code>reinterpret_cast</code> is undefined in such case.</p>
+<p>This rule raises an issue when <code>reinterpret_cast</code> is used.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+  class A { public: virtual ~A(){} };
+  class B : public A { public: void doSomething(){} };
+
+  void func(A *a, float f) {
+    if (B* b = reinterpret_cast&lt;B*&gt;(a)) { // Noncompliant
+      b-&gt;doSomething();
+    }
+    int x = *reinterpret_cast&lt;int*&gt;(f); // Noncompliant
+  }
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+  class A { public: virtual ~A(){} };
+  class B : public A { public: void doSomething(){} };
+
+  void func(A *a, float f) {
+    if (B* b = dynamic_cast&lt;B*&gt;(a)) {
+      b-&gt;doSomething();
+    }
+    int x = std::bit_cast&lt;int&gt;(f);
+  }
+</pre>
+<h2>See</h2>
+<ul>
+  <li> CppCoreGuidelines, Type safety profile - Type.1: Don’t use reinterpret_cast. </li>
+</ul>

@@ -1,0 +1,25 @@
+<p>Arguments evaluation order in a function call is not specified:</p>
+<ul>
+  <li> Before C++17, the evaluation of each argument was unsequenced with the evaluation of other arguments, which can lead to undefined behavior if
+  the same value is modified in several arguments, </li>
+  <li> After C++17, it is sequenced, but in an unspecified order: the behavior is not longer undefined, but the values passed to the function will be
+  non portable. </li>
+</ul>
+<p>Both cases should be avoided, because the code will probably not be what was expected.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void f(int i, int j);
+
+void g() {
+  int i = 0;
+  f(++i, ++i); // Noncompliant, the call could either be f(1,2) or f(2,1) (since C++17) or undefined behavior (before C++17)
+}
+</pre>
+<h2>Exceptions</h2>
+<p>This rule does not apply to overloaded operators because they respect the sequencing order rules of the operator they overload (since C++17).</p>
+<h2>See</h2>
+<ul>
+  <li> <a
+  href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#es44-dont-depend-on-order-of-evaluation-of-function-arguments">C++ Core Guidelines ES.44</a> - Don’t depend on order of evaluation of function arguments </li>
+  <li> <a href="https://en.cppreference.com/w/cpp/language/eval_order">cppreference.com - order of evaluation</a> </li>
+</ul>

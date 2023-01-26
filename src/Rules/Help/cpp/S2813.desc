@@ -1,0 +1,10 @@
+<p>There is no point in creating a <code>const</code> reference to a literal numeric value. Most likely the intent was not to create a reference, but
+a constant value.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+const int &amp; weekdayCount = 7;  // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+const int weekdayCount = 7;
+</pre>

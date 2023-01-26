@@ -1,0 +1,25 @@
+<p>Flexible array members are most likely to be used in conjunction with dynamic memory allocation.</p>
+<p>The presence of flexible array members modifies the behaviour of the <code>sizeof</code> operator in ways that might not be expected by a
+programmer. The assignment of a structure that contains a flexible array member to another structure of the same type may not behave in the expected
+manner as it copies only those elements up to but not including the start of the flexible array member.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#include &lt;stdlib.h&gt;
+struct s
+{
+  uint16_t len;
+  uint32_t data[ ]; // Noncompliant - flexible array member
+} str;
+
+struct s *copy ( struct s *s1 )
+{
+  struct s *s2 = malloc ( sizeof ( struct s ) + ( s1-&gt;len * sizeof ( uint32_t ) ) );
+  /* Omit malloc ( ) return check for brevity */
+  *s2 = *s1; /* Only copies s1-&gt;len */
+  return s2;
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2012, 18.7 - Flexible array members shall not be declared. </li>
+</ul>

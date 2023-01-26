@@ -1,0 +1,27 @@
+<p>Throwing as an exception an object that is not derived from <code>std::exception</code> is a bad practice. It is usually unreliable, meaningless,
+and a source of type clashes.</p>
+<p>For the same reason, catching a non-exception type is a sign that your application has a bad exception-handling design. You should use standard
+exception types or create your own exception types that inherit at some level from <code>std::exception</code>.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+try {
+  /* code that can throw: 42 */
+} catch (int ex) { // Noncompliant
+  if (ex == 42) {
+    /*...*/
+  }
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+try {
+  /* code that can throw: std::domain_error("User ID not found.") */
+} catch (const std::domain_error&amp; ex) {
+  /*...*/
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#Re-exception-types">C++ Core Guidelines E.14</a> - Use
+  purpose-designed user-defined types as exceptions (not built-in types) </li>
+</ul>

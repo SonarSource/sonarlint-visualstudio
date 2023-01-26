@@ -1,0 +1,21 @@
+<p>Exception specifications never really provided any advantages in C++. They have been deprecated since C++11, and removed since C++17 (specification
+with an exception) and C++20 (empty throw specification). If your code still contains some, you should replace empty <code>throw()</code>
+specifications, with <code>noexcept</code> and remove any other specifications.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void f() throw(); // Noncompliant
+void g() throw(std::exception); // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void f() noexcept;
+void g();
+</pre>
+<h2>Exceptions</h2>
+<p>If a derived class overrides a function with a dynamic exception specification, then the derived function is forced to add a compatible exception
+specification. Such exception specifications are ignored.</p>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#e30-dont-use-exception-specifications">C++ Core
+  Guidelines E.30</a> - Don’t use exception specifications </li>
+</ul>

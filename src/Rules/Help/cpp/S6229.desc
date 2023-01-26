@@ -1,0 +1,76 @@
+<p>The <code>chrono</code> library, introduced in C++20, provides support for calendars, time zones, and i/o formatting and parsing operations on
+time-related objects.</p>
+<p><code>chrono</code> is a better alternative to the C/POSIX functions that operate on <code>time_t</code>, <code>tm</code>, or <code>timespec</code>
+types. In comparison to C facilities, it provides a better integration with other components of the C++ standard library: (<code>iostreams</code> and
+<code>format</code>). Also, it supports compile-time computation and it is thread safe.</p>
+<p>This rule raises an issue on any use of C/POSIX functions that can be replaced with one of the <code>std::chrono</code> components:</p>
+<ul>
+  <li> querying for current time (<code>time</code>, <code>timespec_get</code>, <code>clock_gettime</code>) </li>
+  <li> date to time-point conversion (<code>mktime</code>, <code>gmtime</code>, <code>localtime</code>) </li>
+  <li> time serialization (<code>ctime</code>, <code>asctime</code>, <code>strftime</code>) </li>
+  <li> time parsing (<code>strptime</code>) </li>
+</ul>
+<h2>Noncompliant Code Example</h2>
+<pre>
+int currentMonth() {
+  std::time_t tp;
+  std::time(&amp;tp);
+  std::tm* date = std::gmtime(&amp;tp);
+  return date-&gt;tm_mon + 1;
+}
+
+std::chrono::system_clock::time_point makeSomeDay() {
+  // Creates time_point corresponding to 2020-09-04
+  std::tm date{};
+  date.tm_year = 120;
+  date.tm_mon = 8;
+  date.tm_mday = 4;
+  std::time_t t = std::mktime(&amp;date); // Noncompliant
+  return std::chrono::system_clock::from_time_t(t);
+}
+
+std::optional&lt;int&gt; yearOfTimePoint(std::chrono::system_clock::time_point tp) {
+  std::time_t t = std::chrono::system_clock::to_time_t(tp);
+  std::tm* date = std::gmtime(&amp;t); // Noncompliant
+  if (!date)
+    return std::nullopt;
+  return date-&gt;tm_year + 1900;
+}
+
+std::string toIsoString(std::chrono::system_clock::time_point tp) {
+  std::time_t t = std::chrono::system_clock::to_time_t(tp);
+  std::tm* date = std::gmtime(&amp;t);  // Noncompliant
+  if (!date)
+    throw InvalidDate();
+
+  std::string buffer(100, ' ');
+  std::size_t written = std::strftime(buffer.data(), buffer.size(), "%F", date);
+  buffer.resize(written);
+  return buffer;
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+std::chrono::month currentMonth() {
+  using namespace std::chrono;
+  auto dp = floor&lt;days&gt;(system_clock::now());
+  return year_month_day(dp).month();
+}
+
+std::chrono::system_clock::time_point makeSomeDay() {
+  using namespace std::chrono;
+  return sys_days(2020y/September/4);
+}
+
+std::optional&lt;std::chrono::year&gt; yearOfTimePoint(std::chrono::system_clock::time_point tp) {
+  using namespace std::chrono;
+  year_month_day date(floor&lt;days&gt;(tp));
+  if (!date.ok())
+    return std::nullopt;
+  return date.year();
+}
+
+std::string toIsoString(std::chrono::system_clock::time_point tp) {
+  return std::format("{:%F}", tp);
+}
+</pre>

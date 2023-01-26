@@ -1,0 +1,18 @@
+<p>Starting from C++20, mathematical constants are defined in the header <code>&lt;numbers&gt;</code>.</p>
+<p>You should prefer using them instead of hardcoding your own constants.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+const double pi = 3.14159265358979323846; // Noncompliant
+
+auto computeCirclePerimeter(double radius) {
+    return 2 * pi * radius;
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+#include &lt;numbers&gt;
+
+auto computeCirclePerimeter(double radius) {
+    return 2 * std::numbers::pi * radius;
+}
+</pre>

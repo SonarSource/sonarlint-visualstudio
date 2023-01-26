@@ -1,0 +1,44 @@
+<p>Comparison between <code>signed</code> and <code>unsigned</code> integers is dangerous because it produces counterintuitive results outside of
+their common range of values.</p>
+<p>When a signed integer is compared to an unsigned one, the former might be converted to unsigned. The conversion preserves the two’s-complement bit
+pattern of the signed value that often corresponds to a large unsigned result. For example, <code>2U &lt; -1</code> is <code>true</code>.</p>
+<p>C++20 introduced remedy to this common pitfall: a family of <code>std::cmp_*</code> functions defined in the <code>&lt;utility&gt;</code> header.
+These functions correctly handle negative numbers and lossy integer conversion. For example, <code>std::cmp_less(2U, -1)</code> is
+<code>false</code>.</p>
+<p>This rule starts by detecting comparisons between signed and unsigned integers. Then, if the signed value can be proven to be negative, the rule
+{rule:cpp:S6214} will raise an issue (it is a bug). Otherwise, this rule will raise an issue. Therefore, if this rule is enabled, {rule:cpp:S6214}
+should be enabled too.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+bool less = 2U &lt; -1; // Compliant, raises S6214
+
+bool foo(unsigned x, signed y) {
+  return x &lt; y; // Noncompliant: y might be negative
+}
+
+bool fun(int x, std::vector&lt;int&gt; const&amp; v) {
+  return x &lt; v.size(); // Noncompliant: x might be negative
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+bool less = std::cmp_less(2U, -1); // Compliant for this rule and S6214
+
+bool foo(unsigned x, signed y) {
+  return std::cmp_less(x, y); // Compliant
+}
+
+bool fun(int x, std::vector&lt;int&gt; const&amp; v) {
+  return std::cmp_less(x, v.size()); // Compliant
+}
+
+void compute(std::vector&lt;int&gt; const &amp;v) {
+  if (0 &lt; v.size() &amp;&amp; v.size() &lt; 100) { // Compliant, even though v.size() returns an unsigned integer
+  }
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> {rule:cpp:S845} - a more generic rule about mixing signed and unsigned values. </li>
+  <li> {rule:cpp:S6214} - a version of this rule that only triggers when it detects negative values are involved. </li>
+</ul>

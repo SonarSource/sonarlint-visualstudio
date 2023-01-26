@@ -1,0 +1,24 @@
+<p>The <code>delete</code> operator expects a pointer argument. Passing it an object may compile and seem to run (with an implicit cast to pointer
+type) but it can result in unexpected behavior at runtime.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class CString {
+public:
+  operator const char*();
+  // ...
+};
+
+void fun() {
+  CString str;
+  // ...
+  delete str;  // Noncompliant
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void fun() {
+  CString *pstr = new CString;
+  // ...
+  delete pstr;
+}
+</pre>

@@ -1,0 +1,33 @@
+<p>The use of the <code>with</code> keyword produces an error in JavaScript strict mode code. However, that’s not the worst that can be said against
+<code>with</code>.</p>
+<p>Using <code>with</code> allows a short-hand access to an object’s properties - assuming they’re already set. But use <code>with</code> to access
+some property not already set in the object, and suddenly you’re catapulted out of the object scope and into the global scope, creating or overwriting
+variables there. Since the effects of <code>with</code> are entirely dependent on the object passed to it, <code>with</code> can be dangerously
+unpredictable, and should never be used.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+var x = 'a';
+
+var foo = {
+  y: 1
+}
+
+with (foo) {  // Noncompliant
+  y = 4;  // updates foo.y
+  x = 3;  // does NOT add a foo.x property; updates x var in outer scope
+}
+print(foo.x + " " + x); // shows: undefined 3
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+var x = 'a';
+
+var foo = {
+  y: 1
+}
+
+foo.y = 4;
+foo.x = 3;
+
+print(foo.x + " " + x); // shows: 3 a
+</pre>

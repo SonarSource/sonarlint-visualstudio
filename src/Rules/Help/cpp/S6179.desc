@@ -1,0 +1,20 @@
+<p>C++20 introduced the standard algorithms to compute the midpoint between two values and linear interpolation for a given coefficient.</p>
+<p><code>std::midpoint(a, b)</code> computes the midpoint, or average, or arithmetic mean of two values <code>a</code> and <code>b</code>:
+<code>(a+b)/2</code>. The result is half-way from <code>a</code> to <code>b</code>, and if <code>a</code> and <code>b</code> are pointers it points to
+the middle of a contiguous memory segment between the two. A naive midpoint computation might suffer from a possible overflow or be inefficient.
+That’s why in most cases <code>std::midpoint</code> is preferable.</p>
+<p><code>std::lerp(a, b, t)</code> returns linear interpolation between values <code>a</code> and <code>b</code> with a coefficient <code>t</code>:
+<code>a+t*(a-b)</code>, where <code>t</code> is between 0 and 1.</p>
+<p>This rule reports computations that should be replaced with <code>std::midpoint</code> or <code>std::lerp</code>.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+auto avg1 = (a + b)/2; // Noncompliant, might overflow
+auto avg2 = a + (b - a)/2; // Noncompliant
+auto third = a + (b - a)*0.3f; // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+auto avg1 = std::midpoint(a, b);
+auto avg2 = std::midpoint(a, b);
+auto third = std::lerp(a, b, 0.3f);
+</pre>

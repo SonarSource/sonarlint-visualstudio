@@ -1,0 +1,15 @@
+<p>Redundant forward declarations simply clutter the code, and like any duplications, should be removed.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+struct S {
+  // ...
+};
+// ...
+struct S;  // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+struct S {
+  // ...
+};
+</pre>

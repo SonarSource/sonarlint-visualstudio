@@ -1,0 +1,11 @@
+<p><code>mktemp</code>, <code>mkstemp</code>, <code>mkstemps</code> or <code>mkdtemp</code> are useful functions to create temporary files and
+directories. They accept a <code>template</code> parameter which defines the path where the file should be created and which should contain at least
+six trailing "X"s to ensure the uniqueness of the filename.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+mkstemp("/tmp/file_XXXX"); // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+mkstemp("/tmp/file_XXXXXX"); // Compliant
+</pre>

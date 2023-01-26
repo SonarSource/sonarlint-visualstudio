@@ -1,0 +1,30 @@
+<p><code>std::scoped_lock</code> basically provides the same feature as <code>std::lock_guard</code>, but is more generic: It can lock several mutexes
+at the same time, with a deadlock prevention mechanism (see {rule:cpp:S5524}). The equivalent code to perform simultaneous locking with
+<code>std::lock_guard</code> is significantly more complex. Therefore, it is simpler to use <code>std::scoped_lock</code> all the time, even when
+locking only one mutex (there will be no performance impact).</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void f1(std::mutex &amp;m1) {
+  std::lock_guard lock{m1}; // Noncompliant
+  // Do some work
+}
+
+void f2(std::mutex &amp;m1, std::mutex &amp;m2)
+    std::lock(m1, m2);
+    std::lock_guard&lt;std::mutex&gt; lock1{m1, std::adopt_lock}; // Noncompliant
+    std::lock_guard&lt;std::mutex&gt; lock2{m2, std::adopt_lock}; // Noncompliant
+    // Do some work
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void f1(std::mutex &amp;m1) {
+  std::scoped_lock lock{m1}; // Compliant
+  // Do some work
+}
+
+void f2(std::mutex &amp;m1, std::mutex &amp;m2)
+    std::scoped_lock lock{m1, m2}; // Compliant, and more simple
+    // Do some work
+}
+</pre>

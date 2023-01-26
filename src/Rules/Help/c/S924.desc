@@ -1,0 +1,44 @@
+<p>Restricting the number of exits from a loop is done in the interests of good structured programming. One <code>break</code> or <code>goto</code>
+statement is acceptable in a loop since this allows, for example, for dual-outcome loops or optimal coding.</p>
+<h2>Noncompliant Code Example</h2>
+<p>With the default threshold of 1:</p>
+<pre>
+for (int i = 0; i &lt; 10; i++) {
+  if (...) {
+    break;      //  Compliant
+  }
+  else if (...) {
+    break;      //  Non-compliant - second jump from loop
+  }
+  else {
+    ...
+  }
+}
+while (...) {
+  if (...) {
+    break;      // Compliant
+  }
+  if (...) {
+    break;      // Non-compliant - second jump from loop
+  }
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+for (int i = 0; i &lt; 10; i++) {
+  if (...) {
+    break;      //  Compliant
+  }
+}
+while (...) {
+  if (...) {
+    break;    // Compliant
+  }
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 14.6 - For any iteration statement there shall be at most one break statement used for loop termination. </li>
+  <li> MISRA C++:2008, 6-6-4 - For any iteration statement there shall be no more than one break or goto statement used for loop termination. </li>
+  <li> MISRA C:2012, 15.4 - There should be no more than one break or goto statement used to terminate any iteration statement </li>
+</ul>

@@ -1,0 +1,115 @@
+<p>C++14 has introduced transparent comparators: the function objects that support heterogeneous comparison (i.e., comparison of values of different
+types, such as <code>std::string</code> and <code>char const*</code>). When using such comparator, the search-optimized containers, namely,
+<code>std::set</code>, <code>std::multiset</code>, <code>std::map</code>, and <code>std::multimap</code>, enable additional lookup-function overloads
+that support types different from the <code>key_type</code>.</p>
+<p>Invoking a lookup function (such as <code>find</code>, <code>count</code>, or <code>lower_bound</code>) with a non-<code>std::string</code>
+argument, i.e., a raw C-string literal (<code>s.find("Nemo")</code>), or a temporary <code>std::string</code> created of an
+<code>std::string_view</code>, on a container of <code>std::string</code> with non-transparent comparator, leads to a temporary
+<code>std::string</code> object, because the lookup function will support only an argument of the <code>key_type</code>.</p>
+<p>C++20 extends support for heterogeneous lookup to unordered associative containers (<code>std::unordered_set</code>,
+<code>std::unordered_multiset</code>, <code>std::unordered_map</code>, and <code>std::unordered_multimap</code>) that provide additional overloads
+when the equality functor and the hasher are both transparent. The standard provides transparent equality functors in the form
+<code>std::equal_to&lt;&gt;</code>. However, there is no standard transparent hasher object and one needs to be defined in the program. For
+<code>std::string</code> such hasher may be provided by converting each supplied object to <code>std::string_view</code> and hashing it using
+<code>std::hash&lt;std::string_view&gt;</code>:</p>
+<pre>
+struct StringHash {
+  using is_transparent = void; // enables heterogeneous lookup
+
+  std::size_t operator()(std::string_view sv) const {
+    std::hash&lt;std::string_view&gt; hasher;
+    return hasher(sv);
+  }
+};
+</pre>
+<p>Prefer using a transparent comparator with associative <code>std::string</code> containers to avoid creating the temporary. Note that transparent
+comparators are strongly discouraged if used with types that are not directly comparable as it will lead to the creation of
+<code>O(log(container.size())))</code> temporaries with lookup functions such as <code>find</code>, <code>count</code>, and
+<code>lower_bound</code>.</p>
+<p>Custom non-transparent functor (comparator, equality or hasher) may have different semantics than corresponding operators on
+<code>std:::string</code>. In such case, the heterogeneous lookup can still be enabled, by declaring the <code>is_transparent</code> nested type in
+the functor, and adjusting the implementation to accept either <code>std::string_view</code> or any type (i.e. turning it into a template). The later
+change is required to avoid the creation of <code>std::string</code> temporaries for each invocation and thus degradation of performance.</p>
+<p>This rule will detect <code>std::set</code>, <code>std::multiset</code>, <code>std::map</code>, <code>std::multimap</code>, and since C++20
+<code>std::unordered_set</code>, <code>std::unordered_multiset</code>, <code>std::unordered_map</code>, and <code>std::unordered_multimap</code>
+types, that use <code>std::string</code> as key and do not enable heterogeneous lookup.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void f() {
+  // the default std::less&lt;std::string&gt; is not transparent
+  std::set&lt;std::string&gt; m = { "Dory", "Marlin", "Nemo", "Emo"}; // Noncompliant
+  m.find("Nemo"); // This leads to a temporary std::string{"Nemo"}.
+  std::string_view n{"Nemo"};
+  m.find(std::string(n)); // extra temporary std::string
+}
+
+void g() {
+  // the default std::equal_to&lt;std::string&gt; and std::hash&lt;std::string&gt; are not transparent
+  std::unordered_set&lt;std::string&gt; m = { "Dory", "Marlin", "Nemo", "Emo"}; // Noncompliant
+  m.find("Nemo"); // This leads to a temporary std::string{"Nemo"}.
+  std::string_view n{"Nemo"};
+  m.find(std::string(n)); // extra temporary std::string
+}
+
+struct UpToTenLess {
+  bool operator()(const std::string&amp; lhs, const std::string&amp; rhs) const {
+    return lhs.compare(0, 10, rhs, 0, 10);
+  }
+};
+
+void g() {
+  // UpToTenLess is not transparent
+  std::set&lt;std::string, UpToTenLess&gt; m = { "Dory", "Marlin", "Nemo", "Emo"}; // Noncompliant
+  m.find("Nemo"); // This leads to a temporary std::string{"Nemo"}.
+  std::string_view n{"Nemo"};
+  m.find(std::string(n)); // extra temporary std::string
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void f() {
+  // std::less&lt;&gt; is transparent
+  std::set&lt;std::string, std::less&lt;&gt;&gt; m = // Compliant
+      { "Dory", "Marlin", "Nemo", "Emo"};
+  m.find("Nemo"); // No temporary is created, the raw C-string literal
+                  // is compared directly with std::string elements
+  std::string_view n{"Nemo"};
+  m.find(n); // No need to create the std::string
+}
+
+struct StringHash {
+  using is_transparent = void; // enables heterogenous lookup
+
+  std::size_t operator()(std::string_view sv) const {
+    std::hash&lt;std::string_view&gt; hasher;
+    return hasher(sv);
+  }
+};
+
+
+void g() {
+  // std::equal_to&lt;&gt; and StringHash are both transparent
+  std::unordered_set&lt;std::string, StringHash, std::equal_to&lt;&gt;&gt; m = { "Dory", "Marlin", "Nemo", "Emo"}; // Compliant
+  m.find("Nemo"); // std::string_view is created out of raw C-string literal
+  std::string_view n{"Nemo"};
+  m.find(n); // No need to create a std::string
+}
+
+struct UpToTenLess {
+  using is_transparent = void;
+
+  bool operator()(std::string_view lhs, std::string_view rhs) const {
+    return lhs.compare(0, 10, rhs, 0, 10);
+  }
+};
+
+void g() {
+  // UpToTenLess is now transparent
+  std::set&lt;std::string, UpToTenLess&gt; m = { "Dory", "Marlin", "Nemo", "Emo"};
+  m.find("Nemo"); // std::string_view is created out of raw C-string literal
+  std::string_view n{"Nemo"};
+  m.find(n); // No need to create a std::string
+}
+</pre>
+<h2>See</h2>
+<p>{rule:cpp:S6021} for when it might be a bad idea to use transparent comparators.</p>

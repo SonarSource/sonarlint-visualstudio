@@ -1,0 +1,43 @@
+<p>The catch-all handler should come last in a chain of <code>catch</code> or <code>@catch</code> statements because it catches everything, and any
+more-specific <code>catch</code>/<code>@catch</code> that comes after it will never be used, even when the relevant condition occurs.</p>
+<p>This C++ code sample is very similar to the Objective-C equivalent with <code>@try</code> and <code>@catch</code>.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void f1()
+{
+  try
+  {
+    // ...
+  }
+  catch (...)
+  {
+    // Handle all exception types
+  }
+  catch (std::exception const &amp;e)  // Noncompliant - handler will never be called
+  {
+  }
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void f1()
+{
+  try
+  {
+    // ...
+  }
+  catch (std::exception const &amp;e)  // Compliant
+  {
+    // Handle standard exceptions
+  }
+  catch (...)        // Compliant catch-all handler
+  {
+    // Handle all other exception types
+  }
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C++:2008, 15-3-7 - Where multiple handlers are provided in a single try-catch statement or function-try-block, any ellipsis (catch-all)
+  handler shall occur last. </li>
+</ul>

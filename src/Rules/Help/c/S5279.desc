@@ -1,0 +1,48 @@
+<p>Operands of <code>sizeof</code>, <code>noexcept</code> and <code>decltype</code> are unevaluated. So side effects in these operands (which are all
+the effects an expression can have in addition to producing a value), will not be applied. And that may be surprising to the reader.</p>
+<p>Additionally, the operand of <code>typeid</code> may or may not be evaluated, depending on its type: it will be evaluated if it is a function call
+that returns reference to a polymorphic type, but it will not be evaluated in all the other cases. This difference of behavior is tricky to apprehend
+and that is why both cases are reported here.</p>
+<p>This rules reports an issue when operands of such operators have side-effects.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class A {
+public:
+  virtual ~A();
+  /*...*/
+};
+class B : public A { /* ....*/ };
+A&amp; create(string const &amp;xml);
+
+void test(string const &amp;xml) {
+  int i = 0;
+  cout &lt;&lt; noexcept(++i); // Noncompliant, "i" is not incremented
+  cout &lt;&lt; typeid(++i).name(); // Noncompliant, "i" is not incremented
+  auto p1 = malloc(sizeof(i = 5)); // Noncompliant, "i" is not changed
+
+  cout &lt;&lt; typeid(create(xml)).name(); // Noncompliant, even if the side-effects will be evaluated in this case
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class A {
+public:
+  virtual ~A();
+  /*...*/
+};
+class B : public A { /* ....*/ };
+A&amp; create(string const &amp;xml);
+
+void test(string const &amp;xml) {
+  int i = 0;
+  ++i;
+  cout &lt;&lt; noexcept(i); // Compliant
+  ++i;
+  cout &lt;&lt; typeid(i).name(); // Compliant
+  i = 5;
+  auto p1 = malloc(sizeof(i)); // Compliant
+
+  auto a = create(xml);
+  cout &lt;&lt; typeid(a).name(); // Compliant
+}
+</pre>

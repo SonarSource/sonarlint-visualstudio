@@ -1,0 +1,16 @@
+<p>Defining a function inside of a loop can yield unexpected results. Such a function keeps references to the variables which are defined in outer
+scopes. All function instances created inside the loop therefore see the same values for these variables, which is probably not expected.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+var funs = [];
+for (var i = 0; i &lt; 13; i++) {
+  funs[i] = function() { // Non-Compliant
+    return i;
+  };
+}
+console.log(funs[0]()); // 13 instead of 0
+console.log(funs[1]()); // 13 instead of 1
+console.log(funs[2]()); // 13 instead of 2
+console.log(funs[3]()); // 13 instead of 3
+...
+</pre>

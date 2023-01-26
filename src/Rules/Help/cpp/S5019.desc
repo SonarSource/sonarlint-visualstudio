@@ -1,0 +1,46 @@
+<p>A lambda can only capture local variables. When a lambda is defined within a member function, you may believe that you are capturing a member
+variable of the current class, but in fact, what you are capturing is <code>this</code>. This may be very surprising, and lead to bugs if the lambda
+is then used after the current object has been destroyed.</p>
+<p>Therefore, it’s better to be explicit about exactly what is captured as soon as <code>this</code> is captured.</p>
+<p>If the lambda is used immediately (for instance, called or passed as an argument to <code>std::sort</code>), there is no such risk and no issue is
+raised.</p>
+<p>In C++20, capturing <code>this</code> via [=] has been deprecated. An issue is raised in that case, even if the lambda is used immediately.</p>
+<p>Note: This rule does not apply if the capture list of the lambda contains <code>*this</code> (possible since C++17). In that situation, what is
+captured is not the pointer <code>this</code>, but a local copy of the object pointed-to by <code>this</code> and any reference to <code>this</code>
+(explicit or implicit) in the lambda body then refers to this local copy (see {rule:cpp:S6016}).</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void useLambda(std::function&lt;int,int&gt; lambda);
+
+class A {
+  int i;
+  void f(int j) {
+    auto l = [=](int k) { return i+j+k;}; // Noncompliant, someone reading the code might believe that i is captured by copy
+    useLambda(l);
+  }
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void useLambda(std::function&lt;int,int&gt; lambda);
+
+class A {
+  int i;
+  void f(int j) {
+    auto l = [this, j](int k) { return i+j+k;}; // It is now clearer that i is not directly captured
+    useLambda(l);
+    // auto l = [i, j](int k) { return i+j+k;}; // Would not compile
+
+    auto l2 = [=, *this](int k) { return i+j+k;}; // Compliant, i refers to the member i of the captured copy
+    useLambda(l2);
+
+    auto l3 = [=](int k) { return i+j+k;}; // Compliant because l3 is only used immediately
+    int ijk = l3(i,j,k);
+  }
+};
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a
+  href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#f54-if-you-capture-this-capture-all-variables-explicitly-no-default-capture">C++ Core Guidelines F.54</a> - If you capture <code>this</code>, capture all variables explicitly (no default capture) </li>
+</ul>

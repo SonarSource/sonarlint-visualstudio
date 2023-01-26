@@ -1,0 +1,79 @@
+<p>Overriding a function just to call the overridden function from the base class without performing any other actions can be useless and
+misleading.</p>
+<p>There are cases when it is justified, because redeclaring the function allows some side effects:</p>
+<ul>
+  <li> Changing the visibility of the function in the derived class </li>
+  <li> Preventing the base class function from being hidden by an overload added in the derived class (a using declaration could have the same effect)
+  </li>
+  <li> To resolve ambiguities in cases of multiple inheritance </li>
+  <li> To make an inherited function final </li>
+</ul>
+<p>This rule raises an issue when an override which is not in one of the aforementioned situation only calls the overridden function, directly
+forwarding its arguments.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class Base {
+public:
+  virtual void f();
+};
+
+class Derived : public Base {
+public:
+  virtual void f() {
+    Base::f(); // Noncompliant
+  }
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class Base {
+public:
+  virtual void f();
+};
+
+class Derived : public Base {
+};
+</pre>
+<p>or</p>
+<pre>
+class Base {
+public:
+  void f();
+};
+
+class Derived : public Base {
+private: // change of visibility
+  virtual void f() {
+    Base::f();
+  }
+};
+</pre>
+<p>or</p>
+<pre>
+class Base {
+public:
+  void f();
+};
+
+class Derived : public Base {
+public:
+  void f(int i);
+  void f() { // Prevents hiding by f(int)
+    Base::f();
+  }
+};
+</pre>
+<p>or</p>
+<pre>
+class Base {
+public:
+  virtual void f();
+};
+
+class Derived : public Base {
+public:
+  void f() final { // final
+    Base::f();
+  }
+};
+</pre>

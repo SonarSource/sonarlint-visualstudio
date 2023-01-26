@@ -1,0 +1,35 @@
+<p>C++20 introduced <code>std::source_location</code> to represent the information about the code point. This class exposes the same information as
+<code>__FILE__</code>, <code>__LINE__</code>, and <code>__func__</code> and makes it possible to pass them together as a single argument.</p>
+<p>Furthermore, the <code>std::source_location::current()</code> function when used as the default argument of the function parameter, will collect
+information from the call side. As consequence, this class enables the replacement of various logging macros, with functions accepting
+<code>std::source_location</code> as a parameter.</p>
+<p>This rule reports the use of source location-related macros like <code>__FILE__</code>, <code>__LINE__</code>, and <code>__func__</code> which can
+be replaced by <code>std::source_location</code>.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void log(std::string_view message, std::string_view func, std::uint_least32_t line);
+
+#define TRACE(msg) std::cout &lt;&lt; __FILE__ &lt;&lt;':' &lt;&lt;__LINE__ &lt;&lt;' ' &lt;&lt; msg // Noncompliant
+
+void func()
+{
+    log("entering func", __func__, __LINE__);  // Noncompliant
+    TRACE("leaving func");
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void log(std::string_view message, std::source_location loc = std::source_location::current());
+
+std::ostream trace(std::string_view msg,
+                   std::source_location location = std::source_location::current()) {
+  return std::cout &lt;&lt;location.file_name() &lt;&lt;':' &lt;&lt;location.line() &lt;&lt;' '&lt;&lt; msg;
+}
+
+void func()
+{
+    log("entering func", std::source_location::current());
+    // or equivalently log("entering func")
+    trace("leaving func");
+}
+</pre>

@@ -1,0 +1,19 @@
+<p>In 1978, Brian Kernighan and Dennis Ritchie published the first edition of The C Programming Language. This book, known to C programmers as
+"K&amp;R", served for many years as an informal specification of the language. The version of C that it describes is commonly referred to as K&amp;R
+C.</p>
+<p>The K&amp;R function definition syntax introduced in the book was later deprecated in the ANSI C and ISO C standards. Even though the K&amp;R
+syntax is still supported in the ISO C11 standard, it’s not in ISO C++ standard versions and is not considered readable by most C/C++ developers
+today.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+int foo(a, b)   // Noncompliant K&amp;R C syntax
+  int a;
+  char* b;
+{
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+int foo(int a, char* b) { // Compliant
+}
+</pre>

@@ -1,0 +1,43 @@
+<p><code>std::enable_if</code> is a very important part of template meta-programming in C++ up to C++17. Based on SFINAE, it can be used to subtly
+tune the behavior of overload resolution based on properties of types.</p>
+<p>However, using <code>std::enable_if</code> correctly is not easy, and requires skills and experience, for a resulting code that is not
+straightforward. Since C++20, new features offer first-class support for what used to require <code>enable_if</code> trickery:</p>
+<ul>
+  <li> Concepts allow defining named constraints on types, using a terse syntax to specify that a template argument must adhere to a concept; </li>
+  <li> <code>requires</code> clauses can be directly written for one-shot constraints; </li>
+  <li> In some cases, using <code>if constexpr</code> (introduced in C++17) may replace an overload set with just one function (see {rule:cpp:S6017}).
+  </li>
+</ul>
+<p>Additionally, since those features provide a higher level of abstraction, compilers understand them better and can provide clearer diagnostics when
+a constraint is violated.</p>
+<p>As a consequence, <code>std::enable_if</code> is no longer the right tool and should be replaced with those facilities. Note that the replacement
+is not always mechanical: The expression controlling a <code>std::enable_if</code> would probably be acceptable as a <code>requires</code> condition,
+but better alternatives usually exist, for instance reusing an existing concept defined in the standard.</p>
+<p>This rule reports the use of <code>std::enable_if</code>.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+template &lt;typename N, class = typename
+  std::enable_if&lt;std::is_integral_v&lt;N&gt; &amp;&amp; std::is_signed_v&lt;N&gt;&gt;::type&gt; // Noncompliant
+auto negate(N n) { return -n; }
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+template &lt;class N&gt; requires std::signed_integral&lt;N&gt;
+auto negate(N n) { return -n; }
+</pre>
+<p>Or</p>
+<pre>
+template &lt;std::signed_integral N&gt;
+auto negate(N n) { return -n; }
+</pre>
+<p>Or</p>
+<pre>
+auto negate(std::signed_integral auto n) { return -n; }
+</pre>
+<h2>See</h2>
+<p><a href="http://open-std.org/JTC1/SC22/WG21/docs/papers/2016/p0225r0.html">Why I want Concepts, and why I want them sooner rather than
+later</a></p>
+<h3>See Also</h3>
+<ul>
+  <li> {rule:cpp:S6017} to see when <code>std::enable_if</code> could be replaced with <code>if constexpr</code>. </li>
+</ul>

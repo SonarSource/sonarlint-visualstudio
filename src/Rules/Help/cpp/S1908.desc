@@ -1,0 +1,3 @@
+<p>Most of the time, a very complex file breaks the Single Responsibility Principle and should be re-factored into several different files.</p>
+<h2>Deprecated</h2>
+<p>This rule is deprecated, and will eventually be removed.</p>

@@ -1,0 +1,13 @@
+<p>While C syntax considers array subscripts (<code>[]</code>) as symmetrical, meaning that <code>a[i]</code> and <code>i[a]</code> are equivalent,
+the convention is to put the index in the brackets rather than the array name. Inverting the index and array name serves no purpose, and is very
+confusing.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+10[P1] = 0; // Noncompliant
+dostuff(i[arr]); // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+P1[10] = 0;
+dostuff(arr[i]);
+</pre>

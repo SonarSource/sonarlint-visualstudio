@@ -1,0 +1,27 @@
+<p>The type of an integer is dependent on a complex combination of factors including:</p>
+<ul>
+  <li> The magnitude of the constant; </li>
+  <li> The implemented sizes of the integer types; </li>
+  <li> The presence of any suffixes; </li>
+  <li> The number base in which the value is expressed (i.e. decimal, octal or hexadecimal). </li>
+</ul>
+<p>For example, the value 0x8000 is of type <code>unsigned int</code> in a 16-bit environment, but of type (<code>signed</code>) <code>int</code> in a
+32-bit environment.</p>
+<p>Note:</p>
+<ul>
+  <li> Any value with a "U" suffix is of unsigned type; </li>
+  <li> An unsuffixed decimal value less than 2^31 is of signed type. </li>
+</ul>
+<p>But:</p>
+<ul>
+  <li> An unsuffixed hexadecimal value greater than or equal to 2^15 may be of signed or unsigned type; </li>
+  <li> For C90, an unsuffixed decimal value greater than or equal to 2^31 may be of signed or unsigned type. </li>
+</ul>
+<p>In C++, if an overload set includes candidates for an <code>unsigned int</code> and an <code>int</code>, then the overload that would be matched by
+0x8000 is therefore dependent on the implemented integer size. Adding a "U" suffix to the value specifies that it is unsigned.</p>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 10.6 - A "U" suffix shall be applied to all constants of unsigned type. </li>
+  <li> MISRA C++:2008, 2-13-3 - A "U" suffix shall be applied to all octal or hexadecimal integer literals of unsigned type. </li>
+  <li> MISRA C:2012, 7.2 - A "u" or "U" suffix shall be applied to all integer constants that are represented in an unsigned type. </li>
+</ul>

@@ -1,0 +1,57 @@
+<p>C++20 extends the <code>using</code> declaration to <code>class enum</code>. <code>using enum</code> introduces all the <code>enum</code> constants
+into the current scope.</p>
+<pre>
+enum class rgbaColorChannel { red, green, blue, alpha };
+
+std::string_view toString(rgbaColorChannel channel) {
+  switch (channel) {
+    using enum rgbaColorChannel;
+    case red:   return "red";
+    case green: return "green";
+    case blue:  return "blue";
+    case alpha: return "alpha";
+  }
+}
+</pre>
+<p>As with other <code>using</code> declarations, <code>using enum</code> improves readability when used in small scopes yet might generate confusion
+in large scopes.</p>
+<p>The <code>switch</code> statement, as in the example above, when applied to a <code>class enum</code> value, is a natural scope for <code>using
+enum</code>.</p>
+<p>This rule reports scopes that use a particular <code>class enum</code> extensively and could benefit from <code>using enum</code> declaration. For
+example, it reports most <code>switch</code> statements applied to an <code>enum</code> value.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+enum class DayOfTheWeek { mon, tue, wed, thu, fri, sat, sun };
+
+bool isWorkDay(DayOfTheWeek day) {
+  switch(day) { // Noncompliant: case statements are too verbose
+    case DayOfTheWeek::mon: return true;
+    case DayOfTheWeek::tue: return true;
+    case DayOfTheWeek::wed: return true;
+    case DayOfTheWeek::thu: return true;
+    case DayOfTheWeek::fri: return true;
+    case DayOfTheWeek::sat: return false;
+    case DayOfTheWeek::sun: return false;
+  }
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+enum class DayOfTheWeek { mon, tue, wed, thu, fri, sat, sun };
+
+bool isWorkDay(DayOfTheWeek day) {
+  switch(day) {
+    using enum DayOfTheWeek;
+
+    case mon: return true;
+    case tue: return true;
+    case wed: return true;
+    case thu: return true;
+    case fri: return true;
+    case sat: return false;
+    case sun: return false;
+  }
+}
+</pre>
+<h2>Exceptions</h2>
+<p>The rule will not apply if adding the <code>using enum</code> clause would create a name collision or reduce readability by shadowing a name.</p>

@@ -1,0 +1,45 @@
+<p>Exceptions handlers (<code>catch ()</code>) are evaluated in the order they are written. Once a match is found, the evaluation stops. If there is a
+handler for a base class followed by a handler for class derived from that base class, the second handler will never trigger: The handler for the base
+class will match the derived class, and will be the only executed handler. The derived class handler is dead code.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class BaseException { };
+class DerivedException: public BaseException { };
+
+try
+{
+  // ...
+}
+catch ( BaseException &amp;b ) // Will catch DerivedException as well
+{
+  // ...
+}
+catch ( DerivedException &amp;d ) // Noncompliant, the previous handled effectively hides this one
+{
+  // Any code here will be unreachable,
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class BaseException { };
+class DerivedException: public BaseException { };
+
+try
+{
+  // ...
+}
+catch ( DerivedException &amp;d ) // Compliant
+{
+  // ...
+}
+catch ( BaseException  &amp;b ) // Compliant, will be triggered for BaseException that are not DerivedException
+{
+  // ...
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C++:2008, 15-3-6 </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/Nnw-BQ">CERT, ERR54-CPP.</a> - Catch handlers should order their parameter types from most
+  derived to least derived </li>
+</ul>

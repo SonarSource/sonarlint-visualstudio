@@ -1,0 +1,16 @@
+<p>While working with bitwise operators <code>&amp;</code> or <code>|</code> it is easy to make a typo and&nbsp;write the equivalent logical operators
+<code>&amp;&amp;</code> or <code>||</code>. This rule is raising issues when the right operand of a logical expression <code>&amp;&amp;</code> or
+<code>||</code> is a constant of integral type, as the developer probably meant to use the corresponding bitwise operator <code>&amp;</code> or
+<code>|</code>.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+int fun(int a) {
+  return a || 4; // Noncompliant, did you mean to use bitwise operator '|'?
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+int fun(int a) {
+ return a | 4;
+}
+</pre>

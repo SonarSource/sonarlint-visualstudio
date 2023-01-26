@@ -1,0 +1,131 @@
+<p>To ensure future code portability, obsolete POSIX functions should be removed. Those functions, with their replacements are listed below:</p>
+<table>
+  <colgroup>
+    <col style="width: 50%;">
+    <col style="width: 50%;">
+  </colgroup>
+  <thead>
+    <tr>
+      <th>Obsolete</th>
+      <th>Use Instead</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><p>asctime</p></td>
+      <td><p>strftime</p></td>
+    </tr>
+    <tr>
+      <td><p>asctime_r</p></td>
+      <td><p>strftime</p></td>
+    </tr>
+    <tr>
+      <td><p>bcmp</p></td>
+      <td><p>memcmp</p></td>
+    </tr>
+    <tr>
+      <td><p>bcopy</p></td>
+      <td><p>memmove memcpy</p></td>
+    </tr>
+    <tr>
+      <td><p>bsd_signal</p></td>
+      <td><p>sigaction</p></td>
+    </tr>
+    <tr>
+      <td><p>bzero</p></td>
+      <td><p>memset</p></td>
+    </tr>
+    <tr>
+      <td><p>ctime</p></td>
+      <td><p>strftime</p></td>
+    </tr>
+    <tr>
+      <td><p>ecvt</p></td>
+      <td><p>sprintf</p></td>
+    </tr>
+    <tr>
+      <td><p>fcvt</p></td>
+      <td><p>sprintf</p></td>
+    </tr>
+    <tr>
+      <td><p>ftime</p></td>
+      <td><p>no replacement function</p></td>
+    </tr>
+    <tr>
+      <td><p>gcvt</p></td>
+      <td><p>sprintf</p></td>
+    </tr>
+    <tr>
+      <td><p>getcontext</p></td>
+      <td><p>Rewrite to use POSIX threads.</p></td>
+    </tr>
+    <tr>
+      <td><p>gethostbyaddr</p></td>
+      <td><p>getnameinfo</p></td>
+    </tr>
+    <tr>
+      <td><p>gethostbyname</p></td>
+      <td><p>getaddrinfo</p></td>
+    </tr>
+    <tr>
+      <td><p>getwd</p></td>
+      <td><p>getcwd</p></td>
+    </tr>
+    <tr>
+      <td><p>index</p></td>
+      <td><p>strchr</p></td>
+    </tr>
+    <tr>
+      <td><p>makecontext</p></td>
+      <td><p>Rewrite to use POSIX threads.</p></td>
+    </tr>
+    <tr>
+      <td><p>mktemp</p></td>
+      <td><p>mkstemp</p></td>
+    </tr>
+    <tr>
+      <td><p>pthread_attr_getstackaddr</p></td>
+      <td><p>pthread_attr_getstack</p></td>
+    </tr>
+    <tr>
+      <td><p>pthread_attr_setstackaddr</p></td>
+      <td><p>pthread_attr_setstack</p></td>
+    </tr>
+    <tr>
+      <td><p>rand_r</p></td>
+      <td><p>rand</p></td>
+    </tr>
+    <tr>
+      <td><p>rindex</p></td>
+      <td><p>strrchr</p></td>
+    </tr>
+    <tr>
+      <td><p>scalb</p></td>
+      <td><p>scalbln', 'scalblnf' or 'scalblnl' instead of this function</p></td>
+    </tr>
+    <tr>
+      <td><p>swapcontext</p></td>
+      <td><p>Rewrite to use POSIX threads.</p></td>
+    </tr>
+    <tr>
+      <td><p>ualarm</p></td>
+      <td><p>'timer_create', 'timer_delete', 'timer_getoverrun', 'timer_gettime', or 'timer_settime' instead of this function</p></td>
+    </tr>
+    <tr>
+      <td><p>usleep</p></td>
+      <td><p>'nanosleep' or 'setitimer' function</p></td>
+    </tr>
+    <tr>
+      <td><p>utime</p></td>
+      <td><p>utimensat</p></td>
+    </tr>
+    <tr>
+      <td><p>vfork</p></td>
+      <td><p>fork</p></td>
+    </tr>
+    <tr>
+      <td><p>wcswcs</p></td>
+      <td><p>wcsstr</p></td>
+    </tr>
+  </tbody>
+</table>

@@ -1,0 +1,27 @@
+<p>While it is technically correct to assign to parameters from within function bodies, it reduces code readability because developers won’t be able
+to tell whether the original parameter or some temporary variable is being accessed without going through the whole function. Moreover, some
+developers might also expect assignments of function parameters to be visible to callers, which is not the case, and this lack of visibility could
+confuse them. Instead, all parameters, caught exceptions, and foreach parameters should be treated as constants.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+function MyClass(name, strings) {
+  name = foo;                    // Noncompliant
+
+  for (var str of strings) {
+    str = "";  // Noncompliant
+  }
+}
+</pre>
+<h2>Exceptions</h2>
+<p>There is a common pattern in JavaScript to overwrite certain parameters depending on other parameters that are optional. For example, a callback is
+by convention always passed in the last position. If a parameter in a previous position was not passed, the callback will be passed in its position
+instead.</p>
+<p>Therefore, the rule ignores parameter reassignments that are inside an <code>if</code> statement block.</p>
+<pre>
+function f(param, optionalParam, cb) {
+  if (typeof optionalParam === 'function') {
+    cb = optionalParam;
+    optionalParam = {};
+  }
+}
+</pre>

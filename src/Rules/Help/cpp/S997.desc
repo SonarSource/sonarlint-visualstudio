@@ -1,0 +1,65 @@
+<p>Declaring names in appropriate namespaces reduces the number of names found during lookup, decreasing the risk of name clash and of surprising name
+lookup.</p>
+<p>This rule raises an issue when a name in the global namespace has external linkage and therefore can be accessed from outside a particular
+translation unit.</p>
+<p>Some names have to be declared in the global namespace, and are excluded from this rule:</p>
+<ul>
+  <li> <code>main</code> (or its variants) </li>
+  <li> Overloads of the global <code>new</code> &amp; <code>delete</code> operators </li>
+</ul>
+<p>In addition, no issue is raised for function definitions because they can only be accessed from different translation units through a forward
+declaration that will be flagged.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+int a; // Noncompliant
+int b = 1; // Noncompliant
+extern int  c = 1; // Noncompliant
+extern const int d = 1; // Noncompliant
+
+void f(); // Noncompliant
+
+class A { // Noncompliant
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+namespace MY_API { // Compliant
+int a;
+int b = 1;
+extern int  c = 1;
+extern const int d = 1;
+
+void  f();
+
+class A {
+};
+} // namespace MY_API
+
+namespace { // Compliant, anonymous namespace
+  int  a = 1;
+  void m2() {
+  }
+}
+
+int main() { // Compliant, exception for main
+}
+
+static int a; // Compliant, internal linkage
+static void m1(); // Compliant, internal linkage
+
+const int a = 1; // Compliant, a global constant is implicitly static
+
+extern "C" int a = 1; // Compliant
+
+extern "C" void f1(); // Compliant
+void f2() {} // Compliant
+
+typedef int a; // Compliant, we don't detect aliases
+
+void *operator new(size_t bytes, const X::Y&amp; context) { return X::malloc(bytes,context); } // Compliant by exception
+void operator delete(void* ptr,  const X::Y&amp; context) { X::free(bytes,context); } // Compliant by exception
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C++:2008, 7-3-1 - The global namespace shall only contain main, namespace declarations and extern "C" declarations. </li>
+</ul>

@@ -1,0 +1,12 @@
+<p>C++ comments (<code>//</code>) require fewer keystrokes, and take less space. Perhaps most importantly, they do not have the nesting problems that
+C-style comments do. Therefore C++ comments are preferred.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+/* this is my comment ... */
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+// this is my comment ...
+</pre>
+<h2>Exceptions</h2>
+<p>Because a C++ header file may be included by a C source file, header files are ignored by this rule.</p>

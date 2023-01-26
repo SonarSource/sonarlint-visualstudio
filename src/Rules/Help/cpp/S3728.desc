@@ -1,0 +1,20 @@
+<p>While in C, and derived languages, it is legal to concatenate two literals by putting them next to each other, this is only justified in a few
+cases. For instance if one is a macro or if the layout makes it clearer.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+const char * v1 = "a""b";      // Noncompliant; same as "ab"
+const char * v2 = "a\n" "b\n"; // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+const char * v1 = "ab"
+const char * v2 = "a\n"
+                  "b\n";
+</pre>
+<h2>Exceptions</h2>
+<pre>
+const char * v3 = "a" /* comment */ "b";
+
+#define _s "b"
+const char * v4 = "a" _s; // concatenation with macro ignored
+</pre>

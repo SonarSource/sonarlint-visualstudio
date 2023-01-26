@@ -1,0 +1,50 @@
+<p><code>for</code> loops are very flexible in C and C++. Because of that, they can carry a complexity that can make the code error-prone, difficult
+to understand, and hard to maintain.</p>
+<p>Many for loops can be written in a way that clearly separates the iteration process from the content of the iteration. This rule makes sure that
+all the code relevant to the iteration is placed in the for-loop header. The compliant code is then easier to reason about.</p>
+<p>A for loop is composed of 4 sub-parts:</p>
+<pre>
+for([initialization]; [condition]; [update])
+  [body]
+</pre>
+<p>We classify the variables used to control them in three categories:</p>
+<ul>
+  <li> A <em>loop-counter</em> is a variable modified in the update. It should not be modified in the body. </li>
+  <li> A <em>loop-constant</em> is an auxiliary variable declared in the initialization. It’s very often used to precompute some data about the end
+  condition or the stride. </li>
+  <li> A <em>pseudo-counter</em> shares some properties with a loop counter, but its update conditions are more complex. It will therefore only be
+  updated in the body, and cannot be used in the update. Using a pseudo-counter makes the loop more complex to reason about, and therefore is not
+  permitted. They are very often declared in the initialization, for instance, to limit their scope, but in some cases reuse existing variables. </li>
+</ul>
+<p>Additionally, the loop condition should refer to at least one <em>loop-counter</em>, and should not modify anything.</p>
+<p>This rule is only checking for loops with a condition and an update.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+for( int h = 0, int i = 0 ; h &lt; 10 ; i += 1 ) { // Noncompliant, the loop-counter is not used in the condition
+}
+
+for( int i = 0 ; i++ &lt; 10 ; i += 1 ) { // Noncompliant, loop-counter i is updated in the condition
+}
+
+for( int i = 0 , int h = 0; i+(++h) &lt; 10 ; i += 1 ) { // Noncompliant, pseudo-counter h is updated in the condition
+}
+
+for( int i = 0 ; i &lt; 10 ; i += 1 ) { // Noncompliant, loop-counter i is updated in the body
+  if (i%2)  { ++i;}
+}
+
+for( int i = 0 , j = 0 ; i &lt; 10 ; i += j) { // Noncompliant, pseudo-counter j is is used in the update
+  j = i + 1;
+}
+
+for( int i = 0 , j = 0 ; i &lt; 10 + j ; i += 1) { // Noncompliant, pseudo-counter j is is used in the condition
+  j = i + 1;
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 13.5 - The three expressions of a for statement shall be concerned only with loop control. </li>
+  <li> MISRA C++:2008, 6-5-5 - A <em>loop-control-variable</em> other than the <em>loop-counter</em> shall not be modified within <em>condition</em>
+  or <em>expression</em>. </li>
+  <li> MISRA C:2012, 14.2 - A for loop shall be well-formed </li>
+</ul>

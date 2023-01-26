@@ -1,0 +1,25 @@
+<p><code>std::format</code> takes as an argument a format string that contains replacement fields (surrounded with <code>{}</code>) and a set of extra
+arguments that will be formatted inside the replacement fields. Even if the format string is checked at compile-time, it is possible to have a
+mismatch between the format string and the arguments. For example, when:</p>
+<ul>
+  <li> The format string contains fewer replacement fields than the number of extra arguments: <code>std::format("{} {}", 1, 2, 3);</code> </li>
+  <li> The format string uses indexes for the replacement fields, but one index is missing: <code>std::format("{0} {0} {2}", 1, 2, 3);</code> </li>
+</ul>
+<p>In these cases, the extra arguments are silently ignored. In the best-case scenario, it leads to dead code. Otherwise, it is a typo, and the output
+will not be intended.</p>
+<p>This rule detects when the arguments of <code>std::format</code> are unused in a way that doesn’t trigger {rule:cpp:S6487}. Therefore, you should
+make sure that {rule:cpp:S6487} is enabled with this rule.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+std::cout &lt;&lt; std::format("{} {}", 1, 2, 3); // Noncompliant
+std::cout &lt;&lt; std::format("{0} {2}", 1, 2, 3); // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+std::cout &lt;&lt; std::format("{} {} {}", 1, 2, 3); // Compliant
+std::cout &lt;&lt; std::format("{0} {1} {2} {1}", 1, 2, 3); // Compliant
+</pre>
+<h2>See</h2>
+<ul>
+  <li> {rule:cpp:S6487} - A version of this rule triggers for cases that are likely a bug. </li>
+</ul>

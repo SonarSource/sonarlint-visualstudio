@@ -1,0 +1,14 @@
+<p><code>#include_next</code> is a gcc-specific language extension that alters the search path for the specified header file by starting the search
+from the header file directory <em>after</em> the one in which the directive was encountered. It also ignores the distinction between
+<code>"file"</code> and <code>&lt;file&gt;</code>. It is typically used when you have two (probably related) header files with the same name, although
+there is nothing in the extension to enforce or limit the use to same-name files.</p>
+<p>Use of this extension can be tricky to get right, and is almost never justified. Instead, you should use an absolute path in the
+<code>#include</code> statement or rename one of the files.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#include_next "foo.h" // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+#include "/usr/local/include/foo.h"
+</pre>

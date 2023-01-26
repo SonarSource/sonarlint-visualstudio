@@ -1,0 +1,29 @@
+<p>The effect of this rule is to require that operands are appropriately parenthesized. Parentheses are important in this situation both for
+readability of code and for ensuring that the behavior is as the developer intended.</p>
+<p>Where an expression consists of either a sequence of only logical <code>&amp;&amp;</code> or a sequence of logical <code>||</code>, extra
+parentheses are not required.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+if (x == 0 &amp;&amp; ishigh);                   // Noncompliant
+if (x || y || z);
+if (x || y &amp;&amp; z);                        // Noncompliant
+if (x &amp;&amp; !y);                            // Noncompliant
+if (is_odd(y) &amp;&amp; x);
+if ((x &gt; c1) &amp;&amp; (y &gt; c2) &amp;&amp; (z &gt; c3));
+if ((x &gt; c1) &amp;&amp; (y &gt; c2) || (z &gt; c3));   // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+if ((x == 0) &amp;&amp; ishigh);
+if (x || y || z);
+if (x || (y &amp;&amp; z));
+if (x &amp;&amp; (!y));
+if (is_odd(y) &amp;&amp; x);
+if ((x &gt; c1) &amp;&amp; (y &gt; c2) &amp;&amp; (z &gt; c3));
+if ((x &gt; c1) &amp;&amp; ((y &gt; c2) || (z &gt; c3)));
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 12.5 - The operands of a logical &amp;&amp; or || shall be primary-expressions. </li>
+  <li> MISRA C++:2008, 5-2-1 - Each operand of a logical &amp;&amp; or || shall be a postfix-expression. </li>
+</ul>

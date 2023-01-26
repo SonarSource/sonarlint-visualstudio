@@ -1,0 +1,47 @@
+<p><code>std::move</code> is not really moving anything, but tells the compiler that a value can be considered as no longer useful. It is technically
+a cast to a RValue, and allows overload resolution to select the version of a function that will perform destructive operations on that value
+(therefore actually moving from it).</p>
+<pre>
+void f(A const &amp;a); // Just reading from a
+void f(A&amp;&amp; a); // I can perform destructive operations on a, like resource stealing
+
+void g() {
+    A a;
+    f(a); // First overload is selected
+    f(std::move(a)); // Second overload is selected
+}
+</pre>
+<p>As a consequence, calling <code>std::move</code> on an object and then not directly using the returned value as a function argument is not the
+typical pattern, and may be indicative of a bug. Note that calling a member function on the result of <code>std::move</code> <em>is</em> considered as
+passing it to a function (as the hidden <code>this</code> parameter), as well as using it as an operand (the called function is the overloaded
+operator) or initializing an object with it (the called function is the constructor).</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void sink(A &amp;&amp;a) {
+  std::move(a); // Noncompliant, and not doing anything
+}
+
+void f(A &amp;&amp;a) {
+  // May or may not move the member name, depending on its type, the intent is not clear anyways,
+  // for instance, is `a` supposed to be in a moved-from state after the call?
+  g(std::move(a).name); // Noncompliant
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void f(A &amp;&amp;a) {
+  g(std::move(a.name)); // Compliant, `a.name` is in moved-from state, `a` itself is not
+</pre>
+<h2>Exceptions</h2>
+<p>Even if calling a built-in operator or initializing data of built-in type are not function calls, for consistency with cases that involve
+user-defined types, this rule will not report in those cases:</p>
+<pre>
+struct Data {A a; int b; };
+
+Data add(Data &amp;&amp;d1, Data &amp;&amp;d2) {
+  return Data{
+    std::move(d1.a) + std::move(d2.a), // Compliant, operator+ might have an overload for A&amp;&amp;
+    std::move(d1.b) + std::move(d2.b)  // Compliant by exception
+  };
+}
+</pre>

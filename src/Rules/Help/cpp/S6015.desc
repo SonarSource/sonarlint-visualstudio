@@ -1,0 +1,52 @@
+<p><code>bool std::uncaught_exception()</code> allows you to know whether a thread is in an exception stack unwinding context. However, its practical
+functionality was restricted.</p>
+<p>C++17 deprecates <code>bool std::uncaught_exception()</code> and introduces <code>int std::uncaught_exceptions()</code> which returns the number of
+uncaught exceptions. The code example below shows how you can benefit from this new improved function.</p>
+<p><code>std::uncaught_exception</code> has been removed in C++20.</p>
+<p>This rule will flag any usage of <code>std::uncaught_exception</code>.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class Transaction {
+
+  // ...
+
+  ~Transaction() {
+    if (!std::uncaught_exception()) { // Noncompliant, replace std::uncaught_exception by std::uncaught_exceptions
+      // commit
+    } else {
+      // rollback
+    }
+  }
+};
+</pre>
+<h2>Compliant Solution</h2>
+<p>The following example shows how <code>std::uncaught_exceptions</code> can be used to determine in <code>~Transaction</code> if a new exception was
+thrown since <code>t1</code>/<code>t2</code> creation.</p>
+<pre>
+class Transaction {
+
+  // ...
+
+  ~Transaction() {
+    if (initialUncaughtExceptions == std::uncaught_exceptions()) {
+      // commit
+    } else {
+      // rollback
+    }
+  }
+
+  // ...
+
+  int initialUncaughtExceptions = std::uncaught_exceptions();
+};
+
+int f() {
+  try {
+    Transaction t1;
+    // ... something here could throw
+  } catch(...) {
+    Transaction t2;
+    // ... something here could throw
+  }
+}
+</pre>

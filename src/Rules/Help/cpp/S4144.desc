@@ -1,0 +1,57 @@
+<p>When two methods have the same implementation, either it was a mistake - something else was intended - or the duplication was intentional, but may
+be confusing to maintainers. In the latter case, one implementation should invoke the other.</p>
+<p>This rule raises an exception when two methods implemented inside the class definition share the same implementation.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class Point {
+  int x;
+  int y;
+
+// .....
+
+public:
+  void setX(int v) {
+    if (v &gt;= 0 &amp;&amp; v &lt; MAX_X) {
+      x = v;
+      return;
+    }
+    error();
+  }
+
+  void setY(int v) {  // Noncompliant
+    if (v &gt;= 0 &amp;&amp; v &lt; MAX_X) {
+      x = v;
+      return;
+    }
+    error();
+  }
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class Point {
+  int x;
+  int y;
+
+// .....
+
+public:
+ void setX(int v) {
+    if (v &gt;= 0 &amp;&amp; v &lt; MAX_X) {
+      x = v;
+      return;
+    }
+    error();
+  }
+
+  void setY(int v) {
+    if (v &gt;= 0 &amp;&amp; v &lt; MAX_X) {
+      y = v;
+      return;
+    }
+    error();
+  }
+};
+</pre>
+<h2>Exceptions</h2>
+<p>Empty methods, methods with the same name (overload) and methods with only one statement are ignored.</p>

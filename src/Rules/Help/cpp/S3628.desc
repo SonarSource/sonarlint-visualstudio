@@ -1,0 +1,27 @@
+<p>Since C++11, raw string literals can be used to avoid the need to escape characters in a string.</p>
+<p>This rules raises an issue when using a raw string literal would make a string easier to read. For instance, when a non-raw string contains
+different escaped sequences (among <code>\'</code>, <code>\\</code>, <code>\"</code> and <code>\?</code>) or more than two of the same kind.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+const auto* result = "a\?b \""; // Noncompliant
+const auto* regEx = "\\\\(\\\\.\\\\)"; // Noncompliant
+const auto* message = "Use \"x\" or \"y\""; // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+const auto* result = R"(a?b ")";
+const auto* regEx = R"(\\(\\.\\))";
+const auto* message = R"(Use "x" or "y")";
+
+const auto* twoLines = "one\r\ntwo"; // Compliant, contains \r
+const auto* path = "C:\\Program Files\\Microsoft Office\\Office16\\";  // Compliant, raw strings would not improve readability
+</pre>
+<h2>Exceptions</h2>
+<p>To preserve readability, this rule ignores strings containing only one character and strings with escaped whitespace or non-printable
+characters:</p>
+<ul>
+  <li> Non-printable characters: <code>\a</code> <code>\b</code> <code>\f</code> <code>\v</code> <code>\nnn</code> <code>\xnn</code>
+  <code>\unnnn</code> <code>\Unnnnnnnn</code> </li>
+  <li> Tab: <code>\t</code> </li>
+  <li> Carriage return: <code>\r</code> </li>
+</ul>

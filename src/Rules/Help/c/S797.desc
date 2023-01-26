@@ -1,0 +1,19 @@
+<p>Trigraphs are denoted by a sequence of 2 question marks followed by a specified third character (e.g. ??- represents a '~' (tilde) character and
+??) represents a ']'). They can cause accidental confusion with other uses of two question marks.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+static const char str[] = "(Date should be in the form ??-??-??)"; // Noncompliant. Evaluates to "(Date should be in the form ~~]"
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+static const char str[] = "(Date should be in the form ?" "?-?" "?-?" ?)";  // adjacent string literals concatenated at compile time
+static const char str2[] = "(Date should be in the form ?-?-?)"; // problem avoided by eliminating 2nd '?' in each sequence
+static const char str3[] = "(Date should be in the form ? ?-? ?-? ?)"; // problem avoided by spacing '?'s out
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 4.2 - Trigraphs shall not be used </li>
+  <li> MISRA C++:2008, 2-3-1 - Trigraphs shall not be used </li>
+  <li> MISRA C:2012, 4.2 - Trigraphs shall not be used </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/uNUxBQ">CERT, PRE07-C.</a> - Avoid using repeated question marks </li>
+</ul>

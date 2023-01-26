@@ -1,0 +1,24 @@
+<p>This excludes the use of <code>//</code> C99 style comments and C++ style comments, since these are not permitted in C90. Many compilers support
+the <code>//</code> style of comments as an extension to C90. The use of <code>//</code> in preprocessor directives (e.g. <code>#define</code>) can
+vary. Also the mixing of <code>/* ... */</code> and <code>//</code> is not consistent. This is more than a style issue, since different (pre C99)
+compilers may behave differently.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+int main(int argc, char* argv[])
+{
+  // Do nothing - Noncompliant
+  return 0;
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+int main(int argc, char* argv[])
+{
+  /* Do nothing - Compliant */
+  return 0;
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 2.2 - Source code shall only use /* …​ */ style comments. </li>
+</ul>

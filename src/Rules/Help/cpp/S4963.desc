@@ -1,0 +1,73 @@
+<p>Most classes should not directly handle resources, but instead, use members that perform resource handling for them:</p>
+<ul>
+  <li> For memory, it can be <code>std::unique_ptr</code>, <code>std::shared_ptr</code>, <code>std::vector</code>…​ </li>
+  <li> For files, it can be <code>std::ofstream</code>, <code>std::ifstream</code>…​ </li>
+  <li> …​ </li>
+</ul>
+<p>Classes that avoid directly handling resources don’t need to define any of the special member functions required to properly handle resources:
+destructor, copy constructor, move constructor, copy-assignment operator, move-assignment operator. That’s because the versions of those functions
+provided by the compiler do the right thing automatically, which is especially useful because writing these functions correctly is typically tricky
+and error-prone.</p>
+<p>Omitting all of these functions from a class is known as the Rule of Zero because no special function should be defined.</p>
+<p>In some cases, this rule takes a slightly different shape, while respecting the fact that no definition of those functions will be provided:</p>
+<ul>
+  <li> For the base class of a polymorphic hierarchy, the destructor should be declared as <code>public</code> and <code>virtual</code>, and defaulted
+  (<code>=default</code>). The copy-constructor and copy-assignment operator should be deleted. (If you want to copy classes in a polymorphic
+  hierarchy, use the <code>clone</code> idiom.) The move operation will be automatically deleted by the compiler. </li>
+  <li> For other kinds of base classes, the destructor should be <code>protected</code> and non-<code>virtual</code>, and defaulted
+  (<code>=default</code>). </li>
+</ul>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class FooPointer { // Noncompliant. The code is correct (it follows the rule of 5), but unnecessarily complex
+  Foo* pFoo;
+public:
+  FooPointer(int initValue) {
+    pFoo = new Foo(initValue);
+  }
+  ~FooPointer() {
+    delete pFoo;
+  }
+  FooPointer(FooPointer const &amp;fp) = delete;
+  FooPointer const &amp; operator=(FooPointer const &amp;fp) = delete;
+  FooPointer(FooPointer &amp;&amp;fp) noexcept {
+    pFoo = fp.pFoo;
+    fp.pFoo = nullptr;
+  }
+  FooPointer const &amp; operator=(FooPointer &amp;&amp;fp) {
+    FooPointer temp(std::move(fp));
+    std::swap(temp.pFoo, pFoo);
+    return *this;
+  }
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class FooPointer { // Compliant, std::unique_ptr is use to handle memory management
+  unique_ptr&lt;Foo&gt; pFoo;
+public:
+  FooPointer(int initValue) : pFoo(std::make_unique&lt;Foo&gt;(initValue) {}
+};
+</pre>
+<p>A polymorphic base class can look like this:</p>
+<pre>
+class Base { // Compliant, the virtual destructor is defaulted
+public:
+  virtual ~Base() = default;
+  Base(Base const &amp;) = delete;
+  Base &amp;operator=(Base const &amp;) = delete;
+};
+</pre>
+<h2>Exceptions</h2>
+<ul>
+  <li> Empty destructors are treated as though they were defaulted. </li>
+  <li> There are several cases when this rule should not be followed. For instance, if your class is manually handling a resource, logging when being
+  constructed/copied, maintaining some kind of counter, having non-transient data that should not be copied (like <code>capacity</code> for
+  <code>std::vector</code>)…​ In that case, it should still follow the rule of 5 ({rule:cpp:S3624}). And you should consider if you can isolate this
+  specific behavior in a base class or a dedicated member data, which would allow you to still follow the rule of 0. </li>
+</ul>
+<h2>See</h2>
+<ul>
+  <li> {rule:cpp:S3624} </li>
+  <li> {rule:cpp:S1235} </li>
+</ul>

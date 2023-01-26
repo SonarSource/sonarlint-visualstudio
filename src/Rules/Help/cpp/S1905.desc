@@ -1,0 +1,18 @@
+<p>Unnecessary casting expressions make the code harder to read and understand.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+int example(int i) {
+  int result = static_cast&lt;int&gt;(i + 42); // Noncompliant
+  return (int) result; // Noncompliant
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+int example(int i) {
+ int result = i + 42;
+ return result;
+}
+</pre>
+<h2>Exceptions</h2>
+<p>In some rare cases, redundant cast might be justifiable. For example, when casting from platform dependant type; your cast might be redundant on
+one platform but not on the others.</p>

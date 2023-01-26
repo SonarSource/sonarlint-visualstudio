@@ -1,0 +1,48 @@
+<p>Preprocessing directives (lines that start with <code>#</code>) can be used to conditionally include or exclude code from compilation. Malformed
+preprocessing directives could lead to the exclusion or inclusion of more code than was intended. Therefore all preprocessing directives should be
+syntactically meaningful.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#define AAA 2
+...
+int foo(void)
+{
+  int x = 0;
+  ...
+
+#ifndef AAA
+  x = 1;
+#else1  /* Noncompliant */
+  x = AAA;
+#endif
+
+  ...
+  return x;
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+#define AAA 2
+...
+int foo(void)
+{
+  int x = 0;
+  ...
+
+#ifndef AAA
+  x = 1;
+#else
+  x = AAA;
+#endif
+
+  ...
+  return x;
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 19.16 - Preprocessing directives shall be syntactically meaningful even when excluded by preprocessor. </li>
+  <li> MISRA C++:2008, 16-0-8 - If the # token appears as the first token on a line, then it shall be immediately followed by a preprocessing token.
+  </li>
+  <li> MISRA C:2012, 20.13 - A line whose first token is # shall be a valid preprocessing directive </li>
+</ul>

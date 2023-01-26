@@ -1,0 +1,32 @@
+<p>The <code>[[nodiscard]]</code> attribute can be placed on type declarations to indicate that any value of such type should not be discarded when
+returned from a function. Accompanying the attribute with the message, explaining why values should not be ignored, contributes to a better
+understanding of code. This is especially important in the case of types, as the reason for which values of the type should not be discarded is a
+defining property of that type (information about failure, handle owning a scarce resource).</p>
+<p>Moreover, marking a type as <code>nodiscard</code>, causes a warning to be reported for invocation of every function that returns this type. As a
+consequence, the cause of the warning is not directly visible from the declaration of the function and requires further investigation from the
+user.</p>
+<p>This rule raises an issue when <code>[[nodiscard]]</code> is used on a type without any explanation.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+struct [[nodiscard]] status_code {  // Noncompliant
+   int code();
+};
+
+status_code open(std::string_view path);
+
+int main()
+{
+   open("/home/user/list.txt");  // warning is raised here
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+struct [[nodiscard("Possible errors should be checked")]] status_code {
+   int code();
+};
+</pre>
+<h2>See</h2>
+<ul>
+  <li> {rule:cpp:S6166} - introducing messages for <code>[[nodiscard]]</code> on functions </li>
+  <li> {rule:cpp:S6007} - marking functions as <code>[[nodicard]]</code> </li>
+</ul>

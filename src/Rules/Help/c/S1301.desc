@@ -1,0 +1,34 @@
+<p><code>switch</code> statements are useful when there are many different cases depending on the value of the same expression. For just one or two
+cases however, the code will be more readable with <code>if</code> statements.</p>
+<p>Moreover, <code>if</code> statements are obviously more suitable when the condition of the <code>switch</code> is boolean.</p>
+<p>Here are the rules to count the cases:</p>
+<ul>
+  <li> <code>default</code> is counted as a case. </li>
+  <li> If there is no <code>default</code>&nbsp;clause, the <code>case</code>&nbsp;count is incremented by one (to account for the
+  <code>else</code>&nbsp;branch of an equivalent <code>if</code>). </li>
+  <li> All the cases falling through to <code>default</code>&nbsp;are not counted (they would all be the <code>else</code>&nbsp;branch of the
+  equivalent <code>if</code>). </li>
+</ul>
+<h2>Noncompliant Code Example</h2>
+<pre>
+switch (variable) {
+  case 0:
+    doSomething();
+    break;
+  default:
+    doSomethingElse();
+    break;
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+if (variable == 0) {
+  doSomething();
+} else {
+  doSomethingElse();
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2012, 16.6 - Every switch statement shall have at least two switch-clauses </li>
+</ul>

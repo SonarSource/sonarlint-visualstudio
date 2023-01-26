@@ -1,0 +1,24 @@
+<p>Making a comparison operator <code>virtual</code> implies that you want to compare objects of different types by overriding
+<code>operator==</code>, for instance, in a subclass to compare instances of the base class with instances of the subclass. But polymorphic comparison
+operators are very difficult to get right, and are actually questionable in concept. After all, can two objects with only a few common members really
+be equal?</p>
+<p>This rule raises issues on <code>virtual</code> comparison operators.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+struct Foo {
+  virtual bool operator==(const Foo &amp;other) const; // Noncompliant
+  virtual bool operator!=(const Foo &amp;other) const; // Noncompliant
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+struct Foo {
+  bool operator==(const Foo &amp;other) const;
+  bool operator!=(const Foo &amp;other) const;
+};
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#c87-beware-of--on-base-classes">C++ Core Guidelines
+  C.87</a> - Beware of == on base classes </li>
+</ul>

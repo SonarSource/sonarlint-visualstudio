@@ -1,0 +1,44 @@
+<p>In C++ every independent object needs to have a unique address, which implies that its size cannot be null. Sub-objects of another object, however,
+do not have this constraint. Empty base class subobjects usually don’t take any space in the final object, but empty member variables, by default,
+take some space, at least one byte. The impact of the final size of the object may be even larger, due to padding and alignment requirements.</p>
+<p>C++ 20 introduces the <code>[[no_unique_address]]</code> attribute. It indicates that preserving the uniqueness of address guarantee is not
+important for the decorated member variable, and if the variable type is empty, no storage needs to be reserved for it in the class.</p>
+<p>If the type is not empty, this attribute is still valid, and has no effect. This allows to place this attribute on dependant member variables in
+template classes, and have the exact behavior depend on the actual template parameters.</p>
+<p>This rule raises an issue on each member of a class that has an empty or potentially empty (in case of templates) type and does not have
+<code>[[no_unique_address]]</code> attribute.</p>
+<p>Note: This rule is disabled on Windows because <code>[[no_unique_address]]</code> <a
+href="https://devblogs.microsoft.com/cppblog/msvc-cpp20-and-the-std-cpp20-switch/#c20-no_unique_address">isn’t well supported by MSVC and Clang on
+this platform</a>.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+struct Empty {};
+struct Wrapped {
+  int* ptr;
+  Empty e; // Noncompliant
+}; // sizeof(Wrapped) is &gt; sizeof(int*)
+
+template&lt;typename K, typename V, typename Hash, typename Equal&gt;
+class HashMap {
+  /* ... */
+  Hash hash; // Noncompliant if HashMap is instantiated with an empty Hash
+  Equal equal; // Noncompliant if HashMap is instantiated with an empty Equal
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+struct Empty {};
+struct Wrapped {
+  int* ptr;
+  [[no_unique_address]] Empty e;
+}; // sizeof(Wrapped) can be equal to sizeof(int*)
+
+template&lt;typename K, typename V, typename Hash, typename Equal&gt;
+class HashMap {
+  /* ... */
+  [[no_unique_address]] Hash hash;
+  [[no_unique_address]] Equal equal;
+};
+</pre>
+<h2>Exceptions</h2>
+<p>This rule does not apply to fields whose class has a non-default alignment.</p>

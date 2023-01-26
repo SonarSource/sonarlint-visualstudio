@@ -1,0 +1,25 @@
+<p>Postfix increment and decrement typically involves making a copy of the object being incremented or decremented, whereas its prefix form does not.
+Therefore the prefix form is usually the more efficient form, and should be preferred.</p>
+<p>This rule raises an issue if a postfix increment or decrement operator is used, but its return value is not read.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void myFunc(int lim)
+{
+  int i;
+  for (i = 0; i &lt; lim; i++)
+  {
+    // do something
+  }
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void myFunc(int lim)
+{
+  int i;
+  for (i = 0; i &lt; lim; ++i)
+  {
+    // do something
+  }
+}
+</pre>

@@ -1,0 +1,101 @@
+<p>Heterogeneous containers were introduced in C++14 to increase performance when working with <code>std::map</code>, <code>std::set</code>,
+<code>std::multimap</code>, <code>std::multiset</code>, and since C++20, their <code>unordered_</code> counterparts. Before their introduction, when
+working with a key in such a container, it was required to use an object of the exact key type. This could lead to costly object creations when we
+would like to work with objects of compatible but different types:</p>
+<pre>
+std::map&lt;std::string, int&gt; m;
+m.find("abc"); // Will convert the char const * to a std::string, maybe performing costly memory allocation
+</pre>
+<p>With heterogeneous containers, the previous code will not create a <code>string</code>, but directly compare keys in the map with the searched
+<code>char const *</code>. This is a behavior you can opt-in with providing a <em>transparent</em> comparison method for the map.</p>
+<pre>
+std::map&lt;std::string, int, std::less&lt;&gt;&gt; m; // std::less&lt;&gt; is transparent, std::less&lt;anything&gt; is not
+m.find("abc"); // Will directly compare the char const* with the keys, no object conversion
+</pre>
+<p>A transparent comparator is one that declares a nested type named <code>is_transparent</code>. It is supposed to be able to compare heterogeneous
+object types, for instance in this case compare a <code>char const *</code> with a <code>string</code>, without performing any conversion.</p>
+<p>What happens if it cannot? Well, if the types are convertible with each other (which is usually the case when you want to work with a heterogeneous
+container), a conversion will happen, and a homogeneous comparison will be performed instead.</p>
+<pre>
+class MyString {
+public:
+  operator std::string() const {return myData;} // Converts to a string
+  // Other functions to make the class behave correctly
+private:
+  std::string myData;
+};
+bool operator==(const std::string&amp;, const std::string&amp;);
+bool operator&lt;(const std::string&amp;, const std::string&amp;);
+
+void f() {
+  std::map&lt;std::string, int, std::less&lt;&gt;&gt; m;
+  MyString str{"abc"};
+  m.find(str);
+}
+</pre>
+<p>In this case, <code>str</code> will not be converted to a <code>std::string</code> when calling the function <code>find</code> (this function is
+now a member function template). However, each time during the search when a comparison will be needed between <code>MyString</code> and
+<code>std::string</code>, a conversion will now happen to convert <code>str</code> to always the same <code>string</code>. A unique conversion is
+replaced by <code>O(ln N)</code> conversions.</p>
+<p>This problem appears also for the case of an unordered container for which heterogeneous lookup is enabled (available since C++20), for which
+equality is used to compare elements in the same bucket (having same or close hashes):</p>
+<pre>
+void g() {
+  std::unordered_map&lt;std::string, int, StringHash, std::equal_to&lt;&gt;&gt; m;
+  MyString str{"abc"};
+  m.find(str);
+}
+</pre>
+<p>In this case <code>str</code> will not be converted to a <code>std::string</code> when calling the function <code>find</code>, and each element of
+the bucket that corresponds to the hash of <code>str</code> will be compared using homogeneous <code>operator==</code>, and for each such comparison,
+a conversion will now happen. The number of compared elements varies depending on the hash distribution from <code>O(1)` (on average) to </code>O(N)``
+(in the worst case). As consequence, the performance of slow runs (when multiple hash collisions happen due to the data distribution) is made even
+worse.</p>
+<p>This rule raises an issue when a transparent lookup function of a heterogeneous container is used with a type that cannot be directly compared with
+the container key type. Only standard associative containers with expensive to create key and straightforward comparison functions are considered.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void f() {
+  std::map&lt;std::string, int, std::less&lt;&gt;&gt; m;
+  MyString str{"abc"}; // See previous definition of MyString
+  m.find(str); // Noncompliant, O(ln N) conversions
+}
+
+void g() {
+  std::unordered_map&lt;std::string, int, StringHash, std::equal_to&lt;&gt;&gt; m;
+  MyString str{"abc"}; // See previous definition of MyString
+  m.find(str); // Noncompliant, up to O(N) conversions
+}
+</pre>
+<h2>Compliant Solution</h2>
+<p>Option 1: Make the container non-heterogeneous</p>
+<pre>
+void f() {
+  std::map&lt;std::string, int&gt; m;
+  MyString str{"abc"}; // See previous definition of MyString
+  m.find(str); // Compliant, one conversion at the start
+}
+
+void g() {
+  std::unordered_map&lt;std::string, int&gt; m;
+  MyString str{"abc"}; // See previous definition of MyString
+  m.find(str); // Compliant, one conversion at the start
+}
+</pre>
+<p>Option 2: Provide heterogeneous comparisons</p>
+<pre>
+bool operator==(const MyString &amp;s1, const std::string &amp;s2) {/*...*/} // invoked for reversed order of arguments since {cpp}20
+bool operator&lt;(const MyString &amp;s1, const std::string &amp;s2) {/*...*/}
+bool operator&lt;(const std::string &amp;s1, const MyString &amp;s2) {/*...*/}
+void f() {
+  std::map&lt;std::string, int, std::less&lt;&gt;&gt; m;
+  MyString str{"abc"}; // See previous definition of MyString
+  m.find(str); // Compliant, no conversion at all
+}
+
+void g() {
+  std::unordered_map&lt;std::string, int, StringHash, std::equal_to&lt;&gt;&gt; m;
+  MyString str{"abc"}; // See previous definition of MyString
+  m.find(str); // Compliant, no conversion for equality and possibly one for hash computation
+}
+</pre>

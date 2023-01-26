@@ -1,0 +1,34 @@
+<p>There are three distinct <code>char</code> types, (plain) <code>char</code>, <code>signed char</code> and <code>unsigned char</code>. <code>signed
+char</code> and <code>unsigned char</code> should only be used for numeric data, and plain <code>char</code> should only be used for character data.
+Since it is implementation-defined, the signedness of the plain <code>char</code> type should not be assumed.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+signed char a = 'a'; // Noncompliant, explicitly signed
+unsigned char b = '\r'; // Noncompliant, explicitly unsigned
+char c = 10; // Noncompliant
+
+unsigned char d = c; // Noncompliant, d is explicitly signed while c is not
+char e = a; // Noncompliant, a is explicitly signed while e is not
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+char a = 'a';
+char b = '\r';
+unsigned char c = 10;
+signed char c = 10;
+</pre>
+<h2>Exceptions</h2>
+<ul>
+  <li> Since the integer value 0 is used as a sentinel for the end of a string, converting this value to char is ignored. </li>
+</ul>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 6.1 - The plain char type shall be used only for the storage and use of character values </li>
+  <li> MISRA C:2004, 6.2 - signed and unsigned char type shall be used only for the storage and use of number values </li>
+  <li> MISRA C++:2008, 5-0-11 - The plain char type shall only be used for the storage and use of character values </li>
+  <li> MISRA C++:2008, 5-0-12 - signed char and unsigned char type shall only be used for the storage and use of numeric values </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/AtcxBQ">CERT, INT07-C.</a> - Use only explicitly signed or unsigned char type for numeric values
+  </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/F9YxBQ">CERT, STR00-C.</a> - Represent characters using an appropriate type </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/3tYxBQ">CERT, STR04-C.</a> - Use plain char for characters in the basic character set </li>
+</ul>

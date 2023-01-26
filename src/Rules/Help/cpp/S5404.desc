@@ -1,0 +1,74 @@
+<p>A <code>condition variable</code>&nbsp;is a synchronization primitive that can be used to block a thread, or multiple threads at the same time,
+until another thread both modifies a shared variable (the&nbsp;<em>condition</em>), and notifies the <code>condition variable</code>.</p>
+<p>Waiting for a <code>condition variable</code>&nbsp;without a <em>condition</em> can lead to spurious wake-ups or to wait forever.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#include &lt;iostream&gt;
+#include &lt;thread&gt;
+#include &lt;condition_variable&gt;
+
+std::mutex mutex;
+std::condition_variable condVar;
+
+void consumer() {
+  std::cout &lt;&lt; "Waiting for work" &lt;&lt; std::endl;
+  std::unique_lock&lt;std::mutex&gt; lck(mutex);
+  condVar.wait(lck); // noncompliant: can wait forever as the order between t1 and t2 is not guaranteed
+  std::cout &lt;&lt; "Doing some work" &lt;&lt; std::endl;
+}
+
+void producer() {
+  std::cout &lt;&lt; "Work submited" &lt;&lt; std::endl;
+  condVar.notify_one(); // this can be executed before or after the wait in consumer, no guarantee
+}
+
+int main() {
+  std::thread t1(consumer);
+  std::thread t2(producer);
+
+  t1.join();
+  t2.join();
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+#include &lt;iostream&gt;
+#include &lt;thread&gt;
+#include &lt;condition_variable&gt;
+
+std::mutex mutex;
+std::condition_variable condVar;
+
+bool pendingWork{false};
+
+void consumer() {
+  std::cout &lt;&lt; "Waiting for work" &lt;&lt; std::endl;
+  std::unique_lock&lt;std::mutex&gt; lck(mutex);
+  condVar.wait(lck, []{ return pendingWork; }); // compliant: if this is called after producer in t2, the call will not block thanks to the condition
+  std::cout &lt;&lt; "Doing some work" &lt;&lt; std::endl;
+}
+
+void producer() {
+  {
+    std::lock_guard&lt;std::mutex&gt; lck(mutex);
+    pendingWork = true;
+  }
+  std::cout &lt;&lt; "Work submitted" &lt;&lt; std::endl;
+  condVar.notify_one();
+}
+
+int main(){
+  std::thread t1(consumer);
+  std::thread t2(producer);
+
+  t1.join();
+  t2.join();
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://www.modernescpp.com/index.php/c-core-guidelines-be-aware-of-the-traps-of-condition-variables">The traps of condition
+  variables</a> </li>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#cp42-dont-wait-without-a-condition">C++ Core Guidelines -
+  CP.42</a> - Don’t wait without a condition </li>
+</ul>

@@ -1,0 +1,18 @@
+<p>A macro definition should not be redefined without marking that intent specifically by un-defining it first.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#define A 1
+#define A 2
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+#define A 1
+#undef A
+#define A 2
+</pre>
+<h2>Exceptions</h2>
+<p>If the redefinition has the same value as the original one. This is consistent with most C compilers warnings.</p>
+<pre>
+#define A 1
+#define A 1
+</pre>

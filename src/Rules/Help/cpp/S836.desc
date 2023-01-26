@@ -1,0 +1,27 @@
+<p>Variables should be initialized before their use to avoid unexpected behaviors due to garbage values.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+int function(int flag, int b) {
+  int a;
+  if (flag) {
+    a = b;
+  }
+  return a; // Noncompliant - "a" has not been initialized in all paths
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+int function(int flag, int b) {
+  int a = 0;
+  if (flag) {
+    a = b;
+  }
+  return a;
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://cwe.mitre.org/data/definitions/457">MITRE, CWE-457</a> - Use of Uninitialized Variable </li>
+  <li> MISRA C:2004, 9.1 - All automatic variables shall have been assigned a value before being used. </li>
+  <li> MISRA C++:2008, 8-5-1 - All variables shall have a defined value before they are used. </li>
+</ul>

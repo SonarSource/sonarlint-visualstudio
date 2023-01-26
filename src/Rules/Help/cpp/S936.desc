@@ -1,0 +1,43 @@
+<p>Using a "bald" function name is likely a bug. Rather than testing the return value of a function with a <code>void</code> parameter list, it
+implicitly retrieves the address of that function in memory. If that’s truly what’s intended, then it should be made explicit with the use of the
+<code>&amp;</code> (address-of) operator. If it’s not, then a parameter list (even an empty one) should be added after the function name.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+int func(void) {
+  // ...
+}
+
+void f2(int a, int b) {
+  // ...
+  if (func) {  // Noncompliant - tests that the memory address of func() is non-null
+    //...
+  }
+  // ...
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void f2(int a, int b) {
+  // ...
+  if (func()) {  // tests that the return value of func() &gt; 0
+    //...
+  }
+  // ...
+}
+</pre>
+<h2>Exceptions</h2>
+<p>Callback functions are a common occurrence and are usually not passed with a preceding &amp;. There is however little ambiguity so this rule
+ignores function identifiers when used as a parameter of a function call.</p>
+<pre>
+void foo() {
+  // ...
+}
+
+registerEvent(AnEvent, foo);
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 16.9 - A function identifier shall only be used with either a preceding &amp;, or with a parenthesized parameter list, which may
+  be empty. </li>
+  <li> MISRA C++:2008, 8-4-4 - A function identifier shall only be used to call the function or it shall be preceded by &amp;. </li>
+</ul>

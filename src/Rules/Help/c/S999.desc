@@ -1,0 +1,36 @@
+<p>Unconstrained use of <code>goto</code> can lead to programs that are extremely difficult to comprehend and analyse. For C++, it can also lead to
+the program exhibiting unspecified behavior.</p>
+<p>However, in many cases a total ban on <code>goto</code> requires the introduction of flags to ensure correct control flow, and it is possible that
+these flags may themselves be less transparent than the <code>goto</code> they replace.</p>
+<p>Therefore, the restricted use of <code>goto</code> is allowed where that use will not lead to semantics contrary to developer expectations. "Back"
+jumps are prohibited, since they can be used to create iterations without using the well-defined iteration statements supplied by the core
+language.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+int f() {
+  int j = 0;
+L1:
+  ++j;
+  if (10 == j) {
+    goto L2;         // forward jump ignored
+  }
+  // ...
+  goto L1;           // Noncompliant
+L2:
+  return ++j;
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+int f() {
+  for (int j = 0; j &lt; 11; j++) {
+    // ...
+  }
+  return ++j;
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C++:2008, 6-6-2 - The goto statement shall jump to a label declared later in the same function body </li>
+  <li> MISRA C:2012, 15.2 - The goto statement shall jump to a label declared later in the same function </li>
+</ul>

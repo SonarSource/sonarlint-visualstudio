@@ -1,0 +1,14 @@
+<p>Redundant declaration specifiers should be removed or corrected. Typically, they represent bugs. A specifier modifies the type or pointer to its
+left. Only when it is at the far left does it apply to the right.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+const int const * v1a; // Noncompliant; both const specifiers apply to int
+const int const * v1b; // Noncompliant
+static static int v2;  // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+const int *       v1a;  // pointer to a const int. same meaning as before but less confusing
+int const * const v1b;  // const pointer to a const int
+static int         v2;
+</pre>

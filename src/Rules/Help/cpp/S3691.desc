@@ -1,0 +1,23 @@
+<p>Class templates can be explicitly or partially specialized. But according to the C++ standard, function templates cannot be partially specialized.
+Under certain conditions, the Microsoft® compiler will silently ignore the confusing application of partial specialization syntax to a function, but
+other compilers will raise an error for it and fail compilation.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+template&lt;typename T&gt;
+void fun(T p);
+
+template&lt;typename T&gt;
+void fun&lt;T&gt;(T p) { // Noncompliant
+  // ...
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+template&lt;typename T&gt;
+void fun(T p);
+
+template&lt;typename T&gt;
+void fun(T p) {
+  // ...
+}
+</pre>

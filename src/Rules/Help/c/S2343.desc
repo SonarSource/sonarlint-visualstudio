@@ -1,0 +1,15 @@
+<p>Shared coding conventions allow teams to collaborate efficiently. This rule checks that all enumeration values match a provided regular
+expression.</p>
+<h2>Noncompliant Code Example</h2>
+<p>With default provided regular expression:</p>
+<pre>
+enum SomeEnumeration {
+    some  // Non-Compliant
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+enum SomeEnumeration {
+    SOME
+};
+</pre>

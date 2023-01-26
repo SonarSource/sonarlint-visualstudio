@@ -1,0 +1,92 @@
+<p>Since C++20, it is possible to add a <em>requires-clause</em> to a template as a way to express requirements (constraints) on the template
+arguments. This construct is versatile and allows any expression that evaluates to either <code>true</code> or <code>false</code> at compile time to
+be used. One of these expressions is the <em>requires-expression</em>, which can be used to express required operations on types:</p>
+<pre>
+template&lt;typename M&gt;
+  requires requires(M a, M b) {
+    { a + b };
+    { a * b };
+  }
+M fma(M a, M b, M c) {
+  return a + (b * c);
+}
+</pre>
+<p>While the use of an ad-hoc <em>requires-expression</em> provides a way to quickly constrain a template, it limits the readability of the code:
+While it conveys the required syntax requirements, it fails to express the semantics associated with the operations. For instance, the above template
+expects that <code>+</code> and <code>*</code> perform mathematical additions and multiplications, not a concatenation of strings.</p>
+<p>Using a concept with a well-chosen name solves this issue and meaningful concepts that are reused in different parts of the codebase increase the
+level of abstraction of the code: You don’t need to check individual operations, you just need to know that your type is <em>integral</em>.</p>
+<p>Moreover, one interesting feature of concepts is called <em>subsumption</em>. It means that when a function overload is constrained with a list of
+concepts, and another overload is constrained with the same concepts plus additional constraints, then the second function is considered as more
+constrained than the first one, and will be selected by overload resolution if the concepts are satisfied.</p>
+<p>This feature only works with concepts: a <em>requires-expression</em> is never considered to be more constrained than another one, even if both
+contain identical subexpressions. For instance, the following overloads of <code>rotate</code> are ambiguous for any iterator that is at least
+bidirectional, as constraints for both of them are satisfied:</p>
+<pre>
+template&lt;typename ForwardIt&gt;
+  requires requires(ForwardIt it) {
+    /* dereference and others */
+    ++it;
+  }
+ForwardIt rotate(ForwardIt first, ForwardIt mid, ForwardIt last);
+
+template&lt;typename BidirectionalIt&gt;
+  requires requires(BidirectionalIt it) {
+    /* dereference and others */
+    ++it;
+    --it;
+  }
+BidirectionalIt rotate(BidirectionalIt first, BidirectionalIt mid,  BidirectionalIt last);
+</pre>
+<p>This rule raises an issue for any use of an ad-hoc <em>requires-expression</em> in the requirements of template functions, classes, or
+variables.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+template&lt;typename M&gt;
+  requires requires(M a, M b) { // noncompliant
+    { a + b };
+    { a * b };
+  }
+M fma(M a, M b, M c) {
+  return a + (b * c);
+}
+
+template&lt;typename ForwardIt&gt;
+  requires requires(ForwardIt it) { // noncompliant
+    /* dereference and others */
+    ++it;
+  }
+ForwardIt rotate(ForwardIt first, ForwardIt mid, ForwardIt last);
+
+template&lt;typename BidirectionalIt&gt;
+  requires requires(BidirectionalIt it) { // noncompliant
+    /* dereference and others */
+    ++it;
+    --it;
+  }
+BidirectionalIt rotate(BidirectionalIt first, BidirectionalIt mid, BidirectionalIt last);
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+template&lt;typename T&gt;
+concept Multiplicative = requires(const T a, const T b) {
+  { a + b };
+  { a * b };
+}
+
+template&lt;Multiplicative M&gt;
+M fma(M a, M b, M c) {
+  return a + (b * c);
+}
+
+template&lt;class ForwardIt&gt;
+  requires std::forward_iterator&lt;ForwardIt&gt;
+ForwardIt rotate(ForwardIt first, ForwardIt mid, ForwardIt last);
+
+// std::bidirectional_iterator subsumes std::forward_iterator, as it is defined as:
+// template&lt;class I&gt;
+//   concept bidirectional_iterator = forward_iterator&lt;I&gt; &amp;&amp; additional requirements;
+template&lt;class BidirectionalIt&gt;
+  requires std::bidirectional_iterator&lt;BidirectionalIt&gt;
+BidirectionalIt rotate(BidirectionalIt first, BidirectionalIt mid, BidirectionalIt last);
+</pre>

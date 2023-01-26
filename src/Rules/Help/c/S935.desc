@@ -1,0 +1,67 @@
+<p>Every call to a function with a non-void return type is expected to return some value. Including a return path in a non-void function that does not
+explicitly return a value results in undefined behavior.</p>
+<p>Conversely, every call to a function with a void return type is expected to not return any value. Returning a value from a void function probably
+indicates a programming error.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+int my_func (int a)
+{
+  if (a &gt; 100)
+  {
+    return; // Noncompliant
+  }
+
+  if (a &gt; 80)
+  {
+    throw new Exception(); // Compliant
+  }
+
+  // Noncompliant
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+int my_func (int a)
+{
+  if (a &gt; 100)
+  {
+    return 12;
+  }
+
+  if (a &gt; 80)
+  {
+    throw new Exception();
+  }
+
+  return a;
+}
+</pre>
+<h2>Exceptions</h2>
+<p>This rule doesn’t raise an exception when the <code>return</code> statement for a <code>void</code> function, is itself a <code>void</code>
+expression.</p>
+<pre>
+void foo() {
+  // Do stuff ...
+}
+
+void bar() {
+  return foo();
+}
+</pre>
+<p>Furthermore, the issue is not raised for the coroutines, introduced in {{cpp20}}, that always declare coroutine object as a return type, but
+returned object is implicitly created by compiler. The coroutine body itself may never contains <code>return</code> statement (the use of it is
+disallowed), and <code>co_return</code> is used for coroutine that returns a value (define <code>return_value</code> in promise-type).</p>
+<h2>See</h2>
+<ul>
+  <li> S6369 - Coroutine should have co_return on each execution path or provide return_void </li>
+  <li> MISRA C:2004, 16.8 - All exit paths from a function with non-void return type shall have an explicit return statement with an expression </li>
+  <li> MISRA C++:2008, 8-4-3 - All exit paths from a function with non-void return type shall have an explicit return statement with an expression
+  </li>
+  <li> MISRA C:2012, 17.4 - All exit paths from a function with non-void return type shall have an explicit return statement with an expression </li>
+  <li> <a href="https://cwe.mitre.org/data/definitions/394">MITRE, CWE-394</a> - Unexpected Status Code or Return Value </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/m9YxBQ">CERT, MSC37-C.</a> - Ensure that control never reaches the end of a non-void function
+  </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/EXs-BQ">CERT, MSC52-CPP.</a> - Value-returning functions must return a value from all exit paths
+  </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/Cns-BQ">CERT, MSC53-CPP.</a> - Do not return from a function declared [[noreturn]] </li>
+</ul>

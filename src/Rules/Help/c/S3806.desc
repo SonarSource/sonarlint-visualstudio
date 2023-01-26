@@ -1,0 +1,15 @@
+<p>The way an <code>#include</code> directive finds an actual file is implementation-defined, and in practice, it slightly differs in different
+systems.</p>
+<p>Therefore, a good practice is to identify the files to include in the most straightforward way possible to reduce the risk of inconsistent
+behaviors.</p>
+<p>This rule raises an issue when:</p>
+<ul>
+  <li> The case of the file in the <code>#include</code> directive does not match the case of the file on the disk (the inclusion would not work on a
+  case-sensitive OS), </li>
+  <li> The file name in the <code>#include</code> directive contains trailing spaces (they would be ignored on Windows but considered on Unix). </li>
+</ul>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#include "Foo.h" // Noncompliant if the actual file name is "foo.h"
+#include "bar.h " // Noncompliant, trailing space
+</pre>

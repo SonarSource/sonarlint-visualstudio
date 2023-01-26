@@ -1,0 +1,94 @@
+<p>In order to save memory, unions allow you to use the same memory to store objects from a list of possible types as long as one object is stored at
+a time. Unions are not inherently safe, as they expect you to externally keep track of the type of value they currently hold.</p>
+<p>Wrong tracking has the potential to corrupt memory or to trigger undefined behaviors.</p>
+<p>A straightforward way to avoid it is storing the information about the currently active alternative along with the union. Here follow suggested
+patterns to do that:</p>
+<p>&nbsp;</p>
+<pre>
+typedef int   altType1;
+typedef float altType2;
+
+// Pattern 1
+union alternativesCommonStartingFieldPattern {
+  struct {
+    bool isAlt1;
+    altType1 a1;
+  } one;
+
+  struct {
+    bool isAlt1;
+    altType2 a2;
+  } two;
+};
+
+double getValueAsDouble(alternativesCommonStartingFieldPattern *pattern1) {
+  return pattern1-&gt;one.isAlt1?pattern1-&gt;one.a1:pattern1-&gt;two.a2;
+}
+</pre>
+<p>This pattern uses the fact that when two alternatives of a standard layout union are standard-layout-structs that share a common initial sequence,
+it is allowed to read this common initial sequence on one alternative even if the other alternative is the one currently active. This is commonly used
+to limit the number of bits required to store the discriminant.</p>
+<p>&nbsp;</p>
+<pre>
+// Pattern 2
+struct wrappedUnionPattern {
+  enum {ALTTYPE1, ALTTYPE2} type;
+
+  union {
+    altType1 a1;
+    altType2 a2;
+  };
+};
+
+double getValueAsDouble(wrappedUnionPattern *pattern2) {
+  return (pattern2-&gt;type==wrappedUnionPattern::ALTTYPE1)?pattern2-&gt;a1:pattern2-&gt;a2;
+}
+</pre>
+<p>This pattern is more straightforward, and wraps the union inside a structure that will also store the discriminant. Note that in this case, the
+union itself can be anonymous.</p>
+<pre>
+// Pattern 3 (C++17)
+using stdVariantPattern = std::variant&lt;altType1, altType2&gt;;
+
+double getValueAsDouble(stdVariantPattern *pattern3) {
+  return std::visit([](auto&amp;&amp; alternative) -&gt; double { return alternative;}, *pattern3);
+}
+</pre>
+<p>This pattern relies on C++17’s <code>std::variant</code> to store the alternative.</p>
+<p>In general, <code>std::variant</code> is:</p>
+<ul>
+  <li> Safer as the type of the current value is always known and checked before usage. </li>
+  <li> More practical as it can have members of any type, including non trivial types (see {rule:cpp:S6025}). It also supports redundant types, which
+  is useful when alternatives have the same type with different semantic meanings. </li>
+  <li> Easier to use as it provides many member/helper functions. </li>
+</ul>
+<p>One noticeable difference with unions is that the alternatives in a <code>std::variant</code> do not have a name. You can access them by type or by
+index, using <code>std::get</code> (throws if the wrong alternative is accessed) or <code>std::get_if</code> (returns a null pointer if the wrong
+alternative is used). But very often, instead of accessing a specific alternative, visitors are used to distinguish cases of the variant.</p>
+<p>This rule raises an issue when unions are used outside of the 3 suggested patterns.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void rawUnion() {
+  union IntOrDouble { // Noncompliant: union is not wrapped
+    int i;
+    double d;
+  };
+  IntOrDouble intOrDouble;
+  intOrDouble.d = 10.5;
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+struct IntOrChar {
+&nbsp; enum { INT, CHAR } tag;
+&nbsp; union { // Compliant
+&nbsp; &nbsp; int i;
+&nbsp; &nbsp; char c;
+&nbsp; };
+};
+
+void simpleVariant() {
+&nbsp; std::variant&lt;int, double&gt; intOrDouble = 10.5; // Compliant
+}{code}
+&nbsp;
+</pre>

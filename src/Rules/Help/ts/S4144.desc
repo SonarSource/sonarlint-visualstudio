@@ -1,0 +1,41 @@
+<p>When two functions have the same implementation, either it was a mistake - something else was intended - or the duplication was intentional, but
+may be confusing to maintainers. In the latter case, the code should be refactored.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+function calculateCode() {
+  doTheThing();
+  doOtherThing();
+  return code;
+}
+
+function getName() {  // Noncompliant
+  doTheThing();
+  doOtherThing();
+  return code;
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+function calculateCode() {
+  doTheThing();
+  doOtherThing();
+  return code;
+}
+
+function getName() {
+  return calculateCode();
+}
+</pre>
+<h2>Exceptions</h2>
+<ul>
+  <li> Functions with fewer than 3 lines are ignored. </li>
+  <li> This rule does not apply to function expressions and arrow functions because they don’t have explicit names and are often used in a way where
+  refactoring is not applicable. </li>
+</ul>
+<pre>
+list.map((item) =&gt; ({
+  name: item.name,
+  address: item.address,
+  country: item.country
+}));
+</pre>

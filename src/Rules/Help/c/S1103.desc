@@ -1,0 +1,23 @@
+<p>Defining a nested single-line comment within a multi-line comment invites errors. It may lead a developer to wrongly think that the lines located
+after the single-line comment are not part of the comment.</p>
+<p>If a comment starting sequence, <code>/*</code> or <code>//</code>, occurs within a <code>/*</code> comment, is it quite likely to be caused by a
+missing <code>*/</code> comment ending sequence.</p>
+<p>If a comment starting sequence occurs within a <code>//</code> comment, it is probably because a region of code has been commented-out using
+<code>//</code>.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+/* some comment, end comment marker accidentally omitted
+// Make sure this function is called in a thread safe context
+Perform_Critical_Safety_Function(X);
+...
+/* this comment is non-compliant */
+</pre>
+<h2>Exceptions</h2>
+<p>The sequence // is permitted within a // comment.</p>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/k9YxBQ">CERT, MSC04-C.</a> - Use comments consistently and in a readable fashion </li>
+  <li> MISRA C:2004, 2.3 - The character sequence /* shall not be used within a comment. </li>
+  <li> MISRA C++:2008, 2-7-1 - The character sequence /* shall not be used within a C-style comment. </li>
+  <li> MISRA C:2012, 3.1 - The character sequences /* and // shall not be used within a comment </li>
+</ul>

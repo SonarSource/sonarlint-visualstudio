@@ -1,0 +1,37 @@
+<p>C++20 introduces the member function <code>contains</code> on associative containers to check if an equivalent to a specific key already exists in
+the container.</p>
+<p>Calling this function can replace previous ways to check if a key is present in a container:</p>
+<ul>
+  <li> call <code>find()</code> and check that its result is not the end of the container. This was quite verbose. </li>
+  <li> call <code>count()</code>. This did not clearly express the intent, and was not optimal in terms of performances for containers that allow a
+  key to be present multiple times. </li>
+</ul>
+<p>This rule raises an issue when “contains” could be used to simplify the code.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void f1(std::set&lt;int&gt; &amp;s) {
+  if (s.find(1) == s.end()) { // Noncompliant
+      doSomething();
+  }
+}
+
+void f2(std::unordered_map&lt;std::string, int&gt; &amp;m) {
+  if (m.count("key") != 0) { // Noncompliant
+      doSomething();
+  }
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void f1(std::set&lt;int&gt; &amp;s) {
+  if (!s.contains(1)) { // Compliant
+      doSomething();
+  }
+}
+
+void f2(std::unordered_map&lt;std::string, int&gt; &amp;m) {
+  if (m.contains("key")) { // Compliant
+      doSomething();
+  }
+}
+</pre>

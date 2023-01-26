@@ -1,0 +1,46 @@
+<p>While exceptions are a common feature of modern languages, there are several reasons to potentially avoid them:</p>
+<ul>
+  <li> They make the control flow of a program difficult to understand, because they introduce additional exit points. </li>
+  <li> The use of exceptions in new code can make that code difficult to integrate with existing, non-exception-safe code. </li>
+  <li> They add to the size of each binary produced, thereby increasing both compile time and final executable size. </li>
+  <li> They may incur a small performance penalty. </li>
+  <li> The time required to handle an exception is not easy to assess, which makes them difficult to use for hard real-time applications. </li>
+</ul>
+<p>This rule raises an issue when:</p>
+<ul>
+  <li> an exception is <code>throw</code>n </li>
+  <li> a <code>try</code>-<code>catch</code> block is used </li>
+  <li> an exception specification (<code>throw(xxx)</code>) is present. </li>
+</ul>
+<h2>Noncompliant Code Example</h2>
+<p>This C++ code example also applies to Objective-C.</p>
+<pre>
+double myfunction(char param) throw (int); // Noncompliant
+void f {
+  try // Noncompliant
+  {
+    do_something();
+    throw 1; // Noncompliant
+  }
+  catch (...)
+  {
+    // handle exception
+  }
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+double myfunction(char param) noexcept;
+bool f {
+  if (!do_something()); {
+    // Handle the situation
+    return false;
+  }
+  // Rest of the code
+  return true;
+}
+</pre>
+<h2>Exceptions</h2>
+<p><code>noexcept</code> specifications are ignored, because even if you choose not to use exceptions in your code, it’s important to decorate as
+<code>noexcept</code> certain functions (for instance, move constructors that do not <code>throw</code>). This decoration can be detected by type
+traits, and some meta-programming techniques rely on this information.</p>

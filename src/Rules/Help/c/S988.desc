@@ -1,0 +1,16 @@
+<p>This includes file and I/O functions <code>fgetpos</code>, <code>fopen</code>, <code>ftell</code>, <code>gets</code>, <code>perror</code>,
+<code>remove</code>, <code>rename</code> and <code>ungetc</code>.</p>
+<p>Streams and file I/O have a large number of unspecified, undefined and implementation-defined behaviors associated with them. It is assumed within
+MISRA C that they will not normally be needed in production code in embedded systems.</p>
+<p>If any of the features of <code>stdio.h</code> need to be used in production code, then the issues associated with the features need to be
+understood.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#include &lt;stdio.h&gt; /* Noncompliant */
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 20.9 - The input/output library &lt;stdio.h&gt; shall not be used in production code. </li>
+  <li> MISRA C++:2008, 27-0-1 - The stream input/output library &lt;cstdio&gt; shall not be used. </li>
+  <li> MISRA C:2012, 21.6 - The Standard Library input/output functions shall not be used </li>
+</ul>

@@ -1,0 +1,11 @@
+<p>Control characters aren’t visible to maintainers, so they should be escaped.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+const char* foo = "A	B";  // Noncompliant, contains a tabulation
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+const char* foo = "A\tB";  // Compliant, use escaped value
+</pre>
+<h2>Exceptions</h2>
+<p>Raw string literals has no escape character mechanism.</p>

@@ -1,0 +1,18 @@
+<p>Since C++03, a member function that is contained within a class definition is by definition <code>inline</code>, so an using an <code>inline</code>
+specifier on such functions is redundant.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class Foo {
+  inline void method() { // Noncompliant
+    // ...
+  }
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class Foo {
+  void method() {
+    // ...
+  }
+};
+</pre>

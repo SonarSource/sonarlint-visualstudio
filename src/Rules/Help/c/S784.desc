@@ -1,0 +1,30 @@
+<p>Ensuring that assembly language code is encapsulated and isolated aids portability. Where assembly language instructions are needed, they shall be
+encapsulated and isolated in either assembler functions or C++ functions.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void fn ( void )
+{
+  DoSomething ( );
+  asm ( "NOP" ); // Noncompliant, asm mixed with C/C++ statements
+  DoSomething ( );
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void Delay ( void )
+{
+  asm ( "NOP" ); // Compliant, asm not mixed with C/C++ statements
+}
+
+void fn ( void )
+{
+  DoSomething ( );
+  Delay ( ); // Compliant, Assembler is encapsulated
+  DoSomething ( );
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C 2004, 2.1 - Assembly language shall be encapsulated and isolated. </li>
+  <li> MISRA C++ 2008, 7-4-3 - Assembly language shall be encapsulated and isolated. </li>
+</ul>

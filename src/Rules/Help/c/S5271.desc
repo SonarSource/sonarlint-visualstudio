@@ -1,0 +1,29 @@
+<p>The attribute <code>noreturn</code> indicates that a function does not return. This information clarifies the behavior of the function and it
+allows the compiler to do optimizations.</p>
+<p>It can also help the compiler (and static analyzer tools, i.e. us) provide better error messages:</p>
+<pre>
+__attribute__((noreturn)) void f();
+
+int g(int b) {
+  if (b == 5) {
+    f();
+    printf("Hello world\n"); // This is dead code, the compiler/static analyzer can now detect it
+    // There is no returned value, but it is fine, the compiler/static analyzer knows not to warn about it
+  } else {
+    return 3;
+  }
+}
+</pre>
+<p>This rule detects when the attribute <code>noreturn</code> can be added to a function.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void g() {&nbsp;// Noncompliant
+&nbsp;&nbsp;abort();
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+__attribute__((noreturn)) void g() {&nbsp;// or [[noreturn]] for C++
+  abort(); // Compliant
+}
+</pre>

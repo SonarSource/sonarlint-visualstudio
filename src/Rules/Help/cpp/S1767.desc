@@ -1,0 +1,15 @@
+<p>The size of integer required to hold a memory address is implementation-dependent. Therefore, casting a pointer (i.e. a memory address) to any
+integral data type may result in data loss because the integral type is too small to hold the full address value.</p>
+<p>When treating a memory address as integer type is absolutely required, you should be sure to use a large enough type to hold all the data.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+int *p;
+int addr = ( int ) &amp;p;
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 11.3 - A cast should not be performed between a pointer type and an integral type. </li>
+  <li> MISRA C++:2008, 5-2-9 - A cast should not convert a pointer type to an integral type. </li>
+  <li> MISRA C:2012, 11.4 - A conversion should not be performed between a pointer to object and an integer type </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/0dUxBQ">CERT, INT36-C.</a> - Converting a pointer to integer or integer to pointer </li>
+</ul>

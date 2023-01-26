@@ -1,0 +1,38 @@
+<p>When a variable with array type decays to a pointer, its bounds are lost.</p>
+<p>If a design requires arrays of different lengths, then a class should be used to encapsulate the array objects and so ensure that the size is
+maintained. Note that in C++20, the class <code>std::span</code> is designed for this purpose, and you can find implementation of <code>span</code>
+that works with earlier versions of the standard.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void f1( int p[ 10 ] ); // Non-compliant, function called with arguments of array type
+void f2( int *p ); // Non-compliant, function is called with arguments of array type
+void functionWorkingOnSingleInt(int * p); // Non-compliant, function is called with arguments of array type
+
+void b ()
+{
+  int a[ 10 ];
+  f1( a ); // The size is lost
+  f2( a ); // The size is lost
+  functionWorkingOnSingleInt( a ); // Not clear that the function acts on only one element
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void f3( int ( &amp;p )[ 10 ] ); // Compliant
+void f4(span&lt;int&gt; s); // Compliant
+void functionWorkingOnSingleInt(int * p); // Compliant
+
+void b ()
+{
+ int a[ 10 ];
+  f3( a ); // size preserved.
+  f4( a ); // size captured by the span class
+  functionWorkingOnSingleInt( &amp;a[0] ); // explicit about what happens
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C++:2008, 5-2-12 - An identifier with array type passed as a function argument shall not decay to a pointer. </li>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#i13-do-not-pass-an-array-as-a-single-pointer">C++ Core
+  Guidelines I.13</a> - Do not pass an array as a single pointer </li>
+</ul>

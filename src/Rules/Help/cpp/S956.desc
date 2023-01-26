@@ -1,0 +1,20 @@
+<p>These are the only forms for the <code>#include</code> directive permitted by the standard. The behavior is undefined when other forms are
+used.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#include filename.h        // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+#include "filename.h"        // Compliant
+#include &lt;filename.h&gt;
+
+#define HEADER "filename.h"
+#include HEADER
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 19.3 - The #include directive shall be followed by either a &lt;filename&gt; or "filename" sequence. </li>
+  <li> MISRA C++:2008, 16-2-6 - The #include directive shall be followed by either a &lt;filename&gt; or "filename" sequence. </li>
+  <li> MISRA C:2012, 20.3 - The #include directive shall be followed by either a &lt;filename&gt; or "filename" sequence </li>
+</ul>

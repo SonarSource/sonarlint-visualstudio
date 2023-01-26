@@ -1,0 +1,46 @@
+<p>Removing elements with a specific value or that follow a given predicate from a container is a common task. Before C++20, this was not
+straightforward. The way to do it had to depend on the type of your container.</p>
+<p>For sequence containers, you would end up following what is called the <em>erase-remove idiom</em>:</p>
+<ul>
+  <li> Call <code>std::remove</code> or <code>std::remove_if</code> with, as parameters, the container and the criterion to fulfill </li>
+  <li> Call the container member function <code>erase</code> on the result </li>
+</ul>
+<p>For associative containers, you would have no other option than looping through all the elements by hand.</p>
+<p>However, C++20 introduced two new methods: <code>std::erase</code> (for sequence containers only) and <code>std::erase_if</code> which erase all
+elements equal to a value or that satisfy a given predicate.</p>
+<p>This rule raises an issue when <code>std::erase</code> or <code>std::erase_if</code> could be used to simplify the code.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void removeZeros(std::vector&lt;int&gt; &amp;v) {
+  v.erase(std::remove(v.begin(), v.end(), 0), v.end()); // Noncompliant
+}
+
+void removeOddNumbers(std::vector&lt;int&gt; &amp;v) {
+  v.erase(std::remove_if(v.begin(), v.end(), [](auto i) { return i%2 == 0; }), v.end()); // Noncompliant
+}
+
+void removeOddNumbers(std::unordered_map&lt;std::string, int&gt; &amp;m) {
+  auto it = m.begin();
+  while (it != m.end()) { // Noncompliant
+    if (it-&gt;second % 2 == 0) {
+      it = m.erase(it);
+    } else {
+      ++it;
+    }
+  }
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void removeZeros(std::vector&lt;int&gt; &amp;v) {
+  std::erase(v, 0);
+}
+
+void removeOddNumbers(std::vector&lt;int&gt; &amp;v) {
+  std::erase_if(v, [](auto i) { return i%2 == 0; });
+}
+
+void removeOddNumbers(std::unordered_map&lt;std::string, int&gt; &amp;m) {
+  std::erase_if(m, [](auto item) { return item.second % 2 == 0; });
+}
+</pre>

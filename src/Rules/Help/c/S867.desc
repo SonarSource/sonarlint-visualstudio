@@ -1,0 +1,53 @@
+<p>There are several constructs in the language that work with boolean:</p>
+<ul>
+  <li> If statements: <code>if (b) ...</code> </li>
+  <li> Conditional operator: <code>int i = b ? 0 : 42;</code> </li>
+  <li> Logical operators: <code>(b1 || b2) &amp;&amp; !b3</code> </li>
+</ul>
+<p>Those operations would also work with arithmetic or enum values operands, because there is a conversion from those types to bool. However, this
+conversion might not always be obvious, for instance, an integer return code might use the value <code>0</code> to indicate that everything worked as
+expected, but converted to boolean, this value would be <code>false</code>, which often denotes failure. Conversion from integer to bool should be
+explicit.</p>
+<p>Moreover, a logical operation with integer types might also be a confusion with the bitwise operators (<code>&amp;</code>, <code>|</code> and
+<code>~</code>).</p>
+<p>Converting a pointer to <code>bool</code> to check if it is null is idiomatic and is allowed by this rule. We also allow the use of any
+user-defined type convertible to bool (for instance <code>std::ostream</code>), since they were specifically designed to be used in such situations.
+What this rule really detects is the use or arithmetic types (<code>int</code>, <code>long</code>…​) and of enum types.</p>
+<p>On the other hand, arithmetic operations are defined with booleans, but usually make little sense (think of adding two booleans). Booleans should
+not be used in an arithmetic context.</p>
+<p>Finally, comparing a boolean with the literals <code>true</code> or <code>false</code> is unnecessarily verbose, and should be avoided.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+if ( 1 &amp;&amp; ( c &lt; d ) ) // Noncompliant
+if ( ( a &lt; b ) &amp;&amp; ( c + d ) ) // Noncompliant
+if ( u8_a &amp;&amp; ( c + d ) ) // Noncompliant
+if ( !0 ) // Noncompliant, always true
+if ( !ptr ) // Compliant
+if ( ( a &lt; b ) &amp;&amp; ( c &lt; d ) ) // Compliant
+if ( !false ) // Compliant
+if (!!a) // Compliant by exception
+if ( ( a &lt; b ) == true) // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+if ( 1 != 0 &amp;&amp; ( c &lt; d ) ) // Compliant, but left operand is always true
+if ( ( a &lt; b ) &amp;&amp; ( c + d ) != 0 ) // Compliant
+if ( u8_a != 0 &amp;&amp; ( c + d ) != 0) // Compliant
+if ( 0 == 0 ) // Compliant, always true
+if ( a &lt; b )
+</pre>
+<h2>Exceptions</h2>
+<p>Some people use <code>!!</code> as a shortcut to cast an integer to bool. This usage of the <code>!</code> operator with an integer argument is
+allowed for this rule.</p>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 12.6 - The operands of logical operators (&amp;&amp;, || and !) should be effectively Boolean. Expressions that are effectively
+  Boolean should not be used as operands to operators other than (&amp;&amp;, || and !). </li>
+  <li> MISRA C++:2008, 5-3-1 - Each operand of the ! operator, the logical &amp;&amp; or the logical || operators shall have type bool. </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/ADZGBQ">CERT, EXP54-J.</a> - Understand the differences between bitwise and logical operators
+  </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/display/c/EXP13-C.+Treat+relational+and+equality+operators+as+if+they+were+nonassociative">CERT,
+  EXP13-C.</a> - Treat relational and equality operators as if they were nonassociative </li>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#es87-dont-add-redundant--or--to-conditions">C++ Core
+  Guidelines ES.87</a> - Don’t add redundant == or != to conditions </li>
+</ul>

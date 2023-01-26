@@ -1,0 +1,44 @@
+<p>If you manage memory manually, it’s your responsibility to <code>delete</code> all memory created with <code>new</code>, and to make sure it’s
+<code>delete</code>d once and only once. Ensuring this is done is error-prone, especially when your function can have early exit points.</p>
+<p>Fortunately, the C++ language provides tools that automatically manage memory for you. Using them systematically makes the code simpler and more
+robust without sacrificing performance.</p>
+<p>This rule raises an issue when you use:</p>
+<ul>
+  <li> <code>new</code> - you should prefer a factory function that returns a smart pointer, such as <code>std::make_unique</code> or, if shared
+  ownership is required, <code>std::make_shared</code>, </li>
+  <li> <code>new[]</code> - you should prefer a container class, such as <code>std::vector</code>, </li>
+  <li> <code>delete</code> or <code>delete[]</code> - if you followed the previous advice, there is no need to manually release memory. </li>
+</ul>
+<p>If your compiler does not support <code>make_unique</code>, it’s easy to write your own:</p>
+<pre>
+template&lt;typename T, typename... Args&gt;
+std::unique_ptr&lt;T&gt; make_unique(Args&amp;&amp;... args) {
+    return std::unique_ptr&lt;T&gt;(new T(std::forward&lt;Args&gt;(args)...));
+}
+</pre>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void f() {
+  auto c = new Circle(0, 0, 5);
+  c-&gt;draw();
+  delete c;
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void f() {
+  auto c = make_unique&lt;Circle&gt;(0, 0, 5);
+  c-&gt;draw();
+  unique_ptr&lt;Circle&gt; c2{new Circle(0, 0, 5)}; // Clumsy, but still compliant by exception
+}
+</pre>
+<h2>Exceptions</h2>
+<p>If the result of a new is immediately passed as an argument to a function, we assume that the function takes ownership of the newly created object,
+and won’t raise an issue.</p>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#r11-avoid-calling-new-and-delete-explicitly">C++ Core
+  Guidelines R.11</a> - Avoid calling new and delete explicitly </li>
+  <li> <a
+  href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#c149-use-unique_ptr-or-shared_ptr-to-avoid-forgetting-to-delete-objects-created-using-new">C++ Core Guidelines C.149</a> - Use unique_ptr or shared_ptr to avoid forgetting to delete objects created using new </li>
+</ul>

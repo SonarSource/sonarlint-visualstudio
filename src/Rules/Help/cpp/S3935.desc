@@ -1,0 +1,28 @@
+<p>The GNU compiler extension that allows <code>case</code>s to be specified with ranges will only recognize ranges specified from a smaller value to
+a larger value. Flip the order and the range will evaluate as empty.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+switch (i) {
+  case 0:
+    //...
+    break;
+  case 1 ... 2:
+    //...
+    break;
+  case 5 ... 3: // Noncompliant
+    //...
+    break;
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+switch (i) {
+  case 0:
+    //...
+    break;
+  case 1 ... 2:
+    //...
+    break;
+  case 3 ... 5
+    //...
+    break;
+</pre>

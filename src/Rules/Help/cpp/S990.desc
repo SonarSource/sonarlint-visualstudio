@@ -1,0 +1,16 @@
+<p><code>&lt;stdlib.h&gt;</code>'s <code>abort</code>, <code>exit</code>, <code>getenv</code>, and <code>system</code> have implementation-defined
+behaviors, and should therefore be avoided.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#include &lt;stdlib.h&gt;
+
+void f( ) {
+  exit(0); // Noncompliant
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 20.11 - The library functions abort, exit, getenv and system from library &lt;stdlib.h&gt; shall not be used. </li>
+  <li> MISRA C++:2008, 18-0-3 - The library functions abort, exit, getenv and system from library &lt;cstdlib&gt; shall not be used. </li>
+  <li> MISRA C:2012, 21.8 - The library functions abort, exit, getenv and system of &lt;stdlib.h&gt; shall not be used </li>
+</ul>

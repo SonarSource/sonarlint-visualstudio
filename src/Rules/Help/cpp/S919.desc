@@ -1,0 +1,28 @@
+<p>Overloaded versions of the comma and logical conjunction operators have the semantics of function calls whose sequence point and ordering semantics
+are different from those of the built-in versions. It may not be clear at the point of use that these operators are overloaded, and so developers may
+be unaware which semantics apply.</p>
+<p>Exception: Starting from <em>C++17</em>, the order of evaluation of the comma operator is defined and identical for the builtin and the overloaded
+versions. In such circumstances, the comma operator can safely be overloaded.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#include "util.h"
+class A
+{
+public:
+  UtilType getValue ( );
+  UtilType setValue ( UtilType const &amp; );
+};
+void f1 ( A &amp; a1, A &amp; a2 )
+{
+  a1.getValue ( ) &amp;&amp; a2.setValue ( 0 );	// Short circuiting may occur
+}
+bool operator &amp;&amp; ( UtilType const &amp;, UtilType const &amp; ); // Noncompliant
+void f2 ( A &amp; a1, A &amp; a2 )
+{
+  a1.getValue ( ) &amp;&amp; a2.setValue ( 0 ); // Both operands evaluated if type returned has overloaded operator&amp;&amp;
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C++ 2008, 5-2-11 - The comma operator, &amp;&amp; operator and the || operator shall not be overloaded. </li>
+</ul>

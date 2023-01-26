@@ -1,0 +1,20 @@
+<p>If a label is declared but not used in the program, it can be considered as dead code and should therefore be removed.</p>
+<p>This will improve maintainability as developers will not wonder what this label is used for.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void fun() {
+  label: doSomething();
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void fun() {
+  doSomething();
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2012, 2.6 - A function should not contain unused label declarations </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/5dUxBQ">CERT, MSC12-C.</a> - Detect and remove code that has no effect or is never executed
+  </li>
+</ul>

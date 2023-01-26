@@ -1,0 +1,71 @@
+<p>Starting <code>C++17</code>, you can use <code>auto</code> and <code>decltype(auto)</code> to declare non-type template parameters. This new
+feature provides a way to write generic code for non-type parameters of different types. Also, it allows, by using variadic templates, to make a
+template take a list of non-type template parameters of different types: <code>template&lt;auto... VS&gt; class A</code>.</p>
+<p>If the type is used in the template definition, you can replace it with <code>auto</code>, or <code>decltype</code> if you want to underline that
+the type is the same as of the template parameter. Note, that you can use <code>template &lt;class T&gt; T packed_t(T...);</code> to get the type of
+arguments in the <code>auto...</code> pack (see the "Compliant Solution" section below).</p>
+<p>This rule detects the common pattern where a type template parameter is introduced only to be used as a type for the next non-type template
+parameter(s).</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+template &lt;typename T, T value&gt;
+struct A { // Noncompliant
+  inline static auto field = value;
+  typedef T type;
+  static T anotherField;
+};
+
+template &lt;typename T, T... values&gt;
+struct MultiA { // Noncompliant
+  inline static std::vector vec = { values... };
+};
+
+template &lt;typename T, T defaultVal&gt;
+T foo(T arg) {
+  return arg &gt; 0 ? arg : defaultVal;
+}
+
+void f() {
+  A&lt;int, 1&gt; a1;
+  A&lt;bool, false&gt; a2;
+  MultiA&lt;int, 1, 2, 3, 4&gt; multiA1;
+  MultiA&lt;char, 'a', 'b'&gt; multiA2;
+  foo&lt;int, 1&gt;(-1);
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+template &lt;auto value&gt;
+struct A { // Compliant
+  inline static auto field = value;
+  typedef decltype(value) type;
+  static type anotherField;
+};
+
+template &lt;auto ... values&gt;
+struct MultiA { // Compliant
+  inline static std::vector vec = { values... };
+};
+
+template &lt;auto defaultVal&gt;
+auto foo(decltype(defaultVal) arg) {
+  return arg &gt; 0 ? arg : defaultVal;
+}
+
+void f() {
+  A&lt;1&gt; a1;
+  A&lt;false&gt; a2;
+  MultiA&lt;1, 2, 3, 4&gt; multiA1;
+  MultiA&lt;'a', 'b'&gt; multiA2;
+  foo&lt;1&gt;(-1);
+}
+
+// Get the type out of auto... declaration
+template &lt;class T&gt;
+T packed_t(T...);
+
+template &lt;auto... Is&gt;
+std::vector&lt;std::string&gt; name_copy(std::map&lt;decltype(packed_t(Is...)), std::string&gt; names) {
+  return {names[Is]...};
+}
+</pre>

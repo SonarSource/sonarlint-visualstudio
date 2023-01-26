@@ -1,0 +1,15 @@
+<p>The C++ standards define some identifiers as having special meaning in specific contexts. These are:</p>
+<ul>
+  <li> <code>final</code> and <code>override</code> since C++11 </li>
+  <li> <code>module</code> and <code>import</code> since C++20 </li>
+</ul>
+<p>While it is technically possible to use them as normal identifiers, it’s clearer for the reader of the code to consider them as if they were
+keywords, and only use them with their special meaning.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void module(int final); // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void precept(int finalValue); // Compliant
+</pre>

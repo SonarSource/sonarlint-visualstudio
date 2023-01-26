@@ -1,0 +1,33 @@
+<p>Array overruns and buffer overflows happen when memory access accidentally goes beyond the boundary of the allocated array or buffer. These
+overreaching accesses cause some of the most damaging, and hard to track defects.</p>
+<p>When the buffer overflow happens while reading a buffer, it can expose sensitive data that happens to be located next to the buffer in memory. When
+it happens while writing a buffer, it can be used to inject code or to wipe out sensitive memory.</p>
+<p>This rule detects when a POSIX function takes one argument that is a buffer and another one that represents the size of the buffer, but the two
+arguments do not match.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+char array[10];
+initialize(array);
+void *pos = memchr(array, '@', 42); // Noncompliant, buffer overflow that could expose sensitive data
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+char array[10];
+initialize(array);
+void *pos = memchr(array, '@', 10);
+</pre>
+<h2>Exceptions</h2>
+<p>Functions related to sockets using the type <code>socklen_t</code> are not checked. This is because these functions are using a C-style polymorphic
+pattern using <code>union</code>. It relies on a mismatch between allocated memory and sizes of structures and it creates false positives.</p>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://owasp.org/www-project-top-ten/2017/A9_2017-Using_Components_with_Known_Vulnerabilities">OWASP Top 10 2017 Category A9</a> -
+  Using Components with Known Vulnerabilities </li>
+  <li> <a href="https://cwe.mitre.org/data/definitions/119">MITRE, CWE-119</a> - Improper Restriction of Operations within the Bounds of a Memory
+  Buffer </li>
+  <li> <a href="https://cwe.mitre.org/data/definitions/131">MITRE, CWE-131</a> - Incorrect Calculation of Buffer Size </li>
+  <li> <a href="https://cwe.mitre.org/data/definitions/788">MITRE, CWE-788</a> - Access of Memory Location After End of Buffer </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/wtYxBQ">CERT, ARR30-C.</a> - Do not form or use out-of-bounds pointers or array subscripts </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/i3w-BQ">CERT, STR50-CPP.</a> - Guarantee that storage for strings has sufficient space for
+  character data and the null terminator </li>
+</ul>

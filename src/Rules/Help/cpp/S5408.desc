@@ -1,0 +1,18 @@
+<p>Declaring a function or a static member variable <code>constexpr</code> makes it implicitly inline.</p>
+<p>In that situation, explicitly using the <code>inline</code> keyword would be redundant, and might lead to confusion if it’s used in some cases but
+not others. It’s better to simply omit it.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+inline constexpr int addOne(int n) { return n+1; } // Noncompliant
+struct A {
+inline constexpr static int secretNumber = 0; // Noncompliant
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+constexpr int addOne(int n) { return n+1; }
+struct A {
+constexpr static int secretNumber = 0;
+};
+</pre>
+<p>&nbsp;</p>

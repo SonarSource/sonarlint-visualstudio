@@ -1,0 +1,53 @@
+<p>It may seem tidy to add your new declarations to the <code>std</code> or <code>posix</code> namespaces, but doing so results in undefined behavior.
+The C++14 Standard, [namespace.std] (ISO/IEC 14882-2014 §17.6.4.2.1), paragraphs 1 and 2 states:</p>
+<blockquote>
+  <ol>
+    <li> The behavior of a C++ program is undefined if it adds declarations or definitions to namespace std or to a namespace within namespace std
+    unless otherwise specified. A program may add a template specialization for any standard library template to namespace std only if the declaration
+    depends on a user-defined type and the specialization meets the standard library requirements for the original template and is not explicitly
+    prohibited. </li>
+    <li> The behavior of a C++ program is undefined if it declares:
+      <ul>
+        <li> an explicit specialization of any member function of a standard library class template, or </li>
+        <li> an explicit specialization of any member function template of a standard library class or class template, or </li>
+        <li> an explicit or partial specialization of any member class template of a standard library class or class template. </li>
+      </ul>  </li>
+  </ol>
+</blockquote>
+<p>In addition to restricting extensions to the <code>std</code> namespace, the C++14 Standard goes on in §17.6.4.2.2 to say:</p>
+<blockquote>
+  <ol>
+    <li> The behavior of a C++ program is undefined if it adds declarations or definitions to namespace posix or to a namespace within namespace posix
+    unless otherwise specified. The namespace posix is reserved for use by ISO/IEC 9945 and other POSIX standards. </li>
+  </ol>
+</blockquote>
+<p>You may think that it’s legitimate to reopen <code>std</code> to define a version of extension points (<code>std::swap</code>,
+<code>std::hash</code>…​) that work with your types, but it’s not necessary: If you call these extension points according to the correct pattern (see
+for instance S5963 for <code>swap</code>), user-defined version will be found too.</p>
+<p>This rule raises an issue for any modification of the standard <code>std</code> and <code>posix</code> namespaces.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+namespace MyNamespace {
+  class MyType {/*...*/};
+}
+namespace std { // Noncompliant
+  int x;
+  void swap(MyNamespace::MyType &amp;m1, MyNamespace::MyType &amp;m2);
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+namespace expanded_std {
+  int x;
+}
+namespace MyNamespace {
+  class MyType {/*...*/};
+  void swap(MyType &amp;m1, MyType &amp;m2); // See also S5963 to see how to properly call it
+}
+</pre>
+<h2>Exceptions</h2>
+<p>A namespace fragment that only contains template specializations or explicit instantiations is ignored by this rule.</p>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/Xnw-BQ">CERT, DCL58-CPP.</a> - Do not modify the standard namespaces </li>
+</ul>

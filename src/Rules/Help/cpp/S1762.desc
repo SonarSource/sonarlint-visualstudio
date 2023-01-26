@@ -1,0 +1,19 @@
+<p>Using "#pragma warning (default: …​)" resets the warning in question to its default settings, which may not be what the compiler was initially
+invoked with. Typically, this usage is seen after a warning is turned off, in preparation for code that is known to cause warnings. Instead, the
+warning’s current state should be saved, and then restored after the code in question.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#pragma warning (disable: TheWarning)
+#include problem_code.h
+#pragma warning (default: TheWarning)
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+#pragma warning (push)
+#include problem_code.h
+#pragma warning (pop)
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/6NUxBQ">CERT, MSC00-C.</a> - Compile cleanly at high warning levels </li>
+</ul>

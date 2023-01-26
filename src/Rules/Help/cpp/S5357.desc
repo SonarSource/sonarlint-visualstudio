@@ -1,0 +1,6 @@
+<p>This rule is a strict implementation of a MISRA (Motor Industry Software Reliability Association) rule. MISRA defines best practices for developing
+safety-critical software. You can learn more about this rule in the MISRA documents referenced below.</p>
+<h2>See</h2>
+<ul>
+  <li> MISRA C++ 2008, 5-2-8 - An object with integer type or pointer to void type shall not be converted to an object with pointer type. </li>
+</ul>

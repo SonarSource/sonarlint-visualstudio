@@ -1,0 +1,28 @@
+<p>Code that contains many macros becomes hard to understand. This is even worse when the set of defined macros is not stable, and you have to know at
+each point what macros are defined. Therefore, <code>#undef</code> can decrease the readability of macros.</p>
+<p>However, well-disciplined use of <code>#undef</code> can also improve readability, for instance when defining a macro with a limited scope: The
+macro is <code>#defined</code>, used a couple of times to reduce code duplication, then immediately <code>#undefed</code>.</p>
+<p>This rule raises an issue when a <code>#undef</code> undefines a macro that was defined in another file. It will also raise an issue for an
+<code>#undef</code> directive that tries to undefine a non-existing macro.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#ifndef MY_HDR
+#define MY_HDR
+#endif
+...
+#undef MY_HDR    /* Noncompliant */
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+#define LEVEL(i) int const i = #i
+LEVEL(Debug);
+LEVEL(Warning);
+LEVEL(Error);
+#undef LEVEL
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 19.6 - #undef shall not be used. </li>
+  <li> MISRA C++:2008, 16-0-3 - #undef shall not be used. </li>
+  <li> MISRA C:2012, 20.5 - #undef should not be used </li>
+</ul>

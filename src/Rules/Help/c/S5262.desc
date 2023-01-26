@@ -1,0 +1,11 @@
+<p>Dereferencing a null pointer has undefined behavior, and it is particularly harmful if a reference is then bound to the result, because a reference
+is assumed to refer to a valid object.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void doSomething(A&amp; a);
+void f() {
+  A* a = nullptr;
+  // ...
+  doSomething(*a); // Noncompliant
+}
+</pre>

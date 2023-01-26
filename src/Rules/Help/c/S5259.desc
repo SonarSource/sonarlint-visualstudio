@@ -1,0 +1,25 @@
+<p>Include guards, wrapping around the entire content of a header file, are a best practice that ensure that no matter how many times the header is
+actually included in a translation unit, its content will only be seen once.&nbsp;</p>
+<p>The include guard pattern is made up of four parts:</p>
+<ul>
+  <li> <code>#ifndef</code> at the top of the file, with a unique macro name (usually the name relates to the name of the file, to ensure uniqueness).
+  </li>
+  <li> <code>#define</code>&nbsp;with the same macro name. </li>
+  <li> The content of the file </li>
+  <li> <code>#endif</code> at the end of the file </li>
+</ul>
+<p>The rule raises an issue when the name in the second part differs from the name in the first (usually because of a typo or a copy/paste issue).</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#ifndef MYFILE_H
+#define MY_FILE_H // Noncompliant
+//...
+#endif
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+#ifndef MYFILE_H
+#define MYFILE_H
+//...
+#endif
+</pre>

@@ -1,0 +1,25 @@
+<p>While it is possible for inheritance to be non-<code>public</code>, it is rarely justified and complicates the use of the derived class. For
+instance, inherited member visibility is diminished and implicit and <code>static_cast</code> casts from the derived class to the base class will not
+work.</p>
+<p>It is sometimes used to limit the base class functionality available in the derived class. When that is the desire, composition should be used
+instead.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class B : private A {  // Noncompliant
+  // ...
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class B : public A {
+  // ...
+}
+</pre>
+<p>or</p>
+<pre>
+class B {
+  private:
+  A a;
+  // ...
+}
+</pre>

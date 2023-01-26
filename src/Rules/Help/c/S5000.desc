@@ -1,0 +1,42 @@
+<p>The function <code>memcmp</code> can only be used for objects of trivially copyable types. This includes scalar types, arrays, and trivially
+copyable classes.</p>
+<p>A class type is trivially copyable if:</p>
+<ul>
+  <li> One or more of the following methods is trivial and the rest are deleted: copy constructor, move constructor, copy assignment operator, and
+  move assignment operator, </li>
+  <li> It has a trivial, non-deleted destructor. </li>
+</ul>
+<p>Additionally, if the type contains padding, some of its bits might be non-representative, and a strict comparison of raw memory contents might lead
+to the mistaken belief that two identical objects are actually different.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class Shape { // Trivially copyable, but will contain padding after the bool on most architectures
+public:
+  bool visible;
+  int x;
+  int y;
+};
+
+bool isSame(Shape *s1, Shape *s2)
+{
+    return memcmp(s1, s2, sizeof Shape) == 0; // Noncompliant
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class Shape {
+public:
+  bool visible;
+  int x;
+  int y;
+};
+
+bool operator==(Shape const &amp;s1, Shape const &amp;s2) {
+  return s1.visible == s2.visible &amp;&amp; s1.x == s2.x &amp;&amp; s1.y == s2.y;
+}
+
+bool isSame(Shape *s1, Shape *s2)
+{
+    return (*s1) == (*s2);
+}
+</pre>

@@ -1,0 +1,28 @@
+<p>When specifying base classes for a class, the access level is private by default. While private inheritance has its uses, it is far less used than
+public inheritance. Therefore:</p>
+<ul>
+  <li> Either you want public inheritance, and you have to specify it </li>
+  <li> Or you want private inheritance, and you should be explicit about this design decision, by specifying it too. </li>
+</ul>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class B {
+};
+
+class C : B {
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class B {
+};
+
+class C :  private B { // Or public, if it was private by mistake
+};
+</pre>
+<h3>See Also</h3>
+<ul>
+  <li> {rule:cpp:S5966} is a similar rule that deals with base visibility in structs </li>
+  <li> {rule:cpp:S3540} is another rule that favors a different coding style for base classes. It should not be activated at the same time as this
+  rule. </li>
+</ul>

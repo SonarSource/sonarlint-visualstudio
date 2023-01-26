@@ -1,0 +1,34 @@
+<p>Coding conventions allow teams to work efficiently together. This rule checks that the <code>public</code> section of a class is declared first,
+followed by the <code>protected</code> section, and ending with the <code>private</code> section.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class Point
+{
+  private:
+    String _color;
+    ...
+
+  protected:
+    ...
+
+  public:
+    String getColor();
+    String setColor();
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class Point
+{
+  public:
+    String getColor();
+    String setColor();
+
+  protected:
+    ...
+
+  private:
+    String _color;
+    ...
+};
+</pre>

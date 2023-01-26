@@ -1,0 +1,11 @@
+<p>The possibilities of ISO C <code>printf</code> format strings are limited, this is why many extensions have been added by several implementations.
+Even though they are widespread and similar in many implementations, they are not standard, which means that using them may create portability
+issues.</p>
+<p>This rule reports an issue when format strings do not comply with ISO C standards.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void test() {
+  printf("%1$d", 1); // Noncompliant; positional arguments are not supported by ISO C
+  printf("%qd", (long long)1); // Noncompliant; length specifier "q" is not supported by ISO C
+}
+</pre>

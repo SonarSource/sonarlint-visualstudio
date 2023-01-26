@@ -1,0 +1,33 @@
+<p>This is required by IEC 61508, under good programming style.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+int function1()
+{
+  return 3;
+}
+
+void function2()
+{
+  function1();
+}
+
+int function3(char* ptr) /* Noncompliant; two explicit returns */
+{
+  if (ptr == NULL) return -1;
+
+  return 7;
+}
+
+void function4(char *ptr) /* Noncompliant; two returns, one explicit and one implicit */
+{
+  if (1) return;
+
+  printf("hello world!\n");
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 14.7 - A function shall have a single point of exit at the end of the function. </li>
+  <li> MISRA C++:2008, 6-6-5 - A function shall have a single point of exit at the end of the function </li>
+  <li> MISRA C:2012, 15.5 - A function should have a single point of exit at the end </li>
+</ul>

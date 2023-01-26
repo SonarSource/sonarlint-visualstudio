@@ -1,0 +1,44 @@
+<p>C++20 introduced a restricted form of designated initializers for aggregates (i.e. arrays or classes which respect specific criterion). Designated
+initializers enable initialization of aggregates by naming their fields explicitly:</p>
+<pre>
+struct Point {
+  float x = 0.0;
+  float y = 0.0;
+  float z = 0.0;
+};
+
+Point p = {
+  .x = 1.0,
+  .y = 2.0,
+  // z will be 0.0
+};
+</pre>
+<p>This initialization style is similar to designated initializers in C and in many C++ compiler extensions predating C++20.</p>
+<p>However, it is more restricted because some forms are not supported by the C++20 standard, namely:</p>
+<ul>
+  <li> listing the fields out of order </li>
+  <li> array initialization (including sparse array initialization) </li>
+  <li> initialization of nested fields </li>
+  <li> mixed initialization </li>
+</ul>
+<p>This rule reports non-C++-compliant forms of designated initializers.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+struct A { int x, y; };
+struct B { struct A a; };
+
+struct A a = {.y = 1, .x = 2}; // Noncompliant: valid C, invalid C++ (out of order)
+int arr[3] = {[1] = 5};        // Noncompliant: valid C, invalid C++ (array)
+struct B b = {.a.x = 0};       // Noncompliant: valid C, invalid C++ (nested)
+struct A c = {.x = 1, 2};      // Noncompliant: valid C, invalid C++ (mixed)
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+struct A { int x, y; };
+struct B { struct A a; };
+
+struct A a = {.x = 2, .y = 1};
+int arr[3] = {0, 5};
+struct B b = {.a = {.x = 0}};
+struct A c = {.x = 1, .y = 2};
+</pre>

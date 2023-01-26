@@ -1,0 +1,17 @@
+<p>Enumerations are used to represent symbolic values, or sometimes bit fields. They are not supposed to be used in arithmetic contexts.</p>
+<p>Additionally, even though comparing them with integer numbers can make sense (for instance, to test if an enum lies with a certain range),
+comparing them with floating point numbers does not (and is deprecated since C++20).</p>
+<p>There are other restrictions related to the use of enums, see for instance {rule:c:S2753}.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+enum { COLOUR_0, COLOUR_1, COLOUR_2, COLOUR_COUNT } colour;
+if ( COLOUR_0 == colour ) { ... }
+if ( ( COLOUR_0 + COLOUR_1 ) == colour ) { ... } // Noncompliant, arithmetic used
+if ( colour &lt; COLOUR_COUNT ) { ... }
+if ( colour &gt; 3.14 ) { ... } // Noncompliant, comparison with float
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C++:2008, 4-5-2 - Expressions with type enum shall not be used as operands to builtin operators other than the subscript operator [ ],
+  the assignment operator =, the equality operators == and !=, the unary &amp; operator, and the relational operators &lt;, &lt;=, &gt;, &gt;= </li>
+</ul>

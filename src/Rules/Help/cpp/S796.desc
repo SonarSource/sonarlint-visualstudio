@@ -1,0 +1,13 @@
+<p>The use of an undefined escape sequence leads to undefined behavior. The defined escape sequences (ISO/IEC 14882:2003 [1] §2.13.2) are:
+<code>\n</code>, <code>\t</code>, <code>\v</code>, <code>\b</code>, <code>\r</code>, <code>\f</code>, <code>\a</code>, <code>\\</code>,
+<code>?</code>, <code>\'</code>, <code>\"</code>, <code>\&lt;Octal Number&gt;</code>, and <code>\x&lt;Hexadecimal Number&gt;</code>.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+const char_t a[ 2 ] = "\k";   // Noncompliant
+const char_t b[ 2 ] = "\b";   // Compliant
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 4.1 - Only those escape sequences that are defined in ISO C standard shall be used. </li>
+  <li> MISRA C++:2008, 2-13-1 - Only those escape sequences that are defined in ISO/IEC 14882:2003 shall be used. </li>
+</ul>

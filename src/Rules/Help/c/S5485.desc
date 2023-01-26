@@ -1,0 +1,34 @@
+<p>The standard C library includes a number of functions for handling streams. If not called correctly, these functions can have undefined behavior.
+More specifically:</p>
+<ul>
+  <li> <code>FILE*</code> should be checked for null before being used in a function that accesses the file content </li>
+  <li> The third argument of <code>fseek</code> must be <code>SEEK_SET</code>, <code>SEEK_END</code>, or <code>SEEK_CUR</code> </li>
+</ul>
+<h2>Noncompliant Code Example</h2>
+<pre>
+FILE *file1 = fopen("myFile", "r");
+fseek(file1, 1, SEEK_SET); // Noncompliant, file could be NULL
+fclose(file1);
+
+FILE *file2 = tmpfile();
+ftell(file2); // Noncompliant, file could be NULL
+if (file2) {
+  fseek(file2, 1, 3); // Noncompliant, third argument should either be SEEK_SET, SEEK_CUR or SEEK_END
+}
+fclose(file2);
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+FILE *file1 = fopen("myFile", "r");
+if (file1) {
+  fseek(file1, 1, SEEK_SET);
+  fclose(file1);
+}
+
+FILE *file2 = tmpfile();
+if (file2) {
+  ftell(file2);
+  fseek(file2, 1, SEEK_END);
+  fclose(file2);
+}
+</pre>

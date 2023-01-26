@@ -1,0 +1,46 @@
+<p>Despite their names, the standard remove algorithms (<code>std::remove</code>, <code>std::remove_if</code>, <code>std::unique</code>) do not remove
+the elements. Instead, they rearrange elements so that the preserved (not removed) elements are stored first and return an iterator to the end of that
+sub-sequence (the content of the remainder of the container is unspecified). The responsibility for removing the remaining elements lies in the hands
+of the programmer, leading to what is called the <em>erase-remove</em> idiom.</p>
+<p>Ignoring the return of one of these functions is an indication of a bug, as further operations on the container may access elements with
+unspecified values.</p>
+<p>The <code>range</code> counterparts of the above algorithms (in namespace <code>std::ranges</code>) return a <code>subrange</code> of remaining
+elements, but otherwise, they exhibit the same behavior.</p>
+<p>The rule raises an issue when the result of the invocation of <code>remove</code>, <code>remove_if</code> or <code>unique</code> from namespace
+<code>std</code> or <code>std::ranges</code> is ignored.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void func(std::vector&lt;int&gt;&amp; v) {
+  std::remove_if(v.begin(), v.end(), [](int x) { return x % 2 == 0; }); // Noncompliant
+}
+
+auto largestFiles(vector&lt;char*&gt; fileNames, int n) {
+  remove(fileNames.begin(), fileNames.end(), nullptr); // Noncompliant
+  return max_element(fileNames.begin(), fileNames.end(),
+    [](auto f1, auto f2) {
+      // Undefined behavior: accessing unspecifed elements and potentially dereferencing null pointers
+      return filesystem::file_size(f1) &lt; filesystem::file_size(f2);});
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void func(std::vector&lt;int&gt;&amp; v) {
+  std::erase_if(v, [](int x) { return x % 2 == 0; });
+}
+// Or, before C++20:
+void func(std::vector&lt;int&gt;&amp; v) {
+  v.erase(std::remove_if(v.begin(), v.end(), [](int x) { return x % 2 == 0; }), v.end());
+}
+
+auto largestFiles(vector&lt;char*&gt; fileNames, int n) {
+  // Compliant, the value is used (without the erase-remove idiom, it did not apply here)
+  auto it = remove(fileNames.begin(), fileNames.end(), nullptr);
+  return max_element(fileNames.begin(), it,
+    [](auto f1, auto f2) {
+      return filesystem::file_size(f1) &lt; filesystem::file_size(f2);});
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> {rule:cpp:S6165} - replacing erase-remove idiom with <code>std::erase</code>/<code>std::erase_if</code> </li>
+</ul>

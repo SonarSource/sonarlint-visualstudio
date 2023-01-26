@@ -1,0 +1,19 @@
+<p>Concatenation of wide and narrow string literals has not always been supported in C or C++, and even when supported, the meaning may be unclear to
+the reader. Concatenation of string literals with different encodings is only conditionally supported, and may be removed in a future version of the
+language.</p>
+<p>Therefore, only string literals with the same prefix should be concatenated together.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+wchar_t n_array[] = "Hello" L"World";     // Noncompliant
+wchar_t w_array[] = L"Hello" "World";     // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+char_t n_array[] = "Hello" "World";     // Compliant
+wchar_t w_array[] = L"Hello" L"World";	// Compliant
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C++:2008, 2-13-5 - Narrow and wide string literals shall not be concatenated. </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/WdYxBQ">CERT STR10-C.</a> - Do not concatenate different type of string literals </li>
+</ul>

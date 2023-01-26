@@ -1,0 +1,39 @@
+<p><code>C++17</code> introduced inline variables. They provide a proper way to define global variables in header files. Before inline variables, it
+wasn’t possible to simply define global variables without compile or link errors:</p>
+<pre>
+struct A {
+  static std::string s1 = "s1"; // doesn’t compile
+  static std::string s2;
+};
+
+A::s2 = "s2"; // doesn’t link, violates the one definition rule
+std::string s3 = "s3"; // doesn’t link, violates the one definition rule
+</pre>
+<p>Instead, you had to resort to less readable inconvenient workarounds like variable templates or functions that return a static object. These
+workarounds will initialize the variables when used instead of the start of the program, which might be inconvenient depending on the program.</p>
+<p>This rule will detect these workarounds and suggest using inline variables instead.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+struct A {
+  static std::string&amp; getS1() { // Noncompliant
+    static std::string s1 = "s1";
+    return s1;
+  }
+};
+
+inline std::string&amp; gets2() { // Noncompliant
+  static std::string s2 = "s2";
+  return s2;
+}
+
+template &lt;typename T = std::string&gt;
+T s3 = "s3"; // Noncompliant. Available starting C++14
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+struct A {
+  inline static std::string s1 = "s1"; // Compliant
+};
+
+inline std::string s2 = "s2"; // Compliant
+</pre>

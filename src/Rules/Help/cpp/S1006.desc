@@ -1,0 +1,61 @@
+<p>Overriding the default parameter value inherited from a parent class will lead to unexpected results when the child class is referenced from a
+pointer to the parent class.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+enum E_ShapeColor {E_RED, E_GREEN, E_BLUE};
+
+class Shape
+{
+public:
+  virtual void draw(E_ShapeColor color = E_RED) const
+  {
+    ...
+  }
+};
+class Rectangle : public Shape
+{
+public:
+  virtual void draw(E_ShapeColor color = E_BLUE) const override // Non-compliant
+  {
+   ...
+  }
+};
+
+int main() {
+  Shape *shape = new Rectangle{};
+  shape-&gt;draw();  // unexpectedly calls Rectangle::draw(RED)
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+enum E_ShapeColor {E_RED, E_GREEN, E_BLUE};
+
+class Shape
+{
+public:
+  virtual void draw(E_ShapeColor color = E_RED) const
+  {
+    ...
+  }
+};
+
+class Rectangle : public Shape
+{
+public:
+  virtual void draw(E_ShapeColor color) const override
+  // OR: virtual void draw(E_ShapeColor color = E_RED) const override
+  {
+    ...
+  }
+};
+
+int main() {
+  Shape *shape = new Rectangle{};
+  shape-&gt;draw(); // expectedly calls Rectangle::draw(RED)
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C++ 2008, 8-3-1 - Parameters in a overriding virtual function shall either use the same default arguments as the function they override,
+  or else shall not specify any default arguments. </li>
+</ul>

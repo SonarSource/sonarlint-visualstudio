@@ -1,0 +1,35 @@
+<p>An attempt to use an undefined identifier may elicit a warning from the preprocessor. Or it may not; the preprocessor may simply assume that the
+undefined token has a value of 0.</p>
+<p>Therefore macro identifiers should not be used in preprocessor directives until after they have been defined, and this limited usage should be
+enforced with the use of definition tests.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#if x &gt; 0  /* x assumed to be zero if not defined */
+#include SOMETHING_IMPORTANT
+#endif
+
+#ifdef y  /* Okay; y is not evaluated */
+#if y &gt; 0 /* Okay; y must be defined to reach this point */
+...
+#endif
+#endif
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+#define x 10
+...
+#if x &gt; 0
+#include SOMETHING_IMPORTANT
+#endif
+
+#if defined ( y ) &amp;&amp; ( y &gt; 0 )  /* more compact form, same result as before */
+...
+#endif
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 19.11 - All macro identifiers in preprocessor directives shall be defined before use, except in #ifdef and #ifndef preprocessor
+  directives and the defined() operator. </li>
+  <li> MISRA C:2012, 20.9 - All identifiers used in the controlling expression of #if or #elif preprocessing directives shall be #define’d before
+  evaluation </li>
+</ul>

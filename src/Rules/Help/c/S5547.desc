@@ -1,0 +1,84 @@
+<p><a href="https://en.wikipedia.org/wiki/Strong_cryptography">Strong cipher algorithms</a> are cryptographic systems resistant to cryptanalysis, they
+are not vulnerable to well-known attacks like brute force attacks for example.</p>
+<p>A general recommendation is to only use cipher algorithms intensively tested and promoted by the cryptographic community.</p>
+<p>More specifically for block cipher, it’s not recommended to use algorithm with a block size inferior than 128 bits.</p>
+<h2>Noncompliant Code Example</h2>
+<p><a href="https://github.com/randombit/botan">botan</a></p>
+<pre>
+#include &lt;botan/cipher_mode.h&gt;
+
+
+Botan::Cipher_Mode::create("Blowfish/CBC/PKCS7", Botan::ENCRYPTION);      // Noncompliant: Blowfish use a 64-bit block size makes it vulnerable to birthday attacks
+Botan::Cipher_Mode::create("DES/CBC/PKCS7", Botan::ENCRYPTION);           // Noncompliant: DES works with 56-bit keys allow attacks via exhaustive search
+Botan::Cipher_Mode::create("3DES/CBC/PKCS7", Botan::ENCRYPTION);          // Noncompliant: Triple DES is vulnerable to meet-in-the-middle attack
+Botan::Cipher_Mode::create("DESX/CBC/PKCS7", Botan::ENCRYPTION);          // Noncompliant: Triple DES is vulnerable to meet-in-the-middle attack
+Botan::Cipher_Mode::create("CAST-128/CBC/PKCS7", Botan::ENCRYPTION);      // Noncompliant: 64-bit size block cipher
+Botan::Cipher_Mode::create("GOST-28147-89/CBC/PKCS7", Botan::ENCRYPTION); // Noncompliant: 64-bit size block cipher
+Botan::Cipher_Mode::create("IDEA/CBC/PKCS7", Botan::ENCRYPTION);          // Noncompliant: 64-bit size block cipher
+Botan::Cipher_Mode::create("KASUMI/CBC/PKCS7", Botan::ENCRYPTION);        // Noncompliant: 64-bit size block cipher
+Botan::Cipher_Mode::create("MISTY1/CBC/PKCS7", Botan::ENCRYPTION);        // Noncompliant: 64-bit size block cipher
+Botan::Cipher_Mode::create("XTEA/CBC/PKCS7", Botan::ENCRYPTION);          // Noncompliant: 64-bit size block cipher
+Botan::Cipher_Mode::create("RC4", Botan::ENCRYPTION);                     // Noncompliant: has numerous design flaws which make it hard to use correctly
+</pre>
+<p><a href="https://software.opensuse.org/package/libcryptopp">crypto++</a></p>
+<pre>
+#include &lt;cryptopp/arc4.h&gt;
+#include &lt;cryptopp/blowfish.h&gt;
+#include &lt;cryptopp/cast.h&gt;
+#include &lt;cryptopp/des.h&gt;
+#include &lt;cryptopp/gost.h&gt;
+#include &lt;cryptopp/idea.h&gt;
+#include &lt;cryptopp/rc2.h&gt;
+#include &lt;cryptopp/tea.h&gt;
+
+CryptoPP::ARC4::Encryption(key, sizeof(key)); // Noncompliant: RC4/ARC4 has numerous design flaws which make it hard to use correctly
+CryptoPP::Blowfish::Encryption(key, sizeof(key)); // Noncompliant: 64-bit size block
+CryptoPP::GOST::Encryption(key, sizeof(key)); // Noncompliant: 64-bit size block
+CryptoPP::IDEA::Encryption(key, sizeof(key)); // Noncompliant: 64-bit size block
+CryptoPP::XTEA::Encryption(key, sizeof(key)); // Noncompliant: 64-bit size block
+CryptoPP::DES::Encryption(key, sizeof(key)); // Noncompliant: DES works with 56-bit keys allow attacks via exhaustive search
+CryptoPP::DES_EDE2::Encryption(key, sizeof(key)); // Noncompliant: Triple DES is vulnerable to meet-in-the-middle attack
+CryptoPP::DES_EDE3::Encryption(key, sizeof(key)); // Noncompliant: Triple DES is vulnerable to meet-in-the-middle attack
+CryptoPP::DES_XEX3::Encryption(key, sizeof(key)); // Noncompliant: Triple DES is vulnerable to meet-in-the-middle attack
+CryptoPP::RC2::Encryption(key, sizeof(key)); // Noncompliant: RC2 is vulnerable to a related-key attack
+CryptoPP::RC2Encryption(key, sizeof(key)); // Noncompliant; alternative
+CryptoPP::RC2Decryption(key, sizeof(key)); // Noncompliant; alternative
+</pre>
+<p><a href="https://github.com/openssl/openssl">OpenSSL</a></p>
+<pre>
+#include &lt;openssl/evp.h&gt;
+
+EVP_bf_cbc(); // Noncompliant: 64-bit size block
+EVP_cast5_cbc(); // Noncompliant: 64-bit size block
+EVP_des_cbc(); // Noncompliant: DES works with 56-bit keys allow attacks via exhaustive search
+EVP_idea_cbc(); // Noncompliant: 64-bit size block
+EVP_rc4(); // Noncompliant:  has numerous design flaws which make it hard to use correctly
+EVP_rc2_cbc(); // Noncompliant: RC2 is vulnerable to a related-key attack
+</pre>
+<h2>Compliant Solution</h2>
+<p><a href="https://github.com/randombit/botan">botan</a></p>
+<pre>
+#include &lt;botan/cipher_mode.h&gt;
+
+Botan::Cipher_Mode::create("AES-256/GCM", Botan::ENCRYPTION);  // Compliant: AES is a good default choice for symmetric encryption
+</pre>
+<p><a href="https://software.opensuse.org/package/libcryptopp">crypto++</a></p>
+<pre>
+#include &lt;cryptopp/aes.h&gt;
+
+CryptoPP::AES::Encryption(key, sizeof(key));  // Compliant: AES is a good default choice for symmetric encryption
+</pre>
+<p><a href="https://github.com/openssl/openssl">OpenSSL</a></p>
+<pre>
+#include &lt;openssl/evp.h&gt;
+
+EVP_aes_128_gcm() // Compliant: AES is a good default choice for symmetric encryption
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://owasp.org/Top10/A02_2021-Cryptographic_Failures/">OWASP Top 10 2021 Category A2</a> - Cryptographic Failures </li>
+  <li> <a href="https://www.owasp.org/www-project-top-ten/2017/A3_2017-Sensitive_Data_Exposure">OWASP Top 10 2017 Category A3</a> - Sensitive Data
+  Exposure </li>
+  <li> <a href="https://cwe.mitre.org/data/definitions/327">MITRE, CWE-327</a> - Use of a Broken or Risky Cryptographic Algorithm </li>
+  <li> <a href="https://www.sans.org/top25-software-errors/#cat3">SANS Top 25</a> - Porous Defenses </li>
+</ul>

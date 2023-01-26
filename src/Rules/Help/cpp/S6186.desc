@@ -1,0 +1,80 @@
+<p>C++20 introduces rewriting rules that enable defining only a few operator overloads in a class to be able to compare class instances in many
+ways:</p>
+<ul>
+  <li> the "spaceship" <code>operator&lt;=&gt;</code> can replace all the other comparison operators in most cases: The code <code>a @ b</code> (where
+  <code>@</code> is one of the following operators: <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, or <code>&gt;=</code>) can be implicitly
+  rewritten to use either <code>a&lt;=&gt;b</code> or <code>b&lt;=&gt;a</code>, and its three-way comparison semantics instead. </li>
+  <li> If <code>operator==</code> is defined, <code>a!=b</code> can be implicitly rewritten <code>!(a==b)</code> </li>
+  <li> If an <code>operator&lt;=&gt;</code> is defined as <code>=default</code>, a matching <code>operator==</code> is automatically generated if it
+  does not already exist. </li>
+</ul>
+<p>If you define your own version of any particular comparison operator, e.g., <code>operator&lt;</code> in addition to the
+<code>operator&lt;=&gt;</code>, it will supersede the compiler-generated version and might result in a surprising behavior with
+<code>operator&lt;</code> semantics inconsistent with the semantics of other operators defined through <code>operator&lt;=&gt;</code>.</p>
+<p>In most cases, you will only have to define the following set of comparison operators in your class (possibly several of those sets, to allow for
+mixed-type comparison):</p>
+<ul>
+  <li> No comparison operator, if the class should not be compared, or </li>
+  <li> only <code>operator==</code> for classes that can only be compared for equality (and inequality), or </li>
+  <li> only <code>operator&lt;=&gt;</code>, defined as <code>=default</code> for fully comparable classes that only need to perform comparison member
+  by member, or </li>
+  <li> both <code>operator&lt;=&gt;</code> and <code>operator==</code> when the comparison is more complex. </li>
+</ul>
+<p>This rule will raise an issue when a class is defined:</p>
+<ul>
+  <li> With an <code>operator&lt;=&gt;</code> and any of the four operators <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>,
+  <code>&gt;=</code> defined with the same argument type. </li>
+  <li> With both <code>operator==</code> and <code>operator!=</code> defined for the same types. </li>
+  <li> With a defaulted <code>operator&lt;=&gt;</code> and a defaulted <code>operator==</code> with the same argument types defined. </li>
+  <li> With two <code>operator&lt;=&gt;</code> or two <code>operator==</code> that are declared with the same argument types in reverse order. </li>
+</ul>
+<h2>Noncompliant Code Example</h2>
+<p>Example with redundant operations in the same class:</p>
+<pre>
+class A {
+  int field;
+  public:
+    auto operator&lt;=&gt;(const A&amp;) const = default;
+    bool operator&lt;(const A&amp; other) const { // Noncompliant: this definition is redundant when operator&lt;=&gt; is present
+      return field &lt; other.field;
+    }
+    bool operator==(const A&amp;) const = default; // Noncompliant: unnecessary, this line is added implicitly
+};
+</pre>
+<p>Example with equivalent operations in different order:</p>
+<pre>
+class MyStr {
+  friend std::strong_ordering operator&lt;=&gt;(MyStr const &amp;s1, std::string const &amp;s2);
+  friend std::strong_ordering operator&lt;=&gt;(std::string const &amp;s1, MyStr const &amp;s2); // Noncompliant, redundant with the previous line
+};
+</pre>
+<h2>Compliant Solution</h2>
+<p>The class has been reduced to a minimal set:</p>
+<pre>
+class A {
+  int field;
+  public:
+    auto operator&lt;=&gt;(const A&amp;) const = default; // Compliant: operator== is implicitly generated, and expressions with &lt; can be written
+};
+
+// The following code is valid:
+void f(A const &amp;a1, A const &amp;a2) {
+  bool b1 = a1 == a2; // Uses implicitly generated operator==
+  bool b2 = a1 != a2; // Uses implicitly generated operator==, rewritten as: !(a1 == a2)
+  bool b3 = a1 &lt; a2; // Rewritten as: (a1 &lt;=&gt; a2) &lt; 0
+  bool b4 = a1 &gt;= a2; // Uses implicitly generated operator==
+  bool b1 = a1 == a2; // Uses implicitly generated operator==
+}
+</pre>
+<p>Only one order needs to be written</p>
+<pre>
+class MyStr {
+  friend std::strong_ordering operator&lt;=&gt;(MyStr const &amp;s1, std::string const &amp;s2); // Compliant
+};
+
+// The following code is valid
+void f(MyStr const &amp;s1, std::string const &amp;s2) {
+  bool b1 = s1 &lt; s2; // Rewritten as: (s1&lt;=&gt;s2) &lt; 0
+  bool b2 = s2 &gt;= s1; // Rewritten as 0 &gt;= (s1&lt;=&gt;s2);
+}
+</pre>

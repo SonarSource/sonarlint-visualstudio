@@ -1,0 +1,19 @@
+<p>Passing arguments via an ellipsis bypasses the type checking performed by the compiler. Additionally, passing an argument with non-POD class type
+leads to undefined behavior. Note that the rule specifies "defined" (and not "declared") so as to permit the use of existing library functions.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void MyPrintf ( char_t * pFormat, ... )	// Noncompliant
+{
+  // ...
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 16.1 - Functions shall not be defined with a variable number of arguments. </li>
+  <li> MISRA C++:2008, 8-4-1 - Functions shall not be defined using the ellipsis notation. </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/5ns-BQ">CERT, DCL50-CPP.</a> - Do not define a C-style variadic function </li>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#-es34-dont-define-a-c-style-variadic-function">C++ Core
+  Guidelines ES.34</a> Don’t define a (C-style) variadic function </li>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#f55-dont-use-va_arg-arguments">C++ Core Guidelines
+  F.55</a> Don’t use va_arg arguments </li>
+</ul>

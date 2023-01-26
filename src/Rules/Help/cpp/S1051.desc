@@ -1,0 +1,15 @@
+<p>The use of C headers and therefore C functions in a C++ program, is sometimes necessary, but should be avoided in favor of C++ headers and
+functions.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#include &lt;string.h&gt;
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+#include &lt;cstring&gt;
+#include &lt;string&gt;
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C++:2008, 18-0-1 - The C library shall not be used. </li>
+</ul>

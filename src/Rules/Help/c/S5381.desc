@@ -1,0 +1,33 @@
+<p>In C and its family of languages, the <code>^</code> operator performs the <em>exclusive or</em> (xor) operation. This can be misleading, since
+<code>^</code> is also commonly used to designate the exponentiation operation, for instance in BASIC, R or (La)TeX.</p>
+<p>This rule will flag uses of <code>^</code> in places where an exponentiation is suspected to be the intended operation, i.e on expressions that
+attempt to <em>xor</em> 2 or 10 with a constant expression.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#include &lt;stdint.h&gt;
+
+uint32_t max_uint16 = 2 ^ 16; // Noncompliant, expression evaluates to 18, instead of the intended 65536
+uint32_t one_billion = 10 ^ 9; // Noncompliant, expression evaluates to 3 instead of the intended 1e9
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+#include &lt;stdint.h&gt;
+#include &lt;math.h&gt;
+
+uint32_t max_uint16 = 1 &lt;&lt; 16; // Compliant, using left shift to generate a power of 2
+uint32_t one_billion = pow(10, 9); // Compliant, using the math pow function
+</pre>
+<h2>Exceptions</h2>
+<p>No issue will be raised when at least one of the operands is expressed as a binary, octal or hexadecimal literal. In such cases, the assumption is
+that <em>xor</em> operation is intended.</p>
+<pre>
+#include &lt;stdint.h&gt;
+
+uint32_t using_octal = 02 ^ 016; // Compliant
+uint32_t using_binary = 0b10 ^ 9; // Compliant
+uint32_t using_hex = 0xFF ^ 0x09; // Compliant
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://en.wikipedia.org/wiki/Exponentiation#In_programming_languages">Exponentiation on Wikipedia</a> </li>
+</ul>

@@ -1,0 +1,41 @@
+<p>A pointer to null (the 0 memory address) should never be dereferenced/accessed. Doing so will at best cause abrupt program termination, without the
+ability to run any cleanup processes. At worst, it could expose debugging information that would be useful to an attacker or it could allow an
+attacker to bypass security measures.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+char *p1 = ... ;
+if (p1 == NULL &amp;&amp; *p1 == '\t') { // Noncompliant, p1 will be dereferenced IFF it is null
+  // ...
+}
+
+char *p2 = ... ;
+if (p2 != NULL) {
+    // ...
+}
+*p2 = '\t'; // Noncompliant; potential null-dereference
+
+char *p3, *p4;
+p3 = NULL;
+// ...
+p4 = p3;
+*p4 = 'a';  // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+char *p1 = ... ;
+if (p1 != NULL &amp;&amp; *p1 == '\t') { // Compliant, *p1 cannot be evaluated when p1 is NULL
+  // ...
+}
+
+char *p2 = ... ;
+if (p2 != NULL) {
+    // ...
+  *p2 = '\t'; // Compliant
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://cwe.mitre.org/data/definitions/476">MITRE, CWE-476</a> - NULL Pointer Dereference </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/QdcxBQ">CERT, EXP34-C.</a> - Do not dereference null pointers </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/aDdGBQ">CERT, EXP01-J.</a> - Do not use a null in a case where an object is required </li>
+</ul>

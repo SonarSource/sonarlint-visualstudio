@@ -1,0 +1,26 @@
+<p>When logging a message there are several important requirements which must be fulfilled:</p>
+<ul>
+  <li> The user must be able to easily retrieve the logs </li>
+  <li> The format of all logged message must be uniform to allow the user to easily read the log </li>
+  <li> Logged data must actually be recorded </li>
+  <li> Sensitive data must only be logged securely </li>
+</ul>
+<p>If a program directly writes to the standard outputs, there is absolutely no way to comply with those requirements. That’s why defining and using a
+dedicated logger is highly recommended.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+std::cout &lt;&lt; "My Message";                // Noncompliant
+std::cerr &lt;&lt; "My Message";                // Noncompliant
+printf("My Message");                     // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+Log().Get(logINFO) &lt;&lt; "My Message";
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://owasp.org/Top10/A09_2021-Security_Logging_and_Monitoring_Failures/">OWASP Top 10 2021 Category A9</a> - Security Logging and
+  Monitoring Failures </li>
+  <li> <a href="https://www.owasp.org/www-project-top-ten/2017/A3_2017-Sensitive_Data_Exposure">OWASP Top 10 2017 Category A3</a> - Sensitive Data
+  Exposure </li>
+</ul>

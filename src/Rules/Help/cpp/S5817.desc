@@ -1,0 +1,25 @@
+<p>No member function can be invoked on a const-qualified object unless the member function is declared "const".</p>
+<p>Qualifying member functions that don’t mutate their object with the "const" qualifier makes your interface easier to understand; you can deduce
+without diving into implementation if a member function is going to mutate its object.</p>
+<p>Also, const-qualified member functions make working with const-qualified objects possible. The compiler ensures that only member functions that are
+declared "const" can be invoked on "const" objects. Avoiding declaring non-mutating member functions const might break&nbsp;const-correctness: it will
+not be possible to invoke such non-mutating functions on const-qualified objects.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class A {
+  void f(){ // Noncompliant
+    std::cout&lt;&lt; "f doesn't mutate A";
+  }
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class A {
+  void f() const {
+    std::cout&lt;&lt; "f doesn't mutate A";
+  }
+};
+</pre>
+<h2>Exceptions</h2>
+<p>Virtual member functions that don’t mutate their objects don’t necessarily need to be declared const. This might be done in order to allow them to
+be overridden by non-const functions.</p>

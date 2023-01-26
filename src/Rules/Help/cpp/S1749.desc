@@ -1,0 +1,37 @@
+<p>Shared coding conventions allow teams to collaborate efficiently. This rule checks that type specifiers always appear in the following order:</p>
+<ol>
+  <li> <code>typedef</code> </li>
+  <li> type name, spelling of built-in types with more than one type-specifier:
+    <ol>
+      <li> signedness - <code>signed</code> or <code>unsigned</code> </li>
+      <li> last single type-specifier or
+        <ul>
+          <li> <code>short int</code> </li>
+          <li> <code>long int</code> </li>
+          <li> <code>long long int</code> </li>
+          <li> <code>long double</code> </li>
+        </ul>  </li>
+    </ol>  </li>
+</ol>
+<p>Since the positioning of the <code>const</code> keyword is controversial, this rule does not check it.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+int typedef T;
+
+double long d;
+char unsigned ch;
+long signed int i;
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+typedef int T;
+
+long double d;
+unsigned char ch;
+signed long int i;
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#Rl-const">C++ Core Guidelines NL.26</a> - Use
+  conventional <code>const</code> notation </li>
+</ul>

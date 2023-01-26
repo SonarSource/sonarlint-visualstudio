@@ -1,0 +1,32 @@
+<p>Unused parameters are misleading. Whatever the values passed to such parameters, the behavior will be the same.</p>
+<p>There are some cases when you want to have an unused parameter (usually because the function has to conform to a fixed prototype, because it is
+virtual or it is going to be called from a template). In this case, and if the parameter is never used, an accepted practice is to leave it unnamed.
+If it is only sometimes used (for instance, depending on conditional compilation), you may, since C++17, use the <code>[[maybe_unused]]</code>
+attribute to be explicit about it.</p>
+<pre>
+void f([[maybe_unused]] int i) {
+  assert(i &lt; 42); // In optimized mode, this assert will be removed, and i will be unused
+}
+</pre>
+<p>In case of Objective-C it is acceptable to have unused parameters if the method is supposed to be overridden.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void doSomething(int a, int b) { // Noncompliant, "b" is unused
+  compute(a);
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void doSomething(int a) {
+  compute(a);
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C++:2008, 0-1-11 - There shall be no unused parameters (named or unnamed) in nonvirtual functions. </li>
+  <li> MISRA C:2012, 2.7 - There should be no unused parameters in functions </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/5dUxBQ">CERT, MSC12-C.</a> - Detect and remove code that has no effect or is never executed
+  </li>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#f9-unused-parameters-should-be-unnamed">C++ Core
+  Guidelines - F.9</a> - Unused parameters should be unnamed </li>
+</ul>

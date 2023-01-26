@@ -1,0 +1,87 @@
+<p>One of the use cases for the coroutines is suspending execution until certain conditions are satisfied (e.g. value is produced, flag/event is
+triggered). In some situations, the expected result may be already available at the point of the <code>co_await</code>/<code>co_yield</code>
+expression, and the execution can be resumed immediately.</p>
+<p>The C++ standard provides an efficient method to suspend the coroutine conditionally. The result of <code>await_ready</code> is used to determine
+whether a coroutine should be suspended. Returning <code>true</code> from this function avoids the cost of the coroutine suspension if it is not
+needed (e.g., the result is already available). Furthermore, the <code>bool</code>-returning version of <code>await_suspend</code> allows immediate
+resumption of the current coroutine in the case when <code>false</code> is returned (returning <code>true</code> indicates that the coroutine should
+remain suspended). Compared to symmetric transfer, this method provides better optimization opportunities, as the continuation code is known to the
+compiler - i.e., it is the code of the current coroutine, while in symmetric transfer the handle could point to an arbitrary coroutine.</p>
+<p>This rule raises an issue on <code>await_suspend</code> that can benefit from using conditional suspension.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+struct WaitForAwaiter {
+  Event&amp; event;
+  /* .... */
+  std::coroutine_handle&lt;&gt; await_suspend(std::coroutine_handle&lt;&gt; current) { // Noncompliant
+    bool callback_registered = event.register_callback(current);
+    if (!callback_registered) {
+      return current;
+    } else {
+      return std::noop_coroutine();
+    }
+  }
+};
+
+struct ReadBytesAwaiter {
+  Socket&amp; socket;
+  std::size_t count;
+  std::span&lt;std::byte&gt; buffer;
+  std::error_code error;
+  /* .... */
+  void await_suspend(std::coroutine_handle&lt;&gt; current) { // Noncompliant
+    auto callback = [&amp;error_store=error, current](std::error_code ec) {
+      error_store = ec;
+      current.resume();
+    };
+
+    auto ec = socket.async_read(buffer, count, callback);
+    if (ec) {
+      error = ec;
+      current.resume();
+    }
+  }
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+struct WaitForAwaiter {
+  Event&amp; event;
+  /* .... */
+  bool await_ready() const {
+    return event.is_already_triggered();
+  }
+  bool await_suspend(std::coroutine_handle&lt;&gt; current) {
+    bool callback_registered = event.register_callback(current);
+    return callback_registered;
+  }
+};
+
+struct ReadBytesAwaiter {
+  Socket&amp; socket;
+  std::size_t count;
+  std::span&lt;std::byte&gt; buffer;
+  std::error_code error;
+  /* .... */
+
+  bool await_ready() const {
+    return false; // no way to query before suspension
+  }
+  bool await_suspend(std::coroutine_handle&lt;&gt; current) {
+    auto callback = [&amp;error_store=error, current](std::error_code ec) {
+      error_store = ec;
+      current.resume();
+    };
+
+    auto ec = socket.async_read(buffer, count, callback);
+    if (ec) {
+      error = ec;
+      return false;
+    }
+
+    return true;
+  }
+};
+</pre>
+<h2>See</h2>
+<p>{rule:cpp:S6365} - transferring execution to any suspended coroutine</p>

@@ -1,0 +1,18 @@
+<p>It is possible in the same statement, to declare a user-defined type (<code>class</code>, <code>struct</code>, <code>union</code> or
+<code>enum</code>) followed by variable declarations of this type. But mixing more than one concern in a single statement is confusing for
+maintainers.</p>
+<p>This rule raises an issue when a variable is declared at the end of a user-defined type declaration statement.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+struct Container { int size; } container; // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+struct Container { int size; };
+Container container;
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#Rc-standalone">C++ Core Guidelines C.7</a> - Don’t define
+  a class or enum and declare a variable of its type in the same statement </li>
+</ul>

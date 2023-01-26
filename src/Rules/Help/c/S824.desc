@@ -1,0 +1,20 @@
+<p>A function declared at block scope will refer to a member of the enclosing namespace, and so the declaration should be explicitly placed at the
+namespace level.</p>
+<p>Additionally, where a declaration statement could either declare a function or an object, the compiler will choose to declare the function. To
+avoid potential developer confusion over the meaning of a declaration, functions should not be declared at block scope.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class A {
+};
+
+void fun() {
+  void nestedFun();  // Noncompliant; declares a function in block scope
+
+  A a();      // Noncompliant; declares a function at block scope, not an object
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 8.6 - Functions shall be declared at file scope </li>
+  <li> MISRA C++:2008, 3-1-2 - Functions shall not be declared at block scope </li>
+</ul>

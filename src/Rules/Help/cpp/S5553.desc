@@ -1,0 +1,21 @@
+<p>Binding a temporary object to a reference to const usually lengthens the lifetime of the temporary: instead of being destroyed at the end of the
+full expression, the temporary will have the same lifetime as the reference itself.</p>
+<p>However, lifetime extension is not transitive, so if the definition of the temporary relies on another temporary, this second temporary will always
+be destroyed at the end of the full expression, creating an immediately dangling reference.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#include &lt;vector&gt;
+#include &lt;optional&gt;
+
+using namespace std;
+
+void f(int i);
+
+int main() {
+    // the vector is a temporary object, and binding a reference to its first element will not extend the vector lifetime
+    auto const &amp;val = vector{1, 2, 3}[0]; // Noncompliant, val is an immediately dangling reference
+    f(val);
+
+    int &amp;&amp; rval = *std::optional&lt;int&gt;();  // Noncompliant, rval is an immediately dangling reference
+}
+</pre>

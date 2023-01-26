@@ -1,0 +1,13 @@
+<p>Variable length arrays should have a well-defined, positive size.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void f1() {
+  int n;
+  int a[n]; // Noncompliant; n is undefined
+}
+
+void f2() {
+  int n = 0;
+  int a[n]; // Noncompliant; array of zero size
+}
+</pre>

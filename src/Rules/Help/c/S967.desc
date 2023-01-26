@@ -1,0 +1,28 @@
+<p>Because the evaluation order of <code>#</code> and <code>##</code> are not specified, the results of using them both in the same macro could be
+unpredictable. Therefore macros should contain at most once instance of either <code>#</code> or <code>##</code>.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#define NonCompliant(a, b)  # a ## b
+int main() {
+  std::cout &lt;&lt; NonCompliant(Hello, World);
+}
+</pre>
+<p>The result of this code is unspecified. It will either print "HelloWorld" or trigger a compilation error. If ## is evaluated first this will print
+HelloWorld. If # is evaluated first this will cause a compilation error telling that&nbsp;<strong>"Hello"World</strong> is not a valid preprocessor
+token.</p>
+<h2>Compliant Solution</h2>
+<pre>
+#define Stringfy(a) #a
+#define Compliant(a, b)  Stringfy(a##b)
+
+int main(){
+  std::cout &lt;&lt; Compliant(Hello, World);
+}
+</pre>
+<p>This example will always print "HelloWorld".</p>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 19.12 </li>
+  <li> MISRA C++ 2008, 16-3-1 </li>
+  <li> Related: MISRA C:2012, 20.11 </li>
+</ul>

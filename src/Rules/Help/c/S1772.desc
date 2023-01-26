@@ -1,0 +1,14 @@
+<p>The result of the comparison is the same, regardless of whether the constant is on the left or right-hand side. But following this convention will
+help pinpoint the occasional error where <code>=</code> (assignment) is substituted for <code>==</code> (comparison).</p>
+<p>If the constant is on the right-hand side of the expression in such cases, the code will still compile and run - just not as expected. If the
+constant is on the left-hand side, the error will be caught at the first attempt to compile.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+if ( var == constant )
+if ( pointer == NULL )
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+if ( constant == var )
+if ( NULL == pointer )
+</pre>

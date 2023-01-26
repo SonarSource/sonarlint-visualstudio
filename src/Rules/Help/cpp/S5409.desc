@@ -1,0 +1,32 @@
+<p>When you are using a standard library container based on a hash table (for instance, <code>std::unordered_map</code>), you can provide your own
+hash function. One of the requirements of the hash function is that it should not throw exceptions.</p>
+<p>If you don’t follow this requirement, and your hash function throws, you may end-up with corrupt data in your container.</p>
+<p>Since this function is not supposed to throw, you should also declare it <code>noexcept</code>.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+struct MyHash{
+  size_t operator() (Customer c) const // Noncompliant, copying may throw
+  {
+    if (c.name().empty()) {
+      throw std::runtime_error("You should know the customer name at this point"); // Noncompliant
+    }
+    return std::hash&lt;std::string&gt;()(c.name());
+  }
+};
+std::unordered_set&lt;Customer, MyHash&gt; mySet;
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+struct MyHash{
+  size_t operator() (Customer const &amp;c) const noexcept
+  {
+    return std::hash&lt;std::string&gt;()(c.name());
+  }
+};
+std::unordered_set&lt;Customer, MyHash&gt; mySet;
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#c89-make-a-hash-noexcept">C++ Core Guidelines C.89</a> -
+  Make a hash noexcept </li>
+</ul>

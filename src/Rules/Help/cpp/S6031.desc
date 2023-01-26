@@ -1,0 +1,44 @@
+<p><code>std::forward</code> forwards lvalues either as lvalues or as rvalues based on its template argument.</p>
+<p><code>std::forward</code> should always take as a non-template argument a forwarding reference which is defined by the standard as:</p>
+<p><em>rvalue reference to a cv-unqualified template parameter that does not represent a template parameter of a class template.</em></p>
+<p>If you don’t pass forwarding reference as an argument to <code>std::forward</code> {rule:cpp:S5417} will be triggered.</p>
+<p>If you don’t pass the template parameter referred to by the forwarded reference or the <code>decltype</code> of the forwarded expression this rule
+will be triggered.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+template &lt;class T&gt;
+void g(T&amp;&amp; t);
+
+template &lt;class T&gt;
+void f(T&amp;&amp; t) {
+ g(std::forward&lt;T&amp;&amp;&gt;(t)); // Noncompliant
+ g(std::forward&lt;T&amp;&gt;(t)); // Noncompliant
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+template &lt;class T&gt;
+void g(T&amp;&amp; t);
+
+template &lt;class T&gt;
+void f(T&amp;&amp; t) {
+  g(std::forward&lt;T&gt;(t)); // Compliant
+}
+
+struct StrWrapper {
+  std::string s = "rand";
+  std::string getStr() &amp;&amp; {
+    return s;
+  }
+  std::string&amp; getStr() &amp; {
+    return s;
+  }
+};
+template &lt;class T&gt;
+void fstr(T&amp;&amp; str);
+
+template &lt;class T&gt;
+void wrapper(T&amp;&amp; strWrapper ) {
+  fstr(forward&lt;decltype(forward&lt;T&gt;(strWrapper).getStr())&gt;(forward&lt;T&gt;(strWrapper).getStr())); // Compliant
+}
+</pre>

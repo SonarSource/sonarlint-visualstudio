@@ -1,0 +1,104 @@
+<p>C++20 introduces <code>std::span</code>, a thin generic abstraction for sequences of elements contiguous in memory represented by the beginning and
+length. <code>std::span</code>&nbsp;can unify the interface for such sequences, e.g., for plain arrays, <code>std::array</code>,
+<code>std::vector</code>, or <code>std::string</code>.</p>
+<p><code>std::span&lt;T const* const&gt;</code> can be constructed of <code>std::vector&lt;T*&gt;</code> without copying it, which makes it well
+suited for const-correct interfaces.</p>
+<p><code>std::span</code> can have dynamic or static extent (length). The latter is useful for compilers to optimize the handling of arrays of size
+known at compile time.</p>
+<p>This rule reports:</p>
+<ul>
+  <li> functions that accept a span by means of a plain array or a pointer to the beginning of a sequence and its length </li>
+  <li> functions that accept <code>begin</code> and <code>end</code> iterators of a <code>std::array</code> or a <code>std::vector</code> </li>
+  <li> functions that accept <code>std::vector&lt;T const*&gt;</code> and are called with a temporary copy of <code>std::vector&lt;T*&gt;</code>
+  created just to satisfy the type signature of the argument. </li>
+  <li> functions that accept <code>std::vector&lt;T*&gt;</code> and never modify the objects pointed to by its elements. </li>
+  <li> const member functions that return a reference or a copy of a <code>std::vector&lt;T*&gt;</code> field. </li>
+</ul>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void addOdd(int* arr, size_t size) { // Noncompliant: replace ptr+size with std::span
+  for (int i = 0; i*2 + 1 &lt; size; ++i) {
+    arr[i*2] += arr[i*2 + 1];
+  }
+}
+</pre>
+<pre>
+void addOdd(std::vector&lt;int&gt;::iterator begin, std::vector&lt;int&gt;::iterator end) { // Noncompliant
+  for (auto iter = begin; iter != end &amp;&amp; iter + 1 != end; iter += 2) {
+    *iter += *(iter + 1);
+  }
+}
+</pre>
+<pre>
+bool oddAre0(const std::vector&lt;int*&gt;&amp; nums) { // Noncompliant: use std::span&lt;const int*&gt;
+  for (int i = 0; 2*i + 1 &lt; std::size(nums); ++i) {
+    if (0 != *nums[2*i + 1]) {
+      return false;
+    }
+  }
+  return true;
+}
+</pre>
+<pre>
+bool oddAre0(const std::vector&lt;int const*&gt;&amp; nums) { // Noncompliant: use std::span&lt;int const*&gt;
+  for (int i = 0; 2*i + 1 &lt; std::size(nums); ++i) {
+    if (0 != *nums[2*i + 1]) {
+      return false;
+    }
+  }
+  return true;
+}
+std::vector&lt;int*&gt; getNums();
+void caller() {
+  std::vector&lt;int*&gt; nums = getNums();
+  if (oddAre0(std::vector&lt;int const*&gt;{nums.begin(), nums.end()})) { // This copy is verbose and slow
+    // ...
+  }
+}
+</pre>
+<pre>
+class A {
+  std::vector&lt;int*&gt; myNums;
+public:
+  const std::vector&lt;int*&gt;&amp; getMyNums1() const { // Noncompliant: caller can modify *a.myNums[1]
+    return myNums;
+  }
+  std::vector&lt;int const*&gt; getMyNums2() const {
+    return std::vector&lt;int const*&gt;{myNums.begin(), myNums.end()}; // Noncompliant: expensive copy
+  }
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void addOdd(std::span&lt;int&gt; span) { // Compliant
+  for (int i = 0; i*2 + 1 &lt; std::size(span); ++i) {
+    span[i*2] += span[i*2 + 1];
+  }
+}
+</pre>
+<pre>
+bool oddAre0(std::span&lt;int const* const&gt; nums) { // Compliant
+  for (int i = 0; 2*i + 1 &lt; std::size(nums); ++i) {
+    if (0 != *nums[2*i + 1]) {
+      return false;
+    }
+  }
+  return true;
+}
+std::vector&lt;int*&gt; getNums();
+void caller() {
+  std::vector&lt;int*&gt; nums = getNums();
+  if (oddAre0(nums)) { // No copy
+    // ...
+  }
+}
+</pre>
+<pre>
+class A {
+  std::vector&lt;int*&gt; myNums;
+public:
+  std::span&lt;int const* const&gt; getMyNums() const { // Compliant: const-correct
+    return myNums; // No copy
+  }
+};
+</pre>

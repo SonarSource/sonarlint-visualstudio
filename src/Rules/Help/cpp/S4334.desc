@@ -1,0 +1,10 @@
+<p>Using <code>auto</code> when the type that would be deduced is a pointer type can cause confusion. It is much better to specify the pointer part
+outside of <code>auto</code>.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+auto item = new Item(); // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+auto* item = new Item();
+</pre>

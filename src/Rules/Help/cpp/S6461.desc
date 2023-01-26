@@ -1,0 +1,38 @@
+<p>A <em>requires-expression</em> is used to express constraints on template arguments. A basic building block of these constraints is the capability
+to generate a subexpression whose type depends on a template argument.</p>
+<p>The traditional way to write such a subexpression is by using <code>std::declval&lt;&gt;</code> (doing something more naive such as
+<code>T{}</code> is not as generic, for instance, it requires T to be default-constructible). This is, however, very verbose and can be error prone:
+<code>declval&lt;T&gt;()</code> yields an expression of type <code>T&amp;&amp;</code>, while referencing a variable directly produces an lvalue
+(<code>T&amp;</code>). This, in many cases, leads to concepts incorrectly requiring only <em>move-construction</em>, while copies are made by the
+implementation.</p>
+<p><em>Require-expressions</em> introduce a more natural way to achieve that. When writing a <em>requires-expression</em>, it is possible to add a
+parameter list, similar to function parameters, and these parameters can be used later in the expression. This syntax is less verbose, more
+expressive, and less error-prone and should be preferred over calling <code>std::declval</code> in requires-expressions.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+template&lt;typename T&gt;
+concept C1 = requires {
+  std::declval&lt;T const&amp;&gt;() + // Noncompliant
+  std::declval&lt;T const&amp;&gt;(); // Noncompliant
+};
+
+template&lt;typename T&gt;
+concept C2 = requires {
+  std::declval&lt;T const&amp;&gt;() + // Noncompliant
+  std::declval&lt;typename T::type const&amp;&gt;(); // Noncompliant
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+template&lt;typename T&gt;
+concept C1 = requires (T const &amp;t) {
+  t + t;
+};
+
+// Note that if T::type is not a valid expression, no syntax error is
+// triggered, the concept will simply not be satisfied
+template&lt;typename T&gt;
+concept C2 = requires (T const t, typename T::type const u) {
+  t + u;
+};
+</pre>

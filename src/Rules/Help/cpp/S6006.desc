@@ -1,0 +1,29 @@
+<p><code>C++17</code> introduced <code>as_const</code>: a helper function that converts a value to its corresponding const value in a succinct and
+more explicit way.</p>
+<p>This is usually done to force an overloaded function call on a non-const object to resolve to the const alternative. This also can be used to
+instantiate a template with a const type rather than the original non-const one.</p>
+<p>This rule detects casts that can be replaced by <code>as_const</code>.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void fn(std::vector&lt;int&gt;&amp; vec);
+void fn(const std::vector&lt;int&gt;&amp; vec);
+
+void constFCaller() {
+  std::vector&lt;int&gt; vec;
+  // Set the content of vec
+  // ...
+  fn(static_cast&lt;const std::vector&lt;int&gt;&amp;&gt;(vec)); // Noncompliant
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void fn(std::vector&lt;int&gt;&amp; vec);
+void fn(const std::vector&lt;int&gt;&amp; vec);
+
+void constFCaller() {
+  std::vector&lt;int&gt; vec;
+  // Set the content of vec
+  // ...
+  fn(as_const(vec)); // Compliant
+}
+</pre>

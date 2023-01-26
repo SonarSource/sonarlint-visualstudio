@@ -1,0 +1,42 @@
+<p>In contrast to normal functions, coroutines can suspend and later resume their execution. Depending on the program, the coroutine may resume on a
+different thread of execution than the one it was started or run previously on.</p>
+<p>Therefore, the access to the "same" variable with <code>thread_local</code> storage may produce different values as illustrated below:</p>
+<pre>
+thread_local std::vector&lt;Decorator&gt; decorators;
+lazy&lt;Thingy&gt; doSomething() {
+  // evaluation started on thread t1
+  /* .... */
+  const std::size_t decoratorCount = decorators.size(); // value specific to thread t1
+  auto result = co_await produceThingy();
+  // after co_await, execution resumes on thread t2
+  for (std::size_t i = 0; i &lt; decoratorCount; ++i) {
+    decorators[i].modify(result); // access value specific to t2
+    // miss some tasks if t1:decorators.size() &lt; t2:decorators.size()
+    // undefined behavior if t1:decorators.size() &gt; t2:decorators.size()
+  }
+  co_return result;
+}
+</pre>
+<p>This behavior is surprising and unintuitive compared to normal functions that are always evaluated on a single thread. The same issue can happen
+for the use of different thread-local variables if their values are interconnected (e.g., one is the address of the buffer, and the other is the
+number of elements in the buffer).</p>
+<p>Moreover, access to <code>thread-local</code> variables defined inside the coroutine may read uninitialized memory. Each such variable is
+initialized when a specific thread enters the function for the first time, and if the function was never called from a thread on which the coroutine
+is resumed, it is uninitialized.</p>
+<p>This rule raises an issue on the declaration of <code>thread_local</code> variables and access to <code>thread_local</code> variables in
+coroutines.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+thread_local std::vector&lt;Decorator&gt; decorators;
+lazy&lt;Thingy&gt; doSomething() {
+  thread_local Decorator localDecorator; // Noncompliant
+  const std::size_t decoratorCount = decorators.size(); // Noncompliant
+  /* ... */
+  auto result = co_await produceThingy();
+  for (std::size_t i = 0; i &lt; taskCount; ++i) {
+    decorators[i].modify(result);
+  }
+  localDecorator.modify(result); // Noncompliant
+  co_return result;
+}
+</pre>

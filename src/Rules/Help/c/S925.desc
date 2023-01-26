@@ -1,0 +1,30 @@
+<p>Recursion is a powerful tool, but it can be tricky to get right. Getting it wrong can lead to stack overflow errors and cause system problems. Even
+when you do get it right, recursive code can be difficult to understand, perhaps leading to maintenance problems in the future. Therefore recursion
+should be avoided in general and used only with due deliberation and caution when it is strictly necessary.</p>
+<p>This rule checks for direct recursion (when a function calls itself).</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+int pow(int num, int exponent) {
+  if (exponent &gt; 1) {
+    num = num * pow(num, exponent-1);  // Noncompliant; direct recursion
+  }
+  return num;
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+int pow(int num, int exponent) {
+  int val = num;
+  while (exponent &gt; 0) {
+    val *= num;
+    --exponent;
+  }
+  return val;
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 16.2 - Functions shall not call themselves, either directly or indirectly. </li>
+  <li> MISRA C++:2008, 7-5-4 - Functions should not call themselves, either directly or indirectly. </li>
+  <li> MISRA C:2012, 17.2 - Functions shall not call themselves, either directly or indirectly </li>
+</ul>

@@ -1,0 +1,45 @@
+<p>The GNU compiler extension that allows <code>case</code>s to be specified with ranges should only be used when a range is actually needed. Use it
+with the same number on both ends of the range, and you’ve either made a mistake because an actual range was intended, or you’ve used the syntax
+inappropriately in a way that is highly likely to confuse maintainers.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+switch (i) {
+  case 0:
+    //...
+    break;
+  case 1 ... 2:
+    //...
+    break;
+  case 3 ... 3: // Noncompliant
+    //...
+    break;
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+switch (i) {
+  case 0:
+    //...
+    break;
+  case 1 ... 2:
+    //...
+    break;
+  case 3:
+    //...
+    break;
+}
+</pre>
+<p>or</p>
+<pre>
+switch (i) {
+  case 0:
+    //...
+    break;
+  case 1 ... 2:
+    //...
+    break;
+  case 3 ... 5:
+    //...
+    break;
+}
+</pre>

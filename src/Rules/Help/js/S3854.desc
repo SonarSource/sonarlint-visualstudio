@@ -1,0 +1,35 @@
+<p>There are situations where <code>super()</code> must be invoked and situations where <code>super()</code> cannot be invoked.</p>
+<p>The basic rule is: a constructor in a non-derived class cannot invoke <code>super()</code>; a constructor in a derived class must invoke
+<code>super()</code>.</p>
+<p>Furthermore:</p>
+<ul>
+  <li> <code>super()</code> must be invoked before the <code>this</code> and <code>super</code> keywords can be used. </li>
+  <li> <code>super()</code> must be invoked with the same number of arguments as the base class' constructor. </li>
+  <li> <code>super()</code> can only be invoked in a constructor - not in any other method. </li>
+  <li> <code>super()</code> cannot be invoked multiple times in the same constructor. </li>
+</ul>
+<h3>Known Limitations</h3>
+<ul>
+  <li> False negatives: some issues are not raised if the base class is not defined in the same file as the current class. </li>
+</ul>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class Dog extends Animal {
+  constructor(name) {
+    super();
+    this.name = name;
+    super();         // Noncompliant
+    super.doSomething();
+  }
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class Dog extends Animal {
+  constructor(name) {
+    super();
+    this.name = name;
+    super.doSomething();
+  }
+}
+</pre>

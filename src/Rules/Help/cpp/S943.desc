@@ -1,0 +1,67 @@
+<p>While they are extraordinarily useful, pointers are not the most intuitive concept in the world. Pointers to pointers are even harder to understand
+and use correctly. And with each additional level of indirection, pointer variables become more difficult to use correctly. Therefore pointer
+declarators should be limited to no more than two levels of nesting.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+typedef int * INTPTR;
+struct s {
+ int ** s1;
+ int *** s2; // Noncompliant
+};
+
+struct s ** ps1;
+struct s *** ps2; // Noncompliant
+
+int ** ( *pfunc1)();
+int ** ( **pfunc2)();
+int ** (***pfunc3)(); // Noncompliant
+int *** ( **pfunc4)(); // Noncompliant
+
+void function( int ** par1,
+               int *** par2, // Noncompliant
+               INTPTR * par3,
+               int * par4[],
+               int ** par5[]) // Noncompliant
+{
+  int ** ptr1;
+  int *** ptr2; // Noncompliant
+  INTPTR * ptr3;
+  int * ptr4[ 10 ];
+  int ** ptr5[ 10 ]; //Noncompliant
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+typedef int * INTPTR;
+struct s {
+ int ** s1;
+ int ** s2;
+};
+
+struct s ** ps1;
+struct s ** ps2;
+
+int ** (*pfunc1)();
+int ** (**pfunc2)();
+int ** (**pfunc3)();
+int ** (**pfunc4)();
+
+void function( int ** par1,
+               int ** par2,
+               INTPTR * par3,
+               int * par4[],
+               int * par5[])
+{
+  int ** ptr1;
+  int ** ptr2;
+  INTPTR * ptr3;
+  int * ptr4[ 10 ];
+  int * ptr5[ 10 ];
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 17.5 - The declaration of objects should contain no more than 2 levels of pointer indirection </li>
+  <li> MISRA C++:2008, 5-0-19 - The declaration of objects shall contain no more than two levels of pointer indirection </li>
+  <li> MISRA C:2012, 18.5 - Declarations should contain no more than two levels of pointer nesting </li>
+</ul>

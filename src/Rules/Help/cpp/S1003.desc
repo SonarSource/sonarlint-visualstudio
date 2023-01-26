@@ -1,0 +1,54 @@
+<p>A using directive makes names from another namespace available in the current scope. It should only be used when those names do not create an
+ambiguity with other names, otherwise, it is better to fully qualify the names you want to use.</p>
+<p>When you write a header file, you don’t know from which context it will be included. Therefore, if this header contains using directives, you
+cannot be sure that they will not create ambiguities in that context. Those ambiguities could lead to compilation failures or, worse, to a different
+function being selected by overload resolution depending on the order of inclusion of headers.</p>
+<p>A using declaration behaves in the same way but only for one name. Because of their much narrower scope, this rule does not apply to using
+declarations.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+// f1.h
+void foo ( char_t a );
+namespace NS1
+{
+  void foo( int32_t a );
+}
+
+inline void bar ( )
+{
+  foo ( 0 );
+}
+
+// f2.h
+namespace NS1
+{
+}
+using namespace NS1; // Noncompliant
+
+// f1.cc
+#include "f1.h"
+#include "f2.h"
+
+int32_t m1 ( )
+{
+  bar ( ); // bar calls foo ( char_t );
+}
+
+// f2.cc
+#include "f2.h"
+#include "f1.h"
+void m2 ( )
+{
+  bar ( ); // bar calls foo ( int32_t );
+}
+</pre>
+<h2>Exceptions</h2>
+<p>The issue only happens if the using directive is at global scope or at namespace scope. If is is inside a function body, it will cease to be in
+effect at the end of the current scope, and will not propagate to the users of the header file.</p>
+<h2>See</h2>
+<ul>
+  <li> MISRA C++:2008, 7-3-6 - using-directives and using-declarations (excluding class scope or function scope using-declarations) shall not be used
+  in header files. </li>
+  <li> <a
+  href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#sf7-dont-write-using-namespace-at-global-scope-in-a-header-file">C++ Core Guidelines SF.7</a> - Don’t write <code>using namespace</code> at global scope in a header file </li>
+</ul>

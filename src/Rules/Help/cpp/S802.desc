@@ -1,0 +1,36 @@
+<p>Reusing a <code>typedef</code> name either as another <code>typedef</code> name or for any other purpose may lead to developer confusion.</p>
+<p>The same <code>typedef</code> shall not be duplicated anywhere in the project, even if the declarations are identical.</p>
+<p>Note that where the type definition is made in a header file, and that header file is included in multiple source files, this rule is not
+violated.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+{
+  typedef unsigned char uint8_t;
+}
+
+{
+  typedef unsigned char uint8_t; // Noncompliant, redefinition
+}
+
+{
+  unsigned char uint8_t; // Noncompliant, reuse of uint8_t for another purpose
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+typedef unsigned char uint8_t;
+{
+}
+
+{
+}
+
+{
+  unsigned char myChar;
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 5.3 - A typedef name shall be a unique identifier. </li>
+  <li> MISRA C++:2008, 2-10-3 - A typedef name (including qualification, if any) shall be a unique identifier. </li>
+</ul>

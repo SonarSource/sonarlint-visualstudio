@@ -1,0 +1,4 @@
+<p>A structure, such as a <code>struct</code>, <code>union</code> or <code>class</code> that grows too much tends to aggregate too many
+responsibilities and inevitably becomes harder to understand and therefore to maintain, and having a lot of fields is an indication that a structure
+has grown too large.</p>
+<p>Above a specific threshold, it is strongly advised to refactor the structure into smaller ones that focus on well defined topics.</p>

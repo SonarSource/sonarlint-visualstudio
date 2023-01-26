@@ -1,0 +1,25 @@
+<p>The <code>deprecated</code> attribute can be applied with or without explanations, but marking something <code>deprecated</code> without including
+advice as to why it’s deprecated or on what to use instead will lead maintainers to waste time trying to figure those things out - every single time
+the warning is encountered.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+[[deprecated]] // Noncompliant
+void foo1();
+
+__attribute__((deprecated)) // Noncompliant
+void foo2();
+
+__declspec(deprecated) // Noncompliant
+void foo3();
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+[[deprecated("use 'bar' instead")]]
+void foo1();
+
+__attribute__((deprecated("use 'bar' instead")))
+void foo2();
+
+__declspec(deprecated("use 'bar' instead"))
+void foo3();
+</pre>

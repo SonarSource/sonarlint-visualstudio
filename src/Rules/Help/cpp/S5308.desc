@@ -1,0 +1,21 @@
+<p><code>setuid</code> family of functions are used to change the user identity of the caller process in order to change privileges for the following
+actions. If the function call returns with an error, the rest of the program will execute with unexpected privileges leading to unexpected
+behaviour.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void f() {
+  ...
+  setuid(0); // Noncompliant
+  ...
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void f() {
+  ...
+  if (setuid(0)) {
+    // fail
+  }
+  ...
+}
+</pre>

@@ -1,0 +1,23 @@
+<p>Fold expressions, introduced in C++17, are a way to expand a variadic template parameter pack with operators between each pack element. Due to the
+high flexibility of this construct, many variadic templates that used to be written by a recursive call can now be written in a more direct way.</p>
+<p>In addition to a usually simpler code, fold expressions results in far less functions instantiated, which can improve compilation time.</p>
+<p>This rule raises an issue when a recursive template instantiation that could be easily be replaced by a fold expression is detected</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+template&lt;class Cont&gt;
+void addElementsToContainer(Cont &amp;C) {
+}
+
+template&lt;class Cont, class T, class ...U&gt;
+void addElementsToContainer(Cont &amp;C, T &amp;&amp;t, U &amp;&amp;...us) {
+    C.push_back(forward&lt;T&gt;(t));
+    addElementsToContainer(C, forward&lt;U&gt;(us)...); // Noncompliant recursive call
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+template&lt;class Cont, class ...T&gt;
+void addElementsToContainer(Cont &amp;C, T &amp;&amp;...ts) {
+    (C.push_back(std::forward&lt;T&gt;(ts)),...); // Compliant fold expression over the operator ','
+}
+</pre>

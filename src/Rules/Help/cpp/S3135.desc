@@ -1,0 +1,37 @@
+<p><code>sizeof</code> returns the size in bytes of a type. One common usage pattern, especially in C, is to use <code>sizeof</code> to determine the
+size of an array. However, arrays decay to pointers when passed as arguments to a function, and if <code>sizeof</code> is applied to such an argument,
+it will return the size of the pointer, not of the array. A similar issue happens when the array is used in an arithmetic operation.</p>
+<p>This rule raises issues when:</p>
+<ul>
+  <li> <code>sizeof</code> is used to compute the array size of a pointer passed as a function argument. </li>
+  <li> <code>sizeof</code> is called on the result of an arithmetic operation involving an array. </li>
+</ul>
+<p>Note: C++17 provides a <code>std::size</code> function that will correctly compute the number of elements of an array and fail to compile if
+provided with a pointer. It is simpler and safer to use this variant when available. C++20 also provides the functions <code>std::ssize</code>,
+<code>std::ranges::size</code>, and <code>std::ranges::ssize</code> with similar effects.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void fun(int *data, int array[10]) {
+  size_t const dataSize = sizeof data / sizeof(int); // Noncompliant, type of data is int *
+  size_t const arraySize = sizeof array / sizeof(int); // Noncompliant, type of array is int * too
+  int primes[] = { 1, 2, 3, 5, 7, 13, 17, 19};
+  size_t const primesSize = sizeof primes / sizeof(int); // Compliant, type of primes is int[8]
+  size_t const primesSize2 = sizeof(primes + 1) / sizeof(int); // Noncompliant, type of primes + 1 is int *
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+// Computing dataSize is now the responsibility of the caller
+void fun(int *data, int dataSize, int (&amp;array)[10]) {
+  size_t const arraySize = sizeof array / sizeof(int); // Compliant, no decay
+  int primes[] = { 1, 2, 3, 5, 7, 13, 17, 19};
+  size_t const primesSize = std::size(primes); // Better variant in C++17
+  size_t const primesSize2 = sizeof primes / sizeof(int) + 1;
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/CdYxBQ">CERT, ARR01-C.</a> - Do not apply the <code>sizeof</code> operator to a pointer when
+  taking the size of an array </li>
+  <li> <a href="https://cwe.mitre.org/data/definitions/467">MITRE, CWE-467</a> - Use of sizeof() on a Pointer Type </li>
+</ul>

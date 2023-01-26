@@ -1,0 +1,128 @@
+<p>The standard C library includes a number of functions for string and memory manipulation. They take pointers and lengths as parameters. Passing
+<code>NULL</code> for the pointers will at best do nothing and at worst crash the application.</p>
+<p>This rule raises an issue when the pointer passed to any of the following functions is <code>NULL</code>:</p>
+<ul>
+  <li> <code>int aio_suspend(const struct aiocb* const aiocb_list[], int nitems, const struct timespec* timeout);</code> </li>
+  <li> <code>void* bsearch(const void* key, const void* base, size_t nmemb, size_t size, int (*compar)(const void *, const void *));</code> </li>
+  <li> <code>void encrypt(char block[64], int edflag);</code> </li>
+  <li> <code>double erand48(unsigned short xsubi[3]);</code> </li>
+  <li> <code>int fgetpwent_r(FILE* fp, struct passwd* pwbuf, char* buf, size_t buflen, struct passwd** pwbufp);</code> </li>
+  <li> <code>char* fgets(char* str, int size, FILE* stream);</code> </li>
+  <li> <code>wchar_t* fgetws(wchar_t* restrict ws, int n, FILE* restrict fp);</code> </li>
+  <li> <code>int getgrgid_r(gid_t gid, struct group* grp, char* buffer, size_t bufsize, struct group** result);</code> </li>
+  <li> <code>int getgrnam_r(const char* name, struct group* grp, char* buffer, size_t bufsize, struct group** result);</code> </li>
+  <li> <code>int gethostbyaddr_r(const void* addr, socklen_t len, int type, struct hostent* ret, char* buf, size_t buflen, struct hostent** result,
+  int* h_errnop);</code> </li>
+  <li> <code>int gethostbyname_r(const char* name, struct hostent* ret, char* buf, size_t buflen, struct hostent** result, int* h_errnop);</code>
+  </li>
+  <li> <code>int gethostbyname2_r(const char* name, int af, struct hostent* ret, char* buf, size_t buflen, struct hostent** result, int*
+  h_errnop);</code> </li>
+  <li> <code>int gethostent_r(struct hostent* ret, char* buf, size_t buflen, struct hostent** result, int* h_errnop);</code> </li>
+  <li> <code>int gethostname(char* name, size_t len);</code> </li>
+  <li> <code>ssize_t getline(char** restrict linep, size_t* restrict linecapp, FILE* restrict stream);</code> </li>
+  <li> <code>int getlogin_r(char* name, int len);</code> </li>
+  <li> <code>int getnetbyaddr_r(uint32_t net, int type, struct netent* result_buf, char* buf, size_t buflen, struct netent** result, int*
+  h_errnop);</code> </li>
+  <li> <code>int getnetbyname_r(const char* name, struct netent* result_buf, char* buf, size_t buflen, struct netent** result, int* h_errnop);</code>
+  </li>
+  <li> <code>int getnetent_r(struct netent* result_buf, char* buf, size_t buflen, struct netent** result, int* h_errnop);</code> </li>
+  <li> <code>int getnetgrent_r(char** host, char** user, char** domain, char* buf, int buflen);</code> </li>
+  <li> <code>int getopt(int argc, char* const argv[], const char* optstring);</code> </li>
+  <li> <code>int getopt_long(int argc, char* const* argv, const char* optstring, const struct option* longopts, int* longindex);</code> </li>
+  <li> <code>int getopt_long_only(int argc, char* const* argv, const char* optstring, const struct option* longopts, int* longindex);</code> </li>
+  <li> <code>int getprotobyname_r(const char* name, struct protoent* result_buf, char* buf, size_t buflen, struct protoent** result);</code> </li>
+  <li> <code>int getprotobynumber_r(int proto, struct protoent* result_buf, char* buf, size_t buflen, struct protoent** result);</code> </li>
+  <li> <code>int getprotoent_r(struct protoent* result_buf, char* buf, size_t buflen, struct protoent** result);</code> </li>
+  <li> <code>int getpwent_r(struct passwd* pwbuf, char* buf, size_t buflen, struct passwd** pwbufp);</code> </li>
+  <li> <code>int getpwnam_r(const char* name, struct passwd* pwd, char* buf, size_t buflen, struct passwd** result);</code> </li>
+  <li> <code>int getpwuid_r(uid_t uid, struct passwd* pwd, char* buf, size_t buflen, struct passwd** result);</code> </li>
+  <li> <code>int getservbyname_r(const char* name, const char* proto, struct servent* result_buf, char* buf, size_t buflen, struct servent**
+  result);</code> </li>
+  <li> <code>int getservbyport_r(int port, const char* proto, struct servent* result_buf, char* buf, size_t buflen, struct servent** result);</code>
+  </li>
+  <li> <code>int getservent_r(struct servent* result_buf, char* buf, size_t buflen, struct servent** result);</code> </li>
+  <li> <code>char* initstate(unsigned long seed, char* state, long n);</code> </li>
+  <li> <code>long jrand48(unsigned short xseed[3]);</code> </li>
+  <li> <code>void lcong48(unsigned short p[7]);</code> </li>
+  <li> <code>void* lfind(const void* key, const void* base, size_t* nelp, size_t width, int (*compar)(const void *, const void *));</code> </li>
+  <li> <code>int lio_listio(int mode, struct aiocb* const aiocb_list[], int nitems, struct sigevent* sevp);</code> </li>
+  <li> <code>void* lsearch(const void* key, void* base, size_t* nelp, size_t width, int (*compar)(const void *, const void *));</code> </li>
+  <li> <code>int mblen(const char* mbchar, size_t nbytes);</code> </li>
+  <li> <code>size_t mbsnrtowcs(wchar_t* restrict dst, const char** restrict src, size_t nms, size_t len, mbstate_t* restrict ps);</code> </li>
+  <li> <code>ssize_t mq_receive(mqd_t mqdes, char* msg_ptr, size_t msg_len, unsigned* msg_prio);</code> </li>
+  <li> <code>int mq_send(mqd_t mqdes, const char* msg_ptr, size_t msg_len, unsigned msg_prio);</code> </li>
+  <li> <code>ssize_t mq_timedreceive(mqd_t mqdes, char* msg_ptr, size_t msg_len, unsigned* msg_prio, const struct timespec* abs_timeout);</code> </li>
+  <li> <code>int mq_timedsend(mqd_t mqdes, const char* msg_ptr, size_t msg_len, unsigned msg_prio, const struct timespec* abs_timeout);</code> </li>
+  <li> <code>long nrand48(unsigned short xseed[3]);</code> </li>
+  <li> <code>void posix_trace_event(trace_event_id_t event_id, const void* restrictdata_ptr, size_t data_len);</code> </li>
+  <li> <code>int posix_trace_trygetnext_event(trace_id_t trid, struct posix_trace_event_info* restrict event, void* restrict data, size_t num_bytes,
+  size_t* restrict data_len, int* restrict unavailable);</code> </li>
+  <li> <code>ssize_t pread(int fd, void* buf, size_t nbytes, off_t offset);</code> </li>
+  <li> <code>ssize_t preadv(int fd, const struct iovec* iov, int iovcnt, off_t offset);</code> </li>
+  <li> <code>ssize_t preadv2(int fd, const struct iovec* iov, int iovcnt, off_t offset, int flags);</code> </li>
+  <li> <code>int pthread_attr_setstack(pthread_attr_t* attr, void* stackaddr, size_t stacksize);</code> </li>
+  <li> <code>ssize_t pwrite(int fd, const void* buf, size_t count, off_t offset);</code> </li>
+  <li> <code>ssize_t pwritev(int fd, const struct iovec* iov, int iovcnt, off_t offset);</code> </li>
+  <li> <code>ssize_t pwritev2(int fd, const struct iovec* iov, int iovcnt, off_t offset, int flags);</code> </li>
+  <li> <code>void qsort(void* base, size_t nmemb, size_t size, int (*compar)(const void *, const void *));</code> </li>
+  <li> <code>void qsort_r(void* base, size_t nmemb, size_t size, void* thunk, int (*compar)(void *, const void *, const void *));</code> </li>
+  <li> <code>ssize_t read(int fildes, void* buf, size_t nbyte);</code> </li>
+  <li> <code>ssize_t readlink(const char* restrict path, char* restrict buf, size_t bufsize);</code> </li>
+  <li> <code>int readlinkat(int dirfd, const char* pathname, char* buf, size_t bufsiz);</code> </li>
+  <li> <code>ssize_t readv(int fd, const struct iovec* iov, int iovcnt);</code> </li>
+  <li> <code>ssize_t recv(int s, void* buf, size_t len, int flags);</code> </li>
+  <li> <code>ssize_t recvfrom(int s, void* buf, size_t len, int flags, struct sockaddr* restrict from, socklen_t* restrict fromlen);</code> </li>
+  <li> <code>unsigned short* seed48(unsigned short xseed[3]);</code> </li>
+  <li> <code>int semop(int semid, struct sembuf* array, size_t nops);</code> </li>
+  <li> <code>int semtimedop(int semid, struct sembuf* sops, unsigned nsops, struct timespec* timeout);</code> </li>
+  <li> <code>ssize_t send(int socket, const void* buffer, size_t length, int flags);</code> </li>
+  <li> <code>ssize_t sendto(int socket, const void* message, size_t length, int flags, const struct sockaddr* dest_addr, socklen_t dest_len);</code>
+  </li>
+  <li> <code>void setbuf(FILE* restrict stream, char* restrict buf);</code> </li>
+  <li> <code>void setbufer(FILE* restrict stream, char* restrict buf, size_t size);</code> </li>
+  <li> <code>int socketpair(int domain, int type, int protocol, int* sv);</code> </li>
+  <li> <code>size_t strftime(char* restrict buf, size_t maxsize, const char* restrict format, const struct tm* restrict timeptr);</code> </li>
+  <li> <code>void swab(const void* restrict src, void* restrict dst, ssize_t len);</code> </li>
+  <li> <code>int ttyname_r(int fd, char* buf, size_t len);</code> </li>
+  <li> <code>int utimes(const char* path, const struct timeval* times);</code> </li>
+  <li> <code>int vswprintf(wchar_t* restrict ws, size_t n, const wchar_t* restrict format, va_list ap);</code> </li>
+  <li> <code>wchar_t* wcpncpy(wchar_t* s1, wchar_t* s2, size_t n);</code> </li>
+  <li> <code>size_t wcsftime(wchar_t* restrict wcs, size_t maxsize, const wchar_t* restrict format, const struct tm* restrict timeptr);</code> </li>
+  <li> <code>int wcsncasecmp(const wchar_t* s1, const wchar_t* s2, size_t n);</code> </li>
+  <li> <code>int wcsncmp(const wchar_t* s1, const wchar_t* s2, size_t n);</code> </li>
+  <li> <code>wchar_t* wcsncpy(wchar_t* restrict s1, const wchar_t* restrict s2, size_t n);</code> </li>
+  <li> <code>size_t wcsnlen(const wchar_t* s, size_t maxlen);</code> </li>
+  <li> <code>size_t wcsnrtombs(char* dest, const wchar_t** src, size_t nwc, size_t len, mbstate_t* ps);</code> </li>
+  <li> <code>int wcswidth(const wchar_t* s, size_t n);</code> </li>
+  <li> <code>size_t wcsxfrm(wchar_t* restrict ws1, const wchar_t* restrict ws2, size_t n);</code> </li>
+  <li> <code>int wmemcmp(const wchar_t* s1, const wchar_t* s2, size_t n);</code> </li>
+  <li> <code>wchar_t* wmemcpy(wchar_t* restrict s1, const wchar_t* restrict s2, size_t n);</code> </li>
+  <li> <code>wchar_t* wmemmove(wchar_t* s1, const wchar_t* s2, size_t n);</code> </li>
+  <li> <code>wchar_t* wmemset(wchar_t* s, wchar_t c, size_t n);</code> </li>
+  <li> <code>ssize_t writev(int fd, const struct iovec* iov, int iovcnt);</code> </li>
+  <li> <code>void *memcpy(void *dest, const void *src, size_t n);</code> </li>
+  <li> <code>void *memmove(void *dest, const void *src, size_t n);</code> </li>
+  <li> <code>void *memccpy(void *dest, const void *src, int c, size_t n);</code> </li>
+  <li> <code>void *memset(void *s, int c, size_t n);</code> </li>
+  <li> <code>int memcmp(const void *s1, const void *s2, size_t n);</code> </li>
+  <li> <code>char *strcpy(char *dest, const char *src);</code> </li>
+  <li> <code>char *strncpy(char *dest, const char *src, size_t n);</code> </li>
+  <li> <code>char *strcat(char *dest, const char *src);</code> </li>
+  <li> <code>char *strncat(char *dest, const char *src, size_t n);</code> </li>
+  <li> <code>int strcmp(const char *s1, const char *s2);</code> </li>
+  <li> <code>int strncmp(const char *s1, const char *s2, size_t n);</code> </li>
+  <li> <code>void *mempcpy(void *dest, const void *src, size_t n);</code> </li>
+  <li> <code>size_t strlen(const char *s);</code> </li>
+  <li> <code>size_t strnlen(const char *s, size_t maxlen);</code> </li>
+  <li> <code>void bcopy(const void *src, void *dest, size_t n);</code> </li>
+  <li> <code>void bzero(void *s, size_t n);</code> </li>
+  <li> <code>int bcmp(const void *s1, const void *s2, size_t n);</code> </li>
+  <li> <code>int strcasecmp(const char *s1, const char *s2);</code> </li>
+  <li> <code>int strncasecmp(const char *s1, const char *s2, size_t n);</code> </li>
+  <li> <code>char *strsep(char **stringp, const char *delim);</code> </li>
+  <li> <code>char *stpcpy(char *dest, const char *src);</code> </li>
+</ul>
+<h2>Noncompliant Code Example</h2>
+<pre>
+memcpy(NULL, src, 10); // Noncompliant, null pointer
+</pre>

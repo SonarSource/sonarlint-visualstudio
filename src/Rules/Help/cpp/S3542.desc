@@ -1,0 +1,21 @@
+<p>C++14 adds the ability to write numbers with digit separators for better readability. Splitting a number that has more than 4 consecutive digits
+improves readability.</p>
+<p>This rule verifies that numbers are written using digit separators when they have more than 4 consecutive digits.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+long decimal_int_value     = 5543124;            // Noncompliant; insert ' between groups of 3 digits.
+double decimal_float_value = 7918714.3456;       // Noncompliant; insert ' between groups of 3 digits.
+long hexadecimal_value     = 0x83A32486E2;       // Noncompliant; insert ' between groups of 2 or 4 digits.
+long octal_value           = 04420343313726;     // Noncompliant; insert ' between groups of 2, 3 or 4 digits.
+long binary_value          = 0b0101011011101010; // Noncompliant; insert ' between groups of 2, 3 or 4 digits.
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+long decimal_int_value     = 5'543'124;
+double decimal_float_value = 7'918'714.3456;
+long hexadecimal_value     = 0x83'A324'86E2;
+long octal_value           = 04'4203'4331'3726;
+long binary_value          = 0b0101'0110'1110'1010;
+</pre>
+<h2>Exceptions</h2>
+<p>No issue is raised on the fractional or exponent part of floating point numbers, only the integral part should comply.</p>

@@ -1,0 +1,46 @@
+<p>An unnamed namespace will be unique within each translation unit. Any declarations appearing in an unnamed namespace in a header will refer to a
+different entity in each translation unit, which is probably not the expected behavior.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+// Header.hpp
+namespace                  // Noncompliant
+{
+  extern int32_t x;
+}
+</pre>
+<pre>
+// File1.cpp
+#include "Header.hpp"
+
+namespace
+{
+  int32_t x;
+}
+
+void fn_a(void)
+{
+  x = 42;
+}
+</pre>
+<pre>
+// File2.cpp
+#include "Header.hpp"
+
+namespace
+{
+  int32_t x;  // this is a different x than in File1.cpp
+}
+
+void fn_b(void)
+{
+  fn_a();                  // Is expected to initialize "x" to 42
+  if (x == 42)             // But does not, as there are 2 distinct "x" variables
+  {
+  }
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C++:2008, 7-3-3 - There shall be no unnamed namespaces in header files. </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/VXs-BQ">CERT, DCL59-CPP.</a> - Do not define an unnamed namespace in a header file </li>
+</ul>

@@ -1,0 +1,80 @@
+<p>In order to save memory, unions allow you to use the same memory to store objects from a list of possible types as long as one object is stored at
+a time.</p>
+<p>In C and in C++ prior to C++11, unions are restricted to trivial types.</p>
+<p>Starting from C++11, it is possible to use unions with non-trivial types with the following limitations :</p>
+<ul>
+  <li> You have to manually handle the lifetime of the active member, using placement new and explicit object destruction. </li>
+  <li> You have to define special members like destructor and copy-constructor while taking into consideration the active member. </li>
+</ul>
+<p>In some cases, code that fails to perfectly follow those rules may still compile, but lead to memory corruption.</p>
+<p>C++17 introduced <code>std::variant</code> which can replace unions while removing this burden and the associated risk. As a safer and more
+readable alternative, they should be preferred.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#include &lt;new&gt; // Required for placement 'new'.
+#include &lt;string&gt;
+#include &lt;iostream&gt;
+
+using namespace std;
+
+struct IntOrString {
+  enum {holdsInt, holdsString} currentAlternative;
+  union {
+    int z;
+    string s; // Noncompliant: non-trivial type in Union
+  };
+  IntOrString() : currentAlternative{holdsInt} {
+    z = 0;
+  }
+  IntOrString(char const *s) : currentAlternative{holdsString} {
+    new(&amp;s) string(s);
+  }
+  IntOrString(IntOrString const &amp;src) : currentAlternative{src.currentAlternative}{
+      if (currentAlternative == holdsString) {
+          new(&amp;s) string(src.s);
+      }
+  }
+  IntOrString &amp;operator=(IntOrString &amp;&amp;) = delete;
+  ~IntOrString() {
+      if (currentAlternative == holdsString) {
+          s.~string();
+      }
+  }
+};
+
+void stringize(IntOrString &amp;ios) {
+    if (ios.currentAlternative == IntOrString::holdsString) {
+        return;
+    }
+    new (&amp;ios.s) string(std::to_string(ios.z));
+}
+
+int main() {
+  IntOrString ios;
+  auto copy = ios;
+  ios.z = 12;
+  stringize(ios);
+  std::cout&lt;&lt; ios.s &lt;&lt; "\n";
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+#include &lt;variant&gt;
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+using namespace std;
+using IntOrString = variant&lt;int, string&gt;;
+
+void stringize(IntOrString &amp;ios) {
+    if(auto i = get_if&lt;int&gt;(&amp;ios)) {
+        ios = to_string(*i);
+    }
+}
+int main() {
+    IntOrString ios = 12;
+    auto copy = ios;
+    stringize(ios);
+    cout &lt;&lt; std::get&lt;string&gt;(ios) &lt;&lt; '\n';
+}
+</pre>

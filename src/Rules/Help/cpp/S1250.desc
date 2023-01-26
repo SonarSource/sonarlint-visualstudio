@@ -1,0 +1,57 @@
+<p>In some cases, we might end up with some code that assigns an object to itself. Therefore, when writing an <code>operator=</code>, we must ensure
+that this use case works correctly, which may require special care. One technique to achieve this is to explicitly check at the start of
+<code>operator=</code> if we are assigning to ourselves, and in that case, just do nothing.</p>
+<p>It is usually a bad idea to perform this check for optimization purposes only, because it optimizes for a very rare case while adding an extra
+check for the more common case. But when it is necessary for correctness, it should be added.</p>
+<p>This rule raises an issue when an <code>operator=</code> does not check for assignment to self before proceeding with the assignment.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class MyClass
+{
+  private:
+  int someVal;
+  char* pData;
+
+  MyClass&amp; operator=(const MyClass&amp; rhs)
+  {
+    this-&gt;someVal = rhs.someVal;              // useless operation in self-assignment, but very fast
+    delete [] pData;                          // data is lost in self-assignment
+    pData = new char[strlen(rhs.pData) +1];   // null pointer dereference or use after free in self-assignment
+    strcpy(pData, rhs.pData);
+
+    return (*this);
+  }
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class MyClass
+{
+  private:
+  int someVal;
+  char* pData;
+
+  MyClass&amp; operator=(const MyClass&amp; rhs)
+  {
+    if (this != &amp;rhs)
+    {
+      this-&gt;someVal = rhs.someVal;
+      delete [] pData;
+      pData = new char[strlen(rhs.pData) +1];
+      strcpy(pData, rhs.pData);
+    }
+    return (*this);
+  }
+};
+</pre>
+<p>Or much better:</p>
+<pre>
+class MyClass
+{
+  private:
+  int someVal;
+  std::string data; // No need for manual operator=
+};
+</pre>
+<h2>Deprecated</h2>
+<p>This rule is deprecated, and will eventually be removed.</p>

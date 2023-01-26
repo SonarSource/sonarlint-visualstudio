@@ -1,0 +1,16 @@
+<p>Because the value in a variable of an unsigned type can never be less than zero, testing to see if it is negative is a useless operation which can
+only confuse future readers of the code.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+unsigned int i = 0; // the lowest value this var can have
+...
+if (i &gt;= 0) { // Noncompliant
+  do_x(i);
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+unsigned int i = 0;
+...
+do_x(i);
+</pre>

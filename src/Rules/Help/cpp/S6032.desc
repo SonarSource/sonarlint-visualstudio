@@ -1,0 +1,47 @@
+<p>Unintentional expensive copy should be avoided when using <code>auto</code> as a placeholder type.</p>
+<p>When using <code>const auto</code> as a placeholder type, you might unintentionally forget to add an ampersand(<code>&amp;</code>) after the
+<code>auto</code> keyword. This can silently create a pointless copy and possibly have a bad impact on the performance of your code depending on the
+size of the created object and its context.</p>
+<p>For example, if it happens in a range-based for loop context, it is going to lead to creating as many useless objects as the size of the range.</p>
+<p>This rule will detect a declaration of an unmodified local variable with expensive to copy type and <code>auto</code> as a placeholder type that is
+initialized with a non-temporary object.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void printVec(const std::vector&lt;std::string&gt;&amp; namesOfTheEntirePopulation) {
+  for (const auto name : namesOfTheEntirePopulation) { // Noncompliant
+    std::cout &lt;&lt; name;
+  }
+}
+
+void ignore(const std::vector&lt;std::string&gt;&amp; vec);
+void ignoreAgain(const std::vector&lt;std::string&gt;&amp; vec);
+
+void ignore(VecWrapper vec) {
+  const auto namesOfCPPHaters = vec.getNamesOfCPPHaters(); // Noncompliant
+  ignore(namesOfCPPHaters);
+  ignoreAgain(namesOfCPPHaters);
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void modifyName(std::string&amp; a);
+void printVec(std::vector&lt;std::string&gt;&amp; namesOfTheEntirePopulation) {
+  for (const auto&amp; name : namesOfTheEntirePopulation) { // Compliant
+    std::cout &lt;&lt; name;
+  }
+
+  for (auto name : namesOfTheEntirePopulation) { // Compliant: a copy is needed to avoid modifying the original list of names
+    modifyName(name);
+    std::cout &lt;&lt; name;
+  }
+}
+
+void ignore(const std::vector&lt;std::string&gt;&amp; vec);
+void ignoreAgain(const std::vector&lt;std::string&gt;&amp; vec);
+
+void ignore(VecWrapper vec) {
+  const auto&amp; namesOfCPPHaters = vec.getNamesOfCPPHaters(); // Compliant
+  ignore(namesOfCPPHaters);
+  ignoreAgain(namesOfCPPHaters);
+}
+</pre>

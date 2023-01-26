@@ -1,0 +1,12 @@
+<p>If a type is declared but not used, then it is unclear to a reviewer if the type is redundant or it has been left unused by mistake.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void unusedtype()
+{
+  typedef int local_Type; // Noncompliant, unused
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C++:2008, 0-1-5 - A project shall not contain unused type declarations. </li>
+</ul>

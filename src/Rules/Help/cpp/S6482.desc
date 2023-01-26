@@ -1,0 +1,26 @@
+<p>Calls to <code>std::format</code> and <code>std::vformat</code> can receive either format strings whose replacement fields are fully indexed or
+fully non-indexed.</p>
+<p>Explicitly indexing replacement fields is useful when arguments are not used in order or are used multiple times. Implicit indexing has the
+advantage of being terse and simple.</p>
+<p>Using explicit indexing in a context where implicit indexing would have the same behavior is more verbose and error-prone. It might confuse the
+reader, who might expect the arguments not to be used in order.</p>
+<p>This rule raises an issue on explicit indexing that should be replaced by implicit indexing.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+std::string printRectangle(Rectangle const&amp; r) {
+    return std::format("[{0},{1}]:({2},{3})", r.x, r.y, r.width, r.height); // Noncompliant
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+std::string printRectangle(Rectangle const&amp; r) {
+    return std::format("[{},{}]:({},{})", r.x, r.y, r.width, r.height); // Compliant
+}
+</pre>
+<h2>Exceptions</h2>
+<p>Format strings with nested replacement fields are not considered by this rule as their order is less intuitive.</p>
+<pre>
+std::string printNDigits() {
+    return std::format("{0:*&lt;{1}} {2:*&gt;{3}}", 10, 2, 11, 3); // Compliant
+}
+</pre>

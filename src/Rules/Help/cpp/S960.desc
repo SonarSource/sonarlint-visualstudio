@@ -1,0 +1,35 @@
+<p>It is tempting to treat function-like macros as functions, but the two things work differently. For instance, the use of functions offers parameter
+type-checking, while the use of macros does not. Additionally, with macros, there is the potential for a macro to be evaluated multiple times. In
+general, functions offer a safer, more robust mechanism than function-like macros, and that safety usually outweighs the speed advantages offered by
+macros. Therefore functions should be used instead when possible.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#define CUBE (X) ((X) * (X) * (X)) // Noncompliant
+
+void func(void) {
+  int i = 2;
+  int a = CUBE(++i); // Noncompliant. Expands to: int a = ((++i) * (++i) * (++i))
+  // ...
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+inline int cube(int i) {
+  return i * i * i;
+}
+
+void func(void) {
+  int i = 2;
+  int a = cube(++i); // yields 27
+  // ...
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 19.7 - A function should be used in preference to a function-like macro. </li>
+  <li> MISRA C++:2008, 16-0-4 - Function-like macros shall not be defined. </li>
+  <li> MISRA C:2012, Dir. 4.9 - A function should be used in preference to a function-like macro where they are interchangeable </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/INcxBQ">CERT, PRE00-C.</a> - Prefer inline or static functions to function-like macros </li>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#es31-dont-use-macros-for-constants-or-functions">C++ Core
+  Guidelines ES.31</a> - Don’t use macros for constants or "functions" </li>
+</ul>

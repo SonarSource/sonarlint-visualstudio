@@ -1,0 +1,58 @@
+<p>There are three ways to initialize a non-static data member in a class:</p>
+<ul>
+  <li> With an in-class initializer (since C++11) </li>
+  <li> In the initialization list of a constructor </li>
+  <li> In the constructor body </li>
+</ul>
+<p>You should use those methods in that order of preference. When applicable, in-class initializers are best, because they apply automatically to all
+constructors of the class (except for default copy/move constructors and constructors where an explicit initialization for this member is provided).
+But they can only be used for initialization with constant values.</p>
+<p>If your member value depends on a parameter, you can initialize it in the constructor’s initialization list. If the initialization is complex, you
+can define a function to compute the value, and use this function in the initializer list.</p>
+<p>Initialization in the constructor body has several issues. First, it’s not an initialization, but an assignment. Which means it will not work with
+all data types (const-qualified members, members of reference type, member of a type without default constructor…​). And even if it works, the member
+will first be initialized, then assigned to, which means useless operations will take place. To prevent "use-before-set" errors, it’s better to
+immediately initialize the member with its real value.</p>
+<p>It’s hard to find a good example where setting the value of a member in the constructor would be appropriate. One case might be when you assign to
+several data members in one operation. As a consequence constructor bodies are empty in many situations.</p>
+<p>This rules raises an issue in two conditions:</p>
+<ul>
+  <li> When you assign a value to a member variable in the body of a constructor. </li>
+  <li> When you default-initialize in an initializer list a member variable, that would be value-initialized by default </li>
+  <li> For C++11 or later, when you initialize a member variable in the initializer list of a constructor, but could have done so directly in the
+  class:
+    <ul>
+      <li> The variable has either no in-class initializer, or an in-class initializer with the same value as in the constructor </li>
+      <li> The initial value does not depend on a constructor parameter </li>
+    </ul>  </li>
+</ul>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class S {
+  int i1;
+  int i2;
+  int i3;
+public:
+  S( int halfValue, int i2 = 0) : i2(i2), i3(42) { // Noncompliant for i1 and i3, compliant for i2
+    this-&gt;i1 = 2*halfValue;
+  }
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class S {
+  int i1;
+  int i2;
+  int i3 = 42; // In-class initializer
+public:
+  S( int halfValue, int i2 = 0 ) : i1(2*halfValue), i2(i2) {} // Compliant
+};
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a
+  href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#c48-prefer-in-class-initializers-to-member-initializers-in-constructors-for-constant-initializers">C++ Core Guidelines C.48</a> - Prefer in-class initializers to member initializers in constructors for constant initializers </li>
+  <li> <a
+  href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#c49-prefer-initialization-to-assignment-in-constructors">C++ Core
+  Guidelines C.49</a> - Prefer initialization to assignment in constructors </li>
+</ul>

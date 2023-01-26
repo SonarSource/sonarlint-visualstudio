@@ -1,0 +1,40 @@
+<p>The functions <code>memcpy</code>, <code>memmove</code> and <code>memset</code> can only be used for objects of trivially copyable types. This
+includes scalar types, arrays, and trivially copyable classes.</p>
+<p>A class type is trivially copyable if:</p>
+<ul>
+  <li> One or more of the following special member functions is trivial and the rest are deleted: copy constructor, move constructor, copy assignment
+  operator, and move assignment operator, </li>
+  <li> It has a trivial, non-deleted destructor, </li>
+  <li> It has trivially copyable members and base classes, </li>
+  <li> It has no virtual functions. </li>
+</ul>
+<p><em>Note: a default implementation, both explicit (with <code>=default</code>) or implicit (if the special member function is omitted), is
+considered trivial.</em></p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class Shape {
+public:
+  int x;
+  int y;
+  virtual ~Shape(); // This makes the class non trivially copyable
+};
+
+void f(Shape *dest, Shape *source)
+{
+    memcpy(dest, source, sizeof Shape); // Noncompliant
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class Shape {
+public:
+  int x;
+  int y;
+  virtual ~Shape(); // This makes the class non trivially copyable
+};
+
+void f(Shape *dest, Shape *source)
+{
+    (*dest) = (*source);
+}
+</pre>

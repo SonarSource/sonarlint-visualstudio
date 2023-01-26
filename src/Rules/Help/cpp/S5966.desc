@@ -1,0 +1,24 @@
+<p>It is not very common for a struct to have base classes. When they do, by default, they will have public inheritance. Since this is not a fact
+known by everybody, it’s usually better to be explicit about the visibility of base classes in a struct.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class B {
+};
+
+struct C : B {
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class B {
+};
+
+struct C :  public B { // Or private, if it was public by mistake
+};
+</pre>
+<h3>See Also</h3>
+<ul>
+  <li> {rule:cpp:S5965} is a similar rule that deals with base visibility in classes </li>
+  <li> {rule:cpp:S3540} is another rule that favors a different coding style for base classes. It should not be activated at the same time as this
+  rule. </li>
+</ul>

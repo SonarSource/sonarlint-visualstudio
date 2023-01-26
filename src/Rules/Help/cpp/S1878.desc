@@ -1,0 +1,17 @@
+<p>Sharing some naming conventions enables teams to collaborate more efficiently. This rule checks that all <code>union</code> names match a provided
+regular expression.</p>
+<h2>Noncompliant Code Example</h2>
+<p>Using the default regular expression <code>^[A-Z][a-zA-Z0-9]*$</code>:</p>
+<pre>
+union my_union {
+    int one;
+    int two;
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+union MyUnion {
+    int one;
+    int two;
+};
+</pre>

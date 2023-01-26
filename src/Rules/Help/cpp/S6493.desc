@@ -1,0 +1,80 @@
+<p><code>std::make_format_args</code> and <code>std::make_wformat_args</code> return objects containing an array of formatting arguments that can be
+implicitly converted to <code>std::basic_format_args</code>. The type of the returned object cannot be spelled; it can only be accessed through
+<code>auto</code>.</p>
+<p>A formatting argument has reference semantics for user-defined types and does not extend the lifetime of the passed arguments. It is your
+responsibility to ensure that the arguments to <code>std::make_format_args</code> and <code>std::make_wformat_args</code> outlive their return
+value:</p>
+<ul>
+  <li> When assigning the result of <code>std::make_format_args</code> to a variable of type <code>std::basic_format_args</code>, it will always
+  dangle. </li>
+  <li> When assigning the result of <code>std::make_format_args</code> to a variable of type <code>auto</code>, it will dangle only when the
+  formatting arguments contain an rvalue of a non-user-defined type. </li>
+</ul>
+<p>While it is possible to assign <code>std::make_format_args</code> to a variable declared with <code>auto</code> if all the formatting arguments are
+user-defined types or lvalues, it is suspicious and error-prone. That is why we recommend that the result of <code>std::make_format_args</code> is
+only used as an argument for formatting functions.</p>
+<p>This rule detects when the result of <code>std::make_format_args</code> or <code>std::make_wformat_args</code> isn’t used as an argument.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void helloAndGoodByeReality() {
+  // Noncompliant, dangles
+  std::format_args numberOfHellosAndGoodByes = std::make_format_args(1000, 1);
+  std::cout &lt;&lt; vformat("Hello {0} times, and goodbyes {1} times :(\n", numberOfHellosAndGoodByes);
+}
+
+void helloAndGoodByeExpectation() {
+  // Noncompliant, error-prone but doesn't dangle due to built-in types
+  auto numberOfHellosAndGoodByes = std::make_format_args(1000, 1000000);
+  std::cout &lt;&lt; vformat("Hello {0} times, and goodbyes {1} times :)\n", numberOfHellosAndGoodByes);
+}
+
+std::string getHellosForRemote() {
+  return "zero";
+}
+
+std::string getGoodbyesForRemote() {
+  return "zero";
+}
+void helloAndGoodByeForRemote() {
+  // nonCompliant, dangles; getHellosForRemote() is an rvalue of non-user-defined type std::string
+  auto numberOfHelloAndGoodBye = std::make_format_args(getHellosForRemote(), getGoodbyesForRemote());
+  std::cout &lt;&lt; vformat("Hello {0} times, and goodbyes {1} times :|\n", numberOfHelloAndGoodBye);
+}
+
+int main() {
+  helloAndGoodByeReality();
+  helloAndGoodByeExpectation();
+  helloAndGoodByeForRemote();
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void helloAndGoodByeReality() {
+  std::cout &lt;&lt; vformat("Hello {0} times, and goodbyes {1} times :(\n",
+    std::make_format_args(1000, 1));  // Compliant
+}
+
+void helloAndGoodByeExpectation() {
+  std::cout &lt;&lt; vformat("Hello {0} times, and goodbyes {1} times :)\n",
+    std::make_format_args(1000, 1000000));  // Compliant
+}
+
+std::string getHellosForRemote() {
+  return "zero";
+}
+
+std::string getGoodbyesForRemote() {
+  return "zero";
+}
+void helloAndGoodByeForRemote() {
+  std::cout &lt;&lt;
+    vformat("Hello {0} times, and goodbyes {1} times :|\n",
+      std::make_format_args(getHellosForRemote(), getGoodbyesForRemote())); // Compliant
+}
+
+int main() {
+  helloAndGoodByeReality();
+  helloAndGoodByeExpectation();
+  helloAndGoodByeForRemote();
+}
+</pre>

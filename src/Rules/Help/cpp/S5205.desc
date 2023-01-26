@@ -1,0 +1,47 @@
+<p>When you want to define a function that can accept a function pointer as an argument, there are three ways in C++ to declare the parameter
+type:</p>
+<ul>
+  <li> A function pointer: <code>void f(void (*callback)());</code> </li>
+  <li> A <code>std::function</code>: <code>void f(std::function&lt;void()&gt; callback);</code> </li>
+  <li> A template argument: <code>template&lt;class Callback&gt; void f(Callback callback);</code> </li>
+</ul>
+<p>Using a function pointer is an inferior solution, for the following reasons:</p>
+<ul>
+  <li> Only a function pointer can be passed as an argument, while the other options offer the caller more flexibility because they can take more
+  advanced functors, such as lambdas with some captured state </li>
+  <li> The syntax is obscure </li>
+  <li> It typically has worse performance than the template parameter solution. </li>
+</ul>
+<p>See {rule:cpp:S5213} for a discussion of how to choose between <code>std::function</code> and a template parameter.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+using Criterion = bool (*)(DataPoint const&amp;);
+void filter(DataSet* data, Criterion criterion); // Noncompliant
+
+using Callback = void (*)(EventInfo const&amp;);
+class Button {
+public:
+    void addOnClick(Callback c) {myOnClickHandler = c;} // Noncompliant
+private:
+    Callback myOnClickHandler;
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+template&lt;class Criterion&gt;
+void filter(DataSet* data, Criterion criterion); // Compliant, uses the more efficient template argument
+
+using Callback = std::function&lt;void(EventInfo const&amp;)&gt;;
+class Button {
+public:
+    void addOnClick(Callback c) {myOnClickHandler = c;} // Compliant, uses the more flexible std::function
+private:
+    Callback myOnClickHandler;
+};
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a
+  href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#t40-use-function-objects-to-pass-operations-to-algorithms">C++
+  Core Guidelines T.40</a> - Use function objects to pass operations to algorithms </li>
+</ul>

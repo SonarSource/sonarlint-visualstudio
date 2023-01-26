@@ -1,0 +1,62 @@
+<p>Casting a base-class pointer/reference to a&nbsp;derived-class pointer/reference is commonly referred to as downcasting which can only be done
+using an explicit cast.</p>
+<p>However, the use of <code>static_cast</code> for such a cast is unsafe because it doesn’t do any runtime check. &nbsp;If the cast memory doesn’t
+contain an object of the expected derived type,&nbsp;your program enters the undefined behavior territory.</p>
+<p>If your object is polymorphic, you might prefer using <code>dynamic_cast</code> instead, as it allows safe downcasting by performing a run-time
+check:</p>
+<ul>
+  <li> If the cast memory contains an object of the expected derived type, the check succeeds. The result of the
+  <code>dynamic_cast</code>&nbsp;points/refers to the derived object.&nbsp; </li>
+  <li> If the cast memory doesn’t contain an object of the expected derived type, the check fails. If the&nbsp;<code>dynamic_cast</code> is used on a
+  pointer, <code>nullptr</code> is returned.&nbsp;If it was used on a reference, <code>std::bad_cast</code>&nbsp;is thrown. </li>
+</ul>
+<p>This rule raises an issue when <code>static_cast</code> is used for downcasting.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+struct Shape {
+  virtual ~Shape();
+  // ...
+};
+
+struct Rectangle : public Shape {
+  double width;
+  double height;
+};
+
+struct Circle : public Shape {
+  double radius;
+};
+
+double computeArea(const Shape* shape) {
+  const auto* rectangle = static_cast&lt;const Rectangle*&gt;(shape); // Noncompliant
+  return rectangle-&gt;width * rectangle-&gt;height;
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+struct Shape {
+  virtual ~Shape();
+  // ...
+};
+
+struct Rectangle : public Shape {
+  double width;
+  double height;
+};
+
+struct Circle : public Shape {
+  int radius;
+};
+
+double computeArea(const Shape* shape) {
+  if(const auto* rectangle = dynamic_cast&lt;const Rectangle*&gt;(shape)) { // Compliant
+    return rectangle-&gt;width * rectangle-&gt;height;
+  }
+  return 0;
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a
+  href="https://github.com/isocpp/CppCoreGuidelines/blob/c553535fb8dda2839d13ab5f807ffbc66b63d67b/CppCoreGuidelines.md#type2-dont-use-static_cast-downcasts-use-dynamic_cast-instead">C++ Core Guidelines - Type safety profile - Type.2</a>: Don’t use static_cast to downcast. Use dynamic_cast instead. </li>
+</ul>

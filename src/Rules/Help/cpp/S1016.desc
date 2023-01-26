@@ -1,0 +1,32 @@
+<p>For code compliant with C++98 or C++03 standards, declaring overriding virtual functions with the&nbsp;<code>virtual</code>&nbsp;keyword removes
+the need to check the base class to determine whether a function is virtual.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class Base
+{
+  virtual void f();
+};
+class Derived : public Base
+{
+  void f(); // Noncompliant, implicitly declared "virtual"
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class Base
+{
+  virtual void f();
+};
+class Derived : public Base
+{
+  virtual void f(); // Compliant, explicitly declared "virtual"
+};
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C++:2008, 10-3-2 - Each overriding virtual function shall be declared with the virtual keyword. </li>
+</ul>
+<h3>See Also</h3>
+<ul>
+  <li> This rule will only trigger with code compliant with C++98 and C++03. For code compliant with C++11 and above see {rule:cpp:S3471} </li>
+</ul>

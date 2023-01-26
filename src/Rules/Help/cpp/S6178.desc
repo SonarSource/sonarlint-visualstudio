@@ -1,0 +1,26 @@
+<p>In C++20 <code>std::string</code> and <code>std::string_view</code> gain new member functions <code>starts_with</code> and <code>ends_with</code>
+that compare their argument to the prefix and postfix of the string.</p>
+<p>These two functions introduce a standard, concise, and efficient way of checking the prefix and postfix for strings. The ad-hoc implementations
+predating C++20 often are often less readable, less efficient, and less reliable.</p>
+<p>This rule reports places that check prefix or postfix of a string using an ad-hoc implementation.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+if (6 &lt;= str.size() &amp;&amp; str.substr(0, 6) == "prefix") { // Noncompliant
+  std::cout &lt;&lt;str &lt;&lt;" starts with the prefix\n";
+}
+if (6 &lt;= str.size() &amp;&amp; std::string_view(str.begin(), str.begin() + 6) == "prefix") { // Noncompliant
+  std::cout &lt;&lt;str &lt;&lt;" starts with the prefix\n";
+}
+if (7 &lt;= str.size() &amp;&amp; str.substr(str.size() - 7) == "postfix") { // Noncompliant
+  std::cout &lt;&lt;str &lt;&lt;" ends with the postfix\n";
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+if (str.starts_with("prefix")) {
+  std::cout &lt;&lt;str &lt;&lt;" starts with the prefix\n";
+}
+if (str.ends_with("postfix")) {
+  std::cout &lt;&lt;str &lt;&lt;" ends with the postfix\n";
+}
+</pre>

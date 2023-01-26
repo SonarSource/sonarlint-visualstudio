@@ -1,0 +1,13 @@
+<p>Multicharacter literals have <code>int</code> type and have an implementation-defined value. This means they might be interpreted differently by
+different compilers. For example, they might lead to different behavior when compiled with GCC than when compiled with MSVC.</p>
+<p>Even if they work as you expect with a specific compiler, they will make your code less portable. They are also misleading as they look like
+strings, hence make your code less readable.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void f(int i) {
+  // ...
+  if (i == 'abcd') { // Noncompliant
+    // ...
+  }
+}
+</pre>

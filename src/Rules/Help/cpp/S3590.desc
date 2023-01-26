@@ -1,0 +1,24 @@
+<p>Stack allocated memory, like memory allocated with the functions <code>alloca</code>, <code>_alloca</code>, <code>_malloca</code>,
+<code>__builtin_alloca</code>, is automatically released at the end of the function, and should not be released with <code>free</code>. Explicitly
+<code>free</code>-ing such memory results in undefined behavior.</p>
+<p>This rule raises issues when trying to release pointers to memory which is not owned, like stack allocated memory and function pointers.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void fun() {
+  char *name = (char *) alloca(size);
+  // ...
+  free(name); // Noncompliant, memory allocated on the stack
+  char *name2 = "name";
+  // ...
+  free(name2); // Noncompliant, memory allocated on the stack
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void fun() {
+  char *name = (char *) alloca(size);
+  // ...
+  char *name2 = "name";
+  // ...
+}
+</pre>

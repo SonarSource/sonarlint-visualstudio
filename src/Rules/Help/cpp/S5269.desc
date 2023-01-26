@@ -1,0 +1,21 @@
+<p>Special attention should be paid when initializing class members: it is easy to get it wrong and initialize them with references which are going to
+be invalidated at the end of the constructor, known as dangling references.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+struct S {
+  int *x;
+  int &amp;y;
+  S(int i, int j) :
+    x(&amp;i),  // Noncompliant, initializing x to the stack address of i
+    y(j)  // Noncompliant, y is bound to variable j which has a shorter lifetime
+  {}
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+struct S {
+  int *x;
+  int &amp;y;
+  S(int *i, int &amp;j) : x(i), y(j) {}
+};
+</pre>

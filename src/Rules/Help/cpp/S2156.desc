@@ -1,0 +1,20 @@
+<p>The difference between <code>private</code> and <code>protected</code> visibility is that child classes can see and use <code>protected</code>
+members, but they cannot see <code>private</code> ones. Since a <code>final</code> class will have no children, marking the members of a
+<code>final</code> class <code>protected</code> is confusingly pointless.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class C final {
+protected:  // Noncompliant
+  void fun();
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class C final {
+private:
+  void fun();
+};
+</pre>
+<h2>Exceptions</h2>
+<p>When overriding a base class function, it is common practice to keep the same visibility as for the base class. This rule ignores
+<code>protected</code> functions in a <code>final</code> class that are overrides of a base class <code>protected</code> function.</p>

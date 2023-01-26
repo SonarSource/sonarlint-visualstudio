@@ -1,0 +1,27 @@
+<p><code>std::bit_cast</code> is one of the standard functions working with the binary representation. Together with other bit-level functions, it is
+defined in the <code>&lt;bits&gt;</code> header introduced by C++20.</p>
+<p><code>std::bit_cast</code> standardizes the diverse and sub-optimal approaches of reinterpreting a value as being of a different type of the same
+length preserving its binary representation.</p>
+<p>Before C++20 the correct way to reinterpret a value was a call to <code>std::memcpy</code>, copying the exact binary representation from a variable
+of one type into a variable of another. Although canonical, the use of <code>std::memcpy</code> might still be confusing, it is verbose, and it might
+introduce performance overhead if the compiler does not recognize the idiom and does not remove the function call.</p>
+<p>In contrast, <code>std::bit_cast</code> clearly states the intent and is guaranteed to map to an optimal implementation.</p>
+<p>This rule reports the uses of <code>std::memcpy</code> that can be replaced by <code>std::bit_cast</code>.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+static_assert(sizeof(float) == sizeof(uint32_t));
+float src = 1.0f;
+uint32_t dst;
+std::memcpy(&amp;dst, &amp;src, sizeof(float)); // Noncompliant: verbose and might incur performance hit
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+float src = 1.0f;
+auto dst = std::bit_cast&lt;uint32_t&gt;(src); // Compliant
+</pre>
+<h2>See</h2>
+<p>Other common patterns predating C++20:</p>
+<ul>
+  <li> {rule:cpp:S3630} - replacing <code>std::reinterpret_cast</code> with <code>std::bit_cast</code>. </li>
+  <li> {rule:cpp:S871} - replacing C-style cast with <code>std::bit_cast</code>. </li>
+</ul>

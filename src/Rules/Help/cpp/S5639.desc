@@ -1,0 +1,7 @@
+<p>This rule will be triggered when a comment matches one of the given regular expressions.</p>
+<p>For example, the following configuration raises issues for two different situations, each line contains a message followed by a POSIX regular
+expression separated by a pipe <code>|</code> character.</p>
+<pre>
+This comment should be reviewed.|.*REVIEW.*
+Do not hardcode passwords.|.*(123456|password).*
+</pre>

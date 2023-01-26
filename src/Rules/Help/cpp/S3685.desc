@@ -1,0 +1,14 @@
+<p>C++ allows you to append a macro value onto the end of a string literal. Prior to C++11, it was possible to do this either with or without a space
+between the two. But with the introduction of user-defined literals in C++11, the preprocessing of string suffixes changed. To get the same string +
+macro behavior under C++ 11, you must separate the string literal and the macro with a space. Without the space, you’ll get a compile error.</p>
+<p>For the purpose of preparing for migration to C++11, this rule raises an issue when there’s no space between a string literal and a macro.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#define _Hrs " hours"
+static const char* OPENING = "7"_Hrs; // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+#define _Hrs " hours"
+static const char* OPENING = "7" _Hrs; // there's one space after "7"
+</pre>

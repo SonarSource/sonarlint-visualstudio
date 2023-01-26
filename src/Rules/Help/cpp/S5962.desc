@@ -1,0 +1,31 @@
+<p>Sometimes, you might want to make a thread run indefinitely in the background by not binding it to its creation scope. Even though calling
+<code>detach()</code> on an <code>std::thread</code> or <code>std::jthread</code> object would satisfy this need, it is not the easiest way to do it:
+there will be no direct way to monitor and communicate with the detached thread, the <code>std::thread</code> or <code>std::jthread</code> object is
+no longer associated to any thread.</p>
+<p>An easier alternative to satisfy this need is giving the thread a global scope. This way the thread will run as long as the program does. The
+thread will not be bound to any scope. It is also possible to do it by giving the <code>std::thread</code> or <code>std::jthread</code> a scope that
+is big enough for your use case. For example, the program’s main function.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void backgroundTask();
+void startBackgroundTask(){
+  // Assume you want the thread to run after the end of startBackgroundTask
+  std::jthread backgroundThread(backgroundTask);
+  backgroundThread.detach(); // Noncompliant
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void  backgroundTask();
+std::jthread backgroundThread;
+
+void startBackgroundTask(){
+  // Assume you want the thread to run after the end of startBackgroundTask
+  backgroundThread = std::move(std::jthread{backgroundTask});
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#cp26-dont-detach-a-thread">C++ Core Guidelines CP.26</a>
+  - Don’t detach() a thread </li>
+</ul>

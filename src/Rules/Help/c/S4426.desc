@@ -1,0 +1,165 @@
+<p>Most of cryptographic systems require a sufficient key size to be robust against brute-force attacks.</p>
+<p><a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar2.pdf">NIST recommendations</a> will be checked for these
+use-cases:</p>
+<p><strong>Digital Signature Generation</strong> and <strong>Verification:</strong></p>
+<ul>
+  <li> p ≥ 2048 AND q ≥ 224 for DSA (<code>p</code> is key length and <code>q</code> the modulus length) </li>
+  <li> n ≥ 2048 for RSA (<code>n</code> is the key length) </li>
+</ul>
+<p><strong>Key Agreement</strong>:</p>
+<ul>
+  <li> p ≥ 2048 AND q ≥ 224 for DH and MQV </li>
+  <li> n ≥ 224 for ECDH and ECMQV (Examples: <code>secp192r1</code> is a non-compliant curve (<code>n</code> &lt; 224) but <code>secp224k1</code> is
+  compliant (<code>n</code> &gt;= 224)) </li>
+</ul>
+<p><strong>Symmetric keys</strong>:</p>
+<ul>
+  <li> key length ≥ 128 bits </li>
+</ul>
+<p>This rule will not raise issues for ciphers that are considered weak (no matter the key size) like <code>DES</code>, <code>Blowfish</code>.</p>
+<h2>Noncompliant Code Example</h2>
+<p><a href="https://github.com/randombit/botan">botan</a></p>
+<pre>
+#include &lt;botan/dl_group.h&gt;
+#include &lt;botan/ec_group.h&gt;
+#include &lt;botan/pubkey.h&gt;
+#include &lt;botan/rng.h&gt;
+#include &lt;botan/rsa.h&gt;
+
+// RSA
+std::unique_ptr&lt;Botan::RandomNumberGenerator&gt; rng(new Botan::System_RNG);
+Botan::RSA_PrivateKey rsaKey(*rng, 1024); // Noncompliant; 2nd argument "bits" should be ≥ 2048
+
+// DSA / DH
+Botan::DL_Group("modp/ietf/1024"); // Noncompliant; 1st argument "name" last component should be ≥ 2048
+Botan::DL_Group("dsa/botan/1024"); // Noncompliant; 1st argument "name" last component should be ≥ 2048
+
+// EC
+Botan::EC_Group("secp160k1");      // Noncompliant; EC key length is 160. Should be ≥ 224
+</pre>
+<p><a href="https://software.opensuse.org/package/libcryptopp">crypto++</a></p>
+<pre>
+#include &lt;cryptopp/dh.h&gt;
+#include &lt;cryptopp/oids.h&gt;
+#include &lt;cryptopp/rsa.h&gt;
+#include &lt;cryptopp/rng.h&gt;
+#include &lt;cryptopp/osrng.h&gt;
+
+CryptoPP::AutoSeededRandomPool rng;
+
+// RSA
+CryptoPP::InvertibleRSAFunction params;
+params.GenerateRandomWithKeySize(rng,1024); // Noncompliant; 2nd argument "keySize" should be  ≥ 2048
+
+// DSA
+CryptoPP::DSA::PrivateKey privateKey;
+privateKey.GenerateRandomWithKeySize(rng, 1024); // Noncompliant; 2nd argument "keySize" should be  ≥ 2048
+
+// DH
+CryptoPP::DH dh;
+dh.AccessGroupParameters().GenerateRandomWithKeySize(rnd, 1024); // Noncompliant; 2nd argument "keySize" should be  ≥ 2048
+
+// EC
+CryptoPP::ASN1::secp112r1(); // Noncompliant; EC key length is 112. Should be ≥ 224
+</pre>
+<p><a href="https://github.com/openssl/openssl">OpenSSL</a></p>
+<pre>
+#include &lt;openssl/dh.h&gt;
+#include &lt;openssl/dsa.h&gt;
+#include &lt;openssl/ec.h&gt;
+#include &lt;openssl/obj_mac.h&gt;
+#include &lt;openssl/rsa.h&gt;
+
+// RSA
+RSA_generate_key_ex(key, 1024, e, NULL);  // Noncompliant; 2nd argument "bits" must be ≥ 2048
+
+// DSA
+DSA_generate_parameters_ex(dsa, 1024, NULL, 0, NULL, NULL, NULL); // Noncompliant; 2nd argument "bits" must be ≥ 2048
+
+// DH
+DH_generate_parameters_ex(dh, 1024, DH_GENERATOR_2, NULL); // Noncompliant; 2nd argument "prime_len" must be ≥ 2048
+
+// EC
+EC_KEY_new_by_curve_name(NID_secp112r1); // Noncompliant; EC key length is 112. Should be ≥ 224
+</pre>
+<h2>Compliant Solution</h2>
+<p><a href="https://github.com/randombit/botan">botan</a></p>
+<pre>
+#include &lt;botan/dl_group.h&gt;
+#include &lt;botan/ec_group.h&gt;
+#include &lt;botan/pubkey.h&gt;
+#include &lt;botan/rng.h&gt;
+#include &lt;botan/rsa.h&gt;
+
+std::unique_ptr&lt;Botan::RandomNumberGenerator&gt; rng(new Botan::System_RNG);
+
+// RSA
+Botan::RSA_PrivateKey rsaKey(*rng, 2048); // Compliant; 2nd argument "bits" is ≥ 2048
+
+// DSA / DH
+Botan::DL_Group("modp/ietf/2048"); // Compliant; 1st argument "name" last component is ≥2048
+Botan::DL_Group("dsa/botan/2048"); // Compliant; 1st argument "name" last component is ≥ 2048
+
+// EC
+Botan::EC_Group("secp224k1");      // Compliant; EC key length is 224.
+</pre>
+<p><a href="https://software.opensuse.org/package/libcryptopp">crypto++</a></p>
+<pre>
+#include &lt;cryptopp/dh.h&gt;
+#include &lt;cryptopp/oids.h&gt;
+#include &lt;cryptopp/rsa.h&gt;
+#include &lt;cryptopp/rng.h&gt;
+#include &lt;cryptopp/osrng.h&gt;
+
+CryptoPP::AutoSeededRandomPool rng;
+
+// RSA
+CryptoPP::InvertibleRSAFunction params;
+params.GenerateRandomWithKeySize(rng,2048); // Compliant; 2nd argument "keySize" is ≥ 2048
+
+// DSA
+CryptoPP::DSA::PrivateKey privateKey;
+privateKey.GenerateRandomWithKeySize(rng, 2048); // Compliant; 2nd argument "keySize" is ≥ 2048
+
+// DH
+CryptoPP::DH dh;
+dh.AccessGroupParameters().GenerateRandomWithKeySize(rnd, 2048); // Compliant; 2nd argument "keySize" is ≥ 2048
+
+// EC
+CryptoPP::ASN1::secp256r1(); // Compliant; EC key lenght is 256
+</pre>
+<p><a href="https://github.com/openssl/openssl">OpenSSL</a></p>
+<pre>
+#include &lt;openssl/dh.h&gt;
+#include &lt;openssl/dsa.h&gt;
+#include &lt;openssl/ec.h&gt;
+#include &lt;openssl/obj_mac.h&gt;
+#include &lt;openssl/rsa.h&gt;
+
+// RSA
+RSA_generate_key_ex(key, 2048, e, NULL);  // Compliant; key size ≥ 2048
+
+// DSA
+DSA_generate_parameters_ex(dsa, 2048, NULL, 0, NULL, NULL, NULL); // Compliant; key size ≥ 2048
+
+// DH
+DH_generate_parameters_ex(dh, 2048, DH_GENERATOR_2, NULL); // Compliant; "prime_len" is ≥ 2048
+
+// EC
+EC_KEY_new_by_curve_name(NID_secp224r1); // Compliant; EC key lenght is 224
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://owasp.org/Top10/A02_2021-Cryptographic_Failures/">OWASP Top 10 2021 Category A2</a> - Cryptographic Failures </li>
+  <li> <a href="https://www.owasp.org/www-project-top-ten/2017/A3_2017-Sensitive_Data_Exposure">OWASP Top 10 2017 Category A3</a> - Sensitive Data
+  Exposure </li>
+  <li> <a href="https://owasp.org/www-project-top-ten/2017/A6_2017-Security_Misconfiguration">OWASP Top 10 2017 Category A6</a> - Security
+  Misconfiguration </li>
+  <li> <a href="https://mobile-security.gitbook.io/masvs/security-requirements/0x08-v3-cryptography_verification_requirements">Mobile AppSec
+  Verification Standard</a> - Cryptography Requirements </li>
+  <li> <a href="https://owasp.org/www-project-mobile-top-10/2016-risks/m5-insufficient-cryptography">OWASP Mobile Top 10 2016 Category M5</a> -
+  Insufficient Cryptography </li>
+  <li> <a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar1.pdf">NIST 800-131A</a> - Recommendation for Transitioning the
+  Use of Cryptographic Algorithms and Key Lengths </li>
+  <li> <a href="https://cwe.mitre.org/data/definitions/326">MITRE, CWE-326</a> - Inadequate Encryption Strength </li>
+</ul>

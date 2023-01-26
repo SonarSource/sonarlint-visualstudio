@@ -1,0 +1,28 @@
+<p><code>std::string_view</code> is a read-only view over a string, it doesn’t hold any data, it only holds a pointer to the first character of the
+string and its length. <code>std::string_view</code> can offer better performance than <code>std::string</code> in several cases:</p>
+<ul>
+  <li> no memory allocations are required during construction, it is cheap to pass them by value, no need to pass them by reference </li>
+  <li> no heap allocation when passing a string literal to a <code>std::string_view</code> function argument </li>
+  <li> <code>substr</code> operations over a <code>std::string_view</code> do not require memory allocation </li>
+</ul>
+<p>When using <code>std::string_view</code> you shouldn’t however forget that:</p>
+<ul>
+  <li> it’s a non-owning range, you should keep into consideration the liveness of the pointed range </li>
+  <li> it doesn’t guarantee a null-terminated string like <code>std::string</code> </li>
+</ul>
+<p>This rule flags <code>const std::string&amp;</code> function arguments, which can be safely replaced with <code>std::string_view</code> ones when
+not relying on the null-termination character.</p>
+<p>Note that, if you are calling <code>substr</code> on the parameter, you may have to modify your code to explicitly cast the result to
+<code>std::string</code>.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void fun(const std::string&amp; name) { // Noncompliant, replace const std::string&amp; by std::string_view
+  // ...
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void fun(std::string_view name) {
+  // ...
+}
+</pre>

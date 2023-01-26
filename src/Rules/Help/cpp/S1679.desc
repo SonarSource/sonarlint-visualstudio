@@ -1,0 +1,21 @@
+<p>Rethrowing an unmodified copy of the caught exception is a waste of resources. Additionally, doing so may lead to a loss of precision in the object
+type and its data, since the copy will be an instance of the base class, rather than of the potentially more specific exception class originally
+caught.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+try {
+  throw std::invalid_argument("x");
+} catch (const std::exception&amp; ex) {
+  /* ... */
+  throw ex; // Noncompliant; the received "std::invalid_argument" is copied into a less specialized class "std::exception"
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+try {
+  throw std::invalid_argument("x");
+} catch (const std::exception&amp; ex) {
+  /* ... */
+  throw; // rethrows the initial "std::invalid_argument"
+}
+</pre>

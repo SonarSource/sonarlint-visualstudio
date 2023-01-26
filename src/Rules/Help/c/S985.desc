@@ -1,0 +1,28 @@
+<p><code>errno</code> is a facility of C++ which should in theory be useful, but which in practice is poorly defined by ISO/IEC 14882:2003. A non-zero
+value may or may not indicate that a problem has occurred; therefore <code>errno</code> shall not be used.</p>
+<p>Even for those functions for which the behaviour of <code>errno</code> is well defined, it is preferable to check the values of inputs before
+calling the function rather than relying on using <code>errno</code> to trap errors.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#include &lt;cstdlib&gt;
+#include &lt;cerrno&gt;
+
+void f1 (const char * str)
+{
+  errno = 0; // Noncompliant
+  int i = atoi(str);
+  if ( 0 != errno ) // Noncompliant
+  {
+    // handle error case???
+  }
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 20.5 - The error indicator errno shall not be used. </li>
+  <li> MISRA C++:2008, 19-3-1 - The error indicator errno shall not be used. </li>
+</ul>
+<h3>See Also</h3>
+<ul>
+  <li> ISO/IEC 14882:2003 </li>
+</ul>

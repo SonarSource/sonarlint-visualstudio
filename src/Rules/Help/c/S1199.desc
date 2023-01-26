@@ -1,0 +1,61 @@
+<p>Nested code blocks can be used to create a new scope: variables declared within that block cannot be accessed from the outside, and their lifetime
+end at the end of the block.</p>
+<p>While this might seem convenient, using this feature in a function often indicates that it has too many responsibilities and should be refactored
+into smaller functions.</p>
+<p>A nested code block is acceptable when it surrounds all the statements inside an alternative of a <code>switch</code> (a <code>case xxx:</code> or
+a <code>default:</code>) because it prevents variable declarations from polluting other <code>cases</code>.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void f(Cache &amp;c, int data) {
+  int value;
+  { // Noncompliant
+    std::scoped_lock l(c.getMutex());
+    if (c.hasKey(data)) {
+      value = c.get(data);
+    } else {
+      value = compute(data);
+      c.set(data, value);
+    }
+  } // Releases the mutex
+
+  switch(value) {
+    case 1:
+    { // Noncompliant, some statements are outside of the block
+       int result = compute(value);
+       save(result);
+    }
+    log();
+    break;
+    case 2:
+    // ...
+  }
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+int getValue(Cache &amp;c, int data) {
+  std::scoped_lock l(c.getMutex());
+  if (c.hasKey(data)) {
+    return c.get(data);
+  } else {
+    value = compute(data);
+    c.set(data, value);
+    return value;
+  }
+}
+
+void f(Cache &amp;c, int data) {
+  int value = getValue(c, data);
+
+  switch(value) {
+    case 1:
+    { // Compliant, limits the scope of "result"
+       int result = compute(value);
+       save(result);
+       log();
+    }
+    break;
+    case 2:
+    // ...
+  }
+</pre>

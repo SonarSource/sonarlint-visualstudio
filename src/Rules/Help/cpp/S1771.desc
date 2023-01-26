@@ -1,0 +1,29 @@
+<p>While it is possible to define a <code>struct</code> with member functions in C++, the general expectation is that <code>struct</code>s only
+aggregate data, while classes are used for fully encapsulated abstractions, containing data and methods. Thus, including a member function in a
+<code>struct</code> is likely to lead to confusion at best and should be avoided.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+struct S
+{
+  S(int x, int y) : x(x), y(y) {}
+  int x;
+  int y;
+  public:
+    int fun(); // Noncompliant
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+struct S
+{
+  S(int x, int y) : x(x), y(y) {}
+  int x;
+  int y;
+};
+</pre>
+<h2>Exceptions</h2>
+<ul>
+  <li> Constructors are ignored for this rule, because they are the only way that a <code>struct</code> designer can enforce that all fields of a
+  <code>struct</code> are correctly initialized. </li>
+  <li> Overload of the function operator '()'. It is a common practice to use struct as a functor. </li>
+</ul>

@@ -1,0 +1,10 @@
+<p>Signal handling contains implementation-defined and undefined behavior.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#include &lt;signal.h&gt; /* Noncompliant */
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 20.8 - The signal handling facilities of &lt;signal.h&gt; shall not be used. </li>
+  <li> MISRA C:2012, 21.5 - The standard header file &lt;signal.h&gt; shall not be used </li>
+</ul>

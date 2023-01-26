@@ -1,0 +1,21 @@
+<p><code>offsetof</code> can lead to undefined behavior when the argument types are incompatible or when bit fields are used. Therefore
+<code>offsetof</code> should be avoided.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+#include &lt;stddef.h&gt;
+
+struct A
+{
+  int32_t i;
+};
+
+void f1 ( )
+{
+  offsetof ( A, i ); // Noncompliant
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 20.6 - The macro offsetof, in library &lt;stddef.h&gt;, shall not be used. </li>
+  <li> MISRA C++ 2008, 18-2-1 - The macro offsetof, in library &lt;stddef.h&gt;, shall not be used. </li>
+</ul>

@@ -1,0 +1,28 @@
+<p>Adding an access specifier that matches the class' current access level needlessly clutters the code.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+struct B {
+};
+
+struct S : public B { // Noncompliant; "struct" has public access for its base classes by default
+};
+
+class C : private B { // Noncompliant; "class" has private access for its base classes by default
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+struct B {
+};
+
+struct S : B {
+};
+
+class C : B {
+};
+</pre>
+<h3>See Also</h3>
+<ul>
+  <li> {rule:cpp:S5965} and {rule:cpp:S5966} are other rules that favor different coding style for base classes. They should not be activated at the
+  same time as this rule. </li>
+</ul>

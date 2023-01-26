@@ -1,0 +1,8 @@
+<p>This rule is a strict implementation of a MISRA (Motor Industry Software Reliability Association) rule. MISRA defines best practices for developing
+safety-critical software. You can learn more about this rule in the MISRA documents referenced below.</p>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 19.10 </li>
+  <li> MISRA C++ 2008, 16-0-6 </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/CdcxBQ">CERT, PRE01-C.</a> - Use parentheses within macros around parameter names </li>
+</ul>

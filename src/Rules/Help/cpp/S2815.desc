@@ -1,0 +1,27 @@
+<p>According to the C++ standard, <code>this</code> can never be null, so comparisons of the two are pointless at best. At worst, because of compiler
+optimizations, such comparisons could lead to null pointer dereferences or obscure, difficult-to-diagnose errors in production.</p>
+<p>This rule raises an issue when <code>this</code> is compared to <code>nullptr</code> or 0 or anything <code>#defined</code> as <code>nullptr</code>
+or 0, such as <code>NULL</code> in most environments.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class MyClass {
+  string name;
+
+  string GetName() {
+    if (this != 0) {  // Noncompliant
+      return name;
+    }
+    return 0;
+  }
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class MyClass {
+  string name;
+
+  string GetName() {
+    return name;
+  }
+}
+</pre>

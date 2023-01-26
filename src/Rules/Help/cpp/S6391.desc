@@ -1,0 +1,42 @@
+<p>Coroutines, introduced in C++20, are functions in which execution can be suspended and resumed. When a coroutine resumes, it takes over where it
+left thanks to the coroutine state.</p>
+<p>A <em>coroutine state</em> is an object which contains all the information a coroutine needs to resume its execution correctly: local variables,
+copy of the parameters…​</p>
+<p>This means that if a coroutine has a parameter that is a reference to an object, this object must exist as long as the coroutine is not destroyed.
+Otherwise, the reference stored in the <em>coroutine state</em> will become a dangling reference and will lead to undefined behavior when the
+coroutine resumes.</p>
+<p>The issue is raised for all coroutine parameters with reference-to-const semantics (such as a <code>const</code> reference, a
+<code>std::string_view</code>, or a <code>std::span</code> with <code>const</code> elements) that might be used after the coroutine is suspended.</p>
+<p>To fix the issue, you can either pass the parameter by value, or not use the parameter after the first suspension point (<code>co_await</code>,
+<code>co_yield</code>, or <code>initial_suspend</code>).</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+generator&lt;char&gt; spell(const std::string&amp; m) { // Noncompliant
+    for (char letter : m) {
+        co_yield letter;
+    }
+}
+
+void print() {
+    for (char letter : spell("hello world")) { // Here the parameter "m" binds to a temporary
+        std::cout &lt;&lt; letter &lt;&lt; '\n';           // and becomes dangling on the next iteration
+    }
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+generator&lt;char&gt; spell(const std::string m) { // Compliant: take the argument by copy
+    for (char letter : m) {
+        co_yield letter;
+    }
+}
+
+void print() {
+    for (char letter : spell("hello world")) {
+        std::cout &lt;&lt; letter &lt;&lt; '\n';
+    }
+}
+</pre>
+<h2>Exceptions</h2>
+<p>This rule does not raise an issue for <code>std::reference_wrapper</code> parameters taking it as a witness of the care taken to prevent the
+reference to become dangling.</p>

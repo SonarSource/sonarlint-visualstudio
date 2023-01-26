@@ -1,0 +1,57 @@
+<p>The rules of operator precedence are complicated and can lead to errors. For this reason, parentheses should be used for clarification in complex
+statements. However, this does not mean that parentheses should be gratuitously added around every operation.</p>
+<p>Parentheses are not needed:</p>
+<ul>
+  <li> with a unary operator, except when <code>!</code> is used as left operand in comparison expressions </li>
+  <li> when all the operators in an expression are the same </li>
+  <li> when only a single operator is involved </li>
+  <li> around the right-hand side of an assignment operator unless the right-hand side itself contains an assignment </li>
+</ul>
+<p>Parentheses are needed:</p>
+<ul>
+  <li> in the condition of a ternary operator if it uses operators </li>
+  <li> when overloaded shift operator <code>&lt;&lt;</code> or <code>&gt;&gt;</code> is used in an expression with comparison operators </li>
+</ul>
+<h2>Noncompliant Code Example</h2>
+<pre>
+x = a + b;
+x = a * -1;
+x = a + b + c;
+x = f ( a + b, c );
+
+x = a == b ? a : a - b; // Noncompliant
+x = a + b - c + d; // Noncompliant
+x = a * 3 + c + d; // Noncompliant
+
+if (a = f(b,c) == true) { ... } // Noncompliant; == evaluated first
+x - b ? a : c; // Noncompliant; "-" evaluated first
+s &lt;&lt; 5 == 1; // Noncompliant; "&lt;&lt;" evaluated first
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+x = a + b;
+x = a * -1;
+x = a + b + c;
+x = f ( a + b, c );
+
+x = ( a == b ) ? a : ( a - b );
+x = ( a + b ) - ( c + d );
+x = ( a * 3 ) + c + d;
+
+if ( (a = f(b,c)) == true) { ... }
+(x - b) ? a : c; // Compliant
+(s &lt;&lt; 5) == 1; // Compliant
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 12.1 - Limited dependence should be placed on C’s operator precedence rules in expressions </li>
+  <li> MISRA C:2004, 12.2 - The value of an expression shall be the same under any order of evaluation that the standard permits. </li>
+  <li> MISRA C:2004, 12.5 - The operands of a logical &amp;&amp; or || shall be primary-expressions. </li>
+  <li> MISRA C++:2008, 5-0-1 - The value of an expression shall be the same under any order of evaluation that the standard permits. </li>
+  <li> MISRA C++:2008, 5-0-2 - Limited dependence should be placed on C++ operator precedence rules in expressions </li>
+  <li> MISRA C++:2008, 5-2-1 - Each operand of a logical &amp;&amp; or || shall be a postfix-expression. </li>
+  <li> MISRA C:2012, 12.1 - The precedence of operators within expressions should be made explicit </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/YdYxBQ">CERT, EXP00-C.</a> - Use parentheses for precedence of operation </li>
+  <li> <a href="https://wiki.sei.cmu.edu/confluence/x/ZzZGBQ">CERT, EXP53-J.</a> - Use parentheses for precedence of operation </li>
+  <li> <a href="https://cwe.mitre.org/data/definitions/783">MITRE, CWE-783</a> - Operator Precedence Logic Error </li>
+</ul>

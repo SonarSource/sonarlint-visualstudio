@@ -1,0 +1,15 @@
+<p>Where a data value is to be tested against zero then the test should be made explicit. The exception to this rule is when data represents a Boolean
+value, even though in C this will in practice be an integer.</p>
+<p>This rule is in the interests of clarity, and makes clear the distinction between integers and logical values.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+if ( x ) // Noncompliant, unless x is effectively Boolean data
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+if ( x == 0) // Compliant solution
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 13.2 - Tests of a value against zero should be made explicit, unless the operand is effectively Boolean. </li>
+</ul>

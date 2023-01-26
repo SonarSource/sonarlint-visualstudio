@@ -1,0 +1,47 @@
+<p>When injecting <code>std::endl</code> into an output stream, two things happen:</p>
+<ul>
+  <li> An end of line character <code>'\n'</code> is added to the stream </li>
+  <li> The stream is flushed </li>
+</ul>
+<p>In many situations, you don’t need the stream to be flushed: It takes some time, and additionally, the stream is also flushed automatically in
+several circumstances:</p>
+<ul>
+  <li> When the stream is closed </li>
+  <li> In the case of <code>std::cout</code>, each time an input is read on <code>std::cin</code> or an output is written on <code>std::cerr</code>
+  </li>
+  <li> In the case of <code>std::cerr</code>, each output is immediately written, the is no need to flush </li>
+</ul>
+<p>Therefore, if your only goal is to add an end of line, <code>'\n'</code> is usually more efficient than <code>std::endl</code>. If you do want to
+flush, you can be explicit and inject <code>std::flush</code> into the stream, or call the <code>flush</code> member function on the stream.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void f() {
+  cout &lt;&lt; "Hello world!" &lt;&lt; endl &lt;&lt; endl &lt;&lt; "How are you?" &lt;&lt; endl; // Noncompliant, 3 useless flushes
+  string s;
+  cin &gt;&gt; s;
+  cout &lt;&lt; "Starting long operation now..." &lt;&lt; endl; // Noncompliant, flushing is useful, but not explicit enough
+  longOperation();
+  cout &lt;&lt; "Long operation is done" &lt;&lt; endl; // Noncompliant
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void f() {
+  cout &lt;&lt; R"(Hello world!
+
+How are you?
+)" &lt;&lt; endl;
+  // Or
+  cout &lt;&lt; "Hello world!\n\nHow are you?\n";
+  string s;
+  cin &gt;&gt; s;
+  cout &lt;&lt; "Starting long operation now...\n" &lt;&lt; flush;
+  longOperation();
+  cout &lt;&lt; "Long operation is done\n";
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/c553535fb8dda2839d13ab5f807ffbc66b63d67b/CppCoreGuidelines.md#sl50-avoid-endl">C++
+  Core Guidelines SL.50</a> - Avoid endl </li>
+</ul>

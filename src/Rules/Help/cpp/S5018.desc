@@ -1,0 +1,47 @@
+<p>Move operations (move constructor, move assignment operator) are all about efficient resource stealing. When stealing resources from the source,
+you don’t have to allocate any memory or perform any other operation that might fail. This is why most people will expect move operation to be
+non-throwing.</p>
+<p>Additionally, if a move operation fails, the source object can have been partially altered by the move, making recovery very tricky, or just
+impossible. Therefore, to ensure robustness, some functions (for instance, <code>std::move_if_noexcept</code>, used by <code>std::vector</code>) will
+decide to copy your object if its move operations are not decorated with <code>noexcept</code>. This can significantly slow down your program.</p>
+<p>If you can not implement your move operations so that they never throw, you may as well only provide copy operations that will be safer to use.</p>
+<p>Swap operations are very similar to move operations, in that they should be equivalent to moving two objects into each other. So if you are adding
+a swap function to your type, it should be <em>noexcept</em> too.</p>
+<p>Note that for most classes, you should not write your own move operations, but rely on the "Rule-of-Zero" ({rule:cpp:S4963}).</p>
+<p>This rule raises an issue when a move or swap operation is not <em>noexcept</em>, which can happen in two cases:</p>
+<ul>
+  <li> The operation is user-defined, and is not unconditionally declared as <code>noexcept</code>, </li>
+  <li> The operation is implicitly defined, and one of the base classes or member variables of the class does not have <code>noexcept</code> move
+  operations. </li>
+</ul>
+<h2>Noncompliant Code Example</h2>
+<pre>
+struct A {
+  A (A const &amp;a);
+  A (A &amp;&amp; a); // Noncompliant
+  ~A();
+  A &amp;operator=(A const &amp;a);
+  A &amp;operator=(A &amp;&amp;a); // Noncompliant
+};
+
+void swap(A&amp; a1, A&amp; a2); // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+struct A {
+  A (A const &amp;a);
+  A (A &amp;&amp; a) noexcept;
+  ~A();
+  A &amp;operator=(A const &amp;a);
+  A &amp;operator=(A &amp;&amp;a) noexcept;
+};
+
+void swap(A&amp; a1, A&amp; a2) noexcept;
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#c66-make-move-operations-noexcept">C++ Core Guidelines
+  C.66</a> - Make move operations <code>noexcept</code> </li>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#c85-make-swap-noexcept">C++ Core Guidelines C.85</a> -
+  Make swap operations <code>noexcept</code> </li>
+</ul>

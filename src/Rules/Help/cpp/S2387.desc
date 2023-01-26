@@ -1,0 +1,73 @@
+<p>Having a variable with the same name in two unrelated classes is fine, but do the same thing within a class hierarchy and you’ll get confusion at
+best, chaos at worst.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class Fruit {
+  protected:
+    Season ripe;
+    static Color flesh;
+
+  // ...
+};
+
+class Raspberry : public Fruit {
+  private:
+    bool ripe;  // Noncompliant
+    static Color FLESH; // Noncompliant
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class Fruit {
+  protected:
+    Season ripe;
+    static Color flesh;
+
+  // ...
+};
+
+class Raspberry : public Fruit {
+  private:
+    bool ripened;
+    static Color FLESH_COLOR;
+
+};
+</pre>
+<h2>Exceptions</h2>
+<p>This rule ignores same-name fields that are <code>static</code> in both the parent and child classes. This rule ignores <code>private</code> parent
+class fields, but in all other such cases, the child class field should be renamed.</p>
+<pre>
+class Fruit {
+  private:
+    Season ripe;
+  // ...
+};
+
+class Raspberry : public Fruit {
+  private:
+    Season ripe;  // Compliant as parent field 'ripe' is anyway not visible from Raspberry
+  // ...
+};
+</pre>
+<p>or</p>
+<pre>
+class Fruit {
+  public:
+    Season ripe;
+  // ...
+};
+
+class RedFruit : private Fruit {
+};
+
+class Raspberry : public RedFruit { // RedFruit inherits from Fruit privately
+  private:
+    Season ripe;  // Compliant as parent field 'ripe' is anyway not visible from Raspberry
+  // ...
+};
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#es12-do-not-reuse-names-in-nested-scopes">C++ Core
+  Guidelines - ES.12</a> - Do not reuse names in nested scopes </li>
+</ul>

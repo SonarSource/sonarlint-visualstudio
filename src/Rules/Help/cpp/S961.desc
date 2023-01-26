@@ -1,0 +1,7 @@
+<p>This is a constraint error, but preprocessors have been known to ignore this problem. Each argument in a function-like macro must consist of at
+least one preprocessing token otherwise the behaviour is undefined.</p>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 19.8 - A function-like macro shall not be invoked without all of its arguments. </li>
+  <li> <a href="https://cwe.mitre.org/data/definitions/628">MITRE, CWE-628</a> - Function Call with Incorrectly Specified Arguments </li>
+</ul>

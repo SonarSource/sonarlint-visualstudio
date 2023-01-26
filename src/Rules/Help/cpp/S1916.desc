@@ -1,0 +1,10 @@
+<p>The standard mentions that the line continuation character (<code>\</code>) should be immediately followed by a newline or be the very last
+character of the file in order for the lines to be joined.</p>
+<p>Several compilers relax this requirement by allowing whitespace after the <code>\</code> character, but this is not portable because other
+compilers may not do the same.</p>
+<h2>Compliant Solution</h2>
+<pre>
+// There should be no whitespace after the '\'
+#define FOO BAR \
+            BAZ
+</pre>

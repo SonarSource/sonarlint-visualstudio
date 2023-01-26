@@ -1,0 +1,31 @@
+<p>Taking the address of an object of incomplete type, where the complete type contains a user declared <code>operator &amp;</code> leads to undefined
+behavior.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+// A.h
+class A
+{
+public:
+  A * operator &amp; ( ); // Noncompliant
+};
+
+// f1.cc
+class A;
+void f ( A &amp; a )
+{
+  &amp;a; // uses built-in operator &amp;
+}
+
+// f2.cc
+#include "A.h"
+void f2 ( A &amp; a )
+{
+  &amp;a; // use user-defined operator &amp;
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C++ 2008, 5-3-3 - The unary &amp; operator shall not be overloaded. </li>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#Ro-address-of">C++ Core Guidelines C.166</a> - Overload
+  unary <code>&amp;</code> only as part of a system of smart pointers and references </li>
+</ul>

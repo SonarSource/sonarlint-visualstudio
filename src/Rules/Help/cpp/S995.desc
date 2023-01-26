@@ -1,0 +1,42 @@
+<p>This rule leads to greater precision in the definition of the function interface. The <code>const</code> qualification shall be applied to the
+object pointed to, not to the pointer, since it is the object itself that is being protected.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+void myfunc (      int * param1,  // object is modified
+             const int * param2,
+                   int * param3, // Noncompliant
+                   int * param4) // Noncompliant
+{
+  *param1 = *param2 + *param3 + *param4;
+}
+
+int main (int argc,
+          const char * * argv) // Noncompliant
+{
+  return argc;
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+void myfunc (      int * param1,  // object is modified
+             const int * param2,
+             const int * param3,
+             const int * param4)
+{
+  *param1 = *param2 + *param3 + *param4;
+}
+
+int main (int argc,
+          const char * const * argv)
+{
+  return argc;
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> MISRA C:2004, 16.7 - A pointer parameter in a function prototype should be declared as pointer to const if the pointer is not used to modify
+  the addressed object. </li>
+  <li> MISRA C++:2008, 7-1-2 - A pointer or reference parameter in a function shall be declared as pointer to const or reference to const if the
+  corresponding object is not modified. </li>
+  <li> MISRA C:2012, 8.13 - A pointer should point to a const-qualified type whenever possible </li>
+</ul>

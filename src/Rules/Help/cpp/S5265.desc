@@ -1,0 +1,59 @@
+<p>When calling <code>delete</code> on an object of incomplete type, the calling code does not have enough information to do the action properly (it
+does not know if this object has a trivial or a nontrivial destructor, if it has overloaded the <code>delete</code> operator…​). Therefore, deleting a
+pointer to such an object can lead to undefined behavior.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class Body;
+
+class Handle {
+  public:
+    Handle();
+    ~Handle() {
+      delete impl; // Noncompliant, Body is incomplete
+    }
+  private:
+    Body * impl;
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+// In header file
+class Body;
+
+class Handle {
+  public:
+    Handle();
+    ~Handle();
+    // Add other special member functions to respect the rule of five
+  private:
+    Body * impl;
+};
+
+// In implementation file
+#include "Handle.h"
+#include "Body.h" // Now Body is complete
+
+Handle::~Handle(){
+  delete impl; // Compliant, at this point "Body" is a complete class
+}
+</pre>
+<p>Or, with modern resource handling:</p>
+<pre>
+// In header file
+class Body;
+
+class Handle {
+  public:
+    Handle();
+    ~Handle();
+  private:
+    std::unique_ptr&lt;Body&gt; impl; //Compliant
+};
+
+// In implementation file
+#include "Handle.h"
+#include "Body.h" // Now Body is complete
+
+Handle::Handle() : impl{new Body{}} {}
+Handle::~Handle() = default; // since "Body" is complete, it can be destroyed by unique_ptr
+</pre>

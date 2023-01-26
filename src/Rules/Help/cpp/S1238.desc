@@ -1,0 +1,41 @@
+<p>To pass an input parameter to a function, there are two possibilities: pass by value, or pass by reference to const. Which one is best depends of
+the size of the object, which is an indicator of the cost to copy it. A small one, with cheap copy constructors, should be passed by value, while a
+larger one should be passed by reference to const.</p>
+<p>This rule detects when a parameter has been passed by value, while it should have been passed by reference to const:</p>
+<ul>
+  <li> Because it is too large </li>
+  <li> Because it contains virtual functions and passing it by value will slice the extra members if you happen to pass an object of a derived class.
+  </li>
+</ul>
+<p>In some cases, you may want to pass by value a large object, if you modify it in the function but you don’t want the initial object to be impacted
+by these changes. We do not detect such a situation, which will be a false positive.</p>
+<p>There are other ways to pass input parameters for sinks (for instance by rvalue references), but this rule is only about the choice between pass by
+value and pass by reference to const.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+struct Student {string firstName; string lastName; Date birthDate;};
+class XmlNode {
+  virtual ~XmlNode();
+  virtual string toString();
+};
+void registerStudent(School &amp;school, Student p); // Noncompliant, Student is a large object
+void dump(ostream &amp;out, XmlNode node); // Noncompliant, XmlNode is a polymorphic type
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+struct Student {string firstName; string lastName; Date birthDate;};
+class XmlNode {
+  virtual ~XmlNode();
+  virtual string toString();
+};
+void registerStudent(School &amp;school, Student const &amp; p); // Compliant, avoids useless copy
+void dump(ostream &amp;out, XmlNode const &amp;node); // Compliant, no slicing
+</pre>
+<h2>Exceptions</h2>
+<p>This rule does not flag large objects passed by value to coroutines because passing arguments by reference to a coroutine often leads to dangling
+references, e.g., after suspension and resumpion of the coroutine.</p>
+<h2>See</h2>
+<ul>
+  <li> <a
+  href="https://github.com/isocpp/CppCoreGuidelines/blob/036324/CppCoreGuidelines.md#f16-for-in-parameters-pass-cheaply-copied-types-by-value-and-others-by-reference-to-const">C++ Core Guidelines F.16</a> - For “in” parameters, pass cheaply-copied types by value and others by reference to <code>const</code> </li>
+</ul>

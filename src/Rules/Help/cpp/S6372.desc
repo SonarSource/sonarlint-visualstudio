@@ -1,0 +1,71 @@
+<p>The implementation of the <code>await_suspend</code> method accepts the handle to the suspended coroutine as the parameter. This parameter can be
+defined with either specific promise type <code>coroutine_handle&lt;PromiseType&gt;</code> or type erased <code>coroutine_handle&lt;&gt;</code>. The
+former allows <code>await_suspend</code> to access the promise of the coroutine; however, it ties the implementation to a particular type. In
+contrast, using <code>coroutine_handle&lt;&gt;</code> increases the reusability of the code because this parameter type supports all promise
+types.</p>
+<p>This rule raises an issue for the implementation of <code>await_suspend</code> that accepts handles to a specific promise type and yet does not use
+that information.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+struct Awaiter1
+{
+   Event&amp; event;
+   /* ... */
+   bool await_suspend(std::coroutine_handle&lt;Promise&gt; current) { // Noncompliant
+     return event.register_callback([current] {
+              current.resume();
+            });
+   }
+};
+
+struct Awaiter2
+{
+   Event&amp; event;
+   /* ... */
+   bool await_suspend(std::coroutine_handle&lt;PromiseA&gt; current) { // Noncompliant
+     return event.register_callback([current] {
+              current.resume();
+            });
+   }
+   bool await_suspend(std::coroutine_handle&lt;PromiseB&gt; current) { // Noncompliant
+     return event.register_callback([current] {
+              current.resume();
+            });
+   }
+};
+
+struct Awaiter3
+{
+   Event&amp; event;
+   /* ... */
+   template&lt;typename PromiseType&gt;
+   bool await_suspend(std::coroutine_handle&lt;PromiseType&gt; current) { // Noncompliant
+     return event.register_callback([current] {
+              current.resume();
+            });
+   }
+};
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+struct Awaiter // Instead of each of Awaiter1, Awaiter2, Awaiter3
+{
+   Event&amp; event;
+   /* ... */
+   bool await_suspend(std::coroutine_handle&lt;&gt; current) {
+     return event.register_callback([current] {
+              current.resume();
+            });
+   }
+};
+
+struct AwaiterUsingPromise
+{
+  /* ... */
+  void await_suspend(std::coroutine_handle&lt;Promise&gt; current) { // Compliant
+    auto wokeUpTime = std::chrono::system_clock::now() + std::chrono::seconds(10);
+    current.promise().executor().schedule_at(wokeUpTime, current); // promise used here
+  }
+
+};
+</pre>

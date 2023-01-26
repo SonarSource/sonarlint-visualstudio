@@ -1,0 +1,37 @@
+<p>There is no reason to add a const qualifier to the return type of a function that returns by <strong>value</strong>.</p>
+<p>At best, it will be superfluous. At worst, it will be a performance bug: it can prevent move operation (when copy elision doesn’t take place). When
+an object is const-qualified the copy constructor/assignment will be a better match than the move constructor/assignment.</p>
+<p>One might think about adding this qualifier in order to forbid the call of unintended functions on the returned object. A common example is to
+avoid unintended assignments:</p>
+<pre>
+X x1, x2, x3;
+if (x1 + x2 = x3) { // Compiler will complain since const object cannot be assigned. Should be "x1 + x2 == x3"
+...
+}
+</pre>
+<p>C++11 introduced reference qualifiers for member functions. This feature provides a better approach to forbid calling unintended functions:</p>
+<pre>
+struct X {
+X&amp; operator=(const X&amp; other) &amp;;
+};
+...
+X x1, x2, x3;
+if (x1 + x2 = x3) { // Compiler will complain since assignment cannot be called on r-value.  Should be "x1 + x2 == x3"
+...
+}
+</pre>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class A {...};
+const A f();  // Noncompliant
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class A {...};
+A f();
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://github.com/isocpp/CppCoreGuidelines/blob/c553535fb8dda2839d13ab5f807ffbc66b63d67b/CppCoreGuidelines.md#enforcement-40">C++
+  Core Guidelines F.20</a> - Flag returning a const value. </li>
+</ul>

@@ -1,0 +1,68 @@
+<p>It’s best to avoid giving default argument initializers to virtual functions. While doing so is legal, the code is unlikely to be correctly
+maintained over time and will lead to incorrect polymorphic code and unnecessary complexity in a class hierarchy.</p>
+<h2>Noncompliant Code Example</h2>
+<pre>
+class Base {
+public:
+  virtual void fun(int p = 42) { // Noncompliant
+    // ...
+  }
+};
+
+class Derived : public Base {
+public:
+  void fun(int p = 13) override { // Noncompliant
+    // ...
+  }
+};
+
+class Derived2 : public Base {
+public:
+  void fun(int p) override {
+    // ...
+  }
+};
+
+int main() {
+  Derived *d = new Derived;
+  Base *b = d;
+  b-&gt;fun(); // uses default argument 42
+  d-&gt;fun(); // uses default argument 13; was that expected?
+
+  Base *b2 = new Base;
+  Derived2 *d2 = new Derived2;
+  b2-&gt;fun(); // uses default argument 42
+  d2-&gt;fun(); // compile time error; was that expected?
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+class Base {
+public:
+  void fun(int p = 42) { // non-virtual forwarding function
+    fun_impl(p);
+  }
+protected:
+  virtual void fun_impl(int p) {
+    // ...
+  }
+};
+
+class Derived : public Base {
+protected:
+  void fun_impl(int p) override {
+    // ...
+  }
+};
+
+class Derived2 : public Base {
+protected:
+  void fun_impl(int p) override {
+    // ...
+  }
+};
+</pre>
+<h3>See Also</h3>
+<ul>
+  <li> {rule:cpp:S1712} </li>
+</ul>
