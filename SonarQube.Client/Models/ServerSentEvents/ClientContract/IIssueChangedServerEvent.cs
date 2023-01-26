@@ -18,14 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Client.Models.ServerSentEvents.ServerContract;
 
 namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
 {
     /// <summary>
-    /// Represents an event that was created from <see cref="IIssueChangedSqServerEvent"/>
+    /// Represents IssueChanged server event information
     /// </summary>
     public interface IIssueChangedServerEvent : IServerEvent
     {
+        string ProjectKey { get; }
+        bool IsResolved { get; }
+        IBranchAndIssueKey[] BranchAndIssueKeys { get; }
+
+        // also has Severity and Type that we don't care about
+    }
+
+
+    /// <summary>
+    /// Tuple of the changed issue key in a specific branch
+    /// </summary>
+    public interface IBranchAndIssueKey
+    {
+        string BranchName { get; }
+        string IssueKey { get; }
     }
 }
