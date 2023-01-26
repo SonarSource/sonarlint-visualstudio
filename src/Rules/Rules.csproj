@@ -20,6 +20,24 @@
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
 
+  <!--<Target Name="EnsureEmbeddedFilesExist" BeforeTargets="CoreCompile">
+    --><!-- Ensure the tool(s) we need have been built --><!--
+    <MSBuild Projects="..\..\build\ProcessJarFiles\ProcessJarFiles.proj" BuildInParallel="false" />
+  </Target>-->
+
+  <Target Name="EnsureEmbeddedFilesExist" BeforeTargets="CoreCompile">
+    <Message Importance="high" Text="XXXX directory:" />
+    <Exec Command="dir $(MSBuildThisFileDirectory)Embedded" />
+    <Exec Command="dir $(MSBuildThisFileDirectory)Embedded\cs" />
+    <Exec Command="dir $(MSBuildThisFileDirectory)Embedded\cpp" />
+
+
+    <Message Importance="high" Text="YYYY EmbeddedResources:" />
+    <Message Importance="high" Text="%(EmbeddedResource.Identity)" />
+
+  </Target>
+
+
   <ItemGroup Label="Framework references">
     <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
@@ -27,6 +45,5 @@
   <ItemGroup Label="Embedded rule data files">
     <None Remove="Embedded\**\*.*" />
     <EmbeddedResource Include="Embedded\**\*.*" />
-  </ItemGroup>
-
+  </ItemGroup>  
 </Project>
