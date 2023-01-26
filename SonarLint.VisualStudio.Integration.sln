@@ -6,7 +6,6 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration.Vsix", "src\Integration.Vsix\Integration.Vsix.csproj", "{FF2AD819-28F4-493A-8E9B-1D3F16BD4689}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0E50D9A0-693D-4B4E-81E2-8B8028231CFA} = {0E50D9A0-693D-4B4E-81E2-8B8028231CFA}
-		{3ECCAF9D-3B23-4980-83E2-8ACEE0FC6BEB} = {3ECCAF9D-3B23-4980-83E2-8ACEE0FC6BEB}
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration", "src\Integration\Integration.csproj", "{03278C1A-EE78-4FA7-A5B0-1AB0A81EA76F}"
@@ -162,9 +161,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Rules", "Rules", "{EFA34F81-1751-49D7-8F62-4085E75FA5F2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rules", "src\Rules\Rules.csproj", "{BA48309C-FB66-47D3-997D-D3068C4F719B}"
-	ProjectSection(ProjectDependencies) = postProject
-		{3ECCAF9D-3B23-4980-83E2-8ACEE0FC6BEB} = {3ECCAF9D-3B23-4980-83E2-8ACEE0FC6BEB}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rules.UnitTests", "src\Rules.UnitTests\Rules.UnitTests.csproj", "{B8E86E46-8EC6-4147-AB0D-2C8912F4590F}"
 EndProject
