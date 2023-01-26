@@ -168,3 +168,4 @@ $RECYCLE.BIN/
 /src/EmbeddedVsix/ts
 /build/DownloadSonarPlugin/ManualTestOutput
 /build/ProcessJarFiles/tmp
+/**/launchSettings.json
