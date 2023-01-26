@@ -18,23 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Client.Models.ServerSentEvents.ServerContract;
-
 namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
 {
     public interface ITaintServerEvent : IServerEvent
     {
+        string ProjectKey { get; }
+        string Key { get; }
     }
 
     /// <summary>
-    /// Represents an event that was created from <see cref="ITaintVulnerabilityRaisedSqServerEvent"/>
+    /// Represents TaintVulnerabilityRaised server event information
     /// </summary>
     public interface ITaintVulnerabilityRaisedServerEvent : ITaintServerEvent
     {
+        string Branch { get; }
     }
 
     /// <summary>
-    /// Represents an event that was created from <see cref="ITaintVulnerabilityClosedSqServerEvent"/>
+    /// Represents TaintVulnerabilityClosed server event information
     /// </summary>
     public interface ITaintVulnerabilityClosedServerEvent : ITaintServerEvent
     {
