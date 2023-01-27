@@ -118,10 +118,11 @@ jobs:
       jdkSourceOption: PreInstalled
 
   #*********************************************************
-  # HACK - explicitly build the projects that download and process the jar files ###
+  # HACK - explicitly build the projects that download and process the jar files
   #
   # Building the VS2019 version from the command line does not work correctly (CI or locally).
   # For some reason, the Rules.csproj build does not embed any files.
+  # See #3584 - https://github.com/SonarSource/sonarlint-visualstudio/issues/3584
   - task: VSBuild@1
     displayName: Build rule description extractor
     inputs:
