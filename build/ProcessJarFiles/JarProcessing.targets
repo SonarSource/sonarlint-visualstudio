@@ -3,7 +3,7 @@
   <!-- ************************************************************** -->
   <!-- Entry point - the Build target -->
   <!-- ************************************************************** -->
-  
+
   <!-- Set Inputs and Outputs so the target only runs if the referenced jars have changed.
        We use the "EmbeddedSonarAnalyzer.props" file as the sole input file, as it specifies
        the jars to download. At the end of a build we will write a single timestamp output
@@ -21,7 +21,7 @@
     <InputFile Include="..\..\src\EmbeddedSonarAnalyzer.props" Visible="false" />
     <OutputFile Include="$(_WorkingDirectory)\lastrun.txt" Visible="false" />
   </ItemGroup>
-  
+
   <Target Name="Build" Inputs="@(InputFile)" Outputs="@(OutputFile)">
     <Message Importance="high" Text="Processing analyzer jar files..." />
     <CallTarget Targets="PrepareDirectories" />
@@ -44,12 +44,12 @@
     <Message Importance="high" Text="[ProcessJarFiles] Temporary directory: $(_WorkingDirectory)" />
   </Target>
 
-  
+
   <Target Name="DownloadIndividualJars">
     <DownloadFile SourceUrl="%(PluginJars.URL)" DestinationFolder="$(JarDownloadDir)" SkipUnchangedFiles="true" Retries="3" />
   </Target>
 
-  
+
   <Target Name="ExtractJsonFromJars">
     <Message Importance="high" Text="[ProcessJarFiles] Removing existing json files ..." />
     <ItemGroup>
@@ -58,7 +58,7 @@
     <Delete Files="@(TempJsonFilesToClean)" />
 
     <Message Importance="high" Text="[ProcessJarFiles] Extracting json files to $(_WorkingDirectory) ..." />
-    <Exec Command="java -jar $(RuleExtractorJar) --plugins $(JarDownloadDir)\%(PluginJars.JarName) --languages=%(PluginJars.LanguageKey) --output=$(_WorkingDirectory)\%(PluginJars.LanguageKey)-rules.json" />
+    <Exec Command="java -jar $(RuleJsonExtractorJar) --plugins $(JarDownloadDir)\%(PluginJars.JarName) --languages=%(PluginJars.LanguageKey) --output=$(_WorkingDirectory)\%(PluginJars.LanguageKey)-rules.json" />
   </Target>
 
 
@@ -67,10 +67,13 @@
     <Error Condition="!Exists($(RuleDescExtractorExe))" Text="Rule description extractor exe does not exist: $(RuleDescExtractorExe)" />
     <Message Importance="high" Text="[ProcessJarFiles]    ... exe exists." />
 
-    <!-- TODO - call exe -->
+    <!-- Parameters: [full path to rule json] [full path to destination directory] -->
+    <Exec Command="$(RuleDescExtractorExe) $(_WorkingDirectory)\%(PluginJars.LanguageKey)-rules.json $(BaseRuleDescFileTargetDirectory)%(PluginJars.LanguageKey)" />
+
+    <Exec Command="dir $(BaseRuleDescFileTargetDirectory)%(PluginJars.LanguageKey)" />
   </Target>
-  
-  
+
+
   <Target Name="WriteOutputFile">
     <!-- The timestamp on the output file is used by MSBuild to decide whether to build this project or not.
          If the timestamp on the EmbeddedSonarAnalyzer.props file is later than that of the output file then
