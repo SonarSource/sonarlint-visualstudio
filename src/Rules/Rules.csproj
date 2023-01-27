@@ -10,6 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup Label="Project references">
+    <!-- Add reference to the ProcessJarFiles project to ensure it is built first
+         (since it unpacks the jar files and copies the .desc files to this project. -->
+    <ProjectReference Include="..\..\build\ProcessJarFiles\ProcessJarFiles.proj">
+      <!-- NB "Private=False" appears as "CopyLocal: No" in the VS properties window -->
+      <Private>False</Private>
+      <ReferenceOutputAssembly>False</ReferenceOutputAssembly>
+    </ProjectReference>
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
 
@@ -17,5 +24,9 @@
     <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
 
+  <ItemGroup Label="Embedded rule data files">
+    <None Remove="Embedded\**\*.*" />
+    <EmbeddedResource Include="Embedded\**\*.*" />
+  </ItemGroup>
 
 </Project>
