@@ -31,6 +31,8 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
     [TestClass]
     public class EmbeddedResourceTests
     {
+        private const string BaseResourcePath = "SonarLint.VisualStudio.Rules.Embedded.";
+
         [TestMethod]
         [DataRow("c", 1200)]
         [DataRow("cpp", 500)]
@@ -73,8 +75,5 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
 
             jsonStream.Should().NotBeNull();
         }
-
-        private const string BaseResourcePath = "SonarLint.VisualStudio.Rules.Embedded.";
-
     }
 }

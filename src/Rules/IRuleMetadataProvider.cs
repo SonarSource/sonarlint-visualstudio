@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using System.IO;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Rules
@@ -40,10 +41,32 @@ namespace SonarLint.VisualStudio.Rules
     {
         public IRuleHelp GetRuleHelp(Language language, string ruleKey)
         {
-            // TODO: fetch rule info
-            var htmlHelp = $@"Language: {language}, rule key: {ruleKey}";
+            string description = language?.ServerLanguage?.Key == null 
+                ? Resources.Rules_DescriptionForMissingRule
+                : GetDescription(language, ruleKey);
 
-            return new RuleHelp(language, ruleKey, htmlHelp);
+            return new RuleHelp(language, ruleKey, description);
         }
+
+        private string GetDescription(Language language, string ruleKey)
+        {
+            var resourcePath = CalcFullResourceName(language, ruleKey);
+            using (var stream = GetType().Assembly.GetManifestResourceStream(resourcePath))
+            {
+                if (stream != null)
+                {
+                    using (var reader = new StreamReader(stream))
+                    {
+                        return reader.ReadToEnd();
+                    }
+                }
+            }
+
+            return Resources.Rules_DescriptionForMissingRule;
+        }
+
+        // e.g. SonarLint.VisualStudio.Rules.Embedded.cpp.S101
+        private static string CalcFullResourceName(Language language, string ruleKey)
+            => $"SonarLint.VisualStudio.Rules.Embedded.{language.ServerLanguage.Key}.{ruleKey}.desc";
     }
 }
