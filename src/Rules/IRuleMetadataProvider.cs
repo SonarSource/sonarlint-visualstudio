@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Rules
             return Resources.Rules_DescriptionForMissingRule;
         }
 
-        // e.g. SonarLint.VisualStudio.Rules.Embedded.cpp.S101
+        // e.g. SonarLint.VisualStudio.Rules.Embedded.cpp.S101.desc
         private static string CalcFullResourceName(Language language, string ruleKey)
             => $"SonarLint.VisualStudio.Rules.Embedded.{language.ServerLanguage.Key}.{ruleKey}.desc";
     }
