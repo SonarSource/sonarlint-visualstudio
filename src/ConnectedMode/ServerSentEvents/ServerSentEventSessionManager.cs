@@ -92,10 +92,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
                 return;
             }
 
-            InitializeSession(bindingConfiguration.Project.ProjectKey).Forget();
+            InitializeSessionAsync(bindingConfiguration.Project.ProjectKey).Forget();
         }
 
-        private async Task InitializeSession(string projectKey)
+        private async Task InitializeSessionAsync(string projectKey)
         {
             await threadHandling.SwitchToBackgroundThread();
 
