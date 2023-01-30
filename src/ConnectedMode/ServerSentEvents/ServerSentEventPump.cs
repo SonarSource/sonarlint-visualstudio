@@ -30,9 +30,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 {
     internal interface IServerSentEventPump
     {
-        Task PumpAllAsync(IServerSentEventsSession session,
-            IIssueChangedServerEventSourcePublisher issueChangedServerEventSourcePublisher,
-            ITaintServerEventSourcePublisher taintServerEventSourcePublisher);
+        Task PumpAllAsync(IServerSentEventsSession session);
     }
 
     [Export(typeof(IServerSentEventPump))]
@@ -40,16 +38,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
     internal class ServerSentEventPump : IServerSentEventPump
     {
         private readonly IServerSentEventsFilter serverSentEventsFilter;
+        private readonly IIssueChangedServerEventSourcePublisher issueChangedServerEventSourcePublisher;
+        private readonly ITaintServerEventSourcePublisher taintServerEventSourcePublisher;
 
         [ImportingConstructor]
-        public ServerSentEventPump(IServerSentEventsFilter serverSentEventsFilter)
-        {
-            this.serverSentEventsFilter = serverSentEventsFilter;
-        }
-
-        public async Task PumpAllAsync(IServerSentEventsSession session,
+        public ServerSentEventPump(IServerSentEventsFilter serverSentEventsFilter,
             IIssueChangedServerEventSourcePublisher issueChangedServerEventSourcePublisher,
             ITaintServerEventSourcePublisher taintServerEventSourcePublisher)
+        {
+            this.serverSentEventsFilter = serverSentEventsFilter;
+            this.issueChangedServerEventSourcePublisher = issueChangedServerEventSourcePublisher;
+            this.taintServerEventSourcePublisher = taintServerEventSourcePublisher;
+        }
+
+        public async Task PumpAllAsync(IServerSentEventsSession session)
         {
             while (true)
             {

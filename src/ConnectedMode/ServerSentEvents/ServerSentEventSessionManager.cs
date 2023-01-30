@@ -39,10 +39,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
     internal sealed class ServerSentEventSessionManager : IServerSentEventSessionManager
     {
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private readonly IIssueChangedServerEventSourcePublisher issueChangedServerEventSourcePublisher;
         private readonly ISonarQubeService sonarQubeClient;
         private readonly IServerSentEventPump eventPump;
-        private readonly ITaintServerEventSourcePublisher taintServerEventSourcePublisher;
+        private readonly IDisposable issueChangedServerEventSourcePublisher;
+        private readonly IDisposable taintServerEventSourcePublisher;
         private readonly IThreadHandling threadHandling;
         private bool disposed;
         private CancellationTokenSource sessionTokenSource;
@@ -79,23 +79,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             disposed = true;
         }
 
-        internal /*for testing*/ void OnSolutionChanged(object sender, ActiveSolutionBindingEventArgs activeSolutionBindingEventArgs)
+        private void OnSolutionChanged(object sender, ActiveSolutionBindingEventArgs activeSolutionBindingEventArgs)
         {
             var bindingConfiguration = activeSolutionBindingEventArgs.Configuration;
-            var isOpen = !bindingConfiguration.Equals(BindingConfiguration.Standalone);
+            var isInConnectedMode = !bindingConfiguration.Equals(BindingConfiguration.Standalone);
 
-            if (isOpen)
+            EndSession();
+
+            if (!isInConnectedMode)
             {
-                var projectKey = bindingConfiguration.Project.ProjectKey;
-                Connect(projectKey);
+                return;
             }
-            else
-            {
-                Disconnect();
-            }
+
+            InitializeSession(bindingConfiguration.Project.ProjectKey);
         }
 
-        private void Connect(string projectKey)
+        private void InitializeSession(string projectKey)
         {
             sessionTokenSource = new CancellationTokenSource();
 
@@ -111,13 +110,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
                     return false;
                 }
 
-                await eventPump.PumpAllAsync(serverSentEventsSession, issueChangedServerEventSourcePublisher, taintServerEventSourcePublisher);
+                await eventPump.PumpAllAsync(serverSentEventsSession);
                 return true;
 
             }).Forget();
         }
 
-        private void Disconnect()
+        private void EndSession()
         {
             sessionTokenSource?.Cancel();
             sessionTokenSource = null;

@@ -29,7 +29,7 @@ using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarQube.Client.Models.ServerSentEvents;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.SeverSentEvents
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
 {
     [TestClass]
     public class ServerSentEventPumpTests
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.SeverSentEvents
             issueChangedPublisherMock = new Mock<IIssueChangedServerEventSourcePublisher>();
             taintPublisherMock = new Mock<ITaintServerEventSourcePublisher>();
 
-            testSubject = new ServerSentEventPump(serverSentEventsFilterMock.Object);
+            testSubject = new ServerSentEventPump(serverSentEventsFilterMock.Object, issueChangedPublisherMock.Object, taintPublisherMock.Object);
         }
 
         [TestMethod]
@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.SeverSentEvents
             SetUpEventsSequenceThatFinishes(inputSequence);
             SetUpStubFilter();
 
-            await testSubject.PumpAllAsync(serverSentEventsSessionMock.Object, issueChangedPublisherMock.Object, taintPublisherMock.Object);
+            await testSubject.PumpAllAsync(serverSentEventsSessionMock.Object);
             
             issueChangedPublisherMock.Invocations
                 .Select(call => call.Arguments.First() as IIssueChangedServerEvent)
@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.SeverSentEvents
             serverSentEventsFilterMock.Setup(filter => filter.GetFilteredEventOrNull(It.IsAny<IServerEvent>()))
                 .Returns((IServerEvent arg1) => arg1 == filteredEvent ? filteredEvent : null);
 
-            await testSubject.PumpAllAsync(serverSentEventsSessionMock.Object, issueChangedPublisherMock.Object, taintPublisherMock.Object);
+            await testSubject.PumpAllAsync(serverSentEventsSessionMock.Object);
 
             issueChangedPublisherMock.Invocations.Single().Arguments.First().Should().BeSameAs(filteredEvent);
         }
@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.SeverSentEvents
             issueChangedPublisherMock.Setup(publisher => publisher.Publish(It.IsAny<IIssueChangedServerEvent>()))
                 .Throws(new ObjectDisposedException(string.Empty));
 
-            await testSubject.PumpAllAsync(serverSentEventsSessionMock.Object, issueChangedPublisherMock.Object, taintPublisherMock.Object);
+            await testSubject.PumpAllAsync(serverSentEventsSessionMock.Object);
 
             issueChangedPublisherMock.Verify(publisher => publisher.Publish(It.IsAny<IIssueChangedServerEvent>()), Times.Once);
             taintPublisherMock.Verify(publisher => publisher.Publish(It.IsAny<ITaintServerEvent>()), Times.Never);
