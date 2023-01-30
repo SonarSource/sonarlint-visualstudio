@@ -76,6 +76,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             ruleMetaDataProvider.Verify(x => x.GetRuleHelp(language, ruleKey), Times.Once);
             ruleHelpXamlBuilder.Verify(x => x.Create(ruleHelp), Times.Once);
             ruleDescriptionToolWindow.Verify(x => x.UpdateContent(flowDocument), Times.Once);
+            toolWindowService.Verify(x => x.Show(RuleDescriptionToolWindow.ToolWindowId), Times.Once);
         }
 
         private Education CreateEducation(IToolWindowService toolWindowService = null, IRuleMetadataProvider ruleMetadataProvider = null, ILogger logger = null, IRuleHelpXamlBuilder ruleHelpXamlBuilder = null)

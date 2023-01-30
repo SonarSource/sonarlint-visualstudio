@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Education
 {
     public interface IEducation
     {
-        void ShowRuleDescription(Language language, string ruleID);
+        void ShowRuleDescription(Language language, string ruleKey);
     }
 
     [Export(typeof(IEducation))]
@@ -65,17 +65,12 @@ namespace SonarLint.VisualStudio.Education
         {
             var ruleHelp = ruleMetadataProvider.GetRuleHelp(language, ruleKey);
 
-            var flowDocument = ruleHelpXamlBuilder.Create(ruleHelp);
-
-            ruleDescriptionToolWindow.UpdateContent(flowDocument);
-
-            ShowToolWindow();
-        }
-
-        private void ShowToolWindow()
-        {
             threadHandling.RunOnUIThread(() =>
             {
+                var flowDocument = ruleHelpXamlBuilder.Create(ruleHelp);
+
+                ruleDescriptionToolWindow.UpdateContent(flowDocument);
+
                 try
                 {
                     toolWindowService.Show(RuleDescriptionToolWindow.ToolWindowId);
