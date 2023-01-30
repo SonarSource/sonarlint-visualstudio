@@ -47,6 +47,8 @@
     
     <ProjectReference Include="..\Core\Core.csproj" />
     
+    <ProjectReference Include="..\Infrastructure.VS\Infrastructure.VS.csproj" />
+    
     <ProjectReference Include="..\Rules\Rules.csproj" />
   </ItemGroup>
   
