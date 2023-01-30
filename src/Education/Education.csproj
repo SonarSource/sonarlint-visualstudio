@@ -46,6 +46,8 @@
     </VSCTCompile>
     
     <ProjectReference Include="..\Core\Core.csproj" />
+    
+    <ProjectReference Include="..\Rules\Rules.csproj" />
   </ItemGroup>
   
   <ItemGroup>

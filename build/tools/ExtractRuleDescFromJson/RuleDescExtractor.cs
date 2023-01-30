@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace ExtractRuleDescFromJson;
 
@@ -98,8 +98,8 @@ internal class RuleDescExtractor
     {
         try
         {
-            // TODO: clean up HTML?
-            SaveRuleFile(rule);
+            var xml = EnsureHtmlIsXml(rule.Description);
+            SaveRuleFile(rule, xml);
         }
         catch (Exception ex)
         {
@@ -107,11 +107,30 @@ internal class RuleDescExtractor
         }
     }
 
-    private void SaveRuleFile(Rule rule)
+    // Regular expression that find empty "col"and "br" HTML elements
+    // e.g. <br>, <br >, <col>, <col span="123">
+    // This is valid HTML, but means we can't parse it as XML. So, we find
+    // the empty elements and replace them with elements with closing tags
+    // e.g. <br>  =>  <br/>
+    // e.g. <col span="123">  =>  <col span="123"/>
+    private static Regex cleanCol = new Regex("(?<element>(<col\\s*)|(col\\s+[^/^>]*))>", RegexOptions.Compiled);
+    private static Regex cleanBr = new Regex("(?<element>(<br\\s*)|(br\\s+[^/^>]*))>", RegexOptions.Compiled);
+
+    private static string EnsureHtmlIsXml(string html)
+    {
+        var xml = html.Replace("&nbsp;", "&#160;");
+
+        xml = cleanCol.Replace(xml, "${element}/>");
+        xml = cleanBr.Replace(xml, "${element}/>");
+
+        return xml;
+    }
+
+    private void SaveRuleFile(Rule rule, string xml)
     {
         var fullPath = CalculateRuleFileName(rule);
         Logger.LogPartialMessage($" {Path.GetFileName(fullPath)}");
-        File.WriteAllText(fullPath, rule.Description);
+        File.WriteAllText(fullPath, xml);
     }
 
     private string CalculateRuleFileName(Rule rule)
