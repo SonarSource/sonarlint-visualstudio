@@ -1108,6 +1108,13 @@
           "System.IO.Abstractions": "[9.0.4, )"
         }
       },
+      "SonarLint.VisualStudio.Infrastructure.VS": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
+          "SonarLint.VisualStudio.Core": "[1.0.0, )"
+        }
+      },
       "SonarLint.VisualStudio.Rules": {
         "type": "Project",
         "dependencies": {

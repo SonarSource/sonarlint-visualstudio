@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education
 {
-    internal interface IRuleHelpXamlBuilder
+    public interface IRuleHelpXamlBuilder
     {
         FlowDocument Create(IRuleHelp ruleHelp);
     }
