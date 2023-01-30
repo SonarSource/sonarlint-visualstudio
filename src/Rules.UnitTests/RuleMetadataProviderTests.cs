@@ -18,7 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.IO;
+using System.Linq;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.Rules.UnitTests
@@ -30,6 +35,85 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<RuleMetadataProvider, IRuleMetadataProvider>();
+        }
+
+        [TestMethod]
+        public void GetRuleHelp_UnknownLanguage_ReturnsMissingHelp()
+        {
+            var testSubject = new RuleMetadataProvider();
+
+            var actual = testSubject.GetRuleHelp(Language.Unknown, "S100");
+
+            actual.Language.Should().Be(Language.Unknown);
+            actual.RuleKey.Should().Be("S100");
+            actual.HtmlDescription.Should().Be(Resources.Rules_DescriptionForMissingRule);
+        }
+
+        [TestMethod]
+        public void GetRuleHelp_UnknownRuleKey_ReturnsMissingHelp()
+        {
+            var testSubject = new RuleMetadataProvider();
+
+            var actual = testSubject.GetRuleHelp(Language.Cpp, "unknown rule key");
+
+            actual.Language.Should().Be(Language.Cpp);
+            actual.RuleKey.Should().Be("unknown rule key");
+            actual.HtmlDescription.Should().Be(Resources.Rules_DescriptionForMissingRule);
+        }
+
+        [TestMethod]
+        public void GetRuleHelp_CheckAllRules()
+        {
+            // Perf: this checks around 2000 embedded resources currently, but only
+            // takes < 0.5 seconds to run locally.
+
+            // Note: this test isn't checking that the correct resources are embedded.
+            // That is done by the EmbeddedResourceTests class.
+
+            var testSubject = new RuleMetadataProvider();
+            var resourceNames = testSubject.GetType().Assembly.GetManifestResourceNames()
+                .Where(x => x.EndsWith(".desc"));
+
+            Console.WriteLine("Number embedded rule descriptions: " + resourceNames.Count());
+
+            foreach (var name in resourceNames)
+            {
+                CheckRule(name);
+            }
+
+            void CheckRule(string fullResourceName)
+            {
+                Console.WriteLine("Checking " + fullResourceName);
+
+                (Language language, string ruleKey) = GetLanguageAndKeyFromResourceName(fullResourceName);
+                var expectedDescription = GetEmbeddedRuleDescription(fullResourceName);
+
+                var actual = testSubject.GetRuleHelp(language, ruleKey);
+
+                actual.Language.Should().Be(language);
+                actual.RuleKey.Should().Be(ruleKey);
+                actual.HtmlDescription.Should().Be(expectedDescription);
+                actual.HtmlDescription.Should().NotBeNullOrWhiteSpace();
+            }
+        }
+
+        private static (Language Language, string ruleKey) GetLanguageAndKeyFromResourceName(string fullResourceName)
+        {
+            // Names are expected to be in the format:
+            //   SonarLint.VisualStudio.Rules.Embedded.{language key}.{rule key}
+            // e.g. SonarLint.VisualStudio.Rules.Embedded.cpp.S101.desc
+            var parts = fullResourceName.Split('.');
+            var languageKey = parts[parts.Length - 3];
+            var ruleKey = parts[parts.Length - 2];
+
+            var language = Language.GetLanguageFromLanguageKey(languageKey);
+            return (language, ruleKey);
+        }
+
+        private static string GetEmbeddedRuleDescription(string fullResourceName)
+        {
+            using var reader = new StreamReader(typeof(RuleMetadataProvider).Assembly.GetManifestResourceStream(fullResourceName));
+            return reader.ReadToEnd();
         }
     }
 }

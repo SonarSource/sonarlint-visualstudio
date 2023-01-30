@@ -408,8 +408,10 @@ Relative path: 'SonarLint.VisualStudio.Rules.dll'
 Referenced assemblies:
 - 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'SonarLint.VisualStudio.Core, Version=6.13.0.0, Culture=neutral, PublicKeyToken=null'
+- 'SonarQube.Client, Version=6.13.0.0, Culture=neutral, PublicKeyToken=null'
+- 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-# Number of references: 3
+# Number of references: 5
 
 ---
 Assembly: 'SonarLint.VisualStudio.TypeScript, Version=6.13.0.0, Culture=neutral, PublicKeyToken=null'
