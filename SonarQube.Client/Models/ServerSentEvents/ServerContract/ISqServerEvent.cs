@@ -26,6 +26,22 @@ namespace SonarQube.Client.Models.ServerSentEvents.ServerContract
     internal interface ISqServerEvent
     {
         string Type { get; }
+
+        /// <summary>
+        /// Json-serialized event data
+        /// </summary>
         string Data { get; }
+    }
+
+    internal class SqServerEvent : ISqServerEvent
+    {
+        public SqServerEvent(string type, string data)
+        {
+            Type = type;
+            Data = data;
+        }
+
+        public string Type { get; }
+        public string Data { get; }
     }
 }
