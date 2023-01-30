@@ -55,7 +55,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<ServerSentEventPump, IServerSentEventPump>(
-                MefTestHelpers.CreateExport<IServerSentEventsFilter>());
+                MefTestHelpers.CreateExport<IServerSentEventsFilter>(),
+                MefTestHelpers.CreateExport<IIssueChangedServerEventSourcePublisher>(),
+                MefTestHelpers.CreateExport<ITaintServerEventSourcePublisher>());
         }
 
         [TestMethod]
