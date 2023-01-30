@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -91,29 +92,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
                 return;
             }
 
-            InitializeSession(bindingConfiguration.Project.ProjectKey);
+            InitializeSession(bindingConfiguration.Project.ProjectKey).Forget();
         }
 
-        private void InitializeSession(string projectKey)
+        private async Task InitializeSession(string projectKey)
         {
+            await threadHandling.SwitchToBackgroundThread();
+
             sessionTokenSource = new CancellationTokenSource();
+            var serverSentEventsSession =
+                await sonarQubeClient.CreateServerSentEventsSession(projectKey,
+                    sessionTokenSource.Token); //todo what kind of errors it throws? Sync with Rita
 
-            // fire and forget
-            threadHandling.RunOnBackgroundThread(async () =>
+            if (serverSentEventsSession == null)
             {
-                var serverSentEventsSession =
-                    await sonarQubeClient.CreateServerSentEventsSession(projectKey,
-                        sessionTokenSource.Token); //todo what kind of errors it throws? Sync with Rita
+                return;
+            }
 
-                if (serverSentEventsSession == null)
-                {
-                    return false;
-                }
-
-                await eventPump.PumpAllAsync(serverSentEventsSession);
-                return true;
-
-            }).Forget();
+            await eventPump.PumpAllAsync(serverSentEventsSession);
         }
 
         private void EndSession()

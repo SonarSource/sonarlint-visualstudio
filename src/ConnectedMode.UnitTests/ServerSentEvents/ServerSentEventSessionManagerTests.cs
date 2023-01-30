@@ -219,8 +219,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
                 var session = Mock.Of<IServerSentEventsSession>();
                 ThreadHandlingMock
                     .InSequence(callSequence)
-                    .Setup(threadHandling => threadHandling.RunOnBackgroundThread<bool>(It.IsAny<Func<Task<bool>>>()))
-                    .Returns((Func<Task<bool>> arg1) => arg1.Invoke());
+                    .Setup(threadHandling => threadHandling.SwitchToBackgroundThread())
+                    .Returns(new NoOpThreadHandler.NoOpAwaitable());
                 SonarQubeServiceMock
                     .InSequence(callSequence)
                     .Setup(sonarQubeService =>
