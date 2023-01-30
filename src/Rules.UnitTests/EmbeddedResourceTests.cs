@@ -19,7 +19,10 @@
  */
 
 using System;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Xml;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -56,6 +59,44 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             }
 
             resourceNames.Should().HaveCountGreaterThan(atLeastXRules);
+        }
+
+        [TestMethod]
+        public void CheckEmbeddedDescriptionFiles_AreParseableAsXml()
+        {
+            // Performance: this test is loading and parsing nearly 2000 files,
+            // but is still only takes a few hundred milliseconds.
+            var asm = typeof(RuleMetadataProvider).Assembly;
+            var resourceNames = asm.GetManifestResourceNames()
+                .Where(x => x.EndsWith(".desc"));
+
+            Console.WriteLine("Checking embedded files. Count = " + resourceNames.Count());
+            var failures = resourceNames.Where(x => !ReadResourceAsXml(asm, x))
+                .ToArray();
+
+            failures.Should().HaveCount(0);
+        }
+
+        private static bool ReadResourceAsXml(Assembly asm, string fullResourceName)
+        {
+            try
+            {
+                var readerSettings = new XmlReaderSettings
+                {
+                    ConformanceLevel = ConformanceLevel.Fragment
+                };
+                using var stream = new StreamReader(asm.GetManifestResourceStream(fullResourceName));
+                using var reader = XmlReader.Create(stream, readerSettings);
+
+                while (reader.Read()) { }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Failed: " + fullResourceName);
+                Console.WriteLine("    " + ex.Message);
+                return false;
+            }
+            return true;
         }
 
         [Ignore] // not yet implemented
