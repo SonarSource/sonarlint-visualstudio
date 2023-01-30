@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Core.ServerSentEvents
     /// NOTE: there's an exception to this rule that was made to simplify the implementation of the events pump that permits calling Dispose and Publish concurrently, but results in an exception. For more info see <see cref="IServerSentEventSourcePublisher{T}"/>
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class ServerEventFilteredChannel<T> : IServerSentEventSource<T>, IServerSentEventSourcePublisher<T> where T : class, IServerEvent
+    public class ServerEventChannel<T> : IServerSentEventSource<T>, IServerSentEventSourcePublisher<T> where T : class, IServerEvent
     {
         private bool disposed;
         /// <summary>
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Core.ServerSentEvents
             // So in short, the reason for this assumption was to simplify our channel wrapper code.
             if (!channel.Writer.TryWrite(serverEvent ?? throw new ArgumentNullException(nameof(serverEvent))))
             {
-                throw new ObjectDisposedException(nameof(ServerEventFilteredChannel<T>));
+                throw new ObjectDisposedException(nameof(ServerEventChannel<T>));
             }
         }
 
