@@ -143,7 +143,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             SetupFindToolWindow(serviceProviderMock, uiShellMock, VSConstants.S_OK, new Guid(MyDummyToolWindow.GuidAsString), frameMock.Object);
 
             var testSubject = new ToolWindowService(serviceProviderMock.Object);
-            var result = testSubject.GetToolWindow<MyDummyToolWindow>();
+            var result = testSubject.GetToolWindow<MyDummyToolWindow, MyDummyToolWindow>();
 
             result.Should().BeSameAs(obj);
         }

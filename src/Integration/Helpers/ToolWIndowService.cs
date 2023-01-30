@@ -51,12 +51,12 @@ namespace SonarLint.VisualStudio.Integration.Helpers
             GetOrCreateWindowFrame(toolWindowId);
         }
 
-        public T GetToolWindow<T>() where T : class
+        public V GetToolWindow<T, V>() where T : class
         {
             var frame = GetOrCreateWindowFrame(typeof(T).GUID);
             frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out object docView);
 
-            return (T)docView;
+            return (V)docView;
         }
 
         private IVsWindowFrame GetOrCreateWindowFrame(Guid toolWindowId)
