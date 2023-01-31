@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Education.Commands
     }
 
     [Guid(ToolWindowIdAsString)]
-    internal class RuleDescriptionToolWindow : ToolWindowPane
+    internal class RuleDescriptionToolWindow : ToolWindowPane, IRuleDescriptionToolWindow
     {
         private const string ToolWindowIdAsString = "9E74B368-9FC3-47B0-A1C7-2DBA3A2C1762";
         public static readonly Guid ToolWindowId = new Guid(ToolWindowIdAsString);
