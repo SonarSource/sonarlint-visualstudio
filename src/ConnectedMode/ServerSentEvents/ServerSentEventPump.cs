@@ -37,16 +37,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ServerSentEventPump : IServerSentEventPump
     {
-        private readonly IServerSentEventsFilter serverSentEventsFilter;
         private readonly IIssueChangedServerEventSourcePublisher issueChangedServerEventSourcePublisher;
         private readonly ITaintServerEventSourcePublisher taintServerEventSourcePublisher;
 
         [ImportingConstructor]
-        public ServerSentEventPump(IServerSentEventsFilter serverSentEventsFilter,
-            IIssueChangedServerEventSourcePublisher issueChangedServerEventSourcePublisher,
+        public ServerSentEventPump(IIssueChangedServerEventSourcePublisher issueChangedServerEventSourcePublisher,
             ITaintServerEventSourcePublisher taintServerEventSourcePublisher)
         {
-            this.serverSentEventsFilter = serverSentEventsFilter;
             this.issueChangedServerEventSourcePublisher = issueChangedServerEventSourcePublisher;
             this.taintServerEventSourcePublisher = taintServerEventSourcePublisher;
         }
@@ -57,14 +54,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             {
                 try
                 {
-                    var filteredServerEvent = serverSentEventsFilter.GetFilteredEventOrNull(await session.ReadAsync());
+                    var serverEvent = await session.ReadAsync();
 
-                    if (filteredServerEvent == null)
+                    if (serverEvent == null)
                     {
                         continue;
                     }
 
-                    switch (filteredServerEvent)
+                    switch (serverEvent)
                     {
                         case IIssueChangedServerEvent issueChangedServerEvent:
                             issueChangedServerEventSourcePublisher.Publish(issueChangedServerEvent);

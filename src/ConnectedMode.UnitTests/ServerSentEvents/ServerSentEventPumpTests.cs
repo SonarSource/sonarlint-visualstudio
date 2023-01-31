@@ -34,7 +34,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
     [TestClass]
     public class ServerSentEventPumpTests
     {
-        private Mock<IServerSentEventsFilter> serverSentEventsFilterMock;
         private Mock<IServerSentEventsSession> serverSentEventsSessionMock;
         private Mock<IIssueChangedServerEventSourcePublisher> issueChangedPublisherMock;
         private Mock<ITaintServerEventSourcePublisher> taintPublisherMock;
@@ -43,19 +42,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
         [TestInitialize]
         public void SetUp()
         {
-            serverSentEventsFilterMock = new Mock<IServerSentEventsFilter>();
             serverSentEventsSessionMock = new Mock<IServerSentEventsSession>();
             issueChangedPublisherMock = new Mock<IIssueChangedServerEventSourcePublisher>();
             taintPublisherMock = new Mock<ITaintServerEventSourcePublisher>();
 
-            testSubject = new ServerSentEventPump(serverSentEventsFilterMock.Object, issueChangedPublisherMock.Object, taintPublisherMock.Object);
+            testSubject = new ServerSentEventPump(issueChangedPublisherMock.Object, taintPublisherMock.Object);
         }
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<ServerSentEventPump, IServerSentEventPump>(
-                MefTestHelpers.CreateExport<IServerSentEventsFilter>(),
                 MefTestHelpers.CreateExport<IIssueChangedServerEventSourcePublisher>(),
                 MefTestHelpers.CreateExport<ITaintServerEventSourcePublisher>());
         }
@@ -74,7 +71,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
                 Mock.Of<ITaintVulnerabilityRaisedServerEvent>(),
             };
             SetUpEventsSequenceThatFinishes(inputSequence);
-            SetUpStubFilter();
 
             await testSubject.PumpAllAsync(serverSentEventsSessionMock.Object);
             
@@ -89,23 +85,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
         }
 
         [TestMethod]
-        public async Task PumpAllAsync_RespectsFilter()
-        {
-            var filteredEvent = Mock.Of<IIssueChangedServerEvent>();
-            SetUpEventsSequenceThatFinishes(Mock.Of<IIssueChangedServerEvent>(), filteredEvent, Mock.Of<IIssueChangedServerEvent>());
-            serverSentEventsFilterMock.Setup(filter => filter.GetFilteredEventOrNull(It.IsAny<IServerEvent>()))
-                .Returns((IServerEvent arg1) => arg1 == filteredEvent ? filteredEvent : null);
-
-            await testSubject.PumpAllAsync(serverSentEventsSessionMock.Object);
-
-            issueChangedPublisherMock.Invocations.Single().Arguments.First().Should().BeSameAs(filteredEvent);
-        }
-
-        [TestMethod]
         public async Task PumpAllAsync_WhenPublisherDisposed_Finishes()
         {
             SetUpEventsSequenceThatFinishes(Mock.Of<IIssueChangedServerEvent>(), Mock.Of<IIssueChangedServerEvent>());
-            SetUpStubFilter();
             issueChangedPublisherMock.Setup(publisher => publisher.Publish(It.IsAny<IIssueChangedServerEvent>()))
                 .Throws(new ObjectDisposedException(string.Empty));
 
@@ -120,12 +102,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
             var sequenceSetUp = serverSentEventsSessionMock.SetupSequence(x => x.ReadAsync());
             sequenceSetUp = inputSequence.Aggregate(sequenceSetUp, (current, serverEvent) => current.ReturnsAsync(serverEvent));
             sequenceSetUp.Throws<OperationCanceledException>();
-        }
-
-        private void SetUpStubFilter()
-        {
-            serverSentEventsFilterMock.Setup(filter => filter.GetFilteredEventOrNull(It.IsAny<IServerEvent>()))
-                .Returns((IServerEvent arg1) => arg1);
         }
     }
 }
