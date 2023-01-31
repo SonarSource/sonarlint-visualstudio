@@ -28,7 +28,7 @@ using System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 {
-    internal interface IServerSentEventPump
+    internal interface IServerSentEventPump : IDisposable
     {
         Task PumpAllAsync(IServerSentEventsSession session);
     }
@@ -76,6 +76,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
                     return;
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            issueChangedServerEventSourcePublisher?.Dispose();
+            taintServerEventSourcePublisher?.Dispose();
         }
     }
 }

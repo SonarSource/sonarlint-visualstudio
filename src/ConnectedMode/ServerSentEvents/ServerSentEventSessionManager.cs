@@ -25,8 +25,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.ServerSentEvents.Issues;
-using SonarLint.VisualStudio.Core.ServerSentEvents.TaintVulnerabilities;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
@@ -42,8 +40,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ISonarQubeService sonarQubeClient;
         private readonly IServerSentEventPump eventPump;
-        private readonly IDisposable issueChangedServerEventSourcePublisher;
-        private readonly IDisposable taintServerEventSourcePublisher;
         private readonly IThreadHandling threadHandling;
         private bool disposed;
         private CancellationTokenSource sessionTokenSource;
@@ -53,15 +49,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ISonarQubeService sonarQubeClient,
             IServerSentEventPump eventPump,
-            IIssueChangedServerEventSourcePublisher issueChangedServerEventSourcePublisher,
-            ITaintServerEventSourcePublisher taintServerEventSourcePublisher,
             IThreadHandling threadHandling)
         {
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.sonarQubeClient = sonarQubeClient;
             this.eventPump = eventPump;
-            this.issueChangedServerEventSourcePublisher = issueChangedServerEventSourcePublisher;
-            this.taintServerEventSourcePublisher = taintServerEventSourcePublisher;
             this.threadHandling = threadHandling;
             activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionChanged;
         }
@@ -75,8 +67,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
             activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionChanged;
             sessionTokenSource?.Cancel();
-            issueChangedServerEventSourcePublisher?.Dispose();
-            taintServerEventSourcePublisher?.Dispose();
+            eventPump.Dispose();
             disposed = true;
         }
 

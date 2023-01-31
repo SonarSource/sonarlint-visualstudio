@@ -50,6 +50,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
         }
 
         [TestMethod]
+        public void Dispose_DisposesPublishers()
+        {
+            testSubject.Dispose();
+
+            issueChangedPublisherMock.Verify(ch => ch.Dispose(), Times.Once);
+            taintPublisherMock.Verify(ch => ch.Dispose(), Times.Once);
+        }
+
+        [TestMethod]
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<ServerSentEventPump, IServerSentEventPump>(

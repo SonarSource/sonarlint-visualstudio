@@ -41,8 +41,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
             MefTestHelpers.CheckTypeCanBeImported<ServerSentEventSessionManager, IServerSentEventSessionManager>(
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
-                MefTestHelpers.CreateExport<ITaintServerEventSourcePublisher>(),
-                MefTestHelpers.CreateExport<IIssueChangedServerEventSourcePublisher>(),
                 MefTestHelpers.CreateExport<IThreadHandling>(),
                 MefTestHelpers.CreateExport<IServerSentEventPump>());
         }
@@ -53,8 +51,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
             var solutionTrackerMock = new Mock<IActiveSolutionBoundTracker>();
 
             var testSubject = new ServerSentEventSessionManager(solutionTrackerMock.Object, Mock.Of<ISonarQubeService>(),
-                Mock.Of<IServerSentEventPump>(), Mock.Of<IIssueChangedServerEventSourcePublisher>(),
-                Mock.Of<ITaintServerEventSourcePublisher>(), Mock.Of<IThreadHandling>());
+                Mock.Of<IServerSentEventPump>(), Mock.Of<IThreadHandling>());
 
             solutionTrackerMock.VerifyAdd(solutionTracker => solutionTracker.SolutionBindingChanged += It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>(), Times.Once);
         }
@@ -144,8 +141,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
                     activeSolutionBoundTracker.SolutionBindingChanged -= It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>(),
                 Times.Once);
             testConfiguration.SessionToken.IsCancellationRequested.Should().BeTrue();
-            testConfiguration.IssueChangedServerEventSourcePublisherMock.Verify(ch => ch.Dispose(), Times.Once);
-            testConfiguration.TaintServerEventSourcePublisherMock.Verify(ch => ch.Dispose(), Times.Once);
+            testConfiguration.ServerSentEventPumpMock.Verify(p => p.Dispose(), Times.Once);
         }
 
         [TestMethod]
@@ -162,8 +158,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
                     activeSolutionBoundTracker.SolutionBindingChanged -= It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>(),
                 Times.Once);
             testConfiguration.SessionToken.Should().Be(CancellationToken.None);
-            testConfiguration.IssueChangedServerEventSourcePublisherMock.Verify(ch => ch.Dispose(), Times.Once);
-            testConfiguration.TaintServerEventSourcePublisherMock.Verify(ch => ch.Dispose(), Times.Once);
+            testConfiguration.ServerSentEventPumpMock.Verify(p => p.Dispose(), Times.Once);
         }
 
         private static void CallDisposeMultipleTimes(TestScope testScope)
@@ -182,8 +177,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
             private Mock<IThreadHandling> ThreadHandlingMock { get; }
             public Mock<ISonarQubeService> SonarQubeServiceMock { get; }
             public Mock<IServerSentEventPump> ServerSentEventPumpMock { get; }
-            public Mock<IIssueChangedServerEventSourcePublisher> IssueChangedServerEventSourcePublisherMock { get; }
-            public Mock<ITaintServerEventSourcePublisher> TaintServerEventSourcePublisherMock { get; }
             public ServerSentEventSessionManager SessionManager { get; }
 
             public CancellationToken SessionToken { get; private set; }
@@ -194,22 +187,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
                 ActiveSolutionBoundTrackerMock = mockRepository.Create<IActiveSolutionBoundTracker>();
                 SonarQubeServiceMock = mockRepository.Create<ISonarQubeService>();
                 ServerSentEventPumpMock = mockRepository.Create<IServerSentEventPump>();
-                IssueChangedServerEventSourcePublisherMock = mockRepository.Create<IIssueChangedServerEventSourcePublisher>();
-                TaintServerEventSourcePublisherMock = mockRepository.Create<ITaintServerEventSourcePublisher>();
                 ThreadHandlingMock = mockRepository.Create<IThreadHandling>();
                 SessionManager = new ServerSentEventSessionManager(
                     ActiveSolutionBoundTrackerMock.Object,
                     SonarQubeServiceMock.Object,
                     ServerSentEventPumpMock.Object,
-                    IssueChangedServerEventSourcePublisherMock.Object,
-                    TaintServerEventSourcePublisherMock.Object,
                     ThreadHandlingMock.Object);
             }
 
             public void SetUpMocksDispose()
             {
-                IssueChangedServerEventSourcePublisherMock.Setup(ch => ch.Dispose());
-                TaintServerEventSourcePublisherMock.Setup(ch => ch.Dispose());
+                ServerSentEventPumpMock.Setup(p => p.Dispose());
             }
 
             public IServerSentEventsSession SetUpMockConnection(
