@@ -77,5 +77,23 @@ namespace SonarLint.VisualStudio.Education {
                 return ResourceManager.GetString("RuleDescriptionToolWindowCaption", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string String1 {
+            get {
+                return ResourceManager.GetString("String1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error: rule description contains an unexpected node. Node type: {0}, name: {1}, value: {2}.
+        /// </summary>
+        internal static string XamlBuilder_UnexpectedNodeError {
+            get {
+                return ResourceManager.GetString("XamlBuilder_UnexpectedNodeError", resourceCulture);
+            }
+        }
     }
 }

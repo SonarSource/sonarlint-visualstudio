@@ -123,4 +123,10 @@
   <data name="RuleDescriptionToolWindowCaption" xml:space="preserve">
     <value>Rule Description</value>
   </data>
+  <data name="String1" xml:space="preserve">
+    <value />
+  </data>
+  <data name="XamlBuilder_UnexpectedNodeError" xml:space="preserve">
+    <value>Error: rule description contains an unexpected node. Node type: {0}, name: {1}, value: {2}</value>
+  </data>
 </root>
