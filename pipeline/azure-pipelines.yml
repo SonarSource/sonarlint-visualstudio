@@ -164,7 +164,7 @@ jobs:
     inputs:
       SourceFolder: $(Build.SourcesDirectory)\src\Integration.Vsix
       Contents: |
-        AsmRef_*.txt
+        **\AsmRef_*.txt
       TargetFolder: $(Build.ArtifactStagingDirectory)
     condition: failed()     # we're only interested if the build failed (in case the build failed because of a mismatch in the asmref files)
 
