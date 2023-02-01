@@ -22,16 +22,25 @@ using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.UnitTests;
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
     [TestClass]
     public class ErrorListHelperTests
     {
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<ErrorListHelper, IErrorListHelper>(
+                MefTestHelpers.CreateExport<SVsServiceProvider>());
+        }
+
         [TestMethod]
         [DataRow("S666", "cs", "S666", "SonarAnalyzer.CSharp")]
         [DataRow("S666", "vb", "S666", "SonarAnalyzer.VisualBasic")]
@@ -52,10 +61,11 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             });
 
             var mockErrorList = CreateErrorList(issueHandle);
+            var serviceProvider = CreateServiceProvider(mockErrorList);
 
             // Act
-            var testSubject = new ErrorListHelper();
-            bool result = testSubject.TryGetRuleIdFromSelectedRow(mockErrorList, out var ruleId);
+            var testSubject = new ErrorListHelper(serviceProvider);
+            bool result = testSubject.TryGetRuleIdFromSelectedRow(out var ruleId);
 
             // Assert
             result.Should().BeTrue();
@@ -74,10 +84,11 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             });
 
             var mockErrorList = CreateErrorList(issueHandle);
+            var serviceProvider = CreateServiceProvider(mockErrorList);
 
             // Act
-            var testSubject = new ErrorListHelper();
-            bool result = testSubject.TryGetRuleIdFromSelectedRow(mockErrorList, out var errorCode);
+            var testSubject = new ErrorListHelper(serviceProvider);
+            bool result = testSubject.TryGetRuleIdFromSelectedRow(out var errorCode);
 
             // Assert
             result.Should().BeFalse();
@@ -99,10 +110,11 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             });
 
             var mockErrorList = CreateErrorList(cppIssueHandle, jsIssueHandle);
+            var serviceProvider = CreateServiceProvider(mockErrorList);
 
             // Act
-            var testSubject = new ErrorListHelper();
-            bool result = testSubject.TryGetRuleIdFromSelectedRow(mockErrorList, out var errorCode);
+            var testSubject = new ErrorListHelper(serviceProvider);
+            bool result = testSubject.TryGetRuleIdFromSelectedRow(out var errorCode);
 
             // Assert
             result.Should().BeFalse();
@@ -120,14 +132,27 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             });
 
             var mockErrorList = CreateErrorList(issueHandle);
+            var serviceProvider = CreateServiceProvider(mockErrorList);
 
             // Act
-            var testSubject = new ErrorListHelper();
-            bool result = testSubject.TryGetRuleIdFromSelectedRow(mockErrorList, out var errorCode);
+            var testSubject = new ErrorListHelper(serviceProvider);
+            bool result = testSubject.TryGetRuleIdFromSelectedRow(out var errorCode);
 
             // Assert
             result.Should().BeFalse();
             errorCode.Should().BeNull();
+        }
+
+        private static IServiceProvider CreateServiceProvider(IErrorList errorList = null)
+        {
+            errorList ??= Mock.Of<IErrorList>();
+
+            var serviceProviderMock = new Mock<IServiceProvider>();
+            serviceProviderMock
+                .Setup(x => x.GetService(typeof(SVsErrorList)))
+                .Returns(errorList);
+
+            return serviceProviderMock.Object;
         }
 
         private static IErrorList CreateErrorList(params ITableEntryHandle[] entries)

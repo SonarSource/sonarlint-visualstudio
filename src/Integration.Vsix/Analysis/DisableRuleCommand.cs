@@ -42,7 +42,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         public const int CommandId = 0x0200;
 
         private readonly OleMenuCommand menuItem;
-        private readonly IErrorList errorList;
         private readonly IUserSettingsProvider userSettingsProvider;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ILogger logger;
@@ -58,14 +57,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
-            var vsErrorList = (IVsErrorList)await package.GetServiceAsync(typeof(SVsErrorList));
-            var eList = vsErrorList as IErrorList;
-
             var settingsProvider = await package.GetMefServiceAsync<IUserSettingsProvider>();
             var tracker = await package.GetMefServiceAsync<IActiveSolutionBoundTracker>();
+            var errListHelper = await package.GetMefServiceAsync<IErrorListHelper>();
 
             IMenuCommandService commandService = (IMenuCommandService)await package.GetServiceAsync(typeof(IMenuCommandService));
-            Instance = new DisableRuleCommand(commandService, eList, settingsProvider, tracker, logger, new ErrorListHelper());
+            Instance = new DisableRuleCommand(commandService, settingsProvider, tracker, logger, errListHelper);
         }
 
         /// <summary>
@@ -74,14 +71,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
         /// <param name="menuCommandService">Command service to add command to, not null.</param>
-        internal DisableRuleCommand(IMenuCommandService menuCommandService, IErrorList errorList,
-            IUserSettingsProvider userSettingsProvider, IActiveSolutionBoundTracker activeSolutionBoundTracker, ILogger logger, IErrorListHelper errorListHelper)
+        internal DisableRuleCommand(IMenuCommandService menuCommandService, IUserSettingsProvider userSettingsProvider,
+            IActiveSolutionBoundTracker activeSolutionBoundTracker, ILogger logger, IErrorListHelper errorListHelper)
         {
             if (menuCommandService == null)
             {
                 throw new ArgumentNullException(nameof(menuCommandService));
             }
-            this.errorList = errorList ?? throw new ArgumentNullException(nameof(errorList));
+
             this.userSettingsProvider = userSettingsProvider ?? throw new ArgumentNullException(nameof(userSettingsProvider));
             this.activeSolutionBoundTracker = activeSolutionBoundTracker ?? throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -98,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             {
                 var isVisible = false;
                 var isEnabled = false;
-                if (errorListHelper.TryGetRuleIdFromSelectedRow(errorList, out var ruleId))
+                if (errorListHelper.TryGetRuleIdFromSelectedRow(out var ruleId))
                 {
                     CalculateStatuses(ruleId, activeSolutionBoundTracker.CurrentConfiguration.Mode, out isVisible, out isEnabled);
                 }
@@ -133,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             SonarCompositeRuleId ruleId = null;
             try
             {
-                if (errorListHelper.TryGetRuleIdFromSelectedRow(errorList, out ruleId))
+                if (errorListHelper.TryGetRuleIdFromSelectedRow(out ruleId))
                 {
                     userSettingsProvider.DisableRule(ruleId.ErrorListErrorCode);
                     logger.WriteLine(AnalysisStrings.DisableRule_DisabledRule, ruleId.ErrorListErrorCode);

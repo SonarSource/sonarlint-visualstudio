@@ -18,22 +18,31 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS
 {
-    public interface IErrorListHelper
-    {
-        bool TryGetRuleIdFromSelectedRow(IErrorList errorList, out SonarCompositeRuleId ruleId);
-    }
-
+    [Export(typeof(IErrorListHelper))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     public class ErrorListHelper : IErrorListHelper
     {
-        public bool TryGetRuleIdFromSelectedRow(IErrorList errorList, out SonarCompositeRuleId ruleId)
+        private readonly IErrorList errorList;
+
+        [ImportingConstructor]
+        public ErrorListHelper([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        {
+      //      var vsErrorList = (IVsErrorList)serviceProvider.GetService(typeof(SVsErrorList));
+            errorList = serviceProvider.GetService(typeof(SVsErrorList)) as IErrorList;
+        }
+
+        public bool TryGetRuleIdFromSelectedRow(out SonarCompositeRuleId ruleId)
         {
             ruleId = null;
             var selectedItems = errorList?.TableControl?.SelectedEntries;
