@@ -102,7 +102,7 @@ jobs:
       Contents: |
         AsmRef_*.txt
       TargetFolder: $(Build.ArtifactStagingDirectory)
-  - condition: failed()     # we're only interested if the build failed (in case the build failed because of a mismatch in the asmref files)
+    condition: failed()     # we're only interested if the build failed (in case the build failed because of a mismatch in the asmref files)
 
   - task: DownloadSecureFile@1
     name: snk
