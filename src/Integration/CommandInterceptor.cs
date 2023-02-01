@@ -27,7 +27,7 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    internal class CommandInterceptor : IOleCommandTarget
+    public class CommandInterceptor : IOleCommandTarget
     {
         private readonly CommandID commandID;
         private readonly Func<CommandProgression> function;
