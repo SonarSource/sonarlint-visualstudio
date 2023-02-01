@@ -22,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Documents;
@@ -117,9 +116,9 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 // block element if the first tag we processed was an Inline.
                 Debug.Assert(outputXamlElementStack.Count <= 2, "Expecting at most 2 unclosed elements in the stack");
                 Debug.Assert((outputXamlElementStack.Count == 1 && outputXamlElementStack.Peek().HtmlElementName == "html root")
-                    || (outputXamlElementStack.Count == 2 && 
-                        outputXamlElementStack.Peek().HtmlElementName == null &&
-                        outputXamlElementStack.Last().HtmlElementName == "html root"),
+                    || (outputXamlElementStack.Count == 2 &&
+                        outputXamlElementStack.ToArray()[0].HtmlElementName == null &&
+                        outputXamlElementStack.ToArray()[1].HtmlElementName == "html root"),
                         "Unexpected items in final stack");
 
                 while (outputXamlElementStack.Count > 0)
