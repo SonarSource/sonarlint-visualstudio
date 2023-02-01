@@ -33,9 +33,11 @@ namespace SonarLint.VisualStudio.Integration
         private readonly Func<CommandProgression> function;
         private readonly IThreadHandling threadHandling;
 
-        public CommandInterceptor(CommandID commandID, Func<CommandProgression> function) : this(commandID, function, ThreadHandling.Instance) { }
+        public CommandInterceptor(CommandID commandID, Func<CommandProgression> function) : this(commandID, function, ThreadHandling.Instance)
+        {
+        }
 
-        internal /* for testing */ CommandInterceptor(CommandID commandID, Func<CommandProgression> function, IThreadHandling threadHandling)
+        internal CommandInterceptor(CommandID commandID, Func<CommandProgression> function, IThreadHandling threadHandling)
         {
             this.commandID = commandID;
             this.function = function;
@@ -51,12 +53,9 @@ namespace SonarLint.VisualStudio.Integration
         {
             threadHandling.ThrowIfNotOnUIThread();
 
-            if (pguidCmdGroup == commandID.Guid && nCmdID == commandID.ID)
+            if (pguidCmdGroup == commandID.Guid && nCmdID == commandID.ID && function() == CommandProgression.Stop)
             {
-                if (function() == CommandProgression.Stop)
-                {
-                    return VSConstants.S_OK;
-                }
+                return VSConstants.S_OK;
             }
 
             return (int)Microsoft.VisualStudio.OLE.Interop.Constants.MSOCMDERR_E_FIRST;
