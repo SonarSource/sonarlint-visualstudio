@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+
 namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
 {
     public interface ITaintServerEvent : IServerEvent
@@ -34,10 +36,36 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
         string Branch { get; }
     }
 
+    public class TaintVulnerabilityRaisedServerEvent : ITaintVulnerabilityRaisedServerEvent
+    {
+        public TaintVulnerabilityRaisedServerEvent(string projectKey, string key, string branch)
+        {
+            ProjectKey = projectKey ?? throw new ArgumentNullException(nameof(projectKey));
+            Key = key ?? throw new ArgumentNullException(nameof(key));
+            Branch = branch ?? throw new ArgumentNullException(nameof(branch));
+        }
+
+        public string ProjectKey { get; }
+        public string Key { get; }
+        public string Branch { get; }
+    }
+
     /// <summary>
     /// Represents TaintVulnerabilityClosed server event information
     /// </summary>
     public interface ITaintVulnerabilityClosedServerEvent : ITaintServerEvent
     {
+    }
+
+    public class TaintVulnerabilityClosedServerEvent : ITaintVulnerabilityClosedServerEvent
+    {
+        public TaintVulnerabilityClosedServerEvent(string projectKey, string key)
+        {
+            ProjectKey = projectKey ?? throw new ArgumentNullException(nameof(projectKey));
+            Key = key ?? throw new ArgumentNullException(nameof(key));
+        }
+
+        public string ProjectKey { get; }
+        public string Key { get; }
     }
 }

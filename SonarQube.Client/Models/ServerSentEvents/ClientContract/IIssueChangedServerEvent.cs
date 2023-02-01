@@ -19,6 +19,8 @@
  */
 
 
+using System;
+
 namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
 {
     /// <summary>
@@ -33,6 +35,20 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
         // also has Severity and Type that we don't care about
     }
 
+    public class IssueChangedServerEvent : IIssueChangedServerEvent
+    {
+        public IssueChangedServerEvent(string projectKey, bool isResolved, IBranchAndIssueKey[] branchAndIssueKeys)
+        {
+            ProjectKey = projectKey ?? throw new ArgumentNullException(nameof(projectKey));
+            IsResolved = isResolved;
+            BranchAndIssueKeys = branchAndIssueKeys ?? throw new ArgumentNullException(nameof(branchAndIssueKeys));
+        }
+
+        public string ProjectKey { get; }
+        public bool IsResolved { get; }
+        public IBranchAndIssueKey[] BranchAndIssueKeys { get; }
+    }
+
 
     /// <summary>
     /// Tuple of the changed issue key in a specific branch
@@ -41,5 +57,17 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
     {
         string BranchName { get; }
         string IssueKey { get; }
+    }
+
+    public class BranchAndIssueKey : IBranchAndIssueKey
+    {
+        public BranchAndIssueKey(string issueKey, string branchName)
+        {
+            IssueKey = issueKey ?? throw new ArgumentNullException(nameof(issueKey));
+            BranchName = branchName ?? throw new ArgumentNullException(nameof(branchName));
+        }
+
+        public string BranchName { get; }
+        public string IssueKey { get; }
     }
 }
