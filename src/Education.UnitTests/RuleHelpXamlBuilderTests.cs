@@ -19,13 +19,9 @@
  */
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Windows.Documents;
-using System.Windows.Markup;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core;
@@ -40,7 +36,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         private static readonly Assembly ResourceAssembly = typeof(RuleMetadataProvider).Assembly;
 
         [TestMethod]
-        public void CreateXamlString_CheckAllEmbedded()
+        public void Create_CheckAllEmbedded()
         {            
             // Performance: this test is loading nearly 2000 files and creating
             // XAML document for them, but it still only takes a around 3 seconds
