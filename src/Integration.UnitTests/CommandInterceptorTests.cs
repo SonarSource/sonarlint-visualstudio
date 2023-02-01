@@ -35,12 +35,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var guid = new Guid();
             var commandID = new CommandID(guid, 0);
 
-            var func = () => { return CommandProgression.Stop; };
+            bool funcCalled = false;
+            var func = () =>
+            {
+                funcCalled = true;
+                return CommandProgression.Stop;
+            };
+
             var testSubject = new CommandInterceptor(commandID, func, new NoOpThreadHandler());
 
             var result = testSubject.Exec(ref guid, (uint)commandID.ID, 0, IntPtr.Zero, IntPtr.Zero);
 
             result.Should().Be(0);
+            funcCalled.Should().BeTrue();
         }
 
         [TestMethod]
@@ -49,12 +56,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var guid = new Guid();
             var commandID = new CommandID(guid, 0);
 
-            var func = () => { return CommandProgression.Continue; };
+            bool funcCalled = false;
+            var func = () =>
+            {
+                funcCalled = true;
+                return CommandProgression.Continue;
+            };
+
             var testSubject = new CommandInterceptor(commandID, func, new NoOpThreadHandler());
 
             var result = testSubject.Exec(ref guid, (uint)commandID.ID, 0, IntPtr.Zero, IntPtr.Zero);
 
             result.Should().Be(-2147221248);
+            funcCalled.Should().BeTrue();
         }
 
         [TestMethod]
@@ -63,12 +77,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var guid = new Guid();
             var commandID = new CommandID(guid, 0);
 
-            var func = () => { return CommandProgression.Continue; };
+            bool funcCalled = false;
+            var func = () =>
+            {
+                funcCalled = true;
+                return CommandProgression.Continue;
+            };
+
             var testSubject = new CommandInterceptor(commandID, func, new NoOpThreadHandler());
 
             var result = testSubject.Exec(ref guid, (uint)5, 0, IntPtr.Zero, IntPtr.Zero);
 
             result.Should().Be(-2147221248);
+            funcCalled.Should().BeFalse();
         }
 
         [TestMethod]
@@ -77,12 +98,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var guid = new Guid();
             var commandID = new CommandID(new Guid("A057C7F2-E3D3-414F-93C9-014E16122582"), 0);
 
-            var func = () => { return CommandProgression.Continue; };
+            bool funcCalled = false;
+            var func = () =>
+            {
+                funcCalled = true;
+                return CommandProgression.Continue;
+            };
+
             var testSubject = new CommandInterceptor(commandID, func, new NoOpThreadHandler());
 
             var result = testSubject.Exec(ref guid, (uint)5, 0, IntPtr.Zero, IntPtr.Zero);
 
             result.Should().Be(-2147221248);
+            funcCalled.Should().BeFalse();
         }
     }
 }
