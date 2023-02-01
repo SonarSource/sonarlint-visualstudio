@@ -51,21 +51,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.sseSessionFactory = sseSessionFactory;
 
-            activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionChanged;
+            activeSolutionBoundTracker.SolutionBindingChanged += SolutionBindingChanged;
         }
 
         public void Dispose()
         {
-            activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionChanged;
-            currentSession?.Dispose();
+            activeSolutionBoundTracker.SolutionBindingChanged -= SolutionBindingChanged;
+            EndCurrentSession();
         }
 
-        private void OnSolutionChanged(object sender, ActiveSolutionBindingEventArgs activeSolutionBindingEventArgs)
+        private void SolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs activeSolutionBindingEventArgs)
         {
+            EndCurrentSession();
+
             var bindingConfiguration = activeSolutionBindingEventArgs.Configuration;
             var isInConnectedMode = !bindingConfiguration.Equals(BindingConfiguration.Standalone);
-
-            currentSession?.Dispose();
 
             if (!isInConnectedMode)
             {
@@ -75,6 +75,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             currentSession = sseSessionFactory.Create(bindingConfiguration.Project.ProjectKey);
 
             currentSession.PumpAllAsync().Forget();
+        }
+
+        private void EndCurrentSession()
+        {
+            currentSession?.Dispose();
+            currentSession = null;
         }
     }
     
