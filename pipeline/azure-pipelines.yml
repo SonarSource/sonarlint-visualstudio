@@ -233,6 +233,7 @@ jobs:
         **\*.vsix
         **\SonarLint.visualstudio.sbom*.*
       TargetFolder: $(Build.ArtifactStagingDirectory)
+    condition: succeededOrFailed()
 
   - task: CopyFiles@2
     displayName: 'Copy any MSBuild binary logs to: $(Build.ArtifactStagingDirectory)'
@@ -240,6 +241,7 @@ jobs:
       SourceFolder: $(Build.SourcesDirectory)
       Contents: '**\*.binlog'
       TargetFolder: $(Build.ArtifactStagingDirectory)
+    condition: succeededOrFailed()
 
   - task: CopyFiles@2
     displayName: 'Copy marketplace files to:  $(Build.ArtifactStagingDirectory) (VS2022 only)'
