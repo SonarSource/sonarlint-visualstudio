@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Xml;
@@ -36,6 +35,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         /// <summary>
         /// Generates a XAML document containing the help information for the specified rule
         /// </summary>
+        /// <remarks>Assumes that the <see cref="IRuleHelp.HtmlDescription"/> is parseable as XML</remarks>
         FlowDocument Create(IRuleHelp ruleHelp);
     }
 
@@ -470,18 +470,5 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             var writer = XmlWriter.Create(stringWriter, settings);
             return writer;
         }
-
-        private static Regex cleanCol = new Regex("(?<element>(<col\\s*)|(col\\s+[^/^>]*))>", RegexOptions.Compiled);
-        private static Regex cleanBr = new Regex("(?<element>(<br\\s*)|(br\\s+[^/^>]*))>", RegexOptions.Compiled);
-
-        private static string CleanHtml(string text)
-        {
-            var cleaned = text.Replace("&nbsp;", "&#160;");
-            cleaned = cleanCol.Replace(cleaned, "${element}/>");
-            cleaned = cleanBr.Replace(cleaned, "${element}/>");
-
-            return cleaned;
-        }
-
     }
 }
