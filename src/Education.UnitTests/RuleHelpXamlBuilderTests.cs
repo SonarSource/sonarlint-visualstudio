@@ -19,9 +19,13 @@
  */
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using System.Windows.Documents;
+using System.Windows.Markup;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core;
@@ -38,8 +42,9 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void CreateXamlString_CheckAllEmbedded()
         {            
-            // Performance: this test is loading and parsing nearly 2000 files,
-            // but is still only takes a few hundred milliseconds.
+            // Performance: this test is loading nearly 2000 files and creating
+            // XAML document for them, but it still only takes a around 3 seconds
+            // to run.
             var resourceNames = ResourceAssembly.GetManifestResourceNames()
                 .Where(x => x.EndsWith(".desc"));
 
@@ -63,8 +68,14 @@ namespace SonarLint.VisualStudio.Education.UnitTests
                 (var language, var ruleKey) = GetLanguageAndKeyFromResourceName(fullResourceName);
                 var ruleHelp = new RuleHelp(language, ruleKey, input);
 
-                var xamlString = testSubject.CreateXamlString(ruleHelp);
-                Console.WriteLine($"{language.Name} {ruleKey}: size = {xamlString.Length}");
+                var doc = testSubject.Create(ruleHelp);
+
+                // Quick sanity check that something was produced
+                // Note: this is a quick way of getting the size of the document. Serializing the doc to a string
+                // and checking the length takes much longer (around 25 seconds)
+                var docLength = doc.ContentStart.DocumentStart.GetOffsetToPosition(doc.ContentEnd.DocumentEnd);
+                Console.WriteLine($"{language.Name} {ruleKey}: size = {docLength}");
+                docLength.Should().BeGreaterThan(30);
 
                 return true;
             }
