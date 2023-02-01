@@ -32,8 +32,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Exec_CommandProgressionStops_ReturnsZero()
         {
-            var guid = new Guid();
-            var commandID = new CommandID(guid, 0);
+            var guid = new Guid("A057C7F2-E3D3-414F-93C9-014E16122582");
+            var commandID = new CommandID(guid, 1);
 
             bool funcCalled = false;
             var func = () =>
@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Exec_CommandProgressionContinue_ReturnsMSOCMDERR_E_FIRST()
         {
-            var guid = new Guid();
+            var guid = new Guid("A057C7F2-E3D3-414F-93C9-014E16122582");
             var commandID = new CommandID(guid, 0);
 
             bool funcCalled = false;
@@ -74,8 +74,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Exec_CommandIdDoesNotMatch_ReturnsMSOCMDERR_E_FIRST()
         {
-            var guid = new Guid();
-            var commandID = new CommandID(guid, 0);
+            var guid = new Guid("A057C7F2-E3D3-414F-93C9-014E16122582");
+            var commandID = new CommandID(guid, 1);
 
             bool funcCalled = false;
             var func = () =>
@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var testSubject = new CommandInterceptor(commandID, func, new NoOpThreadHandler());
 
-            var result = testSubject.Exec(ref guid, (uint)5, 0, IntPtr.Zero, IntPtr.Zero);
+            var result = testSubject.Exec(ref guid, nCmdID:(uint)5, 0, IntPtr.Zero, IntPtr.Zero);
 
             result.Should().Be(-2147221248);
             funcCalled.Should().BeFalse();
@@ -95,8 +95,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Exec_GuidDoesNotMatch_ReturnsMSOCMDERR_E_FIRST()
         {
-            var guid = new Guid();
-            var commandID = new CommandID(new Guid("A057C7F2-E3D3-414F-93C9-014E16122582"), 0);
+            var guid = new Guid("A057C7F2-E3D3-414F-93C9-014E16122582");
+            var commandID = new CommandID(new Guid("21364CA3-5CA0-41F0-885E-CA2396506132"), 1);
 
             bool funcCalled = false;
             var func = () =>
@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var testSubject = new CommandInterceptor(commandID, func, new NoOpThreadHandler());
 
-            var result = testSubject.Exec(ref guid, (uint)5, 0, IntPtr.Zero, IntPtr.Zero);
+            var result = testSubject.Exec(ref guid, (uint)commandID.ID, 0, IntPtr.Zero, IntPtr.Zero);
 
             result.Should().Be(-2147221248);
             funcCalled.Should().BeFalse();
