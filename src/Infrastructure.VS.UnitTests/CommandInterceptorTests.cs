@@ -22,9 +22,9 @@ using System;
 using System.ComponentModel.Design;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+using SonarLint.VisualStudio.Integration.UnitTests;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
     [TestClass]
     public class CommandInterceptorTests

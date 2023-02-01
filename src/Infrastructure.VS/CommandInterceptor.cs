@@ -23,9 +23,8 @@ using System.ComponentModel.Design;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Infrastructure.VS;
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Infrastructure.VS
 {
     public class CommandInterceptor : IOleCommandTarget
     {
