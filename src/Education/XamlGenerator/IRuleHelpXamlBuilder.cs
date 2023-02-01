@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
     internal partial class RuleHelpXamlBuilder : IRuleHelpXamlBuilder
     {
-        private static readonly string XamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
+        private const string XamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
 
         private XmlWriter writer;
         private XmlReader reader;
@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                             break;
                         default:
                             var message = string.Format(Resources.XamlBuilder_UnexpectedNodeError, reader.NodeType, reader.Name, reader.Value);
-                            throw new InvalidDataException();
+                            throw new InvalidDataException(message);
                     }
                 }
 
@@ -211,7 +211,6 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "ol":
                     WriteBlockElementStart("List");
-                    //writer.WriteStartElement("List");
                     writer.WriteAttributeString("MarkerStyle", "Decimal");
 
                     PushOutputElementInfo("ol", false);
@@ -467,8 +466,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 WriteEndDocumentOnClose = true
             };
 
-            var writer = XmlWriter.Create(stringWriter, settings);
-            return writer;
+            return XmlWriter.Create(stringWriter, settings);
         }
     }
 }
