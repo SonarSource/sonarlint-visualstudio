@@ -37,6 +37,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         Table,                      // html <table>, rendered in a XAML <Table>
         TableHeaderRowGroup,        // html <thead>, rendered in a XAML <TableRowGroup>
         TableHeaderCell,            // html <th>, rendered in a XAML <TableCell>
+        TableBodyCell,              // html <td>, rendered in a XAML <TableCell>
         TableBodyCellAlternateRow,  // html <td>, rendered in a XAML <TableCell>. Applied to alternate rows of the table body.
         OrderedList,                // html <ol>, rendered is a XAML <List>
         UnorderedList,              // html <ul>, rendered is a XAML <List>
