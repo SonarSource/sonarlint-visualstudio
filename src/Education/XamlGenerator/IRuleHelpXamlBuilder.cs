@@ -35,14 +35,17 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         /// <summary>
         /// Generates a XAML document containing the help information for the specified rule
         /// </summary>
-        /// <remarks>Assumes that the <see cref="IRuleHelp.HtmlDescription"/> is parseable as XML</remarks>
+        /// <remarks>Assumes that the <see cref="IRuleHelp.HtmlDescription"/> is parseable as XML.
+        /// Also assumes that the containing control defines a list of Style resources, one for each
+        /// value in the enum <see cref="StyleResourceNames"/>.
+        /// The document will still render if a style is missing, but the styling won't be correct.</remarks>
         FlowDocument Create(IRuleHelp ruleHelp);
     }
 
     internal partial class RuleHelpXamlBuilder : IRuleHelpXamlBuilder
     {
         private const string XamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
-
+        
         private XmlWriter writer;
         private XmlReader reader;
 
@@ -61,13 +64,8 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         public FlowDocument Create(IRuleHelp ruleHelp)
         {
             var xaml = CreateXamlString(ruleHelp);
-
-            using (var stringReader = new StringReader(xaml))
-            {
-                var xamlReader = XmlReader.Create(stringReader);
-                var flowDocument = (FlowDocument)XamlReader.Load(xamlReader);
-                return flowDocument;
-            }
+            var flowDocument = (FlowDocument)XamlReader.Parse(xaml);
+            return flowDocument;
         }
 
         internal /* for testing */ string CreateXamlString(IRuleHelp ruleHelp)
@@ -167,8 +165,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "blockquote":
                     writer.WriteStartElement("Section");
-                    writer.WriteAttributeString("Margin", "16,0,0,0");
-                    writer.WriteAttributeString("Background", "LightGray");
+                    ApplyStyleToStartElement(StyleResourceNames.Blockquote);
 
                     PushOutputElementInfo("blockquote", false);
 
@@ -182,6 +179,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "code":
                     WriteInlineElementStart("Span");
+                    ApplyStyleToStartElement(StyleResourceNames.Code);
 
                     break;
 
@@ -191,14 +189,14 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "h2":
                     writer.WriteStartElement("Paragraph");
-                    writer.WriteAttributeString("FontSize", "20pt");
+                    ApplyStyleToStartElement(StyleResourceNames.Heading2);
 
                     PushOutputElementInfo("h2", true);
                     break;
 
                 case "h3":
                     writer.WriteStartElement("Paragraph");
-                    writer.WriteAttributeString("FontSize", "18pt");
+                    ApplyStyleToStartElement(StyleResourceNames.Heading3);
 
                     PushOutputElementInfo("h3", true);
                     break;
@@ -227,9 +225,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "pre":
                     writer.WriteStartElement("Paragraph");
-                    writer.WriteAttributeString("FontSize", "8pt");
-                    writer.WriteAttributeString("TextAlignment", "Left");
-                    writer.WriteAttributeString("FontFamily", "Courier New");
+                    ApplyStyleToStartElement(StyleResourceNames.Pre);
 
                     PushOutputElementInfo("pre", true);
                     break;
@@ -249,8 +245,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "table":
                     WriteBlockElementStart("Table");
-                    writer.WriteAttributeString("BorderThickness", "1,1,1,1");
-                    writer.WriteAttributeString("BorderBrush", "Black");
+                    ApplyStyleToStartElement(StyleResourceNames.Table);
 
                     PushOutputElementInfo("table", false);
 
@@ -270,8 +265,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "thead":
                     writer.WriteStartElement("TableRowGroup");
-                    writer.WriteAttributeString("Background", "LightGray");
-                    writer.WriteAttributeString("FontWeight", "Bold");
+                    ApplyStyleToStartElement(StyleResourceNames.TableHeaderRowGroup);
 
                     PushOutputElementInfo("thead", false);
 
@@ -287,8 +281,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "th":
                     writer.WriteStartElement("TableCell");
-                    writer.WriteAttributeString("BorderThickness", "0,0,0,1");
-                    writer.WriteAttributeString("BorderBrush", "Black");
+                    ApplyStyleToStartElement(StyleResourceNames.TableHeaderRowGroup);
                     PushOutputElementInfo("th", false);
 
                     break;
@@ -306,7 +299,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                     if (tableAlternateRow)
                     {
-                        writer.WriteAttributeString("Background", "LightBlue");
+                        ApplyStyleToStartElement(StyleResourceNames.TableBodyCellAlternateRow);
                     }
 
                     break;
@@ -318,6 +311,24 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     break;
             }
         }
+
+        /// <summary>
+        /// Applies the specified style to the current element
+        /// </summary>
+        /// <remarks>
+        /// Assumes the writer is in a state where we can write attributes i.e. just
+        /// after writing the start element.
+        /// <para>
+        /// The resource is marked as a "DynamicResource".
+        /// We can't mark it as a "StaticResource" unless we also define it in the XAML string
+        /// (the XamlReader will complain it it can't find a referenced StaticResource when
+        /// deserializing).
+        /// Also, we want the resource references to be dynamic so they will automatically pick
+        /// up resources defined in parent elements.
+        /// </para>
+        /// </remarks>
+        private void ApplyStyleToStartElement(StyleResourceNames style) =>
+            writer.WriteAttributeString("Style", $"{{DynamicResource {style}}}");
 
         private void WriteEmptyElement(string name, string value = null)
         {
