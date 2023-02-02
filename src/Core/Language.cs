@@ -57,9 +57,15 @@ namespace SonarLint.VisualStudio.Core
             KnownLanguages.FirstOrDefault(l => languageKey.Equals(l.ServerLanguage.Key, System.StringComparison.OrdinalIgnoreCase));
 
         /// <summary>
-        /// Tries to get the language for the specified repository key.
+        /// Returns the language for the specified repository key, or null if it does not match a known language
         /// </summary>
-        public static bool GetLanguageFromRepositoryKey(string repoKey, out Language language) => repoKeyToLanguage.TryGetValue(repoKey, out language);
+        public static Language GetLanguageFromRepositoryKey(string repoKey)
+        {
+            repoKeyToLanguage.TryGetValue(repoKey, out Language language);
+
+            return language;
+        }
+
 
         /// <summary>
         /// A stable identifier for this language.

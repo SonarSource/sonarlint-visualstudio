@@ -124,13 +124,13 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [TestMethod]
         public void GetLanguageFromRepositoryKey_GetsCorrectLanguage()
         {
-            Language.GetLanguageFromRepositoryKey("csharpsquid", out Language cs);
-            Language.GetLanguageFromRepositoryKey("vbnet", out Language vbnet);
-            Language.GetLanguageFromRepositoryKey("cpp", out Language cpp);
-            Language.GetLanguageFromRepositoryKey("c", out Language c);
-            Language.GetLanguageFromRepositoryKey("javascript", out Language js);
-            Language.GetLanguageFromRepositoryKey("typescript", out Language ts);
-            Language.GetLanguageFromRepositoryKey("unknown", out Language unknown);
+            var cs = Language.GetLanguageFromRepositoryKey("csharpsquid");
+            var vbnet = Language.GetLanguageFromRepositoryKey("vbnet");
+            var cpp = Language.GetLanguageFromRepositoryKey("cpp");
+            var c = Language.GetLanguageFromRepositoryKey("c");
+            var js = Language.GetLanguageFromRepositoryKey("javascript");
+            var ts = Language.GetLanguageFromRepositoryKey("typescript");
+            var unknown = Language.GetLanguageFromRepositoryKey("unknown");
 
             cs.Should().Be(Language.CSharp);
             vbnet.Should().Be(Language.VBNET);
