@@ -57,6 +57,17 @@ namespace SonarLint.VisualStudio.Core
             KnownLanguages.FirstOrDefault(l => languageKey.Equals(l.ServerLanguage.Key, System.StringComparison.OrdinalIgnoreCase));
 
         /// <summary>
+        /// Returns the language for the specified repository key, or null if it does not match a known language
+        /// </summary>
+        public static Language GetLanguageFromRepositoryKey(string repoKey)
+        {
+            repoKeyToLanguage.TryGetValue(repoKey, out Language language);
+
+            return language;
+        }
+
+
+        /// <summary>
         /// A stable identifier for this language.
         /// </summary>
         public string Id { get; }
@@ -95,6 +106,19 @@ namespace SonarLint.VisualStudio.Core
                 return new[] { CSharp, VBNET, Cpp, C, Js, Ts };
             }
         }
+
+        /// <summary>
+        /// Matches the repository name to its language object counterpart.
+        /// </summary>
+        private static readonly Dictionary<string, Language> repoKeyToLanguage = new Dictionary<string, Language>()
+        {
+            { "csharpsquid", CSharp },
+            { "vbnet", VBNET },
+            { "cpp", Cpp },
+            { "c", C },
+            { "javascript", Js },
+            { "typescript", Ts },
+        };
 
         /// <summary>
         /// Private constructor reserved for the <seealso cref="Unknown"/>.
