@@ -22,10 +22,10 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Education.Commands;
-
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Education
@@ -42,6 +42,9 @@ namespace SonarLint.VisualStudio.Education
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             await RuleDescriptionWindowCommand.InitializeAsync(this);
+
+            var componentModel = await GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
+            componentModel.GetService<IShowHelpFromErrorList>();
         }
 
         protected override WindowPane InstantiateToolWindow(Type toolWindowType)
