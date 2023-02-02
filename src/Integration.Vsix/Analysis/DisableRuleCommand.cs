@@ -24,10 +24,9 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell.TableControl;
-using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
@@ -39,13 +38,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     {
         // Command set guid and command id. Must match those in DaemonCommands.vsct
         public static readonly Guid CommandSet = new Guid("1F83EA11-3B07-45B3-BF39-307FD4F42194");
+
         public const int CommandId = 0x0200;
 
         private readonly OleMenuCommand menuItem;
-        private readonly IErrorList errorList;
         private readonly IUserSettingsProvider userSettingsProvider;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ILogger logger;
+        private readonly IErrorListHelper errorListHelper;
 
         /// <summary>
         /// Initializes the singleton instance of the command.
@@ -57,14 +57,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
-            var vsErrorList = (IVsErrorList)await package.GetServiceAsync(typeof(SVsErrorList));
-            var eList = vsErrorList as IErrorList;
-
             var settingsProvider = await package.GetMefServiceAsync<IUserSettingsProvider>();
             var tracker = await package.GetMefServiceAsync<IActiveSolutionBoundTracker>();
+            var errListHelper = await package.GetMefServiceAsync<IErrorListHelper>();
 
             IMenuCommandService commandService = (IMenuCommandService)await package.GetServiceAsync(typeof(IMenuCommandService));
-            Instance = new DisableRuleCommand(commandService, eList, settingsProvider, tracker, logger);
+            Instance = new DisableRuleCommand(commandService, settingsProvider, tracker, logger, errListHelper);
         }
 
         /// <summary>
@@ -73,17 +71,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
         /// <param name="menuCommandService">Command service to add command to, not null.</param>
-        internal /* for testing */ DisableRuleCommand(IMenuCommandService menuCommandService, IErrorList errorList,
-            IUserSettingsProvider userSettingsProvider, IActiveSolutionBoundTracker activeSolutionBoundTracker, ILogger logger)
+        internal DisableRuleCommand(IMenuCommandService menuCommandService, IUserSettingsProvider userSettingsProvider,
+            IActiveSolutionBoundTracker activeSolutionBoundTracker, ILogger logger, IErrorListHelper errorListHelper)
         {
             if (menuCommandService == null)
             {
                 throw new ArgumentNullException(nameof(menuCommandService));
             }
-            this.errorList = errorList ?? throw new ArgumentNullException(nameof(errorList));
+
             this.userSettingsProvider = userSettingsProvider ?? throw new ArgumentNullException(nameof(userSettingsProvider));
             this.activeSolutionBoundTracker = activeSolutionBoundTracker ?? throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.errorListHelper = errorListHelper ?? throw new ArgumentNullException(nameof(errorListHelper));
 
             var menuCommandID = new CommandID(CommandSet, CommandId);
             menuItem = new OleMenuCommand(Execute, null, QueryStatus, menuCommandID);
@@ -96,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             {
                 var isVisible = false;
                 var isEnabled = false;
-                if(TryGetRuleId(errorList, out var ruleId))
+                if (errorListHelper.TryGetRuleIdFromSelectedRow(out var ruleId))
                 {
                     CalculateStatuses(ruleId, activeSolutionBoundTracker.CurrentConfiguration.Mode, out isVisible, out isEnabled);
                 }
@@ -131,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             SonarCompositeRuleId ruleId = null;
             try
             {
-                if (TryGetRuleId(errorList, out ruleId))
+                if (errorListHelper.TryGetRuleIdFromSelectedRow(out ruleId))
                 {
                     userSettingsProvider.DisableRule(ruleId.ErrorListErrorCode);
                     logger.WriteLine(AnalysisStrings.DisableRule_DisabledRule, ruleId.ErrorListErrorCode);
@@ -143,39 +142,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             {
                 logger.WriteLine(AnalysisStrings.DisableRule_ErrorDisablingRule, ruleId?.ErrorListErrorCode ?? AnalysisStrings.DisableRule_UnknownErrorCode, ex.Message);
             }
-        }
-
-        /// <summary>
-        /// Returns the error code if:
-        /// 1) there is only one selected error in the error list and
-        /// 2) it is a SonarLint error
-        /// </summary>
-        internal /* for testing */ static bool TryGetRuleId(IErrorList errorList, out SonarCompositeRuleId ruleId)
-        {
-            ruleId = null;
-            var selectedItems = errorList?.TableControl?.SelectedEntries;
-            if (selectedItems?.Count() == 1)
-            {
-                var handle = selectedItems.First();
-                var errorCode = FindErrorCodeForEntry(handle);
-                SonarCompositeRuleId.TryParse(errorCode, out ruleId);
-            }
-
-            return ruleId != null;
-        }
-
-        private static string FindErrorCodeForEntry(ITableEntryHandle handle)
-        {
-            if (handle.TryGetSnapshot(out var snapshot, out int index) &&
-                    snapshot.TryGetValue(index, StandardTableKeyNames.BuildTool, out var buildToolObj) &&
-                    buildToolObj is string buildTool &&
-                    buildTool.Equals("SonarLint", StringComparison.OrdinalIgnoreCase) &&
-                    snapshot.TryGetValue(index, StandardTableKeyNames.ErrorCode, out var errorCode))
-            {
-                return errorCode as string;
-            }
-
-            return null;
         }
 
         // Strictly speaking we are allowing rules from known repos to be disabled,
