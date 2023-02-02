@@ -20,6 +20,15 @@
 
 namespace SonarLint.VisualStudio.Core
 {
+    /// <summary>
+    /// Attempts to retrieve the Sonar rule key from the selected item in the Error List.
+    /// </summary>
+    /// <remarks>
+    /// The method will only return a rule key if:
+    /// * there is a single row selected in the Error List
+    /// * the row represents a Sonar analysis issue for any supported language
+    ///   (including Roslyn languages i.e. C# and VB.NET)
+    /// </remarks>
     public interface IErrorListHelper
     {
         bool TryGetRuleIdFromSelectedRow(out SonarCompositeRuleId ruleId);

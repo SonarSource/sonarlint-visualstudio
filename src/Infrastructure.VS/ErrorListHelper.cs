@@ -38,7 +38,6 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         [ImportingConstructor]
         public ErrorListHelper([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
-      //      var vsErrorList = (IVsErrorList)serviceProvider.GetService(typeof(SVsErrorList));
             errorList = serviceProvider.GetService(typeof(SVsErrorList)) as IErrorList;
         }
 
@@ -64,17 +63,20 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
                 buildToolObj is string buildTool)
             {
                 var prefixErrorCode = "";
-
+                
+                // For CSharp and VisualBasic the buildTool returns the name of the analyzer package. 
+                // The prefix is required for roslyn languages as the error code is in style "S111" meaning
+                // unlike other languages it has no repository prefix.
                 switch (buildTool)
                 {
                     case "SonarAnalyzer.CSharp":
                         {
-                            prefixErrorCode = "cs:";
+                            prefixErrorCode = "csharpsquid:";
                             break;
                         }
                     case "SonarAnalyzer.VisualBasic":
                         {
-                            prefixErrorCode = "vb:";
+                            prefixErrorCode = "vbnet:";
                             break;
                         }
                     case "SonarLint":
