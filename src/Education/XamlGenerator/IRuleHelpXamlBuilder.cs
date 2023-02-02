@@ -164,8 +164,8 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     break;
 
                 case "blockquote":
-                    writer.WriteStartElement("Section");
-                    ApplyStyleToStartElement(StyleResourceNames.Blockquote);
+                    WriteBlockElementStart("Section");
+                    ApplyStyleToStartElement(StyleResourceNames.Blockquote_Section);
 
                     PushOutputElementInfo("blockquote", false);
 
@@ -179,7 +179,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "code":
                     WriteInlineElementStart("Span");
-                    ApplyStyleToStartElement(StyleResourceNames.Code);
+                    ApplyStyleToStartElement(StyleResourceNames.Code_Span);
 
                     break;
 
@@ -189,14 +189,14 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "h2":
                     writer.WriteStartElement("Paragraph");
-                    ApplyStyleToStartElement(StyleResourceNames.Heading2);
+                    ApplyStyleToStartElement(StyleResourceNames.Heading2_Paragraph);
 
                     PushOutputElementInfo("h2", true);
                     break;
 
                 case "h3":
                     writer.WriteStartElement("Paragraph");
-                    ApplyStyleToStartElement(StyleResourceNames.Heading3);
+                    ApplyStyleToStartElement(StyleResourceNames.Heading3_Paragraph);
 
                     PushOutputElementInfo("h3", true);
                     break;
@@ -209,7 +209,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "ol":
                     WriteBlockElementStart("List");
-                    writer.WriteAttributeString("MarkerStyle", "Decimal");
+                    ApplyStyleToStartElement(StyleResourceNames.OrderedList);
 
                     PushOutputElementInfo("ol", false);
 
@@ -224,10 +224,10 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     break;
 
                 case "pre":
-                    writer.WriteStartElement("Paragraph");
-                    ApplyStyleToStartElement(StyleResourceNames.Pre);
+                    WriteBlockElementStart("Section");
+                    ApplyStyleToStartElement(StyleResourceNames.Pre_Section);
 
-                    PushOutputElementInfo("pre", true);
+                    PushOutputElementInfo("pre", false);
                     break;
 
                 case "strong":
@@ -237,7 +237,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "ul":
                     WriteBlockElementStart("List");
-                    writer.WriteAttributeString("MarkerStyle", "Disc");
+                    ApplyStyleToStartElement(StyleResourceNames.UnorderedList);
 
                     PushOutputElementInfo("ul", false);
 
@@ -281,7 +281,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "th":
                     writer.WriteStartElement("TableCell");
-                    ApplyStyleToStartElement(StyleResourceNames.TableHeaderRowGroup);
+                    ApplyStyleToStartElement(StyleResourceNames.TableHeaderCell);
                     PushOutputElementInfo("th", false);
 
                     break;

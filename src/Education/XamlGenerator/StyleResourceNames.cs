@@ -24,17 +24,22 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
     /// Style names used by the XAML generator
     /// </summary>
     /// <remarks>The generator refers to resources with these names, but does not generate them itself
-    /// i.e. it expects them to be defined in a resource dictionary in whatever hosts the generated XAML</remarks>
+    /// i.e. it expects them to be defined in a resource dictionary in whatever hosts the generated XAML.
+    /// The enum name includes the target type of the XAML element if it isn't obvious
+    /// e.g. <see cref="StyleResourceNames.Code_Span"/> is used for code elements, rendered in a XAML Span.
+    /// e.g. <see cref="StyleResourceNames.Heading2_Paragraph"/> is used to write a header in a XAML Paragraph.</remarks>
     public enum StyleResourceNames
     {
-        Heading2,
-        Heading3,
-        Pre,
-        Blockquote,
-        Table,
-        TableHeaderRowGroup,
-        TableHeaderCell,
-        TableBodyCellAlternateRow,
-        Code
+        Pre_Section,                // html <pre>
+        Blockquote_Section,         // html <blockquote>, rendered in a XAML <Section>
+        Heading2_Paragraph,         // html <h2>, rendered in a XAML <Paragraph>
+        Heading3_Paragraph,         // html <h3>, rendered in a XAML <Paragraph>
+        Table,                      // html <table>, rendered in a XAML <Table>
+        TableHeaderRowGroup,        // html <thead>, rendered in a XAML <TableRowGroup>
+        TableHeaderCell,            // html <th>, rendered in a XAML <TableCell>
+        TableBodyCellAlternateRow,  // html <td>, rendered in a XAML <TableCell>. Applied to alternate rows of the table body.
+        OrderedList,                // html <ol>, rendered is a XAML <List>
+        UnorderedList,              // html <ul>, rendered is a XAML <List>
+        Code_Span                   // html <code>, rendered is a XAML <Span>
     }
 }
