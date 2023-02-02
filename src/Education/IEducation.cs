@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Rules;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Education.XamlGenerator;
 
 namespace SonarLint.VisualStudio.Education
 {
