@@ -42,9 +42,9 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
-        [DataRow("S666", "cs", "S666", "SonarAnalyzer.CSharp")]
-        [DataRow("S666", "vb", "S666", "SonarAnalyzer.VisualBasic")]
-        [DataRow("S234", "vb", "S234", "SonarAnalyzer.VisualBasic")]
+        [DataRow("S666", "csharpsquid", "S666", "SonarAnalyzer.CSharp")]
+        [DataRow("S666", "vbnet", "S666", "SonarAnalyzer.VisualBasic")]
+        [DataRow("S234", "vbnet", "S234", "SonarAnalyzer.VisualBasic")]
         [DataRow("c:S111", "c", "S111", "SonarLint")]
         [DataRow("cpp:S222", "cpp", "S222", "SonarLint")]
         [DataRow("javascript:S333", "javascript", "S333", "SonarLint")]
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             var jsIssueHandle = CreateIssueHandle(222, new Dictionary<string, object>
             {
                 { StandardTableKeyNames.BuildTool, "SonarLint.CSharp" },
-                { StandardTableKeyNames.ErrorCode, "cs:S222" }
+                { StandardTableKeyNames.ErrorCode, "csharpsquid:S222" }
             });
 
             var mockErrorList = CreateErrorList(cppIssueHandle, jsIssueHandle);
