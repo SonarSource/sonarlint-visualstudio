@@ -100,5 +100,45 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             lang1b.Should().Be(lang1a, "Languages with the same ids should be equal");
             lang2.Should().NotBe(lang1a, "Languages with different ids should NOT be equal");
         }
+
+        [TestMethod]
+        public void GetLanguageFromLanguageKey_GetsCorrectLanguage()
+        {
+            var cs = Language.GetLanguageFromLanguageKey("cs");
+            var vbnet = Language.GetLanguageFromLanguageKey("vbnet");
+            var cpp = Language.GetLanguageFromLanguageKey("cpp");
+            var c = Language.GetLanguageFromLanguageKey("c");
+            var js = Language.GetLanguageFromLanguageKey("js");
+            var ts = Language.GetLanguageFromLanguageKey("ts");
+            var unknown = Language.GetLanguageFromLanguageKey("unknown");
+
+            cs.Should().Be(Language.CSharp);
+            vbnet.Should().Be(Language.VBNET);
+            cpp.Should().Be(Language.Cpp);
+            c.Should().Be(Language.C);
+            js.Should().Be(Language.Js);
+            ts.Should().Be(Language.Ts);
+            unknown.Should().Be(null);
+        }
+
+        [TestMethod]
+        public void GetLanguageFromRepositoryKey_GetsCorrectLanguage()
+        {
+            Language.GetLanguageFromRepositoryKey("csharpsquid", out Language cs);
+            Language.GetLanguageFromRepositoryKey("vbnet", out Language vbnet);
+            Language.GetLanguageFromRepositoryKey("cpp", out Language cpp);
+            Language.GetLanguageFromRepositoryKey("c", out Language c);
+            Language.GetLanguageFromRepositoryKey("javascript", out Language js);
+            Language.GetLanguageFromRepositoryKey("typescript", out Language ts);
+            Language.GetLanguageFromRepositoryKey("unknown", out Language unknown);
+
+            cs.Should().Be(Language.CSharp);
+            vbnet.Should().Be(Language.VBNET);
+            cpp.Should().Be(Language.Cpp);
+            c.Should().Be(Language.C);
+            js.Should().Be(Language.Js);
+            ts.Should().Be(Language.Ts);
+            unknown.Should().Be(null);
+        }
     }
 }
