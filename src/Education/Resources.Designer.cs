@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Education {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Rule Description.
+        ///   Looks up a localized string similar to SonarLint Rule Description.
         /// </summary>
         internal static string RuleDescriptionToolWindowCaption {
             get {
