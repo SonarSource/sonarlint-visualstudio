@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Education
         {
             if (toolWindowType == typeof(RuleDescriptionToolWindow))
             {
-                return new RuleDescriptionToolWindow();
+                return new RuleDescriptionToolWindow(this);
             }
 
             return base.InstantiateToolWindow(toolWindowType);

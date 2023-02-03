@@ -83,7 +83,7 @@
     </UserControl.Resources>
 
 
-    <FlowDocumentScrollViewer x:Name="docViewer">
+    <FlowDocumentScrollViewer x:Name="docViewer" Hyperlink.RequestNavigate="HandleRequestNavigate">
         <FlowDocument >
             <Paragraph Style="{DynamicResource Heading2_Paragraph}">SonarLint rules help</Paragraph>
             <Paragraph>
@@ -117,6 +117,11 @@
             <Paragraph>The rule help will be shown in this tool window.</Paragraph>
             <Paragraph>By default, this tool window is docked with the
                 <Italic>Solution Explorer</Italic>. However, you can move it any where you like, just like any other tool window.
+            </Paragraph>
+            <Paragraph>
+                <Hyperlink NavigateUri="https://rules.sonarsource.com/">
+                    <TextBlock Text="You can browse all available rules here"/>
+                </Hyperlink>
             </Paragraph>
         </FlowDocument>
     </FlowDocumentScrollViewer>
