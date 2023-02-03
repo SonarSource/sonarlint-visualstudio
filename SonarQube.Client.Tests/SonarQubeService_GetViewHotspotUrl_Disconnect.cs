@@ -52,7 +52,7 @@ namespace SonarQube.Client.Tests
         internal class DisconnectingService : SonarQubeService
         {
             internal DisconnectingService(HttpMessageHandler messageHandler, string userAgent, ILogger logger, IRequestFactorySelector requestFactorySelector, ISecondaryIssueHashUpdater secondaryIssueHashUpdater)
-                : base(messageHandler, userAgent, logger, requestFactorySelector, secondaryIssueHashUpdater)
+                : base(messageHandler, userAgent, logger, requestFactorySelector, secondaryIssueHashUpdater, null)
             {
             }
 

@@ -18,30 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.IO;
+using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Client.Models.ServerSentEvents.ClientContract;
+using Moq;
+using SonarQube.Client.Logging;
+using SonarQube.Client.Models.ServerSentEvents;
 
 namespace SonarQube.Client.Tests.Models.ServerSentEvents
 {
     [TestClass]
-    public class IssueChangedServerEventTests
+    public class SSEStreamFactoryTests
     {
         [TestMethod]
-        public void Ctor_InvalidIssuesList_Throws()
+        public void Create_CreatesSSEStream()
         {
-            Action act = () => { new IssueChangedServerEvent("MyProject", false, null); };
+            var sseStreamFactory = new SSEStreamFactory(Mock.Of<ILogger>());
 
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issues");
-        }
+            var sseStream = sseStreamFactory.Create(Stream.Null, CancellationToken.None);
 
-        [TestMethod]
-        public void Ctor_InvalidProjectKey_Throws()
-        {
-            Action act = () => { new IssueChangedServerEvent(null, false, new[]{new BranchAndIssueKey("i", "b")}); };
-
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectKey");
+            sseStream.Should().NotBeNull();
+            sseStream.Should().BeOfType<SSEStream>();
         }
     }
 }

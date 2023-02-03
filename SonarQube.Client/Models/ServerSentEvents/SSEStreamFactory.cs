@@ -20,28 +20,34 @@
 
 using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
-using SonarQube.Client.Models.ServerSentEvents.ClientContract;
+using SonarQube.Client.Models.ServerSentEvents.ServerContract;
+using System.Threading.Channels;
+using SonarQube.Client.Logging;
 
 namespace SonarQube.Client.Models.ServerSentEvents
 {
-    /// <summary>
-    /// Wraps the stream response from the server and reads from it
-    /// </summary>
-    public interface IServerSentEventsSession
+    internal interface ISSEStreamFactory
     {
-        Task<IServerEvent> ReadAsync();
+        ISSEStream Create(Stream stream, CancellationToken cancellationToken);
     }
 
-    internal class ServerSentEventsSession : IServerSentEventsSession
+    internal class SSEStreamFactory : ISSEStreamFactory
     {
-        public ServerSentEventsSession(Stream stream, CancellationToken cancellationToken)
+        private readonly ILogger logger;
+
+        public SSEStreamFactory(ILogger logger)
         {
+            this.logger = logger;
         }
 
-        public Task<IServerEvent> ReadAsync()
+        public ISSEStream Create(Stream stream, CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            var channel = Channel.CreateUnbounded<ISqServerEvent>();
+
+            var reader = new SSEStreamReader(channel.Reader, cancellationToken, logger);
+            var writer = new SSEStreamWriter(stream, channel.Writer, cancellationToken);
+
+            return new SSEStream(reader, writer);
         }
     }
 }
