@@ -104,7 +104,7 @@ internal class RuleDescExtractor
             var descAsxml = EnsureHtmlIsXml(pluginRule.Description);
 
             var slvsRule = new RuleInfo(
-                pluginRule.Language ?? throw new ArgumentNullException("language"),
+                pluginRule.Language?.ToLower() ?? throw new ArgumentNullException("language"),
                 pluginRule.Key ?? throw new ArgumentNullException("key"),
                 descAsxml,
                 pluginRule.Name ?? throw new ArgumentNullException("name"),
@@ -185,13 +185,13 @@ internal class RuleDescExtractor
     private string CalculateRuleFileName(RuleInfo slvsRule)
     {
         // e.g. "S123.desc"
-        var colonPos = slvsRule.RuleKey.IndexOf(':');
+        var colonPos = slvsRule.FullRuleKey.IndexOf(':');
         if (colonPos == -1)
         {
-            throw new InvalidOperationException("Invalid rule key: " + slvsRule.RuleKey);
+            throw new InvalidOperationException("Invalid rule key: " + slvsRule.FullRuleKey);
         }
 
-        var ruleKeyWithoutRepoKey = slvsRule.RuleKey.Substring(colonPos + 1);
+        var ruleKeyWithoutRepoKey = slvsRule.FullRuleKey.Substring(colonPos + 1);
         var fileName = ruleKeyWithoutRepoKey + ".json";
         return Path.Combine(context.DestinationDirectory, fileName);
     }

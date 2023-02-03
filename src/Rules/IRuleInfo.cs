@@ -50,9 +50,9 @@ namespace SonarLint.VisualStudio.Rules
     public interface IRuleInfo
     {
         /// <summary>
-        /// Unique identifier for the rule e.g. S123
+        /// Unique identifier for the rule, including the repo key e.g. cpp:S123
         /// </summary>
-        string RuleKey { get; }
+        string FullRuleKey { get; }
 
         string Name { get; }
 
@@ -74,12 +74,12 @@ namespace SonarLint.VisualStudio.Rules
 
     public class RuleInfo : IRuleInfo
     {
-        public RuleInfo(string languageKey, string ruleKey, string description, string name,
+        public RuleInfo(string languageKey, string fullRuleKey, string description, string name,
             RuleIssueSeverity defaultSeverity, RuleIssueType issueType, bool isActiveByDefault,
             IReadOnlyList<string> tags)
         {
             LanguageKey = languageKey;
-            RuleKey = ruleKey;
+            FullRuleKey = fullRuleKey;
             Description = description;
             Name = name;
             DefaultSeverity = defaultSeverity;
@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Rules
             Tags = tags ?? Array.Empty<string>();
         }
 
-        public string RuleKey { get; private set; }
+        public string FullRuleKey { get; private set; }
 
         public string Name {  get; private set; }
 
