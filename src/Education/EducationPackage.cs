@@ -43,8 +43,10 @@ namespace SonarLint.VisualStudio.Education
 
             await RuleDescriptionWindowCommand.InitializeAsync(this);
 
-            var componentModel = await GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
-            componentModel.GetService<IShowHelpFromErrorList>();
+            // Bug: can crash VS.
+            // See https://github.com/SonarSource/sonarlint-visualstudio/issues/3620
+            //var componentModel = await GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
+            //componentModel.GetService<IShowHelpFromErrorList>();
         }
 
         protected override WindowPane InstantiateToolWindow(Type toolWindowType)
