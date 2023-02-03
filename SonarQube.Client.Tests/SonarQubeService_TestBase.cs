@@ -32,6 +32,7 @@ using Moq;
 using Moq.Protected;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
+using SonarQube.Client.Models.ServerSentEvents;
 using SonarQube.Client.Requests;
 using SonarQube.Client.Tests.Infra;
 
@@ -43,9 +44,10 @@ namespace SonarQube.Client.Tests
         protected SonarQubeService service;
         protected TestLogger logger;
 
-        // Note: can't be protected because the hash updater interface is internal
+        // Note: can't be protected because the interfaces are internal
         internal Mock<ISecondaryIssueHashUpdater> secondaryIssueHashUpdater;
         internal IRequestFactorySelector requestFactorySelector;
+        internal Mock<ISSEStreamFactory> sseStreamFactory;
 
         private const string DefaultBasePath = "http://localhost/";
 
@@ -64,6 +66,7 @@ namespace SonarQube.Client.Tests
 
             requestFactorySelector = new RequestFactorySelector();
             secondaryIssueHashUpdater = new Mock<ISecondaryIssueHashUpdater>();
+            sseStreamFactory = new Mock<ISSEStreamFactory>();
 
             ResetService();
         }
@@ -115,7 +118,7 @@ namespace SonarQube.Client.Tests
 
         protected internal virtual SonarQubeService CreateTestSubject()
         {
-            return new SonarQubeService(messageHandler.Object, UserAgent, logger, requestFactorySelector, secondaryIssueHashUpdater.Object);
+            return new SonarQubeService(messageHandler.Object, UserAgent, logger, requestFactorySelector, secondaryIssueHashUpdater.Object, sseStreamFactory.Object);
         }
     }
 }

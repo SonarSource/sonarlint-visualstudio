@@ -20,6 +20,7 @@
 
 
 using System;
+using Newtonsoft.Json;
 
 namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
 {
@@ -37,18 +38,22 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
 
     public class IssueChangedServerEvent : IIssueChangedServerEvent
     {
-        public IssueChangedServerEvent(string projectKey, bool isResolved, IBranchAndIssueKey[] branchAndIssueKeys)
+        public IssueChangedServerEvent(string projectKey, bool isResolved, BranchAndIssueKey[] issues)
         {
             ProjectKey = projectKey ?? throw new ArgumentNullException(nameof(projectKey));
             IsResolved = isResolved;
-            BranchAndIssueKeys = branchAndIssueKeys ?? throw new ArgumentNullException(nameof(branchAndIssueKeys));
+            BranchAndIssueKeys = issues ?? throw new ArgumentNullException(nameof(issues));
         }
 
+        [JsonProperty("projectKey")]
         public string ProjectKey { get; }
+
+        [JsonProperty("resolved")]
         public bool IsResolved { get; }
+
+        [JsonProperty("issues")]
         public IBranchAndIssueKey[] BranchAndIssueKeys { get; }
     }
-
 
     /// <summary>
     /// Tuple of the changed issue key in a specific branch
@@ -67,7 +72,10 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
             BranchName = branchName ?? throw new ArgumentNullException(nameof(branchName));
         }
 
+        [JsonProperty("branchName")]
         public string BranchName { get; }
+
+        [JsonProperty("issueKey")]
         public string IssueKey { get; }
     }
 }
