@@ -20,23 +20,29 @@
 
 using System;
 using System.IO;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarQube.Client.Models.ServerSentEvents;
 
 namespace SonarQube.Client.Tests
 {
     [TestClass]
-    public class SonarQubeService_CreateServerSentEventsSession : SonarQubeService_TestBase
+    public class SonarQubeService_CreateServerSentEventsStream : SonarQubeService_TestBase
     {
         [TestMethod]
-        public async Task CreateServerSentEventsSession_SupportedServerVersion_CreatesSession()
+        public async Task CreateServerSentEventsStream_SupportedServerVersion_CreatesSession()
         {
+            var expectedCreatedSSEStream = Mock.Of<ISSEStream>();
+
+            sseStreamFactory
+                .Setup(x => x.Create(It.IsAny<Stream>(), CancellationToken.None))
+                .Returns(expectedCreatedSSEStream);
+
             await ConnectToSonarQube("9.4.0.0");
 
             SetupRequest("api/push/sonarlint_events?languages=cs%2Cvbnet%2Ccpp%2Cc%2Cjs%2Cts&projectKeys=myProject",
@@ -46,17 +52,18 @@ namespace SonarQube.Client.Tests
                 },
                 MediaTypeHeaderValue.Parse("text/event-stream"));
 
-            var result = await service.CreateServerSentEventsSession("myProject", CancellationToken.None);
+            var result = await service.CreateServerSentEventsStream("myProject", CancellationToken.None);
 
             result.Should().NotBeNull();
+            result.Should().Be(expectedCreatedSSEStream);
         }
 
         [TestMethod]
-        public async Task CreateServerSentEventsSession_UnsupportedServerVersion_InvalidOperationException()
+        public async Task CreateServerSentEventsStream_UnsupportedServerVersion_InvalidOperationException()
         {
             await ConnectToSonarQube("3.3.0.0");
 
-            Func<Task<IServerSentEventsSession>> func = async () => await service.CreateServerSentEventsSession("myProject", CancellationToken.None);
+            Func<Task<ISSEStream>> func = async () => await service.CreateServerSentEventsStream("myProject", CancellationToken.None);
 
             const string expectedErrorMessage =
                 "Could not find compatible implementation of 'IGetSonarLintEventStream' for SonarQube 3.3.0.0.";
@@ -67,12 +74,12 @@ namespace SonarQube.Client.Tests
         }
 
         [TestMethod]
-        public void CreateServerSentEventsSession_NotConnected_InvalidOperationException()
+        public void CreateServerSentEventsStream_NotConnected_InvalidOperationException()
         {
             // No calls to Connect
             // No need to setup request, the operation should fail
 
-            Func<Task<IServerSentEventsSession>> func = async () => await service.CreateServerSentEventsSession("myProject", CancellationToken.None);
+            Func<Task<ISSEStream>> func = async () => await service.CreateServerSentEventsStream("myProject", CancellationToken.None);
 
             func.Should().ThrowExactly<InvalidOperationException>()
                 .WithMessage("This operation expects the service to be connected.");
