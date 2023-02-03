@@ -35,7 +35,11 @@ namespace SonarLint.VisualStudio.Rules
     /// </remarks>
     public interface IRuleMetadataProvider
     {
-        IRuleHelp GetRuleHelp(Language language, string ruleKey);
+        /// <summary>
+        /// Fetches rule info for the specified language rule
+        /// </summary>
+        /// <returns>The rule info, or null if the language/rule was not recognised</returns>
+        IRuleInfo GetRuleInfo(Language language, string ruleKey);
     }
 
     [Export(typeof(IRuleMetadataProvider))]
@@ -50,20 +54,9 @@ namespace SonarLint.VisualStudio.Rules
             this.logger = logger;
         }
 
-        public IRuleHelp GetRuleHelp(Language language, string ruleKey)
-        {
-            string description = language?.ServerLanguage?.Key == null
-                ? Resources.Rules_DescriptionForMissingRule
-                : GetDescription(language, ruleKey);
-
-            return new RuleHelp(language, ruleKey, description);
-        }
-
-        private string GetDescription(Language language, string ruleKey)
-        {
-            var ruleInfo = LoadRuleInfo(language, ruleKey);
-            return ruleInfo?.Description ?? Resources.Rules_DescriptionForMissingRule;
-        }
+        public IRuleInfo GetRuleInfo(Language language, string ruleKey)
+            => language?.ServerLanguage?.Key == null
+                ? null : LoadRuleInfo(language, ruleKey);
         
         private IRuleInfo LoadRuleInfo(Language language, string ruleKey)
         {

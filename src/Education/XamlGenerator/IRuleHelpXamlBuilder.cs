@@ -26,6 +26,7 @@ using System.Text;
 using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Xml;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
@@ -39,7 +40,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         /// Also assumes that the containing control defines a list of Style resources, one for each
         /// value in the enum <see cref="StyleResourceNames"/>.
         /// The document will still render if a style is missing, but the styling won't be correct.</remarks>
-        FlowDocument Create(IRuleHelp ruleHelp);
+        FlowDocument Create(IRuleInfo ruleInfo);
     }
 
     internal partial class RuleHelpXamlBuilder : IRuleHelpXamlBuilder
@@ -61,22 +62,22 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         /// </summary>
         private bool tableAlternateRow;
 
-        public FlowDocument Create(IRuleHelp ruleHelp)
+        public FlowDocument Create(IRuleInfo ruleHelp)
         {
             var xaml = CreateXamlString(ruleHelp);
             var flowDocument = (FlowDocument)XamlReader.Parse(xaml);
             return flowDocument;
         }
 
-        internal /* for testing */ string CreateXamlString(IRuleHelp ruleHelp)
+        internal /* for testing */ string CreateXamlString(IRuleInfo ruleInfo)
         {
             var sb = new StringBuilder();
             writer = CreateXmlWriter(sb);
-            reader = CreateXmlReader(ruleHelp.HtmlDescription);
+            reader = CreateXmlReader(ruleInfo.Description);
 
             try
             {
-                WriteDocumentHeader(ruleHelp);
+                WriteDocumentHeader(ruleInfo);
 
                 while (reader.Read())
                 {
@@ -135,12 +136,12 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         }
 
 
-        private void WriteDocumentHeader(IRuleHelp ruleHelp)
+        private void WriteDocumentHeader(IRuleInfo ruleInfo)
         {
             writer.WriteStartElement("FlowDocument", XamlNamespace);
             writer.WriteAttributeString("xmlns", "http://schemas.microsoft.com/winfx/2006/xaml/presentation");
-            writer.WriteElementString("Paragraph", $"Rule: {ruleHelp.RuleKey}");
-            writer.WriteElementString("Paragraph", $"Language: {ruleHelp.Language.Name}");
+            writer.WriteElementString("Paragraph", $"Rule: {ruleInfo.FullRuleKey}");
+            writer.WriteElementString("Paragraph", $"Language: {Language.GetLanguageFromLanguageKey(ruleInfo.LanguageKey).Name}");
 
             outputXamlElementStack.Push(new XamlOutputElementInfo("html root", false));
         }

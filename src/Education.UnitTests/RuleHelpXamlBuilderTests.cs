@@ -23,6 +23,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
@@ -65,7 +66,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
                 var jsonRuleInfo = JsonConvert.DeserializeObject<RuleInfo>(data);
 
                 (var language, var ruleKey) = GetLanguageAndKeyFromResourceName(fullResourceName);
-                var ruleHelp = new RuleHelp(language, ruleKey, jsonRuleInfo.Description);
+                var ruleHelp = CreateRuleInfo(language.ServerLanguage.Key, ruleKey, jsonRuleInfo.Description);
 
                 var doc = testSubject.Create(ruleHelp);
 
@@ -104,5 +105,17 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var language = Language.GetLanguageFromLanguageKey(languageKey);
             return (language, ruleKey);
         }
+
+        private static IRuleInfo CreateRuleInfo(string languageKey, string ruleKey, string description)
+            => new RuleInfo(languageKey, 
+                ruleKey, 
+                description,
+                
+                // Dummy values
+                "dummy rule name",
+                RuleIssueSeverity.Info,
+                RuleIssueType.Hotspot,
+                isActiveByDefault: true,
+                tags: null);
     }
 }

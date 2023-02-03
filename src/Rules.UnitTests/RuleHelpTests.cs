@@ -30,11 +30,25 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         [TestMethod]
         public void Ctor_SetsProperties()
         {
-            var testSubject = new RuleHelp(Language.CSharp, "S123", "some html");
+            var tags = new string[] { "convention", "bad-practice" };
+            var testSubject = new RuleInfo(
+                Language.CSharp.ServerLanguage.Key,
+                "xxx:S123", 
+                "a description", 
+                "the rule name",
+                RuleIssueSeverity.Blocker,
+                RuleIssueType.Vulnerability,
+                isActiveByDefault: true,
+                tags);
 
-            testSubject.Language.Should().Be(Language.CSharp);
-            testSubject.RuleKey.Should().Be("S123");
-            testSubject.HtmlDescription.Should().Be("some html");
+            testSubject.LanguageKey.Should().Be(Language.CSharp.ServerLanguage.Key);
+            testSubject.FullRuleKey.Should().Be("xxx:S123");
+            testSubject.Description.Should().Be("a description");
+            testSubject.Name.Should().Be("the rule name");
+            testSubject.DefaultSeverity.Should().Be(RuleIssueSeverity.Blocker);
+            testSubject.IssueType.Should().Be(RuleIssueType.Vulnerability);
+            testSubject.IsActiveByDefault.Should().BeTrue();
+            testSubject.Tags.Should().BeEquivalentTo(tags);
         }
     }
 }

@@ -59,12 +59,12 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var language = Language.Unknown;
             var ruleKey = "key";
 
-            var ruleHelp = Mock.Of<IRuleHelp>();
-            ruleMetaDataProvider.Setup(x => x.GetRuleHelp(language, ruleKey)).Returns(ruleHelp);
+            var ruleInfo = Mock.Of<IRuleInfo>();
+            ruleMetaDataProvider.Setup(x => x.GetRuleInfo(language, ruleKey)).Returns(ruleInfo);
 
             var flowDocument = Mock.Of<FlowDocument>();
             var ruleHelpXamlBuilder = new Mock<IRuleHelpXamlBuilder>();
-            ruleHelpXamlBuilder.Setup(x => x.Create(ruleHelp)).Returns(flowDocument);
+            ruleHelpXamlBuilder.Setup(x => x.Create(ruleInfo)).Returns(flowDocument);
 
             var ruleDescriptionToolWindow = new Mock<IRuleDescriptionToolWindow>();
 
@@ -74,8 +74,8 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var testSubject = CreateEducation(toolWindowService: toolWindowService.Object, ruleMetadataProvider: ruleMetaDataProvider.Object, ruleHelpXamlBuilder: ruleHelpXamlBuilder.Object);
             testSubject.ShowRuleDescription(language, ruleKey);
 
-            ruleMetaDataProvider.Verify(x => x.GetRuleHelp(language, ruleKey), Times.Once);
-            ruleHelpXamlBuilder.Verify(x => x.Create(ruleHelp), Times.Once);
+            ruleMetaDataProvider.Verify(x => x.GetRuleInfo(language, ruleKey), Times.Once);
+            ruleHelpXamlBuilder.Verify(x => x.Create(ruleInfo), Times.Once);
             ruleDescriptionToolWindow.Verify(x => x.UpdateContent(flowDocument), Times.Once);
             toolWindowService.Verify(x => x.Show(RuleDescriptionToolWindow.ToolWindowId), Times.Once);
         }
