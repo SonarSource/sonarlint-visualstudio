@@ -422,14 +422,14 @@ namespace SonarQube.Client
 
         public async Task<ISSEStream> CreateServerSentEventsStream(string projectKey, CancellationToken token)
         {
-            var stream = await InvokeCheckedRequestAsync<IGetSonarLintEventStream, Stream>(
+            var networkStream = await InvokeCheckedRequestAsync<IGetSonarLintEventStream, Stream>(
                 request =>
                 {
                     request.ProjectKey = projectKey;
                 },
                 token);
 
-            return sseStreamFactory.Create(stream, token);
+            return sseStreamFactory.Create(networkStream, token);
         }
 
         #region IDisposable Support
