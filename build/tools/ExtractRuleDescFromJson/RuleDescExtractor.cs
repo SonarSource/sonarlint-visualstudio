@@ -152,14 +152,14 @@ internal class RuleDescExtractor
     private static Regex cleanCol = new Regex("(?<element>(<col\\s*)|(col\\s+[^/^>]*))>", RegexOptions.Compiled);
     private static Regex cleanBr = new Regex("(?<element>(<br\\s*)|(br\\s+[^/^>]*))>", RegexOptions.Compiled);
 
-    private static string EnsureHtmlIsXml(string? html)
+    private static string EnsureHtmlIsXml(string? pluginRuleDescription)
     {
-        if (html == null)
+        if (pluginRuleDescription == null)
         {
-            return string.Empty;
+            throw new ArgumentNullException(nameof(pluginRuleDescription));
         }
 
-        var xml = html.Replace("&nbsp;", "&#160;");
+        var xml = pluginRuleDescription.Replace("&nbsp;", "&#160;");
 
         xml = cleanCol.Replace(xml, "${element}/>");
         xml = cleanBr.Replace(xml, "${element}/>");
