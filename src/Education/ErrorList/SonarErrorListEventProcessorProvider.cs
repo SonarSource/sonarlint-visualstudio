@@ -28,13 +28,17 @@ namespace SonarLint.VisualStudio.Education
 {
     namespace SonarLint.VisualStudio.Education.ErrorList
     {
+        // Notifies VS that we want to handle events from the Error List
+        
         [Export(typeof(ITableControlEventProcessorProvider))]
         [Name("SonarLint ErrorList Event Processor")]
+
+        // Need to hook into the list of processors before the standard VS handler so we can
+        // change the behaviour of the "navigate to help" action
         [Order(After = "Default Priority", Before = "ErrorListPackage Table Control Event Processor")]
         [ManagerType("ErrorsTable")]
 
         // TODO - DataSourceType/DataSource can both be used multiple times. Can we just register for our source and Roslyn?
-
         // Ideally, we'd only handle our own data source types. However, we also need to handle the Roslyn data source
         [DataSourceType("*")]
         [DataSource("*")]

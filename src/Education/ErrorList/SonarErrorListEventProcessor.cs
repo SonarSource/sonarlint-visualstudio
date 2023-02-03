@@ -28,12 +28,14 @@ namespace SonarLint.VisualStudio.Education
 {
     namespace SonarLint.VisualStudio.Education.ErrorList
     {
+        /// <summary>
+        /// Proccessor class that lets us handle WPF events from the Error List
+        /// </summary>
         internal class SonarErrorListEventProcessor : TableControlEventProcessorBase
         {
             private readonly IEducation educationService;
             private readonly IErrorListHelper errorListHelper;
             private readonly ILogger logger;
-
 
             public SonarErrorListEventProcessor(IEducation educationService, IErrorListHelper errorListHelper, ILogger logger)
             {
@@ -46,6 +48,9 @@ namespace SonarLint.VisualStudio.Education
                ITableEntryHandle entryHandle,
                TableEntryEventArgs e)
             {
+                // If the user is navigating to help for one of the Sonar rules,
+                // show our rule description tool window
+
                 Requires.NotNull(entryHandle, nameof(entryHandle));
 
                 bool handled = false;
@@ -56,6 +61,8 @@ namespace SonarLint.VisualStudio.Education
 
                     var language = Language.GetLanguageFromRepositoryKey(ruleId.RepoKey);
                     educationService.ShowRuleDescription(language, ruleId.RuleKey);
+
+                    // Mark the event as handled to stop the normal VS "show help in browser" behaviour
                     handled = true;
                 }
 
