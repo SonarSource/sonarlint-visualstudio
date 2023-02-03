@@ -27,12 +27,25 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Education.Commands;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Education.UnitTests.Commands
 {
     [TestClass]
     public class ShowHelpFromErrorListTests
     {
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            var serviceProvider = CreateServiceProvider();
+
+                MefTestHelpers.CheckTypeCanBeImported<ShowHelpFromErrorList, IShowHelpFromErrorList>(
+                    MefTestHelpers.CreateExport<SVsServiceProvider>(serviceProvider),
+                    MefTestHelpers.CreateExport<IEducation>(),
+                    MefTestHelpers.CreateExport<IErrorListHelper>(),
+                    MefTestHelpers.CreateExport<IThreadHandling>(new NoOpThreadHandler()));
+        }
+
         [TestMethod]
         public void Ctor_InitializeInterceptionIsCalled()
         {
@@ -74,7 +87,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Commands
         [TestMethod]
         public void HandleInterception_RuleIsNotSonar_ReturnsContinue()
         {
-            var errorListHelper = CreateErrorListHelper("unknown:S222", ruleIsSonar: false); ;
+            var errorListHelper = CreateErrorListHelper("unknown:S222", ruleIsSonar: false);
 
             var testSubject = CreateTestSubject(errorListHelper: errorListHelper);
 

@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Diagnostics;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio.Shell;
@@ -28,6 +29,7 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.Education.Commands
 {
+    // Initializes and deals with interception of ErrorList commands.
     public interface IShowHelpFromErrorList
     { }
 
@@ -39,17 +41,13 @@ namespace SonarLint.VisualStudio.Education.Commands
         private readonly IEducation education;
         private readonly IErrorListHelper errorListHelper;
 
+        // Guid and ID of the Microsoft "Show Error Help" command. 
         private readonly Guid showHelpCmdGuid = new Guid("4A9B7E50-AA16-11D0-A8C5-00A0C921A4D2");
         private const int showHelpCmdId = 598;
 
         [ImportingConstructor]
         public ShowHelpFromErrorList([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            IEducation education, IErrorListHelper errorListHelper)
-            : this(serviceProvider, education, errorListHelper, ThreadHandling.Instance)
-        {
-        }
-
-        internal ShowHelpFromErrorList(IServiceProvider serviceProvider, IEducation education, IErrorListHelper errorListHelper, IThreadHandling threadHandling)
+            IEducation education, IErrorListHelper errorListHelper, IThreadHandling threadHandling)
         {
             this.education = education;
             this.errorListHelper = errorListHelper;
@@ -58,7 +56,7 @@ namespace SonarLint.VisualStudio.Education.Commands
             InitializeInterception(serviceProvider);
         }
 
-        internal void InitializeInterception(IServiceProvider serviceProvider)
+        private void InitializeInterception(IServiceProvider serviceProvider)
         {
             threadHandling.ThrowIfNotOnUIThread();
 
@@ -75,12 +73,14 @@ namespace SonarLint.VisualStudio.Education.Commands
         /// If the currently selected error code is a Sonar code show the rule description and
         /// stop progression to next command else move on.
         /// </summary>
-        /// <returns></returns>
-        internal CommandProgression HandleInterception()
+        /// <returns>CommandProgression which defines if the original command should be invoked or not.</returns>
+        internal /* for testing */ CommandProgression HandleInterception()
         {
             if (errorListHelper.TryGetRuleIdFromSelectedRow(out SonarCompositeRuleId ruleId))
             {
                 var language = Language.GetLanguageFromRepositoryKey(ruleId.RepoKey);
+                Debug.Assert(language != null && language.Id != null, "Unable to determine language for repo key: " + ruleId.RepoKey);
+
                 education.ShowRuleDescription(language, ruleId.RuleKey);
                 return CommandProgression.Stop;
             }
