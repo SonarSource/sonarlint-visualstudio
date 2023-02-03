@@ -22,6 +22,9 @@
 // They should be consolidated if possible.
 // See https://github.com/SonarSource/sonarlint-visualstudio/issues/3617
 
+using System;
+using System.Collections.Generic;
+
 namespace SonarLint.VisualStudio.Rules
 {
     public enum RuleIssueSeverity
