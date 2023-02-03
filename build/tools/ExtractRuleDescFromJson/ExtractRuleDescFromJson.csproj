@@ -13,4 +13,12 @@
     <SonarQubeExclude>true</SonarQubeExclude>
   </PropertyGroup>
 
+  <!-- We're linking to the real SLVS IRuleInfo file to make sure this generator
+       code can't get out of step with the real product code
+  -->
+  <ItemGroup Label="SLVS Linked product code">
+    <Folder Include="SLVS_LinkedProductCode\" />
+    <Compile Include="..\..\..\src\Rules\IRuleInfo.cs" Link="SLVS_LinkedProductCode\IRuleHelp.cs" />
+  </ItemGroup>
+
 </Project>

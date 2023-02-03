@@ -61,6 +61,16 @@ namespace SonarLint.VisualStudio.Rules {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Rules] Error deserializing rule metadata. Resource name: {0}
+        ///    Error:{1}.
+        /// </summary>
+        internal static string MetadataProvider_ErrorLoadingJson {
+            get {
+                return ResourceManager.GetString("MetadataProvider_ErrorLoadingJson", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to locate a description for this rule. A description should be available at https://rules.sonarsource.com..
         /// </summary>
         internal static string Rules_DescriptionForMissingRule {

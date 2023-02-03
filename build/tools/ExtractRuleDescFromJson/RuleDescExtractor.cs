@@ -20,6 +20,7 @@
 
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using SonarLint.VisualStudio.Rules;
 
 namespace ExtractRuleDescFromJson;
 
@@ -87,25 +88,60 @@ internal class RuleDescExtractor
         }
     }
 
-    private static IEnumerable<Rule> LoadRules(string file)
+    private static IEnumerable<PluginRule> LoadRules(string file)
     {
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
         var json = File.ReadAllText(file);
-        return JsonSerializer.Deserialize<Rule[]>(json)
-            ?? Array.Empty<Rule>();
+        return JsonSerializer.Deserialize<PluginRule[]>(json, options)
+            ?? Array.Empty<PluginRule>();
     }
 
-    private void ProcessRule(Rule rule)
+    private void ProcessRule(PluginRule pluginRule)
     {
         try
         {
-            var xml = EnsureHtmlIsXml(rule.Description);
-            SaveRuleFile(rule, xml);
+            var descAsxml = EnsureHtmlIsXml(pluginRule.Description);
+
+            var slvsRule = new RuleInfo(
+                pluginRule.Language ?? throw new ArgumentNullException("language"),
+                pluginRule.Key ?? throw new ArgumentNullException("key"),
+                descAsxml,
+                pluginRule.Name ?? throw new ArgumentNullException("name"),
+                ConvertPluginSeverity(pluginRule.DefaultSeverity),
+                ConvertPluginIssueType(pluginRule.Type),
+                Convert.ToBoolean(pluginRule.IsActiveByDefault),
+                pluginRule.Tags ?? Array.Empty<string>()
+                );
+
+            SaveRuleFile(slvsRule);
         }
         catch (Exception ex)
         {
-            Logger.LogError($"Error processing rule. Rule key: {rule.Key}, file: {context.RuleJsonFilePath}, {ex.Message}");
+            Logger.LogError($"Error processing rule. Rule key: {pluginRule.Key}, file: {context.RuleJsonFilePath}, {ex.Message}");
         }
     }
+
+    private static RuleIssueSeverity ConvertPluginSeverity(string? pluginSeverity)
+        => pluginSeverity switch
+        {
+            "MINOR" => RuleIssueSeverity.Minor,
+            "MAJOR" => RuleIssueSeverity.Major,
+            "INFO" => RuleIssueSeverity.Info,
+            "BLOCKER" => RuleIssueSeverity.Blocker,
+            "CRITICAL" => RuleIssueSeverity.Critical,
+            _ => throw new ArgumentException("Invalid enum value for pluginSeverity" + pluginSeverity, nameof(pluginSeverity)),
+        };
+
+    private RuleIssueType ConvertPluginIssueType(string? pluginIssueType)
+        => pluginIssueType switch
+        {
+            "SECURITY_HOTSPOT" => RuleIssueType.Hotspot,
+            "VULNERABILITY" => RuleIssueType.Vulnerability,
+            "BUG" => RuleIssueType.Bug,
+            "CODE_SMELL" => RuleIssueType.CodeSmell,
+            _ => throw new ArgumentException("Invalid enum value for pluginIssueType" + pluginIssueType, nameof(pluginIssueType)),
+        };
 
     // Regular expression that find empty "col"and "br" HTML elements
     // e.g. <br>, <br >, <col>, <col span="123">
@@ -116,8 +152,13 @@ internal class RuleDescExtractor
     private static Regex cleanCol = new Regex("(?<element>(<col\\s*)|(col\\s+[^/^>]*))>", RegexOptions.Compiled);
     private static Regex cleanBr = new Regex("(?<element>(<br\\s*)|(br\\s+[^/^>]*))>", RegexOptions.Compiled);
 
-    private static string EnsureHtmlIsXml(string html)
+    private static string EnsureHtmlIsXml(string? html)
     {
+        if (html == null)
+        {
+            return string.Empty;
+        }
+
         var xml = html.Replace("&nbsp;", "&#160;");
 
         xml = cleanCol.Replace(xml, "${element}/>");
@@ -126,24 +167,32 @@ internal class RuleDescExtractor
         return xml;
     }
 
-    private void SaveRuleFile(Rule rule, string xml)
+    private void SaveRuleFile(RuleInfo slvsRuleInfo)
     {
-        var fullPath = CalculateRuleFileName(rule);
+        var fullPath = CalculateRuleFileName(slvsRuleInfo);
         Logger.LogPartialMessage($" {Path.GetFileName(fullPath)}");
-        File.WriteAllText(fullPath, xml);
+
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            WriteIndented = true
+        };
+
+        var data = JsonSerializer.Serialize(slvsRuleInfo, options);
+        File.WriteAllText(fullPath, data);
     }
 
-    private string CalculateRuleFileName(Rule rule)
+    private string CalculateRuleFileName(RuleInfo slvsRule)
     {
         // e.g. "S123.desc"
-        var colonPos = rule.Key.IndexOf(':');
+        var colonPos = slvsRule.RuleKey.IndexOf(':');
         if (colonPos == -1)
         {
-            throw new InvalidOperationException("Invalid rule key: " + rule.Key);
+            throw new InvalidOperationException("Invalid rule key: " + slvsRule.RuleKey);
         }
 
-        var ruleKeyWithoutLanguage = rule.Key.Substring(colonPos + 1);
-        var fileName = ruleKeyWithoutLanguage + ".desc";
+        var ruleKeyWithoutRepoKey = slvsRule.RuleKey.Substring(colonPos + 1);
+        var fileName = ruleKeyWithoutRepoKey + ".json";
         return Path.Combine(context.DestinationDirectory, fileName);
     }
 }

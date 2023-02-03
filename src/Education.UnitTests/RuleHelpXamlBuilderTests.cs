@@ -24,6 +24,7 @@ using System.Linq;
 using System.Reflection;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.Rules;
@@ -42,7 +43,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             // XAML document for them, but it still only takes a around 3 seconds
             // to run.
             var resourceNames = ResourceAssembly.GetManifestResourceNames()
-                .Where(x => x.EndsWith(".desc"));
+                .Where(x => x.EndsWith(".json"));
 
             // Sanity check - should have checked at least 1500 rules
             resourceNames.Count().Should().BeGreaterThan(1500);
@@ -60,9 +61,11 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
             try
             {
-                var input = ReadResource(fullResourceName);
+                var data = ReadResource(fullResourceName);
+                var jsonRuleInfo = JsonConvert.DeserializeObject<RuleInfo>(data);
+
                 (var language, var ruleKey) = GetLanguageAndKeyFromResourceName(fullResourceName);
-                var ruleHelp = new RuleHelp(language, ruleKey, input);
+                var ruleHelp = new RuleHelp(language, ruleKey, jsonRuleInfo.Description);
 
                 var doc = testSubject.Create(ruleHelp);
 
