@@ -28,7 +28,7 @@ namespace SonarQube.Client.Models.ServerSentEvents
 {
     internal interface ISSEStreamFactory
     {
-        ISSEStream Create(Stream stream, CancellationToken cancellationToken);
+        ISSEStream Create(Stream networkStream, CancellationToken cancellationToken);
     }
 
     internal class SSEStreamFactory : ISSEStreamFactory
@@ -40,12 +40,12 @@ namespace SonarQube.Client.Models.ServerSentEvents
             this.logger = logger;
         }
 
-        public ISSEStream Create(Stream stream, CancellationToken cancellationToken)
+        public ISSEStream Create(Stream networkStream, CancellationToken cancellationToken)
         {
             var channel = Channel.CreateUnbounded<ISqServerEvent>();
 
             var reader = new SSEStreamReader(channel.Reader, cancellationToken, logger);
-            var writer = new SSEStreamWriter(stream, channel.Writer, cancellationToken);
+            var writer = new SSEStreamWriter(new StreamReader(networkStream), channel.Writer, cancellationToken);
 
             return new SSEStream(reader, writer);
         }
