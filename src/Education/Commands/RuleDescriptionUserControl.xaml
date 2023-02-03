@@ -120,7 +120,7 @@
             </Paragraph>
             <Paragraph>
                 <Hyperlink NavigateUri="https://rules.sonarsource.com/">
-                    <TextBlock Text="You can browse all available rules here"/>
+                    <TextBlock Text="You can browse all available rules at: www.rules.sonarsource.com"/>
                 </Hyperlink>
             </Paragraph>
         </FlowDocument>

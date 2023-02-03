@@ -25,6 +25,7 @@ using System.Threading;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Education.Commands;
 using Task = System.Threading.Tasks.Task;
 
@@ -51,7 +52,9 @@ namespace SonarLint.VisualStudio.Education
         {
             if (toolWindowType == typeof(RuleDescriptionToolWindow))
             {
-                return new RuleDescriptionToolWindow(this);
+                var componentModel = GetService(typeof(SComponentModel)) as IComponentModel;
+                var browserService = componentModel.GetService<IBrowserService>();
+                return new RuleDescriptionToolWindow(browserService);
             }
 
             return base.InstantiateToolWindow(toolWindowType);
