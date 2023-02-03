@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Channels;
 using System.Threading;
@@ -35,39 +36,65 @@ namespace SonarQube.Client.Models.ServerSentEvents
         Task BeginListening();
     }
 
-    internal class SSEStreamWriter : ISSEStreamWriter
+    /// <summary>
+    /// Aggregates stream lines into events.
+    /// Code on the java side: https://github.com/SonarSource/sonarlint-core/blob/171ca4d75c24033e115a81bd7481427cd1f39f4c/server-api/src/main/java/org/sonarsource/sonarlint/core/serverapi/stream/EventBuffer.java
+    /// </summary>
+    internal sealed class SSEStreamWriter : ISSEStreamWriter
     {
-        private readonly Stream serverStream;
+        private readonly StreamReader networkStreamReader;
         private readonly ChannelWriter<ISqServerEvent> sqEventsChannel;
         private readonly CancellationToken cancellationToken;
         private readonly ISqServerSentEventParser sqServerSentEventParser;
 
-        public SSEStreamWriter(Stream serverStream,
+        public SSEStreamWriter(StreamReader networkStreamReader,
             ChannelWriter<ISqServerEvent> sqEventsChannel,
             CancellationToken cancellationToken)
-            : this(serverStream, sqEventsChannel, cancellationToken, new SqServerSentEventParser())
+            : this(networkStreamReader, sqEventsChannel, cancellationToken, new SqServerSentEventParser())
         {
         }
 
-        internal SSEStreamWriter(Stream serverStream,
+        internal SSEStreamWriter(StreamReader networkStreamReader,
             ChannelWriter<ISqServerEvent> sqEventsChannel,
             CancellationToken cancellationToken,
             ISqServerSentEventParser sqServerSentEventParser)
         {
-            this.serverStream = serverStream;
+            this.networkStreamReader = networkStreamReader;
             this.cancellationToken = cancellationToken;
             this.sqEventsChannel = sqEventsChannel;
             this.sqServerSentEventParser = sqServerSentEventParser;
         }
 
-        public Task BeginListening()
+        public async Task BeginListening()
         {
-            // todo: next PR
-            throw new NotImplementedException();
+            var eventLines = new List<string>();
+
+            while (!networkStreamReader.EndOfStream && !cancellationToken.IsCancellationRequested)
+            {
+                var line = await networkStreamReader.ReadLineAsync();
+                var isEventEnd = string.IsNullOrEmpty(line);
+
+                if (isEventEnd)
+                {
+                    var parsedEvent = sqServerSentEventParser.Parse(eventLines);
+
+                    eventLines.Clear();
+
+                    if (parsedEvent != null)
+                    {
+                        await sqEventsChannel.WriteAsync(parsedEvent, cancellationToken);
+                    }
+                }
+                else
+                {
+                    eventLines.Add(line);
+                }
+            }
         }
 
         public void Dispose()
         {
+            networkStreamReader.Dispose();
             sqEventsChannel.Complete();
         }
     }
