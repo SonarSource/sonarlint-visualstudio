@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Education
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid("7ef4a2de-4035-48c3-b273-4195d0f1186b")]
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [ProvideToolWindow(typeof(RuleDescriptionToolWindow), MultiInstances = false, Style = VsDockStyle.Tabbed, Window = ToolWindowGuids.SolutionExplorer, Width = 325, Height = 400)]
+    [ProvideToolWindow(typeof(RuleDescriptionToolWindow), MultiInstances = false, Transient = true, Style = VsDockStyle.Tabbed, Window = ToolWindowGuids.SolutionExplorer, Width = 325, Height = 400)]
     public sealed class EducationPackage : AsyncPackage
     {
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)

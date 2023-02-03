@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Education {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error displaying Rule Description Window: {0}.
+        ///   Looks up a localized string similar to [Education] Error displaying Rule Description Window: {0}.
         /// </summary>
         internal static string ERR_RuleDescriptionToolWindow_Exception {
             get {
@@ -70,7 +70,25 @@ namespace SonarLint.VisualStudio.Education {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Rule Description.
+        ///   Looks up a localized string similar to [ErrorList] Event processor: Sonar rule detected: {0}.
+        /// </summary>
+        internal static string ErrorList_Processor_SonarRuleDetected {
+            get {
+                return ResourceManager.GetString("ErrorList_Processor_SonarRuleDetected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ErrorList] Event processor created.
+        /// </summary>
+        internal static string ErrorList_ProcessorCreated {
+            get {
+                return ResourceManager.GetString("ErrorList_ProcessorCreated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sonar Rule Description.
         /// </summary>
         internal static string RuleDescriptionToolWindowCaption {
             get {
@@ -79,7 +97,7 @@ namespace SonarLint.VisualStudio.Education {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error: rule description contains an unexpected node. Node type: {0}, name: {1}, value: {2}.
+        ///   Looks up a localized string similar to [Education] Error: rule description contains an unexpected node. Node type: {0}, name: {1}, value: {2}.
         /// </summary>
         internal static string XamlBuilder_UnexpectedNodeError {
             get {

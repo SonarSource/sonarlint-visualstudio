@@ -20,7 +20,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Windows.Controls;
 using System.Windows.Documents;
 using Microsoft.VisualStudio.Shell;
 
@@ -36,18 +35,18 @@ namespace SonarLint.VisualStudio.Education.Commands
     {
         private const string ToolWindowIdAsString = "9E74B368-9FC3-47B0-A1C7-2DBA3A2C1762";
         public static readonly Guid ToolWindowId = new Guid(ToolWindowIdAsString);
-        private readonly FlowDocumentReader flowDocumentReader;
+        private readonly RuleDescriptionUserControl control;
 
         public RuleDescriptionToolWindow()
         {
             Caption = Resources.RuleDescriptionToolWindowCaption;
-            flowDocumentReader = new FlowDocumentReader();
-            Content = flowDocumentReader;
+            control = new RuleDescriptionUserControl();
+            Content = control;
         }
 
         public void UpdateContent(FlowDocument newContent)
         {
-            flowDocumentReader.Document = newContent;
+            control.docViewer.Document = newContent;
         }
     }
 }

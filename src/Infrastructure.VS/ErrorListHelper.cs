@@ -49,11 +49,16 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
             if (selectedItems?.Count() == 1)
             {
                 var handle = selectedItems.First();
-                var errorCode = FindErrorCodeForEntry(handle);
-                SonarCompositeRuleId.TryParse(errorCode, out ruleId);
+                TryGetRuleId(handle, out ruleId);
             }
 
             return ruleId != null;
+        }
+
+        public bool TryGetRuleId(ITableEntryHandle tableEntryHandle, out SonarCompositeRuleId ruleId)
+        {
+            var errorCode = FindErrorCodeForEntry(tableEntryHandle);
+            return SonarCompositeRuleId.TryParse(errorCode, out ruleId);
         }
 
         private static string FindErrorCodeForEntry(ITableEntryHandle handle)

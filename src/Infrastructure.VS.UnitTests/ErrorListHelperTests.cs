@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [DataRow("typescript:S444", "typescript", "S444", "SonarLint")]
         [DataRow("secrets:S555", "secrets", "S555", "SonarLint")]
         [DataRow("foo:bar", "foo", "bar", "SonarLint")]
-        public void GetErrorCode_SingleSonarIssue_ErrorCodeReturned(string fullRuleKey, string expectedRepo, string expectedRule, string buildTool)
+        public void TryGetRuleIdFromSelectedRow_SingleSonarIssue_ErrorCodeReturned(string fullRuleKey, string expectedRepo, string expectedRule, string buildTool)
         {
             // Arrange
             var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
@@ -74,7 +74,39 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
-        public void GetErrorCode_NonStandardErrorCode_NoException_ErrorCodeNotReturned()
+        [DataRow("S666", "csharpsquid", "S666", "SonarAnalyzer.CSharp")]
+        [DataRow("S666", "vbnet", "S666", "SonarAnalyzer.VisualBasic")]
+        [DataRow("S234", "vbnet", "S234", "SonarAnalyzer.VisualBasic")]
+        [DataRow("c:S111", "c", "S111", "SonarLint")]
+        [DataRow("cpp:S222", "cpp", "S222", "SonarLint")]
+        [DataRow("javascript:S333", "javascript", "S333", "SonarLint")]
+        [DataRow("typescript:S444", "typescript", "S444", "SonarLint")]
+        [DataRow("secrets:S555", "secrets", "S555", "SonarLint")]
+        [DataRow("foo:bar", "foo", "bar", "SonarLint")]
+        public void TryGetRuleId_FromHandle_ErrorCodeReturned(string fullRuleKey, string expectedRepo, string expectedRule, string buildTool)
+        {
+            // Note: this is a copy of TryGetRuleIdFromSelectedRow_SingleSonarIssue_ErrorCodeReturned,
+            //       but without the serviceProvider and IErrorList setup
+
+            // Arrange
+            var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
+            {
+                { StandardTableKeyNames.BuildTool, buildTool },
+                { StandardTableKeyNames.ErrorCode, fullRuleKey }
+            });
+
+            // Act
+            var testSubject = new ErrorListHelper(Mock.Of<IServiceProvider>());
+            bool result = testSubject.TryGetRuleId(issueHandle, out var ruleId);
+
+            // Assert
+            result.Should().BeTrue();
+            ruleId.RepoKey.Should().Be(expectedRepo);
+            ruleId.RuleKey.Should().Be(expectedRule);
+        }
+
+        [TestMethod]
+        public void TryGetRuleIdFromSelectedRow_NonStandardErrorCode_NoException_ErrorCodeNotReturned()
         {
             // Arrange
             var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
@@ -96,7 +128,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
-        public void GetErrorCode_MultipleItemsSelected_ErrorCodeNotReturned()
+        public void TryGetRuleIdFromSelectedRow_MultipleItemsSelected_ErrorCodeNotReturned()
         {
             var cppIssueHandle = CreateIssueHandle(111, new Dictionary<string, object>
             {
@@ -122,7 +154,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
-        public void GetErrorCode_NotSonarLintIssue()
+        public void TryGetRuleIdFromSelectedRow_NotSonarLintIssue()
         {
             // Arrange
             var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
@@ -142,6 +174,29 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             result.Should().BeFalse();
             errorCode.Should().BeNull();
         }
+
+        [TestMethod]
+        public void TryGetRuleId_FromHandle_NotSonarLintIssue()
+        {
+            // Note: this is a copy of TryGetRuleIdFromSelectedRow_SingleSonarIssue_ErrorCodeReturned,
+            //       but without the serviceProvider and IErrorList setup
+
+            // Arrange
+            var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
+            {
+                { StandardTableKeyNames.BuildTool, new object() },
+                { StandardTableKeyNames.ErrorCode, "cpp:S333" }
+            });
+
+            // Act
+            var testSubject = new ErrorListHelper(Mock.Of<IServiceProvider>());
+            bool result = testSubject.TryGetRuleId(issueHandle, out var errorCode);
+
+            // Assert
+            result.Should().BeFalse();
+            errorCode.Should().BeNull();
+        }
+
 
         private static IServiceProvider CreateServiceProvider(IErrorList errorList = null)
         {

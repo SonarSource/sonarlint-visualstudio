@@ -138,7 +138,6 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         private void WriteDocumentHeader(IRuleHelp ruleHelp)
         {
             writer.WriteStartElement("FlowDocument", XamlNamespace);
-            writer.WriteAttributeString("xml", "space", null, "preserve");
             writer.WriteAttributeString("xmlns", "http://schemas.microsoft.com/winfx/2006/xaml/presentation");
             writer.WriteElementString("Paragraph", $"Rule: {ruleHelp.RuleKey}");
             writer.WriteElementString("Paragraph", $"Language: {ruleHelp.Language.Name}");
@@ -217,14 +216,14 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "p":
                     writer.WriteStartElement("Paragraph");
-                    writer.WriteAttributeString("xml", "space", null, "default");
-
+          
                     PushOutputElementInfo("p", true);
 
                     break;
 
                 case "pre":
                     WriteBlockElementStart("Section");
+                    writer.WriteAttributeString("xml", "space", null, "preserve");
                     ApplyStyleToStartElement(StyleResourceNames.Pre_Section);
 
                     PushOutputElementInfo("pre", false);
@@ -297,10 +296,8 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     writer.WriteStartElement("TableCell");
                     PushOutputElementInfo("td", false);
 
-                    if (tableAlternateRow)
-                    {
-                        ApplyStyleToStartElement(StyleResourceNames.TableBodyCellAlternateRow);
-                    }
+                    var cellStyle = tableAlternateRow ? StyleResourceNames.TableBodyCellAlternateRow : StyleResourceNames.TableBodyCell;
+                    ApplyStyleToStartElement(cellStyle);
 
                     break;
 
