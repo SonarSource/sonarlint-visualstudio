@@ -19,14 +19,24 @@
  */
 
 using System.Windows.Controls;
+using System.Windows.Navigation;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Education.Commands
 {
     public sealed partial class RuleDescriptionUserControl : UserControl
     {
-        internal RuleDescriptionUserControl()
+        private readonly IBrowserService browserService;
+
+        internal RuleDescriptionUserControl(IBrowserService browserService)
         {
+            this.browserService = browserService;
             InitializeComponent();
+        }
+
+        public void HandleRequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            browserService.Navigate(e.Uri.AbsoluteUri);
         }
     }
 }

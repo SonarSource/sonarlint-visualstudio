@@ -22,6 +22,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Windows.Documents;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Education.Commands
 {
@@ -37,10 +38,10 @@ namespace SonarLint.VisualStudio.Education.Commands
         public static readonly Guid ToolWindowId = new Guid(ToolWindowIdAsString);
         private readonly RuleDescriptionUserControl control;
 
-        public RuleDescriptionToolWindow()
+        public RuleDescriptionToolWindow(IBrowserService browserService)
         {
             Caption = Resources.RuleDescriptionToolWindowCaption;
-            control = new RuleDescriptionUserControl();
+            control = new RuleDescriptionUserControl(browserService);
             Content = control;
         }
 
