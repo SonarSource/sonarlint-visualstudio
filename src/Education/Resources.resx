@@ -117,13 +117,20 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ErrorList_ProcessorCreated" xml:space="preserve">
+    <value>[ErrorList] Event processor created</value>
+  </data>
+  <data name="ErrorList_Processor_SonarRuleDetected" xml:space="preserve">
+    <value>[ErrorList] Event processor: Sonar rule detected: {0}</value>
+  </data>
   <data name="ERR_RuleDescriptionToolWindow_Exception" xml:space="preserve">
-    <value>Error displaying Rule Description Window: {0}</value>
+    <value>[Education] Error displaying Rule Description Window: {0}</value>
   </data>
   <data name="RuleDescriptionToolWindowCaption" xml:space="preserve">
     <value>SonarLint Rule Description</value>
+    <value>Sonar Rule Description</value>
   </data>
   <data name="XamlBuilder_UnexpectedNodeError" xml:space="preserve">
-    <value>Error: rule description contains an unexpected node. Node type: {0}, name: {1}, value: {2}</value>
+    <value>[Education] Error: rule description contains an unexpected node. Node type: {0}, name: {1}, value: {2}</value>
   </data>
 </root>
