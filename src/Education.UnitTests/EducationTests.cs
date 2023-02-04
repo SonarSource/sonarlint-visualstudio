@@ -71,9 +71,9 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             toolWindowService.Setup(x => x.GetToolWindow<RuleDescriptionToolWindow, IRuleDescriptionToolWindow>()).Returns(ruleDescriptionToolWindow.Object);
 
             var testSubject = CreateEducation(toolWindowService: toolWindowService.Object, ruleMetadataProvider: ruleMetaDataProvider.Object, ruleHelpXamlBuilder: ruleHelpXamlBuilder.Object);
-            testSubject.ShowRuleDescription(Language.VBNET, "any");
+            testSubject.ShowRuleDescription(ruleId);
 
-            ruleMetaDataProvider.Verify(x => x.GetRuleInfo(It.IsAny<SonarCompositeRuleId>()), Times.Once);
+            ruleMetaDataProvider.Verify(x => x.GetRuleInfo(ruleId), Times.Once);
             ruleHelpXamlBuilder.Verify(x => x.Create(ruleInfo), Times.Once);
             ruleDescriptionToolWindow.Verify(x => x.UpdateContent(flowDocument), Times.Once);
             toolWindowService.Verify(x => x.Show(RuleDescriptionToolWindow.ToolWindowId), Times.Once);

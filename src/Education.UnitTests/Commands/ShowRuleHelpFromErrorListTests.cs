@@ -70,17 +70,21 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Commands
         [DataRow("c:S222", "c", "S222")]
         [DataRow("javascript:S333", "javascript", "S333")]
         [DataRow("typescript:S444", "typescript", "S444")]
-        public void HandleInterception_RuleIsSonar_ReturnsStop(string errorCode, string repoKey, string expectedRule)
+        public void HandleInterception_RuleIsSonar_ReturnsStop(string errorCode, string expectedRepoKey, string expectedRuleKey)
         {
             var education = new Mock<IEducation>();
             var errorListHelper = CreateErrorListHelper(errorCode, ruleIsSonar: true);
 
-            var expectedLanguage = Language.GetLanguageFromRepositoryKey(repoKey);
+            var expectedRuleId = new SonarCompositeRuleId(expectedRepoKey, expectedRuleKey);
 
             var testSubject = CreateTestSubject(education: education.Object, errorListHelper: errorListHelper);
             var result = testSubject.HandleInterception();
 
-            education.Verify(x => x.ShowRuleDescription(expectedLanguage, expectedRule), Times.Once);
+            education.Verify(x => x.ShowRuleDescription(It.IsAny<SonarCompositeRuleId>()), Times.Once);
+            education.Invocations.Should().HaveCount(1);
+            var actualRuleId = (SonarCompositeRuleId)education.Invocations[0].Arguments[0];
+            actualRuleId.RepoKey.Should().Be(expectedRepoKey);
+            actualRuleId.RuleKey.Should().Be(expectedRuleKey);
             result.Should().Be(CommandProgression.Stop);
         }
 
