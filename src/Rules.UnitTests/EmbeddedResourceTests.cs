@@ -39,11 +39,11 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         [TestMethod]
         [DataRow("c", 1200)]
         [DataRow("cpp", 500)]
-        [DataRow("js", 200)]
-        [DataRow("ts", 200)]
-        [DataRow("cs", 350)]
+        [DataRow("javascript", 200)]
+        [DataRow("typescript", 200)]
+        [DataRow("csharpsquid", 350)]
         [DataRow("vbnet", 140)]
-        public void CheckEmbeddedDescriptionFiles_ByLanguage(string languageKey, int atLeastXRules)
+        public void CheckEmbeddedDescriptionFiles_ByLanguage(string repoKey, int atLeastXRules)
         {
             // Sanity check that the number of rules for each language is at least in the right ballpark.
 
@@ -52,9 +52,9 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
 
             // TODO: embed the rule json file, and use that to check for the expected rules
             var resourceNames = typeof(RuleMetadataProvider).Assembly.GetManifestResourceNames()
-                .Where(x => x.StartsWith($"{BaseResourcePath}{languageKey}") && x.EndsWith(".json"));
+                .Where(x => x.StartsWith($"{BaseResourcePath}{repoKey}") && x.EndsWith(".json"));
 
-            Console.WriteLine($"{languageKey}: number of rules = {resourceNames.Count()}");
+            Console.WriteLine($"{repoKey}: number of rules = {resourceNames.Count()}");
             foreach (var resourceName in resourceNames)
             {
                 Console.WriteLine(resourceName);

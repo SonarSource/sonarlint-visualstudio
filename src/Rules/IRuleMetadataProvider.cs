@@ -38,8 +38,8 @@ namespace SonarLint.VisualStudio.Rules
         /// <summary>
         /// Fetches rule info for the specified language rule
         /// </summary>
-        /// <returns>The rule info, or null if the language/rule was not recognised</returns>
-        IRuleInfo GetRuleInfo(Language language, string ruleKey);
+        /// <returns>The rule info, or null if the repo key/rule was not recognised</returns>
+        IRuleInfo GetRuleInfo(SonarCompositeRuleId ruleId);
     }
 
     [Export(typeof(IRuleMetadataProvider))]
@@ -54,13 +54,12 @@ namespace SonarLint.VisualStudio.Rules
             this.logger = logger;
         }
 
-        public IRuleInfo GetRuleInfo(Language language, string ruleKey)
-            => language?.ServerLanguage?.Key == null
-                ? null : LoadRuleInfo(language, ruleKey);
-                
-        private IRuleInfo LoadRuleInfo(Language language, string ruleKey)
+        public IRuleInfo GetRuleInfo(SonarCompositeRuleId ruleId)
+                => LoadRuleInfo(ruleId);
+        
+        private IRuleInfo LoadRuleInfo(SonarCompositeRuleId ruleId)
         {
-            var resourcePath = CalcFullResourceName(language, ruleKey);
+            var resourcePath = CalcFullResourceName(ruleId);
             try
             {
                 using (var stream = GetType().Assembly.GetManifestResourceStream(resourcePath))
@@ -83,7 +82,9 @@ namespace SonarLint.VisualStudio.Rules
         }
 
         // e.g. SonarLint.VisualStudio.Rules.Embedded.cpp.S101.json
-        private static string CalcFullResourceName(Language language, string ruleKey)
-            => $"SonarLint.VisualStudio.Rules.Embedded.{language.ServerLanguage.Key}.{ruleKey}.json";
+        // e.g. SonarLint.VisualStudio.Rules.Embedded.typescript.S202.json
+        // e.g. SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S303.json
+        private static string CalcFullResourceName(SonarCompositeRuleId ruleId)
+            => $"SonarLint.VisualStudio.Rules.Embedded.{ruleId.RepoKey}.{ruleId.RuleKey}.json";
     }
 }

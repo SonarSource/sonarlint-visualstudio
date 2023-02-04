@@ -41,36 +41,42 @@
       <JarName>sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar</JarName>
       <URL>https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/%(JarName)</URL>
       <LanguageKey>cpp</LanguageKey>
+      <RepoKey>cpp</RepoKey>
     </PluginJars>
 
     <PluginJars Include="C">
       <JarName>sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar</JarName>
       <URL>https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/%(JarName)</URL>
       <LanguageKey>c</LanguageKey>
+      <RepoKey>c</RepoKey>
     </PluginJars>
 
     <PluginJars Include="JavaScript">
       <JarName>sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</JarName>
       <URL>https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/%(JarName)</URL>
       <LanguageKey>ts</LanguageKey>
+      <RepoKey>typescript</RepoKey>
     </PluginJars>
 
     <PluginJars Include="TypeScript">
       <JarName>sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</JarName>
       <URL>https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/%(JarName)</URL>
       <LanguageKey>js</LanguageKey>
+      <RepoKey>javascript</RepoKey>
     </PluginJars>
 
     <PluginJars Include="C#">
       <JarName>sonar-csharp-plugin-$(EmbeddedSonarAnalyzerVersion).jar</JarName>
       <URL>https://binaries.sonarsource.com/Distribution/sonar-csharp-plugin/%(JarName)</URL>
       <LanguageKey>cs</LanguageKey>
+      <RepoKey>csharpsquid</RepoKey>
     </PluginJars>
 
     <PluginJars Include="VB.NET">
       <JarName>sonar-vbnet-plugin-$(EmbeddedSonarAnalyzerVersion).jar</JarName>
       <URL>https://binaries.sonarsource.com/Distribution/sonar-vbnet-plugin/%(JarName)</URL>
       <LanguageKey>vbnet</LanguageKey>
+      <RepoKey>vbnet</RepoKey>
     </PluginJars>
 
   </ItemGroup>
