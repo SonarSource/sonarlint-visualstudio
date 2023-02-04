@@ -140,5 +140,21 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             ts.Should().Be(Language.Ts);
             unknown.Should().Be(null);
         }
+
+        [TestMethod]
+        public void GetSonarRepoKeyFromLanguageKey_GetsCorrectRepoKey()
+        {
+            Language.GetSonarRepoKeyFromLanguage(Language.CSharp).Should().Be("csharpsquid");
+            Language.GetSonarRepoKeyFromLanguage(Language.VBNET).Should().Be("vbnet");
+            Language.GetSonarRepoKeyFromLanguage(Language.C).Should().Be("c");
+            Language.GetSonarRepoKeyFromLanguage(Language.Cpp).Should().Be("cpp");
+            Language.GetSonarRepoKeyFromLanguage(Language.Js).Should().Be("javascript");
+            Language.GetSonarRepoKeyFromLanguage(Language.Ts).Should().Be("typescript");
+
+            Language.GetSonarRepoKeyFromLanguage(Language.Unknown).Should().BeNull();
+
+            var language = new Language("xxx", "dummy language", "x", new SonarQubeLanguage("xxx", "LanguageX"));
+            Language.GetSonarRepoKeyFromLanguage(language).Should().BeNull();
+        }
     }
 }

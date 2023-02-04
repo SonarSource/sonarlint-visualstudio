@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -48,6 +49,31 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             result.ErrorListErrorCode.Should().Be(errorCode);
             result.RepoKey.Should().Be(expectedRepo);
             result.RuleKey.Should().Be(expectedRule);
+        }
+
+        [TestMethod]
+        public void Ctor_NullRepoKey_Throws()
+        {
+            Action act = () => new SonarCompositeRuleId(null, "S123");
+            act.Should().Throw<ArgumentNullException>()
+                .And.ParamName.Should().Be("repoKey");
+        }
+
+        [TestMethod]
+        public void Ctor_NullRuleKey_Throws()
+        {
+            Action act = () => new SonarCompositeRuleId("csharpsquid", null);
+            act.Should().Throw<ArgumentNullException>()
+                .And.ParamName.Should().Be("ruleKey");
+        }
+        
+        [TestMethod]
+        public void Ctor_ValidArgs_PropertiesSetCorrectly()
+        {
+            var actual = new SonarCompositeRuleId("my repo", "my rule");
+            actual.RepoKey.Should().Be("my repo");
+            actual.RuleKey.Should().Be("my rule");
+            actual.ErrorListErrorCode.Should().Be("my repo:my rule");
         }
 
         [TestMethod]
