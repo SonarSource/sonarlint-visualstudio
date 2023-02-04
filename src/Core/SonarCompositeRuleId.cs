@@ -29,27 +29,27 @@ namespace SonarLint.VisualStudio.Core
         /// <summary>
         /// Attempts to parse an error code from the VS Error List as a Sonar rule in the form "[repo key]:[rule key]"
         /// </summary>
-        public static bool TryParse(string errorListErrorCode, out SonarCompositeRuleId ruleInfo)
+        public static bool TryParse(string errorListErrorCode, out SonarCompositeRuleId ruleId)
         {
-            ruleInfo = null;
+            ruleId = null;
 
             if (!string.IsNullOrEmpty(errorListErrorCode))
             {
                 var keys = errorListErrorCode.Split(new string[] {Separator}, StringSplitOptions.RemoveEmptyEntries);
                 if (keys.Length == 2)
                 {
-                    ruleInfo = new SonarCompositeRuleId(errorListErrorCode, keys[0], keys[1]);
+                    ruleId = new SonarCompositeRuleId(keys[0], keys[1]);
                 }
             }
 
-            return ruleInfo != null;
+            return ruleId != null;
         }
 
-        private SonarCompositeRuleId(string errorListErrorCode, string repoKey, string ruleKey)
+        public SonarCompositeRuleId(string repoKey, string ruleKey)
         {
-            ErrorListErrorCode = errorListErrorCode ?? throw new ArgumentNullException(nameof(errorListErrorCode));
             RepoKey = repoKey ?? throw new ArgumentNullException(nameof(repoKey));
             RuleKey = ruleKey ?? throw new ArgumentNullException(nameof(ruleKey));
+            ErrorListErrorCode = repoKey + Separator + ruleKey;
         }
 
         public string ErrorListErrorCode { get; }
