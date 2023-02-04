@@ -20,7 +20,6 @@
 
 using Microsoft;
 using Microsoft.VisualStudio.Shell.TableControl;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 
@@ -59,8 +58,7 @@ namespace SonarLint.VisualStudio.Education
                 {
                     logger.LogVerbose(Resources.ErrorList_Processor_SonarRuleDetected, ruleId);
 
-                    var language = Language.GetLanguageFromRepositoryKey(ruleId.RepoKey);
-                    educationService.ShowRuleDescription(language, ruleId.RuleKey);
+                    educationService.ShowRuleDescription(ruleId);
 
                     // Mark the event as handled to stop the normal VS "show help in browser" behaviour
                     handled = true;

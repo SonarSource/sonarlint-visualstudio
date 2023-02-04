@@ -32,7 +32,11 @@ namespace SonarLint.VisualStudio.Education
 {
     public interface IEducation
     {
-        void ShowRuleDescription(Language language, string ruleKey);
+        /// <summary>
+        /// Displays the help for the specific Sonar rule
+        /// </summary>
+        /// <param name=""></param>
+        void ShowRuleDescription(SonarCompositeRuleId ruleId);
     }
 
     [Export(typeof(IEducation))]
@@ -62,11 +66,8 @@ namespace SonarLint.VisualStudio.Education
             ruleDescriptionToolWindow = toolWindowService.GetToolWindow<RuleDescriptionToolWindow, IRuleDescriptionToolWindow>();
         }
 
-        public void ShowRuleDescription(Language language, string ruleKey)
+        public void ShowRuleDescription(SonarCompositeRuleId ruleId)
         {
-            var repoKey = Language.GetSonarRepoKeyFromLanguage(language);
-            var ruleId = new SonarCompositeRuleId(repoKey, ruleKey);
-
             var ruleInfo = ruleMetadataProvider.GetRuleInfo(ruleId);
 
             threadHandling.RunOnUIThread(() =>

@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Diagnostics;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio.Shell;
@@ -78,10 +77,7 @@ namespace SonarLint.VisualStudio.Education.Commands
         {
             if (errorListHelper.TryGetRuleIdFromSelectedRow(out SonarCompositeRuleId ruleId))
             {
-                var language = Language.GetLanguageFromRepositoryKey(ruleId.RepoKey);
-                Debug.Assert(language != null && language.Id != null, "Unable to determine language for repo key: " + ruleId.RepoKey);
-
-                education.ShowRuleDescription(language, ruleId.RuleKey);
+                education.ShowRuleDescription(ruleId);
                 return CommandProgression.Stop;
             }
 
