@@ -140,10 +140,66 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         {
             writer.WriteStartElement("FlowDocument", XamlNamespace);
             writer.WriteAttributeString("xmlns", "http://schemas.microsoft.com/winfx/2006/xaml/presentation");
-            writer.WriteElementString("Paragraph", $"Rule: {ruleInfo.FullRuleKey}");
-            writer.WriteElementString("Paragraph", $"Language: {Language.GetLanguageFromLanguageKey(ruleInfo.LanguageKey).Name}");
+
+            WriteTitle(ruleInfo.Name);
+            WriteSubTitle(ruleInfo);
 
             outputXamlElementStack.Push(new XamlOutputElementInfo("html root", false));
+        }
+
+        private void WriteTitle(string text)
+        {
+            writer.WriteStartElement("Paragraph");
+            ApplyStyleToStartElement(StyleResourceNames.Title_Paragraph);
+            writer.WriteString(text);
+            writer.WriteEndElement();
+        }
+
+        private void WriteSubTitle(IRuleInfo ruleInfo)
+        {
+            writer.WriteStartElement("Paragraph");
+            ApplyStyleToStartElement(StyleResourceNames.Title_Paragraph);
+
+            WriteSubTitleElement_IssueType(ruleInfo);
+            WriteSubTitleElement_Severity(ruleInfo);
+            WriteSubTitleElement_RuleKey(ruleInfo);
+            WriteSubTitleElement_Tags(ruleInfo);
+
+            writer.WriteEndElement();
+        }
+
+        private void WriteSubTitleElement_IssueType(IRuleInfo ruleInfo)
+        {
+            // TODO: icon
+            WriteSubTitleElement("Issue type: " + ruleInfo.IssueType.ToString());
+        }
+
+        private void WriteSubTitleElement_Severity(IRuleInfo ruleInfo)
+        {
+            // TODO: icon
+            WriteSubTitleElement("Severity: " + ruleInfo.DefaultSeverity.ToString());
+        }
+
+        private void WriteSubTitleElement_Tags(IRuleInfo ruleInfo)
+        {
+            if (ruleInfo.Tags.Count == 0)
+            {
+                return;
+            }
+
+            // TODO: icon
+            WriteSubTitleElement("Tags: " + string.Join(" ", ruleInfo.Tags));
+        }
+
+        private void WriteSubTitleElement_RuleKey(IRuleInfo ruleInfo)
+            => WriteSubTitleElement(ruleInfo.FullRuleKey);
+
+        private void WriteSubTitleElement(string text)
+        {
+            writer.WriteStartElement("Span");
+            ApplyStyleToStartElement(StyleResourceNames.SubtitleElement_Span);
+            writer.WriteString(text);
+            writer.WriteEndElement();
         }
 
         private void PushOutputElementInfo(string htmlElementName, bool supportsInlines)
