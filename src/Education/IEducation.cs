@@ -64,7 +64,10 @@ namespace SonarLint.VisualStudio.Education
 
         public void ShowRuleDescription(Language language, string ruleKey)
         {
-            var ruleInfo = ruleMetadataProvider.GetRuleInfo(language, ruleKey);
+            var repoKey = Language.GetSonarRepoKeyFromLanguage(language);
+            var ruleId = new SonarCompositeRuleId(repoKey, ruleKey);
+
+            var ruleInfo = ruleMetadataProvider.GetRuleInfo(ruleId);
 
             threadHandling.RunOnUIThread(() =>
             {

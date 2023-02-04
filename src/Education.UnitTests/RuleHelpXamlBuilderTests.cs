@@ -23,7 +23,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using FluentAssertions;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
@@ -65,16 +64,13 @@ namespace SonarLint.VisualStudio.Education.UnitTests
                 var data = ReadResource(fullResourceName);
                 var jsonRuleInfo = JsonConvert.DeserializeObject<RuleInfo>(data);
 
-                (var language, var ruleKey) = GetLanguageAndKeyFromResourceName(fullResourceName);
-                var ruleHelp = CreateRuleInfo(language.ServerLanguage.Key, ruleKey, jsonRuleInfo.Description);
-
-                var doc = testSubject.Create(ruleHelp);
+                var doc = testSubject.Create(jsonRuleInfo);
 
                 // Quick sanity check that something was produced
                 // Note: this is a quick way of getting the size of the document. Serializing the doc to a string
                 // and checking the length takes much longer (around 25 seconds)
                 var docLength = doc.ContentStart.DocumentStart.GetOffsetToPosition(doc.ContentEnd.DocumentEnd);
-                Console.WriteLine($"{language.Name} {ruleKey}: size = {docLength}");
+                Console.WriteLine($"{jsonRuleInfo.FullRuleKey}: size = {docLength}");
                 docLength.Should().BeGreaterThan(30);
 
                 return true;
@@ -93,29 +89,16 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             return stream.ReadToEnd();
         }
 
-        private static (Language Language, string ruleKey) GetLanguageAndKeyFromResourceName(string fullResourceName)
+        private static SonarCompositeRuleId GetCompositeRuleIdFromResourceName(string fullResourceName)
         {
             // Names are expected to be in the format:
-            //   SonarLint.VisualStudio.Rules.Embedded.{language key}.{rule key}
-            // e.g. SonarLint.VisualStudio.Rules.Embedded.cpp.S101.desc
+            //   SonarLint.VisualStudio.Rules.Embedded.{repo key}.{rule key}
+            // e.g. SonarLint.VisualStudio.Rules.Embedded.cpp.S101.json
             var parts = fullResourceName.Split('.');
-            var languageKey = parts[parts.Length - 3];
+            var repoKey = parts[parts.Length - 3];
             var ruleKey = parts[parts.Length - 2];
 
-            var language = Language.GetLanguageFromLanguageKey(languageKey);
-            return (language, ruleKey);
+            return new SonarCompositeRuleId(repoKey, ruleKey);
         }
-
-        private static IRuleInfo CreateRuleInfo(string languageKey, string ruleKey, string description)
-            => new RuleInfo(languageKey, 
-                ruleKey, 
-                description,
-                
-                // Dummy values
-                "dummy rule name",
-                RuleIssueSeverity.Info,
-                RuleIssueType.Hotspot,
-                isActiveByDefault: true,
-                tags: null);
     }
 }

@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using FluentAssertions;
@@ -42,11 +41,13 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         }
 
         [TestMethod]
-        public void GetRuleHelp_UnknownLanguage_ReturnsNullp()
+        public void GetRuleHelp_UnknownRepo_ReturnsNullp()
         {
+            var ruleId = new SonarCompositeRuleId("unknown repo key", "S100");
+
             var testSubject = CreateTestSubject();
 
-            var actual = testSubject.GetRuleInfo(Language.Unknown, "S100");
+            var actual = testSubject.GetRuleInfo(ruleId);
 
             actual.Should().BeNull();
         }
@@ -54,9 +55,11 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         [TestMethod]
         public void GetRuleHelp_UnknownRuleKey_ReturnsMissingHelp()
         {
+            var ruleId = new SonarCompositeRuleId("cpp","unknown rule key");
+
             var testSubject = CreateTestSubject();
 
-            var actual = testSubject.GetRuleInfo(Language.Cpp, "unknown rule key");
+            var actual = testSubject.GetRuleInfo(ruleId);
 
             actual.Should().BeNull();
         }
@@ -86,56 +89,30 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             {
                 Console.WriteLine("Checking " + fullResourceName);
 
-                (Language expectedLanguage, string ruleKey) = GetLanguageAndKeyFromResourceName(fullResourceName);
-                var expectedFullRuleKey = HACK_CalcFullRuleKey(expectedLanguage.ServerLanguage.Key, ruleKey);
+                SonarCompositeRuleId ruleId = GetCompositeRuleIdFromResourceName(fullResourceName);
                 var expectedDescription = GetEmbeddedRuleDescription(fullResourceName);
 
-                var actual = testSubject.GetRuleInfo(expectedLanguage, ruleKey);
+                var actual = testSubject.GetRuleInfo(ruleId);
 
-                var actualLanguage = Language.GetLanguageFromLanguageKey(actual.LanguageKey);
-                actualLanguage.Should().Be(expectedLanguage);
-
-                actual.FullRuleKey.Should().Be(expectedFullRuleKey);
+                actual.FullRuleKey.Should().Be(ruleId.ToString());
                 actual.Description.Should().Be(expectedDescription);
                 actual.Description.Should().NotBeNullOrWhiteSpace();
             }
-
-            // HACK: this won't be required once the metadata provider is passes the repo
-            // key instead of the language key
-            string HACK_CalcFullRuleKey(string languageKey, string partialRuleKey)
-            {
-                if (!mapLanguageToRepoKey.TryGetValue(languageKey, out var repoKey))
-                {
-                    throw new InvalidOperationException($"Error - unknown language key: {languageKey}");
-                }
-                return repoKey + ":" + partialRuleKey;
-            }
         }
-
-        private static readonly IDictionary<string, string> mapLanguageToRepoKey = new Dictionary<string, string>
-        {
-            { "cs", "csharpsquid" },
-            { "vbnet", "vbnet" },
-            { "c", "c" },
-            { "cpp", "cpp" },
-            { "js", "javascript" },
-            { "ts", "typescript" }
-        };
 
         private static RuleMetadataProvider CreateTestSubject()
             => new RuleMetadataProvider(new TestLogger(logToConsole: true));
 
-        private static (Language Language, string ruleKey) GetLanguageAndKeyFromResourceName(string fullResourceName)
+        private static SonarCompositeRuleId GetCompositeRuleIdFromResourceName(string fullResourceName)
         {
             // Names are expected to be in the format:
-            //   SonarLint.VisualStudio.Rules.Embedded.{language key}.{rule key}
+            //   SonarLint.VisualStudio.Rules.Embedded.{repo key}.{rule key}
             // e.g. SonarLint.VisualStudio.Rules.Embedded.cpp.S101.json
             var parts = fullResourceName.Split('.');
-            var languageKey = parts[parts.Length - 3];
+            var repoKey = parts[parts.Length - 3];
             var ruleKey = parts[parts.Length - 2];
 
-            var language = Language.GetLanguageFromLanguageKey(languageKey);
-            return (language, ruleKey);
+            return new SonarCompositeRuleId(repoKey, ruleKey);
         }
 
         private static string GetEmbeddedRuleDescription(string fullResourceName)
