@@ -1,0 +1,1 @@
+﻿Images copied from https://github.com/SonarSource/sonarlint-intellij/tree/master/src/main/resources/images

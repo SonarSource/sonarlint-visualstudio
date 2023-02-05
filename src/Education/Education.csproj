@@ -29,6 +29,14 @@
     </Page>
   </ItemGroup>
 
+  <ItemGroup Label="Images">
+    <None Remove="XamlGenerator\images\severity\*.png" />
+    <Resource Include="XamlGenerator\images\severity\*.png" />
+
+    <None Remove="XamlGenerator\images\type\*.png" />
+    <Resource Include="XamlGenerator\images\type\*.png" />
+  </ItemGroup>
+
   <ItemGroup Label="Framework references">
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="PresentationCore" />
