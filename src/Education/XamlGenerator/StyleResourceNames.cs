@@ -43,6 +43,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         UnorderedList,              // html <ul>, rendered is a XAML <List>
         Code_Span,                  // html <code>, rendered is a XAML <Span>
         Title_Paragraph,            // rule title (name) - <paragraph>
-        SubtitleElement_Span        // element under the title e.g. issue type, severity, rule id
+        SubtitleElement_Span,       // element under the title e.g. issue type, severity, rule id
+        SubtitleElement_Image       // image in a subtitle element
     }
 }
