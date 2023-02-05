@@ -26,7 +26,6 @@ using System.Text;
 using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Xml;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
@@ -61,6 +60,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         /// Used to add background colour to alternate rows in a table
         /// </summary>
         private bool tableAlternateRow;
+
 
         public FlowDocument Create(IRuleInfo ruleHelp)
         {
@@ -170,14 +170,33 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
         private void WriteSubTitleElement_IssueType(IRuleInfo ruleInfo)
         {
-            // TODO: icon
-            WriteSubTitleElement("Issue type: " + ruleInfo.IssueType.ToString());
+            var imageInfo = SubTitleImageInfo.IssueTypeImages[ruleInfo.IssueType];
+            WriteSubTitleElementWithImage(imageInfo);
         }
 
         private void WriteSubTitleElement_Severity(IRuleInfo ruleInfo)
         {
-            // TODO: icon
-            WriteSubTitleElement("Severity: " + ruleInfo.DefaultSeverity.ToString());
+            var imageInfo = SubTitleImageInfo.SeverityImages[ruleInfo.DefaultSeverity];
+            WriteSubTitleElementWithImage(imageInfo);
+        }
+
+        private void WriteSubTitleElementWithImage(SubTitleImageInfo imageInfo)
+        {
+            writer.WriteStartElement("Span");
+            ApplyStyleToStartElement(StyleResourceNames.SubtitleElement_Span);
+
+            if (imageInfo.ImageResourcePath != null)
+            {
+                writer.WriteStartElement("InlineUIContainer");
+                writer.WriteStartElement("Image");
+                ApplyStyleToStartElement(StyleResourceNames.SubtitleElement_Image);
+                writer.WriteAttributeString("Source", imageInfo.ImageResourcePath);
+                writer.WriteEndElement(); // Image
+                writer.WriteEndElement(); // InlineUIContainer
+            }
+
+            writer.WriteString(imageInfo.DisplayText);
+            writer.WriteEndElement(); // Span
         }
 
         private void WriteSubTitleElement_Tags(IRuleInfo ruleInfo)
