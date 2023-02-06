@@ -10,7 +10,7 @@
       <Button guid="guidEducationPackageCmdSet" id="RuleDescriptionWindowCommandId" priority="0x0100" type="Button">
         <Parent guid="SonarLintCmdSet" id="SonarLintGroup"/>
         <Strings>
-          <ButtonText>Open Rule Description</ButtonText>
+          <ButtonText>Open Rule Help</ButtonText>
         </Strings>
       </Button>
     </Buttons>

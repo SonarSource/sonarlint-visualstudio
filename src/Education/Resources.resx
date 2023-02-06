@@ -127,8 +127,7 @@
     <value>[Education] Error displaying Rule Description Window: {0}</value>
   </data>
   <data name="RuleDescriptionToolWindowCaption" xml:space="preserve">
-    <value>SonarLint Rule Description</value>
-    <value>Sonar Rule Description</value>
+    <value>Sonar Rule Help</value>
   </data>
   <data name="XamlBuilder_UnexpectedNodeError" xml:space="preserve">
     <value>[Education] Error: rule description contains an unexpected node. Node type: {0}, name: {1}, value: {2}</value>
