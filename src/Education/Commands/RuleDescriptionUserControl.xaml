@@ -43,6 +43,7 @@
         <Style x:Key="SubtitleElement_Span" TargetType="Span">
             <Setter Property="FontSize" Value="{DynamicResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}"/>
             <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="BaselineAlignment"  Value="Center" />
         </Style>
         <Style x:Key="SubtitleElement_Image" TargetType="Image">
             <Setter Property="Margin" Value="0,0,3,0" />
