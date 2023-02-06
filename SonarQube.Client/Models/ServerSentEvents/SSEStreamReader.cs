@@ -34,6 +34,7 @@ namespace SonarQube.Client.Models.ServerSentEvents
     {
         /// <summary>
         /// Will block the calling thread until an event exists or the connection is closed.
+        /// Can throw an exception if the event is not a valid <see cref="IServerEvent"/>
         /// </summary>
         /// <returns>
         /// Will return null if the underlying event is unsupported or if there was a problem parsing it.
@@ -54,9 +55,8 @@ namespace SonarQube.Client.Models.ServerSentEvents
         private readonly IDictionary<string, Type> eventTypeToDataTypeMap = new Dictionary<string, Type>
         {
             {"IssueChanged", typeof(IssueChangedServerEvent)},
-            // todo: support later
-            // {"TaintVulnerabilityClosed", typeof(TaintVulnerabilityClosedServerEvent)},
-            // {"TaintVulnerabilityRaised", typeof(TaintVulnerabilityRaisedServerEvent)}
+            {"TaintVulnerabilityClosed", typeof(TaintVulnerabilityClosedServerEvent)},
+            {"TaintVulnerabilityRaised", typeof(TaintVulnerabilityRaisedServerEvent)}
         };
 
         public SSEStreamReader(ChannelReader<ISqServerEvent> sqEventsChannel, CancellationToken cancellationToken, ILogger logger)
