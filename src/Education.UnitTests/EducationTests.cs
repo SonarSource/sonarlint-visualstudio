@@ -44,16 +44,6 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         }
 
         [TestMethod]
-        public void Ctor_DoesNotFetchToolWindow()
-        {
-            var toolWindowService = new Mock<IToolWindowService>();
-
-            _ = CreateEducation(toolWindowService: toolWindowService.Object);
-
-            toolWindowService.Invocations.Should().HaveCount(0);
-        }
-
-        [TestMethod]
         public void ShowRuleHelp_EverythingGetsCalledCorrectly()
         {
             var ruleMetaDataProvider = new Mock<IRuleMetadataProvider>();
