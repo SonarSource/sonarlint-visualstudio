@@ -32,6 +32,18 @@
             <!--<Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.CaptionTextKey}}"/>-->
             <Setter Property="FontStyle" Value="Italic"/>
         </Style>
+        <Style x:Key="Title_Paragraph" TargetType="Paragraph">
+            <Setter Property="TextAlignment" Value="Left" />
+            <Setter Property="FontFamily" Value="{DynamicResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}"/>
+            <Setter Property="FontSize" Value="{DynamicResource {x:Static vsshell:VsFonts.Environment155PercentFontSizeKey}}"/>
+            <Setter Property="FontWeight" Value="{DynamicResource {x:Static vsshell:VsFonts.Environment155PercentFontWeightKey}}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,10,0,5" />
+        </Style>
+        <Style x:Key="SubtitleElement_Span" TargetType="Span">
+            <Setter Property="FontSize" Value="{DynamicResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}"/>
+            <Setter Property="FontWeight" Value="{DynamicResource {x:Static vsshell:VsFonts.CaptionFontWeightKey}}"/>
+        </Style>
         <Style x:Key="Heading2_Paragraph" TargetType="Paragraph">
             <Setter Property="FontFamily" Value="{DynamicResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}"/>
             <Setter Property="FontSize" Value="{DynamicResource {x:Static vsshell:VsFonts.Environment155PercentFontSizeKey}}"/>
@@ -118,10 +130,7 @@
             <Paragraph>By default, this tool window is docked with the
                 <Italic>Solution Explorer</Italic>. However, you can move it any where you like, just like any other tool window.
             </Paragraph>
-            <Paragraph>
-                <Hyperlink NavigateUri="https://rules.sonarsource.com/">
-                    <TextBlock Text="You can browse all available rules at: www.rules.sonarsource.com"/>
-                </Hyperlink>
+            <Paragraph>You can browse all available rules at <Hyperlink NavigateUri="https://rules.sonarsource.com/">https://rules.sonarsource.com</Hyperlink>
             </Paragraph>
         </FlowDocument>
     </FlowDocumentScrollViewer>

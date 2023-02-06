@@ -41,6 +41,8 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         TableBodyCellAlternateRow,  // html <td>, rendered in a XAML <TableCell>. Applied to alternate rows of the table body.
         OrderedList,                // html <ol>, rendered is a XAML <List>
         UnorderedList,              // html <ul>, rendered is a XAML <List>
-        Code_Span                   // html <code>, rendered is a XAML <Span>
+        Code_Span,                  // html <code>, rendered is a XAML <Span>
+        Title_Paragraph,            // rule title (name) - <paragraph>
+        SubtitleElement_Span        // element under the title e.g. issue type, severity, rule id
     }
 }
