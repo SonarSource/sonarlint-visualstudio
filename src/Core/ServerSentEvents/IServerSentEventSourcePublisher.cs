@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Core.ServerSentEvents
     /// <remarks>This interface is not intended to be thread safe.
     /// The only permitted type of multi threaded calling is calling Publish and Dispose concurrently, although it may result in <see cref="ObjectDisposedException"/></remarks>
     /// <typeparam name="T">Server sent event type inherited from <see cref="IServerEvent"/></typeparam>
-    public interface IServerSentEventSourcePublisher<T> : IDisposable where T : class, IServerEvent
+    public interface IServerSentEventSourcePublisher<in T> : IDisposable where T : class, IServerEvent
     {
         /// <summary>
         /// Publishes the event to the consumer channel.

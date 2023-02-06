@@ -22,9 +22,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ServerSentEvents.Issues;
 using SonarLint.VisualStudio.Core.ServerSentEvents.TaintVulnerabilities;
 using SonarQube.Client;
@@ -32,63 +30,18 @@ using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
 namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 {
-    internal interface IServerSentEventSessionManager : IDisposable
-    {
-    }
-
-    [Export(typeof(IServerSentEventSessionManager))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class ServerSentEventSessionManager : IServerSentEventSessionManager
-    {
-        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private readonly ISSESessionFactory sseSessionFactory;
-
-        private ISSESession currentSession;
-
-        [ImportingConstructor]
-        public ServerSentEventSessionManager(IActiveSolutionBoundTracker activeSolutionBoundTracker, ISSESessionFactory sseSessionFactory)
-        {
-            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
-            this.sseSessionFactory = sseSessionFactory;
-
-            activeSolutionBoundTracker.SolutionBindingChanged += SolutionBindingChanged;
-        }
-
-        public void Dispose()
-        {
-            activeSolutionBoundTracker.SolutionBindingChanged -= SolutionBindingChanged;
-            EndCurrentSession();
-        }
-
-        private void SolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs activeSolutionBindingEventArgs)
-        {
-            EndCurrentSession();
-
-            var bindingConfiguration = activeSolutionBindingEventArgs.Configuration;
-            var isInConnectedMode = !bindingConfiguration.Equals(BindingConfiguration.Standalone);
-
-            if (!isInConnectedMode)
-            {
-                return;
-            }
-
-            currentSession = sseSessionFactory.Create(bindingConfiguration.Project.ProjectKey);
-
-            currentSession.PumpAllAsync().Forget();
-        }
-
-        private void EndCurrentSession()
-        {
-            currentSession?.Dispose();
-            currentSession = null;
-        }
-    }
-    
-    internal interface ISSESessionFactory
+    /// <summary>
+    /// Factory for <see cref="ISSESession"/>. Responsible for disposing EventSourcePublishers
+    /// </summary>
+    internal interface ISSESessionFactory : IDisposable
     {
         ISSESession Create(string projectKey);
     }
 
+    /// <summary>
+    /// Represents the session entity, that is responsible for dealing with SQ Client's SSE Session reader
+    /// and propagating events to correct topic event publishers
+    /// </summary>
     internal interface ISSESession : IDisposable
     {
         Task PumpAllAsync();
@@ -96,12 +49,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
     [Export(typeof(ISSESessionFactory))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class SSESessionFactory : ISSESessionFactory
+    internal sealed class SSESessionFactory : ISSESessionFactory
     {
         private readonly ISonarQubeService sonarQubeClient;
         private readonly IIssueChangedServerEventSourcePublisher issueChangedServerEventSourcePublisher;
         private readonly ITaintServerEventSourcePublisher taintServerEventSourcePublisher;
         private readonly IThreadHandling threadHandling;
+
+        private bool disposed;
 
         [ImportingConstructor]
         public SSESessionFactory(ISonarQubeService sonarQubeClient,
@@ -117,6 +72,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
         public ISSESession Create(string projectKey)
         {
+            if (disposed)
+            {
+                throw new ObjectDisposedException(nameof(SSESessionFactory));
+            }
+
             var session = new SSESession(issueChangedServerEventSourcePublisher,
                 taintServerEventSourcePublisher,
                 projectKey,
@@ -126,7 +86,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             return session;
         }
 
-        private class SSESession : ISSESession
+        public void Dispose()
+        {
+            if (disposed)
+            {
+                return;
+            }
+
+            issueChangedServerEventSourcePublisher.Dispose();
+            taintServerEventSourcePublisher.Dispose();
+            disposed = true;
+        }
+
+        internal sealed class SSESession : ISSESession
         {
             private readonly IIssueChangedServerEventSourcePublisher issueChangedServerEventSourcePublisher;
             private readonly ITaintServerEventSourcePublisher taintServerEventSourcePublisher;
@@ -135,7 +107,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             private readonly ISonarQubeService sonarQubeService;
             private readonly CancellationTokenSource sessionTokenSource;
 
-            public SSESession(IIssueChangedServerEventSourcePublisher issueChangedServerEventSourcePublisher, 
+            private bool disposed;
+
+            internal SSESession(IIssueChangedServerEventSourcePublisher issueChangedServerEventSourcePublisher, 
                 ITaintServerEventSourcePublisher taintServerEventSourcePublisher,
                 string projectKey,
                 IThreadHandling threadHandling,
@@ -151,11 +125,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
             public async Task PumpAllAsync()
             {
+                if (disposed)
+                {
+                    throw new ObjectDisposedException(nameof(SSESession));
+                }
+
                 await threadHandling.SwitchToBackgroundThread();
 
-                // todo: rename to ISSEStreamReader
                 var sseStreamReader =
-                    await sonarQubeService.CreateServerSentEventsSession(projectKey, sessionTokenSource.Token); //todo what kind of errors it throws? Sync with Rita
+                    await sonarQubeService.CreateServerSentEventsSession(projectKey, sessionTokenSource.Token);
 
                 if (sseStreamReader == null)
                 {
@@ -183,7 +161,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
                                 break;
                         }
                     }
-                    catch (Exception ex) when (ex is OperationCanceledException || ex is ObjectDisposedException)
+                    catch (ObjectDisposedException)
                     {
                         return;
                     }
@@ -192,7 +170,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
             public void Dispose()
             {
+                if (disposed)
+                {
+                    return;
+                }
+
                 sessionTokenSource.Cancel();
+                disposed = true;
             }
         }
     }

@@ -10,7 +10,7 @@
 
     <RequiresLibGit>true</RequiresLibGit>
 
-    <LangVersion>8</LangVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
