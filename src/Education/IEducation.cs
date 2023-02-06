@@ -43,11 +43,12 @@ namespace SonarLint.VisualStudio.Education
     internal class Education : IEducation
     {
         private readonly IToolWindowService toolWindowService;
-        private readonly IRuleHelpToolWindow ruleHelpToolWindow;
         private readonly ILogger logger;
         private readonly IRuleHelpXamlBuilder ruleHelpXamlBuilder;
         private readonly IRuleMetadataProvider ruleMetadataProvider;
         private readonly IThreadHandling threadHandling;
+
+        private IRuleHelpToolWindow ruleHelpToolWindow;
 
         [ImportingConstructor]
         public Education(IToolWindowService toolWindowService, IRuleMetadataProvider ruleMetadataProvider, ILogger logger)
@@ -61,8 +62,6 @@ namespace SonarLint.VisualStudio.Education
             this.ruleMetadataProvider = ruleMetadataProvider;
             this.logger = logger;
             this.threadHandling = threadHandling;
-
-            ruleHelpToolWindow = toolWindowService.GetToolWindow<RuleHelpToolWindow, IRuleHelpToolWindow>();
         }
 
         public void ShowRuleHelp(SonarCompositeRuleId ruleId)
@@ -77,6 +76,12 @@ namespace SonarLint.VisualStudio.Education
 
             threadHandling.RunOnUIThread(() =>
             {
+                // Lazily fetch the tool window from a UI thread
+                if (ruleHelpToolWindow == null)
+                {
+                    ruleHelpToolWindow = toolWindowService.GetToolWindow<RuleHelpToolWindow, IRuleHelpToolWindow>();                    
+                }
+
                 var flowDocument = ruleHelpXamlBuilder.Create(ruleInfo);
 
                 ruleHelpToolWindow.UpdateContent(flowDocument);
