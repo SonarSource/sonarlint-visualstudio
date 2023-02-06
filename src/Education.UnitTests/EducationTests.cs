@@ -44,16 +44,6 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         }
 
         [TestMethod]
-        public void Ctor_GetsToolWindowFromService()
-        {
-            var toolWindowService = new Mock<IToolWindowService>();
-
-            _ = CreateEducation(toolWindowService: toolWindowService.Object);
-
-            toolWindowService.Verify(x => x.GetToolWindow<RuleHelpToolWindow, IRuleHelpToolWindow>(), Times.Once);
-        }
-
-        [TestMethod]
         public void ShowRuleHelp_EverythingGetsCalledCorrectly()
         {
             var ruleMetaDataProvider = new Mock<IRuleMetadataProvider>();
@@ -72,6 +62,10 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             toolWindowService.Setup(x => x.GetToolWindow<RuleHelpToolWindow, IRuleHelpToolWindow>()).Returns(ruleDescriptionToolWindow.Object);
 
             var testSubject = CreateEducation(toolWindowService: toolWindowService.Object, ruleMetadataProvider: ruleMetaDataProvider.Object, ruleHelpXamlBuilder: ruleHelpXamlBuilder.Object);
+            // Sanity check - tool window not yet fetched
+            toolWindowService.Invocations.Should().HaveCount(0);
+
+            // Act
             testSubject.ShowRuleHelp(ruleId);
 
             ruleMetaDataProvider.Verify(x => x.GetRuleInfo(ruleId), Times.Once);
