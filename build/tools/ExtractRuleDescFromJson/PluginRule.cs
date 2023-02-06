@@ -18,21 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Text.Json.Serialization;
-
 namespace ExtractRuleDescFromJson;
 
-public class Rule
+/// <summary>
+/// Data-class: rule properties, as defined by the plugin API
+/// </summary>
+public class PluginRule
 {
-    public Rule(string key, string description)
-    {
-        Key = key;
-        Description = description;
-    }
+    public string? Key { get; set; }
+    
+    public string? Name { get; set; }
 
-    [JsonPropertyName("key")]
-    public string Key { get; }
+    public string? DefaultSeverity { get; set; }
 
-    [JsonPropertyName("description")]
-    public string Description { get; }
+    public string? Type { get; set; }
+
+    public string? Description { get; set; }
+
+    public bool? IsActiveByDefault { get; set; }
+
+    public string? Language { get; set; }
+
+    public string[]? Tags { get; set; }
 }
