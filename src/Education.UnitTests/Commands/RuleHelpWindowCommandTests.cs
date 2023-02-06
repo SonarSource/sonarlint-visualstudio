@@ -37,7 +37,7 @@ using ThreadHelper = SonarLint.VisualStudio.Integration.UnitTests.ThreadHelper;
 namespace Education.UnitTests.Commands
 {
     [TestClass]
-    public class RuleDescriptionWindowCommandTests
+    public class RuleHelpWindowCommandTests
     {
         [TestInitialize]
         public void TestInitialize()
@@ -52,13 +52,13 @@ namespace Education.UnitTests.Commands
             var commandService = Mock.Of<IMenuCommandService>();
             var logger = Mock.Of<ILogger>();
             
-            Action act = () => new RuleDescriptionWindowCommand(null, toolWindowService, logger);
+            Action act = () => new RuleHelpWindowCommand(null, toolWindowService, logger);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("commandService");
 
-            act = () => new RuleDescriptionWindowCommand(commandService, null, logger);
+            act = () => new RuleHelpWindowCommand(commandService, null, logger);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("toolWindowService");
 
-            act = () => new RuleDescriptionWindowCommand(commandService, toolWindowService, null);
+            act = () => new RuleHelpWindowCommand(commandService, toolWindowService, null);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
@@ -67,7 +67,7 @@ namespace Education.UnitTests.Commands
         {
             var commandService = new Mock<IMenuCommandService>();
 
-            new RuleDescriptionWindowCommand(commandService.Object, Mock.Of<IToolWindowService>(), Mock.Of<ILogger>());
+            new RuleHelpWindowCommand(commandService.Object, Mock.Of<IToolWindowService>(), Mock.Of<ILogger>());
 
             var guid = new Guid("80127033-1819-4996-8C45-E9C96F75E2A8");
             var id = 0x100;
@@ -87,12 +87,12 @@ namespace Education.UnitTests.Commands
             var logger = new TestLogger(logToConsole: true);
             var toolwindowServiceMock = new Mock<IToolWindowService>();
 
-            var testSubject = new RuleDescriptionWindowCommand(Mock.Of<IMenuCommandService>(), toolwindowServiceMock.Object, logger);
+            var testSubject = new RuleHelpWindowCommand(Mock.Of<IMenuCommandService>(), toolwindowServiceMock.Object, logger);
 
             // Act
             testSubject.Execute(null, null);
 
-            toolwindowServiceMock.Verify(x => x.Show(RuleDescriptionToolWindow.ToolWindowId), Times.Once);
+            toolwindowServiceMock.Verify(x => x.Show(RuleHelpToolWindow.ToolWindowId), Times.Once);
             logger.AssertNoOutputMessages();
         }
 
@@ -101,14 +101,14 @@ namespace Education.UnitTests.Commands
         {
             var logger = new TestLogger(logToConsole: true);
             var toolwindowServiceMock = new Mock<IToolWindowService>();
-            toolwindowServiceMock.Setup(x => x.Show(RuleDescriptionToolWindow.ToolWindowId)).Throws(new InvalidOperationException("thrown by test"));
+            toolwindowServiceMock.Setup(x => x.Show(RuleHelpToolWindow.ToolWindowId)).Throws(new InvalidOperationException("thrown by test"));
 
-            var testSubject = new RuleDescriptionWindowCommand(Mock.Of<IMenuCommandService>(), toolwindowServiceMock.Object, logger);
+            var testSubject = new RuleHelpWindowCommand(Mock.Of<IMenuCommandService>(), toolwindowServiceMock.Object, logger);
 
             // Act
             testSubject.Execute(null, null);
 
-            toolwindowServiceMock.Verify(x => x.Show(RuleDescriptionToolWindow.ToolWindowId), Times.Once);
+            toolwindowServiceMock.Verify(x => x.Show(RuleHelpToolWindow.ToolWindowId), Times.Once);
             logger.AssertPartialOutputStringExists("thrown by test");
         }
 
@@ -117,9 +117,9 @@ namespace Education.UnitTests.Commands
         {
             var logger = new TestLogger(logToConsole: true);
             var toolwindowServiceMock = new Mock<IToolWindowService>();
-            toolwindowServiceMock.Setup(x => x.Show(RuleDescriptionToolWindow.ToolWindowId)).Throws(new StackOverflowException("thrown by test"));
+            toolwindowServiceMock.Setup(x => x.Show(RuleHelpToolWindow.ToolWindowId)).Throws(new StackOverflowException("thrown by test"));
 
-            var testSubject = new RuleDescriptionWindowCommand(Mock.Of<IMenuCommandService>(), toolwindowServiceMock.Object, logger);
+            var testSubject = new RuleHelpWindowCommand(Mock.Of<IMenuCommandService>(), toolwindowServiceMock.Object, logger);
 
             // Act
             Action act = () => testSubject.Execute(null, null);

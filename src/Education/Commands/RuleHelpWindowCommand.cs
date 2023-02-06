@@ -29,9 +29,9 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Education.Commands
 {
-    internal sealed class RuleDescriptionWindowCommand
+    internal sealed class RuleHelpWindowCommand
     {
-        public static RuleDescriptionWindowCommand Instance { get; private set; }
+        public static RuleHelpWindowCommand Instance { get; private set; }
 
         private const int commandId = 0x100;
         private readonly IToolWindowService toolWindowService;
@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Education.Commands
 
         internal static readonly Guid commandSet = new Guid("80127033-1819-4996-8C45-E9C96F75E2A8");
 
-        internal RuleDescriptionWindowCommand(IMenuCommandService commandService, IToolWindowService toolWindowService, ILogger logger)
+        internal RuleHelpWindowCommand(IMenuCommandService commandService, IToolWindowService toolWindowService, ILogger logger)
         {
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
 
@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Education.Commands
             var toolWindowService = componentModel.GetService<IToolWindowService>();
             var logger = componentModel.GetService<ILogger>();
 
-            Instance = new RuleDescriptionWindowCommand(commandService, toolWindowService, logger);
+            Instance = new RuleHelpWindowCommand(commandService, toolWindowService, logger);
         }
 
         internal void Execute(object sender, EventArgs e)
@@ -71,11 +71,11 @@ namespace SonarLint.VisualStudio.Education.Commands
 
             try
             {
-                toolWindowService.Show(RuleDescriptionToolWindow.ToolWindowId);
+                toolWindowService.Show(RuleHelpToolWindow.ToolWindowId);
             }
             catch (Exception ex) when (!Core.ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(string.Format(Resources.ERR_RuleDescriptionToolWindow_Exception, ex));
+                logger.WriteLine(string.Format(Resources.ERR_RuleHelpToolWindow_Exception, ex));
             }
         }
     }

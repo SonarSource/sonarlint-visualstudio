@@ -123,10 +123,10 @@
   <data name="ErrorList_Processor_SonarRuleDetected" xml:space="preserve">
     <value>[ErrorList] Event processor: Sonar rule detected: {0}</value>
   </data>
-  <data name="ERR_RuleDescriptionToolWindow_Exception" xml:space="preserve">
-    <value>[Education] Error displaying Rule Description Window: {0}</value>
+  <data name="ERR_RuleHelpToolWindow_Exception" xml:space="preserve">
+    <value>[Education] Error displaying Rule Help Window: {0}</value>
   </data>
-  <data name="RuleDescriptionToolWindowCaption" xml:space="preserve">
+  <data name="RuleHelpToolWindowCaption" xml:space="preserve">
     <value>Sonar Rule Help</value>
   </data>
   <data name="XamlBuilder_UnexpectedNodeError" xml:space="preserve">

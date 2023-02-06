@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Education.Commands
         {
             if (errorListHelper.TryGetRuleIdFromSelectedRow(out SonarCompositeRuleId ruleId))
             {
-                education.ShowRuleDescription(ruleId);
+                education.ShowRuleHelp(ruleId);
                 return CommandProgression.Stop;
             }
 

@@ -35,8 +35,7 @@ namespace SonarLint.VisualStudio.Education
         /// <summary>
         /// Displays the help for the specific Sonar rule
         /// </summary>
-        /// <param name=""></param>
-        void ShowRuleDescription(SonarCompositeRuleId ruleId);
+        void ShowRuleHelp(SonarCompositeRuleId ruleId);
     }
 
     [Export(typeof(IEducation))]
@@ -44,7 +43,7 @@ namespace SonarLint.VisualStudio.Education
     internal class Education : IEducation
     {
         private readonly IToolWindowService toolWindowService;
-        private readonly IRuleDescriptionToolWindow ruleDescriptionToolWindow;
+        private readonly IRuleHelpToolWindow ruleHelpToolWindow;
         private readonly ILogger logger;
         private readonly IRuleHelpXamlBuilder ruleHelpXamlBuilder;
         private readonly IRuleMetadataProvider ruleMetadataProvider;
@@ -63,10 +62,10 @@ namespace SonarLint.VisualStudio.Education
             this.logger = logger;
             this.threadHandling = threadHandling;
 
-            ruleDescriptionToolWindow = toolWindowService.GetToolWindow<RuleDescriptionToolWindow, IRuleDescriptionToolWindow>();
+            ruleHelpToolWindow = toolWindowService.GetToolWindow<RuleHelpToolWindow, IRuleHelpToolWindow>();
         }
 
-        public void ShowRuleDescription(SonarCompositeRuleId ruleId)
+        public void ShowRuleHelp(SonarCompositeRuleId ruleId)
         {
             var ruleInfo = ruleMetadataProvider.GetRuleInfo(ruleId);
 
@@ -74,15 +73,15 @@ namespace SonarLint.VisualStudio.Education
             {
                 var flowDocument = ruleHelpXamlBuilder.Create(ruleInfo);
 
-                ruleDescriptionToolWindow.UpdateContent(flowDocument);
+                ruleHelpToolWindow.UpdateContent(flowDocument);
 
                 try
                 {
-                    toolWindowService.Show(RuleDescriptionToolWindow.ToolWindowId);
+                    toolWindowService.Show(RuleHelpToolWindow.ToolWindowId);
                 }
                 catch (Exception ex) when (!Core.ErrorHandler.IsCriticalException(ex))
                 {
-                    logger.WriteLine(string.Format(Resources.ERR_RuleDescriptionToolWindow_Exception, ex));
+                    logger.WriteLine(string.Format(Resources.ERR_RuleHelpToolWindow_Exception, ex));
                 }
             }).Forget();
         }

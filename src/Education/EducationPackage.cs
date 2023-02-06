@@ -34,15 +34,15 @@ namespace SonarLint.VisualStudio.Education
     [ExcludeFromCodeCoverage]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid("7ef4a2de-4035-48c3-b273-4195d0f1186b")]
-    [ProvideMenuResource("Menus.ctmenu", 1)]
-    [ProvideToolWindow(typeof(RuleDescriptionToolWindow), MultiInstances = false, Transient = true, Style = VsDockStyle.Tabbed, Window = ToolWindowGuids.SolutionExplorer, Width = 325, Height = 400)]
+    [ProvideMenuResource("Menus.ctmenu", 2)]
+    [ProvideToolWindow(typeof(RuleHelpToolWindow), MultiInstances = false, Transient = true, Style = VsDockStyle.Tabbed, Window = ToolWindowGuids.SolutionExplorer, Width = 325, Height = 400)]
     public sealed class EducationPackage : AsyncPackage
     {
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            await RuleDescriptionWindowCommand.InitializeAsync(this);
+            await RuleHelpWindowCommand.InitializeAsync(this);
 
             // Bug: can crash VS.
             // See https://github.com/SonarSource/sonarlint-visualstudio/issues/3620
@@ -52,11 +52,11 @@ namespace SonarLint.VisualStudio.Education
 
         protected override WindowPane InstantiateToolWindow(Type toolWindowType)
         {
-            if (toolWindowType == typeof(RuleDescriptionToolWindow))
+            if (toolWindowType == typeof(RuleHelpToolWindow))
             {
                 var componentModel = GetService(typeof(SComponentModel)) as IComponentModel;
                 var browserService = componentModel.GetService<IBrowserService>();
-                return new RuleDescriptionToolWindow(browserService);
+                return new RuleHelpToolWindow(browserService);
             }
 
             return base.InstantiateToolWindow(toolWindowType);
