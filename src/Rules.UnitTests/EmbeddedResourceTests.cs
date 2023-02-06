@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
 
             // TODO: embed the rule json file, and use that to check for the expected rules
             var resourceNames = typeof(RuleMetadataProvider).Assembly.GetManifestResourceNames()
-                .Where(x => x.StartsWith($"{BaseResourcePath}{languageKey}") && x.EndsWith(".desc"));
+                .Where(x => x.StartsWith($"{BaseResourcePath}{languageKey}") && x.EndsWith(".json"));
 
             Console.WriteLine($"{languageKey}: number of rules = {resourceNames.Count()}");
             foreach (var resourceName in resourceNames)

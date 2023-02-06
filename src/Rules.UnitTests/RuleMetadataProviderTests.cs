@@ -23,7 +23,9 @@ using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.Rules.UnitTests
@@ -34,13 +36,14 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<RuleMetadataProvider, IRuleMetadataProvider>();
+            MefTestHelpers.CheckTypeCanBeImported<RuleMetadataProvider, IRuleMetadataProvider>(
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]
         public void GetRuleHelp_UnknownLanguage_ReturnsMissingHelp()
         {
-            var testSubject = new RuleMetadataProvider();
+            var testSubject = CreateTestSubject();
 
             var actual = testSubject.GetRuleHelp(Language.Unknown, "S100");
 
@@ -52,7 +55,7 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         [TestMethod]
         public void GetRuleHelp_UnknownRuleKey_ReturnsMissingHelp()
         {
-            var testSubject = new RuleMetadataProvider();
+            var testSubject = CreateTestSubject();
 
             var actual = testSubject.GetRuleHelp(Language.Cpp, "unknown rule key");
 
@@ -70,11 +73,11 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             // Note: this test isn't checking that the correct resources are embedded.
             // That is done by the EmbeddedResourceTests class.
 
-            var testSubject = new RuleMetadataProvider();
+            var testSubject = CreateTestSubject();
             var resourceNames = testSubject.GetType().Assembly.GetManifestResourceNames()
-                .Where(x => x.EndsWith(".desc"));
+                .Where(x => x.EndsWith(".json"));
 
-            Console.WriteLine("Number embedded rule descriptions: " + resourceNames.Count());
+            Console.WriteLine("Number of embedded rule descriptions: " + resourceNames.Count());
 
             foreach (var name in resourceNames)
             {
@@ -97,11 +100,14 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             }
         }
 
+        private static RuleMetadataProvider CreateTestSubject()
+            => new RuleMetadataProvider(new TestLogger(logToConsole: true));
+
         private static (Language Language, string ruleKey) GetLanguageAndKeyFromResourceName(string fullResourceName)
         {
             // Names are expected to be in the format:
             //   SonarLint.VisualStudio.Rules.Embedded.{language key}.{rule key}
-            // e.g. SonarLint.VisualStudio.Rules.Embedded.cpp.S101.desc
+            // e.g. SonarLint.VisualStudio.Rules.Embedded.cpp.S101.json
             var parts = fullResourceName.Split('.');
             var languageKey = parts[parts.Length - 3];
             var ruleKey = parts[parts.Length - 2];
@@ -113,7 +119,8 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         private static string GetEmbeddedRuleDescription(string fullResourceName)
         {
             using var reader = new StreamReader(typeof(RuleMetadataProvider).Assembly.GetManifestResourceStream(fullResourceName));
-            return reader.ReadToEnd();
+            var data = reader.ReadToEnd();
+            return JsonConvert.DeserializeObject<RuleInfo>(data).Description;
         }
     }
 }

@@ -18,9 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.IO;
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Rules
 {
@@ -39,9 +42,17 @@ namespace SonarLint.VisualStudio.Rules
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class RuleMetadataProvider : IRuleMetadataProvider
     {
+        private readonly ILogger logger;
+
+        [ImportingConstructor]
+        public RuleMetadataProvider(ILogger logger)
+        {
+            this.logger = logger;
+        }
+
         public IRuleHelp GetRuleHelp(Language language, string ruleKey)
         {
-            string description = language?.ServerLanguage?.Key == null 
+            string description = language?.ServerLanguage?.Key == null
                 ? Resources.Rules_DescriptionForMissingRule
                 : GetDescription(language, ruleKey);
 
@@ -50,23 +61,36 @@ namespace SonarLint.VisualStudio.Rules
 
         private string GetDescription(Language language, string ruleKey)
         {
+            var ruleInfo = LoadRuleInfo(language, ruleKey);
+            return ruleInfo?.Description ?? Resources.Rules_DescriptionForMissingRule;
+        }
+        
+        private IRuleInfo LoadRuleInfo(Language language, string ruleKey)
+        {
             var resourcePath = CalcFullResourceName(language, ruleKey);
-            using (var stream = GetType().Assembly.GetManifestResourceStream(resourcePath))
+            try
             {
-                if (stream != null)
+                using (var stream = GetType().Assembly.GetManifestResourceStream(resourcePath))
                 {
-                    using (var reader = new StreamReader(stream))
+                    if (stream != null)
                     {
-                        return reader.ReadToEnd();
+                        using (var reader = new StreamReader(stream))
+                        {
+                            var data = reader.ReadToEnd();
+                            return JsonConvert.DeserializeObject<RuleInfo>(data);
+                        }
                     }
                 }
             }
-
-            return Resources.Rules_DescriptionForMissingRule;
+            catch (Exception ex)
+            {
+                logger.LogVerbose(Resources.MetadataProvider_ErrorLoadingJson, resourcePath, ex);
+            }
+            return null;
         }
 
-        // e.g. SonarLint.VisualStudio.Rules.Embedded.cpp.S101.desc
+        // e.g. SonarLint.VisualStudio.Rules.Embedded.cpp.S101.json
         private static string CalcFullResourceName(Language language, string ruleKey)
-            => $"SonarLint.VisualStudio.Rules.Embedded.{language.ServerLanguage.Key}.{ruleKey}.desc";
+            => $"SonarLint.VisualStudio.Rules.Embedded.{language.ServerLanguage.Key}.{ruleKey}.json";
     }
 }
