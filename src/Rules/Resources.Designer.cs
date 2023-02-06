@@ -69,5 +69,6 @@ namespace SonarLint.VisualStudio.Rules {
                 return ResourceManager.GetString("MetadataProvider_ErrorLoadingJson", resourceCulture);
             }
         }
+        
     }
 }
