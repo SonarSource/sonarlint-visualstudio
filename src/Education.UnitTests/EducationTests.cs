@@ -49,11 +49,11 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
             _ = CreateEducation(toolWindowService: toolWindowService.Object);
 
-            toolWindowService.Verify(x => x.GetToolWindow<RuleDescriptionToolWindow, IRuleDescriptionToolWindow>(), Times.Once);
+            toolWindowService.Verify(x => x.GetToolWindow<RuleHelpToolWindow, IRuleHelpToolWindow>(), Times.Once);
         }
 
         [TestMethod]
-        public void ShowRuleDescription_EverythingGetsCalledCorrectly()
+        public void ShowRuleHelp_EverythingGetsCalledCorrectly()
         {
             var ruleMetaDataProvider = new Mock<IRuleMetadataProvider>();
             var ruleId = new SonarCompositeRuleId("repoKey","ruleKey");
@@ -65,18 +65,18 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var ruleHelpXamlBuilder = new Mock<IRuleHelpXamlBuilder>();
             ruleHelpXamlBuilder.Setup(x => x.Create(ruleInfo)).Returns(flowDocument);
 
-            var ruleDescriptionToolWindow = new Mock<IRuleDescriptionToolWindow>();
+            var ruleDescriptionToolWindow = new Mock<IRuleHelpToolWindow>();
 
             var toolWindowService = new Mock<IToolWindowService>();
-            toolWindowService.Setup(x => x.GetToolWindow<RuleDescriptionToolWindow, IRuleDescriptionToolWindow>()).Returns(ruleDescriptionToolWindow.Object);
+            toolWindowService.Setup(x => x.GetToolWindow<RuleHelpToolWindow, IRuleHelpToolWindow>()).Returns(ruleDescriptionToolWindow.Object);
 
             var testSubject = CreateEducation(toolWindowService: toolWindowService.Object, ruleMetadataProvider: ruleMetaDataProvider.Object, ruleHelpXamlBuilder: ruleHelpXamlBuilder.Object);
-            testSubject.ShowRuleDescription(ruleId);
+            testSubject.ShowRuleHelp(ruleId);
 
             ruleMetaDataProvider.Verify(x => x.GetRuleInfo(ruleId), Times.Once);
             ruleHelpXamlBuilder.Verify(x => x.Create(ruleInfo), Times.Once);
             ruleDescriptionToolWindow.Verify(x => x.UpdateContent(flowDocument), Times.Once);
-            toolWindowService.Verify(x => x.Show(RuleDescriptionToolWindow.ToolWindowId), Times.Once);
+            toolWindowService.Verify(x => x.Show(RuleHelpToolWindow.ToolWindowId), Times.Once);
         }
 
         private Education CreateEducation(IToolWindowService toolWindowService = null, IRuleMetadataProvider ruleMetadataProvider = null, ILogger logger = null, IRuleHelpXamlBuilder ruleHelpXamlBuilder = null)

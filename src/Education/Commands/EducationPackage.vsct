@@ -7,7 +7,7 @@
 
   <Commands package="guidEducationPackage">
     <Buttons>
-      <Button guid="guidEducationPackageCmdSet" id="RuleDescriptionWindowCommandId" priority="0x0100" type="Button">
+      <Button guid="guidEducationPackageCmdSet" id="RuleHelpWindowCommandId" priority="0x0100" type="Button">
         <Parent guid="SonarLintCmdSet" id="SonarLintGroup"/>
         <Strings>
           <ButtonText>Open Rule Help</ButtonText>
@@ -22,7 +22,7 @@
 
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidEducationPackageCmdSet" value="{80127033-1819-4996-8C45-E9C96F75E2A8}">
-      <IDSymbol name="RuleDescriptionWindowCommandId" value="0x0100" />
+      <IDSymbol name="RuleHelpWindowCommandId" value="0x0100" />
     </GuidSymbol>
 
     <GuidSymbol name="SonarLintCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
