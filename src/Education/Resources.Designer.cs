@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Education {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sonar Rule Description.
+        ///   Looks up a localized string similar to Sonar Rule Help.
         /// </summary>
         internal static string RuleDescriptionToolWindowCaption {
             get {
