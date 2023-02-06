@@ -57,13 +57,7 @@ namespace SonarLint.VisualStudio.Rules
         public IRuleInfo GetRuleInfo(Language language, string ruleKey)
             => language?.ServerLanguage?.Key == null
                 ? null : LoadRuleInfo(language, ruleKey);
-        
-        private IRuleInfo LoadRuleInfo(Language language, string ruleKey)
-        {
-            var ruleInfo = LoadRuleInfo(language, ruleKey);
-            return ruleInfo?.Description ?? Resources.Rules_DescriptionForMissingRule;
-        }
-        
+                
         private IRuleInfo LoadRuleInfo(Language language, string ruleKey)
         {
             var resourcePath = CalcFullResourceName(language, ruleKey);
