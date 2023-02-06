@@ -70,13 +70,5 @@ namespace SonarLint.VisualStudio.Rules {
             }
         }
         
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to locate a description for this rule. A description should be available at https://rules.sonarsource.com..
-        /// </summary>
-        internal static string Rules_DescriptionForMissingRule {
-            get {
-                return ResourceManager.GetString("Rules_DescriptionForMissingRule", resourceCulture);
-            }
-        }
     }
 }

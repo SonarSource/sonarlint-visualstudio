@@ -64,11 +64,11 @@ namespace SonarLint.VisualStudio.Education
 
         public void ShowRuleDescription(Language language, string ruleKey)
         {
-            var ruleHelp = ruleMetadataProvider.GetRuleHelp(language, ruleKey);
+            var ruleInfo = ruleMetadataProvider.GetRuleInfo(language, ruleKey);
 
             threadHandling.RunOnUIThread(() =>
             {
-                var flowDocument = ruleHelpXamlBuilder.Create(ruleHelp);
+                var flowDocument = ruleHelpXamlBuilder.Create(ruleInfo);
 
                 ruleDescriptionToolWindow.UpdateContent(flowDocument);
 
