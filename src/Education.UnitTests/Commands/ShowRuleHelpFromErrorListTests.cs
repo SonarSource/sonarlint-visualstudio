@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Commands
             var testSubject = CreateTestSubject(education: education.Object, errorListHelper: errorListHelper);
             var result = testSubject.HandleInterception();
 
-            education.Verify(x => x.ShowRuleDescription(It.IsAny<SonarCompositeRuleId>()), Times.Once);
+            education.Verify(x => x.ShowRuleHelp(It.IsAny<SonarCompositeRuleId>()), Times.Once);
             education.Invocations.Should().HaveCount(1);
             var actualRuleId = (SonarCompositeRuleId)education.Invocations[0].Arguments[0];
             actualRuleId.RepoKey.Should().Be(expectedRepoKey);

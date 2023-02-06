@@ -61,11 +61,11 @@ namespace SonarLint.VisualStudio.Education {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Education] Error displaying Rule Description Window: {0}.
+        ///   Looks up a localized string similar to [Education] Error displaying Rule Help Window: {0}.
         /// </summary>
-        internal static string ERR_RuleDescriptionToolWindow_Exception {
+        internal static string ERR_RuleHelpToolWindow_Exception {
             get {
-                return ResourceManager.GetString("ERR_RuleDescriptionToolWindow_Exception", resourceCulture);
+                return ResourceManager.GetString("ERR_RuleHelpToolWindow_Exception", resourceCulture);
             }
         }
         
@@ -90,9 +90,9 @@ namespace SonarLint.VisualStudio.Education {
         /// <summary>
         ///   Looks up a localized string similar to Sonar Rule Help.
         /// </summary>
-        internal static string RuleDescriptionToolWindowCaption {
+        internal static string RuleHelpToolWindowCaption {
             get {
-                return ResourceManager.GetString("RuleDescriptionToolWindowCaption", resourceCulture);
+                return ResourceManager.GetString("RuleHelpToolWindowCaption", resourceCulture);
             }
         }
         

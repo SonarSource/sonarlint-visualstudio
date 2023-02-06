@@ -24,11 +24,11 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Education.Commands
 {
-    public sealed partial class RuleDescriptionUserControl : UserControl
+    public sealed partial class RuleHelpUserControl : UserControl
     {
         private readonly IBrowserService browserService;
 
-        internal RuleDescriptionUserControl(IBrowserService browserService)
+        internal RuleHelpUserControl(IBrowserService browserService)
         {
             this.browserService = browserService;
             InitializeComponent();

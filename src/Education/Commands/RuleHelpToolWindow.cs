@@ -26,22 +26,22 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Education.Commands
 {
-    public interface IRuleDescriptionToolWindow
+    public interface IRuleHelpToolWindow
     {
         void UpdateContent(FlowDocument newContent);
     }
 
     [Guid(ToolWindowIdAsString)]
-    internal class RuleDescriptionToolWindow : ToolWindowPane, IRuleDescriptionToolWindow
+    internal class RuleHelpToolWindow : ToolWindowPane, IRuleHelpToolWindow
     {
         private const string ToolWindowIdAsString = "9E74B368-9FC3-47B0-A1C7-2DBA3A2C1762";
         public static readonly Guid ToolWindowId = new Guid(ToolWindowIdAsString);
-        private readonly RuleDescriptionUserControl control;
+        private readonly RuleHelpUserControl control;
 
-        public RuleDescriptionToolWindow(IBrowserService browserService)
+        public RuleHelpToolWindow(IBrowserService browserService)
         {
-            Caption = Resources.RuleDescriptionToolWindowCaption;
-            control = new RuleDescriptionUserControl(browserService);
+            Caption = Resources.RuleHelpToolWindowCaption;
+            control = new RuleHelpUserControl(browserService);
             Content = control;
         }
 
