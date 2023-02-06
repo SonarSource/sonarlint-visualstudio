@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using FluentAssertions;
@@ -41,15 +42,13 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         }
 
         [TestMethod]
-        public void GetRuleHelp_UnknownLanguage_ReturnsMissingHelp()
+        public void GetRuleHelp_UnknownLanguage_ReturnsNullp()
         {
             var testSubject = CreateTestSubject();
 
-            var actual = testSubject.GetRuleHelp(Language.Unknown, "S100");
+            var actual = testSubject.GetRuleInfo(Language.Unknown, "S100");
 
-            actual.Language.Should().Be(Language.Unknown);
-            actual.RuleKey.Should().Be("S100");
-            actual.HtmlDescription.Should().Be(Resources.Rules_DescriptionForMissingRule);
+            actual.Should().BeNull();
         }
 
         [TestMethod]
@@ -57,11 +56,9 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         {
             var testSubject = CreateTestSubject();
 
-            var actual = testSubject.GetRuleHelp(Language.Cpp, "unknown rule key");
+            var actual = testSubject.GetRuleInfo(Language.Cpp, "unknown rule key");
 
-            actual.Language.Should().Be(Language.Cpp);
-            actual.RuleKey.Should().Be("unknown rule key");
-            actual.HtmlDescription.Should().Be(Resources.Rules_DescriptionForMissingRule);
+            actual.Should().BeNull();
         }
 
         [TestMethod]
@@ -84,21 +81,46 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
                 CheckRule(name);
             }
 
+  
             void CheckRule(string fullResourceName)
             {
                 Console.WriteLine("Checking " + fullResourceName);
 
-                (Language language, string ruleKey) = GetLanguageAndKeyFromResourceName(fullResourceName);
+                (Language expectedLanguage, string ruleKey) = GetLanguageAndKeyFromResourceName(fullResourceName);
+                var expectedFullRuleKey = HACK_CalcFullRuleKey(expectedLanguage.ServerLanguage.Key, ruleKey);
                 var expectedDescription = GetEmbeddedRuleDescription(fullResourceName);
 
-                var actual = testSubject.GetRuleHelp(language, ruleKey);
+                var actual = testSubject.GetRuleInfo(expectedLanguage, ruleKey);
 
-                actual.Language.Should().Be(language);
-                actual.RuleKey.Should().Be(ruleKey);
-                actual.HtmlDescription.Should().Be(expectedDescription);
-                actual.HtmlDescription.Should().NotBeNullOrWhiteSpace();
+                var actualLanguage = Language.GetLanguageFromLanguageKey(actual.LanguageKey);
+                actualLanguage.Should().Be(expectedLanguage);
+
+                actual.FullRuleKey.Should().Be(expectedFullRuleKey);
+                actual.Description.Should().Be(expectedDescription);
+                actual.Description.Should().NotBeNullOrWhiteSpace();
+            }
+
+            // HACK: this won't be required once the metadata provider is passes the repo
+            // key instead of the language key
+            string HACK_CalcFullRuleKey(string languageKey, string partialRuleKey)
+            {
+                if (!mapLanguageToRepoKey.TryGetValue(languageKey, out var repoKey))
+                {
+                    throw new InvalidOperationException($"Error - unknown language key: {languageKey}");
+                }
+                return repoKey + ":" + partialRuleKey;
             }
         }
+
+        private static readonly IDictionary<string, string> mapLanguageToRepoKey = new Dictionary<string, string>
+        {
+            { "cs", "csharpsquid" },
+            { "vbnet", "vbnet" },
+            { "c", "c" },
+            { "cpp", "cpp" },
+            { "js", "javascript" },
+            { "ts", "typescript" }
+        };
 
         private static RuleMetadataProvider CreateTestSubject()
             => new RuleMetadataProvider(new TestLogger(logToConsole: true));
