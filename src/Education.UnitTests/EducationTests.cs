@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
@@ -77,6 +78,34 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             ruleHelpXamlBuilder.Verify(x => x.Create(ruleInfo), Times.Once);
             ruleDescriptionToolWindow.Verify(x => x.UpdateContent(flowDocument), Times.Once);
             toolWindowService.Verify(x => x.Show(RuleHelpToolWindow.ToolWindowId), Times.Once);
+        }
+
+        [TestMethod]
+        public void ShowRuleHelp_UnknownRule_ToolWindowIsNotUpdated()
+        {
+            var toolWindowService = new Mock<IToolWindowService>();
+            var ruleMetadataProvider = new Mock<IRuleMetadataProvider>();
+            var logger = new TestLogger(logToConsole: true);
+            var ruleHelpXamlBuilder = new Mock<IRuleHelpXamlBuilder>();
+
+            var unknownRule = new SonarCompositeRuleId("known", "xxx");
+            ruleMetadataProvider.Setup(x => x.GetRuleInfo(unknownRule)).Returns((IRuleInfo)null);
+
+            var testSubject = CreateEducation(
+                toolWindowService.Object,
+                ruleMetadataProvider.Object,
+                logger,
+                ruleHelpXamlBuilder.Object);
+
+            toolWindowService.Reset(); // Called in the constructor, so need to reset to clear the list of invocations
+            
+            testSubject.ShowRuleHelp(unknownRule);
+
+            ruleMetadataProvider.Verify(x => x.GetRuleInfo(unknownRule), Times.Once);
+            ruleHelpXamlBuilder.Invocations.Should().HaveCount(0);
+            toolWindowService.Invocations.Should().HaveCount(0);
+
+            logger.AssertPartialOutputStringExists(unknownRule.ErrorListErrorCode);
         }
 
         private Education CreateEducation(IToolWindowService toolWindowService = null, IRuleMetadataProvider ruleMetadataProvider = null, ILogger logger = null, IRuleHelpXamlBuilder ruleHelpXamlBuilder = null)

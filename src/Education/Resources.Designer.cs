@@ -61,6 +61,15 @@ namespace SonarLint.VisualStudio.Education {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Education] Unable to locate help for rule &apos;{0}&apos;. Help should be available at https://rules.sonarsource.com..
+        /// </summary>
+        internal static string Education_NoRuleInfo {
+            get {
+                return ResourceManager.GetString("Education_NoRuleInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Education] Error displaying Rule Help Window: {0}.
         /// </summary>
         internal static string ERR_RuleHelpToolWindow_Exception {

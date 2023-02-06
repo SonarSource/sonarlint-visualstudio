@@ -69,6 +69,12 @@ namespace SonarLint.VisualStudio.Education
         {
             var ruleInfo = ruleMetadataProvider.GetRuleInfo(ruleId);
 
+            if (ruleInfo == null)
+            {
+                logger.WriteLine(Resources.Education_NoRuleInfo, ruleId.ErrorListErrorCode);
+                return;
+            }
+
             threadHandling.RunOnUIThread(() =>
             {
                 var flowDocument = ruleHelpXamlBuilder.Create(ruleInfo);
