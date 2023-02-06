@@ -43,11 +43,6 @@ namespace SonarLint.VisualStudio.Education
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             await RuleHelpWindowCommand.InitializeAsync(this);
-
-            // Bug: can crash VS.
-            // See https://github.com/SonarSource/sonarlint-visualstudio/issues/3620
-            //var componentModel = await GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
-            //componentModel.GetService<IShowHelpFromErrorList>();
         }
 
         protected override WindowPane InstantiateToolWindow(Type toolWindowType)
