@@ -7,7 +7,7 @@
 
     <UserControl.Resources>
         <!-- Defines the standard set of style used by the document elements -->
-        
+
         <!--<Style TargetType="Paragraph">
             <Setter Property="Margin" Value="3" />
         </Style>-->
@@ -16,6 +16,10 @@
             <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
             <Setter Property="FontSize" Value="{DynamicResource {x:Static vsshell:VsFonts.EnvironmentFontSizeKey}}"/>
             <Setter Property="FontFamily" Value="{DynamicResource {x:Static vsshell:VsFonts.EnvironmentFontFamilyKey}}"/>
+
+            <Setter Property="IsOptimalParagraphEnabled" Value="True" />
+            <Setter Property="IsHyphenationEnabled" Value="True" />
+
         </Style>
         <Style x:Key="Pre_Section" TargetType="Section">
             <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsshell:VsBrushes.PanelBorderKey}}"/>
