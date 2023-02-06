@@ -137,6 +137,47 @@ namespace SonarQube.Client.Tests.Models.ServerSentEvents
                     issues: new[] { new BranchAndIssueKey("key1", "master") }));
         }
 
+        [TestMethod]
+        public async Task ReadAsync_TaintVulnerabilityClosedEventType_DeserializedEvent()
+        {
+            const string serializedTaintVulnerabilityClosedEvent =
+                "{\"projectKey\": \"projectKey1\",\"key\": \"taintKey\"}";
+
+            var channel = CreateChannelWithEvents(new SqServerEvent("TaintVulnerabilityClosed", serializedTaintVulnerabilityClosedEvent));
+
+            var testSubject = CreateTestSubject(sqEventsChannel: channel);
+
+            var result = await testSubject.ReadAsync();
+
+            result.Should().NotBeNull();
+            result.Should().BeOfType<TaintVulnerabilityClosedServerEvent>();
+            result.Should().BeEquivalentTo(
+                new TaintVulnerabilityClosedServerEvent(
+                    projectKey: "projectKey1",
+                    key: "taintKey"));
+        }
+
+        [TestMethod]
+        public async Task ReadAsync_TaintVulnerabilityRaisedEventType_DeserializedEvent()
+        {
+            const string serializedTaintVulnerabilityRaisedEvent =
+                "{\"key\": \"taintKey\",\"projectKey\": \"projectKey1\",\"branch\": \"master\" }";
+
+            var channel = CreateChannelWithEvents(new SqServerEvent("TaintVulnerabilityRaised", serializedTaintVulnerabilityRaisedEvent));
+
+            var testSubject = CreateTestSubject(sqEventsChannel: channel);
+
+            var result = await testSubject.ReadAsync();
+
+            result.Should().NotBeNull();
+            result.Should().BeOfType<TaintVulnerabilityRaisedServerEvent>();
+            result.Should().BeEquivalentTo(
+                new TaintVulnerabilityRaisedServerEvent(
+                    projectKey: "projectKey1",
+                    key: "taintKey",
+                    branch: "master"));
+        }
+
         private Channel<ISqServerEvent> CreateChannelWithEvents(params ISqServerEvent[] events)
         {
             var channel = Channel.CreateUnbounded<ISqServerEvent>();
