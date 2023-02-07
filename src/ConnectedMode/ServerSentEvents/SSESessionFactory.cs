@@ -24,15 +24,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.ServerSentEvents;
 using SonarLint.VisualStudio.Core.ServerSentEvents.Issues;
 using SonarLint.VisualStudio.Core.ServerSentEvents.TaintVulnerabilities;
 using SonarQube.Client;
+using SonarQube.Client.Models.ServerSentEvents;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
 namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 {
     /// <summary>
-    /// Factory for <see cref="ISSESession"/>. Responsible for disposing EventSourcePublishers
+    /// Factory for <see cref="ISSESession"/>. Responsible for disposing EventSourcePublishers <see cref="IServerSentEventSourcePublisher{T}"/>
     /// </summary>
     internal interface ISSESessionFactory : IDisposable
     {
@@ -40,7 +42,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
     }
 
     /// <summary>
-    /// Represents the session entity, that is responsible for dealing with SQ Client's SSE Session reader
+    /// Represents the session entity, that is responsible for dealing with <see cref="ISSEStreamReader"/> reader
     /// and propagating events to correct topic event publishers
     /// </summary>
     internal interface ISSESession : IDisposable

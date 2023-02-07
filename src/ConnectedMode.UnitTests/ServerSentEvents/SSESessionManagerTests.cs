@@ -38,11 +38,11 @@ public class SSESessionManagerTests
     }
 
     [TestMethod]
-    public void Ctor_SubscribesToSolutionEvents()
+    public void Ctor_SubscribesToBindingChangedEvent()
     {
         var solutionTrackerMock = new Mock<IActiveSolutionBoundTracker>();
 
-        var testSubject = new SSESessionManager(solutionTrackerMock.Object, Mock.Of<ISSESessionFactory>());
+        var _ = new SSESessionManager(solutionTrackerMock.Object, Mock.Of<ISSESessionFactory>());
 
         solutionTrackerMock.VerifyAdd(
             solutionTracker => solutionTracker.SolutionBindingChanged +=
