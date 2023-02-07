@@ -45,8 +45,8 @@ public class SSESessionTests
         var mockSequence = new MockSequence();
         testScope.SetUpBackgroundThread(mockSequence);
         testScope.SonarQubeServiceMock
-            .Setup(sqs => sqs.CreateServerSentEventsSession(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IServerSentEventsSession)null);
+            .Setup(sqs => sqs.CreateServerSentEventsStream(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ISSEStream)null);
         
         Func<Task> act = () => testScope.TestSubject.PumpAllAsync();
 
@@ -129,9 +129,9 @@ public class SSESessionTests
     public async Task Dispose_FinishesSession()
     {
         var testScope = new TestScope();
-        var readerMock = testScope.SetUpReaderInitialization();
+        var sseStreamMock = testScope.SetUpSSEStream();
         var readTcs = new TaskCompletionSource<IServerEvent>();
-        readerMock.Setup(reader => reader.ReadAsync()).Returns(readTcs.Task);
+        sseStreamMock.Setup(x => x.ReadAsync()).Returns(readTcs.Task);
 
         var pumpTask = testScope.TestSubject.PumpAllAsync();
         testScope.TestSubject.Dispose();
@@ -173,17 +173,17 @@ public class SSESessionTests
         public void SetupFiniteSSESequence(params IServerEvent[] inputSequence)
         {
             var mockSequence = new MockSequence();
-            var readerMock = SetUpReaderInitialization(mockSequence);
+            var sseStreamMock = SetUpSSEStream(mockSequence);
 
             foreach (var serverEvent in inputSequence)
             {
-                readerMock
+                sseStreamMock
                     .InSequence(mockSequence)
                     .Setup(r => r.ReadAsync())
                     .ReturnsAsync(serverEvent);
             }
 
-            readerMock
+            sseStreamMock
                 .InSequence(mockSequence)
                 .Setup(r => r.ReadAsync())
                 .ReturnsAsync(() =>
@@ -193,24 +193,24 @@ public class SSESessionTests
                 });
         }
 
-        public Mock<IServerSentEventsSession> SetUpReaderInitialization(MockSequence mockSequence = null)
+        public Mock<ISSEStream> SetUpSSEStream(MockSequence mockSequence = null)
         {
             mockSequence ??= new MockSequence();
-            var readerMock = mockRepository.Create<IServerSentEventsSession>();
+            var sseStreamMock = mockRepository.Create<ISSEStream>();
 
             SetUpBackgroundThread(mockSequence);
 
             SonarQubeServiceMock
                 .InSequence(mockSequence)
-                .Setup(client => client.CreateServerSentEventsSession(It.IsAny<string>(),
+                .Setup(client => client.CreateServerSentEventsStream(It.IsAny<string>(),
                     It.Is<CancellationToken>(token => token != CancellationToken.None)))
                 .ReturnsAsync((string _, CancellationToken tokenArg) =>
                 {
                     CapturedSessionToken = tokenArg;
-                    return readerMock.Object;
+                    return sseStreamMock.Object;
                 });
 
-            return readerMock;
+            return sseStreamMock;
         }
 
         public void SetUpBackgroundThread(MockSequence mockSequence)

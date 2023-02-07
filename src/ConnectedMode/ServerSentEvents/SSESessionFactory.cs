@@ -22,6 +22,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ServerSentEvents.Issues;
 using SonarLint.VisualStudio.Core.ServerSentEvents.TaintVulnerabilities;
@@ -132,19 +133,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
                 await threadHandling.SwitchToBackgroundThread();
 
-                var sseStreamReader =
-                    await sonarQubeService.CreateServerSentEventsSession(projectKey, sessionTokenSource.Token);
+                var sseStream = await sonarQubeService.CreateServerSentEventsStream(projectKey, sessionTokenSource.Token);
 
-                if (sseStreamReader == null)
+                if (sseStream == null)
                 {
                     return;
                 }
+
+                sseStream.BeginListening().Forget();
 
                 while (!sessionTokenSource.IsCancellationRequested)
                 {
                     try
                     {
-                        var serverEvent = await sseStreamReader.ReadAsync();
+                        var serverEvent = await sseStream.ReadAsync();
 
                         if (serverEvent == null)
                         {
