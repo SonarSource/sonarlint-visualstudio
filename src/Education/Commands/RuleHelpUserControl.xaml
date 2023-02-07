@@ -52,6 +52,7 @@
         <Style x:Key="SubtitleElement_Image" TargetType="Image">
             <Setter Property="Margin" Value="0,0,3,0" />
             <Setter Property="Stretch" Value="None" />
+            <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality" />
         </Style>
         <Style x:Key="Heading2_Paragraph" TargetType="Paragraph">
             <Setter Property="FontFamily" Value="{DynamicResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}"/>
