@@ -24,7 +24,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarQube.Client;
@@ -122,35 +121,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
             browserService.VerifyNoOtherCalls();
         }
 
-        [TestMethod]
-        public void ShowRuleDescription_BrowserOpened()
-        {
-            const string ruleKey = "some key";
-            const string ruleUrl = "some url";
-
-            var helpLinkProvider = new Mock<IRuleHelpLinkProvider>();
-            var browserService = new Mock<IBrowserService>();
-            helpLinkProvider.Setup(x => x.GetHelpLink(ruleKey)).Returns(ruleUrl);
-
-            var testSubject = CreateTestSubject(browserService: browserService.Object, helpLinkProvider: helpLinkProvider.Object);
-
-            testSubject.ShowRuleDescription(ruleKey);
-
-            browserService.Verify(x => x.Navigate(ruleUrl), Times.Once());
-            browserService.VerifyNoOtherCalls();
-        }
-
         private ShowInBrowserService CreateTestSubject(ISonarQubeService sonarQubeService = null,
             IConfigurationProvider configurationProvider = null,
-            IBrowserService browserService = null,
-            IRuleHelpLinkProvider helpLinkProvider = null)
+            IBrowserService browserService = null)
         {
             sonarQubeService ??= Mock.Of<ISonarQubeService>();
             configurationProvider ??= Mock.Of<IConfigurationProvider>();
             browserService ??= Mock.Of<IBrowserService>();
-            helpLinkProvider ??= Mock.Of<IRuleHelpLinkProvider>();
 
-            return new ShowInBrowserService(sonarQubeService, configurationProvider, browserService, helpLinkProvider);
+            return new ShowInBrowserService(sonarQubeService, configurationProvider, browserService);
         }
     }
 }
