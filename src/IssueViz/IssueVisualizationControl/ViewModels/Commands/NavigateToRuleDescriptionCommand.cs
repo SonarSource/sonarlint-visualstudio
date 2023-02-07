@@ -21,7 +21,7 @@
 using System.ComponentModel.Composition;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
-using SonarLint.VisualStudio.IssueVisualization.Helpers;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands
 {
@@ -34,13 +34,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
     internal class NavigateToRuleDescriptionCommand : DelegateCommand, INavigateToRuleDescriptionCommand
     {
         [ImportingConstructor]
-        public NavigateToRuleDescriptionCommand(IShowInBrowserService showInBrowserService)
+        public NavigateToRuleDescriptionCommand(IEducation educationService)
             : base(parameter =>
                 {
-                    var ruleKey = (string) parameter;
-                    showInBrowserService.ShowRuleDescription(ruleKey);
+                    var fullRuleKey = (string) parameter;
+                    if (SonarCompositeRuleId.TryParse(fullRuleKey, out var ruleId))
+                    {
+                        educationService.ShowRuleHelp(ruleId);
+                    }
                 },
-                parameter => parameter is string s && !string.IsNullOrEmpty(s))
+                parameter => parameter is string s &&
+                    !string.IsNullOrEmpty(s) && 
+                SonarCompositeRuleId.TryParse(s, out var _))
         {
         }
     }

@@ -22,7 +22,6 @@ using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Helpers
@@ -32,8 +31,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
         void ShowIssue(string issueKey);
 
         void ShowDocumentation();
-
-        void ShowRuleDescription(string ruleKey);
 
         void ShowCommunityPage();
     }
@@ -45,25 +42,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
         private readonly ISonarQubeService sonarQubeService;
         private readonly IConfigurationProvider configurationProvider;
         private readonly IBrowserService vsBrowserService;
-        private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
 
         [ImportingConstructor]
         public ShowInBrowserService(ISonarQubeService sonarQubeService,
             IConfigurationProvider configurationProvider,
             IBrowserService vsBrowserService)
-            : this(sonarQubeService, configurationProvider, vsBrowserService, new RuleHelpLinkProvider())
-        {
-        }
-
-        internal ShowInBrowserService(ISonarQubeService sonarQubeService,
-            IConfigurationProvider configurationProvider,
-            IBrowserService vsBrowserService,
-            IRuleHelpLinkProvider ruleHelpLinkProvider)
         {
             this.sonarQubeService = sonarQubeService;
             this.configurationProvider = configurationProvider;
             this.vsBrowserService = vsBrowserService;
-            this.ruleHelpLinkProvider = ruleHelpLinkProvider;
         }
 
         public void ShowIssue(string issueKey)
@@ -89,13 +76,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
         public void ShowDocumentation()
         {
             vsBrowserService.Navigate("https://github.com/SonarSource/sonarlint-visualstudio/wiki");
-        }
-
-        public void ShowRuleDescription(string ruleKey)
-        {
-            var helpLink = ruleHelpLinkProvider.GetHelpLink(ruleKey);
-
-            vsBrowserService.Navigate(helpLink);
         }
 
         public void ShowCommunityPage()
