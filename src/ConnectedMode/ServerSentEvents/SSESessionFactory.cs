@@ -142,7 +142,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
                     return;
                 }
 
-                sseStream.BeginListening().Forget();
+                /* todo/note: commented this because it broke the test and we may move away from this interface
+                sseStream.BeginListening().Forget();*/
 
                 while (!sessionTokenSource.IsCancellationRequested)
                 {

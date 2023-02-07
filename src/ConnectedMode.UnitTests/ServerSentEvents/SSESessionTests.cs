@@ -42,9 +42,9 @@ public class SSESessionTests
     public void PumpAllAsync_WhenSonarQubeRefusesConnection_DoesNotThrow()
     {
         var testScope = new TestScope();
-        var mockSequence = new MockSequence();
-        testScope.SetUpBackgroundThread(mockSequence);
+        testScope.SetUpSwitchToBackgroundThread();
         testScope.SonarQubeServiceMock
+            .InSequence(testScope.MainCallSequence)
             .Setup(sqs => sqs.CreateServerSentEventsStream(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ISSEStream)null);
         
@@ -68,7 +68,9 @@ public class SSESessionTests
             Mock.Of<IIssueChangedServerEvent>(),
             Mock.Of<ITaintVulnerabilityRaisedServerEvent>()
         };
-        testScope.SetupFiniteSSESequence(inputSequence);
+        testScope.SetUpSwitchToBackgroundThread();
+        var sseStreamMock = testScope.SetUpSQServiceToSuccessfullyReturnSSEStream();
+        testScope.SetUpSSEStreamToReturnEventsSequenceAndExit(sseStreamMock, inputSequence);
 
         await testScope.TestSubject.PumpAllAsync();
         
@@ -89,8 +91,10 @@ public class SSESessionTests
     public async Task PumpAllAsync_WhenNullEvent_Ignores()
     {
         var testScope = new TestScope();
-        testScope.SetupFiniteSSESequence(Mock.Of<IIssueChangedServerEvent>(), null,
-            Mock.Of<ITaintVulnerabilityRaisedServerEvent>());
+        testScope.SetUpSwitchToBackgroundThread();
+        var sseStreamMock = testScope.SetUpSQServiceToSuccessfullyReturnSSEStream();
+        testScope.SetUpSSEStreamToReturnEventsSequenceAndExit(sseStreamMock, 
+            new IServerEvent[]{ Mock.Of<IIssueChangedServerEvent>(), null, Mock.Of<ITaintVulnerabilityRaisedServerEvent>()});
 
         await testScope.TestSubject.PumpAllAsync();
 
@@ -103,7 +107,10 @@ public class SSESessionTests
     public async Task PumpAllAsync_WhenPublisherDisposed_Finishes()
     {
         var testScope = new TestScope();
-        testScope.SetupFiniteSSESequence(Mock.Of<IIssueChangedServerEvent>(), Mock.Of<IIssueChangedServerEvent>());
+        testScope.SetUpSwitchToBackgroundThread();
+        var sseStreamMock = testScope.SetUpSQServiceToSuccessfullyReturnSSEStream();
+        testScope.SetUpSSEStreamToReturnEventsSequenceAndExit(sseStreamMock, 
+            new IServerEvent[]{Mock.Of<IIssueChangedServerEvent>(), Mock.Of<ITaintVulnerabilityRaisedServerEvent>()});
         testScope.IssuesPublisherMock.Setup(publisher => publisher.Publish(It.IsAny<IIssueChangedServerEvent>()))
             .Throws(new ObjectDisposedException(string.Empty));
 
@@ -129,7 +136,8 @@ public class SSESessionTests
     public async Task Dispose_FinishesSession()
     {
         var testScope = new TestScope();
-        var sseStreamMock = testScope.SetUpSSEStream();
+        testScope.SetUpSwitchToBackgroundThread();
+        var sseStreamMock = testScope.SetUpSQServiceToSuccessfullyReturnSSEStream();
         var readTcs = new TaskCompletionSource<IServerEvent>();
         sseStreamMock.Setup(x => x.ReadAsync()).Returns(readTcs.Task);
 
@@ -168,23 +176,21 @@ public class SSESessionTests
         public Mock<IIssueChangedServerEventSourcePublisher> IssuesPublisherMock { get; }
         public Mock<ITaintServerEventSourcePublisher> TaintPublisherMock { get; }
         public CancellationToken? CapturedSessionToken { get; private set; }
+        public MockSequence MainCallSequence { get; } = new MockSequence();
         public ISSESession TestSubject { get; }
 
-        public void SetupFiniteSSESequence(params IServerEvent[] inputSequence)
+        public void SetUpSSEStreamToReturnEventsSequenceAndExit(Mock<ISSEStream> sseStreamMock, IServerEvent[] inputSequence)
         {
-            var mockSequence = new MockSequence();
-            var sseStreamMock = SetUpSSEStream(mockSequence);
-
             foreach (var serverEvent in inputSequence)
             {
                 sseStreamMock
-                    .InSequence(mockSequence)
+                    .InSequence(MainCallSequence)
                     .Setup(r => r.ReadAsync())
                     .ReturnsAsync(serverEvent);
             }
 
             sseStreamMock
-                .InSequence(mockSequence)
+                .InSequence(MainCallSequence)
                 .Setup(r => r.ReadAsync())
                 .ReturnsAsync(() =>
                 {
@@ -193,15 +199,12 @@ public class SSESessionTests
                 });
         }
 
-        public Mock<ISSEStream> SetUpSSEStream(MockSequence mockSequence = null)
+        public Mock<ISSEStream> SetUpSQServiceToSuccessfullyReturnSSEStream()
         {
-            mockSequence ??= new MockSequence();
             var sseStreamMock = mockRepository.Create<ISSEStream>();
 
-            SetUpBackgroundThread(mockSequence);
-
             SonarQubeServiceMock
-                .InSequence(mockSequence)
+                .InSequence(MainCallSequence)
                 .Setup(client => client.CreateServerSentEventsStream(It.IsAny<string>(),
                     It.Is<CancellationToken>(token => token != CancellationToken.None)))
                 .ReturnsAsync((string _, CancellationToken tokenArg) =>
@@ -213,11 +216,10 @@ public class SSESessionTests
             return sseStreamMock;
         }
 
-        public void SetUpBackgroundThread(MockSequence mockSequence)
+        public void SetUpSwitchToBackgroundThread()
         {
-            mockSequence ??= new MockSequence();
             ThreadHandlingMock
-                .InSequence(mockSequence)
+                .InSequence(MainCallSequence)
                 .Setup(th => th.SwitchToBackgroundThread())
                 .Returns(new NoOpThreadHandler.NoOpAwaitable());
         }

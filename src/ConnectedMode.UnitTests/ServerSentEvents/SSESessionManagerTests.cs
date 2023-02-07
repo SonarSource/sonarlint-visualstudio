@@ -52,32 +52,35 @@ public class SSESessionManagerTests
     [DataTestMethod]
     [DataRow(true)]
     [DataRow(false)]
-    public void OnSolutionChanged_CorrectlyIdentifiesOpenAndClose(bool isOpen)
+    public void OnSolutionChanged_CorrectlyIdentifiesOpenAndClose(bool switchToConnectedMode)
     {
         var testScope = new TestScope();
-        testScope.SetUpMockConnection();
 
-        if (isOpen)
+
+        if (switchToConnectedMode)
         {
-            testScope.OpenNewProject();
+            var projectKey = "myproj";
+            testScope.SetUpSSEFactoryToReturnNoOpSSESession(projectKey);
+            testScope.SwitchToConnectedMode(projectKey);
         }
         else
         {
-            testScope.CloseProject();
+            testScope.SwitchToStandaloneMode();
         }
 
         testScope.SSESessionFactoryMock.Verify(factory => factory.Create(It.IsAny<string>()),
-            Times.Exactly(isOpen ? 1 : 0));
+            Times.Exactly(switchToConnectedMode ? 1 : 0));
     }
 
     [TestMethod]
     public void OnSolutionChanged_WhenChangesFromClosedToOpen_CreatesSessionAndLaunchesIt()
     {
         var testScope = new TestScope();
-        testScope.CloseProject();
-        var sessionMock = testScope.SetUpMockConnection();
+        testScope.SwitchToStandaloneMode();
+        var projectKey = "myproj";
+        var sessionMock = testScope.SetUpSSEFactoryToReturnNoOpSSESession(projectKey);
 
-        testScope.OpenNewProject();
+        testScope.SwitchToConnectedMode(projectKey);
 
         testScope.SSESessionFactoryMock.Verify(factory => factory.Create(It.IsAny<string>()), Times.Once);
         sessionMock.Verify(session => session.PumpAllAsync(), Times.Once);
@@ -87,11 +90,12 @@ public class SSESessionManagerTests
     public void OnSolutionChanged_WhenChangesFromOpenToClosed_CancelsSession()
     {
         var testScope = new TestScope();
-        var sessionMock = testScope.SetUpMockConnection();
+        var projectKey = "myproj";
+        var sessionMock = testScope.SetUpSSEFactoryToReturnNoOpSSESession(projectKey);
         sessionMock.Setup(session => session.Dispose());
-        testScope.OpenNewProject();
+        testScope.SwitchToConnectedMode(projectKey);
 
-        testScope.CloseProject();
+        testScope.SwitchToStandaloneMode();
 
         sessionMock.Verify(session => session.Dispose(), Times.Once);
     }
@@ -100,12 +104,14 @@ public class SSESessionManagerTests
     public void OnSolutionChanged_WhenChangesFromOpenToOpen_CancelsSessionAndStartsNewOne()
     {
         var testScope = new TestScope();
-        var sessionMock1 = testScope.SetUpMockConnection();
+        var projectKey1 = "proj1";
+        var projectKey2 = "proj2";
+        var sessionMock1 = testScope.SetUpSSEFactoryToReturnNoOpSSESession(projectKey1);
         sessionMock1.Setup(session => session.Dispose());
-        testScope.OpenNewProject();
-        var sessionMock2 = testScope.SetUpMockConnection();
+        testScope.SwitchToConnectedMode(projectKey1);
+        var sessionMock2 = testScope.SetUpSSEFactoryToReturnNoOpSSESession(projectKey2);
 
-        testScope.OpenNewProject();
+        testScope.SwitchToConnectedMode(projectKey2);
 
         sessionMock1.Verify(session => session.Dispose(), Times.Once);
         sessionMock2.Verify(session => session.Dispose(), Times.Never);
@@ -115,28 +121,29 @@ public class SSESessionManagerTests
     public void Dispose_WhenProjectOpened_CorrectAndIdempotent()
     {
         var testScope = new TestScope();
-        var mockConnection = testScope.SetUpMockConnection();
-        testScope.SetUpMocksDispose(mockConnection);
-        testScope.OpenNewProject();
+        var projectKey = "myproj";
+        var sseSession = testScope.SetUpSSEFactoryToReturnNoOpSSESession(projectKey);
+        testScope.SetUpCorrectDisposeOrder(sseSession);
+        testScope.SwitchToConnectedMode(projectKey);
 
         CallDisposeMultipleTimes(testScope);
 
-        TestDisposal(testScope);
+        CheckEverythingIsDisposedOnce(testScope);
     }
 
     [TestMethod]
     public void Dispose_WhenProjectClosed_CorrectAndIdempotent()
     {
         var testScope = new TestScope();
-        testScope.SetUpMocksDispose(null);
-        testScope.CloseProject();
+        testScope.SetUpCorrectDisposeOrder(null);
+        testScope.SwitchToStandaloneMode();
 
         CallDisposeMultipleTimes(testScope);
 
-        TestDisposal(testScope);
+        CheckEverythingIsDisposedOnce(testScope);
     }
 
-    private static void TestDisposal(TestScope testConfiguration)
+    private static void CheckEverythingIsDisposedOnce(TestScope testConfiguration)
     {
         testConfiguration.ActiveSolutionBoundTrackerMock.VerifyRemove(
             activeSolutionBoundTracker =>
@@ -172,43 +179,41 @@ public class SSESessionManagerTests
 
         public Mock<IActiveSolutionBoundTracker> ActiveSolutionBoundTrackerMock { get; }
         public Mock<ISSESessionFactory> SSESessionFactoryMock { get; }
+        public MockSequence MainCallSequence { get; } = new MockSequence();
         public SSESessionManager SessionManager { get; }
 
-        public void SetUpMocksDispose(Mock<ISSESession> currentSession, MockSequence callSequence = null)
+        public void SetUpCorrectDisposeOrder(Mock<ISSESession> currentSession)
         {
-            callSequence ??= new MockSequence();
             ActiveSolutionBoundTrackerMock.SetupRemove(tracker =>
                 tracker.SolutionBindingChanged -= It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>());
 
-            SSESessionFactoryMock.InSequence(callSequence).Setup(sessionFactory => sessionFactory.Dispose());
+            SSESessionFactoryMock.InSequence(MainCallSequence).Setup(sessionFactory => sessionFactory.Dispose());
 
             if (currentSession != null)
             {
-                currentSession.InSequence(callSequence).Setup(session => session.Dispose());
+                currentSession.InSequence(MainCallSequence).Setup(session => session.Dispose());
             }
         }
 
-        public Mock<ISSESession> SetUpMockConnection(MockSequence callSequence = null)
+        public Mock<ISSESession> SetUpSSEFactoryToReturnNoOpSSESession(string projectKey)
         {
-            callSequence ??= new MockSequence();
-
             var sseSessionMock = mockRepository.Create<ISSESession>();
-            SSESessionFactoryMock.InSequence(callSequence)
-                .Setup(sessionFactory => sessionFactory.Create(It.IsAny<string>())).Returns(sseSessionMock.Object);
+            SSESessionFactoryMock.InSequence(MainCallSequence)
+                .Setup(sessionFactory => sessionFactory.Create(projectKey)).Returns(sseSessionMock.Object);
 
-            sseSessionMock.InSequence(callSequence).Setup(session => session.PumpAllAsync())
+            sseSessionMock.InSequence(MainCallSequence).Setup(session => session.PumpAllAsync())
                 .Returns(Task.CompletedTask);
 
             return sseSessionMock;
         }
 
-        public void OpenNewProject()
+        public void SwitchToConnectedMode(string projectKey)
         {
-            var openProjectEvent = CreateNewOpenProjectEvent();
+            var openProjectEvent = CreateNewOpenProjectEvent(projectKey);
             RaiseSolutionBindingEvent(openProjectEvent);
         }
 
-        public void CloseProject()
+        public void SwitchToStandaloneMode()
         {
             RaiseSolutionBindingEvent(ClosedProjectEvent);
         }
@@ -218,11 +223,11 @@ public class SSESessionManagerTests
             ActiveSolutionBoundTrackerMock.Raise(tracker => tracker.SolutionBindingChanged += null, args);
         }
 
-        private static ActiveSolutionBindingEventArgs CreateNewOpenProjectEvent()
+        private static ActiveSolutionBindingEventArgs CreateNewOpenProjectEvent(string projectKey)
         {
             var randomString = Guid.NewGuid().ToString();
             return new ActiveSolutionBindingEventArgs(new BindingConfiguration(
-                new BoundSonarQubeProject(new Uri("http://localhost"), randomString, randomString),
+                new BoundSonarQubeProject(new Uri("http://localhost"), projectKey, randomString),
                 SonarLintMode.Connected,
                 randomString));
         }
