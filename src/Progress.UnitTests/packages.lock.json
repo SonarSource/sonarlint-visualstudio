@@ -1274,7 +1274,8 @@
           "Google.Protobuf": "[3.6.1, )",
           "Grpc.Tools": "[1.4.1, )",
           "Newtonsoft.Json": "[13.0.1, )",
-          "System.Net.Http": "[4.0.0, )"
+          "System.Net.Http": "[4.0.0, )",
+          "System.Threading.Channels": "[7.0.0, )"
         }
       }
     }
