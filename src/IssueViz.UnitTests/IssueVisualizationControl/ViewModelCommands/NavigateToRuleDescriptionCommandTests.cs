@@ -21,7 +21,7 @@
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.IssueVisualization.Helpers;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualizationControl.ViewModelCommands
@@ -34,6 +34,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         [DataRow("")]
         [DataRow(1)]
         [DataRow(true)]
+        [DataRow("rule key in invalid format")]
+        [DataRow(":xxx")]
+        [DataRow(":123:")]
+        [DataRow("xxx:123:asd")]
         public void CanExecute_InvalidRuleKey_False(object parameter)
         {
             var testSubject = CreateTestSubject();
@@ -44,30 +48,49 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         }
 
         [TestMethod]
-        public void CanExecute_ValidRuleKey_True()
+        [DataRow("c:S000")]
+        [DataRow("cpp:S111")]
+        [DataRow("csharpsquid:S222")]
+        [DataRow("vbnet:S333")]
+        [DataRow("javascript:S444")]
+        [DataRow("typescript:555")]
+        public void CanExecute_ValidRuleKey_True(string fullRuleKey)
         {
             var testSubject = CreateTestSubject();
 
-            var result = testSubject.CanExecute("some key");
+            var result = testSubject.CanExecute(fullRuleKey);
 
             result.Should().BeTrue();
         }
 
         [TestMethod]
-        public void Execute_RuleDocumentationShown()
+        [DataRow("c:S000")]
+        [DataRow("cpp:S111")]
+        [DataRow("csharpsquid:S222")]
+        [DataRow("vbnet:S333")]
+        [DataRow("javascript:S444")]
+        [DataRow("typescript:555")]
+        public void Execute_RuleDocumentationShown(string fullRuleKey)
         {
-            var browserService = new Mock<IShowInBrowserService>();
-            var testSubject = CreateTestSubject(browserService.Object);
+            var educationService = new Mock<IEducation>();
+            var testSubject = CreateTestSubject(educationService.Object);
 
-            testSubject.Execute("some key");
+            testSubject.Execute(fullRuleKey);
 
-            browserService.Verify(x => x.ShowRuleDescription("some key"), Times.Once);
-            browserService.VerifyNoOtherCalls();
+            educationService.Verify(x => x.ShowRuleHelp(It.IsAny<SonarCompositeRuleId>()), Times.Once);
+            educationService.VerifyNoOtherCalls();
+
+            var actualRuleId = (SonarCompositeRuleId)educationService.Invocations[0].Arguments[0];
+            SonarCompositeRuleId.TryParse(fullRuleKey, out var expectedId);
+
+            actualRuleId.RepoKey.Should().Be(expectedId.RepoKey);
+            actualRuleId.RuleKey.Should().Be(expectedId.RuleKey);
         }
 
-        private NavigateToRuleDescriptionCommand CreateTestSubject(IShowInBrowserService browserService = null)
+        private NavigateToRuleDescriptionCommand CreateTestSubject(IEducation educationService = null)
         {
-            return new NavigateToRuleDescriptionCommand(browserService);
+            educationService ??= Mock.Of<IEducation>();
+            return new NavigateToRuleDescriptionCommand(educationService);
         }
     }
 }
