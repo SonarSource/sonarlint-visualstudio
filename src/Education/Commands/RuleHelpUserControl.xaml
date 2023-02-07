@@ -2,24 +2,25 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
-             xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"             
              >
-
     <UserControl.Resources>
         <!-- Defines the standard set of style used by the document elements -->
-
-        <!--<Style TargetType="Paragraph">
-            <Setter Property="Margin" Value="3" />
-        </Style>-->
         <Style TargetType="FlowDocument">
             <Setter Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"/>
             <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
             <Setter Property="FontSize" Value="{DynamicResource {x:Static vsshell:VsFonts.EnvironmentFontSizeKey}}"/>
             <Setter Property="FontFamily" Value="{DynamicResource {x:Static vsshell:VsFonts.EnvironmentFontFamilyKey}}"/>
 
+            <!-- Optimise whitespace and word-breaks for readability -->
             <Setter Property="IsOptimalParagraphEnabled" Value="True" />
             <Setter Property="IsHyphenationEnabled" Value="True" />
 
+            <!-- Reduce blurriness of font outlines. -->
+            <!-- Note: same settings as for the Help About box. Also, changes to these properties when
+                 debugging are not picked up immediately - you need to recompile to see the difference. -->
+            <Setter Property="TextOptions.TextRenderingMode" Value="ClearType" />
+            <Setter Property="TextOptions.TextFormattingMode" Value="Ideal" />
         </Style>
         <Style x:Key="Pre_Section" TargetType="Section">
             <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsshell:VsBrushes.PanelBorderKey}}"/>
@@ -33,7 +34,6 @@
         </Style>
         <Style x:Key="Blockquote_Section" TargetType="Section">
             <Setter Property="Margin" Value="12,0,0,0"/>
-            <!--<Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.CaptionTextKey}}"/>-->
             <Setter Property="FontStyle" Value="Italic"/>
         </Style>
         <Style x:Key="Title_Paragraph" TargetType="Paragraph">
@@ -52,9 +52,6 @@
         <Style x:Key="SubtitleElement_Image" TargetType="Image">
             <Setter Property="Margin" Value="0,0,3,0" />
             <Setter Property="Stretch" Value="None" />
-            <!--<Setter Property="Stretch" Value="UniformToFill" />
-            <Setter Property="Height" Value="12" />
-            <Setter Property="Width" Value="12" />-->
         </Style>
         <Style x:Key="Heading2_Paragraph" TargetType="Paragraph">
             <Setter Property="FontFamily" Value="{DynamicResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}"/>
