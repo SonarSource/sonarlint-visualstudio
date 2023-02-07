@@ -35,6 +35,9 @@ namespace SonarLint.VisualStudio.Education
         /// <summary>
         /// Displays the help for the specific Sonar rule
         /// </summary>
+        /// <remarks>If the metadata for the rule is available locally, the rule help will
+        /// be displayed in the IDE. Otherwise, the rule help will be displayed in the
+        /// browser i.e. at rules.sonarsource.com</remarks>
         void ShowRuleHelp(SonarCompositeRuleId ruleId);
     }
 
@@ -43,23 +46,29 @@ namespace SonarLint.VisualStudio.Education
     internal class Education : IEducation
     {
         private readonly IToolWindowService toolWindowService;
-        private readonly ILogger logger;
-        private readonly IRuleHelpXamlBuilder ruleHelpXamlBuilder;
         private readonly IRuleMetadataProvider ruleMetadataProvider;
+        private readonly IRuleHelpXamlBuilder ruleHelpXamlBuilder;
+        private readonly IShowRuleInBrowser showRuleInBrowser;
+        private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
 
         private IRuleHelpToolWindow ruleHelpToolWindow;
 
         [ImportingConstructor]
-        public Education(IToolWindowService toolWindowService, IRuleMetadataProvider ruleMetadataProvider, ILogger logger)
-            : this(toolWindowService, ruleMetadataProvider, logger, new RuleHelpXamlBuilder(), ThreadHandling.Instance) { }
+        public Education(IToolWindowService toolWindowService, IRuleMetadataProvider ruleMetadataProvider, IShowRuleInBrowser showRuleInBrowser, ILogger logger)
+            : this(toolWindowService, ruleMetadataProvider, showRuleInBrowser, logger, new RuleHelpXamlBuilder(), ThreadHandling.Instance) { }
 
-        internal /* for testing */ Education(IToolWindowService toolWindowService, IRuleMetadataProvider ruleMetadataProvider, ILogger logger,
-                                             IRuleHelpXamlBuilder ruleHelpXamlBuilder, IThreadHandling threadHandling)
+        internal /* for testing */ Education(IToolWindowService toolWindowService,
+            IRuleMetadataProvider ruleMetadataProvider,
+            IShowRuleInBrowser showRuleInBrowser,
+            ILogger logger,
+            IRuleHelpXamlBuilder ruleHelpXamlBuilder,
+            IThreadHandling threadHandling)
         {
             this.toolWindowService = toolWindowService;
             this.ruleHelpXamlBuilder = ruleHelpXamlBuilder;
             this.ruleMetadataProvider = ruleMetadataProvider;
+            this.showRuleInBrowser = showRuleInBrowser;
             this.logger = logger;
             this.threadHandling = threadHandling;
         }
@@ -68,33 +77,42 @@ namespace SonarLint.VisualStudio.Education
         {
             var ruleInfo = ruleMetadataProvider.GetRuleInfo(ruleId);
 
-            if (ruleInfo == null)
-            {
-                logger.WriteLine(Resources.Education_NoRuleInfo, ruleId.ErrorListErrorCode);
-                return;
-            }
-
             threadHandling.RunOnUIThread(() =>
             {
-                // Lazily fetch the tool window from a UI thread
-                if (ruleHelpToolWindow == null)
+                if (ruleInfo == null)
                 {
-                    ruleHelpToolWindow = toolWindowService.GetToolWindow<RuleHelpToolWindow, IRuleHelpToolWindow>();                    
+                    showRuleInBrowser.ShowRuleDescription(ruleId);
+                }
+                else
+                {
+                    ShowRuleInIDE(ruleInfo);
                 }
 
-                var flowDocument = ruleHelpXamlBuilder.Create(ruleInfo);
-
-                ruleHelpToolWindow.UpdateContent(flowDocument);
-
-                try
-                {
-                    toolWindowService.Show(RuleHelpToolWindow.ToolWindowId);
-                }
-                catch (Exception ex) when (!Core.ErrorHandler.IsCriticalException(ex))
-                {
-                    logger.WriteLine(string.Format(Resources.ERR_RuleHelpToolWindow_Exception, ex));
-                }
             }).Forget();
+        }
+
+        private void ShowRuleInIDE(IRuleInfo ruleInfo)
+        {
+            threadHandling.ThrowIfNotOnUIThread();
+
+            // Lazily fetch the tool window from a UI thread
+            if (ruleHelpToolWindow == null)
+            {
+                ruleHelpToolWindow = toolWindowService.GetToolWindow<RuleHelpToolWindow, IRuleHelpToolWindow>();
+            }
+
+            var flowDocument = ruleHelpXamlBuilder.Create(ruleInfo);
+
+            ruleHelpToolWindow.UpdateContent(flowDocument);
+
+            try
+            {
+                toolWindowService.Show(RuleHelpToolWindow.ToolWindowId);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(string.Format(Resources.ERR_RuleHelpToolWindow_Exception, ex));
+            }
         }
     }
 }
