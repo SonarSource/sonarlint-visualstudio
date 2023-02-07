@@ -9,8 +9,6 @@
     <RootNamespace>SonarLint.VisualStudio.ConnectedMode</RootNamespace>
 
     <RequiresLibGit>true</RequiresLibGit>
-
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
