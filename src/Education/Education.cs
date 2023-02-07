@@ -30,17 +30,6 @@ using SonarLint.VisualStudio.Education.XamlGenerator;
 
 namespace SonarLint.VisualStudio.Education
 {
-    public interface IEducation
-    {
-        /// <summary>
-        /// Displays the help for the specific Sonar rule
-        /// </summary>
-        /// <remarks>If the metadata for the rule is available locally, the rule help will
-        /// be displayed in the IDE. Otherwise, the rule help will be displayed in the
-        /// browser i.e. at rules.sonarsource.com</remarks>
-        void ShowRuleHelp(SonarCompositeRuleId ruleId);
-    }
-
     [Export(typeof(IEducation))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class Education : IEducation

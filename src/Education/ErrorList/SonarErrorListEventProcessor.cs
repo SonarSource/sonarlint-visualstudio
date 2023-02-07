@@ -20,6 +20,7 @@
 
 using Microsoft;
 using Microsoft.VisualStudio.Shell.TableControl;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 
