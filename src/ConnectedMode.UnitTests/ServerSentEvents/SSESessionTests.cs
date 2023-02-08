@@ -44,7 +44,7 @@ public class SSESessionTests
         var testScope = new TestScope();
         testScope.SetUpSwitchToBackgroundThread();
         testScope.SonarQubeServiceMock
-            .InSequence(testScope.MainCallSequence)
+            .InSequence(testScope.CallOrder)
             .Setup(sqs => sqs.CreateServerSentEventsStream(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ISSEStream)null);
         
@@ -176,7 +176,7 @@ public class SSESessionTests
         public Mock<IIssueChangedServerEventSourcePublisher> IssuesPublisherMock { get; }
         public Mock<ITaintServerEventSourcePublisher> TaintPublisherMock { get; }
         public CancellationToken? CapturedSessionToken { get; private set; }
-        public MockSequence MainCallSequence { get; } = new MockSequence();
+        public MockSequence CallOrder { get; } = new MockSequence();
         public ISSESession TestSubject { get; }
 
         public void SetUpSSEStreamToReturnEventsSequenceAndExit(Mock<ISSEStream> sseStreamMock, IServerEvent[] inputSequence)
@@ -184,13 +184,13 @@ public class SSESessionTests
             foreach (var serverEvent in inputSequence)
             {
                 sseStreamMock
-                    .InSequence(MainCallSequence)
+                    .InSequence(CallOrder)
                     .Setup(r => r.ReadAsync())
                     .ReturnsAsync(serverEvent);
             }
 
             sseStreamMock
-                .InSequence(MainCallSequence)
+                .InSequence(CallOrder)
                 .Setup(r => r.ReadAsync())
                 .ReturnsAsync(() =>
                 {
@@ -204,7 +204,7 @@ public class SSESessionTests
             var sseStreamMock = mockRepository.Create<ISSEStream>();
 
             SonarQubeServiceMock
-                .InSequence(MainCallSequence)
+                .InSequence(CallOrder)
                 .Setup(client => client.CreateServerSentEventsStream(It.IsAny<string>(),
                     It.Is<CancellationToken>(token => token != CancellationToken.None)))
                 .ReturnsAsync((string _, CancellationToken tokenArg) =>
@@ -219,7 +219,7 @@ public class SSESessionTests
         public void SetUpSwitchToBackgroundThread()
         {
             ThreadHandlingMock
-                .InSequence(MainCallSequence)
+                .InSequence(CallOrder)
                 .Setup(th => th.SwitchToBackgroundThread())
                 .Returns(new NoOpThreadHandler.NoOpAwaitable());
         }

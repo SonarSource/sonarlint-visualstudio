@@ -49,31 +49,8 @@ public class SSESessionManagerTests
                 It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>(), Times.Once);
     }
 
-    [DataTestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public void OnSolutionChanged_CorrectlyIdentifiesOpenAndClose(bool switchToConnectedMode)
-    {
-        var testScope = new TestScope();
-
-
-        if (switchToConnectedMode)
-        {
-            var projectKey = "myproj";
-            testScope.SetUpSSEFactoryToReturnNoOpSSESession(projectKey);
-            testScope.SwitchToConnectedMode(projectKey);
-        }
-        else
-        {
-            testScope.SwitchToStandaloneMode();
-        }
-
-        testScope.SSESessionFactoryMock.Verify(factory => factory.Create(It.IsAny<string>()),
-            Times.Exactly(switchToConnectedMode ? 1 : 0));
-    }
-
     [TestMethod]
-    public void OnSolutionChanged_WhenChangesFromClosedToOpen_CreatesSessionAndLaunchesIt()
+    public void OnSolutionChanged_WhenChangesFromStandaloneToConnected_CreatesSessionAndLaunchesIt()
     {
         var testScope = new TestScope();
         testScope.SwitchToStandaloneMode();
@@ -82,26 +59,28 @@ public class SSESessionManagerTests
 
         testScope.SwitchToConnectedMode(projectKey);
 
-        testScope.SSESessionFactoryMock.Verify(factory => factory.Create(It.IsAny<string>()), Times.Once);
+        testScope.SSESessionFactoryMock.Verify(factory => factory.Create(projectKey), Times.Once);
         sessionMock.Verify(session => session.PumpAllAsync(), Times.Once);
     }
 
     [TestMethod]
-    public void OnSolutionChanged_WhenChangesFromOpenToClosed_CancelsSession()
+    public void OnSolutionChanged_WhenChangesFromConnectedToStandalone_DisposesPreviousSession()
     {
         var testScope = new TestScope();
         var projectKey = "myproj";
         var sessionMock = testScope.SetUpSSEFactoryToReturnNoOpSSESession(projectKey);
         sessionMock.Setup(session => session.Dispose());
         testScope.SwitchToConnectedMode(projectKey);
+        testScope.SSESessionFactoryMock.Invocations.Clear();
 
         testScope.SwitchToStandaloneMode();
 
+        testScope.SSESessionFactoryMock.Verify(factory => factory.Create(It.IsAny<string>()), Times.Never);
         sessionMock.Verify(session => session.Dispose(), Times.Once);
     }
 
     [TestMethod]
-    public void OnSolutionChanged_WhenChangesFromOpenToOpen_CancelsSessionAndStartsNewOne()
+    public void OnSolutionChanged_WhenChangesFromConnectedToConnected_CancelsSessionAndStartsNewOne()
     {
         var testScope = new TestScope();
         var projectKey1 = "proj1";
@@ -114,11 +93,12 @@ public class SSESessionManagerTests
         testScope.SwitchToConnectedMode(projectKey2);
 
         sessionMock1.Verify(session => session.Dispose(), Times.Once);
+        testScope.SSESessionFactoryMock.Verify(factory => factory.Create(projectKey2), Times.Once);
         sessionMock2.Verify(session => session.Dispose(), Times.Never);
     }
 
     [TestMethod]
-    public void Dispose_WhenProjectOpened_CorrectAndIdempotent()
+    public void Dispose_WhenInConnectedMode_CorrectAndIdempotent()
     {
         var testScope = new TestScope();
         var projectKey = "myproj";
@@ -128,11 +108,13 @@ public class SSESessionManagerTests
 
         CallDisposeMultipleTimes(testScope);
 
-        CheckEverythingIsDisposedOnce(testScope);
+        VerifyUnsubscribedFromBindingChangedEvent(testScope);
+        VerifySSESessionFactoryDisposedOnce(testScope);
+        sseSession.Verify(session => session.Dispose(), Times.Once);
     }
 
     [TestMethod]
-    public void Dispose_WhenProjectClosed_CorrectAndIdempotent()
+    public void Dispose_WhenInStandaloneMode_CorrectAndIdempotent()
     {
         var testScope = new TestScope();
         testScope.SetUpCorrectDisposeOrder(null);
@@ -140,24 +122,29 @@ public class SSESessionManagerTests
 
         CallDisposeMultipleTimes(testScope);
 
-        CheckEverythingIsDisposedOnce(testScope);
+        VerifyUnsubscribedFromBindingChangedEvent(testScope);
+        VerifySSESessionFactoryDisposedOnce(testScope);
     }
 
-    private static void CheckEverythingIsDisposedOnce(TestScope testConfiguration)
+    private static void VerifySSESessionFactoryDisposedOnce(TestScope testScope)
     {
-        testConfiguration.ActiveSolutionBoundTrackerMock.VerifyRemove(
+        testScope.SSESessionFactoryMock.Verify(sessionFactory => sessionFactory.Dispose(), Times.Once);
+    }
+
+    private static void VerifyUnsubscribedFromBindingChangedEvent(TestScope testScope)
+    {
+        testScope.ActiveSolutionBoundTrackerMock.VerifyRemove(
             activeSolutionBoundTracker =>
                 activeSolutionBoundTracker.SolutionBindingChanged -=
                     It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>(),
             Times.Once);
-        testConfiguration.SSESessionFactoryMock.Verify(sessionFactory => sessionFactory.Dispose(), Times.Once);
     }
 
     private static void CallDisposeMultipleTimes(TestScope testScope)
     {
-        testScope.SessionManager.Dispose();
-        testScope.SessionManager.Dispose();
-        testScope.SessionManager.Dispose();
+        testScope.TestSubject.Dispose();
+        testScope.TestSubject.Dispose();
+        testScope.TestSubject.Dispose();
     }
 
     private class TestScope
@@ -172,36 +159,36 @@ public class SSESessionManagerTests
             mockRepository = new MockRepository(MockBehavior.Strict);
             ActiveSolutionBoundTrackerMock = mockRepository.Create<IActiveSolutionBoundTracker>();
             SSESessionFactoryMock = mockRepository.Create<ISSESessionFactory>();
-            SessionManager = new SSESessionManager(
+            TestSubject = new SSESessionManager(
                 ActiveSolutionBoundTrackerMock.Object,
                 SSESessionFactoryMock.Object);
         }
 
         public Mock<IActiveSolutionBoundTracker> ActiveSolutionBoundTrackerMock { get; }
         public Mock<ISSESessionFactory> SSESessionFactoryMock { get; }
-        public MockSequence MainCallSequence { get; } = new MockSequence();
-        public SSESessionManager SessionManager { get; }
+        public MockSequence CallOrder { get; } = new MockSequence();
+        public SSESessionManager TestSubject { get; }
 
         public void SetUpCorrectDisposeOrder(Mock<ISSESession> currentSession)
         {
             ActiveSolutionBoundTrackerMock.SetupRemove(tracker =>
                 tracker.SolutionBindingChanged -= It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>());
 
-            SSESessionFactoryMock.InSequence(MainCallSequence).Setup(sessionFactory => sessionFactory.Dispose());
+            SSESessionFactoryMock.InSequence(CallOrder).Setup(sessionFactory => sessionFactory.Dispose());
 
             if (currentSession != null)
             {
-                currentSession.InSequence(MainCallSequence).Setup(session => session.Dispose());
+                currentSession.InSequence(CallOrder).Setup(session => session.Dispose());
             }
         }
 
         public Mock<ISSESession> SetUpSSEFactoryToReturnNoOpSSESession(string projectKey)
         {
             var sseSessionMock = mockRepository.Create<ISSESession>();
-            SSESessionFactoryMock.InSequence(MainCallSequence)
+            SSESessionFactoryMock.InSequence(CallOrder)
                 .Setup(sessionFactory => sessionFactory.Create(projectKey)).Returns(sseSessionMock.Object);
 
-            sseSessionMock.InSequence(MainCallSequence).Setup(session => session.PumpAllAsync())
+            sseSessionMock.InSequence(CallOrder).Setup(session => session.PumpAllAsync())
                 .Returns(Task.CompletedTask);
 
             return sseSessionMock;
