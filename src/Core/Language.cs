@@ -49,6 +49,7 @@ namespace SonarLint.VisualStudio.Core
         public readonly static Language C = new Language("C", "C", "_c_settings.json", SonarQubeLanguage.C);
         public readonly static Language Js = new Language("Js", "JavaScript", "_js_settings.json", SonarQubeLanguage.Js);
         public readonly static Language Ts = new Language("Ts", "TypeScript", "_ts_settings.json", SonarQubeLanguage.Ts);
+        public readonly static Language Secrets = new Language("Secrets", "Secrets", "_secrets_settings.json", SonarQubeLanguage.Secrets);
 
         /// <summary>
         /// Returns the language for the specified language key, or null if it does not match a known language
@@ -92,7 +93,7 @@ namespace SonarLint.VisualStudio.Core
         {
             get
             {
-                return new[] { CSharp, VBNET, Cpp, C, Js, Ts };
+                return new[] { CSharp, VBNET, Cpp, C, Js, Ts, Secrets };
             }
         }
 

@@ -48,8 +48,10 @@ namespace SonarLint.VisualStudio.Core
         public const string CSharp = "cs";
         public const string VBNet = "vbnet";
         public const string JavaScript = "js";
+        public const string TypeScript = "ts";
         public const string C = "c";
         public const string CPlusPlus = "cpp";
+        public const string Secrets = "secrets";
     }
 
     public static class SonarPluginKeys
