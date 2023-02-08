@@ -53,11 +53,11 @@ public class SSESessionManagerTests
     public void OnSolutionChanged_WhenChangesFromStandaloneToConnected_CreatesSessionAndLaunchesIt()
     {
         var testScope = new TestScope();
-        testScope.SwitchToStandaloneMode();
+        testScope.RaiseInStandaloneModeEvent();
         var projectKey = "myproj";
         var sessionMock = testScope.SetUpSSEFactoryToReturnNoOpSSESession(projectKey);
 
-        testScope.SwitchToConnectedMode(projectKey);
+        testScope.RaiseInConnectedModeEvent(projectKey);
 
         testScope.SSESessionFactoryMock.Verify(factory => factory.Create(projectKey), Times.Once);
         sessionMock.Verify(session => session.PumpAllAsync(), Times.Once);
@@ -70,10 +70,10 @@ public class SSESessionManagerTests
         var projectKey = "myproj";
         var sessionMock = testScope.SetUpSSEFactoryToReturnNoOpSSESession(projectKey);
         sessionMock.Setup(session => session.Dispose());
-        testScope.SwitchToConnectedMode(projectKey);
+        testScope.RaiseInConnectedModeEvent(projectKey);
         testScope.SSESessionFactoryMock.Invocations.Clear();
 
-        testScope.SwitchToStandaloneMode();
+        testScope.RaiseInStandaloneModeEvent();
 
         testScope.SSESessionFactoryMock.Verify(factory => factory.Create(It.IsAny<string>()), Times.Never);
         sessionMock.Verify(session => session.Dispose(), Times.Once);
@@ -87,10 +87,10 @@ public class SSESessionManagerTests
         var projectKey2 = "proj2";
         var sessionMock1 = testScope.SetUpSSEFactoryToReturnNoOpSSESession(projectKey1);
         sessionMock1.Setup(session => session.Dispose());
-        testScope.SwitchToConnectedMode(projectKey1);
+        testScope.RaiseInConnectedModeEvent(projectKey1);
         var sessionMock2 = testScope.SetUpSSEFactoryToReturnNoOpSSESession(projectKey2);
 
-        testScope.SwitchToConnectedMode(projectKey2);
+        testScope.RaiseInConnectedModeEvent(projectKey2);
 
         sessionMock1.Verify(session => session.Dispose(), Times.Once);
         testScope.SSESessionFactoryMock.Verify(factory => factory.Create(projectKey2), Times.Once);
@@ -104,7 +104,7 @@ public class SSESessionManagerTests
         var projectKey = "myproj";
         var sseSession = testScope.SetUpSSEFactoryToReturnNoOpSSESession(projectKey);
         testScope.SetUpCorrectDisposeOrder(sseSession);
-        testScope.SwitchToConnectedMode(projectKey);
+        testScope.RaiseInConnectedModeEvent(projectKey);
 
         CallDisposeMultipleTimes(testScope);
 
@@ -118,7 +118,7 @@ public class SSESessionManagerTests
     {
         var testScope = new TestScope();
         testScope.SetUpCorrectDisposeOrder(null);
-        testScope.SwitchToStandaloneMode();
+        testScope.RaiseInStandaloneModeEvent();
 
         CallDisposeMultipleTimes(testScope);
 
@@ -194,13 +194,13 @@ public class SSESessionManagerTests
             return sseSessionMock;
         }
 
-        public void SwitchToConnectedMode(string projectKey)
+        public void RaiseInConnectedModeEvent(string projectKey)
         {
             var openProjectEvent = CreateNewOpenProjectEvent(projectKey);
             RaiseSolutionBindingEvent(openProjectEvent);
         }
 
-        public void SwitchToStandaloneMode()
+        public void RaiseInStandaloneModeEvent()
         {
             RaiseSolutionBindingEvent(ClosedProjectEvent);
         }
