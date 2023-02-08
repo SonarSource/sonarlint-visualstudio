@@ -1,0 +1,117 @@
+﻿/*
+ * SonarQube Client
+ * Copyright (C) 2016-2023 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+using System;
+
+namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
+{
+    public interface ITaintIssue
+    {
+        string RuleKey { get; }
+        SonarQubeIssueSeverity Severity { get; }
+        SonarQubeIssueType Type { get; }
+        ILocation MainLocation { get; }
+        IFlow[] Flows { get; }
+    }
+
+    public interface IFlow
+    {
+        ILocation[] Locations { get; }
+    }
+
+    public interface ILocation
+    {
+        string FilePath { get; }
+        string Message { get; }
+        ITextRange TextRange { get; }
+    }
+
+    public interface ITextRange
+    {
+        int StartLine { get; }
+        int StartLineOffset { get; }
+        int EndLine { get; }
+        int EndLineOffset { get; }
+        string Hash { get; }
+    }
+
+    internal class TaintIssue : ITaintIssue
+    {
+        public TaintIssue(
+            string ruleKey, 
+            SonarQubeIssueSeverity severity, SonarQubeIssueType type,
+            Location mainLocation, Flow[] flows)
+        {
+            RuleKey = ruleKey ?? throw new ArgumentNullException(nameof(ruleKey));
+            Severity = severity;
+            Type = type;
+            MainLocation = mainLocation ?? throw new ArgumentNullException(nameof(mainLocation));
+            Flows = flows ?? throw new ArgumentNullException(nameof(flows));
+        }
+
+        public string RuleKey { get; }
+        public SonarQubeIssueSeverity Severity { get; }
+        public SonarQubeIssueType Type { get; }
+        public ILocation MainLocation { get; }
+        public IFlow[] Flows { get; }
+    }
+
+    internal class Flow : IFlow
+    {
+        public Flow(Location[] locations)
+        {
+            Locations = locations ?? throw new ArgumentNullException(nameof(locations));
+        }
+
+        public ILocation[] Locations { get; }
+    }
+
+    internal class Location : ILocation
+    {
+        public Location(string filePath, string message, TextRange textRange)
+        {
+            FilePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
+            Message = message ?? throw new ArgumentNullException(nameof(message));
+            TextRange = textRange;
+        }
+
+        public string FilePath { get; }
+        public string Message { get; }
+        public ITextRange TextRange { get; }
+    }
+
+    internal class TextRange : ITextRange
+    {
+        public TextRange(int startLine, int startLineOffset, int endLine, int endLineOffset, string hash)
+        {
+            StartLine = startLine;
+            StartLineOffset = startLineOffset;
+            EndLine = endLine;
+            EndLineOffset = endLineOffset;
+            Hash = hash;
+        }
+
+        public int StartLine { get; }
+        public int StartLineOffset { get; }
+        public int EndLine { get; }
+        public int EndLineOffset { get; }
+        public string Hash { get; }
+    }
+}

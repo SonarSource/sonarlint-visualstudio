@@ -28,6 +28,7 @@ using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 using SonarQube.Client.Models.ServerSentEvents.ServerContract;
 using Newtonsoft.Json;
 using SonarQube.Client.Logging;
+using SonarQube.Client.Models;
 using SonarQube.Client.Tests.Infra;
 
 namespace SonarQube.Client.Tests.Models.ServerSentEvents
@@ -144,9 +145,35 @@ namespace SonarQube.Client.Tests.Models.ServerSentEvents
         [TestMethod]
         public async Task ReadAsync_TaintVulnerabilityRaisedEventType_DeserializedEvent()
         {
-            const string serializedTaintVulnerabilityRaisedEvent =
-                "{\"key\": \"taintKey\",\"projectKey\": \"projectKey1\",\"branch\": \"master\" }";
-
+            const string serializedTaintVulnerabilityRaisedEvent = @"{
+	""key"": ""taintKey"",
+	""projectKey"": ""projectKey1"",
+	""branch"": ""master"",
+	""ruleKey"": ""javasecurity:S123"",
+	""severity"": ""MAJOR"",
+	""type"": ""VULNERABILITY"",
+	""mainLocation"": {
+		""filePath"": ""functions/taint.js"",
+		""message"": ""blah blah"",
+		""textRange"": {
+			""startLine"": 17,
+			""startLineOffset"": 10,
+			""endLine"": 3,
+			""endLineOffset"": 2,
+			""hash"": ""hash""
+		}
+	},
+	""flows"": [
+		{
+			""locations"": [
+				{
+					""filePath"": ""functions/taint.js"",
+					""message"": ""sink""
+				}
+			]
+		}
+	]
+}";
             var sqSSEStreamReader = CreateSqStreamReader(new SqServerEvent("TaintVulnerabilityRaised", serializedTaintVulnerabilityRaisedEvent));
 
             var testSubject = CreateTestSubject(sqSSEStreamReader);
@@ -159,7 +186,22 @@ namespace SonarQube.Client.Tests.Models.ServerSentEvents
                 new TaintVulnerabilityRaisedServerEvent(
                     projectKey: "projectKey1",
                     key: "taintKey",
-                    branch: "master"));
+                    branch: "master",
+                    ruleKey: "javasecurity:S123",
+                    severity: SonarQubeIssueSeverity.Major,
+                    type: SonarQubeIssueType.Vulnerability,
+                    mainLocation:
+                    new Location(
+                        filePath: "functions/taint.js",
+                        message: "blah blah",
+                        textRange: new TextRange(17, 10, 3, 2, "hash")),
+                    flows: new[]
+                    {
+                        new Flow(new[]
+                        {
+                            new Location(filePath: "functions/taint.js", message: "sink", textRange: null)
+                        })
+                    }));
         }
 
         private ISqSSEStreamReader CreateSqStreamReader(params ISqServerEvent[] events)
