@@ -19,6 +19,7 @@
  */
 
 using System;
+using Newtonsoft.Json;
 
 namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
 {
@@ -34,20 +35,31 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
     public interface ITaintVulnerabilityRaisedServerEvent : ITaintServerEvent
     {
         string Branch { get; }
+        ITaintIssue Issue { get; }
     }
 
-    public class TaintVulnerabilityRaisedServerEvent : ITaintVulnerabilityRaisedServerEvent
+    internal class TaintVulnerabilityRaisedServerEvent : ITaintVulnerabilityRaisedServerEvent
     {
-        public TaintVulnerabilityRaisedServerEvent(string projectKey, string key, string branch)
+        [JsonConstructor]
+        public TaintVulnerabilityRaisedServerEvent(string projectKey, string key, string branch,
+            string ruleKey, SonarQubeIssueSeverity severity, SonarQubeIssueType type,
+            Location mainLocation, Flow[] flows)
+            : this(projectKey, key, branch, new TaintIssue(ruleKey, severity, type, mainLocation, flows))
+        {
+        }
+
+        public TaintVulnerabilityRaisedServerEvent(string projectKey, string key, string branch, ITaintIssue issue)
         {
             ProjectKey = projectKey ?? throw new ArgumentNullException(nameof(projectKey));
             Key = key ?? throw new ArgumentNullException(nameof(key));
             Branch = branch ?? throw new ArgumentNullException(nameof(branch));
+            Issue = issue ?? throw new ArgumentNullException(nameof(issue));
         }
 
         public string ProjectKey { get; }
         public string Key { get; }
         public string Branch { get; }
+        public ITaintIssue Issue { get; }
     }
 
     /// <summary>
@@ -57,7 +69,7 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
     {
     }
 
-    public class TaintVulnerabilityClosedServerEvent : ITaintVulnerabilityClosedServerEvent
+    internal class TaintVulnerabilityClosedServerEvent : ITaintVulnerabilityClosedServerEvent
     {
         public TaintVulnerabilityClosedServerEvent(string projectKey, string key)
         {
