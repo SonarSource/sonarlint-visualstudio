@@ -62,9 +62,9 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         private bool tableAlternateRow;
 
 
-        public FlowDocument Create(IRuleInfo ruleHelp)
+        public FlowDocument Create(IRuleInfo ruleInfo)
         {
-            var xaml = CreateXamlString(ruleHelp);
+            var xaml = CreateXamlString(ruleInfo);
             var flowDocument = (FlowDocument)XamlReader.Parse(xaml);
             return flowDocument;
         }
