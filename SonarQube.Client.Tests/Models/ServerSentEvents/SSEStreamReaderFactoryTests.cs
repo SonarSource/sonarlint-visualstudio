@@ -20,34 +20,26 @@
 
 using System.IO;
 using System.Threading;
-using SonarQube.Client.Models.ServerSentEvents.ServerContract;
-using System.Threading.Channels;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarQube.Client.Logging;
+using SonarQube.Client.Models.ServerSentEvents;
 
-namespace SonarQube.Client.Models.ServerSentEvents
+namespace SonarQube.Client.Tests.Models.ServerSentEvents
 {
-    internal interface ISSEStreamFactory
+    [TestClass]
+    public class SSEStreamReaderFactoryTests
     {
-        ISSEStream Create(Stream networkStream, CancellationToken cancellationToken);
-    }
-
-    internal class SSEStreamFactory : ISSEStreamFactory
-    {
-        private readonly ILogger logger;
-
-        public SSEStreamFactory(ILogger logger)
+        [TestMethod]
+        public void Create_CreatesSSEStreamReader()
         {
-            this.logger = logger;
-        }
+            var testSubject = new SSEStreamReaderFactory(Mock.Of<ILogger>());
 
-        public ISSEStream Create(Stream networkStream, CancellationToken cancellationToken)
-        {
-            var channel = Channel.CreateUnbounded<ISqServerEvent>();
+            var result = testSubject.Create(Stream.Null, CancellationToken.None);
 
-            var reader = new SSEStreamReader(channel.Reader, cancellationToken, logger);
-            var writer = new SSEStreamWriter(new StreamReader(networkStream), channel.Writer, cancellationToken);
-
-            return new SSEStream(reader, writer);
+            result.Should().NotBeNull();
+            result.Should().BeOfType<SSEStreamReader>();
         }
     }
 }

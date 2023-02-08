@@ -43,7 +43,7 @@ namespace SonarQube.Client
         private readonly ILogger logger;
         private readonly IRequestFactorySelector requestFactorySelector;
         private readonly ISecondaryIssueHashUpdater secondaryIssueHashUpdater;
-        private readonly ISSEStreamFactory sseStreamFactory;
+        private readonly ISSEStreamReaderFactory sseStreamReaderFactory;
 
         private HttpClient httpClient;
         private ServerInfo currentServerInfo;
@@ -62,14 +62,14 @@ namespace SonarQube.Client
         public ServerInfo GetServerInfo() => currentServerInfo;
 
         public SonarQubeService(HttpMessageHandler messageHandler, string userAgent, ILogger logger)
-            : this(messageHandler, userAgent, logger, new RequestFactorySelector(), new SecondaryLocationHashUpdater(), new SSEStreamFactory(logger))
+            : this(messageHandler, userAgent, logger, new RequestFactorySelector(), new SecondaryLocationHashUpdater(), new SSEStreamReaderFactory(logger))
         {
         }
 
         internal /* for testing */ SonarQubeService(HttpMessageHandler messageHandler, string userAgent, ILogger logger,
             IRequestFactorySelector requestFactorySelector, 
             ISecondaryIssueHashUpdater secondaryIssueHashUpdater, 
-            ISSEStreamFactory sseStreamFactory)
+            ISSEStreamReaderFactory sseStreamReaderFactory)
         {
             if (messageHandler == null)
             {
@@ -89,7 +89,7 @@ namespace SonarQube.Client
 
             this.requestFactorySelector = requestFactorySelector;
             this.secondaryIssueHashUpdater = secondaryIssueHashUpdater;
-            this.sseStreamFactory = sseStreamFactory;
+            this.sseStreamReaderFactory = sseStreamReaderFactory;
         }
 
         /// <summary>
@@ -420,7 +420,7 @@ namespace SonarQube.Client
                     request.ProjectKey = projectKey;
                 }, token);
 
-        public async Task<ISSEStream> CreateServerSentEventsStream(string projectKey, CancellationToken token)
+        public async Task<ISSEStreamReader> CreateSSEStreamReader(string projectKey, CancellationToken token)
         {
             var networkStream = await InvokeCheckedRequestAsync<IGetSonarLintEventStream, Stream>(
                 request =>
@@ -429,7 +429,7 @@ namespace SonarQube.Client
                 },
                 token);
 
-            return sseStreamFactory.Create(networkStream, token);
+            return sseStreamReaderFactory.Create(networkStream, token);
         }
 
         #region IDisposable Support

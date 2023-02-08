@@ -21,51 +21,47 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading.Channels;
 using System.Threading;
 using System.Threading.Tasks;
-using SonarQube.Client.Models.ServerSentEvents.ServerContract;
 
-namespace SonarQube.Client.Models.ServerSentEvents
+namespace SonarQube.Client.Models.ServerSentEvents.ServerContract
 {
-    public interface ISSEStreamWriter : IDisposable
+    /// <summary>
+    /// Reads lines from the network stream and aggregates them into <see cref="ISqServerEvent"/>.
+    /// </summary>
+    /// <returns>
+    /// Returns aggregated <see cref="ISqServerEvent"/> or null if the stream ended or the task was cancelled.
+    /// Will throw if there was a problem reading from the underlying stream.
+    /// </returns>
+    internal interface ISqSSEStreamReader : IDisposable
     {
-        /// <summary>
-        /// Begin pumping events. Will block the calling thread with an infinite loop.
-        /// </summary>
-        Task BeginListening();
+        Task<ISqServerEvent> ReadAsync();
     }
 
     /// <summary>
-    /// Aggregates stream lines into events.
     /// Code on the java side: https://github.com/SonarSource/sonarlint-core/blob/171ca4d75c24033e115a81bd7481427cd1f39f4c/server-api/src/main/java/org/sonarsource/sonarlint/core/serverapi/stream/EventBuffer.java
     /// </summary>
-    internal sealed class SSEStreamWriter : ISSEStreamWriter
+    internal sealed class SqSSEStreamReader : ISqSSEStreamReader
     {
         private readonly StreamReader networkStreamReader;
-        private readonly ChannelWriter<ISqServerEvent> sqEventsChannel;
         private readonly CancellationToken cancellationToken;
         private readonly ISqServerSentEventParser sqServerSentEventParser;
 
-        public SSEStreamWriter(StreamReader networkStreamReader,
-            ChannelWriter<ISqServerEvent> sqEventsChannel,
-            CancellationToken cancellationToken)
-            : this(networkStreamReader, sqEventsChannel, cancellationToken, new SqServerSentEventParser())
+        public SqSSEStreamReader(StreamReader networkStreamReader, CancellationToken cancellationToken)
+            : this(networkStreamReader, cancellationToken, new SqServerSentEventParser())
         {
         }
 
-        internal SSEStreamWriter(StreamReader networkStreamReader,
-            ChannelWriter<ISqServerEvent> sqEventsChannel,
+        internal SqSSEStreamReader(StreamReader networkStreamReader,
             CancellationToken cancellationToken,
             ISqServerSentEventParser sqServerSentEventParser)
         {
             this.networkStreamReader = networkStreamReader;
             this.cancellationToken = cancellationToken;
-            this.sqEventsChannel = sqEventsChannel;
             this.sqServerSentEventParser = sqServerSentEventParser;
         }
 
-        public async Task BeginListening()
+        public async Task<ISqServerEvent> ReadAsync()
         {
             var eventLines = new List<string>();
 
@@ -82,7 +78,7 @@ namespace SonarQube.Client.Models.ServerSentEvents
 
                     if (parsedEvent != null)
                     {
-                        await sqEventsChannel.WriteAsync(parsedEvent, cancellationToken);
+                        return parsedEvent;
                     }
                 }
                 else
@@ -90,12 +86,13 @@ namespace SonarQube.Client.Models.ServerSentEvents
                     eventLines.Add(line);
                 }
             }
+
+            return null;
         }
 
         public void Dispose()
         {
             networkStreamReader.Dispose();
-            sqEventsChannel.Complete();
         }
     }
 }
