@@ -45,8 +45,8 @@ public class SSESessionTests
         testScope.SetUpSwitchToBackgroundThread();
         testScope.SonarQubeServiceMock
             .InSequence(testScope.CallOrder)
-            .Setup(sqs => sqs.CreateServerSentEventsStream(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ISSEStream)null);
+            .Setup(sqs => sqs.CreateSSEStreamReader(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ISSEStreamReader)null);
         
         Func<Task> act = () => testScope.TestSubject.PumpAllAsync();
 
@@ -69,8 +69,8 @@ public class SSESessionTests
             Mock.Of<ITaintVulnerabilityRaisedServerEvent>()
         };
         testScope.SetUpSwitchToBackgroundThread();
-        var sseStreamMock = testScope.SetUpSQServiceToSuccessfullyReturnSSEStream();
-        testScope.SetUpSSEStreamToReturnEventsSequenceAndExit(sseStreamMock, inputSequence);
+        var sseStreamMock = testScope.SetUpSQServiceToSuccessfullyReturnSSEStreamReader();
+        testScope.SetUpSSEStreamReaderToReturnEventsSequenceAndExit(sseStreamMock, inputSequence);
 
         await testScope.TestSubject.PumpAllAsync();
         
@@ -92,8 +92,8 @@ public class SSESessionTests
     {
         var testScope = new TestScope();
         testScope.SetUpSwitchToBackgroundThread();
-        var sseStreamMock = testScope.SetUpSQServiceToSuccessfullyReturnSSEStream();
-        testScope.SetUpSSEStreamToReturnEventsSequenceAndExit(sseStreamMock, 
+        var sseStreamMock = testScope.SetUpSQServiceToSuccessfullyReturnSSEStreamReader();
+        testScope.SetUpSSEStreamReaderToReturnEventsSequenceAndExit(sseStreamMock, 
             new IServerEvent[]{ Mock.Of<IIssueChangedServerEvent>(), null, Mock.Of<ITaintVulnerabilityRaisedServerEvent>()});
 
         await testScope.TestSubject.PumpAllAsync();
@@ -108,8 +108,8 @@ public class SSESessionTests
     {
         var testScope = new TestScope();
         testScope.SetUpSwitchToBackgroundThread();
-        var sseStreamMock = testScope.SetUpSQServiceToSuccessfullyReturnSSEStream();
-        testScope.SetUpSSEStreamToReturnEventsSequenceAndExit(sseStreamMock, 
+        var sseStreamMock = testScope.SetUpSQServiceToSuccessfullyReturnSSEStreamReader();
+        testScope.SetUpSSEStreamReaderToReturnEventsSequenceAndExit(sseStreamMock, 
             new IServerEvent[]{Mock.Of<IIssueChangedServerEvent>(), Mock.Of<ITaintVulnerabilityRaisedServerEvent>()});
         testScope.IssuesPublisherMock.Setup(publisher => publisher.Publish(It.IsAny<IIssueChangedServerEvent>()))
             .Throws(new ObjectDisposedException(string.Empty));
@@ -137,7 +137,7 @@ public class SSESessionTests
     {
         var testScope = new TestScope();
         testScope.SetUpSwitchToBackgroundThread();
-        var sseStreamMock = testScope.SetUpSQServiceToSuccessfullyReturnSSEStream();
+        var sseStreamMock = testScope.SetUpSQServiceToSuccessfullyReturnSSEStreamReader();
         var readTcs = new TaskCompletionSource<IServerEvent>();
         sseStreamMock.Setup(x => x.ReadAsync()).Returns(readTcs.Task);
 
@@ -179,7 +179,7 @@ public class SSESessionTests
         public MockSequence CallOrder { get; } = new MockSequence();
         public ISSESession TestSubject { get; }
 
-        public void SetUpSSEStreamToReturnEventsSequenceAndExit(Mock<ISSEStream> sseStreamMock, IServerEvent[] inputSequence)
+        public void SetUpSSEStreamReaderToReturnEventsSequenceAndExit(Mock<ISSEStreamReader> sseStreamMock, IServerEvent[] inputSequence)
         {
             foreach (var serverEvent in inputSequence)
             {
@@ -199,13 +199,13 @@ public class SSESessionTests
                 });
         }
 
-        public Mock<ISSEStream> SetUpSQServiceToSuccessfullyReturnSSEStream()
+        public Mock<ISSEStreamReader> SetUpSQServiceToSuccessfullyReturnSSEStreamReader()
         {
-            var sseStreamMock = mockRepository.Create<ISSEStream>();
+            var sseStreamMock = mockRepository.Create<ISSEStreamReader>();
 
             SonarQubeServiceMock
                 .InSequence(CallOrder)
-                .Setup(client => client.CreateServerSentEventsStream(It.IsAny<string>(),
+                .Setup(client => client.CreateSSEStreamReader(It.IsAny<string>(),
                     It.Is<CancellationToken>(token => token != CancellationToken.None)))
                 .ReturnsAsync((string _, CancellationToken tokenArg) =>
                 {

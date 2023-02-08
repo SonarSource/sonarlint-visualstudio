@@ -135,21 +135,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
                 await threadHandling.SwitchToBackgroundThread();
 
-                var sseStream = await sonarQubeService.CreateServerSentEventsStream(projectKey, sessionTokenSource.Token);
+                var sseStreamReader = await sonarQubeService.CreateSSEStreamReader(projectKey, sessionTokenSource.Token);
 
-                if (sseStream == null)
+                if (sseStreamReader == null)
                 {
                     return;
                 }
-
-                /* todo/note: commented this because it broke the test and we may move away from this interface
-                sseStream.BeginListening().Forget();*/
 
                 while (!sessionTokenSource.IsCancellationRequested)
                 {
                     try
                     {
-                        var serverEvent = await sseStream.ReadAsync();
+                        var serverEvent = await sseStreamReader.ReadAsync();
 
                         if (serverEvent == null)
                         {
