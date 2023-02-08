@@ -127,8 +127,8 @@ namespace SonarQube.Client
         Task<ServerExclusions> GetServerExclusions(string projectKey, CancellationToken token);
 
         /// <summary>
-        /// Creates a new <see cref="ISSEStream"/> for the given <see cref="projectKey"/>
+        /// Creates a new <see cref="ISSEStreamReader"/> for the given <see cref="projectKey"/>
         /// </summary>
-        Task<ISSEStream> CreateServerSentEventsStream(string projectKey, CancellationToken token);
+        Task<ISSEStreamReader> CreateSSEStreamReader(string projectKey, CancellationToken token);
     }
 }
