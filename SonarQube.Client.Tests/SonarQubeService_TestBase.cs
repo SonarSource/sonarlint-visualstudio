@@ -47,7 +47,7 @@ namespace SonarQube.Client.Tests
         // Note: can't be protected because the interfaces are internal
         internal Mock<ISecondaryIssueHashUpdater> secondaryIssueHashUpdater;
         internal IRequestFactorySelector requestFactorySelector;
-        internal Mock<ISSEStreamFactory> sseStreamFactory;
+        internal Mock<ISSEStreamReaderFactory> sseStreamFactory;
 
         private const string DefaultBasePath = "http://localhost/";
 
@@ -66,7 +66,7 @@ namespace SonarQube.Client.Tests
 
             requestFactorySelector = new RequestFactorySelector();
             secondaryIssueHashUpdater = new Mock<ISecondaryIssueHashUpdater>();
-            sseStreamFactory = new Mock<ISSEStreamFactory>();
+            sseStreamFactory = new Mock<ISSEStreamReaderFactory>();
 
             ResetService();
         }
