@@ -45,17 +45,17 @@ namespace SonarLint.VisualStudio.Education
             }
 
             public override void PreprocessNavigateToHelp(
-               ITableEntryHandle entryHandle,
+               ITableEntryHandle entry,
                TableEntryEventArgs e)
             {
                 // If the user is navigating to help for one of the Sonar rules,
                 // show our rule description tool window
 
-                Requires.NotNull(entryHandle, nameof(entryHandle));
+                Requires.NotNull(entry, nameof(entry));
 
                 bool handled = false;
 
-                if (errorListHelper.TryGetRuleId(entryHandle, out var ruleId))
+                if (errorListHelper.TryGetRuleId(entry, out var ruleId))
                 {
                     logger.LogVerbose(Resources.ErrorList_Processor_SonarRuleDetected, ruleId);
 

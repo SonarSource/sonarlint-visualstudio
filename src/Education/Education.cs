@@ -74,13 +74,13 @@ namespace SonarLint.VisualStudio.Education
                 }
                 else
                 {
-                    ShowRuleInIDE(ruleInfo);
+                    ShowRuleInIde(ruleInfo);
                 }
 
             }).Forget();
         }
 
-        private void ShowRuleInIDE(IRuleInfo ruleInfo)
+        private void ShowRuleInIde(IRuleInfo ruleInfo)
         {
             threadHandling.ThrowIfNotOnUIThread();
 
