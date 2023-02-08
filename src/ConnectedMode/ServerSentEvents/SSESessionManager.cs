@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
     /// <summary>
     /// Reacts to project changes and opens/closes Server Sent Events sessions
     /// </summary>
-    internal interface ISSESessionManager : IDisposable
+    public interface ISSESessionManager : IDisposable
     {
     }
 

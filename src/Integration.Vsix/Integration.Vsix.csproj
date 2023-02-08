@@ -68,6 +68,7 @@
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
     <RequiresSystemIOAbstractions>true</RequiresSystemIOAbstractions>
     <RequiresLibGit>true</RequiresLibGit>
+    <RequiresChannels>true</RequiresChannels>
   </PropertyGroup>
   
   <!-- This project references the SonarLint TeamExplorer assembly which is VS-version specific -->
@@ -391,7 +392,7 @@
     <Message Importance="high" Text="Fetching the CFamily files..." />
 
     <Exec Command="&quot;..\..\build\tools\CFamilyJarPreProcessor\bin\$(Configuration)\net472\CFamilyJarPreProcessor.exe&quot; $(PluginUrl) &quot;$(CFamilyTargetDirectory)&quot;" IgnoreExitCode="false" ContinueOnError="false" LogStandardErrorAsError ="true" />
-    
+
     <!-- Copy the license file to the same directory -->
     <Copy SourceFiles=".\CFamily\LICENSE.txt" DestinationFolder="$(CFamilyTargetDirectory)" SkipUnchangedFiles="true" />
 
@@ -441,6 +442,8 @@
       <VSIXSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'System.IO.Abstractions'" />
       <VSIXSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'BouncyCastle'" />
       <VSIXSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'LibGit2Sharp'" />
+      <VSIXSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'System.Threading.Channels'" />
+      <VSIXSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'System.Threading.Tasks.Extensions'" />
     </ItemGroup>
   </Target>
 
