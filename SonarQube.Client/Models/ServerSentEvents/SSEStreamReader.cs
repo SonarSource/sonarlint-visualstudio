@@ -18,14 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading;
 using System;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 using SonarQube.Client.Models.ServerSentEvents.ServerContract;
 using System.Collections.Generic;
-using System.Threading.Channels;
 using SonarQube.Client.Logging;
 
 namespace SonarQube.Client.Models.ServerSentEvents
@@ -33,11 +31,11 @@ namespace SonarQube.Client.Models.ServerSentEvents
     public interface ISSEStreamReader
     {
         /// <summary>
+        /// Wraps the stream response from the server, reads from it and converts it to <see cref="IServerEvent"/>.
         /// Will block the calling thread until an event exists or the connection is closed.
-        /// Can throw an exception if the event is not a valid <see cref="IServerEvent"/>
         /// </summary>
         /// <returns>
-        /// Will return null if the underlying event is unsupported or if there was a problem parsing it.
+        /// Can return null (i.e. if the underlying event type is unsupported).
         /// </returns>
         Task<IServerEvent> ReadAsync();
     }
@@ -48,8 +46,7 @@ namespace SonarQube.Client.Models.ServerSentEvents
     /// </summary>
     internal class SSEStreamReader : ISSEStreamReader
     {
-        private readonly ChannelReader<ISqServerEvent> sqEventsChannel;
-        private readonly CancellationToken cancellationToken;
+        private readonly ISqSSEStreamReader sqSSEStreamReader;
         private readonly ILogger logger;
 
         private readonly IDictionary<string, Type> eventTypeToDataTypeMap = new Dictionary<string, Type>
@@ -59,11 +56,10 @@ namespace SonarQube.Client.Models.ServerSentEvents
             {"TaintVulnerabilityRaised", typeof(TaintVulnerabilityRaisedServerEvent)}
         };
 
-        public SSEStreamReader(ChannelReader<ISqServerEvent> sqEventsChannel, CancellationToken cancellationToken, ILogger logger)
+        public SSEStreamReader(ISqSSEStreamReader sqSSEStreamReader, ILogger logger)
         {
-            this.cancellationToken = cancellationToken;
+            this.sqSSEStreamReader = sqSSEStreamReader;
             this.logger = logger;
-            this.sqEventsChannel = sqEventsChannel;
         }
 
         public async Task<IServerEvent> ReadAsync()
@@ -96,7 +92,7 @@ namespace SonarQube.Client.Models.ServerSentEvents
         {
             try
             {
-                var sqEvent = await sqEventsChannel.ReadAsync(cancellationToken);
+                var sqEvent = await sqSSEStreamReader.ReadAsync();
 
                 return sqEvent;
             }
