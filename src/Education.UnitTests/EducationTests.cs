@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Windows.Documents;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -27,7 +28,6 @@ using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.Rules;
-using System.Windows.Documents;
 
 namespace SonarLint.VisualStudio.Education.UnitTests
 {
@@ -40,11 +40,12 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             MefTestHelpers.CheckTypeCanBeImported<Education, IEducation>(
                 MefTestHelpers.CreateExport<IToolWindowService>(),
                 MefTestHelpers.CreateExport<IRuleMetadataProvider>(),
+                MefTestHelpers.CreateExport<IShowRuleInBrowser>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]
-        public void ShowRuleHelp_EverythingGetsCalledCorrectly()
+        public void ShowRuleHelp_KnownRule_DocumentIsDisplayedInToolWindow()
         {
             var ruleMetaDataProvider = new Mock<IRuleMetadataProvider>();
             var ruleId = new SonarCompositeRuleId("repoKey","ruleKey");
@@ -61,7 +62,12 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var toolWindowService = new Mock<IToolWindowService>();
             toolWindowService.Setup(x => x.GetToolWindow<RuleHelpToolWindow, IRuleHelpToolWindow>()).Returns(ruleDescriptionToolWindow.Object);
 
-            var testSubject = CreateEducation(toolWindowService: toolWindowService.Object, ruleMetadataProvider: ruleMetaDataProvider.Object, ruleHelpXamlBuilder: ruleHelpXamlBuilder.Object);
+            var showRuleInBrowser = new Mock<IShowRuleInBrowser>();
+            var testSubject = CreateEducation(toolWindowService.Object,
+                ruleMetaDataProvider.Object,
+                showRuleInBrowser.Object,
+                ruleHelpXamlBuilder.Object);
+
             // Sanity check - tool window not yet fetched
             toolWindowService.Invocations.Should().HaveCount(0);
 
@@ -72,15 +78,17 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             ruleHelpXamlBuilder.Verify(x => x.Create(ruleInfo), Times.Once);
             ruleDescriptionToolWindow.Verify(x => x.UpdateContent(flowDocument), Times.Once);
             toolWindowService.Verify(x => x.Show(RuleHelpToolWindow.ToolWindowId), Times.Once);
+
+            showRuleInBrowser.Invocations.Should().HaveCount(0);
         }
 
         [TestMethod]
-        public void ShowRuleHelp_UnknownRule_ToolWindowIsNotUpdated()
+        public void ShowRuleHelp_UnknownRule_RuleIsShownInBrowser()
         {
             var toolWindowService = new Mock<IToolWindowService>();
             var ruleMetadataProvider = new Mock<IRuleMetadataProvider>();
-            var logger = new TestLogger(logToConsole: true);
             var ruleHelpXamlBuilder = new Mock<IRuleHelpXamlBuilder>();
+            var showRuleInBrowser = new Mock<IShowRuleInBrowser>();
 
             var unknownRule = new SonarCompositeRuleId("known", "xxx");
             ruleMetadataProvider.Setup(x => x.GetRuleInfo(unknownRule)).Returns((IRuleInfo)null);
@@ -88,7 +96,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var testSubject = CreateEducation(
                 toolWindowService.Object,
                 ruleMetadataProvider.Object,
-                logger,
+                showRuleInBrowser.Object,
                 ruleHelpXamlBuilder.Object);
 
             toolWindowService.Reset(); // Called in the constructor, so need to reset to clear the list of invocations
@@ -96,21 +104,26 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             testSubject.ShowRuleHelp(unknownRule);
 
             ruleMetadataProvider.Verify(x => x.GetRuleInfo(unknownRule), Times.Once);
+            showRuleInBrowser.Verify(x => x.ShowRuleDescription(unknownRule), Times.Once);
+
+            // Should not have attempted to build the rule
             ruleHelpXamlBuilder.Invocations.Should().HaveCount(0);
             toolWindowService.Invocations.Should().HaveCount(0);
-
-            logger.AssertPartialOutputStringExists(unknownRule.ErrorListErrorCode);
         }
 
-        private Education CreateEducation(IToolWindowService toolWindowService = null, IRuleMetadataProvider ruleMetadataProvider = null, ILogger logger = null, IRuleHelpXamlBuilder ruleHelpXamlBuilder = null)
+        private Education CreateEducation(IToolWindowService toolWindowService = null,
+            IRuleMetadataProvider ruleMetadataProvider = null,
+            IShowRuleInBrowser showRuleInBrowser = null,
+            IRuleHelpXamlBuilder ruleHelpXamlBuilder = null)
         {
             toolWindowService ??= Mock.Of<IToolWindowService>();
             ruleMetadataProvider ??= Mock.Of<IRuleMetadataProvider>();
-            logger ??= Mock.Of<ILogger>();
+            showRuleInBrowser ??= Mock.Of<IShowRuleInBrowser>();
             ruleHelpXamlBuilder ??= Mock.Of<IRuleHelpXamlBuilder>();
+            var logger = new TestLogger(logToConsole: true);
             var threadHandling = new NoOpThreadHandler();
 
-            return new Education(toolWindowService, ruleMetadataProvider, logger, ruleHelpXamlBuilder, threadHandling);
+            return new Education(toolWindowService, ruleMetadataProvider, showRuleInBrowser, logger, ruleHelpXamlBuilder, threadHandling);
         }
     }
 }
