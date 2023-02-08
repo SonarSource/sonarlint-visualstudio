@@ -163,13 +163,14 @@ Relative path: 'SonarLint.VisualStudio.ConnectedMode.dll'
 
 Referenced assemblies:
 - 'LibGit2Sharp, Version=0.26.0.0, Culture=neutral, PublicKeyToken=7cbde695407f0333'
+- 'Microsoft.VisualStudio.Threading, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
 - 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'SonarLint.VisualStudio.Core, Version=6.13.0.0, Culture=neutral, PublicKeyToken=null'
 - 'SonarQube.Client, Version=6.13.0.0, Culture=neutral, PublicKeyToken=null'
 - 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-# Number of references: 7
+# Number of references: 8
 
 ---
 Assembly: 'SonarLint.VisualStudio.Core, Version=6.13.0.0, Culture=neutral, PublicKeyToken=null'
