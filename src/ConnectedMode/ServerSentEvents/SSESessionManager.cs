@@ -50,6 +50,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             this.sseSessionFactory = sseSessionFactory;
 
             activeSolutionBoundTracker.SolutionBindingChanged += SolutionBindingChanged;
+
+            CreateSessionIfInConnectedMode(activeSolutionBoundTracker.CurrentConfiguration);
         }
 
         public void Dispose()
@@ -67,9 +69,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
         private void SolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs activeSolutionBindingEventArgs)
         {
+            CreateSessionIfInConnectedMode(activeSolutionBindingEventArgs.Configuration);
+        }
+
+        private void CreateSessionIfInConnectedMode(BindingConfiguration bindingConfiguration)
+        {
             EndCurrentSession();
 
-            var bindingConfiguration = activeSolutionBindingEventArgs.Configuration;
             var isInConnectedMode = !bindingConfiguration.Equals(BindingConfiguration.Standalone);
 
             if (!isInConnectedMode)
