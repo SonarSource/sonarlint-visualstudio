@@ -124,12 +124,12 @@
     <value>Finished initializing security package.</value>
   </data>
   <data name="HotspotsToolWindowCaption" xml:space="preserve">
-    <value>SonarLint Security Hotspots</value>
+    <value>Sonar Security Hotspots</value>
   </data>
   <data name="StartedPackageInitialization" xml:space="preserve">
     <value>Initializing security package...</value>
   </data>
   <data name="TaintToolWindowCaption" xml:space="preserve">
-    <value>SonarLint Taint Vulnerabilities</value>
+    <value>Sonar Taint Vulnerabilities</value>
   </data>
 </root>

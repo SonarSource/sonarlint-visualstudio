@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint Issue Visualization.
+        ///   Looks up a localized string similar to Sonar Issue Visualization.
         /// </summary>
         internal static string IssueVisualizationToolWindowCaption {
             get {
