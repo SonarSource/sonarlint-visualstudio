@@ -31,7 +31,7 @@ using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 namespace SonarLint.VisualStudio.Core.UnitTests.ServerSentEvents
 {
     [TestClass]
-    public class ServerEventFilteredChannelTests
+    public class ServerEventChannelTests
     {
         [TestMethod]
         public async Task Get_AfterPublish_ReturnsCorrectValue()
@@ -151,9 +151,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.ServerSentEvents
             Assert.ThrowsException<ObjectDisposedException>(() => testSubject.Publish(serverEvent));
         }
 
-        private ServerEventFilteredChannel<IServerEvent> CreateTestSubject()
+        private ServerEventChannel<IServerEvent> CreateTestSubject()
         {
-            return new ServerEventFilteredChannel<IServerEvent>();
+            return new ServerEventChannel<IServerEvent>();
         }
     }
 }
