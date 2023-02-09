@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         }
 
         [TestMethod]
-        public void AreSecretsAvailable_ProjectIsUnbound_NotAvailable()
+        public void AreSecretsAvailable_ServiceIsNotConnected_NotAvailable()
         {
             var sonarQubeService = CreateSonarQubeServiceMock(false, null);
 
@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         }
 
         [TestMethod]
-        public void AreSecretsAvailable_ProjectIsConnectedToSonarCloud_Available()
+        public void AreSecretsAvailable_ServiceIsConnectedToSonarCloud_Available()
         {
             var serverInfo = CreateServerInfo(ServerType.SonarCloud);
             var sonarQubeService = CreateSonarQubeServiceMock(true, serverInfo);
@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         [TestMethod]
         [DataRow("9.9", true)]
         [DataRow("9.8", false)]
-        public void AreSecretsAvailable_ConnectedToSonarQube_CheckPluginVersion(string version, bool expectedResult)
+        public void AreSecretsAvailable_ServiceIsConnectedToSonarQube_CheckPluginVersion(string version, bool expectedResult)
         {
             var serverInfo = CreateServerInfo(ServerType.SonarQube, new Version(version));
             var sonarQubeService = CreateSonarQubeServiceMock(true, serverInfo);
