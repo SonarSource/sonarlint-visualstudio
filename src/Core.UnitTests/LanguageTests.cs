@@ -67,6 +67,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             Language.VBNET.IsSupported.Should().BeTrue();
             Language.Cpp.IsSupported.Should().BeTrue();
             Language.C.IsSupported.Should().BeTrue();
+            Language.Js.IsSupported.Should().BeTrue();
+            Language.Ts.IsSupported.Should().BeTrue();
+            Language.Secrets.IsSupported.Should().BeTrue();
         }
 
         [TestMethod]
@@ -84,7 +87,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             Language.VBNET.ServerLanguage.Key.Should().Be(SonarLanguageKeys.VBNet);
             Language.Cpp.ServerLanguage.Key.Should().Be(SonarLanguageKeys.CPlusPlus);
             Language.C.ServerLanguage.Key.Should().Be(SonarLanguageKeys.C);
-
+            Language.Js.ServerLanguage.Key.Should().Be(SonarLanguageKeys.JavaScript);
+            Language.Ts.ServerLanguage.Key.Should().Be(SonarLanguageKeys.TypeScript);
+            Language.Secrets.ServerLanguage.Key.Should().Be(SonarLanguageKeys.Secrets);
             Language.Unknown.ServerLanguage.Should().BeNull();
         }
 

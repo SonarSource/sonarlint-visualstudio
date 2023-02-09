@@ -315,6 +315,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                                        .Distinct()
                                        .Where(this.host.SupportedPluginLanguages.Contains)
                                        .ToList();
+
             return languageList;
         }
 
