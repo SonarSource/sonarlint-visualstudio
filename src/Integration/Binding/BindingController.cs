@@ -178,8 +178,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     Language.C,
                     Language.Cpp,
                     Language.Js,
-                    Language.Ts,
-                    Language.Secrets
+                    Language.Ts
                 }, host.SonarQubeService, host.Logger);
            
             var ruleConfigProvider = new CompositeBindingConfigProvider(cSharpVBBindingConfigProvider, nonRoslynBindingConfigProvider);
