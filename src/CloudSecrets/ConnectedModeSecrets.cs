@@ -43,7 +43,8 @@ namespace SonarLint.VisualStudio.CloudSecrets
             {
                 var serverInfo = sonarQubeService.GetServerInfo();
 
-                return serverInfo.ServerType == ServerType.SonarCloud || serverInfo.Version >= MinimumRequiredSonarQubeVersion;
+                return serverInfo.ServerType == ServerType.SonarCloud ||
+                      (serverInfo.ServerType == ServerType.SonarQube && serverInfo.Version >= MinimumRequiredSonarQubeVersion);
             }
 
             return false;

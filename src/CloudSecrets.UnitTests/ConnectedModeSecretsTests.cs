@@ -41,8 +41,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         [TestMethod]
         public void AreSecretsAvailable_ProjectIsUnbound_NotAvailable()
         {
-            var sonarQubeService = new Mock<ISonarQubeService>();
-            sonarQubeService.Setup(x => x.IsConnected).Returns(false);
+            var sonarQubeService = CreateSonarQubeServiceMock(false, null);
 
             var testSubject = new ConnectedModeSecrets(sonarQubeService.Object);
 
@@ -56,11 +55,8 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         [TestMethod]
         public void AreSecretsAvailable_ProjectIsConnectedToSonarCloud_Available()
         {
-            var sonarQubeService = new Mock<ISonarQubeService>();
-            sonarQubeService.Setup(x => x.IsConnected).Returns(true);
-
             var serverInfo = CreateServerInfo(ServerType.SonarCloud);
-            sonarQubeService.Setup(x => x.GetServerInfo()).Returns(serverInfo);
+            var sonarQubeService = CreateSonarQubeServiceMock(true, serverInfo);
 
             var testSubject = new ConnectedModeSecrets(sonarQubeService.Object);
 
@@ -71,14 +67,14 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             result.Should().BeTrue();
         }
 
-        [TestMethod]
-        public void AreSecretsAvailable_ProjectIsConnectedToSonarQube_BelowRequiredVersion_NotAvailable()
-        {
-            var sonarQubeService = new Mock<ISonarQubeService>();
-            sonarQubeService.Setup(x => x.IsConnected).Returns(true);
 
-            var serverInfo = CreateServerInfo(ServerType.SonarQube, new Version(1, 5));
-            sonarQubeService.Setup(x => x.GetServerInfo()).Returns(serverInfo);
+        [TestMethod]
+        [DataRow("9.9", true)]
+        [DataRow("9.8", false)]
+        public void AreSecretsAvailable_ConnectedToSonarQube_CheckPluginVersion(string version, bool expectedResult)
+        {
+            var serverInfo = CreateServerInfo(ServerType.SonarQube, new Version(version));
+            var sonarQubeService = CreateSonarQubeServiceMock(true, serverInfo);
 
             var testSubject = new ConnectedModeSecrets(sonarQubeService.Object);
 
@@ -86,25 +82,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
 
             sonarQubeService.Verify(x => x.IsConnected, Times.Once);
             sonarQubeService.Verify(x => x.GetServerInfo(), Times.Once);
-            result.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void AreSecretsAvailable_ProjectIsConnectedToSonarQube_AboveRequiredVersion_Available()
-        {
-            var sonarQubeService = new Mock<ISonarQubeService>();
-            sonarQubeService.Setup(x => x.IsConnected).Returns(true);
-
-            var serverInfo = CreateServerInfo(ServerType.SonarQube, new Version(9, 9));
-            sonarQubeService.Setup(x => x.GetServerInfo()).Returns(serverInfo);
-
-            var testSubject = new ConnectedModeSecrets(sonarQubeService.Object);
-
-            var result = testSubject.AreSecretsAvailable();
-
-            sonarQubeService.Verify(x => x.IsConnected, Times.Once);
-            sonarQubeService.Verify(x => x.GetServerInfo(), Times.Once);
-            result.Should().BeTrue();
+            result.Should().Be(expectedResult);
         }
 
         private ServerInfo CreateServerInfo(ServerType serverType, Version version = null)
@@ -113,6 +91,15 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             var serverInfo = new ServerInfo(version, serverType);
 
             return serverInfo;
+        }
+
+        private Mock<ISonarQubeService> CreateSonarQubeServiceMock(bool isConnected, ServerInfo serverInfo)
+        {
+            var sonarQubeService = new Mock<ISonarQubeService>();
+            sonarQubeService.Setup(x => x.IsConnected).Returns(isConnected);
+            sonarQubeService.Setup(x => x.GetServerInfo()).Returns(serverInfo);
+
+            return sonarQubeService;
         }
     }
 }
