@@ -22,6 +22,10 @@ namespace SonarLint.VisualStudio.Core.Secrets
 {
     public interface IConnectedModeSecrets
     {
+        /// <summary>
+        /// Returns true if the project is bound to either SonarCloud, or to SonarQube version >= 9.9
+        /// Returns false if project is unbound or bound to SonarQube version <= 9.8
+        /// </summary>
         bool AreSecretsAvailable();
     }
 }

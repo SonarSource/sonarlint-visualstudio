@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         }
 
         [TestMethod]
-        public void AreSecretsAvailable_ProjectIsConnectedToSonarQub_AboveRequiredVersion_Available()
+        public void AreSecretsAvailable_ProjectIsConnectedToSonarQube_AboveRequiredVersion_Available()
         {
             var sonarQubeService = new Mock<ISonarQubeService>();
             sonarQubeService.Setup(x => x.IsConnected).Returns(true);

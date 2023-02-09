@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.CloudSecrets
         [ImportingConstructor]
         public ConnectedModeSecrets(ISonarQubeService sonarQubeService)
         {
-            this.sonarQubeService= sonarQubeService;
+            this.sonarQubeService = sonarQubeService;
         }
 
         public bool AreSecretsAvailable()
