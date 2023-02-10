@@ -59,13 +59,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class TaintStore : ITaintStore
     {
+        public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
+
+        private static readonly object Locker = new object();
+
         private List<IAnalysisIssueVisualization> taintVulnerabilities = Array.Empty<IAnalysisIssueVisualization>().ToList();
         private AnalysisInformation analysisInformation;
 
-        public IReadOnlyCollection<IAnalysisIssueVisualization> GetAll() => taintVulnerabilities;
-        
+        public IReadOnlyCollection<IAnalysisIssueVisualization> GetAll()
+        {
+            lock (Locker)
+            {
+                return taintVulnerabilities;
+            }
+        }
+
         public AnalysisInformation GetAnalysisInformation() => analysisInformation;
-        
+
         public void Add(IAnalysisIssueVisualization issueVisualization)
         {
             if (issueVisualization == null)
@@ -78,9 +88,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 return;
             }
 
-            taintVulnerabilities.Add(issueVisualization);
+            lock (Locker)
+            {
+                taintVulnerabilities.Add(issueVisualization);
 
-            NotifyIssuesChanged(Array.Empty<IAnalysisIssueVisualization>(), new[] {issueVisualization});
+                NotifyIssuesChanged(Array.Empty<IAnalysisIssueVisualization>(), new[] { issueVisualization });
+            }
         }
 
         public void Remove(string issueKey)
@@ -90,21 +103,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 throw new ArgumentNullException(nameof(issueKey));
             }
 
-            var indexToRemove =
-                taintVulnerabilities.FindIndex(issueViz => ((ITaintIssue) issueViz.Issue).IssueKey.Equals(issueKey));
-
-            if (indexToRemove == -1)
+            lock (Locker)
             {
-                return;
+                var indexToRemove =
+                    taintVulnerabilities.FindIndex(issueViz => ((ITaintIssue)issueViz.Issue).IssueKey.Equals(issueKey));
+
+                if (indexToRemove == -1)
+                {
+                    return;
+                }
+
+                var valueToRemove = taintVulnerabilities[indexToRemove];
+                taintVulnerabilities.RemoveAt(indexToRemove);
+
+                NotifyIssuesChanged(new[] { valueToRemove }, Array.Empty<IAnalysisIssueVisualization>());
             }
-
-            var valueToRemove = taintVulnerabilities[indexToRemove];
-            taintVulnerabilities.RemoveAt(indexToRemove);
-
-            NotifyIssuesChanged(new[] {valueToRemove}, Array.Empty<IAnalysisIssueVisualization>());
         }
-
-        public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
 
         public void Set(IEnumerable<IAnalysisIssueVisualization> issueVisualizations, AnalysisInformation analysisInformation)
         {
@@ -113,15 +127,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 throw new ArgumentNullException(nameof(issueVisualizations));
             }
 
-            this.analysisInformation = analysisInformation;
+            lock (Locker)
+            {
+                this.analysisInformation = analysisInformation;
 
-            var oldIssues = taintVulnerabilities;
-            taintVulnerabilities = issueVisualizations.ToList();
+                var oldIssues = taintVulnerabilities;
+                taintVulnerabilities = issueVisualizations.ToList();
 
-            var removedIssues = oldIssues.Except(taintVulnerabilities).ToArray();
-            var addedIssues = taintVulnerabilities.Except(oldIssues).ToArray();
+                var removedIssues = oldIssues.Except(taintVulnerabilities).ToArray();
+                var addedIssues = taintVulnerabilities.Except(oldIssues).ToArray();
 
-            NotifyIssuesChanged(removedIssues, addedIssues);
+                NotifyIssuesChanged(removedIssues, addedIssues);
+            }
         }
 
         private void NotifyIssuesChanged(
