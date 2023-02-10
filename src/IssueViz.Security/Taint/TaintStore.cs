@@ -39,6 +39,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         /// Returns additional analysis information for the existing visualizations in the store.
         /// </summary>
         AnalysisInformation GetAnalysisInformation();
+
+        void Add(IAnalysisIssueVisualization taintIssue);
+        void Remove(string key);
     }
 
     [Export(typeof(ITaintStore))]
@@ -52,6 +55,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         public IReadOnlyCollection<IAnalysisIssueVisualization> GetAll() => taintVulnerabilities;
         
         public AnalysisInformation GetAnalysisInformation() => analysisInformation;
+        public void Add(IAnalysisIssueVisualization taintIssue)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Remove(string key)
+        {
+            throw new NotImplementedException();
+        }
 
         public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
 

@@ -33,6 +33,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEve
     /// </summary>
     internal interface ITaintServerEventsListener : IDisposable
     {
+        Task ListenAsync();
     }
 
     [Export(typeof(ITaintServerEventsListener))]
@@ -46,7 +47,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEve
         private readonly ITaintIssueToIssueVisualizationConverter taintToIssueVizConverter;
         private readonly ILogger logger;
         private readonly CancellationTokenSource cancellationTokenSource;
-        private readonly Task monitorServerEventsTask;
 
         [ImportingConstructor]
         public TaintServerEventsListener(
@@ -65,10 +65,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEve
             this.logger = logger;
 
             cancellationTokenSource = new CancellationTokenSource();
-            monitorServerEventsTask = MonitorServerEventsAsync();
         }
 
-        private async Task MonitorServerEventsAsync()
+        public async Task ListenAsync()
         {
             await threadHandling.SwitchToBackgroundThread();
 
@@ -76,27 +75,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEve
             {
                 var taintServerEvent = await taintServerEventSource.GetNextEventOrNullAsync();
 
-                if (taintServerEvent == null)
-                {
-                    return;
-                }
-
-                var serverBranch = await serverBranchProvider.GetServerBranchNameAsync(cancellationTokenSource.Token);
-
                 switch (taintServerEvent)
                 {
-                    case ITaintVulnerabilityRaisedServerEvent taintRaisedEvent when taintRaisedEvent.Branch.Equals(serverBranch):
+                    case null:
+                    {
+                        return;
+                    }
+                    case ITaintVulnerabilityClosedServerEvent taintClosedEvent:
+                    {
+                        taintStore.Remove(taintClosedEvent.Key);
+                        break;
+                    }
+                    case ITaintVulnerabilityRaisedServerEvent taintRaisedEvent:
+                    {
+                        var serverBranch = await serverBranchProvider.GetServerBranchNameAsync(cancellationTokenSource.Token);
+
+                        if (taintRaisedEvent.Branch.Equals(serverBranch))
                         {
                             var taintIssue = taintToIssueVizConverter.Convert(taintRaisedEvent.Issue);
-                            //taintStore.Add(taintIssue);
-                            break;
+                            taintStore.Add(taintIssue);
                         }
-                    case ITaintVulnerabilityClosedServerEvent taintClosedEvent:
-                        //taintStore.Remove(taintClosedEvent.Key);
                         break;
+                    }
                     default:
+                    {
                         logger.LogVerbose($"[TaintServerEventsListener] Unrecognized taint event type: {taintServerEvent.GetType()}");
                         break;
+                    }
                 }
             }
         }
@@ -105,7 +110,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEve
         {
             cancellationTokenSource.Cancel();
             cancellationTokenSource?.Dispose();
-            monitorServerEventsTask?.Dispose();
         }
     }
 }
