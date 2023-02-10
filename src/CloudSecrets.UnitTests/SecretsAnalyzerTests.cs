@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
                 MefTestHelpers.CreateExport<IContentTypeRegistryService>(),
                 MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(),
                 MefTestHelpers.CreateExport<ICloudSecretsTelemetryManager>(),
-                MefTestHelpers.CreateExport<IUserSettingsProvider>());
+                MefTestHelpers.CreateExport<IRuleSettingsProviderFactory>());
         }
 
         [TestMethod]
@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             statusNotifier.VerifyNoOtherCalls();
         }
 
-        [TestMethod]
+       [TestMethod]
         public void ExecuteAnalysis_DisabledDetectorsAreNotChecked()
         {
             var textDocumentFactoryService = SetupTextDocumentFactoryService(ValidFilePath, ValidFileContent);
@@ -286,9 +286,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             secretsToAnalysisIssueConverter ??= Mock.Of<ISecretsToAnalysisIssueConverter>();
             telemetryManager ??= Mock.Of<ICloudSecretsTelemetryManager>();
 
-            rulesSettings ??= new RulesSettings();
-            var userSettingsProvider = new Mock<IUserSettingsProvider>();
-            userSettingsProvider.Setup(x => x.UserSettings).Returns(new UserSettings(rulesSettings));
+            var ruleSettingsProviderFactory = SetupRuleProviderFactory(rulesSettings);
 
             var contentTypeRegistryService = new Mock<IContentTypeRegistryService>();
             contentTypeRegistryService.Setup(x => x.UnknownContentType).Returns(Mock.Of<IContentType>());
@@ -297,9 +295,22 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
                 contentTypeRegistryService.Object,
                 detectors.Select(x => x.Object),
                 SetupStatusNotifierFactory(statusNotifier),
-                userSettingsProvider.Object,
+                ruleSettingsProviderFactory,
                 telemetryManager,
                 secretsToAnalysisIssueConverter);
+        }
+
+        private IRuleSettingsProviderFactory SetupRuleProviderFactory(RulesSettings rulesSettings = null)
+        {
+            rulesSettings ??= new RulesSettings();
+
+            var ruleSettingsProvider = new Mock<IRuleSettingsProvider>();
+            ruleSettingsProvider.Setup(x => x.Get()).Returns(rulesSettings);
+
+            var ruleSettingsProviderFactory = new Mock<IRuleSettingsProviderFactory>();
+            ruleSettingsProviderFactory.Setup(x => x.Get(Language.Secrets)).Returns(ruleSettingsProvider.Object);
+
+            return ruleSettingsProviderFactory.Object;
         }
 
         private Mock<ISecretDetector> SetupSecretDetector(string input, string ruleKey = "some rule", params ISecret[] secrets)
