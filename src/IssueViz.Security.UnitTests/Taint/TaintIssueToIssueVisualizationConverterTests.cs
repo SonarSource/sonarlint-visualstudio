@@ -31,6 +31,9 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 using SonarQube.Client.Models;
+using SonarQube.Client.Models.ServerSentEvents.ClientContract;
+using ITaintIssue = SonarQube.Client.Models.ServerSentEvents.ClientContract.ITaintIssue;
+using ITextRange = SonarQube.Client.Models.ServerSentEvents.ClientContract.ITextRange;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 {
@@ -46,7 +49,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         [TestMethod]
-        public void Convert_ServerIssueHasNoTextRange_ArgumentNullException()
+        public void Convert_FromSonarQubeIssue_ServerIssueHasNoTextRange_ArgumentNullException()
         {
             var serverIssue = CreateServerIssue(textRange: null);
             
@@ -57,7 +60,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         [TestMethod]
-        public void Convert_FlowLocationHasNoTextRange_ArgumentNullException()
+        public void Convert_FromSonarQubeIssue_FlowLocationHasNoTextRange_ArgumentNullException()
         {
             var serverLocation = CreateServerLocation(textRange: null);
             var serverFlow = CreateServerFlow(serverLocation);
@@ -70,7 +73,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         [TestMethod]
-        public void Convert_IssueVizConverterCalledWithCorrectParameters_ReturnsConvertedIssueVizWithReversedLocations()
+        public void Convert_FromSonarQubeIssue_IssueVizConverterCalledWithCorrectParameters_ReturnsConvertedIssueVizWithReversedLocations()
         {
             var location1 = CreateServerLocation("path1", "message1", new IssueTextRange(1,2,3,4));
             var location2 = CreateServerLocation("path2", "message2", new IssueTextRange(5, 6, 7, 8));
@@ -151,7 +154,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         [DataRow(SonarQubeIssueSeverity.Info, AnalysisIssueSeverity.Info)]
         [DataRow(SonarQubeIssueSeverity.Major, AnalysisIssueSeverity.Major)]
         [DataRow(SonarQubeIssueSeverity.Minor, AnalysisIssueSeverity.Minor)]
-        public void Convert_Severity(SonarQubeIssueSeverity sqSeverity, AnalysisIssueSeverity expectedSeverity)
+        public void Convert_KnownSeverity_ConvertedToAnalysisIssueSeverity(SonarQubeIssueSeverity sqSeverity, AnalysisIssueSeverity expectedSeverity)
         {
             var result = TaintIssueToIssueVisualizationConverter.Convert(sqSeverity);
 
@@ -168,8 +171,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             act.Should().Throw<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueSeverity");
         }
 
+        public enum OriginalIssueType
+        {
+            SonarQubeIssue,
+            TaintSonarQubeIssue
+        }
+
         [TestMethod]
-        public void Convert_CalculatesLocalFilePaths()
+        [DataRow(OriginalIssueType.SonarQubeIssue)]
+        [DataRow(OriginalIssueType.TaintSonarQubeIssue)]
+        public void Convert_CalculatesLocalFilePaths(OriginalIssueType originalIssueType)
         {
             var locationViz1 = CreateLocationViz("server-path1");
             var locationViz2 = CreateLocationViz("server-path2");
@@ -189,8 +200,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
             var testSubject = CreateTestSubject(issueVizConverter.Object, absoluteFilePathLocator.Object);
 
-            var serverIssue = CreateServerIssue(filePath:"server-path4",textRange: new IssueTextRange(1, 2, 3, 4));
-            var result = testSubject.Convert(serverIssue);
+            var result = originalIssueType == OriginalIssueType.SonarQubeIssue
+                ? testSubject.Convert(CreateDummySonarQubeIssue())
+                : testSubject.Convert(CreateDummyTaintSonarQubeIssue());
 
             result.Should().Be(expectedIssueViz);
 
@@ -202,7 +214,80 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             secondaryLocations[2].CurrentFilePath.Should().Be("local3");
         }
 
-        private TaintIssueToIssueVisualizationConverter CreateTestSubject(IAnalysisIssueVisualizationConverter issueVizConverter = null, IAbsoluteFilePathLocator absoluteFilePathLocator = null)
+        [TestMethod]
+        public void Convert_FromTaintIssue_IssueVizConverterCalledWithCorrectParameters_ReturnsConvertedIssueVizWithReversedLocations()
+        {
+            var location1 = CreateTaintServerLocation("path1", "message1", CreateTaintTextRange(1, 2, 3, 4, "hash1"));
+            var location2 = CreateTaintServerLocation("path2", "message2", CreateTaintTextRange(5, 6, 7, 8, "hash2"));
+            var flow1 = CreateTaintServerFlow(location1, location2);
+
+            var location3 = CreateTaintServerLocation("path3", "message3", CreateTaintTextRange(9, 10, 11, 12, "hash3"));
+            var flow2 = CreateTaintServerFlow(location3);
+
+            var mainLocation = CreateTaintServerLocation("path4", "message4", CreateTaintTextRange(13, 14, 15, 16, "hash4"));
+            var issue = CreateTaintServerIssue("issue key", "rule", SonarQubeIssueSeverity.Major, mainLocation, flow1, flow2);
+
+            var expectedConvertedIssueViz = CreateIssueViz();
+            var issueVizConverter = new Mock<IAnalysisIssueVisualizationConverter>();
+            issueVizConverter
+                .Setup(x => x.Convert(It.IsAny<IAnalysisIssueBase>(), null))
+                .Returns(expectedConvertedIssueViz);
+
+            var testSubject = CreateTestSubject(issueVizConverter.Object);
+            var result = testSubject.Convert(issue);
+
+            result.Should().BeSameAs(expectedConvertedIssueViz);
+
+            issueVizConverter.Verify(x => x.Convert(
+                    It.Is((TaintIssue taintIssue) =>
+                        taintIssue.IssueKey == "issue key" &&
+                        taintIssue.RuleKey == "rule" &&
+                        taintIssue.Severity == AnalysisIssueSeverity.Major &&
+
+                        taintIssue.PrimaryLocation.FilePath == "path4" &&
+                        taintIssue.PrimaryLocation.Message == "message4" &&
+                        taintIssue.PrimaryLocation.TextRange.LineHash == "hash4" &&
+                        taintIssue.PrimaryLocation.TextRange.StartLine == 13 &&
+                        taintIssue.PrimaryLocation.TextRange.EndLine == 14 &&
+                        taintIssue.PrimaryLocation.TextRange.StartLineOffset == 15 &&
+                        taintIssue.PrimaryLocation.TextRange.EndLineOffset == 16 &&
+
+                        taintIssue.CreationTimestamp == default &&
+                        taintIssue.LastUpdateTimestamp == default &&
+
+                        taintIssue.Flows.Count == 2 &&
+                        taintIssue.Flows[0].Locations.Count == 2 &&
+                        taintIssue.Flows[1].Locations.Count == 1 &&
+
+                        taintIssue.Flows[0].Locations[0].Message == "message2" &&
+                        taintIssue.Flows[0].Locations[0].FilePath == "path2" &&
+                        taintIssue.Flows[0].Locations[0].TextRange.LineHash == "hash2" &&
+                        taintIssue.Flows[0].Locations[0].TextRange.StartLine == 5 &&
+                        taintIssue.Flows[0].Locations[0].TextRange.EndLine == 6 &&
+                        taintIssue.Flows[0].Locations[0].TextRange.StartLineOffset == 7 &&
+                        taintIssue.Flows[0].Locations[0].TextRange.EndLineOffset == 8 &&
+
+                        taintIssue.Flows[0].Locations[1].Message == "message1" &&
+                        taintIssue.Flows[0].Locations[1].FilePath == "path1" &&
+                        taintIssue.Flows[0].Locations[1].TextRange.LineHash == "hash1" &&
+                        taintIssue.Flows[0].Locations[1].TextRange.StartLine == 1 &&
+                        taintIssue.Flows[0].Locations[1].TextRange.EndLine == 2 &&
+                        taintIssue.Flows[0].Locations[1].TextRange.StartLineOffset == 3 &&
+                        taintIssue.Flows[0].Locations[1].TextRange.EndLineOffset == 4 &&
+
+                        taintIssue.Flows[1].Locations[0].Message == "message3" &&
+                        taintIssue.Flows[1].Locations[0].FilePath == "path3" &&
+                        taintIssue.Flows[1].Locations[0].TextRange.LineHash == "hash3" &&
+                        taintIssue.Flows[1].Locations[0].TextRange.StartLine == 9 &&
+                        taintIssue.Flows[1].Locations[0].TextRange.EndLine == 10 &&
+                        taintIssue.Flows[1].Locations[0].TextRange.StartLineOffset == 11 &&
+                        taintIssue.Flows[1].Locations[0].TextRange.EndLineOffset == 12
+                    ),
+                    It.IsAny<ITextSnapshot>()),
+                Times.Once);
+        }
+
+        private static TaintIssueToIssueVisualizationConverter CreateTestSubject(IAnalysisIssueVisualizationConverter issueVizConverter = null, IAbsoluteFilePathLocator absoluteFilePathLocator = null)
         {
             issueVizConverter ??= Mock.Of<IAnalysisIssueVisualizationConverter>();
             absoluteFilePathLocator ??= Mock.Of<IAbsoluteFilePathLocator>();
@@ -210,18 +295,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             return new TaintIssueToIssueVisualizationConverter(issueVizConverter, absoluteFilePathLocator);
         }
 
-        private SonarQubeIssue CreateServerIssue(string issueKey = "issue key", string filePath = "test.cpp", string hash = "hash", string message = "message", string rule = "rule",
+        private static SonarQubeIssue CreateServerIssue(string issueKey = "issue key", string filePath = "test.cpp", string hash = "hash", string message = "message", string rule = "rule",
             SonarQubeIssueSeverity severity = SonarQubeIssueSeverity.Info, IssueTextRange textRange = null,
             DateTimeOffset created = default, DateTimeOffset lastUpdate = default, params IssueFlow[] flows) => 
-            new SonarQubeIssue(issueKey, filePath, hash, message, null, rule, true, severity, created, lastUpdate, textRange, flows.ToList());
+            new(issueKey, filePath, hash, message, null, rule, true, severity, created, lastUpdate, textRange, flows.ToList());
 
-        private IssueLocation CreateServerLocation(string filePath = "test.cpp", string message = "message", IssueTextRange textRange = null) => 
-            new IssueLocation(filePath, null, textRange, message);
+        private static IssueLocation CreateServerLocation(string filePath = "test.cpp", string message = "message",
+            IssueTextRange textRange = null) => new(filePath, null, textRange, message);
 
-        private IssueFlow CreateServerFlow(params IssueLocation[] locations) => 
-            new IssueFlow(locations.ToList());
+        private static IssueFlow CreateServerFlow(params IssueLocation[] locations) => new(locations.ToList());
 
-        private IAnalysisIssueVisualization CreateIssueViz(string serverFilePath = null, params IAnalysisIssueLocationVisualization[] locationVizs)
+        private static IAnalysisIssueVisualization CreateIssueViz(string serverFilePath = null, params IAnalysisIssueLocationVisualization[] locationVizs)
         {
             var issueViz = new Mock<IAnalysisIssueVisualization>();
 
@@ -235,13 +319,71 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             return issueViz.Object;
         }
 
-        private IAnalysisIssueLocationVisualization CreateLocationViz(string serverFilePath)
+        private static IAnalysisIssueLocationVisualization CreateLocationViz(string serverFilePath)
         {
             var locationViz = new Mock<IAnalysisIssueLocationVisualization>();
             locationViz.SetupGet(x => x.Location.FilePath).Returns(serverFilePath);
             locationViz.SetupProperty(x => x.CurrentFilePath);
 
             return locationViz.Object;
+        }
+
+        private SonarQubeIssue CreateDummySonarQubeIssue()
+        {
+            return CreateServerIssue(textRange: new IssueTextRange(1, 2, 3, 4));
+        }
+
+        private ITaintIssue CreateDummyTaintSonarQubeIssue()
+        {
+            return CreateTaintServerIssue("key", "rule", SonarQubeIssueSeverity.Blocker,
+                CreateTaintServerLocation(serverFilePath: "path", message: "blah",
+                    textRange: CreateTaintTextRange(1, 2, 3, 4, "hash")));
+        }
+
+        private static ITaintIssue CreateTaintServerIssue(string issueKey, string ruleKey, SonarQubeIssueSeverity severity, ILocation mainLocation, params IFlow[] flows)
+        {
+            var issue = new Mock<ITaintIssue>();
+
+            issue.SetupGet(x => x.Key).Returns(issueKey);
+            issue.SetupGet(x => x.RuleKey).Returns(ruleKey);
+            issue.SetupGet(x => x.Severity).Returns(severity);
+            issue.SetupGet(x => x.Flows).Returns(flows);
+            issue.SetupGet(x => x.MainLocation).Returns(mainLocation);
+
+            return issue.Object;
+        }
+
+        private static IFlow CreateTaintServerFlow(params ILocation[] locations)
+        {
+            var flow = new Mock<IFlow>();
+
+            flow.SetupGet(x => x.Locations).Returns(locations);
+
+            return flow.Object;
+        }
+
+        private static ILocation CreateTaintServerLocation(string serverFilePath, string message, ITextRange textRange)
+        {
+            var location = new Mock<ILocation>();
+
+            location.SetupGet(x => x.FilePath).Returns(serverFilePath);
+            location.SetupGet(x => x.Message).Returns(message);
+            location.SetupGet(x => x.TextRange).Returns(textRange);
+
+            return location.Object;
+        }
+
+        private static ITextRange CreateTaintTextRange(int startLine, int endLine, int startLineOffset, int endLineOffset, string hash)
+        {
+            var textRange = new Mock<ITextRange>();
+
+            textRange.SetupGet(x => x.StartLine).Returns(startLine);
+            textRange.SetupGet(x => x.EndLine).Returns(endLine);
+            textRange.SetupGet(x => x.StartLineOffset).Returns(startLineOffset);
+            textRange.SetupGet(x => x.EndLineOffset).Returns(endLineOffset);
+            textRange.SetupGet(x => x.Hash).Returns(hash);
+
+            return textRange.Object;
         }
     }
 }
