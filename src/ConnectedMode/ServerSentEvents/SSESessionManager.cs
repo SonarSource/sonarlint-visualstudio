@@ -36,10 +36,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class SSESessionManager : ISSESessionManager
     {
+        private readonly object syncRoot = new object();
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ISSESessionFactory sseSessionFactory;
 
         private ISSESession currentSession;
+        private BindingConfiguration currentBindingConfiguration;
 
         private bool disposed;
 
@@ -74,24 +76,44 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
         private void CreateSessionIfInConnectedMode(BindingConfiguration bindingConfiguration)
         {
-            EndCurrentSession();
-
-            var isInConnectedMode = !bindingConfiguration.Equals(BindingConfiguration.Standalone);
-
-            if (!isInConnectedMode)
+            ISSESession sessionToLaunch;
+            lock (syncRoot)
             {
-                return;
+                if (bindingConfiguration.Equals(currentBindingConfiguration))
+                {
+                    return;
+                }
+
+                EndCurrentSession();
+
+                currentBindingConfiguration = bindingConfiguration;
+                var isInConnectedMode = !bindingConfiguration.Equals(BindingConfiguration.Standalone);
+
+                if (!isInConnectedMode)
+                {
+                    return;
+                }
+
+                currentSession = sessionToLaunch = sseSessionFactory.Create(bindingConfiguration.Project.ProjectKey);
             }
 
-            currentSession = sseSessionFactory.Create(bindingConfiguration.Project.ProjectKey);
-
-            currentSession.PumpAllAsync().Forget();
+            try
+            {
+                sessionToLaunch.PumpAllAsync().Forget();
+            }
+            catch (ObjectDisposedException)
+            {
+                // ignore
+            }
         }
 
         private void EndCurrentSession()
         {
-            currentSession?.Dispose();
-            currentSession = null;
+            lock (syncRoot)
+            {
+                currentSession?.Dispose();
+                currentSession = null;
+            }
         }
     }
 }
