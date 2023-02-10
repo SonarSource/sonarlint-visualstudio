@@ -80,11 +80,22 @@ public class SSESessionManagerTests
     public void Ctor_WhenInConnectedModeOnCreation_CreatesSession()
     {
         var testScope = new TestScope(TestScope.CreateConnectedModeBindingConfiguration(DefaultProjectKey));
-        testScope.SetUpSSEFactoryToReturnNoOpSSESession(DefaultProjectKey);
+        var sessionMock = testScope.SetUpSSEFactoryToReturnNoOpSSESession(DefaultProjectKey);
 
         var _ = testScope.CreateTestSubject();
 
         testScope.SSESessionFactoryMock.Verify(factory => factory.Create(DefaultProjectKey), Times.Once);
+        sessionMock.Verify(session => session.PumpAllAsync(), Times.Once);
+    }
+
+    [TestMethod]
+    public void Ctor_WhenInStandaloneModeOnCreation_DoesNotCreateSession()
+    {
+        var testScope = new TestScope(BindingConfiguration.Standalone);
+
+        var _ = testScope.CreateTestSubject();
+
+        testScope.SSESessionFactoryMock.Verify(factory => factory.Create(DefaultProjectKey), Times.Never);
     }
 
     [TestMethod]
@@ -117,11 +128,13 @@ public class SSESessionManagerTests
         sessionMock.Verify(session => session.Dispose(), Times.Once);
     }
 
-    [TestMethod]
-    public void OnSolutionChanged_WhenChangesFromConnectedToConnected_CancelsSessionAndStartsNewOne()
+    [DataTestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void OnSolutionChanged_WhenChangesFromConnectedToConnected_CancelsSessionAndStartsNewOne(bool sameProjectKey)
     {
         var projectKey1 = "proj1";
-        var projectKey2 = "proj2";
+        var projectKey2 = sameProjectKey ? projectKey1 : "proj2";
         var testScope = new TestScope();
         var _ = testScope.CreateTestSubject();
         var sessionMock1 = testScope.SetUpSSEFactoryToReturnNoOpSSESession(projectKey1);
@@ -132,23 +145,8 @@ public class SSESessionManagerTests
         testScope.RaiseInConnectedModeEvent(projectKey2);
 
         sessionMock1.Verify(session => session.Dispose(), Times.Once);
-        testScope.SSESessionFactoryMock.Verify(factory => factory.Create(projectKey2), Times.Once);
+        testScope.SSESessionFactoryMock.Verify(factory => factory.Create(projectKey2), Times.Exactly(sameProjectKey ? 2 : 1));
         sessionMock2.Verify(session => session.Dispose(), Times.Never);
-    }
-
-    [TestMethod]
-    public void OnSolutionChanged_WhenAttemptsToConnectToAlreadyConnectedProject_KeepsPreviousSessionAlive()
-    {
-        var connectedModeBindingConfiguration = TestScope.CreateConnectedModeBindingConfiguration(DefaultProjectKey);
-        var testScope = new TestScope(connectedModeBindingConfiguration);
-        var sessionMock1 = testScope.SetUpSSEFactoryToReturnNoOpSSESession(connectedModeBindingConfiguration.Project.ProjectKey);
-        var _ = testScope.CreateTestSubject();
-        testScope.SSESessionFactoryMock.Invocations.Clear();
-
-        testScope.RaiseSolutionBindingEvent(connectedModeBindingConfiguration);
-
-        sessionMock1.Verify(session => session.Dispose(), Times.Never);
-        testScope.SSESessionFactoryMock.Verify(factory => factory.Create(connectedModeBindingConfiguration.Project.ProjectKey), Times.Never);
     }
 
     [TestMethod]
@@ -276,7 +274,7 @@ public class SSESessionManagerTests
             RaiseSolutionBindingEvent(BindingConfiguration.Standalone);
         }
 
-        public void RaiseSolutionBindingEvent(BindingConfiguration bindingConfiguration)
+        private void RaiseSolutionBindingEvent(BindingConfiguration bindingConfiguration)
         {
             ActiveSolutionBoundTrackerMock.Raise(tracker => tracker.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(bindingConfiguration));
         }

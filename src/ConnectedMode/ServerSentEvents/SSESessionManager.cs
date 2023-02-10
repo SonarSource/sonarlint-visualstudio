@@ -41,7 +41,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
         private readonly ISSESessionFactory sseSessionFactory;
 
         private ISSESession currentSession;
-        private BindingConfiguration currentBindingConfiguration;
 
         private bool disposed;
 
@@ -79,14 +78,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             ISSESession sessionToLaunch;
             lock (syncRoot)
             {
-                if (bindingConfiguration.Equals(currentBindingConfiguration))
-                {
-                    return;
-                }
-
                 EndCurrentSession();
-
-                currentBindingConfiguration = bindingConfiguration;
+                
                 var isInConnectedMode = !bindingConfiguration.Equals(BindingConfiguration.Standalone);
 
                 if (!isInConnectedMode)
