@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.Secrets.DotNet;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 
 namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
 {
@@ -91,7 +92,10 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
 
             SetupTextSnapshot(textSnapshot, secret, vsLine, vsLine);
 
-            var testSubject = CreateTestSubject();
+            var lineHashCalculator = new Mock<ILineHashCalculator>();
+            lineHashCalculator.Setup(x => x.Calculate(textSnapshot.Object, 21)).Returns("IamAHash");
+
+            var testSubject = CreateTestSubject(lineHashCalculator.Object);
             var convertedIssue = testSubject.Convert(secret, secretsDetector, ValidFilePath, textSnapshot.Object);
 
             convertedIssue.PrimaryLocation.TextRange.StartLine.Should().Be(21);
@@ -99,6 +103,8 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
 
             convertedIssue.PrimaryLocation.TextRange.StartLineOffset.Should().Be(50); // secret.StartIndex - vsLine.Start.Position
             convertedIssue.PrimaryLocation.TextRange.EndLineOffset.Should().Be(150); // secret.EndIndex - vsLine.End.Position
+
+            convertedIssue.PrimaryLocation.TextRange.LineHash.Should().Be("IamAHash");
         }
 
         [TestMethod]
@@ -113,7 +119,10 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
 
             SetupTextSnapshot(textSnapshot, secret, vsStartLine, vsEndLine);
 
-            var testSubject = CreateTestSubject();
+            var lineHashCalculator = new Mock<ILineHashCalculator>();
+            lineHashCalculator.Setup(x => x.Calculate(textSnapshot.Object, 21)).Returns("IamAHash");
+
+            var testSubject = CreateTestSubject(lineHashCalculator.Object);
             var convertedIssue = testSubject.Convert(secret, secretsDetector, ValidFilePath, textSnapshot.Object);
 
             convertedIssue.PrimaryLocation.TextRange.StartLine.Should().Be(21);
@@ -121,10 +130,18 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
 
             convertedIssue.PrimaryLocation.TextRange.StartLineOffset.Should().Be(50); // secret.StartIndex - vsLine.Start.Position
             convertedIssue.PrimaryLocation.TextRange.EndLineOffset.Should().Be(50); // secret.EndIndex - vsLine.End.Position
+
+            convertedIssue.PrimaryLocation.TextRange.LineHash.Should().Be("IamAHash");
         }
 
-        private ISecretsToAnalysisIssueConverter CreateTestSubject()
-            => new SecretsToAnalysisIssueConverter();
+        private ISecretsToAnalysisIssueConverter CreateTestSubject(ILineHashCalculator lineHashCalculator = null)
+        {
+            lineHashCalculator ??= Mock.Of<ILineHashCalculator>();
+
+            var testSubject = new SecretsToAnalysisIssueConverter(lineHashCalculator);
+
+            return testSubject;
+        }
 
         private ISecretDetector CreateSecretsDetector(string ruleKey, string message)
         {

@@ -515,10 +515,10 @@
       },
       "Microsoft.VisualStudio.GraphModel": {
         "type": "Transitive",
-        "resolved": "17.3.32622.426",
-        "contentHash": "7D8bGmI4JXMmQbddvir0UME3WA6/wGoNa7U8ojRu6cabnTRb4Obwxoo0i7sqkgmA/rpzEI8W7xLXSsDHBznaog==",
+        "resolved": "17.3.32804.24",
+        "contentHash": "mzPAiBjrBj4Yo1LE/DAVIe5kzxZM3nDs8LqAdApVIE6kiCdTTkpj42g45G/nuWtCkZnHyEgeswDP0uacvV6RIQ==",
         "dependencies": {
-          "Microsoft.VisualStudio.Interop": "17.3.32622.426",
+          "Microsoft.VisualStudio.Interop": "17.3.32804.24",
           "System.ComponentModel.Composition": "6.0.0"
         }
       },
