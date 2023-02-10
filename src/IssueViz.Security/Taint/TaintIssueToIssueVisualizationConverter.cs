@@ -27,12 +27,15 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 using SonarQube.Client.Models;
+using SonarQube.Client.Models.ServerSentEvents.ClientContract;
+using ITaintIssue = SonarQube.Client.Models.ServerSentEvents.ClientContract.ITaintIssue;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 {
     interface ITaintIssueToIssueVisualizationConverter
     {
         IAnalysisIssueVisualization Convert(SonarQubeIssue sonarQubeIssue);
+        IAnalysisIssueVisualization Convert(ITaintIssue sonarQubeTaintIssue);
     }
 
     [Export(typeof(ITaintIssueToIssueVisualizationConverter))]
@@ -51,6 +54,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         public IAnalysisIssueVisualization Convert(SonarQubeIssue sonarQubeIssue)
         {
             var analysisIssue = ConvertToAnalysisIssue(sonarQubeIssue);
+
+            return CreateAnalysisIssueVisualization(analysisIssue);
+        }
+
+        public IAnalysisIssueVisualization Convert(ITaintIssue sonarQubeTaintIssue)
+        {
+            var analysisIssue = ConvertToAnalysisIssue(sonarQubeTaintIssue);
+
+            return CreateAnalysisIssueVisualization(analysisIssue);
+        }
+
+        private IAnalysisIssueVisualization CreateAnalysisIssueVisualization(IAnalysisIssueBase analysisIssue)
+        {
             var issueViz = issueVisualizationConverter.Convert(analysisIssue);
 
             CalculateLocalFilePaths(issueViz);
@@ -68,7 +84,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             }
         }
 
-        private IAnalysisIssueBase ConvertToAnalysisIssue(SonarQubeIssue sonarQubeIssue)
+        private static IAnalysisIssueBase ConvertToAnalysisIssue(SonarQubeIssue sonarQubeIssue)
         {
             if (sonarQubeIssue.TextRange == null)
             {
@@ -94,10 +110,34 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             );
         }
 
-        private IReadOnlyList<IAnalysisIssueFlow> Convert(IEnumerable<IssueFlow> flows) =>
+        private static IAnalysisIssueBase ConvertToAnalysisIssue(ITaintIssue sonarQubeTaintIssue)
+        {
+            return new TaintIssue(
+                sonarQubeTaintIssue.Key,
+                sonarQubeTaintIssue.RuleKey,
+                primaryLocation: new AnalysisIssueLocation(
+                    sonarQubeTaintIssue.MainLocation.Message,
+                    sonarQubeTaintIssue.MainLocation.FilePath,
+                    textRange: new TextRange(
+                        sonarQubeTaintIssue.MainLocation.TextRange.StartLine,
+                        sonarQubeTaintIssue.MainLocation.TextRange.EndLine,
+                        sonarQubeTaintIssue.MainLocation.TextRange.StartLineOffset,
+                        sonarQubeTaintIssue.MainLocation.TextRange.EndLineOffset,
+                        sonarQubeTaintIssue.MainLocation.TextRange.Hash)),
+                Convert(sonarQubeTaintIssue.Severity),
+                default,
+                default, 
+                Convert(sonarQubeTaintIssue.Flows)
+            );
+        }
+
+        private static IReadOnlyList<IAnalysisIssueFlow> Convert(IEnumerable<IssueFlow> flows) =>
             flows.Select(x => new AnalysisIssueFlow(Convert(x.Locations))).ToArray();
 
-        private IReadOnlyList<IAnalysisIssueLocation> Convert(IEnumerable<IssueLocation> locations) =>
+        private static IReadOnlyList<IAnalysisIssueFlow> Convert(IEnumerable<IFlow> flows) =>
+            flows.Select(x => new AnalysisIssueFlow(Convert(x.Locations))).ToArray();
+
+        private static IReadOnlyList<IAnalysisIssueLocation> Convert(IEnumerable<IssueLocation> locations) =>
             locations.Reverse().Select(location =>
             {
                 if (location.TextRange == null)
@@ -113,6 +153,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                         location.TextRange.StartOffset,
                         location.TextRange.EndOffset,
                         null));
+            }).ToArray();
+
+        private static IReadOnlyList<IAnalysisIssueLocation> Convert(IEnumerable<ILocation> locations) =>
+            // todo: do we need to reverse locations from the new API?
+            locations.Reverse().Select(location =>
+            {
+                if (location.TextRange == null)
+                {
+                    throw new ArgumentNullException(nameof(location.TextRange));
+                }
+
+                return new AnalysisIssueLocation(location.Message,
+                    location.FilePath,
+                    textRange: new TextRange(
+                        location.TextRange.StartLine,
+                        location.TextRange.EndLine,
+                        location.TextRange.StartLineOffset,
+                        location.TextRange.EndLineOffset,
+                        location.TextRange.Hash));
             }).ToArray();
 
         /// <summary>
