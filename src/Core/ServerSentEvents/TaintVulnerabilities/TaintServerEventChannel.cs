@@ -18,10 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
-namespace SonarLint.VisualStudio.Core.ServerSentEvents.Issues
+namespace SonarLint.VisualStudio.Core.ServerSentEvents.TaintVulnerabilities
 {
-    /// <inheritdoc cref="IServerSentEventSource{IIssueChangedServerEvent}"/>
-    public interface IIssueChangedServerEventSource : IServerSentEventSource<IIssueChangedServerEvent> { }
+    [Export(typeof(ITaintServerEventSource))]
+    [Export(typeof(ITaintServerEventSourcePublisher))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class TaintServerEventChannel : ServerEventChannel<ITaintServerEvent>, ITaintServerEventSource, ITaintServerEventSourcePublisher
+    {
+    }
 }

@@ -3,12 +3,27 @@
   <Import Project="..\SonarLint.Product.props" />
   <Import Project="..\SonarLint.VsPkgRefs.props" />
 
+  <!-- The VSSDK targets need to be imported after the Net.Sdk targets which means we  have to import the
+       .NET.Sdk targets using Import rather than specifying it as the Sdk in the Project element. -->
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+  <PropertyGroup>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+
   <PropertyGroup>
     <ProjectGuid>0BE551DB-3C46-42A5-BB38-DA80E83F8ABD</ProjectGuid>
     <AssemblyName>SonarLint.VisualStudio.ConnectedMode</AssemblyName>
     <RootNamespace>SonarLint.VisualStudio.ConnectedMode</RootNamespace>
-
     <RequiresLibGit>true</RequiresLibGit>
+
+    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
+
+    <!-- Vsix -->
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <CreateVsixContainer>false</CreateVsixContainer>
+    <CopyVsixManifestToOutput>false</CopyVsixManifestToOutput>
+
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,4 +48,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
 </Project>

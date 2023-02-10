@@ -22,10 +22,8 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ServerSentEvents;
-using SonarLint.VisualStudio.Core.ServerSentEvents.Issues;
 using SonarLint.VisualStudio.Core.ServerSentEvents.TaintVulnerabilities;
 using SonarQube.Client;
 using SonarQube.Client.Models.ServerSentEvents;
@@ -55,7 +53,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
     internal sealed class SSESessionFactory : ISSESessionFactory
     {
         private readonly ISonarQubeService sonarQubeClient;
-        private readonly IIssueChangedServerEventSourcePublisher issueChangedServerEventSourcePublisher;
         private readonly ITaintServerEventSourcePublisher taintServerEventSourcePublisher;
         private readonly IThreadHandling threadHandling;
 
@@ -63,12 +60,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
         [ImportingConstructor]
         public SSESessionFactory(ISonarQubeService sonarQubeClient,
-            IIssueChangedServerEventSourcePublisher issueChangedServerEventSourcePublisher, 
             ITaintServerEventSourcePublisher taintServerEventSourcePublisher,
             IThreadHandling threadHandling)
         {
             this.sonarQubeClient = sonarQubeClient;
-            this.issueChangedServerEventSourcePublisher = issueChangedServerEventSourcePublisher;
             this.taintServerEventSourcePublisher = taintServerEventSourcePublisher;
             this.threadHandling = threadHandling;
         }
@@ -80,8 +75,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
                 throw new ObjectDisposedException(nameof(SSESessionFactory));
             }
 
-            var session = new SSESession(issueChangedServerEventSourcePublisher,
-                taintServerEventSourcePublisher,
+            var session = new SSESession(taintServerEventSourcePublisher,
                 projectKey,
                 threadHandling,
                 sonarQubeClient);
@@ -96,14 +90,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
                 return;
             }
 
-            issueChangedServerEventSourcePublisher.Dispose();
             taintServerEventSourcePublisher.Dispose();
             disposed = true;
         }
 
         internal sealed class SSESession : ISSESession
         {
-            private readonly IIssueChangedServerEventSourcePublisher issueChangedServerEventSourcePublisher;
             private readonly ITaintServerEventSourcePublisher taintServerEventSourcePublisher;
             private readonly string projectKey;
             private readonly IThreadHandling threadHandling;
@@ -112,13 +104,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
             private bool disposed;
 
-            internal SSESession(IIssueChangedServerEventSourcePublisher issueChangedServerEventSourcePublisher, 
-                ITaintServerEventSourcePublisher taintServerEventSourcePublisher,
+            internal SSESession(ITaintServerEventSourcePublisher taintServerEventSourcePublisher,
                 string projectKey,
                 IThreadHandling threadHandling,
                 ISonarQubeService sonarQubeService)
             {
-                this.issueChangedServerEventSourcePublisher = issueChangedServerEventSourcePublisher;
                 this.taintServerEventSourcePublisher = taintServerEventSourcePublisher;
                 this.projectKey = projectKey;
                 this.threadHandling = threadHandling;
@@ -155,9 +145,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
                         switch (serverEvent)
                         {
-                            case IIssueChangedServerEvent issueChangedServerEvent:
-                                issueChangedServerEventSourcePublisher.Publish(issueChangedServerEvent);
-                                break;
                             case ITaintServerEvent taintServerEvent:
                                 taintServerEventSourcePublisher.Publish(taintServerEvent);
                                 break;
