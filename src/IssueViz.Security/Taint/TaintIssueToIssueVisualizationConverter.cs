@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             }
         }
 
-        private IAnalysisIssueBase ConvertToAnalysisIssue(SonarQubeIssue sonarQubeIssue)
+        private static IAnalysisIssueBase ConvertToAnalysisIssue(SonarQubeIssue sonarQubeIssue)
         {
             if (sonarQubeIssue.TextRange == null)
             {
@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             );
         }
 
-        private IAnalysisIssueBase ConvertToAnalysisIssue(ITaintIssue sonarQubeTaintIssue)
+        private static IAnalysisIssueBase ConvertToAnalysisIssue(ITaintIssue sonarQubeTaintIssue)
         {
             return new TaintIssue(
                 sonarQubeTaintIssue.Key,
@@ -125,37 +125,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                         sonarQubeTaintIssue.MainLocation.TextRange.EndLineOffset,
                         sonarQubeTaintIssue.MainLocation.TextRange.Hash)),
                 Convert(sonarQubeTaintIssue.Severity),
-                DateTimeOffset.Now, 
-                DateTimeOffset.Now, 
+                default,
+                default, 
                 Convert(sonarQubeTaintIssue.Flows)
             );
         }
 
-        private IReadOnlyList<IAnalysisIssueFlow> Convert(IEnumerable<IFlow> flows) =>
+        private static IReadOnlyList<IAnalysisIssueFlow> Convert(IEnumerable<IssueFlow> flows) =>
             flows.Select(x => new AnalysisIssueFlow(Convert(x.Locations))).ToArray();
 
-        private IReadOnlyList<IAnalysisIssueFlow> Convert(IEnumerable<IssueFlow> flows) =>
+        private static IReadOnlyList<IAnalysisIssueFlow> Convert(IEnumerable<IFlow> flows) =>
             flows.Select(x => new AnalysisIssueFlow(Convert(x.Locations))).ToArray();
 
-        private IReadOnlyList<IAnalysisIssueLocation> Convert(IEnumerable<ILocation> locations) =>
-            locations.Reverse().Select(location =>
-            {
-                if (location.TextRange == null)
-                {
-                    throw new ArgumentNullException(nameof(location.TextRange));
-                }
-
-                return new AnalysisIssueLocation(location.Message,
-                    location.FilePath,
-                    textRange: new TextRange(
-                        location.TextRange.StartLine,
-                        location.TextRange.EndLine,
-                        location.TextRange.StartLineOffset,
-                        location.TextRange.EndLineOffset,
-                        location.TextRange.Hash));
-            }).ToArray();
-
-        private IReadOnlyList<IAnalysisIssueLocation> Convert(IEnumerable<IssueLocation> locations) =>
+        private static IReadOnlyList<IAnalysisIssueLocation> Convert(IEnumerable<IssueLocation> locations) =>
             locations.Reverse().Select(location =>
             {
                 if (location.TextRange == null)
@@ -171,6 +153,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                         location.TextRange.StartOffset,
                         location.TextRange.EndOffset,
                         null));
+            }).ToArray();
+
+        private static IReadOnlyList<IAnalysisIssueLocation> Convert(IEnumerable<ILocation> locations) =>
+            // todo: do we need to reverse locations from the new API?
+            locations.Reverse().Select(location =>
+            {
+                if (location.TextRange == null)
+                {
+                    throw new ArgumentNullException(nameof(location.TextRange));
+                }
+
+                return new AnalysisIssueLocation(location.Message,
+                    location.FilePath,
+                    textRange: new TextRange(
+                        location.TextRange.StartLine,
+                        location.TextRange.EndLine,
+                        location.TextRange.StartLineOffset,
+                        location.TextRange.EndLineOffset,
+                        location.TextRange.Hash));
             }).ToArray();
 
         /// <summary>
