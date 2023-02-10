@@ -39,6 +39,7 @@ using SonarLint.VisualStudio.Integration.Binding;
 using Language = SonarLint.VisualStudio.Core.Language;
 using VsRuleSet = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
 using CoreRuleSet = SonarLint.VisualStudio.Core.CSharpVB.RuleSet;
+using SonarLint.VisualStudio.Core.Secrets;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
@@ -76,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 new SolutionRuleSetsInformationProvider(this.serviceProvider, new Mock<ILogger>().Object,  new MockFileSystem()));
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
 
-            var projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), Mock.Of<IJsTsProjectTypeIndicator>());
+            var projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), Mock.Of<IJsTsProjectTypeIndicator>(),Mock.Of<IConnectedModeSecrets>());
             var mefHost = ConfigurableComponentModel.CreateWithExports(MefTestHelpers.CreateExport<IProjectToLanguageMapper>(projectToLanguageMapper));
             serviceProvider.RegisterService(typeof(SComponentModel), mefHost);
 

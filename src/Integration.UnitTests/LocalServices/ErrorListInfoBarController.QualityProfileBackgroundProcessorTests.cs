@@ -35,6 +35,7 @@ using SonarQube.Client.Models;
 using SonarQube.Client;
 using Language = SonarLint.VisualStudio.Core.Language;
 using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.Core.Secrets;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -60,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(IConfigurationProviderService), this.configProvider);
 
             var mefHost = ConfigurableComponentModel.CreateWithExports(
-                MefTestHelpers.CreateExport<IProjectToLanguageMapper>(new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), Mock.Of<IJsTsProjectTypeIndicator>())));
+                MefTestHelpers.CreateExport<IProjectToLanguageMapper>(new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), Mock.Of<IJsTsProjectTypeIndicator>(), Mock.Of<IConnectedModeSecrets>())));
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefHost);
 
             logger = new TestLogger();
