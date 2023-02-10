@@ -63,14 +63,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
         private static readonly object Locker = new object();
 
-        private List<IAnalysisIssueVisualization> taintVulnerabilities = Array.Empty<IAnalysisIssueVisualization>().ToList();
+        private List<IAnalysisIssueVisualization> taintVulnerabilities = new List<IAnalysisIssueVisualization>();
         private AnalysisInformation analysisInformation;
 
         public IReadOnlyCollection<IAnalysisIssueVisualization> GetAll()
         {
             lock (Locker)
             {
-                return taintVulnerabilities;
+                return taintVulnerabilities.ToList();
             }
         }
 
@@ -83,13 +83,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 throw new ArgumentNullException(nameof(issueVisualization));
             }
 
-            if (analysisInformation == null)
-            {
-                return;
-            }
-
             lock (Locker)
             {
+                if (analysisInformation == null)
+                {
+                    return;
+                }
+
+                if (taintVulnerabilities.Contains(issueVisualization, TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer.Instance))
+                {
+                    return;
+                }
+
                 taintVulnerabilities.Add(issueVisualization);
 
                 NotifyIssuesChanged(Array.Empty<IAnalysisIssueVisualization>(), new[] { issueVisualization });
@@ -134,8 +139,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 var oldIssues = taintVulnerabilities;
                 taintVulnerabilities = issueVisualizations.ToList();
 
-                var removedIssues = oldIssues.Except(taintVulnerabilities).ToArray();
-                var addedIssues = taintVulnerabilities.Except(oldIssues).ToArray();
+                var removedIssues = oldIssues.Except(taintVulnerabilities, TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer.Instance).ToArray();
+                var addedIssues = taintVulnerabilities.Except(oldIssues, TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer.Instance).ToArray();
 
                 NotifyIssuesChanged(removedIssues, addedIssues);
             }
@@ -148,6 +153,38 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             if (removedIssues.Any() || addedIssues.Any())
             {
                 IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(removedIssues, addedIssues));
+            }
+        }
+
+        private class TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer : IEqualityComparer<IAnalysisIssueVisualization>
+        {
+            public static readonly TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer Instance =
+                new TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer();
+
+            private TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer(){}
+
+            public bool Equals(IAnalysisIssueVisualization first, IAnalysisIssueVisualization second)
+            {
+                if (ReferenceEquals(first, second))
+                {
+                    return true;
+                }
+
+                if (first == null || second == null)
+                {
+                    return false;
+                }
+
+                var firstTaintIssue = (ITaintIssue)first.Issue;
+                var secondTaintIssue = (ITaintIssue)second.Issue;
+
+                return firstTaintIssue.IssueKey.Equals(secondTaintIssue.IssueKey);
+            }
+            
+
+            public int GetHashCode(IAnalysisIssueVisualization obj)
+            {
+                return (obj.Issue != null ? ((ITaintIssue)obj.Issue).IssueKey.GetHashCode() : 0);
             }
         }
     }
