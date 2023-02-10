@@ -31,14 +31,18 @@ namespace SonarLint.VisualStudio.Integration.Connection
         public static readonly MinimumSupportedSonarQubePlugin VbNet = new MinimumSupportedSonarQubePlugin(SonarPluginKeys.SonarVBNet, "SonarVB", "3.0", Language.VBNET);
 
         // Note: there is no specific technical reason for the choice of cpp v6.0 as the minimum supported version.
-        // Howver, that was the first version that uses CLang so it's close to the version embedded in SLVS
+        // However, that was the first version that uses CLang so it's close to the version embedded in SLVS
         // i.e. the analysis rules implementations should be similar so the issues shown in the IDE should be
         // similar to those reported on the server.
         public static readonly MinimumSupportedSonarQubePlugin CFamily = new MinimumSupportedSonarQubePlugin(SonarPluginKeys.SonarCFamily, "SonarCFamily", "6.0", Language.Cpp, Language.C);
 
         public static readonly MinimumSupportedSonarQubePlugin JsTs = new MinimumSupportedSonarQubePlugin(SonarPluginKeys.SonarJs, "SonarJS", "8.6", Language.Js, Language.Ts);
 
-        public static readonly IEnumerable<MinimumSupportedSonarQubePlugin> All = new[] { CSharp, VbNet, CFamily, JsTs };
+        // No specific technical reason for the choice of minimum version.
+        // It was simply the lowest version supported by both SonarQube v9.9 and SonarCloud at the time.
+        public static readonly MinimumSupportedSonarQubePlugin Secrets = new MinimumSupportedSonarQubePlugin(SonarPluginKeys.SonarSecrets, "SonarSecrets", "2.0.1", Language.Secrets);
+
+        public static readonly IEnumerable<MinimumSupportedSonarQubePlugin> All = new[] { CSharp, VbNet, CFamily, JsTs, Secrets };
 
         private MinimumSupportedSonarQubePlugin(string key, string pluginName, string minimumVersion, params Language[] languages)
         {
