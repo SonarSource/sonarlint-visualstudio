@@ -34,6 +34,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.InfoBar;
+using SonarLint.VisualStudio.Core.Secrets;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -74,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 {
                     MefTestHelpers.CreateExport<ITeamExplorerController>(this.teamExplorerController),
                     MefTestHelpers.CreateExport<IInfoBarManager>(this.infoBarManager),
-                    MefTestHelpers.CreateExport<IProjectToLanguageMapper>(new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), Mock.Of<IJsTsProjectTypeIndicator>()))
+                    MefTestHelpers.CreateExport<IProjectToLanguageMapper>(new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), Mock.Of<IJsTsProjectTypeIndicator>(), Mock.Of<IConnectedModeSecrets>()))
                 });
             this.serviceProvider.RegisterService(typeof(SComponentModel), componentModel);
 
