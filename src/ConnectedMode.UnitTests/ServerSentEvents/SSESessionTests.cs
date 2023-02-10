@@ -26,7 +26,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.ServerSentEvents.Issues;
 using SonarLint.VisualStudio.Core.ServerSentEvents.TaintVulnerabilities;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
@@ -74,7 +73,6 @@ public class SSESessionTests
 
         await testScope.TestSubject.PumpAllAsync();
         
-        CheckEventsSequence<IIssueChangedServerEvent>(testScope.IssuesPublisherMock.Invocations);
         CheckEventsSequence<ITaintServerEvent>(testScope.TaintPublisherMock.Invocations);
 
         // note: can't pass Mock<IServerSentEventSourcePublisher<T>> because Mock's generic type is not covariant and we use the publisher interface through inheritor interfaces
@@ -93,14 +91,37 @@ public class SSESessionTests
         var testScope = new TestScope();
         testScope.SetUpSwitchToBackgroundThread();
         var sseStreamMock = testScope.SetUpSQServiceToSuccessfullyReturnSSEStreamReader();
-        testScope.SetUpSSEStreamReaderToReturnEventsSequenceAndExit(sseStreamMock, 
-            new IServerEvent[]{ Mock.Of<IIssueChangedServerEvent>(), null, Mock.Of<ITaintVulnerabilityRaisedServerEvent>()});
+        testScope.SetUpSSEStreamReaderToReturnEventsSequenceAndExit(sseStreamMock,
+            new IServerEvent[]
+            {
+                Mock.Of<ITaintVulnerabilityRaisedServerEvent>(),
+                null,
+                Mock.Of<ITaintVulnerabilityRaisedServerEvent>()
+            });
 
         await testScope.TestSubject.PumpAllAsync();
 
-        testScope.IssuesPublisherMock.Verify(publisher => publisher.Publish(It.IsAny<IIssueChangedServerEvent>()),
-            Times.Once);
-        testScope.TaintPublisherMock.Verify(publisher => publisher.Publish(It.IsAny<ITaintServerEvent>()), Times.Once);
+        testScope.TaintPublisherMock.Verify(publisher => publisher.Publish(It.IsAny<ITaintServerEvent>()), Times.Exactly(2));
+    }
+
+    [TestMethod]
+    public async Task PumpAllAsync_WhenUnsupportedEvent_Ignores()
+    {
+        var testScope = new TestScope();
+        testScope.SetUpSwitchToBackgroundThread();
+        var sseStreamMock = testScope.SetUpSQServiceToSuccessfullyReturnSSEStreamReader();
+
+        testScope.SetUpSSEStreamReaderToReturnEventsSequenceAndExit(sseStreamMock,
+            new IServerEvent[]
+            {
+                Mock.Of<ITaintVulnerabilityRaisedServerEvent>(),
+                Mock.Of<IIssueChangedServerEvent>(),
+                Mock.Of<ITaintVulnerabilityRaisedServerEvent>()
+            });
+
+        await testScope.TestSubject.PumpAllAsync();
+
+        testScope.TaintPublisherMock.Verify(publisher => publisher.Publish(It.IsAny<ITaintServerEvent>()), Times.Exactly(2));
     }
 
     [TestMethod]
@@ -110,15 +131,14 @@ public class SSESessionTests
         testScope.SetUpSwitchToBackgroundThread();
         var sseStreamMock = testScope.SetUpSQServiceToSuccessfullyReturnSSEStreamReader();
         testScope.SetUpSSEStreamReaderToReturnEventsSequenceAndExit(sseStreamMock, 
-            new IServerEvent[]{Mock.Of<IIssueChangedServerEvent>(), Mock.Of<ITaintVulnerabilityRaisedServerEvent>()});
-        testScope.IssuesPublisherMock.Setup(publisher => publisher.Publish(It.IsAny<IIssueChangedServerEvent>()))
+            new IServerEvent[]{Mock.Of<ITaintVulnerabilityRaisedServerEvent>(), Mock.Of<ITaintVulnerabilityRaisedServerEvent>()});
+
+        testScope.TaintPublisherMock.Setup(publisher => publisher.Publish(It.IsAny<ITaintServerEvent>()))
             .Throws(new ObjectDisposedException(string.Empty));
 
         await testScope.TestSubject.PumpAllAsync();
 
-        testScope.IssuesPublisherMock.Verify(publisher => publisher.Publish(It.IsAny<IIssueChangedServerEvent>()),
-            Times.Once);
-        testScope.TaintPublisherMock.Verify(publisher => publisher.Publish(It.IsAny<ITaintServerEvent>()), Times.Never);
+        testScope.TaintPublisherMock.Verify(publisher => publisher.Publish(It.IsAny<ITaintServerEvent>()), Times.Once);
     }
 
     [TestMethod]
@@ -159,13 +179,11 @@ public class SSESessionTests
         {
             mockRepository = new MockRepository(MockBehavior.Strict);
             SonarQubeServiceMock = mockRepository.Create<ISonarQubeService>();
-            IssuesPublisherMock = mockRepository.Create<IIssueChangedServerEventSourcePublisher>(MockBehavior.Loose);
             TaintPublisherMock = mockRepository.Create<ITaintServerEventSourcePublisher>(MockBehavior.Loose);
             ThreadHandlingMock = mockRepository.Create<IThreadHandling>();
 
             var factory = new SSESessionFactory(
                 SonarQubeServiceMock.Object,
-                IssuesPublisherMock.Object,
                 TaintPublisherMock.Object,
                 ThreadHandlingMock.Object);
             TestSubject = factory.Create("blalala");
@@ -173,7 +191,6 @@ public class SSESessionTests
 
         private Mock<IThreadHandling> ThreadHandlingMock { get; }
         public Mock<ISonarQubeService> SonarQubeServiceMock { get; }
-        public Mock<IIssueChangedServerEventSourcePublisher> IssuesPublisherMock { get; }
         public Mock<ITaintServerEventSourcePublisher> TaintPublisherMock { get; }
         public CancellationToken? CapturedSessionToken { get; private set; }
         public MockSequence CallOrder { get; } = new MockSequence();

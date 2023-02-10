@@ -166,6 +166,12 @@
   <data name="NullBranchName" xml:space="preserve">
     <value>{null}</value>
   </data>
+  <data name="Package_Initialized" xml:space="preserve">
+    <value>[ConnectedMode] Package initialized</value>
+  </data>
+  <data name="Package_Initializing" xml:space="preserve">
+    <value>[ConnectedMode] Initializing package...</value>
+  </data>
   <data name="StatefulBranchProvider_BindingChanged" xml:space="preserve">
     <value>[ConnectedMode/BranchMapping] Binding changed -&gt; cache cleared</value>
   </data>

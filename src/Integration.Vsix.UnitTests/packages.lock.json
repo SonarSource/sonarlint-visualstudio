@@ -1695,7 +1695,8 @@
           "SonarLint.VisualStudio.Rules": "[1.0.0, )",
           "SonarLint.VisualStudio.TypeScript": "[1.0.0, )",
           "SonarQube.Client": "[1.0.0, )",
-          "System.IO.Abstractions": "[9.0.4, )"
+          "System.IO.Abstractions": "[9.0.4, )",
+          "System.Threading.Channels": "[7.0.0, )"
         }
       },
       "SonarLint.VisualStudio.CFamily": {
