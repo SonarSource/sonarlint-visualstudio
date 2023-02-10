@@ -24,6 +24,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using EnvDTE;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Core.Secrets;
 using SonarLint.VisualStudio.Integration.Binding;
 using Language = SonarLint.VisualStudio.Core.Language;
 
@@ -51,6 +52,7 @@ namespace SonarLint.VisualStudio.Integration
     {
         private readonly ICMakeProjectTypeIndicator cmakeProjectTypeIndicator;
         private readonly IJsTsProjectTypeIndicator jsTsProjectTypeIndicator;
+        private readonly IConnectedModeSecrets connectedModeSecrets;
 
         internal static readonly IDictionary<Guid, Language> KnownProjectTypes = new Dictionary<Guid, Language>()
         {
@@ -62,10 +64,12 @@ namespace SonarLint.VisualStudio.Integration
 
         [ImportingConstructor]
         public ProjectToLanguageMapper(ICMakeProjectTypeIndicator cmakeProjectTypeIndicator,
-            IJsTsProjectTypeIndicator jsTsProjectTypeIndicator)
+            IJsTsProjectTypeIndicator jsTsProjectTypeIndicator,
+            IConnectedModeSecrets connectedModeSecrets)
         {
             this.cmakeProjectTypeIndicator = cmakeProjectTypeIndicator;
             this.jsTsProjectTypeIndicator = jsTsProjectTypeIndicator;
+            this.connectedModeSecrets = connectedModeSecrets;
         }
 
         public IEnumerable<Language> GetAllBindingLanguagesForProject(Project dteProject)
@@ -108,6 +112,11 @@ namespace SonarLint.VisualStudio.Integration
             {
                 languages.Add(Language.Js);
                 languages.Add(Language.Ts);
+            }
+
+            if (connectedModeSecrets.AreSecretsAvailable())
+            {
+                languages.Add(Language.Secrets);
             }
 
             if (languages.Any())

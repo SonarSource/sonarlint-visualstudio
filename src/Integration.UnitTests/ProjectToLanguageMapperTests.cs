@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.JsTs;
+using SonarLint.VisualStudio.Core.Secrets;
 using SonarLint.VisualStudio.Integration.Binding;
 using Language = SonarLint.VisualStudio.Core.Language;
 
@@ -38,7 +39,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             MefTestHelpers.CheckTypeCanBeImported<ProjectToLanguageMapper, IProjectToLanguageMapper>(
                 MefTestHelpers.CreateExport<ICMakeProjectTypeIndicator>(),
-                MefTestHelpers.CreateExport<IJsTsProjectTypeIndicator>());
+                MefTestHelpers.CreateExport<IJsTsProjectTypeIndicator>(),
+                MefTestHelpers.CreateExport<IConnectedModeSecrets>());
         }
 
         [TestMethod]
@@ -145,6 +147,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void GetAllBindingLanguagesForProject_SecretsAreAvailable_SecretsLanguage()
+        {
+            var connectedModeSecrets = SetupConnectedModeSecrets(true);
+
+            var project = new ProjectMock("any.xxx") { ProjectKind = Guid.NewGuid().ToString() };
+
+            var testSubject = CreateTestSubject(connectedModeSecrets:connectedModeSecrets);
+
+            var actualLanguage = testSubject.GetAllBindingLanguagesForProject(project);
+
+            actualLanguage.Should().BeEquivalentTo(Language.Secrets);
+        }
+
+        [TestMethod]
+        public void GetAllBindingLanguagesForProject_SecretsAreNotAvailable_UnknownLanguage()
+        {
+            var connectedModeSecrets = SetupConnectedModeSecrets(false);
+
+            var project = new ProjectMock("any.xxx") { ProjectKind = Guid.NewGuid().ToString() };
+
+            var testSubject = CreateTestSubject(connectedModeSecrets: connectedModeSecrets);
+
+            var actualLanguage = testSubject.GetAllBindingLanguagesForProject(project);
+
+            actualLanguage.Should().BeEquivalentTo(Language.Unknown);
+        }
+
+        [TestMethod]
         public void HasSupportedLanguage_OnlyUnknownLanguage_False()
         {
             var project = new ProjectMock("any.xxx")
@@ -205,6 +235,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.Should().BeTrue();
         }
 
+        [TestMethod]
+        public void HasSupportedLanguageSecrets_True()
+        {
+            var connectedModeSecrets = SetupConnectedModeSecrets(true);
+
+            var project = new ProjectMock("any.xxx") { ProjectKind = Guid.NewGuid().ToString() };
+            var testSubject = CreateTestSubject(connectedModeSecrets:connectedModeSecrets);
+
+            var result = testSubject.HasSupportedLanguage(project);
+
+            result.Should().BeTrue();
+        }
+
         private static void CheckGetAllBindingsLanguages(string projectTypeGuid, params Language[] expectedLanguages)
         {
             // Arrange
@@ -222,12 +265,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actualLanguage.Should().BeEquivalentTo(expectedLanguages);
         }
 
-        private static IProjectToLanguageMapper CreateTestSubject(ICMakeProjectTypeIndicator cmakeProjectTypeIndicator = null, IJsTsProjectTypeIndicator jsTsProjectTypeIndicator = null)
+        private static IProjectToLanguageMapper CreateTestSubject(ICMakeProjectTypeIndicator cmakeProjectTypeIndicator = null, IJsTsProjectTypeIndicator jsTsProjectTypeIndicator = null,
+            IConnectedModeSecrets connectedModeSecrets = null)
         {
             cmakeProjectTypeIndicator ??= Mock.Of<ICMakeProjectTypeIndicator>();
             jsTsProjectTypeIndicator ??= Mock.Of<IJsTsProjectTypeIndicator>();
+            connectedModeSecrets ??= Mock.Of<IConnectedModeSecrets>();
 
-            return new ProjectToLanguageMapper(cmakeProjectTypeIndicator, jsTsProjectTypeIndicator);
+            return new ProjectToLanguageMapper(cmakeProjectTypeIndicator, jsTsProjectTypeIndicator, connectedModeSecrets);
+        }
+
+        private static IConnectedModeSecrets SetupConnectedModeSecrets(bool areSecretsAvailable)
+        {
+            var connectedModeSecrets = new Mock<IConnectedModeSecrets>();
+            connectedModeSecrets.Setup(x => x.AreSecretsAvailable()).Returns(areSecretsAvailable);
+
+            return connectedModeSecrets.Object;
         }
 
         private static Mock<ICMakeProjectTypeIndicator> SetupCMakeProject(bool isCMake)
