@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public static class MefTestHelpers
     {
         [DebuggerStepThrough]
-        public static Export CreateExport<T>() where T : class
+        public static Export CreateExport<T>() where T: class
         {
             return CreateExport<T>(Mock.Of<T>());
         }
