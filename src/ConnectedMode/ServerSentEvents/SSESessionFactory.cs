@@ -24,7 +24,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ServerSentEvents;
-using SonarLint.VisualStudio.Core.ServerSentEvents.TaintVulnerabilities;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEvents;
 using SonarQube.Client;
 using SonarQube.Client.Models.ServerSentEvents;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
