@@ -29,7 +29,6 @@ using System.Threading;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Notifications;
@@ -59,7 +58,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private ILogger logger;
         private NotificationData notificationData;
         private bool disposed;
-        private ISSESessionManager sseSessionManager;
 
         protected override System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -75,8 +73,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var sonarqubeService = await this.GetMefServiceAsync<ISonarQubeService>();
             logger = await this.GetMefServiceAsync<ILogger>();
             logger.WriteLine(Resources.Strings.Notifications_Initializing);
-
-            sseSessionManager = await this.GetMefServiceAsync<ISSESessionManager>();
 
             AddOptionKey(NotificationDataKey);
 
@@ -155,7 +151,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
 
             (notifications as IDisposable)?.Dispose();
-            sseSessionManager?.Dispose();
             disposed = true;
         }
 
