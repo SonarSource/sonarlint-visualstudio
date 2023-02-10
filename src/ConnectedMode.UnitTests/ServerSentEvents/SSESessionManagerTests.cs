@@ -68,7 +68,7 @@ public class SSESessionManagerTests
                 isSubscribed.Should().BeFalse();
                 isSubscribed = true;
             });
-        testScope.SetUpSSEFactoryToReturnSSESession(DefaultProjectKey, factoryMockCallback:() => isSubscribed.Should().BeTrue());
+        testScope.SetUpSSEFactoryToReturnNoOpSSESession(DefaultProjectKey, () => isSubscribed.Should().BeTrue());
 
         var _ = testScope.CreateTestSubject();
 
@@ -80,26 +80,11 @@ public class SSESessionManagerTests
     public void Ctor_WhenInConnectedModeOnCreation_CreatesSession()
     {
         var testScope = new TestScope(TestScope.CreateConnectedModeBindingConfiguration(DefaultProjectKey));
-        testScope.SetUpSSEFactoryToReturnSSESession(DefaultProjectKey);
+        testScope.SetUpSSEFactoryToReturnNoOpSSESession(DefaultProjectKey);
 
         var _ = testScope.CreateTestSubject();
 
         testScope.SSESessionFactoryMock.Verify(factory => factory.Create(DefaultProjectKey), Times.Once);
-    }
-
-    [TestMethod]
-    public void Ctor_WhenSessionIsDisposed_ExitsWithoutThrowing()
-    {
-        var testScope = new TestScope(TestScope.CreateConnectedModeBindingConfiguration(DefaultProjectKey));
-        var sessionMock = testScope.SetUpSSEFactoryToReturnSSESession(
-            DefaultProjectKey,
-            pumpAllSetup => pumpAllSetup.ThrowsAsync(new ObjectDisposedException(string.Empty)));
-        
-        var act = () => testScope.CreateTestSubject();
-
-        act.Should().NotThrow();
-        testScope.SSESessionFactoryMock.Verify(factory => factory.Create(DefaultProjectKey), Times.Once);
-        sessionMock.Verify(session => session.PumpAllAsync(), Times.Once);
     }
 
     [TestMethod]
@@ -108,7 +93,7 @@ public class SSESessionManagerTests
         var testScope = new TestScope();
         var _ = testScope.CreateTestSubject();
         testScope.RaiseInStandaloneModeEvent();
-        var sessionMock = testScope.SetUpSSEFactoryToReturnSSESession(DefaultProjectKey);
+        var sessionMock = testScope.SetUpSSEFactoryToReturnNoOpSSESession(DefaultProjectKey);
 
         testScope.RaiseInConnectedModeEvent(DefaultProjectKey);
 
@@ -121,7 +106,7 @@ public class SSESessionManagerTests
     {
         var testScope = new TestScope();
         var _ = testScope.CreateTestSubject();
-        var sessionMock = testScope.SetUpSSEFactoryToReturnSSESession(DefaultProjectKey);
+        var sessionMock = testScope.SetUpSSEFactoryToReturnNoOpSSESession(DefaultProjectKey);
         sessionMock.Setup(session => session.Dispose());
         testScope.RaiseInConnectedModeEvent(DefaultProjectKey);
         testScope.SSESessionFactoryMock.Invocations.Clear();
@@ -139,10 +124,10 @@ public class SSESessionManagerTests
         var projectKey2 = "proj2";
         var testScope = new TestScope();
         var _ = testScope.CreateTestSubject();
-        var sessionMock1 = testScope.SetUpSSEFactoryToReturnSSESession(projectKey1);
+        var sessionMock1 = testScope.SetUpSSEFactoryToReturnNoOpSSESession(projectKey1);
         sessionMock1.Setup(session => session.Dispose());
         testScope.RaiseInConnectedModeEvent(projectKey1);
-        var sessionMock2 = testScope.SetUpSSEFactoryToReturnSSESession(projectKey2);
+        var sessionMock2 = testScope.SetUpSSEFactoryToReturnNoOpSSESession(projectKey2);
 
         testScope.RaiseInConnectedModeEvent(projectKey2);
 
@@ -156,7 +141,7 @@ public class SSESessionManagerTests
     {
         var connectedModeBindingConfiguration = TestScope.CreateConnectedModeBindingConfiguration(DefaultProjectKey);
         var testScope = new TestScope(connectedModeBindingConfiguration);
-        var sessionMock1 = testScope.SetUpSSEFactoryToReturnSSESession(connectedModeBindingConfiguration.Project.ProjectKey);
+        var sessionMock1 = testScope.SetUpSSEFactoryToReturnNoOpSSESession(connectedModeBindingConfiguration.Project.ProjectKey);
         var _ = testScope.CreateTestSubject();
         testScope.SSESessionFactoryMock.Invocations.Clear();
 
@@ -167,28 +152,11 @@ public class SSESessionManagerTests
     }
 
     [TestMethod]
-    public void OnSolutionChanged_WhenSessionIsDisposed_ExitsWithoutThrowing()
-    {
-        var testScope = new TestScope();
-        var _ = testScope.CreateTestSubject();
-        var sessionMock = testScope.SetUpSSEFactoryToReturnSSESession(
-            DefaultProjectKey, 
-            pumpAllSetup => pumpAllSetup.ThrowsAsync(new ObjectDisposedException(string.Empty)));
-
-        var act = () => testScope.RaiseInConnectedModeEvent(DefaultProjectKey);
-
-        act.Should().NotThrow();
-        testScope.SSESessionFactoryMock.Verify(factory => factory.Create(DefaultProjectKey), Times.Once);
-        sessionMock.Verify(session => session.PumpAllAsync(), Times.Once);
-    }
-
-
-    [TestMethod]
     public void Dispose_WhenInConnectedMode_CorrectAndIdempotent()
     {
         var testScope = new TestScope();
         var testSubject = testScope.CreateTestSubject();
-        var sseSession = testScope.SetUpSSEFactoryToReturnSSESession(DefaultProjectKey);
+        var sseSession = testScope.SetUpSSEFactoryToReturnNoOpSSESession(DefaultProjectKey);
         testScope.SetUpCorrectDisposeOrder(sseSession);
         testScope.RaiseInConnectedModeEvent(DefaultProjectKey);
 
@@ -281,7 +249,7 @@ public class SSESessionManagerTests
             currentSession?.InSequence(callOrder).Setup(session => session.Dispose());
         }
 
-        public Mock<ISSESession> SetUpSSEFactoryToReturnSSESession(string projectKey, Action<ISetup<ISSESession, Task>> sseSessionPumpAllAsyncSetupOverride = null, Action factoryMockCallback = null)
+        public Mock<ISSESession> SetUpSSEFactoryToReturnNoOpSSESession(string projectKey, Action factoryMockCallback = null)
         {
             var sseSessionMock = mockRepository.Create<ISSESession>();
             SSESessionFactoryMock.InSequence(callOrder)
@@ -289,10 +257,10 @@ public class SSESessionManagerTests
                 .Returns(sseSessionMock.Object)
                 .Callback(() => factoryMockCallback?.Invoke());
 
-            var pumpAllSetupBuilder = sseSessionMock.InSequence(callOrder).Setup(session => session.PumpAllAsync());
-
-            sseSessionPumpAllAsyncSetupOverride ??= pumpAllSetup => pumpAllSetup.Returns(Task.CompletedTask);
-            sseSessionPumpAllAsyncSetupOverride(pumpAllSetupBuilder);
+            sseSessionMock
+                .InSequence(callOrder)
+                .Setup(session => session.PumpAllAsync())
+                .Returns(Task.CompletedTask);
 
             return sseSessionMock;
         }

@@ -97,14 +97,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
                 currentSession = sessionToLaunch = sseSessionFactory.Create(bindingConfiguration.Project.ProjectKey);
             }
 
-            try
-            {
-                sessionToLaunch.PumpAllAsync().Forget();
-            }
-            catch (ObjectDisposedException)
-            {
-                // ignore
-            }
+            sessionToLaunch.PumpAllAsync().Forget();
         }
 
         private void EndCurrentSession()
