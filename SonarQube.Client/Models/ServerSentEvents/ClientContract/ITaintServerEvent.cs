@@ -44,7 +44,7 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
         public TaintVulnerabilityRaisedServerEvent(string projectKey, string key, string branch,
             string ruleKey, SonarQubeIssueSeverity severity, SonarQubeIssueType type,
             Location mainLocation, Flow[] flows)
-            : this(projectKey, key, branch, new TaintIssue(ruleKey, severity, type, mainLocation, flows))
+            : this(projectKey, key, branch, new TaintIssue(key, ruleKey, severity, type, mainLocation, flows))
         {
         }
 
