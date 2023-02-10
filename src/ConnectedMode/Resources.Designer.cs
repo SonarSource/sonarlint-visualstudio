@@ -205,6 +205,24 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode] Package initialized.
+        /// </summary>
+        internal static string Package_Initialized {
+            get {
+                return ResourceManager.GetString("Package_Initialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode] Initializing package....
+        /// </summary>
+        internal static string Package_Initializing {
+            get {
+                return ResourceManager.GetString("Package_Initializing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [ConnectedMode/BranchMapping] Binding changed -&gt; cache cleared.
         /// </summary>
         internal static string StatefulBranchProvider_BindingChanged {
