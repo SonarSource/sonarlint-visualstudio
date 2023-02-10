@@ -1535,7 +1535,8 @@
         "dependencies": {
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
           "SonarLint.Secrets.DotNet": "[1.0.3, )",
-          "SonarLint.VisualStudio.Core": "[1.0.0, )"
+          "SonarLint.VisualStudio.Core": "[1.0.0, )",
+          "SonarLint.VisualStudio.IssueVisualization": "[1.0.0, )"
         }
       },
       "SonarLint.VisualStudio.ConnectedMode": {
