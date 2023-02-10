@@ -29,6 +29,7 @@ using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 {
@@ -193,6 +194,154 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
             var result = testSubject.GetAnalysisInformation();
             result.Should().BeSameAs(analysisInformation);
+        }
+
+        [TestMethod]
+        public void Remove_IssueKeyIsNull_ArgumentNullException()
+        {
+            var testSubject = CreateTestSubject();
+
+            Action act = () => testSubject.Remove(null);
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("issueKey");
+        }
+
+        [TestMethod]
+        public void Remove_IssueNotFound_NoIssuesInList_NoEventIsRaised()
+        {
+            var testSubject = CreateTestSubject();
+
+            var callCount = 0;
+            IssuesChangedEventArgs suppliedArgs = null;
+            testSubject.IssuesChanged += (_, args) => { callCount++; suppliedArgs = args; };
+
+            testSubject.Remove("some unknown key");
+
+            callCount.Should().Be(0);
+            testSubject.GetAll().Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void Remove_IssueNotFound_NoIssueWithThisId_NoEventIsRaised()
+        {
+            var existingIssue = SetupIssueViz("key1");
+
+            var testSubject = CreateTestSubject();
+            testSubject.Set(new[] { existingIssue }, null);
+
+            var callCount = 0;
+            IssuesChangedEventArgs suppliedArgs = null;
+            testSubject.IssuesChanged += (_, args) => { callCount++; suppliedArgs = args; };
+
+            testSubject.Remove("some unknown key");
+
+            callCount.Should().Be(0);
+            testSubject.GetAll().Should().BeEquivalentTo(existingIssue);
+        }
+
+        [TestMethod]
+        public void Remove_IssueFound_IssueIsRemovedAndEventIsRaised()
+        {
+            var existingIssue1 = SetupIssueViz("key1");
+            var existingIssue2 = SetupIssueViz("key2");
+            var existingIssue3 = SetupIssueViz("key3");
+
+            var testSubject = CreateTestSubject();
+            testSubject.Set(new[] {existingIssue1, existingIssue2, existingIssue3}, null);
+
+            var callCount = 0;
+            IssuesChangedEventArgs suppliedArgs = null;
+            testSubject.IssuesChanged += (_, args) => { callCount++; suppliedArgs = args; };
+
+            testSubject.Remove("key2");
+
+            callCount.Should().Be(1);
+            suppliedArgs.RemovedIssues.Should().BeEquivalentTo(existingIssue2);
+            suppliedArgs.AddedIssues.Should().BeEmpty();
+            testSubject.GetAll().Should().BeEquivalentTo(existingIssue1, existingIssue3);
+        }
+
+        [TestMethod]
+        public void Remove_MultipleIssuesFoundWithSameId_FirstIssueIsRemovedAndEventIsRaised()
+        {
+            var existingIssue1 = SetupIssueViz("key1");
+            var existingIssue2 = SetupIssueViz("key1");
+            var existingIssue3 = SetupIssueViz("key1");
+
+            var testSubject = CreateTestSubject();
+            testSubject.Set(new[] { existingIssue1, existingIssue2, existingIssue3 }, null);
+
+            var callCount = 0;
+            IssuesChangedEventArgs suppliedArgs = null;
+            testSubject.IssuesChanged += (_, args) => { callCount++; suppliedArgs = args; };
+
+            testSubject.Remove("key1");
+
+            callCount.Should().Be(1);
+            suppliedArgs.RemovedIssues.Should().BeEquivalentTo(existingIssue1);
+            suppliedArgs.AddedIssues.Should().BeEmpty();
+            testSubject.GetAll().Should().BeEquivalentTo(existingIssue2, existingIssue3);
+        }
+
+        [TestMethod]
+        public void Add_IssueIsNull_ArgumentNullException()
+        {
+            var testSubject = CreateTestSubject();
+
+            Action act = () => testSubject.Add(null);
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("issueVisualization");
+        }
+
+        [TestMethod]
+        public void Add_NoAnalysisInformation_IssueIgnoredAndNoEventIsRaised()
+        {
+            var existingIssue = SetupIssueViz("key1");
+
+            var testSubject = CreateTestSubject();
+            testSubject.Set(new[] { existingIssue}, null);
+
+            var callCount = 0;
+            IssuesChangedEventArgs suppliedArgs = null;
+            testSubject.IssuesChanged += (_, args) => { callCount++; suppliedArgs = args; };
+
+            testSubject.Add(Mock.Of<IAnalysisIssueVisualization>());
+
+            callCount.Should().Be(0);
+            testSubject.GetAll().Should().BeEquivalentTo(existingIssue);
+        }
+
+        [TestMethod]
+        public void Add_HasAnalysisInformation_IssueAddedAndEventIsRaised()
+        {
+            var analysisInformation = new AnalysisInformation("some branch", DateTimeOffset.Now);
+            var existingIssue = SetupIssueViz("key1");
+
+            var testSubject = CreateTestSubject();
+            testSubject.Set(new[] { existingIssue }, analysisInformation);
+
+            var callCount = 0;
+            IssuesChangedEventArgs suppliedArgs = null;
+            testSubject.IssuesChanged += (_, args) => { callCount++; suppliedArgs = args; };
+
+            var newIssue = Mock.Of<IAnalysisIssueVisualization>();
+            testSubject.Add(newIssue);
+
+            callCount.Should().Be(1);
+            suppliedArgs.RemovedIssues.Should().BeEmpty();
+            suppliedArgs.AddedIssues.Should().BeEquivalentTo(newIssue);
+            testSubject.GetAll().Should().BeEquivalentTo(existingIssue, newIssue);
+        }
+
+        private IAnalysisIssueVisualization SetupIssueViz(string issueKey)
+        {
+            var taintIssue = new Mock<ITaintIssue>();
+            taintIssue.Setup(x => x.IssueKey).Returns(issueKey);
+
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.Setup(x => x.Issue).Returns(taintIssue.Object);
+
+            return issueViz.Object;
         }
 
         private ITaintStore CreateTestSubject()

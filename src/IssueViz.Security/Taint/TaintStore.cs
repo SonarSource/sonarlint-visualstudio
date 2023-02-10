@@ -24,6 +24,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 {
@@ -39,6 +40,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         /// Returns additional analysis information for the existing visualizations in the store.
         /// </summary>
         AnalysisInformation GetAnalysisInformation();
+
+        /// <summary>
+        /// Add the given issue to the existing list of visualizations.
+        /// If <see cref="GetAnalysisInformation"/> is null, the operation is ignored.
+        /// </summary>
+        void Add(IAnalysisIssueVisualization issueVisualization);
+
+        /// <summary>
+        /// Removes an issue with the given key from the existing list of visualizations.
+        /// If no matching issue is found, the operation is ignored.
+        /// </summary>
+        void Remove(string issueKey);
     }
 
     [Export(typeof(ITaintStore))]
@@ -46,12 +59,50 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class TaintStore : ITaintStore
     {
-        private IAnalysisIssueVisualization[] taintVulnerabilities = Array.Empty<IAnalysisIssueVisualization>();
+        private List<IAnalysisIssueVisualization> taintVulnerabilities = Array.Empty<IAnalysisIssueVisualization>().ToList();
         private AnalysisInformation analysisInformation;
 
         public IReadOnlyCollection<IAnalysisIssueVisualization> GetAll() => taintVulnerabilities;
         
         public AnalysisInformation GetAnalysisInformation() => analysisInformation;
+        
+        public void Add(IAnalysisIssueVisualization issueVisualization)
+        {
+            if (issueVisualization == null)
+            {
+                throw new ArgumentNullException(nameof(issueVisualization));
+            }
+
+            if (analysisInformation == null)
+            {
+                return;
+            }
+
+            taintVulnerabilities.Add(issueVisualization);
+
+            NotifyIssuesChanged(Array.Empty<IAnalysisIssueVisualization>(), new[] {issueVisualization});
+        }
+
+        public void Remove(string issueKey)
+        {
+            if (issueKey == null)
+            {
+                throw new ArgumentNullException(nameof(issueKey));
+            }
+
+            var indexToRemove =
+                taintVulnerabilities.FindIndex(issueViz => ((ITaintIssue) issueViz.Issue).IssueKey.Equals(issueKey));
+
+            if (indexToRemove == -1)
+            {
+                return;
+            }
+
+            var valueToRemove = taintVulnerabilities[indexToRemove];
+            taintVulnerabilities.RemoveAt(indexToRemove);
+
+            NotifyIssuesChanged(new[] {valueToRemove}, Array.Empty<IAnalysisIssueVisualization>());
+        }
 
         public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
 
@@ -65,16 +116,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             this.analysisInformation = analysisInformation;
 
             var oldIssues = taintVulnerabilities;
-            taintVulnerabilities = issueVisualizations.ToArray();
+            taintVulnerabilities = issueVisualizations.ToList();
 
-            NotifyIssuesChanged(oldIssues);
-        }
-
-        private void NotifyIssuesChanged(IAnalysisIssueVisualization[] oldIssues)
-        {
             var removedIssues = oldIssues.Except(taintVulnerabilities).ToArray();
             var addedIssues = taintVulnerabilities.Except(oldIssues).ToArray();
 
+            NotifyIssuesChanged(removedIssues, addedIssues);
+        }
+
+        private void NotifyIssuesChanged(
+            IReadOnlyCollection<IAnalysisIssueVisualization> removedIssues, 
+            IReadOnlyCollection<IAnalysisIssueVisualization> addedIssues)
+        {
             if (removedIssues.Any() || addedIssues.Any())
             {
                 IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(removedIssues, addedIssues));
