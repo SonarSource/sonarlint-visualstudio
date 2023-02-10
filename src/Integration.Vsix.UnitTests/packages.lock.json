@@ -515,10 +515,10 @@
       },
       "Microsoft.VisualStudio.GraphModel": {
         "type": "Transitive",
-        "resolved": "17.3.32804.24",
-        "contentHash": "mzPAiBjrBj4Yo1LE/DAVIe5kzxZM3nDs8LqAdApVIE6kiCdTTkpj42g45G/nuWtCkZnHyEgeswDP0uacvV6RIQ==",
+        "resolved": "17.3.32622.426",
+        "contentHash": "7D8bGmI4JXMmQbddvir0UME3WA6/wGoNa7U8ojRu6cabnTRb4Obwxoo0i7sqkgmA/rpzEI8W7xLXSsDHBznaog==",
         "dependencies": {
-          "Microsoft.VisualStudio.Interop": "17.3.32804.24",
+          "Microsoft.VisualStudio.Interop": "17.3.32622.426",
           "System.ComponentModel.Composition": "6.0.0"
         }
       },
@@ -1704,7 +1704,8 @@
         "dependencies": {
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
           "SonarLint.Secrets.DotNet": "[1.0.3, )",
-          "SonarLint.VisualStudio.Core": "[1.0.0, )"
+          "SonarLint.VisualStudio.Core": "[1.0.0, )",
+          "SonarLint.VisualStudio.IssueVisualization": "[1.0.0, )"
         }
       },
       "SonarLint.VisualStudio.ConnectedMode": {
