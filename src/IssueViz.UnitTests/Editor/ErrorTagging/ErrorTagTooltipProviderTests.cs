@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
 
             var navigateCommand = Mock.Of<INavigateToRuleDescriptionCommand>();
             
-            var testSubject = new ErrorTagTooltipProvider(Mock.Of<IVsThemeColorProvider>(), navigateCommand);
+            var testSubject = new ErrorTagTooltipProvider(Mock.Of<IVsThemeColorProvider>(), navigateCommand, new TestLogger());
             var result = testSubject.Create(issue.Object);
 
             result.Should().NotBeNull();

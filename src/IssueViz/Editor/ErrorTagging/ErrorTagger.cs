@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
@@ -41,8 +42,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
         protected override TagSpan<IErrorTag> CreateTagSpan(IIssueLocationTag trackedTag, NormalizedSnapshotSpanCollection spans)
         {
             var issueViz = (IAnalysisIssueVisualization)trackedTag.Location;
-            var tooltip = errorTagTooltipProvider.Create(issueViz.Issue);
-            return new TagSpan<IErrorTag>(trackedTag.Location.Span.Value, new ErrorTag(PredefinedErrorTypeNames.Warning, tooltip));
+            Func<object> tooltipFactory = () => errorTagTooltipProvider.Create(issueViz.Issue);
+            return new TagSpan<IErrorTag>(trackedTag.Location.Span.Value, new SonarErrorTag(PredefinedErrorTypeNames.Warning, tooltipFactory));
         }
 
         protected override IEnumerable<IMappingTagSpan<IIssueLocationTag>> Filter(IEnumerable<IMappingTagSpan<IIssueLocationTag>> trackedTagSpans) =>
