@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
             this.logger = logger;
         }
 
-        private static int instanceCount = 0;
+        private static long instanceCount = 0;
 
         public object Create(IAnalysisIssueBase analysisIssueBase)
         {
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
             };
 
             instanceCount++;
-            logger.LogVerbose($"[ErrorTagTooltipProvider] instance count: {instanceCount}");
+            logger.LogVerbose($"[ErrorTagTooltipProvider] tooltip instance count: {instanceCount}");
 
             return content;
         }
