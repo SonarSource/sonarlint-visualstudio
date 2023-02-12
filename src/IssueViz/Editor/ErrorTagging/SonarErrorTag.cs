@@ -20,6 +20,7 @@
 
 using System;
 using Microsoft.VisualStudio.Text.Tagging;
+using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
 {
@@ -33,10 +34,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
     {
         private readonly Lazy<object> tooltipFactory;
 
-        public SonarErrorTag(string errorType, Func<object> tooltipCreator)
+        public SonarErrorTag(string errorType, IAnalysisIssueBase analysisIssue,  IErrorTagTooltipProvider errorTagTooltipProvider)
         {
             ErrorType = errorType;
-            tooltipFactory = new Lazy<object>(() => tooltipCreator());
+            tooltipFactory = new Lazy<object>(() => errorTagTooltipProvider.Create(analysisIssue));
         }
 
         public string ErrorType { get; }
