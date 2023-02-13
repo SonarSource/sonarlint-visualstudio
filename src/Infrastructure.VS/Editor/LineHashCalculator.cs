@@ -21,7 +21,7 @@
 using Microsoft.VisualStudio.Text;
 using SonarQube.Client;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Editor
+namespace SonarLint.VisualStudio.Infrastructure.VS.Editor
 {
     public interface ILineHashCalculator
     {
