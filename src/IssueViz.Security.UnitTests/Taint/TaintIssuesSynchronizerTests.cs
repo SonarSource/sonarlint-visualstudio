@@ -253,12 +253,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         [TestMethod]
         [DataRow(SonarLintMode.Connected)]
         [DataRow(SonarLintMode.LegacyConnected)]
-        public async Task SynchronizeWithServer_ConnectedModeWithNoIssues_StoreAndUIContextCleared(SonarLintMode sonarLintMode)
+        public async Task SynchronizeWithServer_ConnectedModeWithNoIssues_StoreIsSetAndUIContextCleared(SonarLintMode sonarLintMode)
         {
             var sonarService = CreateSonarService(isConnected: true);
             var bindingConfig = CreateBindingConfig(sonarLintMode, "my-project-key");
             var serverBranchProvider = CreateServerBranchProvider("my-branch");
+            var analysisInformation = new AnalysisInformation("my-branch", DateTimeOffset.Now);
+
             SetupTaintIssues(sonarService, "my-project-key", "my-branch" /* no issues */);
+            SetupAnalysisInformation(sonarService, "my-project-key", analysisInformation);
 
             var taintStore = new Mock<ITaintStore>();
             var converter = new Mock<ITaintIssueToIssueVisualizationConverter>();
@@ -280,13 +283,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
             CheckConnectedStatusIsChecked(sonarService);
             CheckIssuesAreFetched(sonarService, "my-project-key", "my-branch");
-
-            CheckStoreIsCleared(taintStore);
             CheckUIContextIsCleared(monitor, cookie);
 
-            // Should be nothing to convert or display in the tool window
-            sonarService.Verify(x => x.GetProjectBranchesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
-            converter.Invocations.Should().HaveCount(0);
+            taintStore.Verify(x => x.Set(Enumerable.Empty<IAnalysisIssueVisualization>(),
+                It.Is((AnalysisInformation a) =>
+                    a.AnalysisTimestamp == analysisInformation.AnalysisTimestamp &&
+                    a.BranchName == analysisInformation.BranchName)), Times.Once);
+
+            // Should be nothing to display in the tool window
             toolWindowService.Invocations.Should().HaveCount(0);
         }
 

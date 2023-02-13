@@ -103,18 +103,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
                 logger.WriteLine(TaintResources.Synchronizer_NumberOfServerIssues, taintVulnerabilities.Count);
 
+                var analysisInformation = await GetAnalysisInformation(projectKey);
+                var taintIssueVizs = taintVulnerabilities.Select(converter.Convert).ToArray();
+                taintStore.Set(taintIssueVizs, analysisInformation);
+
                 var hasTaintIssues = taintVulnerabilities.Count > 0;
 
                 if (!hasTaintIssues)
                 {
-                    HandleNoTaintIssues();
+                    UpdateTaintIssuesUIContext(false);
                 }
                 else
                 {
-                    var analysisInformation = await GetAnalysisInformation(projectKey);
-                    var taintIssueVizs = taintVulnerabilities.Select(converter.Convert).ToArray();
-                    taintStore.Set(taintIssueVizs, analysisInformation);
-
                     UpdateTaintIssuesUIContext(true);
 
                     // We need the tool window content to exist so the issues are filtered and the
