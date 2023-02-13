@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using FluentAssertions;
@@ -385,8 +386,47 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             CheckToolWindowServiceIsCalled(toolWindowService);
         }
 
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow("unknown local branch")]
+        public async Task SynchronizeWithServer_NoMatchingServerBranch_ServerMainBranchUsedForAnalysisInfo(string localBranch)
+        {
+            var sonarService = CreateSonarService();
+            var bindingConfig = CreateBindingConfig(SonarLintMode.Connected, "my proj");
+            var serverBranchProvider = CreateServerBranchProvider(localBranch);
+            SetupTaintIssues(sonarService, "my proj", localBranch, new TestSonarQubeIssue());
+
+            var analysisInformation = new AnalysisInformation("some main branch", DateTimeOffset.Now);
+            SetupAnalysisInformation(sonarService, "my proj", analysisInformation);
+
+            const uint cookie = 212;
+            var monitor = CreateMonitorSelectionMock(cookie);
+            var toolWindowService = new Mock<IToolWindowService>();
+            var taintStore = new Mock<ITaintStore>();
+
+            var testSubject = CreateTestSubject(
+                taintStore: taintStore.Object,
+                bindingConfig: bindingConfig,
+                serverBranchProvider: serverBranchProvider.Object,
+                sonarService: sonarService.Object,
+                vsMonitor: monitor.Object,
+                toolWindowService: toolWindowService.Object);
+
+            await testSubject.SynchronizeWithServer();
+
+            CheckIssuesAreFetched(sonarService, "my proj", localBranch);
+            CheckUIContextIsSet(monitor, cookie);
+            CheckToolWindowServiceIsCalled(toolWindowService);
+
+            taintStore.Verify(x => x.Set(It.IsAny<IEnumerable<IAnalysisIssueVisualization>>(),
+                It.Is((AnalysisInformation a) =>
+                    a.AnalysisTimestamp == analysisInformation.AnalysisTimestamp &&
+                    a.BranchName == analysisInformation.BranchName)), Times.Once);
+        }
+
         private static BindingConfiguration CreateBindingConfig(SonarLintMode mode = SonarLintMode.Connected, string projectKey = "any")
-            => new BindingConfiguration(new BoundSonarQubeProject { ProjectKey = projectKey }, mode, "any dir");
+            => new(new BoundSonarQubeProject { ProjectKey = projectKey }, mode, "any dir");
 
         private static TaintIssuesSynchronizer CreateTestSubject(
             BindingConfiguration bindingConfig = null,

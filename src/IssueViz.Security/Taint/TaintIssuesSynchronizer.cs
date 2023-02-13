@@ -169,7 +169,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         private async Task<AnalysisInformation> GetAnalysisInformation(string projectKey, string branchName)
         {
             var branches = await sonarQubeService.GetProjectBranchesAsync(projectKey, CancellationToken.None);
-            var issuesBranch = branches.First(x => x.Name.Equals(branchName));
+
+            var issuesBranch = string.IsNullOrEmpty(branchName)
+                ? branches.First(x => x.IsMain)
+                : branches.FirstOrDefault(x => x.Name.Equals(branchName))
+                  ?? branches.First(x => x.IsMain);
 
             return new AnalysisInformation(issuesBranch.Name, issuesBranch.LastAnalysisTimestamp);
         }
