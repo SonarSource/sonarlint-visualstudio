@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEve
 
     [Export(typeof(ITaintServerEventsListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class TaintServerEventsListener : ITaintServerEventsListener
+    internal sealed class TaintServerEventsListener : ITaintServerEventsListener
     {
         private readonly IStatefulServerBranchProvider serverBranchProvider;
         private readonly ITaintServerEventSource taintServerEventSource;
