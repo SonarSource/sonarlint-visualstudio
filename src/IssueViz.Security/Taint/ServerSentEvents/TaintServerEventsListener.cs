@@ -88,13 +88,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEve
                     }
                     case ITaintVulnerabilityRaisedServerEvent taintRaisedEvent:
                     {
-                        var serverBranch = await serverBranchProvider.GetServerBranchNameAsync(cancellationTokenSource.Token);
-
-                        if (taintRaisedEvent.Branch.Equals(serverBranch))
-                        {
-                            var taintIssue = taintToIssueVizConverter.Convert(taintRaisedEvent.Issue);
-                            taintStore.Add(taintIssue);
-                        }
+                        await AddToStoreIfOnTheRightBranchAsync(taintRaisedEvent);
                         break;
                     }
                     default:
@@ -103,6 +97,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEve
                         break;
                     }
                 }
+            }
+        }
+
+        private async Task AddToStoreIfOnTheRightBranchAsync(ITaintVulnerabilityRaisedServerEvent taintRaisedEvent)
+        {
+            var serverBranch = await serverBranchProvider.GetServerBranchNameAsync(cancellationTokenSource.Token);
+
+            if (taintRaisedEvent.Branch.Equals(serverBranch))
+            {
+                var taintIssue = taintToIssueVizConverter.Convert(taintRaisedEvent.Issue);
+                taintStore.Add(taintIssue);
             }
         }
 

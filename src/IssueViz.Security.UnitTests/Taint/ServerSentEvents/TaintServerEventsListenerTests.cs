@@ -72,7 +72,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Ser
         [TestMethod]
         public async Task OnEvent_TaintClosedServerEvent_IssueIsRemovedFromStore()
         {
-            var serverEvent = CreateTaintClosedServerEvent("some issue1");
+            const string issueKey = "some issue1";
+
+            var serverEvent = CreateTaintClosedServerEvent(issueKey);
             var taintServerEventSource = SetupTaintServerEventSource(serverEvent);
             var taintStore = new Mock<ITaintStore>();
 
@@ -82,7 +84,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Ser
 
             await testSubject.ListenAsync();
 
-            taintStore.Verify(x => x.Remove("some issue1"), Times.Once);
+            taintStore.Verify(x => x.Remove(issueKey), Times.Once);
             taintStore.VerifyNoOtherCalls();
         }
 
@@ -110,8 +112,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Ser
         [TestMethod]
         public async Task OnEvent_TaintRaisedServerEvent_EventIsForCurrentBranch_IssueIsAddedToStore()
         {
+            const string branchName = "master";
+
             var taintIssue = Mock.Of<ITaintIssue>();
-            var serverEvent = CreateTaintRaisedServerEvent(taintIssue, "master");
+            var serverEvent = CreateTaintRaisedServerEvent(taintIssue, branchName);
             var taintServerEventSource = SetupTaintServerEventSource(serverEvent);
             var convertedIssueViz = Mock.Of<IAnalysisIssueVisualization>();
 
@@ -119,7 +123,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Ser
             converter.Setup(x => x.Convert(taintIssue))
                 .Returns(convertedIssueViz);
 
-            var serverBranchProvider = SetupBranchProvider("master");
+            var serverBranchProvider = SetupBranchProvider(branchName);
             var taintStore = new Mock<ITaintStore>();
 
             var testSubject = CreateTestSubject(
