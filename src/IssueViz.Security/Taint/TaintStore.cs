@@ -156,7 +156,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             }
         }
 
-        private class TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer : IEqualityComparer<IAnalysisIssueVisualization>
+        private sealed class TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer : IEqualityComparer<IAnalysisIssueVisualization>
         {
             public static readonly TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer Instance =
                 new TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer();
