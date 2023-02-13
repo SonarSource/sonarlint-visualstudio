@@ -1658,6 +1658,7 @@
           "Microsoft.Owin": "[4.2.2, )",
           "Microsoft.Owin.Host.HttpListener": "[4.2.2, )",
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
+          "SonarLint.VisualStudio.ConnectedMode": "[1.0.0, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.IssueVisualization": "[1.0.0, )"
         }

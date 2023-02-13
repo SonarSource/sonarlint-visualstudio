@@ -20,7 +20,6 @@
 
 using System;
 using System.Threading.Tasks;
-using Moq.Language.Flow;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;

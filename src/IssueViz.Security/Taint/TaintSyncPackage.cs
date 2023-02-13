@@ -24,8 +24,10 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEvents;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
@@ -49,15 +51,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
     public sealed class TaintSyncPackage : AsyncPackage
     {
         private ITaintIssuesBindingMonitor bindingMonitor;
+        private ITaintServerEventsListener taintServerEventsListener;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             var componentModel = await GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
             var logger = componentModel.GetService<ILogger>();
+
             logger.WriteLine(TaintResources.SyncPackage_Initializing);
 
             bindingMonitor = componentModel.GetService<ITaintIssuesBindingMonitor>();
+
             await componentModel.GetService<ITaintIssuesSynchronizer>().SynchronizeWithServer();
+
+            taintServerEventsListener = componentModel.GetService<ITaintServerEventsListener>();
+            taintServerEventsListener.ListenAsync().Forget();
+
             logger.WriteLine(TaintResources.SyncPackage_Initialized);
         }
 
@@ -65,8 +74,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         {
             if (disposing)
             {
-                bindingMonitor.Dispose();
+                bindingMonitor?.Dispose();
+                taintServerEventsListener?.Dispose();
             }
+
             base.Dispose(disposing);
         }
     }
