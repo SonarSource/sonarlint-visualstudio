@@ -24,5 +24,5 @@ using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEvents
 {
     /// <inheritdoc cref="IServerSentEventSource{ITaintServerEvent}"/>
-    public interface ITaintServerEventSource : IServerSentEventSource<ITaintServerEvent> { }
+    internal interface ITaintServerEventSource : IServerSentEventSource<ITaintServerEvent> { }
 }

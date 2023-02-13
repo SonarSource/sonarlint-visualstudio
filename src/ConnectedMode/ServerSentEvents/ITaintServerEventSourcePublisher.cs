@@ -21,7 +21,7 @@
 using SonarLint.VisualStudio.Core.ServerSentEvents;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEvents
+namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 {
     /// <inheritdoc cref="IServerSentEventSourcePublisher{T}"/>
     public interface ITaintServerEventSourcePublisher : IServerSentEventSourcePublisher<ITaintServerEvent> { }

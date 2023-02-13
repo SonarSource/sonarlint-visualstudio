@@ -48,6 +48,7 @@
   </ItemGroup>
 
   <ItemGroup Label="Project references">
+    <ProjectReference Include="..\ConnectedMode\ConnectedMode.csproj" />
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\IssueViz\IssueViz.csproj" />
   </ItemGroup>
