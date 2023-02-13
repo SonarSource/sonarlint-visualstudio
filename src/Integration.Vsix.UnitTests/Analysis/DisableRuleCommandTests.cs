@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Secrets;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using ThreadHelper = SonarLint.VisualStudio.Integration.UnitTests.ThreadHelper;
@@ -44,26 +45,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void Ctor_NullArguments()
         {
             var menuCommandService = new DummyMenuCommandService();
-            var errorList = Mock.Of<IErrorList>();
             var userSettingsProvider = new Mock<IUserSettingsProvider>().Object;
             var solutionTracker = new Mock<IActiveSolutionBoundTracker>().Object;
             var logger = new TestLogger();
             var errorListHelper = Mock.Of<IErrorListHelper>();
+            var connectedModeSecrets = Mock.Of<IConnectedModeSecrets>();
 
-            Action act = () => new DisableRuleCommand(null, userSettingsProvider, solutionTracker, logger, errorListHelper);
+            Action act = () => new DisableRuleCommand(null, userSettingsProvider, solutionTracker, logger, errorListHelper, connectedModeSecrets);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("menuCommandService");
 
-            act = () => new DisableRuleCommand(menuCommandService, null, solutionTracker, logger, errorListHelper);
+            act = () => new DisableRuleCommand(menuCommandService, null, solutionTracker, logger, errorListHelper, connectedModeSecrets);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userSettingsProvider");
 
-            act = () => new DisableRuleCommand(menuCommandService, userSettingsProvider, null, logger, errorListHelper);
+            act = () => new DisableRuleCommand(menuCommandService, userSettingsProvider, null, logger, errorListHelper, connectedModeSecrets);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("activeSolutionBoundTracker");
 
-            act = () => new DisableRuleCommand(menuCommandService, userSettingsProvider, solutionTracker, null, errorListHelper);
+            act = () => new DisableRuleCommand(menuCommandService, userSettingsProvider, solutionTracker, null, errorListHelper, connectedModeSecrets);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
-            act = () => new DisableRuleCommand(menuCommandService, userSettingsProvider, solutionTracker, logger, null);
+            act = () => new DisableRuleCommand(menuCommandService, userSettingsProvider, solutionTracker, logger, null, connectedModeSecrets);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("errorListHelper");
+
+            act = () => new DisableRuleCommand(menuCommandService, userSettingsProvider, solutionTracker, logger, errorListHelper, null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("connectedModeSecrets");
         }
 
         [TestMethod]
@@ -121,8 +125,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         [DataRow("javascript:S111", SonarLintMode.LegacyConnected, false)]
         [DataRow("typescript:S111", SonarLintMode.Connected, false)]
         [DataRow("typescript:S111", SonarLintMode.LegacyConnected, false)]
-        [DataRow("secrets:S111", SonarLintMode.Connected, true)]
-        [DataRow("secrets:S111", SonarLintMode.LegacyConnected, true)]
         public void CheckStatus_SingleIssue_SupportedRepo_ConnectedMode_HasExpectedEnabledStatus(string errorCode, SonarLintMode bindingMode,
             bool expectedEnabled)
         {
@@ -142,6 +144,51 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             // Should always be visible, but not necessarily enabled
             command.Visible.Should().BeTrue();
             command.Enabled.Should().Be(expectedEnabled);
+        }
+
+        [TestMethod]
+        [DataRow("secrets:S111", false, true)]
+        [DataRow("secrets:S111", true, false)]
+        public void CheckStatus_SingleIssue_Secrets_ConnectedMode_HasExpectedEnabledStatus(string errorCode, bool areSecretsAvailableInConnectedMode, bool expectedEnabled)
+        {
+            var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
+            var solutionTracker = CreateSolutionTracker(SonarLintMode.Connected);
+            var errorListHelper = CreateErrorListHelper(errorCode, ruleExists: true);
+            var connectedModeSecrets = CreateConnectedModeSecrets(areSecretsAvailableInConnectedMode);
+
+            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, new TestLogger(), errorListHelper, connectedModeSecrets);
+
+            // Act. Trigger the query status check
+            ThreadHelper.SetCurrentThreadAsUIThread();
+            var result = command.OleStatus;
+
+            var expectedOleStatus = expectedEnabled ? VisibleAndEnabled : VisibleButDisabled;
+            result.Should().Be(expectedOleStatus);
+
+            // Should always be visible, but not necessarily enabled
+            command.Visible.Should().BeTrue();
+            command.Enabled.Should().Be(expectedEnabled);
+        }
+
+        [TestMethod]
+        public void CheckStatus_SingleIssue_Secrets_NotConnected_IsEnabled()
+        {
+            var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
+            var solutionTracker = CreateSolutionTracker(SonarLintMode.Standalone);
+            var errorListHelper = CreateErrorListHelper("secrets:S111", ruleExists: true);
+            var connectedModeSecrets = CreateConnectedModeSecrets(areSecretsAvailableInConnectedMode:false);
+
+            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, new TestLogger(), errorListHelper, connectedModeSecrets);
+
+            // Act. Trigger the query status check
+            ThreadHelper.SetCurrentThreadAsUIThread();
+            var result = command.OleStatus;
+
+            var expectedOleStatus =  VisibleAndEnabled;
+            result.Should().Be(expectedOleStatus);
+
+            command.Visible.Should().BeTrue();
+            command.Enabled.Should().BeTrue();
         }
 
         [TestMethod]
@@ -231,7 +278,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void Execute_CriticalErrorNotSuppressed()
         {
             // Arrange
-            var errorList = Mock.Of<IErrorList>();
             var errorListHelper = new Mock<IErrorListHelper>();
             var ruleId = It.IsAny<SonarCompositeRuleId>();
             errorListHelper.Setup(x => x.TryGetRuleIdFromSelectedRow(out ruleId)).Throws(new StackOverflowException("exception xxx"));
@@ -249,13 +295,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             testLogger.AssertPartialOutputStringDoesNotExist("exception xxx");
         }
 
-        private static MenuCommand CreateDisableRuleMenuCommand(IUserSettingsProvider userSettingsProvider, IActiveSolutionBoundTracker solutionTracker, ILogger logger, IErrorListHelper errorListHelper)
+        private static MenuCommand CreateDisableRuleMenuCommand(IUserSettingsProvider userSettingsProvider, IActiveSolutionBoundTracker solutionTracker, ILogger logger, 
+            IErrorListHelper errorListHelper, IConnectedModeSecrets connectedModeSecrets = null)
         {
+            connectedModeSecrets ??= Mock.Of<IConnectedModeSecrets>();
             var dummyMenuService = new DummyMenuCommandService();
-            new DisableRuleCommand(dummyMenuService, userSettingsProvider, solutionTracker, logger, errorListHelper);
+            new DisableRuleCommand(dummyMenuService, userSettingsProvider, solutionTracker, logger, errorListHelper, connectedModeSecrets);
 
             dummyMenuService.AddedMenuCommands.Count.Should().Be(1);
             return dummyMenuService.AddedMenuCommands[0];
+        }
+
+        private IConnectedModeSecrets CreateConnectedModeSecrets(bool areSecretsAvailableInConnectedMode)
+        {
+            var connectedModeSecrets = new Mock<IConnectedModeSecrets>();
+
+            connectedModeSecrets.Setup(x => x.AreSecretsAvailable()).Returns(areSecretsAvailableInConnectedMode);
+
+            return connectedModeSecrets.Object;
         }
 
         private static IActiveSolutionBoundTracker CreateSolutionTracker(SonarLintMode bindingMode)
