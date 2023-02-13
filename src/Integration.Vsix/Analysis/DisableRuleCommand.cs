@@ -168,7 +168,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 return !connectedModeSecrets.AreSecretsAvailable();
             }
 
-            // Otherwise, can only disables rules in standalone mode
+            // Otherwise, can only disable rules in standalone mode
             return activeSolutionBoundTracker.CurrentConfiguration.Mode == SonarLintMode.Standalone;
         }
     }

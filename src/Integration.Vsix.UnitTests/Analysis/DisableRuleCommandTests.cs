@@ -187,7 +187,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var expectedOleStatus =  VisibleAndEnabled;
             result.Should().Be(expectedOleStatus);
 
-            // Should always be visible, but not necessarily enabled
             command.Visible.Should().BeTrue();
             command.Enabled.Should().BeTrue();
         }
