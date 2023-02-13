@@ -174,7 +174,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void CheckStatus_SingleIssue_Secrets_NotConnected_IsEnabled()
         {
             var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
-            var solutionTracker = CreateSolutionTracker(SonarLintMode.Connected);
+            var solutionTracker = CreateSolutionTracker(SonarLintMode.Standalone);
             var errorListHelper = CreateErrorListHelper("secrets:S111", ruleExists: true);
             var connectedModeSecrets = CreateConnectedModeSecrets(areSecretsAvailableInConnectedMode:false);
 

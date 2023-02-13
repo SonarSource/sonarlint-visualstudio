@@ -22,8 +22,6 @@ using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Org.BouncyCastle.Crypto.Parameters;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Secrets;
@@ -100,7 +98,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 var isEnabled = false;
                 if (errorListHelper.TryGetRuleIdFromSelectedRow(out var ruleId))
                 {
-                    CalculateStatuses(ruleId, activeSolutionBoundTracker.CurrentConfiguration.Mode, connectedModeSecrets.AreSecretsAvailable(), out isVisible, out isEnabled);
+                    isVisible = IsSonarRule(ruleId);
+                    isEnabled = isVisible && IsDisablingRuleAllowed(ruleId);
                 }
 
                 menuItem.Visible = isVisible;
@@ -152,31 +151,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             SonarRuleRepoKeys.C,
             SonarRuleRepoKeys.Cpp,
             SonarRuleRepoKeys.JavaScript,
-            SonarRuleRepoKeys.TypeScript
+            SonarRuleRepoKeys.TypeScript,
+            SonarRuleRepoKeys.Secrets
         };
 
-        private static void CalculateStatuses(SonarCompositeRuleId rule, SonarLintMode mode, bool isConnectedModeSupportedForSecrets, out bool isVisible, out bool isEnabled)
+        private bool IsSonarRule(SonarCompositeRuleId rule)
+            => supportedRepos.Contains(rule.RepoKey, SonarRuleRepoKeys.RepoKeyComparer);
+
+        private bool IsDisablingRuleAllowed(SonarCompositeRuleId rule)
         {
-            // Special case: Secrets
-            // We don't support connected mode for Secrets in SonarQubeVersions < 9.9 so we allow disabling
-            // secrets rules in those cases.
+            // Special case: secrets
+            // We don't support connected mode for Secrets in SonarQubeVersions < 9.9 so we
+            // still allow users to disable secrets rules in those cases.
             if (SonarRuleRepoKeys.AreEqual(SonarRuleRepoKeys.Secrets, rule.RepoKey))
             {
-                isVisible = true;
-                isEnabled = !isConnectedModeSupportedForSecrets;
-                return;
+                return !connectedModeSecrets.AreSecretsAvailable();
             }
 
-            // We don't currently support disabling rules for all repos
-            if (supportedRepos.Contains(rule.RepoKey, SonarRuleRepoKeys.RepoKeyComparer))
-            {
-                isVisible = true;
-                isEnabled = mode == SonarLintMode.Standalone;
-                return;
-            }
-
-            isVisible = false;
-            isEnabled = false;
+            // Otherwise, can only disables rules in standalone mode
+            return activeSolutionBoundTracker.CurrentConfiguration.Mode == SonarLintMode.Standalone;
         }
     }
 }
