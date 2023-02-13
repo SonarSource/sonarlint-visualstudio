@@ -354,6 +354,7 @@ Referenced assemblies:
 - 'Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed'
 - 'PresentationCore, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
 - 'PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
+- 'SonarLint.VisualStudio.ConnectedMode, Version=6.13.0.0, Culture=neutral, PublicKeyToken=null'
 - 'SonarLint.VisualStudio.Core, Version=6.13.0.0, Culture=neutral, PublicKeyToken=null'
 - 'SonarLint.VisualStudio.Infrastructure.VS, Version=6.13.0.0, Culture=neutral, PublicKeyToken=null'
 - 'SonarLint.VisualStudio.IssueVisualization, Version=6.13.0.0, Culture=neutral, PublicKeyToken=null'
@@ -363,7 +364,7 @@ Referenced assemblies:
 - 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'WindowsBase, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
-# Number of references: 22
+# Number of references: 23
 
 ---
 Assembly: 'SonarLint.VisualStudio.Progress, Version=6.13.0.0, Culture=neutral, PublicKeyToken=null'
