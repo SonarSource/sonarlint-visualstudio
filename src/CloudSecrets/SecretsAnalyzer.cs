@@ -138,7 +138,7 @@ namespace SonarLint.VisualStudio.CloudSecrets
         private bool IsRuleActive(string ruleKey)
         {
             var rulesSettings = ruleSettingsProvider.Get();
-            // User settings override the default, if present
+
             if (rulesSettings.Rules.TryGetValue(ruleKey, out var ruleConfig))
             {
                 return ruleConfig.Level == RuleLevel.On;
