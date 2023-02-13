@@ -22,7 +22,7 @@ using System.IO;
 using Microsoft.VisualStudio.Text;
 using SonarLint.Secrets.DotNet;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.Infrastructure.VS.Editor;
 
 namespace SonarLint.VisualStudio.CloudSecrets
 {

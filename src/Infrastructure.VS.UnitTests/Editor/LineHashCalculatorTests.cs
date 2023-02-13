@@ -22,10 +22,10 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
-using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.Infrastructure.VS.Editor;
 using SonarQube.Client;
 
-namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
+namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests.Editor
 {
     [TestClass]
     public class LineHashCalculatorTests
