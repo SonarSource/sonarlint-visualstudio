@@ -35,11 +35,10 @@ namespace SonarLint.VisualStudio.ConnectedMode
     {
         /// <summary>
         /// Calculates the Sonar server branch that is the closest match to the head branch.
-        /// Returns null if there are no head branches
+        /// Defaults to branch marked as "main" when no match is found or when there are no head branches.
         /// </summary>
         /// <remarks>
         /// Compares branches by name and calculates distances by the number of different commits.
-        /// Defaults to branch marked as "main" when no match found.
         /// This is the same algorithm as the other SonarLint flavours (?except in how we treated branch histories.
         /// We treat branch histories as series of linear commits ordered by time, even if there are merges).
         /// </remarks>
@@ -86,14 +85,13 @@ namespace SonarLint.VisualStudio.ConnectedMode
         private async Task<string> DoGetMatchingBranch(string projectKey, IRepository gitRepo, CancellationToken token)
         {
             var head = gitRepo.Head;
+            var remoteBranches = await sonarQubeService.GetProjectBranchesAsync(projectKey, token);
 
             if (head == null)
             {
                 logger.LogVerbose(Resources.BranchMapper_NoHead);
-                return null;
+                return remoteBranches.First(rb => rb.IsMain).Name;
             }
-
-            var remoteBranches = await sonarQubeService.GetProjectBranchesAsync(projectKey, token);
 
             if (remoteBranches.Any(rb => string.Equals(rb.Name, head.FriendlyName, StringComparison.InvariantCultureIgnoreCase)))
             {
