@@ -22,6 +22,7 @@ using System.IO;
 using Microsoft.VisualStudio.Text;
 using SonarLint.Secrets.DotNet;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Infrastructure.VS.Editor;
 
 namespace SonarLint.VisualStudio.CloudSecrets
 {
@@ -32,6 +33,15 @@ namespace SonarLint.VisualStudio.CloudSecrets
 
     internal class SecretsToAnalysisIssueConverter : ISecretsToAnalysisIssueConverter
     {
+        private readonly ILineHashCalculator lineHashCalculator;
+
+        public SecretsToAnalysisIssueConverter() : this(new LineHashCalculator()) { }
+
+        internal SecretsToAnalysisIssueConverter(ILineHashCalculator lineHashCalculator)
+        {
+            this.lineHashCalculator = lineHashCalculator;
+        }
+
         public IAnalysisIssue Convert(ISecret secret, ISecretDetector secretDetector, string filePath, ITextSnapshot textSnapshot)
         {
             var snapshotSpan = new SnapshotSpan(textSnapshot, secret.StartIndex, secret.Length);
@@ -55,7 +65,7 @@ namespace SonarLint.VisualStudio.CloudSecrets
                         endLine: endLine,
                         startLineOffset: startLineOffset,
                         endLineOffset: endLineOffset,
-                        lineHash: null)), // suppressions are not yet supported
+                        lineHash: lineHashCalculator.Calculate(textSnapshot, startLine))),
                 flows: null);
         }
     }

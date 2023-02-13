@@ -32,7 +32,7 @@ using SonarLint.VisualStudio.CFamily.SubProcess;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
-using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.Infrastructure.VS.Editor;
 using Edit = SonarLint.VisualStudio.CFamily.SubProcess.Edit;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
