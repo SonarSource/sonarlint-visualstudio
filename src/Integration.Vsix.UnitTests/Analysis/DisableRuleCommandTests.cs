@@ -26,9 +26,10 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarQube.Client;
+
 using ThreadHelper = SonarLint.VisualStudio.Integration.UnitTests.ThreadHelper;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
@@ -46,23 +47,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var menuCommandService = new DummyMenuCommandService();
             var errorList = Mock.Of<IErrorList>();
             var userSettingsProvider = new Mock<IUserSettingsProvider>().Object;
-            var solutionTracker = new Mock<IActiveSolutionBoundTracker>().Object;
+            var sonarQubeService = new Mock<ISonarQubeService>().Object;
             var logger = new TestLogger();
             var errorListHelper = Mock.Of<IErrorListHelper>();
 
-            Action act = () => new DisableRuleCommand(null, userSettingsProvider, solutionTracker, logger, errorListHelper);
+            Action act = () => new DisableRuleCommand(null, userSettingsProvider, sonarQubeService, logger, errorListHelper);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("menuCommandService");
 
-            act = () => new DisableRuleCommand(menuCommandService, null, solutionTracker, logger, errorListHelper);
+            act = () => new DisableRuleCommand(menuCommandService, null, sonarQubeService, logger, errorListHelper);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userSettingsProvider");
 
             act = () => new DisableRuleCommand(menuCommandService, userSettingsProvider, null, logger, errorListHelper);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("activeSolutionBoundTracker");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
 
-            act = () => new DisableRuleCommand(menuCommandService, userSettingsProvider, solutionTracker, null, errorListHelper);
+            act = () => new DisableRuleCommand(menuCommandService, userSettingsProvider, sonarQubeService, null, errorListHelper);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
-            act = () => new DisableRuleCommand(menuCommandService, userSettingsProvider, solutionTracker, logger, null);
+            act = () => new DisableRuleCommand(menuCommandService, userSettingsProvider, sonarQubeService, logger, null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("errorListHelper");
         }
 
@@ -72,10 +73,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             // Arrange
             var errorListHelper = Mock.Of<IErrorListHelper>();
             var userSettingsProvider = new Mock<IUserSettingsProvider>().Object;
-            var solutionTracker = CreateSolutionTracker(SonarLintMode.Standalone);
+            var sonarQuberService = CreateSonarQubeService(isConnected: false);
 
             // Act
-            var command = CreateDisableRuleMenuCommand(userSettingsProvider, solutionTracker, new TestLogger(), errorListHelper);
+            var command = CreateDisableRuleMenuCommand(userSettingsProvider, sonarQuberService, new TestLogger(), errorListHelper);
 
             // Assert
             command.CommandID.ID.Should().Be(DisableRuleCommand.CommandId);
@@ -93,10 +94,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var errorListHelper = CreateErrorListHelper(errorCode, ruleExists: true);
 
             var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
-            var solutionTracker = CreateSolutionTracker(SonarLintMode.Standalone);
+            var sonarQubeService = CreateSonarQubeService(isConnected: false);
 
             // Act
-            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, new TestLogger(), errorListHelper);
+            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, sonarQubeService, new TestLogger(), errorListHelper);
 
             // 1. Trigger the query status check
             ThreadHelper.SetCurrentThreadAsUIThread();
@@ -113,46 +114,89 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         }
 
         [TestMethod]
-        [DataRow("c:S111", SonarLintMode.Connected, false)]
-        [DataRow("c:S111", SonarLintMode.LegacyConnected, false)]
-        [DataRow("cpp:S111", SonarLintMode.Connected, false)]
-        [DataRow("cpp:S111", SonarLintMode.LegacyConnected, false)]
-        [DataRow("javascript:S111", SonarLintMode.Connected, false)]
-        [DataRow("javascript:S111", SonarLintMode.LegacyConnected, false)]
-        [DataRow("typescript:S111", SonarLintMode.Connected, false)]
-        [DataRow("typescript:S111", SonarLintMode.LegacyConnected, false)]
-        [DataRow("secrets:S111", SonarLintMode.Connected, true)]
-        [DataRow("secrets:S111", SonarLintMode.LegacyConnected, true)]
-        public void CheckStatus_SingleIssue_SupportedRepo_ConnectedMode_HasExpectedEnabledStatus(string errorCode, SonarLintMode bindingMode,
-            bool expectedEnabled)
+        [DataRow("c:S111")]
+        [DataRow("c:S111")]
+        [DataRow("cpp:S111")]
+        [DataRow("cpp:S111")]
+        [DataRow("javascript:S111")]
+        [DataRow("javascript:S111")]
+        [DataRow("typescript:S111")]
+        [DataRow("typescript:S111")]
+        public void CheckStatus_SingleIssue_SupportedRepo_ConnectedMode_IsDisabled(string errorCode)
         {
             var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
-            var solutionTracker = CreateSolutionTracker(bindingMode);
+            var sonarQubeService = CreateSonarQubeService(isConnected: true);
             var errorListHelper = CreateErrorListHelper(errorCode, ruleExists: true);
 
-            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, new TestLogger(), errorListHelper);
+            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, sonarQubeService, new TestLogger(), errorListHelper);
 
             // Act. Trigger the query status check
             ThreadHelper.SetCurrentThreadAsUIThread();
             var result = command.OleStatus;
 
-            var expectedOleStatus = expectedEnabled ? VisibleAndEnabled : VisibleButDisabled;
+            var expectedOleStatus = VisibleButDisabled;
             result.Should().Be(expectedOleStatus);
 
             // Should always be visible, but not necessarily enabled
             command.Visible.Should().BeTrue();
-            command.Enabled.Should().Be(expectedEnabled);
+            command.Enabled.Should().BeFalse();
         }
 
         [TestMethod]
-        [DataRow(SonarLintMode.Standalone)]
-        [DataRow(SonarLintMode.Connected)]
-        [DataRow(SonarLintMode.LegacyConnected)]
-        public void CheckStatus_NotASupportedSonarRepo(SonarLintMode mode)
+        [DataRow("secrets:S111", "9.9", false)]
+        [DataRow("secrets:S111", "9.8", true)]
+        public void CheckStatus_SingleIssue_Secrets_ConnectedToSonarQube_ExpectedResult(string errorCode, string version, bool expectedEnablec)
+        {
+            var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
+            var serverInfo = CreateServerInfo(ServerType.SonarQube, new Version(version));
+            var sonarQubeService = CreateSonarQubeService(isConnected: true, serverInfo: serverInfo);
+            var errorListHelper = CreateErrorListHelper(errorCode, ruleExists: true);
+
+            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, sonarQubeService, new TestLogger(), errorListHelper);
+
+            // Act. Trigger the query status check
+            ThreadHelper.SetCurrentThreadAsUIThread();
+            var result = command.OleStatus;
+
+            var expectedOleStatus = expectedEnablec ? VisibleAndEnabled : VisibleButDisabled;
+            result.Should().Be(expectedOleStatus);
+
+            // Should always be visible, but not necessarily enabled
+            command.Visible.Should().BeTrue();
+            command.Enabled.Should().Be(expectedEnablec);
+        }
+
+        [TestMethod]
+        public void CheckStatus_SingleIssue_Secrets_ConnectedToSonarCloud_IsDisabled()
+        {
+            var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
+            var serverInfo = CreateServerInfo(ServerType.SonarCloud);
+            var sonarQubeService = CreateSonarQubeService(isConnected: true, serverInfo: serverInfo);
+            var errorListHelper = CreateErrorListHelper("secrets:S111", ruleExists: true);
+
+            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, sonarQubeService, new TestLogger(), errorListHelper);
+
+            // Act. Trigger the query status check
+            ThreadHelper.SetCurrentThreadAsUIThread();
+            var result = command.OleStatus;
+
+            var expectedOleStatus = VisibleButDisabled;
+            result.Should().Be(expectedOleStatus);
+
+            // Should always be visible, but not necessarily enabled
+            command.Visible.Should().BeTrue();
+            command.Enabled.Should().BeFalse();
+        }
+
+        [TestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        [DataRow(true)]
+        public void CheckStatus_NotASupportedSonarRepo(bool isConnected)
         {
             var errorListHelper = CreateErrorListHelper("unsupportedRepo:S123", ruleExists: true);
             var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
-            var solutionTracker = CreateSolutionTracker(mode);
+            var solutionTracker = CreateSonarQubeService(isConnected);
 
             // Act
             var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, new TestLogger(), errorListHelper);
@@ -175,7 +219,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             var testLogger = new TestLogger();
             var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
-            var solutionTracker = CreateSolutionTracker(SonarLintMode.Standalone);
+            var solutionTracker = CreateSonarQubeService(isConnected: false);
 
             // Act
             var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, testLogger, errorListHelper.Object);
@@ -196,7 +240,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             var testLogger = new TestLogger();
             var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
-            var solutionTracker = CreateSolutionTracker(SonarLintMode.Standalone);
+            var solutionTracker = CreateSonarQubeService(isConnected: false);
 
             var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, testLogger, errorListHelper.Object);
             Action act = () => _ = command.OleStatus;
@@ -217,7 +261,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             var testLogger = new TestLogger();
             var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
-            var solutionTracker = CreateSolutionTracker(SonarLintMode.Standalone);
+            var solutionTracker = CreateSonarQubeService(isConnected: false);
 
             var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, testLogger, errorListHelper.Object);
 
@@ -238,7 +282,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             var testLogger = new TestLogger();
             var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
-            var solutionTracker = CreateSolutionTracker(SonarLintMode.Standalone);
+            var solutionTracker = CreateSonarQubeService(isConnected: false);
 
             var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, testLogger, errorListHelper.Object);
             Action act = () => command.Invoke();
@@ -249,21 +293,30 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             testLogger.AssertPartialOutputStringDoesNotExist("exception xxx");
         }
 
-        private static MenuCommand CreateDisableRuleMenuCommand(IUserSettingsProvider userSettingsProvider, IActiveSolutionBoundTracker solutionTracker, ILogger logger, IErrorListHelper errorListHelper)
+        private static MenuCommand CreateDisableRuleMenuCommand(IUserSettingsProvider userSettingsProvider, ISonarQubeService sonarQubeservice, ILogger logger, IErrorListHelper errorListHelper)
         {
             var dummyMenuService = new DummyMenuCommandService();
-            new DisableRuleCommand(dummyMenuService, userSettingsProvider, solutionTracker, logger, errorListHelper);
+            new DisableRuleCommand(dummyMenuService, userSettingsProvider, sonarQubeservice, logger, errorListHelper);
 
             dummyMenuService.AddedMenuCommands.Count.Should().Be(1);
             return dummyMenuService.AddedMenuCommands[0];
         }
 
-        private static IActiveSolutionBoundTracker CreateSolutionTracker(SonarLintMode bindingMode)
+        private static ISonarQubeService CreateSonarQubeService(bool isConnected, ServerInfo serverInfo = null)
         {
-            var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(), bindingMode, null);
-            var tracker = new Mock<IActiveSolutionBoundTracker>();
-            tracker.Setup(x => x.CurrentConfiguration).Returns(bindingConfiguration);
-            return tracker.Object;
+            var sonarQubeService = new Mock<ISonarQubeService>();
+            sonarQubeService.Setup(x => x.IsConnected).Returns(isConnected);
+            sonarQubeService.Setup(x => x.GetServerInfo()).Returns(serverInfo);
+
+            return sonarQubeService.Object;
+        }
+
+        private static ServerInfo CreateServerInfo(ServerType serverType, Version version = null)
+        {
+            version ??= new Version();
+            var serverInfo = new ServerInfo(version, serverType);
+
+            return serverInfo;
         }
 
         private static IErrorListHelper CreateErrorListHelper(string errorCode, bool ruleExists)
