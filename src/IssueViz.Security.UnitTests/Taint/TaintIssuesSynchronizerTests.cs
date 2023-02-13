@@ -330,7 +330,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
             var taintStore = new Mock<ITaintStore>();
 
-            var analysisInformation = new AnalysisInformation("some branch", DateTimeOffset.Now);
+            var analysisInformation = new AnalysisInformation("a branch", DateTimeOffset.Now);
 
             var sonarServer = CreateSonarService();
 
@@ -364,7 +364,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var bindingConfig = CreateBindingConfig(sonarLintMode, "myProjectKey___");
             var serverBranchProvider = CreateServerBranchProvider("branchYYY");
             SetupTaintIssues(sonarService, "myProjectKey___", "branchYYY", new TestSonarQubeIssue());
-            SetupAnalysisInformation(sonarService, "myProjectKey___", new AnalysisInformation("some branch", DateTimeOffset.Now));
+            SetupAnalysisInformation(sonarService, "myProjectKey___", new AnalysisInformation("branchYYY", DateTimeOffset.Now));
 
             const uint cookie = 212;
             var monitor = CreateMonitorSelectionMock(cookie);

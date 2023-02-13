@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 }
                 else
                 {
-                    var analysisInformation = await GetAnalysisInformation(projectKey);
+                    var analysisInformation = await GetAnalysisInformation(projectKey, serverBranch);
                     var taintIssueVizs = taintVulnerabilities.Select(converter.Convert).ToArray();
                     taintStore.Set(taintIssueVizs, analysisInformation);
 
@@ -166,10 +166,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             return false;
         }
 
-        private async Task<AnalysisInformation> GetAnalysisInformation(string projectKey)
+        private async Task<AnalysisInformation> GetAnalysisInformation(string projectKey, string branchName)
         {
             var branches = await sonarQubeService.GetProjectBranchesAsync(projectKey, CancellationToken.None);
-            var issuesBranch = branches.First(x => x.IsMain);
+            var issuesBranch = branches.First(x => x.Name.Equals(branchName));
 
             return new AnalysisInformation(issuesBranch.Name, issuesBranch.LastAnalysisTimestamp);
         }
