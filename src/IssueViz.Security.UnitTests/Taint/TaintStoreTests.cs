@@ -185,7 +185,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             testSubject.Set(newItems, null);
 
             testSubject.GetAll().Should().BeEquivalentTo(newItems);
-            // testSubject.GetAll().Select(x => ((ITaintIssue)x.Issue).IssueKey).Should().BeEquivalentTo(newItems.Select(x => ((ITaintIssue)x.Issue).IssueKey));
             callCount.Should().Be(1);
             suppliedArgs.RemovedIssues.Should().BeEquivalentTo(issueViz1);
             suppliedArgs.AddedIssues.Should().BeEquivalentTo(issueViz3);
