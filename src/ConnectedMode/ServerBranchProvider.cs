@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -91,7 +92,9 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 matchingBranchName = remoteBranches.First(rb => rb.IsMain).Name;
             }
 
-            logger.WriteLine(Resources.BranchProvider_MatchingServerBranchName, matchingBranchName ?? Resources.NullBranchName);
+            Debug.Assert(matchingBranchName != null);
+
+            logger.WriteLine(Resources.BranchProvider_MatchingServerBranchName, matchingBranchName);
             return matchingBranchName;
         }
 
