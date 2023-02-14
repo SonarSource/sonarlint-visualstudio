@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -168,12 +169,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
         private async Task<AnalysisInformation> GetAnalysisInformation(string projectKey, string branchName)
         {
+            Debug.Assert(branchName != null, "BranchName should not be null when in Connected Mode");
+            
             var branches = await sonarQubeService.GetProjectBranchesAsync(projectKey, CancellationToken.None);
 
-            var issuesBranch = string.IsNullOrEmpty(branchName)
-                ? branches.First(x => x.IsMain)
-                : branches.FirstOrDefault(x => x.Name.Equals(branchName))
-                  ?? branches.First(x => x.IsMain);
+            var issuesBranch = branches.FirstOrDefault(x => x.Name.Equals(branchName));
+
+            Debug.Assert(issuesBranch != null, "Should always find a matching branch");
 
             return new AnalysisInformation(issuesBranch.Name, issuesBranch.LastAnalysisTimestamp);
         }

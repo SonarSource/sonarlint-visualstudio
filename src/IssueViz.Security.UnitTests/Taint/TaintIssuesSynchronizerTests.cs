@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using FluentAssertions;
@@ -394,7 +393,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         [DataRow(null)]
         [DataRow("")]
         [DataRow("unknown local branch")]
-        public async Task SynchronizeWithServer_NoMatchingServerBranch_ServerMainBranchUsedForAnalysisInfo(string localBranch)
+        public async Task SynchronizeWithServer_NoMatchingServerBranch_UIContextAndStoreCleared(string localBranch)
         {
             var sonarService = CreateSonarService();
             var bindingConfig = CreateBindingConfig(SonarLintMode.Connected, "my proj");
@@ -417,16 +416,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                 vsMonitor: monitor.Object,
                 toolWindowService: toolWindowService.Object);
 
-            await testSubject.SynchronizeWithServer();
+            using (new AssertIgnoreScope())
+            {
+                await testSubject.SynchronizeWithServer();
+            }
 
             CheckIssuesAreFetched(sonarService, "my proj", localBranch);
-            CheckUIContextIsSet(monitor, cookie);
-            CheckToolWindowServiceIsCalled(toolWindowService);
-
-            taintStore.Verify(x => x.Set(It.IsAny<IEnumerable<IAnalysisIssueVisualization>>(),
-                It.Is((AnalysisInformation a) =>
-                    a.AnalysisTimestamp == analysisInformation.AnalysisTimestamp &&
-                    a.BranchName == analysisInformation.BranchName)), Times.Once);
+            CheckUIContextIsCleared(monitor, cookie);
+            CheckStoreIsCleared(taintStore);
         }
 
         private static BindingConfiguration CreateBindingConfig(SonarLintMode mode = SonarLintMode.Connected, string projectKey = "any")
