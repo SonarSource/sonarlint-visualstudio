@@ -334,7 +334,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
             var taintStore = new Mock<ITaintStore>();
 
-            var analysisInformation = new AnalysisInformation("some branch", DateTimeOffset.Now);
+            var analysisInformation = new AnalysisInformation("a branch", DateTimeOffset.Now);
 
             var sonarServer = CreateSonarService();
 
@@ -368,7 +368,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var bindingConfig = CreateBindingConfig(sonarLintMode, "myProjectKey___");
             var serverBranchProvider = CreateServerBranchProvider("branchYYY");
             SetupTaintIssues(sonarService, "myProjectKey___", "branchYYY", new TestSonarQubeIssue());
-            SetupAnalysisInformation(sonarService, "myProjectKey___", new AnalysisInformation("some branch", DateTimeOffset.Now));
+            SetupAnalysisInformation(sonarService, "myProjectKey___", new AnalysisInformation("branchYYY", DateTimeOffset.Now));
 
             const uint cookie = 212;
             var monitor = CreateMonitorSelectionMock(cookie);
@@ -389,8 +389,45 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             CheckToolWindowServiceIsCalled(toolWindowService);
         }
 
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow("unknown local branch")]
+        public async Task SynchronizeWithServer_NoMatchingServerBranch_UIContextAndStoreCleared(string localBranch)
+        {
+            var sonarService = CreateSonarService();
+            var bindingConfig = CreateBindingConfig(SonarLintMode.Connected, "my proj");
+            var serverBranchProvider = CreateServerBranchProvider(localBranch);
+            SetupTaintIssues(sonarService, "my proj", localBranch, new TestSonarQubeIssue());
+
+            var analysisInformation = new AnalysisInformation("some main branch", DateTimeOffset.Now);
+            SetupAnalysisInformation(sonarService, "my proj", analysisInformation);
+
+            const uint cookie = 212;
+            var monitor = CreateMonitorSelectionMock(cookie);
+            var toolWindowService = new Mock<IToolWindowService>();
+            var taintStore = new Mock<ITaintStore>();
+
+            var testSubject = CreateTestSubject(
+                taintStore: taintStore.Object,
+                bindingConfig: bindingConfig,
+                serverBranchProvider: serverBranchProvider.Object,
+                sonarService: sonarService.Object,
+                vsMonitor: monitor.Object,
+                toolWindowService: toolWindowService.Object);
+
+            using (new AssertIgnoreScope())
+            {
+                await testSubject.SynchronizeWithServer();
+            }
+
+            CheckIssuesAreFetched(sonarService, "my proj", localBranch);
+            CheckUIContextIsCleared(monitor, cookie);
+            CheckStoreIsCleared(taintStore);
+        }
+
         private static BindingConfiguration CreateBindingConfig(SonarLintMode mode = SonarLintMode.Connected, string projectKey = "any")
-            => new BindingConfiguration(new BoundSonarQubeProject { ProjectKey = projectKey }, mode, "any dir");
+            => new(new BoundSonarQubeProject { ProjectKey = projectKey }, mode, "any dir");
 
         private static TaintIssuesSynchronizer CreateTestSubject(
             BindingConfiguration bindingConfig = null,
