@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using LibGit2Sharp;
@@ -25,6 +26,8 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
+using SonarQube.Client;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 {
@@ -37,6 +40,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             MefTestHelpers.CheckTypeCanBeImported<ServerBranchProvider, IServerBranchProvider>(
                 MefTestHelpers.CreateExport<IConfigurationProvider>(),
                 MefTestHelpers.CreateExport<IGitWorkspaceService>(),
+                MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IBranchMatcher>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
@@ -48,11 +52,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             var gitWorkspace = new Mock<IGitWorkspaceService>();
             var branchMatcher = new Mock<IBranchMatcher>();
             var logger = new TestLogger(logToConsole: true);
+            var sonarQubeService = CreateSonarQubeService();
 
             var testSubject = CreateTestSubject(configProvider.Object,
                 gitWorkspace.Object,
-                branchMatcher.Object,
-                logger);
+                branchMatcher: branchMatcher.Object,
+                sonarQubeService: sonarQubeService.Object,
+                logger: logger);
 
             var actual = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
             
@@ -61,10 +67,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             configProvider.VerifyAll();
             gitWorkspace.Invocations.Should().HaveCount(0);
             branchMatcher.Invocations.Should().HaveCount(0);
+            sonarQubeService.Invocations.Should().HaveCount(0);
         }
 
         [TestMethod]
-        public async Task Get_NoGitRepo_ReturnsNull()
+        public async Task Get_NoGitRepo_ReturnsDefaultMainBranch()
         {
             var configProvider = CreateConfigProvider(CreateBindingConfig(SonarLintMode.Connected));
             var gitWorkspace = CreateGitWorkspace(repoRootToReturn: null);
@@ -73,15 +80,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             var logger = new TestLogger(logToConsole: true);
             var createRepoOp = CreateCreateRepoOp(repository: null);
 
+            var sonarQubeService = CreateSonarQubeService(mainBranchName: "main branch name");
+
             var testSubject = CreateTestSubject(configProvider.Object,
                 gitWorkspace.Object,
-                branchMatcher.Object,
-                logger,
-                createRepoOp.Object);
+                sonarQubeService: sonarQubeService.Object,
+                branchMatcher: branchMatcher.Object,
+                logger: logger,
+                createRepoOp: createRepoOp.Object);
 
             var actual = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
 
-            actual.Should().BeNull();
+            actual.Should().Be("main branch name");
             
             configProvider.VerifyAll();
             gitWorkspace.Verify(x => x.GetRepoRoot(), Times.Once);
@@ -103,12 +113,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var repo = Mock.Of<IRepository>();
             var createRepoOp = CreateCreateRepoOp(repository: repo);
+            var sonarQubeService = CreateSonarQubeService();
 
             var testSubject = CreateTestSubject(configProvider.Object,
                 gitWorkspace.Object,
-                branchMatcher.Object,
-                logger,
-                createRepoOp.Object);
+                branchMatcher: branchMatcher.Object,
+                sonarQubeService: sonarQubeService.Object,
+                logger: logger,
+                createRepoOp: createRepoOp.Object);
 
             var actual = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
 
@@ -123,10 +135,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             gitWorkspace.Invocations.Should().HaveCount(1);
             branchMatcher.Invocations.Should().HaveCount(1);
             createRepoOp.Invocations.Should().HaveCount(1);
+            sonarQubeService.Invocations.Should().HaveCount(0);
         }
 
         [TestMethod]
-        public async Task Get_ConnectedModeAndHasGitRepo_NoMatchingBranch_ReturnsNull()
+        public async Task Get_ConnectedModeAndHasGitRepo_NoMatchingBranch_ReturnsDefaultMainBranch()
         {
             var configProvider = CreateConfigProvider(CreateBindingConfig(SonarLintMode.Connected, "my project key"));
             var gitWorkspace = CreateGitWorkspace("x:\\");
@@ -136,39 +149,43 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var repo = Mock.Of<IRepository>();
             var createRepoOp = CreateCreateRepoOp(repository: repo);
+            var sonarQubeService = CreateSonarQubeService(mainBranchName: "some main branch");
 
             var testSubject = CreateTestSubject(configProvider.Object,
                 gitWorkspace.Object,
-                branchMatcher.Object,
-                logger,
-                createRepoOp.Object);
+                branchMatcher: branchMatcher.Object,
+                sonarQubeService: sonarQubeService.Object,
+                logger:logger,
+                createRepoOp:createRepoOp.Object);
 
             var actual = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
 
-            actual.Should().BeNull();
+            actual.Should().Be("some main branch");
+
             branchMatcher.Verify(x => x.GetMatchingBranch("my project key", repo, It.IsAny<CancellationToken>()), Times.Once);
-            logger.AssertPartialOutputStringExists(Resources.NullBranchName);
         }
 
         private static ServerBranchProvider CreateTestSubject(
             IConfigurationProvider configurationProvider = null,
             IGitWorkspaceService gitWorkspaceService = null,
+            ISonarQubeService sonarQubeService = null,
             IBranchMatcher branchMatcher = null,
             ILogger logger = null,
             ServerBranchProvider.CreateRepositoryObject createRepoOp = null)
         {
             configurationProvider ??= Mock.Of<IConfigurationProvider>();
             gitWorkspaceService ??= Mock.Of<IGitWorkspaceService>();
+            sonarQubeService ??= Mock.Of<ISonarQubeService>();
             branchMatcher ??= Mock.Of<IBranchMatcher>();
             logger ??= new TestLogger();
             createRepoOp ??= (string repoRoot) => null;
 
-            var testSubject = new ServerBranchProvider(configurationProvider, gitWorkspaceService, branchMatcher, logger, createRepoOp);
+            var testSubject = new ServerBranchProvider(configurationProvider, gitWorkspaceService, sonarQubeService, branchMatcher, logger, createRepoOp);
             return testSubject;
         }
 
         private static BindingConfiguration CreateBindingConfig(SonarLintMode mode = SonarLintMode.Connected, string projectKey = "any")
-            => new BindingConfiguration(new BoundSonarQubeProject { ProjectKey = projectKey }, mode, "any dir");
+            => new(new BoundSonarQubeProject { ProjectKey = projectKey }, mode, "any dir");
 
         private static Mock<IConfigurationProvider> CreateConfigProvider(BindingConfiguration config = null)
         {
@@ -199,6 +216,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             branchMatcher.Setup(x => x.GetMatchingBranch(It.IsAny<string>(), It.IsAny<IRepository>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(branchToReturn);
             return branchMatcher;
+        }
+
+        private Mock<ISonarQubeService> CreateSonarQubeService(string mainBranchName = "some branch")
+        {
+            var sonarQubeService = new Mock<ISonarQubeService>();
+
+            var serverBranches = new[]
+            {
+                new SonarQubeProjectBranch(Guid.NewGuid().ToString(), false, default),
+                new SonarQubeProjectBranch(mainBranchName, true, default),
+                new SonarQubeProjectBranch(Guid.NewGuid().ToString(), false, default)
+            };
+
+            sonarQubeService
+                .Setup(x => x.GetProjectBranchesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(serverBranches);
+
+            return sonarQubeService;
         }
     }
 }

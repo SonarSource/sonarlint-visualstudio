@@ -30,7 +30,8 @@ namespace SonarLint.VisualStudio.Core
         /// </summary>
         /// <returns>The Sonar server branch name,
         /// or the name of the Sonar server branch marked as "Main" if the branch cannot be determined,
-        /// or null if we are not in connected mode.</returns>
+        /// or null if we are not in connected mode.
+        /// </returns>
         /// <remarks>
         /// Only applies in connected mode.
         /// </remarks>
