@@ -71,6 +71,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         private void OnUserSettingsChanged(object sender, EventArgs e)
         {
+            // There is a corner-case where we want to raise the event even in Connected Mode - see https://github.com/SonarSource/sonarlint-visualstudio/issues/3701
             logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
             OnSettingsChangedAsync().Forget();
         }

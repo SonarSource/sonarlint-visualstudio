@@ -44,7 +44,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             builder.AssertAnalysisIsRequested();
             builder.AssertSwitchedToBackgroundThread();
             builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
-            builder.Logger.AssertOutputStringDoesNotExist(AnalysisStrings.ConfigMonitor_UserSettingsIgnoredForConnectedModeLanguages);
         }
 
         [TestMethod]
