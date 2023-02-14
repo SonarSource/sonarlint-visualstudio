@@ -141,6 +141,9 @@
   <data name="BranchProvider_CouldNotDetectGitRepo" xml:space="preserve">
     <value>[ConnectedMode/BranchMapping] Could not detect a git repo for the current solution</value>
   </data>
+  <data name="BranchProvider_FailedToCalculateMatchingBranch" xml:space="preserve">
+    <value>[ConnectedMode/BranchMapping] Failed to calculate closest local git branch, defaulting to Sonar main branch.</value>
+  </data>
   <data name="BranchProvider_MatchingServerBranchName" xml:space="preserve">
     <value>[ConnectedMode/BranchMapping] Matching Sonar server branch: {0}</value>
   </data>
