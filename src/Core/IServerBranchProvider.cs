@@ -28,11 +28,11 @@ namespace SonarLint.VisualStudio.Core
         /// <summary>
         /// Returns the Sonar server branch to use when requesting data
         /// </summary>
-        /// <returns>The Sonar server branch name,
-        /// or the name of the Sonar server branch marked as "Main" if the branch cannot be determined,
-        /// or null if we are not in connected mode.</returns>
+        /// <returns>The Sonar server branch name, or null if the branch cannot be determined</returns>
         /// <remarks>
         /// Only applies in connected mode.
+        /// "null" is a valid value to pass to the branch-aware Sonar webclient APIs; they will fetch
+        /// the data for the "main" branch in that case.
         /// </remarks>
         Task<string> GetServerBranchNameAsync(CancellationToken token);
     }
