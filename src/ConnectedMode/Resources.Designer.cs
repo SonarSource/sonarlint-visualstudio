@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [ConnectedMode/BranchMapping] Failed to calculate closest local git branch, defaulting to server main branch..
+        ///   Looks up a localized string similar to [ConnectedMode/BranchMapping] Failed to calculate closest local git branch, defaulting to Sonar main branch..
         /// </summary>
         internal static string BranchProvider_FailedToCalculateMatchingBranch {
             get {
