@@ -19,13 +19,11 @@
  */
 
 using System;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using static SonarLint.VisualStudio.Integration.UnitTests.NoOpThreadHandler;
@@ -36,9 +34,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
     public class AnalysisConfigMonitorTests
     {
         [TestMethod]
-        public void WhenUserSettingsChange_StandaloneMode_AnalysisIsRequested()
+        public void WhenUserSettingsChange_AnalysisIsRequested()
         {
-            var builder = new TestEnvironmentBuilder(SonarLintMode.Standalone);
+            var builder = new TestEnvironmentBuilder();
 
             builder.SimulateUserSettingsChanged();
 
@@ -50,25 +48,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         }
 
         [TestMethod]
-        [DataRow(SonarLintMode.Connected)]
-        [DataRow(SonarLintMode.LegacyConnected)]
-        public void WhenUserSettingsChange_ConnectedMode_AnalysisIsNotRequested(SonarLintMode bindingMode)
+        public void WhenUserSettingsChange_HasSubscribersToConfigChangedEvent_SubscribersNotified()
         {
-            var builder = new TestEnvironmentBuilder(bindingMode);
-
-            builder.SimulateUserSettingsChanged();
-
-            // Should not re-analyse
-            builder.AssertAnalysisIsNotRequested();
-            builder.Logger.AssertOutputStringDoesNotExist(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
-            builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_UserSettingsIgnoredForConnectedModeLanguages);
-        }
-
-        [TestMethod]
-
-        public void WhenUserSettingsChange_HasSubscribersToConfigChangedEvent_StandaloneMode_SubscribersNotified()
-        {
-            var builder = new TestEnvironmentBuilder(SonarLintMode.Standalone);
+            var builder = new TestEnvironmentBuilder();
             var eventHandler = new Mock<EventHandler>();
             builder.TestSubject.ConfigChanged += eventHandler.Object;
 
@@ -80,23 +62,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         }
 
         [TestMethod]
-        [DataRow(SonarLintMode.Connected)]
-        [DataRow(SonarLintMode.LegacyConnected)]
-        public void WhenUserSettingsChange_HasSubscribersToConfigChangedEvent_ConnectedMode_SubscribersNotNotified(SonarLintMode bindingMode)
-        {
-            var builder = new TestEnvironmentBuilder(bindingMode);
-            var eventHandler = new Mock<EventHandler>();
-            builder.TestSubject.ConfigChanged += eventHandler.Object;
-
-            builder.SimulateUserSettingsChanged();
-
-            eventHandler.Verify(x => x(builder.TestSubject, EventArgs.Empty), Times.Never);
-        }
-
-        [TestMethod]
         public void WhenSuppressionsUpdated_AnalysisIsRequested()
         {
-            var builder = new TestEnvironmentBuilder(SonarLintMode.Connected);
+            var builder = new TestEnvironmentBuilder();
 
             builder.SimulateSuppressionsUpdated();
 
@@ -108,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         [TestMethod]
         public void WhenSuppressionsUpdated_HasSubscribersToConfigChangedEvent_SubscribersNotified()
         {
-            var builder = new TestEnvironmentBuilder(SonarLintMode.Connected);
+            var builder = new TestEnvironmentBuilder();
             var eventHandler = new Mock<EventHandler>();
             builder.TestSubject.ConfigChanged += eventHandler.Object;
 
@@ -119,12 +87,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         }
 
         [TestMethod]
-        [DataRow(SonarLintMode.Standalone)]
-        [DataRow(SonarLintMode.Connected)]
-        [DataRow(SonarLintMode.LegacyConnected)]
-        public void WhenDisposed_EventsAreIgnored(SonarLintMode bindingMode)
+        public void WhenDisposed_EventsAreIgnored()
         {
-            var builder = new TestEnvironmentBuilder(bindingMode);
+            var builder = new TestEnvironmentBuilder();
 
             // Act
             builder.TestSubject.Dispose();
@@ -144,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             private readonly Mock<IThreadHandling> threadHandling;
 
 
-            public TestEnvironmentBuilder(SonarLintMode bindingMode)
+            public TestEnvironmentBuilder()
             {
                 analysisRequesterMock = new Mock<IAnalysisRequester>();
                 userSettingsProviderMock = new Mock<IUserSettingsProvider>();
@@ -153,15 +118,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
                 
                 threadHandling.Setup(th => th.SwitchToBackgroundThread()).Returns(new NoOpAwaitable());
 
-                var solutionBoundTracker = new ConfigurableActiveSolutionBoundTracker
-                {
-                    CurrentConfiguration = new BindingConfiguration(new BoundSonarQubeProject(), bindingMode, null)
-                };
-
                 Logger = new TestLogger();
 
                 TestSubject = new AnalysisConfigMonitor(analysisRequesterMock.Object,
-                    userSettingsProviderMock.Object, solutionBoundTracker, suppressedIssuesMonitorMock.Object, Logger, threadHandling.Object);
+                    userSettingsProviderMock.Object, suppressedIssuesMonitorMock.Object, Logger, threadHandling.Object);
             }
 
             public TestLogger Logger { get; }
