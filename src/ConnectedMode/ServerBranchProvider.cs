@@ -19,12 +19,14 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using LibGit2Sharp;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode
 {
@@ -39,24 +41,31 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
         private readonly IConfigurationProvider configurationProvider;
         private readonly IGitWorkspaceService gitWorkspaceService;
+        private readonly ISonarQubeService sonarQubeService;
         private readonly IBranchMatcher branchMatcher;
         private readonly ILogger logger;
         private readonly CreateRepositoryObject createRepo;
 
         [ImportingConstructor]
-        public ServerBranchProvider(IConfigurationProvider configurationProvider, IGitWorkspaceService gitWorkspaceService, IBranchMatcher branchMatcher, ILogger logger)
-            : this(configurationProvider, gitWorkspaceService, branchMatcher, logger, DoCreateRepo)
+        public ServerBranchProvider(IConfigurationProvider configurationProvider, 
+            IGitWorkspaceService gitWorkspaceService, 
+            ISonarQubeService sonarQubeService,
+            IBranchMatcher branchMatcher, 
+            ILogger logger)
+            : this(configurationProvider, gitWorkspaceService, sonarQubeService, branchMatcher, logger, DoCreateRepo)
         {
         }
 
         internal /* for testing */ ServerBranchProvider(IConfigurationProvider configurationProvider,
             IGitWorkspaceService gitWorkspaceService,
+            ISonarQubeService sonarQubeService,
             IBranchMatcher branchMatcher,
             ILogger logger,
             CreateRepositoryObject createRepo)
         {
             this.configurationProvider = configurationProvider;
             this.gitWorkspaceService = gitWorkspaceService;
+            this.sonarQubeService = sonarQubeService;
             this.branchMatcher = branchMatcher;
             this.logger = logger;
             this.createRepo = createRepo;
@@ -64,16 +73,32 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
         public async Task<string> GetServerBranchNameAsync(CancellationToken token)
         {
-            string branchName = null;
-
             var config = configurationProvider.GetConfiguration();
+
             if (config.Mode == SonarLintMode.Standalone)
             {
                 logger.LogVerbose(Resources.BranchProvider_NotInConnectedMode);
                 return null;
             }
 
+            var matchingBranchName = await CalculateMatchingBranchAsync(config, token);
+
+            if (matchingBranchName == null)
+            {
+                logger.LogVerbose(Resources.BranchProvider_FailedToCalculateMatchingBranch);
+
+                var remoteBranches = await sonarQubeService.GetProjectBranchesAsync(config.Project.ProjectKey, token);
+                matchingBranchName = remoteBranches.First(rb => rb.IsMain).Name;
+            }
+
+            logger.WriteLine(Resources.BranchProvider_MatchingServerBranchName, matchingBranchName ?? Resources.NullBranchName);
+            return matchingBranchName;
+        }
+
+        private async Task<string> CalculateMatchingBranchAsync(BindingConfiguration config, CancellationToken token)
+        {
             var gitRepoRoot = gitWorkspaceService.GetRepoRoot();
+
             if (gitRepoRoot == null)
             {
                 logger.LogVerbose(Resources.BranchProvider_CouldNotDetectGitRepo);
@@ -81,9 +106,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
             }
 
             var repo = createRepo(gitRepoRoot);
-            branchName = await branchMatcher.GetMatchingBranch(config.Project.ProjectKey, repo, token);
+            var branchName = await branchMatcher.GetMatchingBranch(config.Project.ProjectKey, repo, token);
 
-            logger.WriteLine(Resources.BranchProvider_MatchingServerBranchName, branchName ?? Resources.NullBranchName);
             return branchName;
         }
 
