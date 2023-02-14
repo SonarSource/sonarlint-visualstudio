@@ -236,13 +236,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         }
 
         [TestMethod]
-        public async Task GetMatchedBranch_RepoHasNoHead_ReturnsMainBranch()
+        public async Task GetMatchedBranch_RepoHasNoHead_ReturnsNull()
         {
             var testSubject = CreateTestSubject(CreateSonarQubeService("any").Object);
 
             var result = await testSubject.GetMatchingBranch("projectKey", Mock.Of<IRepository>(), CancellationToken.None);
 
-            result.Should().Be("any");
+            result.Should().BeNull();
         }
 
         [TestMethod]
