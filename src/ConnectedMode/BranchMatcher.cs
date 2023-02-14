@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
     {
         /// <summary>
         /// Calculates the Sonar server branch that is the closest match to the head branch.
-        /// Returns null if there are no head branches
+        /// Returns null if the repo is currently in detached HEAD.
         /// </summary>
         /// <remarks>
         /// Compares branches by name and calculates distances by the number of different commits.
