@@ -70,15 +70,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 
             // SonarLint issues line numbers are 1-based, spans lines are 0-based
             var startLine = currentSnapshot.GetLineFromLineNumber(range.StartLine - 1);
-
-            if (IsLineHashDifferent(range, startLine))
-            {
-                // Out of sync: the line reported in the diagnostic has been edited, so we can no longer calculate the span
-                return EmptySpan;
-            }
-
             var maxLength = currentSnapshot.Length;
-
             var startPos = startLine.Start.Position + range.StartLineOffset;
 
             int endPos;
@@ -97,21 +89,28 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 
             var start = new SnapshotPoint(currentSnapshot, startPos);
             var end = new SnapshotPoint(currentSnapshot, endPos);
+            var snapshotSpan = new SnapshotSpan(start, end);
 
-            return new SnapshotSpan(start, end);
+            if (IsHashDifferent(range.LineHash, snapshotSpan.GetText()) &&
+                IsHashDifferent(range.LineHash, startLine.GetText()))
+            {
+                // Out of sync: the range reported in the diagnostic has been edited, so we can no longer calculate the span
+                return EmptySpan;
+            }
+
+            return snapshotSpan;
         }
 
-        private bool IsLineHashDifferent(ITextRange range, ITextSnapshotLine snapshotLine)
+        private bool IsHashDifferent(string issueHash, string documentText)
         {
-            if (string.IsNullOrEmpty(range.LineHash))
+            if (string.IsNullOrEmpty(issueHash))
             {
                 return false;
             }
 
-            var textInSnapshot = snapshotLine.GetText();
-            var snapshotLineHash = checksumCalculator.Calculate(textInSnapshot);
+            var documentTextHash = checksumCalculator.Calculate(documentText);
 
-            return snapshotLineHash != range.LineHash;
+            return documentTextHash != issueHash;
         }
     }
 }
