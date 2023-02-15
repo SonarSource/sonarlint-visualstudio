@@ -25,6 +25,7 @@ using System.ComponentModel.Composition.Hosting;
 using System.ComponentModel.Composition.Primitives;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using FluentAssertions;
 using Moq;
 
@@ -150,6 +151,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 batch.AddExport(item);
             }
+
+            using var container = new CompositionContainer(catalog);
+            container.Compose(batch);
+        }
+
+        /// <summary>
+        /// Performs a MEF composition with the supplied objects
+        /// </summary>
+        /// <param name="exportingAssembly">The assembly containing the types being exported</param>
+        /// <param name="importers">The instance(s) that are importing types from the assembly</param>
+        public static void Compose(Assembly exportingAssembly, params object[] importers)
+        {
+            if (importers.Length == 0)
+            {
+                throw new InvalidOperationException("Test setup error: must specify at least one importer");
+            }
+
+            var batch = new CompositionBatch();
+
+            foreach (var importer in importers)
+            {
+                batch.AddPart(importer);
+            }
+
+            var catalog = new AssemblyCatalog(exportingAssembly);
 
             using var container = new CompositionContainer(catalog);
             container.Compose(batch);
