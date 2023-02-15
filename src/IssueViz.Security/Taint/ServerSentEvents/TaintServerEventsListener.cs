@@ -81,6 +81,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEve
                     {
                         case null:
                         {
+                            // Will return null when taintServerEventSource is disposed
                             return;
                         }
                         case ITaintVulnerabilityClosedServerEvent taintClosedEvent:
