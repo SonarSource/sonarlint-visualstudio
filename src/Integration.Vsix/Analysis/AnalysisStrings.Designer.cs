@@ -79,15 +79,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User settings change is ignored: current workspace is in Connected Mode..
-        /// </summary>
-        internal static string ConfigMonitor_UserSettingsIgnoredForConnectedModeLanguages {
-            get {
-                return ResourceManager.GetString("ConfigMonitor_UserSettingsIgnoredForConnectedModeLanguages", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Disabled rule &quot;{0}&quot;.
         /// </summary>
         internal static string DisableRule_DisabledRule {

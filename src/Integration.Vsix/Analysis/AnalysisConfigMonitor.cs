@@ -39,7 +39,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposable
     {
         private readonly IAnalysisRequester analysisRequester;
-        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly IUserSettingsProvider userSettingsProvider;
         private readonly ISuppressedIssuesMonitor suppressedIssuesMonitor;
         private readonly ILogger logger;
@@ -50,21 +49,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         [ImportingConstructor]
         public AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
             IUserSettingsProvider userSettingsProvider, // reports changes to user settings.json
-            IActiveSolutionBoundTracker activeSolutionBoundTracker, // reports changes to connected mode
             ISuppressedIssuesMonitor suppressedIssuesMonitor,
-            ILogger logger) : this(analysisRequester, userSettingsProvider, activeSolutionBoundTracker, suppressedIssuesMonitor, logger, ThreadHandling.Instance)
+            ILogger logger) : this(analysisRequester, userSettingsProvider, suppressedIssuesMonitor, logger, ThreadHandling.Instance)
         { }
 
         internal AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
             IUserSettingsProvider userSettingsProvider, 
-            IActiveSolutionBoundTracker activeSolutionBoundTracker, 
             ISuppressedIssuesMonitor suppressedIssuesMonitor,
             ILogger logger,
             IThreadHandling threadHandling)
         {
             this.analysisRequester = analysisRequester;
             this.userSettingsProvider = userSettingsProvider;
-            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.suppressedIssuesMonitor = suppressedIssuesMonitor;
             this.logger = logger;
             this.threadHandling = threadHandling;
@@ -75,15 +71,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         private void OnUserSettingsChanged(object sender, EventArgs e)
         {
-            if (activeSolutionBoundTracker.CurrentConfiguration.Mode == SonarLintMode.Standalone)
-            {
-                logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
-                OnSettingsChangedAsync().Forget();
-            }
-            else
-            {
-                logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsIgnoredForConnectedModeLanguages);
-            }
+            // There is a corner-case where we want to raise the event even in Connected Mode - see https://github.com/SonarSource/sonarlint-visualstudio/issues/3701
+            logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
+            OnSettingsChangedAsync().Forget();
         }
 
         private void OnSuppressionsUpdated(object sender, EventArgs e)
