@@ -45,6 +45,7 @@ namespace SonarLint.VisualStudio.Integration.Helpers
                 throw new ArgumentNullException(nameof(relativeFilePath));
             }
 
+            relativeFilePath = relativeFilePath.Replace("/", "\\");
             relativeFilePath = relativeFilePath.TrimStart('\\');
 
             var absoluteFilePaths = new string[1];
