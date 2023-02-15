@@ -73,29 +73,37 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEve
 
             while (!cancellationTokenSource.IsCancellationRequested)
             {
-                var taintServerEvent = await taintServerEventSource.GetNextEventOrNullAsync();
-
-                switch (taintServerEvent)
+                try
                 {
-                    case null:
+                    var taintServerEvent = await taintServerEventSource.GetNextEventOrNullAsync();
+
+                    switch (taintServerEvent)
                     {
-                        return;
+                        case null:
+                        {
+                            // Will return null when taintServerEventSource is disposed
+                            return;
+                        }
+                        case ITaintVulnerabilityClosedServerEvent taintClosedEvent:
+                        {
+                            taintStore.Remove(taintClosedEvent.Key);
+                            break;
+                        }
+                        case ITaintVulnerabilityRaisedServerEvent taintRaisedEvent:
+                        {
+                            await AddToStoreIfOnTheRightBranchAsync(taintRaisedEvent);
+                            break;
+                        }
+                        default:
+                        {
+                            logger.LogVerbose($"[TaintServerEventsListener] Unrecognized taint event type: {taintServerEvent.GetType()}");
+                            break;
+                        }
                     }
-                    case ITaintVulnerabilityClosedServerEvent taintClosedEvent:
-                    {
-                        taintStore.Remove(taintClosedEvent.Key);
-                        break;
-                    }
-                    case ITaintVulnerabilityRaisedServerEvent taintRaisedEvent:
-                    {
-                        await AddToStoreIfOnTheRightBranchAsync(taintRaisedEvent);
-                        break;
-                    }
-                    default:
-                    {
-                        logger.LogVerbose($"[TaintServerEventsListener] Unrecognized taint event type: {taintServerEvent.GetType()}");
-                        break;
-                    }
+                }
+                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+                {
+                    logger.LogVerbose($"[TaintServerEventsListener] Failed to handle taint event: {ex}");
                 }
             }
         }

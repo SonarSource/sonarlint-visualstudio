@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -136,6 +138,60 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Ser
 
             taintStore.Verify(x => x.Add(convertedIssueViz), Times.Once);
             taintStore.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public async Task OnEvent_FailureToProcessTaintEvent_NonCriticalException_EventIsIgnored()
+        {
+            var serverEvent1 = CreateTaintClosedServerEvent("some issue1");
+            var serverEvent2 = CreateTaintClosedServerEvent("some issue2");
+            var taintServerEventSource = SetupTaintServerEventSource(serverEvent1, serverEvent2);
+            var taintStore = new Mock<ITaintStore>();
+
+            taintStore
+                .Setup(x => x.Remove("some issue1"))
+                .Throws(new NotImplementedException("this is a test"));
+
+            var logger = new Mock<ILogger>();
+
+            var testSubject = CreateTestSubject(
+                taintServerEventSource: taintServerEventSource.Object,
+                taintStore: taintStore.Object,
+                logger: logger.Object);
+
+            await testSubject.ListenAsync();
+
+            taintStore.Verify(x => x.Remove("some issue1"), Times.Once);
+            taintStore.Verify(x => x.Remove("some issue2"), Times.Once);
+            taintStore.VerifyNoOtherCalls();
+            logger.Verify(x=> x.LogVerbose(It.Is<string>(s=> s.Contains("this is a test")), Array.Empty<object>()), Times.Once());
+        }
+
+        [TestMethod]
+        public void OnEvent_FailureToProcessTaintEvent_CriticalException_StopsListeningToServerEventsSource()
+        {
+            var serverEvent1 = CreateTaintClosedServerEvent("some issue1");
+            var serverEvent2 = CreateTaintClosedServerEvent("some issue2");
+            var taintServerEventSource = SetupTaintServerEventSource(serverEvent1, serverEvent2);
+            var taintStore = new Mock<ITaintStore>();
+
+            taintStore
+                .Setup(x => x.Remove("some issue1"))
+                .Throws(new StackOverflowException("this is a test"));
+
+            var testSubject = CreateTestSubject(
+                taintServerEventSource: taintServerEventSource.Object,
+                taintStore: taintStore.Object);
+
+            Func<Task> func = async () => await testSubject.ListenAsync();
+
+            func.Should().Throw<StackOverflowException>().And.Message.Should().Be("this is a test");
+
+            taintStore.Verify(x => x.Remove("some issue1"), Times.Once);
+            taintStore.Verify(x => x.Remove("some issue2"), Times.Never);
+            taintStore.VerifyNoOtherCalls();
+            taintServerEventSource.Verify(x => x.GetNextEventOrNullAsync(), Times.Once);
+            taintServerEventSource.VerifyNoOtherCalls();
         }
 
         [TestMethod]
