@@ -75,9 +75,9 @@
       },
       "SonarLint.Secrets.DotNet": {
         "type": "Direct",
-        "requested": "[1.0.3, )",
-        "resolved": "1.0.3",
-        "contentHash": "Z3wmq2ZuSyoN2GRmF8Sley4VqelHYtWqSg6+xeEaoAJ0gH0WpzjqfckzUPuibBBrA/f76+c0FVrEQhANsc6Wgw=="
+        "requested": "[1.0.4, )",
+        "resolved": "1.0.4",
+        "contentHash": "0NU6qf6oJkZNysnjqO9/A6AtRbL2qj4SXAiltjQKpYqclQ0dcA9Hr6ZTnUm90s1EySpksisXJ7GlgI02vCOPDg=="
       },
       "BouncyCastle": {
         "type": "Transitive",
