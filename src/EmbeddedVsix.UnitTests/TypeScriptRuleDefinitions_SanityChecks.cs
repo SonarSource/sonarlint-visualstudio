@@ -95,6 +95,6 @@ namespace SonarLint.VisualStudio.AdditionalFiles.UnitTests
             ruleDefinition.RuleKey.EndsWith(":S2260");
 
         private static bool HasDefaultParameters(RuleDefinition ruleDefinition) =>
-                ruleDefinition.DefaultParams.Length > 0;
+                ruleDefinition.DefaultParams?.Length > 0;
     }
 }
