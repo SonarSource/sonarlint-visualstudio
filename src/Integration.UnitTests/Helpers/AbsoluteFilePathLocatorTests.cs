@@ -122,6 +122,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             vsUiShell.VerifyNoOtherCalls();
         }
 
+        [TestMethod]
+        public void Locate_RelativePathHasForwardSlashes_PathFixedToBackSlashes()
+        {
+            const string path = "some\\relative\\path";
+            const string absolutePath = "some absolute path";
+
+            var vsUiShell = SetupVsUiShellOpenDocument(path, VSConstants.S_OK, absolutePath);
+
+            var testSubject = new AbsoluteFilePathLocator(CreateServiceProvider(vsUiShell.Object));
+
+            var result = testSubject.Locate("/some/relative/path");
+            result.Should().Be(absolutePath);
+
+            vsUiShell.VerifyAll();
+            vsUiShell.VerifyNoOtherCalls();
+        }
+
         private IServiceProvider CreateServiceProvider(IVsUIShellOpenDocument vsUiShellOpenDocument)
         {
             var serviceProvider = new Mock<IServiceProvider>();
