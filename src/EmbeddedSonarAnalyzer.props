@@ -12,7 +12,7 @@
 	     Secrets are special case: we get the analyzer binaries from a NuGet package, and the
 		 rule help from an "normal" Java plugin. The two artefacts are versioned separately.
 	-->
-    <EmbeddedSonarSecretsNuGetVersion>1.0.3</EmbeddedSonarSecretsNuGetVersion>
+    <EmbeddedSonarSecretsNuGetVersion>1.0.4</EmbeddedSonarSecretsNuGetVersion>
     <EmbeddedSonarSecretsJarVersion>2.0.1.611</EmbeddedSonarSecretsJarVersion>
   </PropertyGroup>
 
