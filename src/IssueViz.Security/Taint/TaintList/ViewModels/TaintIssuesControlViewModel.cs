@@ -164,18 +164,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             ShowDocumentationCommand = navigateToDocumentationCommand;
 
             SetCommands(locationNavigator);
-            ApplyViewFilter(ActiveDocumentFilter);
             UpdateServerType();
             SetDefaultSortOrder();
-            UpdateCaption();
+            UpdateCaptionAndListFilter();
         }
 
         private void ActiveDocumentTracker_OnDocumentFocused(object sender, ActiveDocumentChangedEventArgs e)
         {
             activeDocumentFilePath = e.ActiveTextDocument?.FilePath;
-            ApplyViewFilter(ActiveDocumentFilter);
             UpdateServerType();
-            UpdateCaption();
+            UpdateCaptionAndListFilter();
         }
 
         private void UpdateServerType()
@@ -269,10 +267,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             NotifyPropertyChanged(nameof(AnalysisInformation));
         }
 
-        private void UpdateCaption()
+        private void UpdateCaptionAndListFilter()
         {
             RunOnUIThread.Run(() =>
             {
+                ApplyViewFilter(ActiveDocumentFilter);
+
                 // We'll show the default caption if:
                 // * there are no underlying issues, or
                 // * there is not an active document.
@@ -294,7 +294,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         private void Store_IssuesChanged(object sender, IssuesChangedEventArgs e)
         {
             UpdateIssues();
-            UpdateCaption();
+            UpdateCaptionAndListFilter();
         }
 
         private void SelectionService_SelectionChanged(object sender, EventArgs e)
