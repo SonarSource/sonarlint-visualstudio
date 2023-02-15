@@ -41,8 +41,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
         protected override TagSpan<IErrorTag> CreateTagSpan(IIssueLocationTag trackedTag, NormalizedSnapshotSpanCollection spans)
         {
             var issueViz = (IAnalysisIssueVisualization)trackedTag.Location;
-            var tooltip = errorTagTooltipProvider.Create(issueViz.Issue);
-            return new TagSpan<IErrorTag>(trackedTag.Location.Span.Value, new ErrorTag(PredefinedErrorTypeNames.Warning, tooltip));
+            return new TagSpan<IErrorTag>(trackedTag.Location.Span.Value, new SonarErrorTag(PredefinedErrorTypeNames.Warning, issueViz.Issue, errorTagTooltipProvider));
         }
 
         protected override IEnumerable<IMappingTagSpan<IIssueLocationTag>> Filter(IEnumerable<IMappingTagSpan<IIssueLocationTag>> trackedTagSpans) =>
