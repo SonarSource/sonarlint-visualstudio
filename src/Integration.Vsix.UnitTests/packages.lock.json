@@ -78,6 +78,12 @@
         "resolved": "3.3.0",
         "contentHash": "ZVBJ43/IxaAl5iX+OuuDLQ9tSNJaRlP85SUMAdiGoqEbyK/ZPfQmPfqSMZMFpucRlf8HgsEK/hR73DwpCmqcLA=="
       },
+      "SonarAnalyzer.CSharp": {
+        "type": "Direct",
+        "requested": "[8.52.0.60960, )",
+        "resolved": "8.52.0.60960",
+        "contentHash": "XZX2dwJaM0EmXUrbz1AET6GnXEMDorPlp9e7B3cQvyZG3eGs6Xmk//ZDybqbPuvPukbr9eOmFrsUxyrtiHm2LQ=="
+      },
       "System.IO.Abstractions": {
         "type": "Direct",
         "requested": "[9.0.4, )",
