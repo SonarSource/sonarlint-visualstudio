@@ -79,6 +79,13 @@
       <RepoKey>vbnet</RepoKey>
     </PluginJars>
 
+    <PluginJars Include="Secrets">
+      <JarName>sonar-text-plugin-$(EmbeddedSonarSecretsJarVersion).jar</JarName>
+      <URL>https://binaries.sonarsource.com/Distribution/sonar-text-plugin/%(JarName)</URL>
+      <LanguageKey>secrets</LanguageKey>
+      <RepoKey>secrets</RepoKey>
+    </PluginJars>
+
   </ItemGroup>
 
 </Project>
