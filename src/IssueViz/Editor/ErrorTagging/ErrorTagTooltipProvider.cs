@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
@@ -44,13 +45,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
     {
         private readonly IVsThemeColorProvider vsThemeColorProvider;
         private readonly INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
-        public ErrorTagTooltipProvider(IVsThemeColorProvider vsThemeColorProvider, INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand)
+
+        public ErrorTagTooltipProvider(IVsThemeColorProvider vsThemeColorProvider, INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand, ILogger logger)
         {
             this.vsThemeColorProvider = vsThemeColorProvider;
             this.navigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
+            this.logger = logger;
         }
+
+        private static long instanceCount = 0;
 
         public object Create(IAnalysisIssueBase analysisIssueBase)
         {
@@ -74,6 +80,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
                 Foreground = GetVsThemedColor(EnvironmentColors.SystemCaptionTextBrushKey)
             };
 
+            instanceCount++;
+            logger.LogVerbose($"[ErrorTagTooltipProvider] tooltip instance count: {instanceCount}");
 
             return content;
         }
