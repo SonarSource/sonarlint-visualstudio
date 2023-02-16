@@ -148,6 +148,7 @@ namespace SonarQube.Client.Tests.Models.ServerSentEvents
             const string serializedTaintVulnerabilityRaisedEvent = @"{
 	""key"": ""taintKey"",
 	""projectKey"": ""projectKey1"",
+    ""creationDate"": 1676390804000,
 	""branch"": ""master"",
 	""ruleKey"": ""javasecurity:S123"",
 	""severity"": ""MAJOR"",
@@ -186,6 +187,7 @@ namespace SonarQube.Client.Tests.Models.ServerSentEvents
                 new TaintVulnerabilityRaisedServerEvent(
                     projectKey: "projectKey1",
                     key: "taintKey",
+                    creationDate: DateTimeOffset.Parse("2023-02-14T16:06:44+00:00"),
                     branch: "master",
                     ruleKey: "javasecurity:S123",
                     severity: SonarQubeIssueSeverity.Major,

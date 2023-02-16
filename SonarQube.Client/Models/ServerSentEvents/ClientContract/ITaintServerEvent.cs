@@ -20,6 +20,7 @@
 
 using System;
 using Newtonsoft.Json;
+using SonarQube.Client.Helpers;
 
 namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
 {
@@ -41,10 +42,16 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
     internal class TaintVulnerabilityRaisedServerEvent : ITaintVulnerabilityRaisedServerEvent
     {
         [JsonConstructor]
-        public TaintVulnerabilityRaisedServerEvent(string projectKey, string key, string branch,
-            string ruleKey, SonarQubeIssueSeverity severity, SonarQubeIssueType type,
-            Location mainLocation, Flow[] flows)
-            : this(projectKey, key, branch, new TaintIssue(key, ruleKey, severity, type, mainLocation, flows))
+        public TaintVulnerabilityRaisedServerEvent(string projectKey,
+            string key,
+            string branch,
+            string ruleKey,
+            [JsonConverter(typeof(MillisecondUnixTimestampDateTimeOffsetConverter))] DateTimeOffset creationDate,
+            SonarQubeIssueSeverity severity,
+            SonarQubeIssueType type,
+            Location mainLocation,
+            Flow[] flows)
+            : this(projectKey, key, branch, new TaintIssue(key, ruleKey, creationDate, severity, type, mainLocation, flows))
         {
         }
 
