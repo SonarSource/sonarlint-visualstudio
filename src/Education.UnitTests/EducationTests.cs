@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Education.Commands;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education.UnitTests

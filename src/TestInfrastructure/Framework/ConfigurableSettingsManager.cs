@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Settings;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class ConfigurableSettingsManager : SettingsManager
     {

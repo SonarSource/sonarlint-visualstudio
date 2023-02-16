@@ -20,7 +20,7 @@
 
 using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     // Properties are settable to simplify creating test instances
     public class DummyAnalysisIssueLocation : IAnalysisIssueLocation

@@ -23,6 +23,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarLint.VisualStudio.TestInfrastructure;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests

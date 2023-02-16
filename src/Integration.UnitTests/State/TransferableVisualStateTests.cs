@@ -22,6 +22,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.State

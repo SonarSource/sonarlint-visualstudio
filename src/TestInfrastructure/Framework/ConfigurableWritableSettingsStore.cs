@@ -24,7 +24,7 @@ using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.Settings;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class ConfigurableWritableSettingsStore : WritableSettingsStore
     {

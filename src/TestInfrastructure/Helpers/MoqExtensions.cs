@@ -19,7 +19,7 @@
  */
 
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
+namespace SonarLint.VisualStudio.TestInfrastructure.Helpers
 {
     public static class MoqExtensions
     {

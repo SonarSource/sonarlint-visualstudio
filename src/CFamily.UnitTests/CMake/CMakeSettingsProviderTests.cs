@@ -28,7 +28,7 @@ using Moq;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.CFamily.CMake;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 {

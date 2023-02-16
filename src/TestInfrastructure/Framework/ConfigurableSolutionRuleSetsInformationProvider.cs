@@ -21,8 +21,9 @@
 using System.Collections.Generic;
 using EnvDTE;
 using FluentAssertions;
+using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class ConfigurableSolutionRuleSetsInformationProvider : ISolutionRuleSetsInformationProvider
     {

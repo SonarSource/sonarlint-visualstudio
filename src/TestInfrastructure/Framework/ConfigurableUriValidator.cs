@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using SonarLint.VisualStudio.Integration.Connection;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     internal class ConfigurableUriValidator : UriValidator
     {

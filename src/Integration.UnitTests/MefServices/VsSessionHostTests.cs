@@ -29,6 +29,7 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 using SonarQube.Client;
 

@@ -28,6 +28,7 @@ using Moq;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Progress.Controller;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 using SonarQube.Client;
 

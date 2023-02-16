@@ -26,6 +26,7 @@ using Moq;
 using NuGet;
 using NuGet.VisualStudio;
 using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {

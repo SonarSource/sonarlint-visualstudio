@@ -22,8 +22,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
+using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class TestLogger : ILogger
     {

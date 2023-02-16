@@ -22,7 +22,7 @@ using System;
 using System.Collections;
 using EnvDTE;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class CommandsMock : Commands
     {

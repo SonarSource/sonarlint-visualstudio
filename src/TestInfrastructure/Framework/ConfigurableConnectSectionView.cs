@@ -20,7 +20,7 @@
 
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     internal class ConfigurableConnectSectionView: IConnectSectionView
     {

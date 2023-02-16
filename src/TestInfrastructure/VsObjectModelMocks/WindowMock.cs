@@ -21,7 +21,7 @@
 using System;
 using EnvDTE;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class WindowMock : Window
     {

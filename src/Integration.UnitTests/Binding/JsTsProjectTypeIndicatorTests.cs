@@ -31,6 +31,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {

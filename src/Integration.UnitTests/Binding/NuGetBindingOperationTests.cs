@@ -30,7 +30,7 @@ using NuGet;
 using NuGet.VisualStudio;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.CSharpVB;
-using SonarLint.VisualStudio.Core.JsTs;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.Core.Secrets;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Binding;

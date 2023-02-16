@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using FluentAssertions;
 using SonarLint.VisualStudio.Progress.Controller;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class ConfigurableProgressEvents : IProgressEvents
     {

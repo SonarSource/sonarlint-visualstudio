@@ -21,10 +21,11 @@
 using System;
 using System.Collections.Generic;
 using FluentAssertions;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.State;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     internal class ConfigurableStateManager : IStateManager
     {

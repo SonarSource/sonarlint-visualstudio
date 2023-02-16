@@ -27,7 +27,7 @@ using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 using Constants = SonarLint.VisualStudio.IssueVisualization.Commands.Constants;
-using ThreadHelper = SonarLint.VisualStudio.Integration.UnitTests.ThreadHelper;
+using ThreadHelper = SonarLint.VisualStudio.TestInfrastructure.ThreadHelper;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
 {

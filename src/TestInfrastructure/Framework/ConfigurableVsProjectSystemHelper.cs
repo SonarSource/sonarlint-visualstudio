@@ -24,8 +24,9 @@ using System.Linq;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     internal class ConfigurableVsProjectSystemHelper : IProjectSystemHelper
     {
@@ -91,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             if (addFileToProject)
             {
                 var item = project.ProjectItems.AddFromFile(file);
-                Property itemTypeProperty = VsShellUtils.FindProperty(item.Properties, Constants.ItemTypePropertyKey);
+                Property itemTypeProperty = VsShellUtils.FindProperty(item.Properties, Integration.Constants.ItemTypePropertyKey);
                 if (itemTypeProperty != null)
                 {
                     itemTypeProperty.Value = itemType;

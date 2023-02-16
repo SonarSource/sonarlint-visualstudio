@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             var lightBulbBroker = new Mock<ILightBulbBroker>();
             var textView = CreateWpfTextView();
 
-            Integration.UnitTests.ThreadHelper.SetCurrentThreadAsUIThread();
+            TestInfrastructure.ThreadHelper.SetCurrentThreadAsUIThread();
 
             CreateTestSubject(selectedIssueLocationsTagAggregator.Object, 
                 issueLocationsTagAggregator.Object, 

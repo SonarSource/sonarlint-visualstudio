@@ -28,7 +28,7 @@ using Moq;
 using Moq.Protected;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 using HttpResponseMessage = System.Net.Http.HttpResponseMessage;
 

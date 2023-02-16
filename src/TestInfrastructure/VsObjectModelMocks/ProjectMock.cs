@@ -25,8 +25,9 @@ using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     // Note: this mock is for new-style project system i.e. https://github.com/dotnet/project-system
     // See the separate LegacyProjectMock class for the old-style mock.
@@ -406,8 +407,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void AddProjectItem(string filePath, string itemType)
         {
             ((EnvDTE.ProjectItems) ProjectItemsMock).AddFromFile(filePath);
-            ProjectItemsMock[filePath].PropertiesMock[Constants.ItemTypePropertyKey].Value = itemType;
-            ProjectItemsMock[filePath].PropertiesMock[Constants.FullPathPropertyKey].Value = Path.IsPathRooted(filePath) ? filePath : Path.Combine(Path.GetDirectoryName(FilePath), filePath);
+            ProjectItemsMock[filePath].PropertiesMock[Integration.Constants.ItemTypePropertyKey].Value = itemType;
+            ProjectItemsMock[filePath].PropertiesMock[Integration.Constants.FullPathPropertyKey].Value = Path.IsPathRooted(filePath) ? filePath : Path.Combine(Path.GetDirectoryName(FilePath), filePath);
         }
     }
 }

@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.State

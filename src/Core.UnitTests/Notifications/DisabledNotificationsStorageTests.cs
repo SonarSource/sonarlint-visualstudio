@@ -29,7 +29,7 @@ using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.Core.VsVersion;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 {
