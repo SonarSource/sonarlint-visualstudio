@@ -91,7 +91,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             var end = new SnapshotPoint(currentSnapshot, endPos);
             var snapshotSpan = new SnapshotSpan(start, end);
 
-            if (IsHashDifferent(range.LineHash, snapshotSpan.GetText()) &&
+            // HACK: range.LineHash might be a line-hash or hash of a part of a line, depending on where the data came from.
+            // To make the navigability check work we need to handle both cases.
+            // See bug #3708.
+            if (!string.IsNullOrEmpty(range.LineHash) &&
+                IsHashDifferent(range.LineHash, snapshotSpan.GetText()) &&
                 IsHashDifferent(range.LineHash, startLine.GetText()))
             {
                 // Out of sync: the range reported in the diagnostic has been edited, so we can no longer calculate the span
@@ -103,11 +107,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 
         private bool IsHashDifferent(string issueHash, string documentText)
         {
-            if (string.IsNullOrEmpty(issueHash))
-            {
-                return false;
-            }
-
             var documentTextHash = checksumCalculator.Calculate(documentText);
 
             return documentTextHash != issueHash;
