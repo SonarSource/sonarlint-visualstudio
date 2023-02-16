@@ -29,8 +29,8 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.UnitTests;
-using static SonarLint.VisualStudio.Integration.UnitTests.Extensions.FileSystemExtensions;
+using SonarLint.VisualStudio.TestInfrastructure;
+using static SonarLint.VisualStudio.TestInfrastructure.Extensions.FileSystemExtensions;
 
 namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 {

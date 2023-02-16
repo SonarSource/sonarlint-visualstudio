@@ -23,7 +23,7 @@ using System.Collections;
 using System.Collections.Generic;
 using EnvDTE;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class ConfigurationManagerMock : ConfigurationManager
     {

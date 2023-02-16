@@ -26,7 +26,7 @@ using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using NuGet;
 using SonarQube.Client.Messages;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     internal static class RoslynExportProfileHelper
     {

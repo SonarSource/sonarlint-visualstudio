@@ -14,7 +14,7 @@
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
   <PropertyGroup>
-    <RootNamespace>SonarLint.VisualStudio.Integration.UnitTests</RootNamespace>
+    <RootNamespace>SonarLint.VisualStudio.Integration.TestInfrastructure</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Integration.TestInfrastructure</AssemblyName>
     <ProjectGuid>{FBD8024A-9795-4E5B-938E-AFE44FCA240C}</ProjectGuid>
   </PropertyGroup>

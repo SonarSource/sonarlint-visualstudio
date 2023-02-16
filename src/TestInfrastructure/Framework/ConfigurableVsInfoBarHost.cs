@@ -23,7 +23,7 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class ConfigurableVsInfoBarHost : IVsInfoBarHost
     {

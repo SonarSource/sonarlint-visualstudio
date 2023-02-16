@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Connection.UI;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 {

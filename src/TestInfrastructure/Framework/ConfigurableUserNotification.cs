@@ -24,7 +24,7 @@ using System.Windows.Input;
 using FluentAssertions;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     internal class ConfigurableUserNotification : IUserNotification
     {

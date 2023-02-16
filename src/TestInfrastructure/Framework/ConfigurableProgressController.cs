@@ -24,7 +24,7 @@ using System.Threading.Tasks;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarLint.VisualStudio.Progress.Controller.ErrorNotification;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class ConfigurableProgressController : IProgressController, IProgressEvents
     {

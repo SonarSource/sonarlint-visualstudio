@@ -22,7 +22,7 @@ using System.Globalization;
 using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.UnitTests.Helpers;
+using SonarLint.VisualStudio.TestInfrastructure.Helpers;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests

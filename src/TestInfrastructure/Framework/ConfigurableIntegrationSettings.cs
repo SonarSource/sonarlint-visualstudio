@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+using SonarLint.VisualStudio.Integration;
+
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class ConfigurableSonarLintSettings : ISonarLintSettings
     {

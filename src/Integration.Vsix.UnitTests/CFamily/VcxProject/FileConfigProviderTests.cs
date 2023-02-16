@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.VCProjectEngine;
 using Moq;
 using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
+using SonarLint.VisualStudio.TestInfrastructure;
 using static SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests.CFamilyTestUtility;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject

@@ -21,7 +21,7 @@
 using System;
 using SonarLint.VisualStudio.Core.Binding;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class ConfigurableActiveSolutionBoundTracker : IActiveSolutionBoundTracker
     {

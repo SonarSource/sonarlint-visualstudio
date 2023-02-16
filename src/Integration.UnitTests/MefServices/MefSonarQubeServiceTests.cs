@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.MefServices;
 using SonarQube.Client;
 using SonarQube.Client.Models;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.MefServices
 {

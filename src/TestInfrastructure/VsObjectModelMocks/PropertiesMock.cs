@@ -24,7 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 using EnvDTE;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class PropertiesMock : Properties
     {
