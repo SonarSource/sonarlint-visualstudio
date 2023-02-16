@@ -71,6 +71,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
             var hyperlink = (Hyperlink)inlines[0];
             hyperlink.Command.Should().Be(navigateCommand);
             hyperlink.CommandParameter.Should().Be("some rule");
+
+            hyperlink.TextDecorations.Should().BeNull(); // no decorations by default i.e. not underlined
         }
     }
 }
