@@ -69,8 +69,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
             (inlines[2] as Run).Text.Should().Be("some message");
 
             var hyperlink = (Hyperlink)inlines[0];
-            hyperlink.Command.Should().Be(navigateCommand);
-            hyperlink.CommandParameter.Should().Be("some rule");
+
+            // Click-handling
+            // Can't easily test that the NavigateUri event is wired up correctly
+            // - relying on manual test
+            hyperlink.Command.Should().BeNull();
+            hyperlink.NavigateUri.Should().NotBeNull();
 
             hyperlink.TextDecorations.Should().BeNull(); // no decorations by default i.e. not underlined
         }
