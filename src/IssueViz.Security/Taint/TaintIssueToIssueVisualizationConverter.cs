@@ -125,7 +125,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                         sonarQubeTaintIssue.MainLocation.TextRange.EndLineOffset,
                         sonarQubeTaintIssue.MainLocation.TextRange.Hash)),
                 Convert(sonarQubeTaintIssue.Severity),
-                default,
+                sonarQubeTaintIssue.CreationDate,
                 default, 
                 Convert(sonarQubeTaintIssue.Flows)
             );
