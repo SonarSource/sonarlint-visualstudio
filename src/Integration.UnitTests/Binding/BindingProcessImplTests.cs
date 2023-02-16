@@ -37,8 +37,6 @@ using NuGet;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Core.Secrets;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -58,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableSolutionRuleSetsInformationProvider ruleSetsInformationProvider;
         private ConfigurableHost host;
         private Mock<IFolderWorkspaceService> folderWorkspaceService;
-        private Mock<IJsTsProjectTypeIndicator> jstsIndicator;
+        private Mock<IProjectToLanguageMapper> projectToLanguageMapper;
         private TestLogger logger;
 
         [TestInitialize]
@@ -82,14 +80,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.ruleSetsInformationProvider);
 
-            jstsIndicator = new Mock<IJsTsProjectTypeIndicator>();
-            var projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), jstsIndicator.Object, Mock.Of<IConnectedModeSecrets>());
-
+            projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
             folderWorkspaceService = new Mock<IFolderWorkspaceService>();
 
-            var mefProjectToLanguageMapper = 
+            var mefProjectToLanguageMapper =
                 ConfigurableComponentModel.CreateWithExports(
-                    MefTestHelpers.CreateExport<IProjectToLanguageMapper>(projectToLanguageMapper),
+                    MefTestHelpers.CreateExport<IProjectToLanguageMapper>(projectToLanguageMapper.Object),
                     MefTestHelpers.CreateExport<IFolderWorkspaceService>(folderWorkspaceService.Object));
 
             serviceProvider.RegisterService(typeof(SComponentModel), mefProjectToLanguageMapper);
@@ -155,7 +151,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var exclusionSettingsStorage = new Mock<IExclusionSettingsStorage>();
 
             var testSubject = CreateTestSubject(bindingArgs: bindingArgs, mode: SonarLintMode.Connected, sonarQubeService: sonarQubeService.Object, exclusionSettingsStorage: exclusionSettingsStorage.Object);
-            
+
             await testSubject.SaveServerExclusionsAsync(CancellationToken.None);
 
             exclusionSettingsStorage.Verify(fs => fs.SaveSettings(settings), Times.Once);
@@ -193,11 +189,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var testSubject = CreateTestSubject(bindingArgs: bindingArgs, mode: SonarLintMode.Connected, sonarQubeService: sonarQubeService.Object);
 
-            Func<Task<bool>> act = async () =>  await testSubject.SaveServerExclusionsAsync(CancellationToken.None);
+            Func<Task<bool>> act = async () => await testSubject.SaveServerExclusionsAsync(CancellationToken.None);
 
             act.Should().ThrowExactly<StackOverflowException>().WithMessage("Critical Error");
             logger.AssertOutputStrings(0);
-            
         }
 
         private static ServerExclusions CreateSettings()
@@ -246,7 +241,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var bindingArgs = CreateBindCommandArgs("key", ProjectName, new ConnectionInformation(new Uri("http://connected")));
             var testSubject = this.CreateTestSubject(bindingArgs, nuGetOpMock.Object, configProviderMock.Object);
 
+            host.SupportedPluginLanguages.Add(language);
+            var project = Mock.Of<Project>();
+            testSubject.InternalState.BindingProjects.Add(project);
+
             ConfigureSupportedBindingProject(testSubject.InternalState, language);
+
+            List<Language> supportedLanguages = new List<Language>() { language };
+            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(project)).Returns(supportedLanguages);
 
             // Act
             var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
@@ -295,7 +297,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var bindingArgs = CreateBindCommandArgs("key", ProjectName, new ConnectionInformation(new Uri("http://connected")));
             var testSubject = this.CreateTestSubject(bindingArgs, nuGetOpMock.Object, configProviderMock.Object);
 
-            ConfigureSupportedBindingProject(testSubject.InternalState, language);
+            host.SupportedPluginLanguages.Add(language);
+            var project = Mock.Of<Project>();
+            testSubject.InternalState.BindingProjects.Add(project);
+
+            List<Language> supportedLanguages = new List<Language>() { language };
+            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(project)).Returns(supportedLanguages);
 
             // Act
             await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
@@ -320,9 +327,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var progressAdapter = new FixedStepsProgressAdapter(notifications);
 
             var language = Language.CSharp;
-            ConfigureSupportedBindingProject(testSubject.InternalState, language);
+            host.SupportedPluginLanguages.Add(language);
+            var project = Mock.Of<Project>();
+            testSubject.InternalState.BindingProjects.Add(project);
+
             this.ConfigureQualityProfile(Language.VBNET, "");
 
+            List<Language> supportedLanguages = new List<Language>() { language };
+            projectToLanguageMapper.Setup(x =>
+                x.GetAllBindingLanguagesForProject(project)).Returns(supportedLanguages);
             // Act
             var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
 
@@ -361,7 +374,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var bindingArgs = CreateBindCommandArgs("key", ProjectName, new ConnectionInformation(new Uri("http://connected")));
             var testSubject = this.CreateTestSubject(bindingArgs, nuGetOpMock.Object, configProviderMock.Object);
 
-            ConfigureSupportedBindingProject(testSubject.InternalState, language);
+            host.SupportedPluginLanguages.Add(language);
+            var project = Mock.Of<Project>();
+            testSubject.InternalState.BindingProjects.Add(project);
+
+            List<Language> supportedLanguages = new List<Language>() { language };
+            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(project)).Returns(supportedLanguages);
 
             // Act
             var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
@@ -385,16 +403,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var testSubject = this.CreateTestSubject();
 
-            var csProject1 = new ProjectMock("cs1.csproj");
-            var csProject2 = new ProjectMock("cs2.csproj");
-            var csProject3 = new ProjectMock("cs3.csproj");
-            csProject1.SetCSProjectKind();
-            csProject2.SetCSProjectKind();
-            csProject3.SetCSProjectKind();
-            var vbNetProject1 = new ProjectMock("vb1.vbproj");
-            var vbNetProject2 = new ProjectMock("vb2.vbproj");
-            vbNetProject1.SetVBProjectKind();
-            vbNetProject2.SetVBProjectKind();
+            var csProject1 = Mock.Of<Project>();
+            var csProject2 = Mock.Of<Project>();
+            var csProject3 = Mock.Of<Project>();
+            var vbNetProject1 = Mock.Of<Project>();
+            var vbNetProject2 = Mock.Of<Project>();
+
             var projects = new[]
             {
                 csProject1,
@@ -408,6 +422,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var expectedLanguages = new[] { Language.CSharp, Language.VBNET };
             this.host.SupportedPluginLanguages.UnionWith(expectedLanguages);
 
+            projectToLanguageMapper.Setup(x =>
+                x.GetAllBindingLanguagesForProject(csProject1)).Returns(new List<Language>() { Language.CSharp });
+            projectToLanguageMapper.Setup(x =>
+                x.GetAllBindingLanguagesForProject(csProject2)).Returns(new List<Language>() { Language.CSharp });
+            projectToLanguageMapper.Setup(x =>
+                x.GetAllBindingLanguagesForProject(csProject3)).Returns(new List<Language>() { Language.CSharp });
+            projectToLanguageMapper.Setup(x =>
+                x.GetAllBindingLanguagesForProject(vbNetProject1)).Returns(new List<Language>() { Language.VBNET });
+            projectToLanguageMapper.Setup(x =>
+                x.GetAllBindingLanguagesForProject(vbNetProject2)).Returns(new List<Language>() { Language.VBNET });
+
             // Act
             var actualLanguages = testSubject.GetBindingLanguages();
 
@@ -416,46 +441,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void GetBindingLanguages_IfCppIsDetected_ThenCIsReturnedToo()
-        {
-            // Arrange
-            var testSubject = this.CreateTestSubject();
-
-            var project1 = new ProjectMock("cs1.csproj");
-            project1.ProjectKind = ProjectSystemHelper.CppProjectKind;
-            var projects = new[]
-            {
-                project1,
-            };
-            testSubject.InternalState.BindingProjects.AddRange(projects);
-
-            this.host.SupportedPluginLanguages.Add(Language.Cpp);
-            this.host.SupportedPluginLanguages.Add(Language.C);
-
-            // Act
-            var actualLanguages = testSubject.GetBindingLanguages();
-
-            // Assert
-            var expectedLanguages = new[] { Language.Cpp, Language.C };
-            CollectionAssert.AreEquivalent(expectedLanguages, actualLanguages.ToArray());
-        }
-
-        [TestMethod]
         public void GetBindingLanguages_FiltersProjectsWithUnsupportedPluginLanguage()
         {
             // Arrange
             var testSubject = this.CreateTestSubject();
 
-            var csProject1 = new ProjectMock("cs1.csproj");
-            var csProject2 = new ProjectMock("cs2.csproj");
-            var csProject3 = new ProjectMock("cs3.csproj");
-            csProject1.SetCSProjectKind();
-            csProject2.SetCSProjectKind();
-            csProject3.SetCSProjectKind();
-            var vbNetProject1 = new ProjectMock("vb1.vbproj");
-            var vbNetProject2 = new ProjectMock("vb2.vbproj");
-            vbNetProject1.SetVBProjectKind();
-            vbNetProject2.SetVBProjectKind();
+            var csProject1 = Mock.Of<Project>();
+            var csProject2 = Mock.Of<Project>();
+            var csProject3 = Mock.Of<Project>();
+            var vbNetProject1 = Mock.Of<Project>();
+            var vbNetProject2 = Mock.Of<Project>();
+
             var projects = new[]
             {
                 csProject1,
@@ -464,10 +460,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 csProject3,
                 vbNetProject2
             };
+
             testSubject.InternalState.BindingProjects.AddRange(projects);
 
             var expectedLanguages = new[] { Language.VBNET };
             this.host.SupportedPluginLanguages.UnionWith(expectedLanguages);
+
+            projectToLanguageMapper.Setup(x =>
+                x.GetAllBindingLanguagesForProject(csProject1)).Returns(new List<Language>() { Language.CSharp });
+            projectToLanguageMapper.Setup(x =>
+                x.GetAllBindingLanguagesForProject(csProject2)).Returns(new List<Language>() { Language.CSharp });
+            projectToLanguageMapper.Setup(x =>
+                x.GetAllBindingLanguagesForProject(csProject3)).Returns(new List<Language>() { Language.CSharp });
+            projectToLanguageMapper.Setup(x =>
+                x.GetAllBindingLanguagesForProject(vbNetProject1)).Returns(new List<Language>() { Language.VBNET });
+            projectToLanguageMapper.Setup(x =>
+                x.GetAllBindingLanguagesForProject(vbNetProject2)).Returns(new List<Language>() { Language.VBNET });
 
             // Act
             var actualLanguages = testSubject.GetBindingLanguages();
@@ -493,9 +501,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, finder, configProvider.Object, SonarLintMode.Connected, exclusionSettingsStorage);
 
-            ProjectMock project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
+            var project = Mock.Of<Project>();
             testSubject.InternalState.BindingProjects.Clear();
-            testSubject.InternalState.BindingProjects.Add(project1);
+            testSubject.InternalState.BindingProjects.Add(project);
 
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
             var progressAdapter = new FixedStepsProgressAdapter(progressEvents);
@@ -527,9 +535,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, finder, configProvider.Object, SonarLintMode.Connected, exclusionSettingsStorage);
 
-            ProjectMock project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
+            var project = Mock.Of<Project>();
             testSubject.InternalState.BindingProjects.Clear();
-            testSubject.InternalState.BindingProjects.Add(project1);
+            testSubject.InternalState.BindingProjects.Add(project);
 
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
             var progressAdapter = new FixedStepsProgressAdapter(progressEvents);
@@ -601,13 +609,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             ThreadHelper.SetCurrentThreadAsUIThread();
 
-            var csProject1 = new ProjectMock("cs1.csproj");
-            var csProject2 = new ProjectMock("cs2.csproj");
-            csProject1.SetCSProjectKind();
-            csProject2.SetCSProjectKind();
+            var csProject1 = Mock.Of<Project>();
+            var csProject2 = Mock.Of<Project>();
 
             var matchingProjects = new[] { csProject1, csProject2 };
             this.projectSystemHelper.FilteredProjects = matchingProjects;
+
+            List<Language> supportedLanguages = new List<Language>() { Language.CSharp };
+            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(csProject1)).Returns(supportedLanguages);
+            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(csProject2)).Returns(supportedLanguages);
 
             var testSubject = this.CreateTestSubject();
             this.host.SupportedPluginLanguages.UnionWith(new[] { Language.CSharp });
@@ -623,12 +633,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private void DiscoverBindableProjects_GenericPart(int numberOfProjectsToCreate, int numberOfProjectsToInclude, bool expectedResult)
         {
             // Arrange
+            List<Language> supportedLanguages = new List<Language>() { Language.CSharp };
             List<Project> projects = new List<Project>();
+
             for (int i = 0; i < numberOfProjectsToCreate; i++)
             {
-                var project = new ProjectMock($"cs{i}.csproj");
-                project.SetCSProjectKind();
+                var project = Mock.Of<Project>();
                 projects.Add(project);
+                projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(project)).Returns(supportedLanguages);
             }
 
             this.projectSystemHelper.FilteredProjects = projects.Take(numberOfProjectsToInclude);
@@ -718,7 +730,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void DiscoverBindableProjects_FolderWorkspace_HasSupportedLanguages_True()
         {
             folderWorkspaceService.Setup(x => x.IsFolderWorkspace()).Returns(true);
-            jstsIndicator.Setup(x => x.IsJsTs(It.IsAny<Project>())).Returns(true);
+
+            List<Language> supportedLanguages = new List<Language>() { Language.Js, Language.Ts };
+            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesInSolution()).Returns(supportedLanguages);
 
             var testSubject = this.CreateTestSubject();
 
@@ -735,7 +749,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void DiscoverBindableProjects_FolderWorkspace_NoSupportedLanguages_False()
         {
             folderWorkspaceService.Setup(x => x.IsFolderWorkspace()).Returns(true);
-            jstsIndicator.Setup(x => x.IsJsTs(It.IsAny<Project>())).Returns(false);
+            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesInSolution()).Returns(new List<Language>());
 
             var testSubject = this.CreateTestSubject();
 
@@ -772,9 +786,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var allProjects = new Project[]
             {
-                new ProjectMock("cs1.csproj"),
-                new ProjectMock("cs2.csproj"),
-                new ProjectMock("cs3.csproj")
+                Mock.Of<Project>(),
+                Mock.Of<Project>(),
+                Mock.Of<Project>()
             };
 
             var logger = new TestLogger();
@@ -797,9 +811,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var allProjects = new Project[]
             {
-                new ProjectMock("cs1.csproj"),
-                new ProjectMock("cs2.csproj"),
-                new ProjectMock("cs3.csproj")
+                Mock.Of<Project>(),
+                Mock.Of<Project>(),
+                Mock.Of<Project>()
             };
 
             var logger = new TestLogger();
@@ -822,15 +836,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var allProjects = new Project[]
             {
-                new ProjectMock("csA.csproj"),
-                new ProjectMock("csB.csproj"),
-                new ProjectMock("csC.csproj"),
-                new ProjectMock("csD.csproj")
+                CreateProject("one"),
+                CreateProject("two"),
+                CreateProject("three"),
+                CreateProject("four")
             };
 
             var unboundProjects = new Project[]
             {
-                new ProjectMock("XXX.csproj"),
+                Mock.Of<Project>(),
                 allProjects[1],
                 allProjects[3]
             };
@@ -847,7 +861,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             result.Should().BeEquivalentTo(allProjects[1], allProjects[3]);
             logger.AssertOutputStringExists(Strings.Bind_Ruleset_SomeProjectsDoNotNeedToBeUpdated);
-            logger.AssertPartialOutputStringExists("csA.csproj", "csC.csproj");
+            logger.AssertPartialOutputStringExists("one", "three");
         }
 
         [TestMethod]
@@ -856,10 +870,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var allProjects = new Project[]
             {
-                new ProjectMock("cs1.csproj"),
-                new ProjectMock("cs2.csproj"),
-                new ProjectMock("cs3.csproj"),
-                new ProjectMock("cs4.csproj")
+                CreateProject("one"),
+                CreateProject("two"),
+                CreateProject("three"),
+                CreateProject("four")
             };
 
             var logger = new TestLogger();
@@ -874,7 +888,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             result.Should().BeEmpty();
             logger.AssertOutputStringExists(Strings.Bind_Ruleset_SomeProjectsDoNotNeedToBeUpdated);
-            logger.AssertPartialOutputStringExists("cs1.csproj", "cs2.csproj", "cs3.csproj", "cs4.csproj");
+            logger.AssertPartialOutputStringExists("one", "two", "three", "four");
         }
 
         #endregion Tests
@@ -886,8 +900,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             IBindingConfigProvider configProvider = null,
             SonarLintMode mode = SonarLintMode.Connected,
             ISonarQubeService sonarQubeService = null,
-            IExclusionSettingsStorage exclusionSettingsStorage = null
-            )
+            IExclusionSettingsStorage exclusionSettingsStorage = null)
         {
             bindingArgs = bindingArgs ?? CreateBindCommandArgs();
             nuGetBindingOperation = nuGetBindingOperation ?? new NoOpNuGetBindingOperation(this.host.Logger);
@@ -908,25 +921,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return new BindCommandArgs(projectKey, projectName, connection);
         }
 
+        private Project CreateProject(string name = null)
+        {
+            var project = new Mock<Project>();
+            project.Setup(x => x.Name).Returns(name);
+
+            return project.Object;
+        }
+
         private void ConfigureSupportedBindingProject(BindingProcessImpl.BindingProcessState internalState, Language language)
         {
-            // Mark the language as supported by the host
             host.SupportedPluginLanguages.Add(language);
 
-            // Create a dummy project and add it to the internal state
             var project = new ProjectMock(null);
-            switch (language.Id)
-            {
-                case "VB":
-                    project.SetVBProjectKind();
-                    break;
-                case "CSharp":
-                    project.SetCSProjectKind();
-                    break;
-                default:
-                    Assert.Fail($"Test setup error: unknown language: {language}");
-                    break;
-            }
+
             internalState.BindingProjects.Add(project);
         }
 
