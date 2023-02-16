@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -64,10 +65,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
             {
                 Inlines = {analysisIssueBase.RuleKey},
                 Foreground = GetVsThemedColor(EnvironmentColors.ControlLinkTextColorKey),
-                TextDecorations = null,
                 Command = navigateToRuleDescriptionCommand,
                 CommandParameter = analysisIssueBase.RuleKey
             };
+
+            ApplyHyperlinkStyle(hyperLink);
 
             var content = new TextBlock
             {
@@ -84,6 +86,32 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
             logger.LogVerbose($"[ErrorTagTooltipProvider] tooltip instance count: {instanceCount}");
 
             return content;
+        }
+
+        private static void ApplyHyperlinkStyle(Hyperlink hyperlink)
+        {
+            // Style the hyperlink to behave like other error tooltips i.e.
+            // link is not underlined by default; underline when the user
+            // moves the mouse over the element
+            hyperlink.Style = new Style
+            {
+                Setters =
+                {
+                    new Setter(Inline.TextDecorationsProperty, null)
+                },
+                Triggers = {
+                    new Trigger()
+                    {
+                        Property = ContentElement.IsMouseOverProperty,
+                        Value = true,
+                        Setters =
+                        {
+                            new Setter(Inline.TextDecorationsProperty, TextDecorations.Underline)
+                        }
+                    }
+                }
+            };
+
         }
 
         private Brush GetVsThemedColor(ThemeResourceKey resourceKey)
