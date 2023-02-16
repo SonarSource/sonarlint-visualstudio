@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.JsTs;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
 using SonarLint.VisualStudio.TypeScript.Notifications;
 

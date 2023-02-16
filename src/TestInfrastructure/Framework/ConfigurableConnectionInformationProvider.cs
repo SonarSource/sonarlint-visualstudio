@@ -22,7 +22,7 @@ using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     internal class ConfigurableConnectionInformationProvider : IConnectionInformationProvider
     {

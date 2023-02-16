@@ -26,7 +26,7 @@ using FluentAssertions;
 using NuGet;
 using NuGet.VisualStudio;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class ConfigurablePackageInstaller : IVsPackageInstaller
     {

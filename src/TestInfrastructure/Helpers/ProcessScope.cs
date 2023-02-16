@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
+namespace SonarLint.VisualStudio.TestInfrastructure.Helpers
 {
     /// <summary>
     /// Ensure the process is terminated when it goes out of scope.

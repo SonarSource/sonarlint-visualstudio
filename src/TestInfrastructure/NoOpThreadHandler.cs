@@ -22,7 +22,7 @@ using System;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     /// <summary>
     /// Dummy implementation of IThreadHandling

@@ -21,7 +21,7 @@
 using System;
 using System.Linq;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public static class AssemblyHelper
     {

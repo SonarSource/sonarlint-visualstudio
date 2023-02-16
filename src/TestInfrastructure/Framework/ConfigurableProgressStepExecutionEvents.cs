@@ -24,7 +24,7 @@ using System.Linq;
 using FluentAssertions;
 using SonarLint.VisualStudio.Progress.Controller;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class ConfigurableProgressStepExecutionEvents : IProgressStepExecutionEvents
     {

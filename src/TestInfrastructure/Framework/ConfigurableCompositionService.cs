@@ -24,7 +24,7 @@ using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.ComponentModel.Composition.Primitives;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     /// <summary>
     /// Test implementation of <see cref="ICompositionService"/>

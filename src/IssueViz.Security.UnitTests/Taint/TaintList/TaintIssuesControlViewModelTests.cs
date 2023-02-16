@@ -32,7 +32,7 @@ using Moq;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;

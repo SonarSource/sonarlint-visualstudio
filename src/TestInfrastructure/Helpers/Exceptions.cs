@@ -21,7 +21,7 @@
 using System;
 using FluentAssertions;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     /// <summary>
     /// Static helper class to assert exception throwing behavior in delegates.

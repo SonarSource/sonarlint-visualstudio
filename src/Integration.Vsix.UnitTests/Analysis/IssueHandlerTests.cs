@@ -29,6 +29,7 @@ using Moq;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using static SonarLint.VisualStudio.Integration.Vsix.Analysis.IssueConsumerFactory;
 using static SonarLint.VisualStudio.Integration.Vsix.Analysis.IssueConsumerFactory.IssueHandler;

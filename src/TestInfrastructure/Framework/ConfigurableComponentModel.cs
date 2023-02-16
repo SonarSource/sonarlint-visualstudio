@@ -26,7 +26,7 @@ using System.ComponentModel.Composition.Primitives;
 using System.Linq;
 using Microsoft.VisualStudio.ComponentModelHost;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class ConfigurableComponentModel : IComponentModel, IDisposable
     {

@@ -26,6 +26,7 @@ using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

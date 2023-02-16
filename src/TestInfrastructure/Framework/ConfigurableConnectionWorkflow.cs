@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.Integration.Connection;
 using SonarQube.Client.Models;
 using SonarQube.Client;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     internal class ConfigurableConnectionWorkflow : IConnectionWorkflowExecutor
     {

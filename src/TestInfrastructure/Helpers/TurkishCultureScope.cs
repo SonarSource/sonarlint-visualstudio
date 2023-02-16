@@ -22,7 +22,7 @@ using System;
 using System.Globalization;
 using System.Threading;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
+namespace SonarLint.VisualStudio.TestInfrastructure.Helpers
 {
     //This is to make sure normalising the keys done correctly with culture invariant
     //Lower case of SETTINGSKEY in Turkish is not settingskey but settıngskey

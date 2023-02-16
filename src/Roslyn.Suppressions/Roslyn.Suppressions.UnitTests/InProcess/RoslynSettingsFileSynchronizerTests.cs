@@ -28,7 +28,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 using SonarQube.Client.Models;

@@ -24,6 +24,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.TestInfrastructure;
 using Moq;
 
 using VsServiceProvider = Microsoft.VisualStudio.Shell.ServiceProvider;

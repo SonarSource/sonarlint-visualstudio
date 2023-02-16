@@ -26,7 +26,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Rules.UnitTests
 {

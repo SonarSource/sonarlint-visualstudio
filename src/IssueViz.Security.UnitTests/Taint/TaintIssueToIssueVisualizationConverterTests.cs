@@ -26,7 +26,7 @@ using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;

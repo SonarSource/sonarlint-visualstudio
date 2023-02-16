@@ -28,9 +28,9 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Outlining;
 using Moq;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
-using ThreadHelper = SonarLint.VisualStudio.Integration.UnitTests.ThreadHelper;
+using ThreadHelper = SonarLint.VisualStudio.TestInfrastructure.ThreadHelper;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 {

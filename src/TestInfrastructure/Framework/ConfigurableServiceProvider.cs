@@ -24,7 +24,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using FluentAssertions;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     /// <summary>
     /// Configurable service provider used for testing

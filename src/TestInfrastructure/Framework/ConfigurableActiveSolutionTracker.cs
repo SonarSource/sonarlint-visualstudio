@@ -21,7 +21,7 @@
 using System;
 using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     internal class ConfigurableActiveSolutionTracker : IActiveSolutionTracker
     {

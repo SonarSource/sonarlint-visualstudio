@@ -22,6 +22,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.ConnectedModeMenu
 {

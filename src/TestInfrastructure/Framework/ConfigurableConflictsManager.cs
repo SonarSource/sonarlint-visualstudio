@@ -23,7 +23,7 @@ using System.Linq;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class ConfigurableConflictsManager : IConflictsManager
     {

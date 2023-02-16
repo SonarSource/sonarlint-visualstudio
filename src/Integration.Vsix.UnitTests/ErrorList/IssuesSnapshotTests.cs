@@ -29,6 +29,7 @@ using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

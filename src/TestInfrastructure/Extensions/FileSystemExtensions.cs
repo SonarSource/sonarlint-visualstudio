@@ -21,7 +21,7 @@
 using System.IO.Abstractions;
 using Moq;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Extensions
+namespace SonarLint.VisualStudio.TestInfrastructure.Extensions
 {
     /// <summary>
     /// Extension methods to simplify working with IFileSystem mocks

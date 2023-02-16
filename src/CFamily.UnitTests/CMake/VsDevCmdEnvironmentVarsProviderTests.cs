@@ -33,7 +33,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 {

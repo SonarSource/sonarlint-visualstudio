@@ -24,6 +24,7 @@ using System.Reflection;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

@@ -24,6 +24,7 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
 {

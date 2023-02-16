@@ -23,8 +23,9 @@ using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.Linq;
 using FluentAssertions;
+using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     internal class ConfigurableSourceControlledFileSystem : ISourceControlledFileSystem
     {

@@ -25,8 +25,8 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
-using SonarLint.VisualStudio.Integration.UnitTests;
-using static SonarLint.VisualStudio.Integration.UnitTests.NoOpThreadHandler;
+using SonarLint.VisualStudio.TestInfrastructure;
+using static SonarLint.VisualStudio.TestInfrastructure.NoOpThreadHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 {

@@ -32,7 +32,8 @@ using SonarQube.Client;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
-using static SonarLint.VisualStudio.Integration.UnitTests.NoOpThreadHandler;
+using SonarLint.VisualStudio.TestInfrastructure;
+using static SonarLint.VisualStudio.TestInfrastructure.NoOpThreadHandler;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 {

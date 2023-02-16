@@ -34,6 +34,7 @@ using SonarLint.VisualStudio.Core.Secrets;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

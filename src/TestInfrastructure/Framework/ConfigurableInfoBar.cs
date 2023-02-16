@@ -23,7 +23,7 @@ using FluentAssertions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.InfoBar;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     internal class ConfigurableInfoBar : IInfoBar
     {

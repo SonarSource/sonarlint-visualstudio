@@ -19,8 +19,9 @@
  */
 
 using System.Collections.Generic;
+using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class ConfigurableWebBrowser : IWebBrowser
     {

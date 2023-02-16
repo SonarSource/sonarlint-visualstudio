@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarLint.VisualStudio.Progress.Observation;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 /* Note: these tests are in this assembly because they have an indirect dependency on
  * the TeamFoundation.Controls assembly - they create instances of the ProgressControl,

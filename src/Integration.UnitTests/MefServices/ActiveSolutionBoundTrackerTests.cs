@@ -34,6 +34,7 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 using IVsMonitorSelection = Microsoft.VisualStudio.Shell.Interop.IVsMonitorSelection;

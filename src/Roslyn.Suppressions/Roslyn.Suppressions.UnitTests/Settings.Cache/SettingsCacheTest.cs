@@ -25,7 +25,7 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Integration.UnitTests.Helpers;
+using SonarLint.VisualStudio.TestInfrastructure.Helpers;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 

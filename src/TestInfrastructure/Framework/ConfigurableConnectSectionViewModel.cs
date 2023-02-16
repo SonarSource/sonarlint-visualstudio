@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.Integration.WPF;
 using System;
 using System.Windows.Input;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     internal class ConfigurableConnectSectionViewModel : IConnectSectionViewModel
     {

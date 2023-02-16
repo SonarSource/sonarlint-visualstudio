@@ -29,6 +29,7 @@ using Moq;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

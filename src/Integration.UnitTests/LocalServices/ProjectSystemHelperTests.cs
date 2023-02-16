@@ -31,6 +31,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.TestInfrastructure;
 using IVsHierarchy = Microsoft.VisualStudio.Shell.Interop.IVsHierarchy;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests

@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Vsix.Commands;
 using SonarLint.VisualStudio.Integration.Vsix;
-using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 {
