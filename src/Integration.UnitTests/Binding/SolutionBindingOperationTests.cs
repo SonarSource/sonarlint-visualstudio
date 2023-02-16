@@ -34,6 +34,7 @@ using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.JsTs;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Persistence;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 using Language = SonarLint.VisualStudio.Core.Language;
 

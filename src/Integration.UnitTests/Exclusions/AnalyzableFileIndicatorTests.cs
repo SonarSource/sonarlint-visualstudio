@@ -25,6 +25,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Exclusions;
 using SonarQube.Client.Models;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
 {

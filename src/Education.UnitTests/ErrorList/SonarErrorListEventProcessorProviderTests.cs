@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Education.SonarLint.VisualStudio.Education.ErrorList;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Education.UnitTests.ErrorList
 {

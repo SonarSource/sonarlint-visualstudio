@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     internal class ConfigurableSectionController : ISectionController
     {

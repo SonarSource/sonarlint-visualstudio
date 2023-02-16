@@ -21,7 +21,7 @@
 using System.ComponentModel.Composition;
 using FluentAssertions;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     /// <summary>
     /// Generic class that MEF imports an arbitrary type.

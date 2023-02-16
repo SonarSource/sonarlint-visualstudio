@@ -31,6 +31,7 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 using SonarQube.Client;
 using Language = SonarLint.VisualStudio.Core.Language;

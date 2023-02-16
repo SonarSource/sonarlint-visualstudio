@@ -30,7 +30,7 @@ using System.Reflection;
  * domain, and we try to locate the assembly in the main app domain.
  */
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     /// <summary>
     /// Helper class that provides the plumbing to run a test in a separate app domain

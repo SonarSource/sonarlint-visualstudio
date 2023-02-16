@@ -28,7 +28,7 @@ using System.Linq;
 using FluentAssertions;
 using Moq;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public static class MefTestHelpers
     {

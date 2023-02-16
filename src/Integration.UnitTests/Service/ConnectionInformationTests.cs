@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -23,6 +23,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

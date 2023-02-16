@@ -23,6 +23,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

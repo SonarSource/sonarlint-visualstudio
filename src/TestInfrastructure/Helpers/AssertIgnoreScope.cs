@@ -22,7 +22,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     /// <summary>
     /// Some of the tests cover exceptions in which we have asserts as well, we want to ignore those asserts during tests

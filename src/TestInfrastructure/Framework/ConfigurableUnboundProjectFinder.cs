@@ -21,8 +21,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using EnvDTE;
+using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     internal class ConfigurableUnboundProjectFinder : IUnboundProjectFinder
     {

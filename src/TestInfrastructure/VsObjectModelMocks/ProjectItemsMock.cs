@@ -24,8 +24,9 @@ using System.Collections.Generic;
 using System.Linq;
 using EnvDTE;
 using FluentAssertions;
+using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class ProjectItemsMock : ProjectItems
     {
@@ -159,8 +160,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.Parent = parent;
                 this.Name = file;
                 this.PropertiesMock = new PropertiesMock(this);
-                this.PropertiesMock.RegisterKnownProperty(Constants.ItemTypePropertyKey);
-                this.PropertiesMock.RegisterKnownProperty(Constants.FullPathPropertyKey);
+                this.PropertiesMock.RegisterKnownProperty(Integration.Constants.ItemTypePropertyKey);
+                this.PropertiesMock.RegisterKnownProperty(Integration.Constants.FullPathPropertyKey);
             }
 
             public ProjectItemsMock Parent

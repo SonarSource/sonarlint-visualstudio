@@ -25,7 +25,7 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;

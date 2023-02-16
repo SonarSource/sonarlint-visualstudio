@@ -32,6 +32,7 @@ using SonarLint.VisualStudio.Integration.Binding;
 using RuleAction = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleAction;
 using VsRuleSet = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
 using CoreRuleSet = SonarLint.VisualStudio.Core.CSharpVB.RuleSet;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {

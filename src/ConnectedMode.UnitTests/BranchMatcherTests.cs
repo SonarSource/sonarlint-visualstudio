@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 using LibGit2Sharp;
 using SonarLint.VisualStudio.ConnectedMode.UnitTests.LibGit2SharpWrappers;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 

@@ -34,7 +34,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
 {

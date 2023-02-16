@@ -21,7 +21,7 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     /// <summary>
     /// Base helper class for the various VS enumeration wrappers

@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.ProfileConflicts
 {

@@ -23,8 +23,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Flavor;
+using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     /// <summary>
     /// Mock for managed projects that use the legacy C#/VB project system

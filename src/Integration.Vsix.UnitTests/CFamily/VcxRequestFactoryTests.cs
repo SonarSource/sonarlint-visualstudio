@@ -33,6 +33,7 @@ using SonarLint.VisualStudio.CFamily.Rules;
 using SonarLint.VisualStudio.CFamily.SubProcess;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
+using SonarLint.VisualStudio.TestInfrastructure;
 using static SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests.CFamilyTestUtility;
 using VsShell = Microsoft.VisualStudio.Shell;
 

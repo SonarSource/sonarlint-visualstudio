@@ -21,18 +21,14 @@
 using System;
 using System.ComponentModel.Design;
 using FluentAssertions;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.UnitTests;
-using SonarLint.VisualStudio.Education;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.Education.Commands;
 
-using ThreadHelper = SonarLint.VisualStudio.Integration.UnitTests.ThreadHelper;
+using ThreadHelper = SonarLint.VisualStudio.TestInfrastructure.ThreadHelper;
 
 namespace Education.UnitTests.Commands
 {

@@ -26,7 +26,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {

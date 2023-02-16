@@ -31,6 +31,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

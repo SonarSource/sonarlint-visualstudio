@@ -30,6 +30,7 @@ using SonarLint.VisualStudio.Core.JsTs;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Core.VsVersion;
 using SonarLint.VisualStudio.Integration.Telemetry.Payload;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

@@ -27,7 +27,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDetection

@@ -29,7 +29,7 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.TypeScript.Analyzer;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;

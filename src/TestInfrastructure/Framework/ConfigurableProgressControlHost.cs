@@ -21,7 +21,7 @@
 using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Progress;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     internal class ConfigurableProgressControlHost : IProgressControlHost
     {

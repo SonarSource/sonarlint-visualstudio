@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
 {

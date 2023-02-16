@@ -34,7 +34,7 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Core.Helpers;
-using SonarLint.VisualStudio.Core.JsTs;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.Integration.Binding;
 using Language = SonarLint.VisualStudio.Core.Language;
 using VsRuleSet = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;

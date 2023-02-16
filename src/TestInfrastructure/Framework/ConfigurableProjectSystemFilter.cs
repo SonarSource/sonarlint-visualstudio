@@ -21,9 +21,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SonarLint.VisualStudio.Integration;
 using DteProject = EnvDTE.Project;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class ConfigurableProjectSystemFilter : IProjectSystemFilter
     {

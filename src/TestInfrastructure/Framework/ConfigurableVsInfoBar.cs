@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class ConfigurableVsInfoBar : IVsInfoBar, IVsInfoBarActionItemCollection, IVsInfoBarTextSpanCollection
     {

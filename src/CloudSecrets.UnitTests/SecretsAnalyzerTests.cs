@@ -30,7 +30,7 @@ using Moq;
 using SonarLint.Secrets.DotNet;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
 {

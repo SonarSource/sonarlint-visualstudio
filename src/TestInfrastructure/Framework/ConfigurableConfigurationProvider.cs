@@ -23,7 +23,7 @@ using FluentAssertions;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     /// <summary>
     /// Configurable service provider used for testing

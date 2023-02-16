@@ -22,7 +22,7 @@ using System;
 using System.ComponentModel.Design;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {

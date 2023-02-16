@@ -26,7 +26,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Moq;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using static SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.Adornment.IssueLocationAdornmentTagger;
 using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;

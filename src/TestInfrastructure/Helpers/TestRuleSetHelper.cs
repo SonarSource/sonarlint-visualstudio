@@ -21,8 +21,9 @@
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     internal static class TestRuleSetHelper
     {

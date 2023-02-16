@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
-using SonarLint.VisualStudio.Integration.UnitTests.Helpers;
+using SonarLint.VisualStudio.TestInfrastructure.Helpers;
 
 namespace SonarLint.VisualStudio.Core.UnitTests.SystemAbstractions
 {

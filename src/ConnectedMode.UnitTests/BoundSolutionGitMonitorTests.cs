@@ -22,7 +22,7 @@ using System;
 using SonarLint.VisualStudio.ConnectedMode.UnitTests.Extensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 using static SonarLint.VisualStudio.ConnectedMode.BoundSolutionGitMonitor;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests

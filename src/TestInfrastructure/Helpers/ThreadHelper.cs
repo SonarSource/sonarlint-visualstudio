@@ -20,7 +20,7 @@
 
 using FluentAssertions;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public static class ThreadHelper
     {

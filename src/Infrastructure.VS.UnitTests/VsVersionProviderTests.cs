@@ -28,7 +28,7 @@ using Moq;
 using SonarLint.VisualStudio.Core.VsVersion;
 using SonarLint.VisualStudio.Infrastructure.VS.VsVersion;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TestInfrastructure;
 using IVsShell = Microsoft.VisualStudio.Shell.Interop.IVsShell;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests

@@ -40,6 +40,7 @@ using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 {

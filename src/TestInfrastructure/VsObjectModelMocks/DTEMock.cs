@@ -22,7 +22,7 @@ using System;
 using EnvDTE;
 using EnvDTE80;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class DTEMock : DTE, DTE2
     {
