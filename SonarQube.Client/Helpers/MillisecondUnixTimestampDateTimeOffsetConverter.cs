@@ -23,24 +23,23 @@ using Newtonsoft.Json;
 
 namespace SonarQube.Client.Helpers
 {
-    internal class MillisecondUnixTimestampDateTimeOffsetConverter : JsonConverter<DateTimeOffset>
+    internal class MillisecondUnixTimestampDateTimeOffsetConverter : JsonConverter
     {
-        public override void WriteJson(JsonWriter writer,
-            DateTimeOffset value,
-            JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             throw new NotSupportedException();
         }
 
-        public override DateTimeOffset ReadJson(JsonReader reader,
-            Type objectType,
-            DateTimeOffset existingValue,
-            bool hasExistingValue,
-            JsonSerializer serializer)
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            return reader?.Value is long timestamp 
-                ? DateTimeOffset.FromUnixTimeMilliseconds(timestamp) 
+            return reader?.Value is long timestamp
+                ? DateTimeOffset.FromUnixTimeMilliseconds(timestamp)
                 : default(DateTimeOffset);
+        }
+
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType == typeof(DateTimeOffset);
         }
     }
 }
