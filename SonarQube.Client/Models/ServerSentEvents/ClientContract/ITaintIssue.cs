@@ -26,6 +26,7 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
     {
         string Key { get; }
         string RuleKey { get; }
+        DateTimeOffset CreationDate { get; }
         SonarQubeIssueSeverity Severity { get; }
         SonarQubeIssueType Type { get; }
         ILocation MainLocation { get; }
@@ -57,12 +58,16 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
     {
         public TaintIssue(
             string key,
-            string ruleKey, 
-            SonarQubeIssueSeverity severity, SonarQubeIssueType type,
-            Location mainLocation, Flow[] flows)
+            string ruleKey,
+            DateTimeOffset creationDate,
+            SonarQubeIssueSeverity severity,
+            SonarQubeIssueType type,
+            Location mainLocation,
+            Flow[] flows)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
             RuleKey = ruleKey ?? throw new ArgumentNullException(nameof(ruleKey));
+            CreationDate = creationDate;
             Severity = severity;
             Type = type;
             MainLocation = mainLocation ?? throw new ArgumentNullException(nameof(mainLocation));
@@ -71,6 +76,7 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
 
         public string Key { get; }
         public string RuleKey { get; }
+        public DateTimeOffset CreationDate { get; }
         public SonarQubeIssueSeverity Severity { get; }
         public SonarQubeIssueType Type { get; }
         public ILocation MainLocation { get; }
