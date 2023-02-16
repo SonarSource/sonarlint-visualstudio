@@ -225,7 +225,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var flow2 = CreateTaintServerFlow(location3);
 
             var mainLocation = CreateTaintServerLocation("path4", "message4", CreateTaintTextRange(13, 14, 15, 16, "hash4"));
-            var issue = CreateTaintServerIssue("issue key", "rule", SonarQubeIssueSeverity.Major, mainLocation, flow1, flow2);
+            var creationDate = DateTimeOffset.UtcNow;
+            var issue = CreateTaintServerIssue("issue key", "rule", creationDate, SonarQubeIssueSeverity.Major, mainLocation, flow1, flow2);
 
             var expectedConvertedIssueViz = CreateIssueViz();
             var issueVizConverter = new Mock<IAnalysisIssueVisualizationConverter>();
@@ -252,7 +253,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                         taintIssue.PrimaryLocation.TextRange.StartLineOffset == 15 &&
                         taintIssue.PrimaryLocation.TextRange.EndLineOffset == 16 &&
 
-                        taintIssue.CreationTimestamp == default &&
+                        taintIssue.CreationTimestamp == creationDate &&
                         taintIssue.LastUpdateTimestamp == default &&
 
                         taintIssue.Flows.Count == 2 &&
@@ -335,12 +336,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
         private ITaintIssue CreateDummyTaintSonarQubeIssue()
         {
-            return CreateTaintServerIssue("key", "rule", SonarQubeIssueSeverity.Blocker,
+            return CreateTaintServerIssue("key", "rule", DateTimeOffset.UtcNow, SonarQubeIssueSeverity.Blocker,
                 CreateTaintServerLocation(serverFilePath: "path", message: "blah",
                     textRange: CreateTaintTextRange(1, 2, 3, 4, "hash")));
         }
 
-        private static ITaintIssue CreateTaintServerIssue(string issueKey, string ruleKey, SonarQubeIssueSeverity severity, ILocation mainLocation, params IFlow[] flows)
+        private static ITaintIssue CreateTaintServerIssue(string issueKey, string ruleKey, DateTimeOffset creationDate, SonarQubeIssueSeverity severity, ILocation mainLocation, params IFlow[] flows)
         {
             var issue = new Mock<ITaintIssue>();
 
@@ -348,6 +349,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             issue.SetupGet(x => x.RuleKey).Returns(ruleKey);
             issue.SetupGet(x => x.Severity).Returns(severity);
             issue.SetupGet(x => x.Flows).Returns(flows);
+            issue.SetupGet(x => x.CreationDate).Returns(creationDate);
             issue.SetupGet(x => x.MainLocation).Returns(mainLocation);
 
             return issue.Object;
