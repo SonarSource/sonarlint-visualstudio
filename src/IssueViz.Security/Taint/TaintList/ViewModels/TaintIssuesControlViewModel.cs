@@ -271,6 +271,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         {
             RunOnUIThread.Run(() =>
             {
+                // WPF is not automatically re-applying the filter when the underlying list
+                // of issues changes, so we're manually applying the filtering every time.
                 ApplyViewFilter(ActiveDocumentFilter);
 
                 // We'll show the default caption if:
