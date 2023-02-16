@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.Windows;
 using System.Windows.Controls;
@@ -44,6 +45,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ErrorTagTooltipProvider : IErrorTagTooltipProvider
     {
+        private static readonly Uri dummyUri = new Uri("rules://sonarlint");
         private readonly IVsThemeColorProvider vsThemeColorProvider;
         private readonly INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand;
         private readonly ILogger logger;
@@ -61,13 +63,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
 
         public object Create(IAnalysisIssueBase analysisIssueBase)
         {
+            // Note on click handling:
+            // Hyperlinks support two ways of handling clicks
+            // 1. normal XAML Command binding
+            // 2. Url + RequestNavigate event
+            // There is an observable difference in behaviour between the two in error tooltips.
+            // Method (1) requires the user to click twice on the link before it is actioned.
+            // Method (2) requires the user to click only once. We want the second behaviour.
+            // See bug #3650: https://github.com/SonarSource/sonarlint-visualstudio/issues/3650
+
             var hyperLink = new Hyperlink
             {
-                Inlines = {analysisIssueBase.RuleKey},
+                Inlines = { analysisIssueBase.RuleKey },
                 Foreground = GetVsThemedColor(EnvironmentColors.ControlLinkTextColorKey),
-                Command = navigateToRuleDescriptionCommand,
-                CommandParameter = analysisIssueBase.RuleKey
+
+                NavigateUri = dummyUri // must set something, otherwise the RequestNavigate event won't fire.
             };
+
+            hyperLink.RequestNavigate += (sender, args) => navigateToRuleDescriptionCommand.Execute(analysisIssueBase.RuleKey);
 
             ApplyHyperlinkStyle(hyperLink);
 
@@ -111,7 +124,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
                     }
                 }
             };
-
         }
 
         private Brush GetVsThemedColor(ThemeResourceKey resourceKey)
