@@ -63,6 +63,10 @@ namespace SonarLint.VisualStudio.AdditionalFiles.UnitTests
         {
             var ruleCount = rules.Count();
             var parameterisedRulesCount = rules.Count(RuleHasParameters);
+
+            var hasNullDefaultParams = rules.Any(HasNullDefaultParameters);
+            hasNullDefaultParams.Should().BeFalse();
+
             var rulesWithDefaultParamsCount = rules.Count(HasDefaultParameters);
 
             Console.WriteLine($"{language}: rules: {ruleCount}, parameterised rules: {parameterisedRulesCount}, non-null default params: {rulesWithDefaultParamsCount}");
@@ -95,6 +99,9 @@ namespace SonarLint.VisualStudio.AdditionalFiles.UnitTests
             ruleDefinition.RuleKey.EndsWith(":S2260");
 
         private static bool HasDefaultParameters(RuleDefinition ruleDefinition) =>
-                ruleDefinition.DefaultParams.Length > 0;
+            ruleDefinition.DefaultParams.Length > 0;
+
+        private static bool HasNullDefaultParameters(RuleDefinition ruleDefinition) =>
+            ruleDefinition.DefaultParams == null;
     }
 }
