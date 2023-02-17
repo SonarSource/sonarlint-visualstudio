@@ -141,16 +141,16 @@ public class SSESessionTests
     }
 
     [TestMethod]
-    public async Task PumpAllAsync_WhenPublisherErrors_CriticalError_SessionThrows()
+    public void PumpAllAsync_WhenPublisherErrors_CriticalError_SessionThrows()
     {
         var testScope = new TestScope();
         testScope.SetUpSwitchToBackgroundThread();
         var sseStreamMock = testScope.SetUpSQServiceToSuccessfullyReturnSSEStreamReader();
-        sseStreamMock.Setup(x => x.ReadAsync()).Throws(new StackOverflowException("this is a test"));
+        sseStreamMock.Setup(x => x.ReadAsync()).Throws(new DivideByZeroException("this is a test"));
 
         Func<Task> func = async () => await testScope.TestSubject.PumpAllAsync();
 
-        func.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("this is a test");
+        func.Should().ThrowExactly<DivideByZeroException>().And.Message.Should().Be("this is a test");
         testScope.LoggerMock.Invocations.Count.Should().Be(0);
         testScope.CapturedSessionToken.Value.IsCancellationRequested.Should().BeFalse();
     }
