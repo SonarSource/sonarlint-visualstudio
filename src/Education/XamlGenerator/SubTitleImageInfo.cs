@@ -31,19 +31,19 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
     {
         public static readonly IReadOnlyDictionary<RuleIssueSeverity, SubTitleImageInfo> SeverityImages = new Dictionary<RuleIssueSeverity, SubTitleImageInfo>()
         {
-            { RuleIssueSeverity.Critical, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/severity/critical.png", "Critical" )},
-            { RuleIssueSeverity.Blocker, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/severity/blocker.png", "Blocker" )},
-            { RuleIssueSeverity.Major, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/severity/major.png", "Major" )},
-            { RuleIssueSeverity.Minor, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/severity/minor.png", "Minor" )},
-            { RuleIssueSeverity.Info, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/severity/info.png", "Info" )}
+            { RuleIssueSeverity.Critical, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/severity/critical.svg", "Critical" )},
+            { RuleIssueSeverity.Blocker, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/severity/blocker.svg", "Blocker" )},
+            { RuleIssueSeverity.Major, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/severity/major.svg", "Major" )},
+            { RuleIssueSeverity.Minor, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/severity/minor.svg", "Minor" )},
+            { RuleIssueSeverity.Info, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/severity/info.svg", "Info" )}
         };
 
         public static readonly IReadOnlyDictionary<RuleIssueType, SubTitleImageInfo> IssueTypeImages = new Dictionary<RuleIssueType, SubTitleImageInfo>()
         {
-            { RuleIssueType.Vulnerability, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/type/vulnerability.png", "Vulnerability" )},
-            { RuleIssueType.CodeSmell, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/type/code_smell.png", "Code Smell" )},
-            { RuleIssueType.Bug, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/type/bug.png", "Bug" )},
-            { RuleIssueType.Hotspot, new SubTitleImageInfo(null /* TODO - image for hotspot */, "Hotspot" )},
+            { RuleIssueType.Vulnerability, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/type/vulnerability.svg", "Vulnerability" )},
+            { RuleIssueType.CodeSmell, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/type/code_smell.svg", "Code Smell" )},
+            { RuleIssueType.Bug, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/type/bug.svg", "Bug" )},
+            { RuleIssueType.Hotspot, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/type/hotspot.svg", "Hotspot" )},
         };
 
         private SubTitleImageInfo(string imageResourceName, string displayText)
