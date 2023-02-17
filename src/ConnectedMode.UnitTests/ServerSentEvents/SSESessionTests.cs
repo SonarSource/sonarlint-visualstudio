@@ -26,6 +26,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models.ServerSentEvents;
@@ -124,20 +125,34 @@ public class SSESessionTests
     }
 
     [TestMethod]
-    public async Task PumpAllAsync_WhenPublisherDisposed_Finishes()
+    public async Task PumpAllAsync_WhenPublisherErrors_NonCriticalError_ErrorLoggedAndSessionIsDisposed()
     {
         var testScope = new TestScope();
         testScope.SetUpSwitchToBackgroundThread();
         var sseStreamMock = testScope.SetUpSQServiceToSuccessfullyReturnSSEStreamReader();
-        testScope.SetUpSSEStreamReaderToReturnEventsSequenceAndExit(sseStreamMock, 
-            new IServerEvent[]{Mock.Of<ITaintVulnerabilityRaisedServerEvent>(), Mock.Of<ITaintVulnerabilityRaisedServerEvent>()});
+        sseStreamMock.Setup(x => x.ReadAsync()).Throws(new NotImplementedException("this is a test"));
 
-        testScope.TaintPublisherMock.Setup(publisher => publisher.Publish(It.IsAny<ITaintServerEvent>()))
-            .Throws(new ObjectDisposedException(string.Empty));
+        testScope.LoggerMock.Setup(x => x.LogVerbose(It.Is<string>(s => s.Contains("this is a test")), Array.Empty<object>()));
 
         await testScope.TestSubject.PumpAllAsync();
 
-        testScope.TaintPublisherMock.Verify(publisher => publisher.Publish(It.IsAny<ITaintServerEvent>()), Times.Once);
+        testScope.LoggerMock.Verify(x=> x.LogVerbose(It.Is<string>(s=> s.Contains("this is a test")), Array.Empty<object>()), Times.Once);
+        testScope.CapturedSessionToken.Value.IsCancellationRequested.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void PumpAllAsync_WhenPublisherErrors_CriticalError_SessionThrows()
+    {
+        var testScope = new TestScope();
+        testScope.SetUpSwitchToBackgroundThread();
+        var sseStreamMock = testScope.SetUpSQServiceToSuccessfullyReturnSSEStreamReader();
+        sseStreamMock.Setup(x => x.ReadAsync()).Throws(new DivideByZeroException("this is a test"));
+
+        Func<Task> func = async () => await testScope.TestSubject.PumpAllAsync();
+
+        func.Should().ThrowExactly<DivideByZeroException>().And.Message.Should().Be("this is a test");
+        testScope.LoggerMock.Invocations.Count.Should().Be(0);
+        testScope.CapturedSessionToken.Value.IsCancellationRequested.Should().BeFalse();
     }
 
     [TestMethod]
@@ -180,17 +195,21 @@ public class SSESessionTests
             SonarQubeServiceMock = mockRepository.Create<ISonarQubeService>();
             TaintPublisherMock = mockRepository.Create<ITaintServerEventSourcePublisher>(MockBehavior.Loose);
             ThreadHandlingMock = mockRepository.Create<IThreadHandling>();
+            LoggerMock = mockRepository.Create<ILogger>();
 
             var factory = new SSESessionFactory(
                 SonarQubeServiceMock.Object,
                 TaintPublisherMock.Object,
-                ThreadHandlingMock.Object);
+                ThreadHandlingMock.Object,
+                LoggerMock.Object);
+
             TestSubject = factory.Create("blalala");
         }
 
         private Mock<IThreadHandling> ThreadHandlingMock { get; }
         public Mock<ISonarQubeService> SonarQubeServiceMock { get; }
         public Mock<ITaintServerEventSourcePublisher> TaintPublisherMock { get; }
+        public Mock<ILogger> LoggerMock { get; }
         public CancellationToken? CapturedSessionToken { get; private set; }
         public MockSequence CallOrder { get; } = new MockSequence();
         public ISSESession TestSubject { get; }
