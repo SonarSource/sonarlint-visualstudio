@@ -22,6 +22,7 @@
 using System;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarQube.Client;
 
@@ -36,6 +37,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
             MefTestHelpers.CheckTypeCanBeImported<SSESessionFactory, ISSESessionFactory>(
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<ITaintServerEventSourcePublisher>(),
+                MefTestHelpers.CreateExport<ILogger>(),
                 MefTestHelpers.CreateExport<IThreadHandling>());
         }
 
@@ -77,7 +79,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
         {
             return new SSESessionFactory(Mock.Of<ISonarQubeService>(),
                 taintPublisher ?.Object ?? Mock.Of<ITaintServerEventSourcePublisher>(),
-                Mock.Of<IThreadHandling>());
+                Mock.Of<IThreadHandling>(),
+                Mock.Of<ILogger>());
         }
     }
 }
