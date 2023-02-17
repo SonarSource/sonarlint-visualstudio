@@ -37,6 +37,21 @@ namespace SonarQube.Client.Tests.Models.ServerSentEvents
     public class SSEStreamReaderTests
     {
         [TestMethod]
+        public void ReadAsync_UnderlyingReaderException_LogsDisposesAndThrows()
+        {
+            var streamReader = new Mock<ISqSSEStreamReader>();
+            var exceptionMessage = "Some network error";
+            streamReader.Setup(reader => reader.ReadAsync()).Throws(new Exception(exceptionMessage));
+
+            var testSubject = CreateTestSubject(streamReader.Object);
+
+            Func<Task> act = () => testSubject.ReadAsync();
+
+            act.Should().Throw<Exception>().Which.Message.Should().Be(exceptionMessage);
+            streamReader.Verify(reader => reader.Dispose(), Times.Once);
+        }
+
+        [TestMethod]
         public async Task ReadAsync_Null_NullReturned()
         {
             var sqSSEStreamReader = CreateSqStreamReader((ISqServerEvent) null);
