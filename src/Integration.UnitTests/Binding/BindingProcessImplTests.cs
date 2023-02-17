@@ -245,8 +245,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var project = Mock.Of<Project>();
             testSubject.InternalState.BindingProjects.Add(project);
 
-            ConfigureSupportedBindingProject(testSubject.InternalState, language);
-
             List<Language> supportedLanguages = new List<Language>() { language };
             projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(project)).Returns(supportedLanguages);
 
@@ -927,15 +925,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             project.Setup(x => x.Name).Returns(name);
 
             return project.Object;
-        }
-
-        private void ConfigureSupportedBindingProject(BindingProcessImpl.BindingProcessState internalState, Language language)
-        {
-            host.SupportedPluginLanguages.Add(language);
-
-            var project = new ProjectMock(null);
-
-            internalState.BindingProjects.Add(project);
         }
 
         private SonarQubeQualityProfile ConfigureQualityProfile(Language language, string profileName)
