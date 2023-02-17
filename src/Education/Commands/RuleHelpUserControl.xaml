@@ -107,7 +107,6 @@
 
     <FlowDocumentScrollViewer x:Name="docViewer" Hyperlink.RequestNavigate="HandleRequestNavigate">
         <FlowDocument >
-            <Paragraph Style="{DynamicResource Heading2_Paragraph}">SonarLint rules help</Paragraph>
             <Paragraph>
                 For each Sonar rule, we provide code samples and offer guidance on a fix. Even more importantly, we also tell you why.
             </Paragraph>
