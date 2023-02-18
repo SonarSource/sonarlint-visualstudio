@@ -2,6 +2,11 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              >
+    
+    <!-- ***********************************************************************************
+         Auto-generated from the SVG files by SvgToXaml. See Readme.txt for more information.    
+         *********************************************************************************** -->
+    
     <DrawingImage x:Key="blockerDrawingImage">
         <DrawingImage.Drawing>
             <DrawingGroup ClipGeometry="M0,0 V16 H16 V0 H0 Z">
