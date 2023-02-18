@@ -31,19 +31,19 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
     {
         public static readonly IReadOnlyDictionary<RuleIssueSeverity, SubTitleImageInfo> SeverityImages = new Dictionary<RuleIssueSeverity, SubTitleImageInfo>()
         {
-            { RuleIssueSeverity.Critical, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/severity/critical.svg", "Critical" )},
-            { RuleIssueSeverity.Blocker, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/severity/blocker.svg", "Blocker" )},
-            { RuleIssueSeverity.Major, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/severity/major.svg", "Major" )},
-            { RuleIssueSeverity.Minor, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/severity/minor.svg", "Minor" )},
-            { RuleIssueSeverity.Info, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/severity/info.svg", "Info" )}
+            { RuleIssueSeverity.Critical, new SubTitleImageInfo("criticalDrawingImage", "Critical" )},
+            { RuleIssueSeverity.Blocker, new SubTitleImageInfo("blockerDrawingImage", "Blocker" )},
+            { RuleIssueSeverity.Major, new SubTitleImageInfo("majorDrawingImage", "Major" )},
+            { RuleIssueSeverity.Minor, new SubTitleImageInfo("minorDrawingImage", "Minor" )},
+            { RuleIssueSeverity.Info, new SubTitleImageInfo("infoDrawingImage", "Info" )}
         };
 
         public static readonly IReadOnlyDictionary<RuleIssueType, SubTitleImageInfo> IssueTypeImages = new Dictionary<RuleIssueType, SubTitleImageInfo>()
         {
-            { RuleIssueType.Vulnerability, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/type/vulnerability.svg", "Vulnerability" )},
-            { RuleIssueType.CodeSmell, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/type/code_smell.svg", "Code Smell" )},
-            { RuleIssueType.Bug, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/type/bug.svg", "Bug" )},
-            { RuleIssueType.Hotspot, new SubTitleImageInfo("/SonarLint.VisualStudio.Education;component/XamlGenerator/images/type/hotspot.svg", "Hotspot" )},
+            { RuleIssueType.Vulnerability, new SubTitleImageInfo("vulnerabilityDrawingImage", "Vulnerability" )},
+            { RuleIssueType.CodeSmell, new SubTitleImageInfo("codeSmellDrawingImage", "Code Smell" )},
+            { RuleIssueType.Bug, new SubTitleImageInfo("bugDrawingImage", "Bug" )},
+            { RuleIssueType.Hotspot, new SubTitleImageInfo("hotspotDrawingImage", "Hotspot" )},
         };
 
         private SubTitleImageInfo(string imageResourceName, string displayText)

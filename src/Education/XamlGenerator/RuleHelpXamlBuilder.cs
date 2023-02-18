@@ -190,7 +190,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 writer.WriteStartElement("InlineUIContainer");
                 writer.WriteStartElement("Image");
                 ApplyStyleToStartElement(StyleResourceNames.SubtitleElement_Image);
-                writer.WriteAttributeString("Source", imageInfo.ImageResourcePath);
+                writer.WriteAttributeString("Source", $"{{DynamicResource {imageInfo.ImageResourcePath}}}");
                 writer.WriteEndElement(); // Image
                 writer.WriteEndElement(); // InlineUIContainer
             }

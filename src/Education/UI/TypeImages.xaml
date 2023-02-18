@@ -1,0 +1,94 @@
+﻿<ResourceDictionary
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             >
+    <DrawingImage x:Key="bugDrawingImage">
+        <DrawingImage.Drawing>
+            <DrawingGroup ClipGeometry="M0,0 V16 H16 V0 H0 Z">
+                <GeometryDrawing Geometry="F1 M16,16z M0,0z M10.081,1.895A2.848,2.848,0,0,0,8.001,1.019A2.858,2.858,0,0,0,5.899,1.885A2.917,2.917,0,0,0,5.013,4.006L10.987,4.006A2.917,2.917,0,0,0,10.081,1.896z">
+                    <GeometryDrawing.Brush>
+                        <SolidColorBrush Color="#FF9AA7B0" Opacity="0.8" />
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+                <GeometryDrawing Geometry="F1 M16,16z M0,0z M14.522,8.985L12.989,8.985 12.989,5.6 14.283,4.425A0.498,0.498,0,0,0,14.283,3.718A0.488,0.488,0,0,0,13.586,3.718L12.162,5.003 3.848,5.003 2.374,3.668A0.498,0.498,0,0,0,1.707,4.404L2.972,5.55 2.972,8.986 1.498,8.986A0.498,0.498,0,0,0,1.498,9.982L3.03,9.982A5.178,5.178,0,0,0,4.076,12.292L2.084,14.094A0.498,0.498,0,1,0,2.751,14.831L4.743,13.018A4.6,4.6,0,0,0,7.013,14.064L7.013,7.99A0.996,0.996,0,0,1,8.01,6.994A0.936,0.936,0,0,1,9.006,7.89L9.006,14.034A4.53,4.53,0,0,0,11.176,12.969L13.168,14.791A0.508,0.508,0,0,0,13.496,14.921A0.478,0.478,0,0,0,13.865,14.751A0.488,0.488,0,0,0,13.865,14.054L11.873,12.262A5.317,5.317,0,0,0,12.869,9.982L14.502,9.982A0.498,0.498,0,0,0,14.502,8.986z">
+                    <GeometryDrawing.Brush>
+                        <SolidColorBrush Color="#FF9AA7B0" Opacity="0.8" />
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+
+    <DrawingImage x:Key="codeSmellDrawingImage">
+        <DrawingImage.Drawing>
+            <DrawingGroup ClipGeometry="M0,0 V16 H16 V0 H0 Z">
+                <GeometryDrawing Geometry="F1 M16,16z M0,0z M8,15A7,7,0,1,0,1,8A7,7,0,0,0,8,15z M8.74,6.1L10.2,3.58A0.29,0.29,0,0,1,10.45,3.44A0.3,0.3,0,0,1,10.6,3.44A5.26,5.26,0,0,1,13.21,7.97A0.28,0.28,0,0,1,12.92,8.26L10,8.26A0.28,0.28,0,0,1,9.71,7.97A1.78,1.78,0,0,0,8.83,6.46A0.29,0.29,0,0,1,8.75,6.1z M8.85,9.54A0.23,0.23,0,0,1,9,9.5A0.29,0.29,0,0,1,9.25,9.64L10.71,12.16A0.18,0.18,0,0,1,10.71,12.29A0.3,0.3,0,0,1,10.56,12.56A5.3,5.3,0,0,1,5.33,12.56A0.3,0.3,0,0,1,5.23,12.16L6.73,9.64A0.29,0.29,0,0,1,7,9.5A0.23,0.23,0,0,1,7.14,9.5A1.79,1.79,0,0,0,8.86,9.54z M5.33,3.49A0.3,0.3,0,0,1,5.74,3.59L7.2,6.11A0.29,0.29,0,0,1,7.1,6.51A1.79,1.79,0,0,0,6.23,8.02A0.28,0.28,0,0,1,5.94,8.31L3,8.31A0.32,0.32,0,0,1,2.68,8.02A5.26,5.26,0,0,1,5.33,3.49z">
+                    <GeometryDrawing.Brush>
+                        <SolidColorBrush Color="#FF9AA7B0" Opacity="0.8" />
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+
+    <DrawingImage x:Key="hotspotDrawingImage">
+        <DrawingImage.Drawing>
+            <DrawingGroup ClipGeometry="M0,0 V16 H16 V0 H0 Z">
+                <GeometryDrawing Geometry="F1 M16,16z M0,0z M14.16,3.254A0.997,0.997,0,0,0,13.492,2.486L8.257,1.03A1.057,1.057,0,0,0,7.759,1.03L2.522,2.486A0.937,0.937,0,0,0,1.854,3.254C1.774,3.822,1.116,8.869,2.99,11.541A8.976,8.976,0,0,0,7.778,14.992A0.848,0.848,0,0,0,8.007,14.992A0.778,0.778,0,0,0,8.227,14.992A8.906,8.906,0,0,0,13.023,11.542C14.868,8.869,14.23,3.822,14.16,3.254z M12.295,8.011A6.133,6.133,0,0,1,11.438,10.424A7.899,7.899,0,0,1,8.097,12.998L8.097,8.011z M8.097,3.024L8.097,8.011 3.699,8.011A24.225,24.225,0,0,1,3.699,4.201z">
+                    <GeometryDrawing.Brush>
+                        <SolidColorBrush Color="#FF9AA7B0" Opacity="0.8" />
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+
+    <DrawingImage x:Key="hotspotHighDrawingImage">
+        <DrawingImage.Drawing>
+            <DrawingGroup ClipGeometry="M0,0 V16 H16 V0 H0 Z">
+                <GeometryDrawing Geometry="F1 M16,16z M0,0z M14.16,3.254A0.997,0.997,0,0,0,13.492,2.486L8.257,1.03A1.057,1.057,0,0,0,7.759,1.03L2.522,2.486A0.937,0.937,0,0,0,1.854,3.254C1.774,3.822,1.116,8.869,2.99,11.541A8.976,8.976,0,0,0,7.778,14.992A0.848,0.848,0,0,0,8.007,14.992A0.778,0.778,0,0,0,8.227,14.992A8.906,8.906,0,0,0,13.023,11.542C14.868,8.869,14.23,3.822,14.16,3.254z M12.295,8.011A6.133,6.133,0,0,1,11.438,10.424A7.899,7.899,0,0,1,8.097,12.998L8.097,8.011z M8.097,3.024L8.097,8.011 3.699,8.011A24.225,24.225,0,0,1,3.699,4.201z">
+                    <GeometryDrawing.Brush>
+                        <SolidColorBrush Color="#FFE05555" Opacity="0.6" />
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+
+    <DrawingImage x:Key="hotspotLowDrawingImage">
+        <DrawingImage.Drawing>
+            <DrawingGroup ClipGeometry="M0,0 V16 H16 V0 H0 Z">
+                <GeometryDrawing Geometry="F1 M16,16z M0,0z M14.16,3.254A0.997,0.997,0,0,0,13.492,2.486L8.257,1.03A1.057,1.057,0,0,0,7.759,1.03L2.522,2.486A0.937,0.937,0,0,0,1.854,3.254C1.774,3.822,1.116,8.869,2.99,11.541A8.976,8.976,0,0,0,7.778,14.992A0.848,0.848,0,0,0,8.007,14.992A0.778,0.778,0,0,0,8.227,14.992A8.906,8.906,0,0,0,13.023,11.542C14.868,8.869,14.23,3.822,14.16,3.254z M12.295,8.011A6.133,6.133,0,0,1,11.438,10.424A7.899,7.899,0,0,1,8.097,12.998L8.097,8.011z M8.097,3.024L8.097,8.011 3.699,8.011A24.225,24.225,0,0,1,3.699,4.201z">
+                    <GeometryDrawing.Brush>
+                        <SolidColorBrush Color="#FFF4AF3D" Opacity="0.6" />
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+
+    <DrawingImage x:Key="hotspotMediumDrawingImage">
+        <DrawingImage.Drawing>
+            <DrawingGroup ClipGeometry="M0,0 V16 H16 V0 H0 Z">
+                <GeometryDrawing Geometry="F1 M16,16z M0,0z M14.16,3.254A0.997,0.997,0,0,0,13.492,2.486L8.257,1.03A1.057,1.057,0,0,0,7.759,1.03L2.522,2.486A0.937,0.937,0,0,0,1.854,3.254C1.774,3.822,1.116,8.869,2.99,11.541A8.976,8.976,0,0,0,7.778,14.992A0.848,0.848,0,0,0,8.007,14.992A0.778,0.778,0,0,0,8.227,14.992A8.906,8.906,0,0,0,13.023,11.542C14.868,8.869,14.23,3.822,14.16,3.254z M12.295,8.011A6.133,6.133,0,0,1,11.438,10.424A7.899,7.899,0,0,1,8.097,12.998L8.097,8.011z M8.097,3.024L8.097,8.011 3.699,8.011A24.225,24.225,0,0,1,3.699,4.201z">
+                    <GeometryDrawing.Brush>
+                        <SolidColorBrush Color="#FFF26522" Opacity="0.6" />
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+
+    <DrawingImage x:Key="vulnerabilityDrawingImage">
+        <DrawingImage.Drawing>
+            <DrawingGroup ClipGeometry="M0,0 V16 H16 V0 H0 Z">
+                <GeometryDrawing Geometry="F1 M16,16z M0,0z M11.916,6.999L5.967,6.999 5.967,4.966A1.983,1.983,0,1,1,9.933,4.966A0.992,0.992,0,0,0,11.916,4.966A3.966,3.966,0,1,0,3.984,4.966L3.984,7.01A1.11,1.11,0,0,0,2.993,8.11L2.993,13.891A1.11,1.11,0,0,0,4.103,15L11.916,15A1.11,1.11,0,0,0,13.007,13.89L13.007,8.11A1.11,1.11,0,0,0,11.917,6.999z M7.95,12.899A1.983,1.983,0,1,1,9.933,10.915A1.983,1.983,0,0,1,7.95,12.898z">
+                    <GeometryDrawing.Brush>
+                        <SolidColorBrush Color="#FF9AA7B0" Opacity="0.8" />
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+
+</ResourceDictionary>
