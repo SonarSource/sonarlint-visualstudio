@@ -156,7 +156,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             }).ToArray();
 
         private static IReadOnlyList<IAnalysisIssueLocation> Convert(IEnumerable<ILocation> locations) =>
-            // todo: do we need to reverse locations from the new API?
             locations.Reverse().Select(location =>
             {
                 if (location.TextRange == null)
