@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.InternalState = new BindingProcessState(isFirstBinding);
         }
 
-        // This property should not be used by product code
+        // This property should not be used by product code outside this class
         internal /* for testing */ BindingProcessState InternalState { get;  }
 
         #region IBindingTemplate methods
