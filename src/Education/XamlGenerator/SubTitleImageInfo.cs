@@ -48,14 +48,16 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
         private SubTitleImageInfo(string imageResourceName, string displayText)
         {
-            ImageResourcePath = imageResourceName;
+            ImageResourceName = imageResourceName;
             DisplayText = displayText;
         }
 
         /// <summary>
-        /// Path to use in XAML to refer to the embedded image
+        /// Resource name to use in XAML to refer to the embedded image
         /// </summary>
-        public string ImageResourcePath { get; }
+        /// <remarks>The images are embedded in resource dictionaries and merged into tool window control.
+        /// This is the name of the resource in the merged resource dictionary.</remarks>
+        public string ImageResourceName { get; }
 
         /// <summary>
         /// Text to display for the image
