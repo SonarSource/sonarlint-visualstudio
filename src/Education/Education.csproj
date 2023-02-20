@@ -30,11 +30,8 @@
   </ItemGroup>
 
   <ItemGroup Label="Images">
-    <None Remove="XamlGenerator\images\severity\*.png" />
-    <Resource Include="XamlGenerator\images\severity\*.png" />
-
-    <None Remove="XamlGenerator\images\type\*.png" />
-    <Resource Include="XamlGenerator\images\type\*.png" />
+    <None Remove="UI\*Images.xaml" />
+    <Page Include="UI\*Images.xaml" />
   </ItemGroup>
 
   <ItemGroup Label="Framework references">
