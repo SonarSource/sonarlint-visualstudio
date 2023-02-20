@@ -26,7 +26,6 @@ using Moq;
 using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
