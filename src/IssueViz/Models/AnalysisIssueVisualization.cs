@@ -35,6 +35,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         IAnalysisIssueBase Issue { get; }
 
         IReadOnlyList<IQuickFixVisualization> QuickFixes { get; }
+
+        bool IsSuppressed { get; set; }
     }
 
     internal class AnalysisIssueVisualization : IAnalysisIssueVisualization
@@ -42,6 +44,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         private static readonly SnapshotSpan EmptySpan = new SnapshotSpan();
         private string currentFilePath;
         private SnapshotSpan? span;
+        private bool isSuppressed;
 
         public AnalysisIssueVisualization(IReadOnlyList<IAnalysisIssueFlowVisualization> flows,
             IAnalysisIssueBase issue, 
@@ -68,6 +71,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             {
                 span = value;
                 NotifyPropertyChanged();
+            }
+        }
+
+        public bool IsSuppressed
+        {
+            get => isSuppressed;
+            set
+            {
+                isSuppressed = value;
             }
         }
 
