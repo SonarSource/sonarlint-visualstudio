@@ -28,6 +28,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj" />
     <ProjectReference Include="..\IssueViz\IssueViz.csproj" />
+    <ProjectReference Include="..\SonarQube.Client\SonarQube.Client.csproj" />
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
   </ItemGroup>
 
