@@ -44,9 +44,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration.TeamExplorer", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration.TeamExplorer.UnitTests", "src\Integration.TeamExplorer.UnitTests\Integration.TeamExplorer.UnitTests.csproj", "{115CC746-5181-485C-8707-346E8D55B1E5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.Client", "sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj", "{53AC9A18-9801-422F-98E7-815999E4C569}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.Client", "src\SonarQube.Client\SonarQube.Client.csproj", "{53AC9A18-9801-422F-98E7-815999E4C569}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.Client.Tests", "sonarqube-webclient\SonarQube.Client.Tests\SonarQube.Client.Tests.csproj", "{2D75E7DA-4DD0-4422-BCAF-D0E5093C74DC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.Client.Tests", "src\SonarQube.Client.Tests\SonarQube.Client.Tests.csproj", "{2D75E7DA-4DD0-4422-BCAF-D0E5093C74DC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "src\Core\Core.csproj", "{4F379759-6798-4C98-9CDD-31853F8E46DF}"
 EndProject
