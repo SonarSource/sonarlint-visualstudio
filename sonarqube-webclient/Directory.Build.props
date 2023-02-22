@@ -1,0 +1,33 @@
+<Project>
+
+  <!-- Include the parent Directory.Build.props, if there is one. This file is in a sub-module and we
+       don't want to hard-code an expected path for the parent, so we'll err on the side of caution and
+       do search for the parent file, which might not exist. -->
+  <PropertyGroup>
+    <ParentDirectoryBuildPropsPath>$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))</ParentDirectoryBuildPropsPath>
+  </PropertyGroup>
+  <Import Project="$(ParentDirectoryBuildPropsPath)" Condition=" $(ParentDirectoryBuildPropsPath) != '' AND EXISTS($(ParentDirectoryBuildPropsPath)) " />
+
+  <PropertyGroup Label="Package locking">
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+
+
+  <!-- ******************************************************************************* -->
+  <!-- NewtonSoft -->
+  <!-- ******************************************************************************* -->
+
+  <PropertyGroup>
+    <!-- Conditionally set a version to use when building the repo directly, rather than
+         as a sub-module.
+         
+         If the code is being built as a submodule of SLVS then we'll pick up the version
+         set in the parent Directory.Build.props. -->
+    <NewtonsoftVersion Condition=" $(NewtonsoftVersion)=='' ">13.0.1</NewtonsoftVersion>
+  </PropertyGroup>
+
+  <ItemGroup Label="Newtonsoft" Condition=" $(RequiresNewtonsoft)=='true' " >
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftVersion)" />
+  </ItemGroup>
+
+</Project>
