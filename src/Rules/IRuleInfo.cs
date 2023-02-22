@@ -44,6 +44,45 @@ namespace SonarLint.VisualStudio.Rules
         Hotspot         // SonarQube serialization = SECURITY_HOTSPOT
     }
 
+    public interface IContext
+    {
+        string Key { get; }
+        string Content { get; }
+    }
+
+    public class Context : IContext
+    {
+        public Context(string key, string content)
+        {
+            Key = key;
+            Content = content;
+        }
+
+        public string Key { get; }
+        public string Content { get; }
+    }
+
+    public interface IDescriptionSection
+    {
+        string Key { get; }
+        string Content { get; }
+        IReadOnlyList<IContext> Context { get; }
+    }
+
+    public class DescriptionSection : IDescriptionSection
+    {
+        public DescriptionSection(string key, string content, IReadOnlyList<IContext> context = null)
+        {
+            Key = key;
+            Content = content;
+            Context = context;
+        }
+
+        public string Key { get; }
+        public string Content { get; }
+        public IReadOnlyList<IContext> Context { get; }
+    }
+
     /// <summary>
     /// Help data about a single rule, extracted using the Java plugin API
     /// </summary>
@@ -70,13 +109,17 @@ namespace SonarLint.VisualStudio.Rules
         string Description { get; }
 
         IReadOnlyList<string> Tags { get; }
+
+        IReadOnlyList<IDescriptionSection> DescriptionSections { get; }
+
+        IReadOnlyList<string> EducationPrinciples { get; }
     }
 
     public class RuleInfo : IRuleInfo
     {
         public RuleInfo(string languageKey, string fullRuleKey, string description, string name,
             RuleIssueSeverity defaultSeverity, RuleIssueType issueType, bool isActiveByDefault,
-            IReadOnlyList<string> tags)
+            IReadOnlyList<string> tags, IReadOnlyList<IDescriptionSection> descriptionSections, IReadOnlyList<string> educationPrinciples)
         {
             LanguageKey = languageKey;
             FullRuleKey = fullRuleKey;
@@ -86,6 +129,8 @@ namespace SonarLint.VisualStudio.Rules
             IssueType = issueType;
             IsActiveByDefault = isActiveByDefault;
             Tags = tags ?? Array.Empty<string>();
+            DescriptionSections = descriptionSections;
+            EducationPrinciples = educationPrinciples;
         }
 
         public string FullRuleKey { get; private set; }
@@ -103,5 +148,9 @@ namespace SonarLint.VisualStudio.Rules
         public string Description { get; private set; }
 
         public IReadOnlyList<string> Tags { get; private set; }
+
+        public IReadOnlyList<IDescriptionSection> DescriptionSections { get; }
+
+        public IReadOnlyList<string> EducationPrinciples { get; }
     }
 }

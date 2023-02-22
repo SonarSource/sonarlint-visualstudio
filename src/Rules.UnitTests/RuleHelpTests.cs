@@ -28,9 +28,48 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
     public class RuleHelpTests
     {
         [TestMethod]
+        public void Context_Ctor_SetsProperties()
+        {
+            var testSubject = new Context("some key", "some content");
+            testSubject.Key.Should().Be("some key");
+            testSubject.Content.Should().Be("some content");
+        }
+
+        [TestMethod]
+        public void DescriptionSection_Ctor_SetsProperties()
+        {
+            var context1 = new Context("some context key 1", "some context content 1");
+            var context2 = new Context("some context key 2", "some context content 2");
+            var context = new[] { context1, context2 };
+            var testSubject = new DescriptionSection("some descriptionSection key", "some descriptionSection content", context);
+            testSubject.Key.Should().Be("some descriptionSection key");
+            testSubject.Content.Should().Be("some descriptionSection content");
+            testSubject.Context.Should().BeEquivalentTo(context);
+        }
+
+        [TestMethod]
+        public void DescriptionSection_NoContext_Ctor_SetsProperties()
+        {
+            var testSubject = new DescriptionSection("some descriptionSection key", "some descriptionSection content");
+            testSubject.Key.Should().Be("some descriptionSection key");
+            testSubject.Content.Should().Be("some descriptionSection content");
+            testSubject.Context.Should().BeNull();
+        }
+
+        [TestMethod]
         public void Ctor_SetsProperties()
         {
+            var context1 = new Context("some context key 1", "some context content 1");
+            var context2 = new Context("some context key 2", "some context content 2");
+            var context = new[] { context1, context2 };
+            var descriptionSection1 = new DescriptionSection("some descriptionSection key 1", "some descriptionSection content 1", context);
+            var descriptionSection2 = new DescriptionSection("some descriptionSection key 2", "some descriptionSection content 2");
+            var descriptionSections = new[] { descriptionSection1, descriptionSection2 };
+
+            var educationPrinciples = new[] { "defense_in_depth", "never_trust_user_input" };
+
             var tags = new string[] { "convention", "bad-practice" };
+
             var testSubject = new RuleInfo(
                 Language.CSharp.ServerLanguage.Key,
                 "xxx:S123", 
@@ -39,7 +78,9 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
                 RuleIssueSeverity.Blocker,
                 RuleIssueType.Vulnerability,
                 isActiveByDefault: true,
-                tags);
+                tags, 
+                descriptionSections,
+                educationPrinciples);
 
             testSubject.LanguageKey.Should().Be(Language.CSharp.ServerLanguage.Key);
             testSubject.FullRuleKey.Should().Be("xxx:S123");
@@ -49,6 +90,8 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             testSubject.IssueType.Should().Be(RuleIssueType.Vulnerability);
             testSubject.IsActiveByDefault.Should().BeTrue();
             testSubject.Tags.Should().BeEquivalentTo(tags);
+            testSubject.DescriptionSections.Should().BeEquivalentTo(descriptionSections);
+            testSubject.EducationPrinciples.Should().BeEquivalentTo(educationPrinciples);
         }
     }
 }
