@@ -251,6 +251,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             GetValue(SonarLintTableControlConstants.IssueVizColumnName).Should().BeSameAs(issueViz);
         }
 
+        [TestMethod]
+        public void GetValue_SuppressionState_Is_SuppressionState()
+        {
+            issueViz.IsSuppressed = true;
+            GetValue(StandardTableKeyNames.SuppressionState).Should().Be(SuppressionState.Suppressed);
+            issueViz.IsSuppressed = false;
+            GetValue(StandardTableKeyNames.SuppressionState).Should().Be(SuppressionState.Active);
+        }
+
         private object GetValue(string columnName)
         {
             object content;
@@ -273,6 +282,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             issueVizMock.Setup(x => x.Flows).Returns(Array.Empty<IAnalysisIssueFlowVisualization>());
             issueVizMock.SetupProperty(x => x.Span);
             issueVizMock.Object.Span = snapshotSpan;
+            issueVizMock.SetupProperty(x => x.IsSuppressed);
 
             return issueVizMock.Object;
         }
