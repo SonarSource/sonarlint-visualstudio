@@ -2,8 +2,7 @@
 
   <Import Project="..\Directory.Build.props" />
 
-  <!-- Settings common to the SLVS product and test code.
-       This do not apply to the sonarqube-webclient submodule.  -->
+  <!-- Settings common to the SLVS product and test code.  -->
   
   <PropertyGroup>
    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
