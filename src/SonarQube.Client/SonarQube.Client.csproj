@@ -3,7 +3,6 @@
   <Import Project="..\SonarLint.Product.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>net472</TargetFrameworks>
     <AssemblyName>SonarQube.Client</AssemblyName>
     <RootNamespace>SonarQube.Client</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>

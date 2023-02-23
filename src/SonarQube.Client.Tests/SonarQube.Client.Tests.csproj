@@ -3,7 +3,6 @@
   <Import Project="..\SonarLint.Test.props" />
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
     <RootNamespace>SonarQube.Client.Tests</RootNamespace>
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
   </PropertyGroup>
