@@ -3,6 +3,10 @@
   <Import Project="..\SonarLint.Test.props" />
 
   <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <RootNamespace>SonarQube.Client.Tests</RootNamespace>
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
   </PropertyGroup>
