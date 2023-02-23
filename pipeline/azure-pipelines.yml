@@ -275,6 +275,7 @@ jobs:
       platform: $(BuildPlatform)
       configuration: $(BuildConfiguration)
       rerunFailedTests: false
+      otherConsoleOptions: '/Logger:"trx;LogFileName=testResults.trx"'
 
   - task: SonarCloudAnalyze@1
     displayName: Run Code Analysis (VS2022 only)
