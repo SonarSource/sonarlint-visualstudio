@@ -195,7 +195,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
         {
             var testSubject = CreateTestSubject();
 
-            Assert.IsFalse(testSubject.IsSuppressed);
+            testSubject.IsSuppressed.Should().BeFalse();
 
             var propertyChangedEventHandler = new Mock<PropertyChangedEventHandler>();
             testSubject.PropertyChanged += propertyChangedEventHandler.Object;
