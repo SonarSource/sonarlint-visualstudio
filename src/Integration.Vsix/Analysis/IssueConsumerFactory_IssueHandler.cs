@@ -73,25 +73,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
             internal /* for testing */ void HandleNewIssues(IEnumerable<IAnalysisIssueVisualization> issues)
             {
-                var filteredIssues = RemoveSuppressedIssues(issues);
+                MarkSuppressedIssues(issues);
 
                 // The text buffer might have changed since the analysis was triggered, so translate
                 // all issues to the current snapshot.
                 // See bug #1487: https://github.com/SonarSource/sonarlint-visualstudio/issues/1487
-                var translatedIssues = translateSpans(filteredIssues, textDocument.TextBuffer.CurrentSnapshot);
+                var translatedIssues = translateSpans(issues, textDocument.TextBuffer.CurrentSnapshot);
 
                 var newSnapshot = new IssuesSnapshot(projectName, projectGuid, textDocument.FilePath, translatedIssues);
                 onSnapshotChanged(newSnapshot);
             }
 
-            private IEnumerable<IAnalysisIssueVisualization> RemoveSuppressedIssues(IEnumerable<IAnalysisIssueVisualization> issues)
+            private void MarkSuppressedIssues(IEnumerable<IAnalysisIssueVisualization> issues)
             {
                 var filterableIssues = issues.OfType<IFilterableIssue>().ToArray();
 
-                var filteredIssues = issuesFilter.Filter(filterableIssues);
-                Debug.Assert(filteredIssues.All(x => x is IAnalysisIssueVisualization), "Not expecting the issue filter to change the list item type");
-
-                return filteredIssues.OfType<IAnalysisIssueVisualization>().ToArray();
+                var matches = issuesFilter.GetMatches(filterableIssues);
+                Debug.Assert(matches.All(x => x is IAnalysisIssueVisualization), "Not expecting the issue filter to change the list item type");
+                
+                foreach (var issue in issues)
+                {
+                    issue.IsSuppressed = matches.Contains(issue);
+                }
             }
 
             private static IEnumerable<IAnalysisIssueVisualization> DoTranslateSpans(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot)

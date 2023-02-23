@@ -191,6 +191,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
         }
 
         [TestMethod]
+        public void SetIsSuppressed_HasSubscribers_VerifyRaised()
+        {
+            var testSubject = CreateTestSubject();
+
+            testSubject.IsSuppressed.Should().BeFalse();
+
+            var propertyChangedEventHandler = new Mock<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += propertyChangedEventHandler.Object;
+
+            testSubject.IsSuppressed = true;
+
+            VerifyPropertyChangedRaised(propertyChangedEventHandler, nameof(testSubject.IsSuppressed));
+            propertyChangedEventHandler.VerifyNoOtherCalls();
+
+            testSubject.IsSuppressed.Should().BeTrue();
+        }
+
+        [TestMethod]
         public void IsFilterable()
         {
             var issueMock = new Mock<IAnalysisIssue>();
