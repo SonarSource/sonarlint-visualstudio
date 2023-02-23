@@ -80,6 +80,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             set
             {
                 isSuppressed = value;
+                NotifyPropertyChanged();
             }
         }
 
