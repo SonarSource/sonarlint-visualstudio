@@ -1,13 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\SonarLint.Product.props" />
+
   <PropertyGroup>
     <TargetFrameworks>net472</TargetFrameworks>
     <AssemblyName>SonarQube.Client</AssemblyName>
-    <LangVersion>7</LangVersion>
     <RootNamespace>SonarQube.Client</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <RequiresSigning>true</RequiresSigning>
-
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
   </PropertyGroup>
 
