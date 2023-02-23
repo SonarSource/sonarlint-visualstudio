@@ -264,24 +264,10 @@ jobs:
     condition: succeededOrFailed()  # always publish artefacts - helps with diagnosing failures
 
   - task: VSTest@2
-    displayName: VsTest - testAssemblies - SonarQube.Client
-    inputs:
-      testAssemblyVer2: |
-        **\$(BuildConfiguration)\**\SonarQube.Client.Tests.dll
-        !**\obj\**
-      runInParallel: false
-      runTestsInIsolation: false
-      codeCoverageEnabled: true
-      platform: $(BuildPlatform)
-      configuration: $(BuildConfiguration)
-      rerunFailedTests: false
-
-  - task: VSTest@2
     displayName: VsTest - testAssemblies
     inputs:
       testAssemblyVer2: |
         **\$(BuildConfiguration)\**\*test*.dll
-        !**\SonarQube.Client.Tests\**
         !**\obj\**
       runInParallel: false
       runTestsInIsolation: false
