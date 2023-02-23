@@ -43,17 +43,17 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             this.issueMatcher = issueMatcher ?? throw new ArgumentNullException(nameof(issueMatcher));
         }
 
-        public IEnumerable<IFilterableIssue> Filter(IEnumerable<IFilterableIssue> issues)
+        public IEnumerable<IFilterableIssue> GetMatches(IEnumerable<IFilterableIssue> issues)
         {
             if (issues == null)
             {
                 throw new ArgumentNullException(nameof(issues));
             }
 
-            var filteredIssues = issues
-                .Where(i => !issueMatcher.SuppressionExists(i))
+            var matches = issues
+                .Where(i => issueMatcher.SuppressionExists(i))
                 .ToArray();
-            return filteredIssues;
+            return matches;
         }
     }
 }
