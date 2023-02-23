@@ -194,7 +194,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
         public void SetIsSuppressed_HasSubscribers_VerifyRaised()
         {
             var testSubject = CreateTestSubject();
-            
+
+            Assert.IsFalse(testSubject.IsSuppressed);
+
             var propertyChangedEventHandler = new Mock<PropertyChangedEventHandler>();
             testSubject.PropertyChanged += propertyChangedEventHandler.Object;
 
