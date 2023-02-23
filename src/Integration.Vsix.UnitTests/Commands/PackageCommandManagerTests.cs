@@ -66,13 +66,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Tests
 
-        [TestMethod]
+        [TestMethod, Timeout(2000)]
         public void PackageCommandManager_Ctor_NullArgChecks()
         {
             Exceptions.Expect<ArgumentNullException>(() => new PackageCommandManager(null));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(2000)]
         public void PackageCommandManager_Initialize()
         {
             // Arrange
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             (!missingCommands.Any()).Should().BeTrue($"Missing commands: {string.Join(", ", missingCommandNames)}");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(2000)]
         [DataRow(CommonGuids.SonarLintMenuCommandSet)]
         [DataRow(CommonGuids.HelpMenuCommandSet)]
         public void PackageCommandManager_RegisterCommandInCorrectCommandSet(string cmdSet)
@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             registeredCommand.CommandID.Should().Be(commandIdObject, $"Unexpected CommandID");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(2000)]
         public void PackageCommandManager_RegisterCommandUsingDefaultCommandSet()
         {
             // Arrange
