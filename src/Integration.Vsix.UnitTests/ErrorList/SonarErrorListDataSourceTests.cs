@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
                                                    StandardTableColumnDefinitions.Text, StandardTableColumnDefinitions.DocumentName,
                                                    StandardTableColumnDefinitions.Line, StandardTableColumnDefinitions.Column,
                                                    StandardTableColumnDefinitions.ProjectName,
-                                                   StandardTableColumnDefinitions.SuppressionState};
+                                                   SonarErrorListDataSource.RedefinedSuppressionStateColumnName};
             var testSubject = CreateTestSubject();
 
 
