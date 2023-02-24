@@ -47,39 +47,39 @@ namespace SonarLint.VisualStudio.Rules
     public interface IContext
     {
         string Key { get; }
-        string Content { get; }
+        string DisplayName { get; }
     }
 
     public class Context : IContext
     {
-        public Context(string key, string content)
+        public Context(string key, string displayName)
         {
             Key = key;
-            Content = content;
+            DisplayName = displayName;
         }
 
         public string Key { get; }
-        public string Content { get; }
+        public string DisplayName { get; }
     }
 
     public interface IDescriptionSection
     {
         string Key { get; }
-        string Content { get; }
+        string HtmlContent { get; }
         IReadOnlyList<IContext> Context { get; }
     }
 
     public class DescriptionSection : IDescriptionSection
     {
-        public DescriptionSection(string key, string content, IReadOnlyList<IContext> context = null)
+        public DescriptionSection(string key, string htmlContent, IReadOnlyList<IContext> context = null)
         {
             Key = key;
-            Content = content;
+            HtmlContent = htmlContent;
             Context = context;
         }
 
         public string Key { get; }
-        public string Content { get; }
+        public string HtmlContent { get; }
         public IReadOnlyList<IContext> Context { get; }
     }
 

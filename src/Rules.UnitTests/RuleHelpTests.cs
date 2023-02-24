@@ -30,40 +30,40 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         [TestMethod]
         public void Context_Ctor_SetsProperties()
         {
-            var testSubject = new Context("some key", "some content");
+            var testSubject = new Context("some key", "some display name");
             testSubject.Key.Should().Be("some key");
-            testSubject.Content.Should().Be("some content");
+            testSubject.DisplayName.Should().Be("some display name");
         }
 
         [TestMethod]
         public void DescriptionSection_Ctor_SetsProperties()
         {
-            var context1 = new Context("some context key 1", "some context content 1");
-            var context2 = new Context("some context key 2", "some context content 2");
+            var context1 = new Context("some context key 1", "some display name 1");
+            var context2 = new Context("some context key 2", "some display name 2");
             var context = new[] { context1, context2 };
-            var testSubject = new DescriptionSection("some descriptionSection key", "some descriptionSection content", context);
+            var testSubject = new DescriptionSection("some descriptionSection key", "some htmlcontent", context);
             testSubject.Key.Should().Be("some descriptionSection key");
-            testSubject.Content.Should().Be("some descriptionSection content");
+            testSubject.HtmlContent.Should().Be("some htmlcontent");
             testSubject.Context.Should().BeEquivalentTo(context);
         }
 
         [TestMethod]
         public void DescriptionSection_NoContext_Ctor_SetsProperties()
         {
-            var testSubject = new DescriptionSection("some descriptionSection key", "some descriptionSection content");
+            var testSubject = new DescriptionSection("some descriptionSection key", "some htmlcontent");
             testSubject.Key.Should().Be("some descriptionSection key");
-            testSubject.Content.Should().Be("some descriptionSection content");
+            testSubject.HtmlContent.Should().Be("some htmlcontent");
             testSubject.Context.Should().BeNull();
         }
 
         [TestMethod]
         public void Ctor_SetsProperties()
         {
-            var context1 = new Context("some context key 1", "some context content 1");
-            var context2 = new Context("some context key 2", "some context content 2");
+            var context1 = new Context("some context key 1", "some display name 1");
+            var context2 = new Context("some context key 2", "some display name 2");
             var context = new[] { context1, context2 };
-            var descriptionSection1 = new DescriptionSection("some descriptionSection key 1", "some descriptionSection content 1", context);
-            var descriptionSection2 = new DescriptionSection("some descriptionSection key 2", "some descriptionSection content 2");
+            var descriptionSection1 = new DescriptionSection("some descriptionSection key 1", "some htmlcontent 1", context);
+            var descriptionSection2 = new DescriptionSection("some descriptionSection key 2", "some htmlcontent 2");
             var descriptionSections = new[] { descriptionSection1, descriptionSection2 };
 
             var educationPrinciples = new[] { "defense_in_depth", "never_trust_user_input" };
