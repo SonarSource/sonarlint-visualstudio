@@ -62,6 +62,7 @@ namespace SonarLint.VisualStudio.Rules
         public string DisplayName { get; }
     }
 
+    
     public interface IDescriptionSection
     {
         string Key { get; }
@@ -80,6 +81,13 @@ namespace SonarLint.VisualStudio.Rules
 
         public string Key { get; }
         public string HtmlContent { get; }
+        /// <summary>
+        /// Different contexes for Description Sections  
+        /// </summary>
+        /// <remarks>
+        /// These are subtabs for any given tab such as different languages
+        /// The field is optional
+        /// </remarks>
         public IReadOnlyList<IContext> Context { get; }
     }
 
@@ -110,6 +118,9 @@ namespace SonarLint.VisualStudio.Rules
 
         IReadOnlyList<string> Tags { get; }
 
+        /// <summary>
+        /// Tabs for new educational format
+        /// </summary>
         IReadOnlyList<IDescriptionSection> DescriptionSections { get; }
 
         IReadOnlyList<string> EducationPrinciples { get; }
