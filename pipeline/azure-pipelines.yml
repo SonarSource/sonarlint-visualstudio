@@ -267,7 +267,7 @@ jobs:
     displayName: VsTest - testAssemblies - Integration.Vsix.UnitTests
     inputs:
       testAssemblyVer2: |
-        **\$(BuildConfiguration)\**\Integration.Vsix.UnitTests\*test*.dll
+        **\Integration.Vsix.UnitTests\**\$(BuildConfiguration)\**\*test*.dll
       runInParallel: false
       runTestsInIsolation: false
       codeCoverageEnabled: true
@@ -281,7 +281,7 @@ jobs:
       testAssemblyVer2: |
         **\$(BuildConfiguration)\**\*test*.dll
         !**\obj\**
-        !**\Integration.Vsix.UnitTests\*test*.dll
+        !**\Integration.Vsix.UnitTests\**\*test*.dll
       runInParallel: false
       runTestsInIsolation: false
       codeCoverageEnabled: true
