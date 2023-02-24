@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -255,9 +256,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void GetValue_SuppressionState_Is_SuppressionState()
         {
             issueViz.IsSuppressed = true;
-            GetValue(StandardTableKeyNames.SuppressionState).Should().Be(SuppressionState.Suppressed);
+            GetValue(SonarErrorListDataSource.RedefinedSuppressionStateColumnName).Should().Be(SuppressionState.Suppressed);
             issueViz.IsSuppressed = false;
-            GetValue(StandardTableKeyNames.SuppressionState).Should().Be(SuppressionState.Active);
+            GetValue(SonarErrorListDataSource.RedefinedSuppressionStateColumnName).Should().Be(SuppressionState.Active);
         }
 
         private object GetValue(string columnName)
