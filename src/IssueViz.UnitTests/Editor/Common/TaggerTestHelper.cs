@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
                     RuleKey = ruleKey,
                     PrimaryLocation = new DummyAnalysisIssueLocation {Message = locationMessage}
                 });
-
+            issueVizMock.SetupProperty(x => x.IsSuppressed);
             return issueVizMock.Object;
         }
 
