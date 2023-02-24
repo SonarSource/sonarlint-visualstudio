@@ -256,9 +256,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void GetValue_SuppressionState_Is_SuppressionState()
         {
             issueViz.IsSuppressed = true;
-            GetValue(SonarErrorListDataSource.RedefinedSuppressionStateColumnName).Should().Be(SuppressionState.Suppressed);
+            GetValue(SonarErrorListDataSource.RedefinedSuppressionStateColumnName).ToString().Should().Be("Suppressed");
             issueViz.IsSuppressed = false;
-            GetValue(SonarErrorListDataSource.RedefinedSuppressionStateColumnName).Should().Be(SuppressionState.Active);
+            GetValue(SonarErrorListDataSource.RedefinedSuppressionStateColumnName).ToString().Should().Be("Active");
         }
 
         private object GetValue(string columnName)
