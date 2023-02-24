@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// <remarks>
     /// See the README.md in this folder for more information
     /// </remarks>
-    internal sealed class IssuesSnapshot : WpfTableEntriesSnapshotBase, IIssuesSnapshot
+    internal sealed partial class IssuesSnapshot : WpfTableEntriesSnapshotBase, IIssuesSnapshot
     {
         private readonly string projectName;
         private readonly Guid projectGuid;
@@ -394,49 +394,5 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 .Union(issues.SelectMany(x => x.Flows.SelectMany(f => f.Locations))); // secondary locations
 
         #endregion IIssuesSnapshot implementation
-
-        internal static class SuppressedStateColumnHelper
-        {
-            // Comment in MS code for Microsoft.VisualStudio.Shell.TableManager.Boxes
-            // "It is better, for performance reasons, to return values that have been
-            // boxed when returning though an out <see cref="T:System.Object" />."
-            private static readonly object BoxedActive;
-            private static readonly object BoxedSuppressed;
-
-            /// <summary>
-            /// HACK: get a reference to the VS SuppressionState enum
-            /// </summary>
-            /// <remarks>
-            /// The VS SuppressionState enum is publicly available in VS2019. However, it isn't available
-            /// in the VS2017 version of the SDK we are referencing, or in the VS2019 SDK versions that
-            /// are compatible with VS2019.3.
-            /// This hack works round a build failure, pending an update of the SDK version.
-            /// For VS2022, we could use the VS constants in Microsoft.VisualStudio.Shell.TableManager.Boxes.
-            /// However, we're using the same code for both VS2019 and VS2022 to avoid conditional compilation.
-            /// </remarks>
-
-            static SuppressedStateColumnHelper()
-            {
-                try
-                {
-                    System.Diagnostics.Debugger.Launch();
-
-                    var suppressionStateEnumType = typeof(StandardTableKeyNames).Assembly.GetType("Microsoft.VisualStudio.Shell.TableManager.SuppressionState");
-
-                    BoxedActive = Enum.Parse(suppressionStateEnumType, "Active");
-                    BoxedSuppressed = Enum.Parse(suppressionStateEnumType, "Suppressed");
-                }
-                catch (Exception ex)
-                {
-                    // Squash - can't usefully do anything else.
-                    // If this happens at runtime, any calls to SuppressedStateColumnHelper will
-                    // return null - it won't cause another exception.
-                    System.Diagnostics.Debug.Write("Error fetching SuppressionState enum: " + ex);
-                }
-            }
-
-            public static object GetValue(IAnalysisIssueVisualization issueViz)
-                => issueViz.IsSuppressed ? BoxedSuppressed : BoxedActive;
-        }
     }
 }
