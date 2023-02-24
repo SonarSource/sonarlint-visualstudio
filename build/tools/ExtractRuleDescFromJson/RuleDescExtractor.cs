@@ -111,7 +111,9 @@ internal class RuleDescExtractor
                 ConvertPluginSeverity(pluginRule.DefaultSeverity),
                 ConvertPluginIssueType(pluginRule.Type),
                 Convert.ToBoolean(pluginRule.IsActiveByDefault),
-                pluginRule.Tags ?? Array.Empty<string>()
+                pluginRule.Tags ?? Array.Empty<string>(),
+                null,
+                null
                 );
 
             SaveRuleFile(slvsRule);
