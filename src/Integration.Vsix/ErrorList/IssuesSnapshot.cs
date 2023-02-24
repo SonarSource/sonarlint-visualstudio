@@ -89,6 +89,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </remarks>
     internal sealed class IssuesSnapshot : WpfTableEntriesSnapshotBase, IIssuesSnapshot
     {
+        /// <summary>
+        /// HACK: get a reference to the VS SuppressionState enum
+        /// </summary>
+        /// <remarks>
+        /// The VS SuppressionState enum is publicly available in VS2019. However, we are referencing
+        /// the VS2017 version of the SDK, where it isn't available.
+        /// This hack works round a build failure, pending an update of the SDK version.
+        /// </remarks>
+        internal /* for testing */ static readonly Type SuppressionStateEnumType = typeof(StandardTableKeyNames).Assembly.GetType("Microsoft.VisualStudio.Shell.TableManager.SuppressionState");
+
         private readonly string projectName;
         private readonly Guid projectGuid;
         private readonly IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter;
@@ -247,7 +257,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case SonarErrorListDataSource.RedefinedSuppressionStateColumnName:
-                    content = issueViz.IsSuppressed ? SuppressionState.Suppressed : SuppressionState.Active;
+                    var typedValue = Enum.Parse(SuppressionStateEnumType, issueViz.IsSuppressed ? "Suppressed" : "Active");
+                    content = typedValue;
                     return true;
 
                 // Not a visible field - returns the issue object
