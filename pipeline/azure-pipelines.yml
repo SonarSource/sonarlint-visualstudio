@@ -263,15 +263,12 @@ jobs:
       ArtifactName: vsix
     condition: succeededOrFailed()  # always publish artefacts - helps with diagnosing failures
   
-
-
   - task: VSTest@2
     displayName: VsTest - testAssemblies
     inputs:
       testAssemblyVer2: |
         **\$(BuildConfiguration)\**\*test*.dll
         !**\obj\**
-        !**\Integration.Vsix.UnitTests\**\*test*.dll
       runInParallel: false
       runTestsInIsolation: false
       codeCoverageEnabled: true

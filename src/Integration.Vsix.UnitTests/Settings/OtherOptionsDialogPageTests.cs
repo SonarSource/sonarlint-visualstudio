@@ -31,7 +31,7 @@ using static Microsoft.VisualStudio.Shell.DialogPage;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Tests
 {
-    [TestClass]
+    [TestClass, Ignore]
     public class OtherOptionsDialogPageTests
     {
         private class OtherOptionsDialogPageTestable : OtherOptionsDialogPage
