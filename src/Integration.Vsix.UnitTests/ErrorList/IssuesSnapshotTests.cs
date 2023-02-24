@@ -44,12 +44,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private static readonly int ValidIndexInValidIssueList = ValidIssueList.Count() - 1;
 
         [TestMethod]
-        public void CheckSuppressionStateEnumCanBeFound()
-        {
-            IssuesSnapshot.SuppressionStateEnumType.Should().NotBeNull();
-        }
-
-        [TestMethod]
         public void Construction_CreateNew_SetsProperties()
         {
             var testSubject = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, ValidIssueList);

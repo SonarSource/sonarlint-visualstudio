@@ -252,14 +252,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             GetValue(SonarLintTableControlConstants.IssueVizColumnName).Should().BeSameAs(issueViz);
         }
 
+#if VS2022
+        // HACK: this test will only work in VS2022 because the version of the SDK we are referencing
+        // for VS2019 doesn't contain Microsoft.VisualStudio.Shell.TableManager.SuppressionState.
         [TestMethod]
-        public void GetValue_SuppressionState_Is_SuppressionState()
+        public void GetValue_VS2022_SuppressionState_Is_SuppressionState()
         {
             issueViz.IsSuppressed = true;
-            GetValue(SonarErrorListDataSource.RedefinedSuppressionStateColumnName).ToString().Should().Be("Suppressed");
+            GetValue(SonarErrorListDataSource.RedefinedSuppressionStateColumnName).Should().Be(SuppressionState.Suppressed);
             issueViz.IsSuppressed = false;
-            GetValue(SonarErrorListDataSource.RedefinedSuppressionStateColumnName).ToString().Should().Be("Active");
+            GetValue(SonarErrorListDataSource.RedefinedSuppressionStateColumnName).Should().Be(SuppressionState.Active);
         }
+#else
+        // NOTE: this test is checking that there are no exceptions if the enum
+        // is not available.
+
+        [TestMethod]
+        public void GetValue_VS2019BuildTime_SuppressionState_Is_SuppressionState()
+        {
+            issueViz.IsSuppressed = true;
+            GetValue(SonarErrorListDataSource.RedefinedSuppressionStateColumnName).Should().BeNull();
+            issueViz.IsSuppressed = false;
+            GetValue(SonarErrorListDataSource.RedefinedSuppressionStateColumnName).Should().BeNull();
+        }
+#endif
 
         private object GetValue(string columnName)
         {
