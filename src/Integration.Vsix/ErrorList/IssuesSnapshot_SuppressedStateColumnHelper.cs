@@ -38,6 +38,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             /// HACK: get a reference to the VS SuppressionState enum
             /// </summary>
             /// <remarks>
+            /// VS expects the snapshot to return an instance of the "Microsoft.VisualStudio.Shell.TableManager.SuppressionState"
+            /// enum for suppressions filtering to work correctly - just returning an equivalent value
+            /// for the enum is not enough.
+            /// 
             /// The VS SuppressionState enum is publicly available in VS2019. However, it isn't available
             /// in the VS2017 version of the SDK we are referencing, or in the VS2019 SDK versions that
             /// are compatible with VS2019.3.
@@ -45,7 +49,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             /// For VS2022, we could use the VS constants in Microsoft.VisualStudio.Shell.TableManager.Boxes.
             /// However, we're using the same code for both VS2019 and VS2022 to avoid conditional compilation.
             /// </remarks>
-
             static SuppressedStateColumnHelper()
             {
                 try
