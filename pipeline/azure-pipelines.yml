@@ -265,9 +265,11 @@ jobs:
   
   - task: VSTest@2
     displayName: VsTest - testAssemblies - Integration.Vsix.UnitTests
+    timeoutInMinutes: 5
     inputs:
       testAssemblyVer2: |
         **\Integration.Vsix.UnitTests\**\$(BuildConfiguration)\**\*test*.dll
+        !**\obj\**
       runInParallel: false
       runTestsInIsolation: false
       codeCoverageEnabled: true
