@@ -44,6 +44,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
         IIssueLocationStore,        // Used by the taggers to get/update locations for specific files
         IDisposable
     {
+
+        /// <summary>
+        /// Redefinition of <see cref="StandardTableKeyNames.SuppressionState"></see>.
+        /// https://learn.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.tablemanager.standardtablekeynames?view=visualstudiosdk-2022
+        /// </summary>
+        /// The constant is not available in VS v16.3 (?becomes available in v16.4?), so we're
+        /// defining our own version of it here. It's just a string, so there are no type-equivalent
+        /// issues to worry about.
+        internal const string RedefinedSuppressionStateColumnName = "suppression";
+
         private readonly IFileRenamesEventSource fileRenamesEventSource;
         private readonly IIssueSelectionService issueSelectionService;
         private readonly ISet<ITableDataSink> sinks = new HashSet<ITableDataSink>();
@@ -71,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
                                                    StandardTableColumnDefinitions.Text, StandardTableColumnDefinitions.DocumentName,
                                                    StandardTableColumnDefinitions.Line, StandardTableColumnDefinitions.Column,
                                                    StandardTableColumnDefinitions.ProjectName,
-                                                   StandardTableColumnDefinitions.SuppressionState);
+                                                   RedefinedSuppressionStateColumnName);
         }
 
         #region ITableDataSource members

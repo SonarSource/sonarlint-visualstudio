@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
@@ -245,7 +246,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     content = projectGuid;
                     return true;
 
-                case StandardTableKeyNames.SuppressionState:
+                case SonarErrorListDataSource.RedefinedSuppressionStateColumnName:
                     content = issueViz.IsSuppressed ? SuppressionState.Suppressed : SuppressionState.Active;
                     return true;
 
