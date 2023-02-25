@@ -1,5 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
 
+  <Import Project="..\SonarLint.Test.props" />
+
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <IsPackable>false</IsPackable>
@@ -9,8 +11,6 @@
     <RootNamespace>SonarQube.Client.Tests</RootNamespace>
 
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
-
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
