@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
@@ -243,6 +244,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 case StandardTableKeyNames.ProjectGuid:
                     content = projectGuid;
+                    return true;
+
+                case SuppressionsColumnHelper.SuppressionStateColumnName:
+                    // HACK: see https://github.com/SonarSource/sonarlint-visualstudio/issues/3797
+                    content = issueViz.IsSuppressed ? SuppressionsColumnHelper.SuppressionState_Suppressed : SuppressionsColumnHelper.SuppressionState_Active;
                     return true;
 
                 // Not a visible field - returns the issue object

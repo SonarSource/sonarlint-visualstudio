@@ -22,6 +22,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -106,11 +107,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         }
 
         [TestMethod]
-        public void Ctor_FetchesErrorTableManagerAndRegistersDataSource()
+        public void Ctor_FetchesErrorTableManagerAndRegistersDataSourceAndTableColumnDefinitions()
         {
+            var tableColumnDefinitions = new[] { StandardTableColumnDefinitions.DetailsExpander,
+                                                   StandardTableColumnDefinitions.ErrorSeverity, StandardTableColumnDefinitions.ErrorCode,
+                                                   StandardTableColumnDefinitions.ErrorSource, StandardTableColumnDefinitions.BuildTool,
+                                                   StandardTableColumnDefinitions.ErrorSource, StandardTableColumnDefinitions.ErrorCategory,
+                                                   StandardTableColumnDefinitions.Text, StandardTableColumnDefinitions.DocumentName,
+                                                   StandardTableColumnDefinitions.Line, StandardTableColumnDefinitions.Column,
+                                                   StandardTableColumnDefinitions.ProjectName,
+                                                   SuppressionsColumnHelper.SuppressionStateColumnName};
             var testSubject = CreateTestSubject();
 
-            mockTableManager.Verify(x => x.AddSource(testSubject, It.IsAny<string[]>()), Times.Once);
+            mockTableManager.Verify(x => x.AddSource(testSubject, tableColumnDefinitions), Times.Once);
         }
 
         [TestMethod]
