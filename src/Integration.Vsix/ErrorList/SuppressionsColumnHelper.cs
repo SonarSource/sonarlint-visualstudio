@@ -32,6 +32,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
     internal static class SuppressionsColumnHelper
     {
 #if VS2022
+        // The VS 2022 SDK exposes the constants/types we need so we just reference them directly.
+
         public static readonly object SuppressionState_Active = Boxes.SuppressionState.Active;
         public static readonly object SuppressionState_Suppressed = Boxes.SuppressionState.Suppressed;
         
@@ -48,7 +50,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
         /// Redefinition of <see cref="StandardTableKeyNames.SuppressionState"></see>.
         /// https://learn.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.tablemanager.standardtablekeynames?view=visualstudiosdk-2022
         /// </summary>
-        /// Just a string so there's no need to use conditional compilation to return different values.
         public const string SuppressionStateColumnName = "suppression";
 
 #endif
