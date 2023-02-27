@@ -44,6 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
         IIssueLocationStore,        // Used by the taggers to get/update locations for specific files
         IDisposable
     {
+
         private readonly IFileRenamesEventSource fileRenamesEventSource;
         private readonly IIssueSelectionService issueSelectionService;
         private readonly ISet<ITableDataSink> sinks = new HashSet<ITableDataSink>();
@@ -70,7 +71,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
                                                    StandardTableColumnDefinitions.ErrorSource, StandardTableColumnDefinitions.ErrorCategory,
                                                    StandardTableColumnDefinitions.Text, StandardTableColumnDefinitions.DocumentName,
                                                    StandardTableColumnDefinitions.Line, StandardTableColumnDefinitions.Column,
-                                                   StandardTableColumnDefinitions.ProjectName);
+                                                   StandardTableColumnDefinitions.ProjectName,
+                                                   SuppressionsColumnHelper.SuppressionStateColumnName);
         }
 
         #region ITableDataSource members
