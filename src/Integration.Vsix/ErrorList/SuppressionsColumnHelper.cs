@@ -18,27 +18,39 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.Shell.TableManager;
+
 namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
 {
     /// <summary>
-    /// Redefinitions of VS constants/types that are not available in VS2019 update 3 (i.e. v16.3)
+    /// Handles the differences between VS2019 and VS2022 in using the Suppression State column
+    /// in the Error List.
     /// </summary>
-    /// <remarks>Some of the suppressions-related constants are either not publicly available in VS2019.3
+    /// <remarks>Some of the suppressions-related constants/types are either not publicly available in VS2019.3
     /// See https://github.com/SonarSource/sonarlint-visualstudio/issues/3797
     /// </remarks>
-    internal static class RedefinedErrorListConstants
+    internal static class SuppressionsColumnHelper
     {
+#if VS2022
+        public static readonly object SuppressionState_Active = Boxes.SuppressionState.Active;
+        public static readonly object SuppressionState_Suppressed = Boxes.SuppressionState.Suppressed;
+        
+        public const string SuppressionStateColumnName = StandardTableKeyNames.SuppressionState;
+
+#else
+        // String alternatives for values in enum Microsoft.VisualStudio.Shell.TableManager.SuppressionState.
+        // The enum isn't available in SDKs that are compatible with VS2019.3.
+        // Fortunately, VS will parse the string to the enum for us.
+        public static readonly object SuppressionState_Active = "Active";
+        public static readonly object SuppressionState_Suppressed = "Suppressed";
+        
         /// <summary>
         /// Redefinition of <see cref="StandardTableKeyNames.SuppressionState"></see>.
         /// https://learn.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.tablemanager.standardtablekeynames?view=visualstudiosdk-2022
         /// </summary>
-        /// The constant is not available in VS v16.3 (?becomes available in v16.4?), so we're
-        /// defining our own version of it here. It's just a string, so there are no type-equivalent
-        /// issues to worry about.
+        /// Just a string so there's no need to use conditional compilation to return different values.
         public const string SuppressionStateColumnName = "suppression";
 
-        // String alternatives for values in enum Microsoft.VisualStudio.Shell.TableManager.SuppressionState.
-        public const string SuppressionState_Active = "Active";
-        public const string SuppressionState_Suppressed = "Suppressed";
+#endif
     }
 }

@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
                                                    StandardTableColumnDefinitions.Text, StandardTableColumnDefinitions.DocumentName,
                                                    StandardTableColumnDefinitions.Line, StandardTableColumnDefinitions.Column,
                                                    StandardTableColumnDefinitions.ProjectName,
-                                                   RedefinedErrorListConstants.SuppressionStateColumnName};
+                                                   SuppressionsColumnHelper.SuppressionStateColumnName};
             var testSubject = CreateTestSubject();
 
             mockTableManager.Verify(x => x.AddSource(testSubject, tableColumnDefinitions), Times.Once);

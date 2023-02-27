@@ -246,9 +246,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     content = projectGuid;
                     return true;
 
-                case RedefinedErrorListConstants.SuppressionStateColumnName:
+                case SuppressionsColumnHelper.SuppressionStateColumnName:
                     // HACK: see https://github.com/SonarSource/sonarlint-visualstudio/issues/3797
-                    content = issueViz.IsSuppressed ? RedefinedErrorListConstants.SuppressionState_Suppressed : RedefinedErrorListConstants.SuppressionState_Active;
+                    content = issueViz.IsSuppressed ? SuppressionsColumnHelper.SuppressionState_Suppressed : SuppressionsColumnHelper.SuppressionState_Active;
                     return true;
 
                 // Not a visible field - returns the issue object

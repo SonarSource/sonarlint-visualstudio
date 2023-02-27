@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
                                                    StandardTableColumnDefinitions.Text, StandardTableColumnDefinitions.DocumentName,
                                                    StandardTableColumnDefinitions.Line, StandardTableColumnDefinitions.Column,
                                                    StandardTableColumnDefinitions.ProjectName,
-                                                   RedefinedErrorListConstants.SuppressionStateColumnName);
+                                                   SuppressionsColumnHelper.SuppressionStateColumnName);
         }
 
         #region ITableDataSource members
