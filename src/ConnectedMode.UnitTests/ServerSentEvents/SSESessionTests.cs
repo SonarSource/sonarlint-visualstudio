@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
@@ -74,6 +75,7 @@ public class SSESessionTests
         await testScope.TestSubject.PumpAllAsync();
         
         CheckEventsSequence<ITaintServerEvent>(testScope.TaintPublisherMock.Invocations);
+        CheckEventsSequence<IIssueChangedServerEvent>(testScope.IssuePublisherMock.Invocations);
 
         // note: can't pass Mock<IServerSentEventSourcePublisher<T>> because Mock's generic type is not covariant and we use the publisher interface through inheritor interfaces
         void CheckEventsSequence<T>(IEnumerable<IInvocation> publisherMockInvocations) where T : class, IServerEvent
@@ -96,12 +98,15 @@ public class SSESessionTests
             {
                 Mock.Of<ITaintVulnerabilityRaisedServerEvent>(),
                 null,
-                Mock.Of<ITaintVulnerabilityRaisedServerEvent>()
+                Mock.Of<ITaintVulnerabilityRaisedServerEvent>(),
+                Mock.Of<IIssueChangedServerEvent>(),
+                Mock.Of<IIssueChangedServerEvent>()
             });
 
         await testScope.TestSubject.PumpAllAsync();
 
         testScope.TaintPublisherMock.Verify(publisher => publisher.Publish(It.IsAny<ITaintServerEvent>()), Times.Exactly(2));
+        testScope.IssuePublisherMock.Verify(publisher => publisher.Publish(It.IsAny<IIssueChangedServerEvent>()), Times.Exactly(2));
     }
 
     [TestMethod]
@@ -115,13 +120,15 @@ public class SSESessionTests
             new IServerEvent[]
             {
                 Mock.Of<ITaintVulnerabilityRaisedServerEvent>(),
-                Mock.Of<IIssueChangedServerEvent>(),
-                Mock.Of<ITaintVulnerabilityRaisedServerEvent>()
+                Mock.Of<IDummyServerEvent>(),
+                Mock.Of<ITaintVulnerabilityRaisedServerEvent>(),
+                Mock.Of<IIssueChangedServerEvent>()
             });
 
         await testScope.TestSubject.PumpAllAsync();
 
         testScope.TaintPublisherMock.Verify(publisher => publisher.Publish(It.IsAny<ITaintServerEvent>()), Times.Exactly(2));
+        testScope.IssuePublisherMock.Verify(publisher => publisher.Publish(It.IsAny<IIssueChangedServerEvent>()), Times.Exactly(1));
     }
 
     [TestMethod]
@@ -185,6 +192,8 @@ public class SSESessionTests
         sessionToken.Value.IsCancellationRequested.Should().BeTrue();
     }
 
+    public interface IDummyServerEvent : IServerEvent { }
+
     private class TestScope
     {
         private readonly MockRepository mockRepository;
@@ -194,12 +203,14 @@ public class SSESessionTests
             mockRepository = new MockRepository(MockBehavior.Strict);
             SonarQubeServiceMock = mockRepository.Create<ISonarQubeService>();
             TaintPublisherMock = mockRepository.Create<ITaintServerEventSourcePublisher>(MockBehavior.Loose);
+            IssuePublisherMock = mockRepository.Create<IIssueServerEventSourcePublisher>(MockBehavior.Loose);
             ThreadHandlingMock = mockRepository.Create<IThreadHandling>();
             LoggerMock = mockRepository.Create<ILogger>();
 
             var factory = new SSESessionFactory(
                 SonarQubeServiceMock.Object,
                 TaintPublisherMock.Object,
+                IssuePublisherMock.Object,
                 ThreadHandlingMock.Object,
                 LoggerMock.Object);
 
@@ -209,6 +220,7 @@ public class SSESessionTests
         private Mock<IThreadHandling> ThreadHandlingMock { get; }
         public Mock<ISonarQubeService> SonarQubeServiceMock { get; }
         public Mock<ITaintServerEventSourcePublisher> TaintPublisherMock { get; }
+        public Mock<IIssueServerEventSourcePublisher> IssuePublisherMock { get; }
         public Mock<ILogger> LoggerMock { get; }
         public CancellationToken? CapturedSessionToken { get; private set; }
         public MockSequence CallOrder { get; } = new MockSequence();
