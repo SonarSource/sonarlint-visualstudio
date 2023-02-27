@@ -55,18 +55,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             mockTableManagerProvider.Setup(x => x.GetTableManager(StandardTables.ErrorsTable)).Returns(mockTableManager.Object);
         }
 
-#if VS2022
-        [TestMethod]
-        public void CheckRedefinedSuppressionStateColumnName()
-        {
-            // Sanity check that our definition of the column name matches the VS version.
-
-            // We can only run this test for the VS2022 build - the whole point in having our own constant
-            // is because it doesn't exist in VS2019.3 (v16.3).
-            SonarErrorListDataSource.RedefinedSuppressionStateColumnName.Should().Be(StandardTableColumnDefinitions.SuppressionState);
-        }
-#endif
-
         [TestMethod]
         public void MefCtor_CheckExports()
         {
@@ -128,10 +116,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
                                                    StandardTableColumnDefinitions.Text, StandardTableColumnDefinitions.DocumentName,
                                                    StandardTableColumnDefinitions.Line, StandardTableColumnDefinitions.Column,
                                                    StandardTableColumnDefinitions.ProjectName,
-                                                   SonarErrorListDataSource.RedefinedSuppressionStateColumnName};
+                                                   RedefinedErrorListConstants.SuppressionStateColumnName};
             var testSubject = CreateTestSubject();
-
-
 
             mockTableManager.Verify(x => x.AddSource(testSubject, tableColumnDefinitions), Times.Once);
         }
