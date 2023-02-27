@@ -3,7 +3,6 @@
   <Import Project="..\SonarLint.Test.props" />
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
     <IsPackable>false</IsPackable>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
