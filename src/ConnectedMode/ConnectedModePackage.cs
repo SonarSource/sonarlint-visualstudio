@@ -24,7 +24,9 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
@@ -38,9 +40,12 @@ namespace SonarLint.VisualStudio.ConnectedMode
     public sealed class ConnectedModePackage : AsyncPackage
     {
         private ISSESessionManager sseSessionManager;
+        private IIssueServerEventsListener issueServerEventsListener;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             var componentModel = await GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
             var logger = componentModel.GetService<ILogger>();
 
@@ -48,7 +53,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
             sseSessionManager = componentModel.GetService<ISSESessionManager>();
 
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            issueServerEventsListener = componentModel.GetService<IIssueServerEventsListener>();
+            issueServerEventsListener.ListenAsync().Forget();
 
             logger.WriteLine(Resources.Package_Initialized);
         }
@@ -58,6 +64,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             if (disposing)
             {
                 sseSessionManager?.Dispose();
+                issueServerEventsListener?.Dispose();
             }
             base.Dispose(disposing);
         }
