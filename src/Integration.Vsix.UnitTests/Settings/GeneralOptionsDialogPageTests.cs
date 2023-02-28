@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#if VS2022 // see https://github.com/SonarSource/sonarlint-visualstudio/issues/2760
-
 using System;
 using System.ComponentModel;
 using System.Windows;
@@ -34,15 +32,9 @@ using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
 {
-    [TestClass]
+    [TestClass, Ignore(" https://github.com/SonarSource/sonarlint-visualstudio/issues/2760")]
     public class GeneralOptionsDialogPageTests
     {
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            VsThreadingFixer.MockServiceProvider.Reset();
-        }
-
         private class GeneralOptionsDialogPageTestable : GeneralOptionsDialogPage
         {
             public GeneralOptionsDialogControl Control => Child as GeneralOptionsDialogControl;
@@ -161,5 +153,3 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         }
     }
 }
-
-#endif

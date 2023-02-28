@@ -27,6 +27,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A4C88C9A-7C47-47FE-8AB6-8D7588D05EF1}"
 	ProjectSection(SolutionItems) = preProject
 		src\AssemblyInfo.Shared.cs = src\AssemblyInfo.Shared.cs
+		pipeline\azure-pipelines.yml = pipeline\azure-pipelines.yml
 		Directory.Build.props = Directory.Build.props
 		Directory.Build.targets = Directory.Build.targets
 		nuget.config = nuget.config
@@ -43,10 +44,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration.TeamExplorer", "src\Integration.TeamExplorer\Integration.TeamExplorer.csproj", "{9FCAEACD-EDEA-42D3-A8E4-16E42D1CF8F4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration.TeamExplorer.UnitTests", "src\Integration.TeamExplorer.UnitTests\Integration.TeamExplorer.UnitTests.csproj", "{115CC746-5181-485C-8707-346E8D55B1E5}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.Client", "sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj", "{53AC9A18-9801-422F-98E7-815999E4C569}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.Client.Tests", "sonarqube-webclient\SonarQube.Client.Tests\SonarQube.Client.Tests.csproj", "{2D75E7DA-4DD0-4422-BCAF-D0E5093C74DC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "src\Core\Core.csproj", "{4F379759-6798-4C98-9CDD-31853F8E46DF}"
 EndProject
@@ -168,6 +165,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_tools", "_tools", "{AE914B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExtractRuleDescFromJson", "build\tools\ExtractRuleDescFromJson\ExtractRuleDescFromJson.csproj", "{E47E649E-5044-485B-A077-8FB282094A7D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.Client", "src\SonarQube.Client\SonarQube.Client.csproj", "{EE7F939B-7127-433C-80CD-5DB278361229}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.Client.Tests", "src\SonarQube.Client.Tests\SonarQube.Client.Tests.csproj", "{4F5AE2A8-56DD-44EC-9872-B7884CC1C1DB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -264,22 +265,6 @@ Global
 		{115CC746-5181-485C-8707-346E8D55B1E5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{115CC746-5181-485C-8707-346E8D55B1E5}.Release|x86.ActiveCfg = Release|Any CPU
 		{115CC746-5181-485C-8707-346E8D55B1E5}.Release|x86.Build.0 = Release|Any CPU
-		{53AC9A18-9801-422F-98E7-815999E4C569}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{53AC9A18-9801-422F-98E7-815999E4C569}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{53AC9A18-9801-422F-98E7-815999E4C569}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{53AC9A18-9801-422F-98E7-815999E4C569}.Debug|x86.Build.0 = Debug|Any CPU
-		{53AC9A18-9801-422F-98E7-815999E4C569}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{53AC9A18-9801-422F-98E7-815999E4C569}.Release|Any CPU.Build.0 = Release|Any CPU
-		{53AC9A18-9801-422F-98E7-815999E4C569}.Release|x86.ActiveCfg = Release|Any CPU
-		{53AC9A18-9801-422F-98E7-815999E4C569}.Release|x86.Build.0 = Release|Any CPU
-		{2D75E7DA-4DD0-4422-BCAF-D0E5093C74DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2D75E7DA-4DD0-4422-BCAF-D0E5093C74DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2D75E7DA-4DD0-4422-BCAF-D0E5093C74DC}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{2D75E7DA-4DD0-4422-BCAF-D0E5093C74DC}.Debug|x86.Build.0 = Debug|Any CPU
-		{2D75E7DA-4DD0-4422-BCAF-D0E5093C74DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2D75E7DA-4DD0-4422-BCAF-D0E5093C74DC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2D75E7DA-4DD0-4422-BCAF-D0E5093C74DC}.Release|x86.ActiveCfg = Release|Any CPU
-		{2D75E7DA-4DD0-4422-BCAF-D0E5093C74DC}.Release|x86.Build.0 = Release|Any CPU
 		{4F379759-6798-4C98-9CDD-31853F8E46DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4F379759-6798-4C98-9CDD-31853F8E46DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F379759-6798-4C98-9CDD-31853F8E46DF}.Debug|x86.ActiveCfg = Debug|Any CPU
@@ -496,6 +481,22 @@ Global
 		{E47E649E-5044-485B-A077-8FB282094A7D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E47E649E-5044-485B-A077-8FB282094A7D}.Release|x86.ActiveCfg = Release|Any CPU
 		{E47E649E-5044-485B-A077-8FB282094A7D}.Release|x86.Build.0 = Release|Any CPU
+		{EE7F939B-7127-433C-80CD-5DB278361229}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE7F939B-7127-433C-80CD-5DB278361229}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE7F939B-7127-433C-80CD-5DB278361229}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EE7F939B-7127-433C-80CD-5DB278361229}.Debug|x86.Build.0 = Debug|Any CPU
+		{EE7F939B-7127-433C-80CD-5DB278361229}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE7F939B-7127-433C-80CD-5DB278361229}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE7F939B-7127-433C-80CD-5DB278361229}.Release|x86.ActiveCfg = Release|Any CPU
+		{EE7F939B-7127-433C-80CD-5DB278361229}.Release|x86.Build.0 = Release|Any CPU
+		{4F5AE2A8-56DD-44EC-9872-B7884CC1C1DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F5AE2A8-56DD-44EC-9872-B7884CC1C1DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F5AE2A8-56DD-44EC-9872-B7884CC1C1DB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4F5AE2A8-56DD-44EC-9872-B7884CC1C1DB}.Debug|x86.Build.0 = Debug|Any CPU
+		{4F5AE2A8-56DD-44EC-9872-B7884CC1C1DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F5AE2A8-56DD-44EC-9872-B7884CC1C1DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F5AE2A8-56DD-44EC-9872-B7884CC1C1DB}.Release|x86.ActiveCfg = Release|Any CPU
+		{4F5AE2A8-56DD-44EC-9872-B7884CC1C1DB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -512,8 +513,6 @@ Global
 		{33315FCB-3D07-4177-944E-AA45CC3C5539} = {4B576F04-27E9-4DFB-89B0-1FD0D9608949}
 		{9FCAEACD-EDEA-42D3-A8E4-16E42D1CF8F4} = {AC08E30A-2039-4E2F-A789-0D6FE056CC0D}
 		{115CC746-5181-485C-8707-346E8D55B1E5} = {AC08E30A-2039-4E2F-A789-0D6FE056CC0D}
-		{53AC9A18-9801-422F-98E7-815999E4C569} = {32F0945C-72D0-4116-95D5-F9EE2177D51B}
-		{2D75E7DA-4DD0-4422-BCAF-D0E5093C74DC} = {32F0945C-72D0-4116-95D5-F9EE2177D51B}
 		{4F379759-6798-4C98-9CDD-31853F8E46DF} = {C6D06383-4872-4957-AEEC-E005CD406230}
 		{11960170-E82F-4241-B1AA-552F168D11AD} = {C6D06383-4872-4957-AEEC-E005CD406230}
 		{90141AF9-756E-4E14-ABFC-A553C43037CB} = {A4C88C9A-7C47-47FE-8AB6-8D7588D05EF1}
@@ -545,6 +544,8 @@ Global
 		{BA48309C-FB66-47D3-997D-D3068C4F719B} = {EFA34F81-1751-49D7-8F62-4085E75FA5F2}
 		{B8E86E46-8EC6-4147-AB0D-2C8912F4590F} = {EFA34F81-1751-49D7-8F62-4085E75FA5F2}
 		{E47E649E-5044-485B-A077-8FB282094A7D} = {628A579F-0D27-4F9F-A756-8CC0A67A7B3D}
+		{EE7F939B-7127-433C-80CD-5DB278361229} = {32F0945C-72D0-4116-95D5-F9EE2177D51B}
+		{4F5AE2A8-56DD-44EC-9872-B7884CC1C1DB} = {32F0945C-72D0-4116-95D5-F9EE2177D51B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DABC27C8-E761-4826-AD2D-056F677EF3C0}
