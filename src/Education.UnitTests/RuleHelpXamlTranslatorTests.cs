@@ -83,9 +83,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         {
             var testSubject = new RuleHelpXamlTranslator();
 
-            var htmlText = @" <ul>
-        <li>some list item</li>
-            </ul>";
+            var htmlText = @"<ul><li>some list item</li></ul>";
 
             Action act = () => testSubject.TranslateHtmlToXaml(htmlText, true);
 
