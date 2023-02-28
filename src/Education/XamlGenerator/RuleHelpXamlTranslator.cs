@@ -19,18 +19,436 @@
  */
 
 
+using static Microsoft.VisualStudio.Threading.AsyncReaderWriterLock;
+using System.Diagnostics;
+using System.IO;
+using System.Text;
+using System.Xml;
+using System.Collections.Generic;
+using System;
+
 namespace SonarLint.VisualStudio.Education.XamlGenerator
 {
     public interface IRuleHelpXamlTranslator
     {
-        string TranslateHtmlToXaml(string htmlContent);
+        string TranslateHtmlToXaml(string htmlContent, bool supportsInline = false);
     }
 
     internal class RuleHelpXamlTranslator : IRuleHelpXamlTranslator
     {
-        public string TranslateHtmlToXaml(string htmlContent)
+        private XmlWriter writer;
+        private XmlReader reader;
+
+        /// <summary>
+        /// Stack of currently open XAML elements
+        /// </summary>
+        /// <remarks>We need some information about the current structure so we can check whether some 
+        /// operations are valid e.g. can be we add text to the current element?</remarks>
+        private Stack<XamlOutputElementInfo> outputXamlElementStack;
+
+        /// <summary>
+        /// Used to add background colour to alternate rows in a table
+        /// </summary>
+        private bool tableAlternateRow;
+
+        public string TranslateHtmlToXaml(string htmlContent, bool supportsInline = false)
         {
-            throw new System.NotImplementedException();
+            var sb = new StringBuilder();
+            writer = CreateXmlWriter(sb);
+            reader = CreateXmlReader(htmlContent);
+            outputXamlElementStack = new Stack<XamlOutputElementInfo>();
+
+            //We are putting this root as to keep track of whether the root element for the translated xml supports inline or not
+            outputXamlElementStack.Push(new XamlOutputElementInfo("html root", supportsInline));
+
+            try
+            {
+                while (reader.Read())
+                {
+                    switch (reader.NodeType)
+                    {
+                        case XmlNodeType.Element:
+                            ProcessElement();
+                            break;
+
+                        case XmlNodeType.Text:
+                            WriteText(reader.Value);
+                            break;
+
+                        case XmlNodeType.Whitespace:
+                            writer.WriteString(reader.Value);
+                            break;
+
+                        case XmlNodeType.EndElement:
+                            XamlOutputElementInfo xamlOutputElement;
+                            do
+                            {
+                                xamlOutputElement = outputXamlElementStack.Pop();
+                                writer.WriteEndElement();
+                            } while (xamlOutputElement.HtmlElementName != reader.Name);
+
+                            break;
+                        default:
+                            var message = string.Format(Resources.XamlBuilder_UnexpectedNodeError, reader.NodeType, reader.Name, reader.Value);
+                            throw new InvalidDataException(message);
+                    }
+                }
+
+                // We've processed all of the html elements.
+                // Now, the stack should only contain the root FlowDocument element, plus an extra
+                // block element if the first tag we processed was an Inline.
+                Debug.Assert((outputXamlElementStack.Count <= 2 && supportsInline == false) || (outputXamlElementStack.Count <= 1), "Expecting at most 2 unclosed elements in the stack");
+                Debug.Assert((outputXamlElementStack.Count == 1 && outputXamlElementStack.Peek().HtmlElementName == "html root")
+                    || (outputXamlElementStack.Count == 2 && supportsInline == false &&
+                        outputXamlElementStack.ToArray()[0].HtmlElementName == null &&
+                        outputXamlElementStack.ToArray()[1].HtmlElementName == "html root"),
+                        "Unexpected items in final stack");
+
+                //root element will be on the calling class so opening and closing it should be handled there
+                while (outputXamlElementStack.Count > 1)
+                {
+                    outputXamlElementStack.Pop();
+                    writer.WriteEndElement();
+                }                
+            }
+            finally
+            {
+                reader.Close();
+                writer.Close();
+            }
+
+            return sb.ToString();
+        }
+
+        private void ProcessElement()
+        {
+            switch (reader.Name)
+            {
+                case "a":
+                    WriteInlineElementStart("Hyperlink");
+
+                    var href = reader.GetAttribute("href");
+                    writer.WriteAttributeString("NavigateUri", href);
+
+                    break;
+
+                case "blockquote":
+                    WriteBlockElementStart("Section");
+                    writer.ApplyStyleToElement(StyleResourceNames.Blockquote_Section);
+
+                    PushOutputElementInfo("blockquote", false);
+
+                    break;
+
+                case "br":
+                    // This is an empty element, so there is nothing to push onto the stack.
+                    WriteEmptyElement("LineBreak");
+
+                    break;
+
+                case "code":
+                    WriteInlineElementStart("Span");
+                    writer.ApplyStyleToElement(StyleResourceNames.Code_Span);
+
+                    break;
+
+                case "em":
+                    WriteInlineElementStart("Italic");
+                    break;
+
+                case "h2":
+                    writer.WriteStartElement("Paragraph");
+                    writer.ApplyStyleToElement(StyleResourceNames.Heading2_Paragraph);
+
+                    PushOutputElementInfo("h2", true);
+                    break;
+
+                case "h3":
+                    writer.WriteStartElement("Paragraph");
+                    writer.ApplyStyleToElement(StyleResourceNames.Heading3_Paragraph);
+
+                    PushOutputElementInfo("h3", true);
+                    break;
+
+                case "li":
+                    writer.WriteStartElement("ListItem");
+                    PushOutputElementInfo("li", false);
+
+                    break;
+
+                case "ol":
+                    WriteBlockElementStart("List");
+                    writer.ApplyStyleToElement(StyleResourceNames.OrderedList);
+
+                    PushOutputElementInfo("ol", false);
+
+                    break;
+
+                case "p":
+                    writer.WriteStartElement("Paragraph");
+
+                    PushOutputElementInfo("p", true);
+
+                    break;
+
+                case "pre":
+                    WriteBlockElementStart("Section");
+                    writer.WriteAttributeString("xml", "space", null, "preserve");
+                    writer.ApplyStyleToElement(StyleResourceNames.Pre_Section);
+
+                    PushOutputElementInfo("pre", false);
+                    break;
+
+                case "strong":
+                    WriteInlineElementStart("Bold");
+
+                    break;
+
+                case "ul":
+                    WriteBlockElementStart("List");
+                    writer.ApplyStyleToElement(StyleResourceNames.UnorderedList);
+
+                    PushOutputElementInfo("ul", false);
+
+                    break;
+
+                case "table":
+                    WriteBlockElementStart("Table");
+                    writer.ApplyStyleToElement(StyleResourceNames.Table);
+
+                    PushOutputElementInfo("table", false);
+
+                    break;
+
+                case "colgroup":
+                    writer.WriteStartElement("Table.Columns");
+                    PushOutputElementInfo("colgroup", false);
+
+                    break;
+
+                case "col":
+                    // This is an empty element, so there is nothing to push onto the stack.
+                    WriteEmptyElement("TableColumn");
+
+                    break;
+
+                case "thead":
+                    writer.WriteStartElement("TableRowGroup");
+                    writer.ApplyStyleToElement(StyleResourceNames.TableHeaderRowGroup);
+
+                    PushOutputElementInfo("thead", false);
+
+                    break;
+
+                case "tr":
+                    writer.WriteStartElement("TableRow");
+                    tableAlternateRow = !tableAlternateRow;
+
+                    PushOutputElementInfo("tr", false);
+
+                    break;
+
+                case "th":
+                    writer.WriteStartElement("TableCell");
+                    writer.ApplyStyleToElement(StyleResourceNames.TableHeaderCell);
+                    PushOutputElementInfo("th", false);
+
+                    break;
+
+                case "tbody":
+                    tableAlternateRow = true;
+                    writer.WriteStartElement("TableRowGroup");
+                    PushOutputElementInfo("tbody", false);
+
+                    break;
+
+                case "td":
+                    writer.WriteStartElement("TableCell");
+                    PushOutputElementInfo("td", false);
+
+                    var cellStyle = tableAlternateRow ? StyleResourceNames.TableBodyCellAlternateRow : StyleResourceNames.TableBodyCell;
+                    writer.ApplyStyleToElement(cellStyle);
+
+                    break;
+
+                default:
+                    Debug.Fail("Unexpected element type: " + reader.Name);
+                    writer.WriteStartElement(reader.Name);
+                    writer.WriteEndElement();
+                    break;
+            }
+        }
+
+        private static XmlReader CreateXmlReader(string data)
+        {
+            var settings = new XmlReaderSettings
+            {
+                ConformanceLevel = ConformanceLevel.Fragment,
+                IgnoreWhitespace = false,
+            };
+
+            var stream = new StringReader(data);
+            return XmlReader.Create(stream, settings);
+        }
+
+        internal static XmlWriter CreateXmlWriter(StringBuilder sb)
+        {
+            var stringWriter = new StringWriter(sb);
+
+            var settings = new XmlWriterSettings
+            {
+                ConformanceLevel = ConformanceLevel.Fragment,
+                Encoding = Encoding.UTF8,
+                OmitXmlDeclaration = true,
+                Indent = true,
+                CloseOutput = true,
+                WriteEndDocumentOnClose = true
+            };
+
+            return XmlWriter.Create(stringWriter, settings);
+        }
+        
+        private void WriteText(string text)
+        {
+            // If we are writing an inline element, we need a parent element that supports text directly.
+            // e.g. <li> some text ... </li>            -> <li> does not support inlines directly.
+            EnsureCurrentOutputSupportsInlines();
+
+            // Note: we could explicitly wrap the text in a <Run>. However, that will happen implicitly
+            // when the XAML is parsed, and it won't make any difference to the rendered output.
+            writer.WriteString(text);
+        }
+
+        private void WriteInlineElementStart(string elementName)
+        {
+            // If we are writing an inline element, we need a parent element that supports inlines.
+
+            // This might/might not be the case.
+            // e.g. <li><p> some text ... </p><li>      -> <p> does support inlines, so we can just write the text
+            // e.g. <li> <bold>some text ... </bold></li>            -> <li> does not support inlines directly.
+            EnsureCurrentOutputSupportsInlines();
+
+            writer.WriteStartElement(elementName);
+            PushOutputElementInfo(reader.Name, true);
+        }
+
+        private void WriteBlockElementStart(string elementName)
+        {
+            EnsureCurrentOutputSupportsBlocks();
+            writer.WriteStartElement(elementName);
+        }
+
+        /// <summary>
+        /// Applies the specified style to the current element
+        /// </summary>
+        /// <remarks>
+        /// Assumes the writer is in a state where we can write attributes i.e. just
+        /// after writing the start element.
+        /// <para>
+        /// The resource is marked as a "DynamicResource".
+        /// We can't mark it as a "StaticResource" unless we also define it in the XAML string
+        /// (the XamlReader will complain it it can't find a referenced StaticResource when
+        /// deserializing).
+        /// Also, we want the resource references to be dynamic so they will automatically pick
+        /// up resources defined in parent elements.
+        /// </para>
+        /// </remarks>
+        private void PushOutputElementInfo(string htmlElementName, bool supportsInlines)
+        {
+            outputXamlElementStack.Push(new XamlOutputElementInfo(htmlElementName, supportsInlines));
+        }
+
+        private void WriteEmptyElement(string name, string value = null)
+        {
+            Debug.Assert(reader.IsEmptyElement);
+            writer.WriteElementString(name, value);
+        }
+
+        private void EnsureCurrentOutputSupportsInlines()
+        {
+            var current = outputXamlElementStack.Peek();
+            if (current.SupportsInlines) { return; }
+
+
+            // If the current XAML class doesn't support inlines then we assume that
+            // it supports blocks, and add Paragraph.
+            // Paragraph is a type of Block that supports Inlines.
+
+            // Note that there are some XAML classes where this situation won't be valid
+            // e.g. <Table>text
+            // In this case, adding a Paragraph to a Table directly is not valid i.e. the
+            // input HTML document is not valid. If the input document isn't valid then 
+            // we don't try to produce a valid XAML document from it.
+
+            writer.WriteStartElement("Paragraph");
+            PushOutputElementInfo(null, true);            
+        }
+
+        private void EnsureCurrentOutputSupportsBlocks()
+        {
+            var current = outputXamlElementStack.Peek();
+            if (current.SupportsBlocks) { return; }
+
+            // If we are in an element that supports inlines, we can't add another child element
+            // that supports blocks because there are no WPF classes that do that.
+            // Instead, all we can do is close the current element(s) recursively until we find
+            // an existing output element that does support blocks.
+            //
+            // However, we can only walk back as far as the nearest parent output element that was
+            // directly mapped to an html element (otherwise we'll fail later when we try to process
+            // the matching closing html token).
+            // In other words, we can only walk back up the stack closing "extra" elements we added
+            // ourselves, that don't map to a specific html tag.
+
+            // e.g. nested lists - c_s1749.desc
+            // 1. <ol> 
+            // 2.     <li> type name, spelling of built-in types with more than one type-specifier:
+            // 3.        <ol>
+            // 4.             <li> signedness - <code>signed</code> or <code>unsigned</code> </li>
+
+            // This produces the following XAML:
+            // a.  <List>           <-- mapped to html <ol>
+            // b.    <ListItem>     <-- mapped to html <li>
+            //
+            //                      // Next, we want to add the text from line 2. However, we
+            //                      // can't add text to ListItem since it only accepts blocks.
+            //                      // So, we add a Paragraph, which is a block that can contain
+            //                      // Inlines e.g. text.
+            //                      
+            // c.      <Paragraph>  <-- extra element added by us, not mapped to an html element
+            // d.        type name, spelling of..       <-- text from the html
+            //
+            //                      // Next, we want to handle the <ol> tag, which translates to
+            //                      // a XAML "List". List is a block, which we can't add to a
+            //                      // Paragraph. So, we need to walk back up the list of extra XAML
+            //                      // elements we have opened and close them, until we reach an
+            //                      // XAML class that supports Blocks.
+            // e.      </Paragraph> <-- close the paragraph we opened to contain the text.
+            //                      // The current XAML element is now the ListItem. This does
+            //                      // accepts Blocks, so we can stop looking.
+            // f.      <List>       <-- mapped to the nested html <li>
+
+            // To summarise, in the example above, we add the extra <Paragraph> XAML opening tag,
+            // since we need a paragraph to hold the text under the ListItem.
+            // However, we then encounter the html <ol> element, which translates to another
+            // XAML <List>. "List" is a block element, so we can't host it under <Paragraph>.
+            // So, we close the <Paragraph> element and look at its parent, <ListItem>.
+            // "ListItem" can contain blocks, so we can now add the new <List> opening tag.
+            // Note: the <ListItem> in line 2 is as far back as we can check, since it is mapped
+            // directly to an html element (<li>).
+
+            while (current.HtmlElementName == null && current.SupportsInlines)
+            {
+                writer.WriteEndElement();
+                outputXamlElementStack.Pop();
+
+                current = outputXamlElementStack.Peek();
+            }
+
+            if (current.SupportsInlines)
+            {
+                throw new InvalidOperationException("Invalid state: can't find an element that supports blocks");
+            }
         }
     }
 }
