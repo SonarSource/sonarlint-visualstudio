@@ -28,5 +28,5 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEve
     [Export(typeof(IIssueServerEventSource))]
     [Export(typeof(IIssueServerEventSourcePublisher))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class TaintServerEventChannel : ServerEventChannel<IIssueChangedServerEvent>, IIssueServerEventSource, IIssueServerEventSourcePublisher { }
+    internal class IssueServerEventChannel : ServerEventChannel<IIssueChangedServerEvent>, IIssueServerEventSource, IIssueServerEventSourcePublisher { }
 }
