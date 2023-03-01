@@ -1131,6 +1131,22 @@
           "System.Threading.Channels": "[7.0.0, )"
         }
       },
+      "SonarLint.VisualStudio.Infrastructure.VS": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
+          "SonarLint.VisualStudio.Core": "[1.0.0, )"
+        }
+      },
+      "SonarLint.VisualStudio.IssueVisualization": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
+          "SonarLint.VisualStudio.Core": "[1.0.0, )",
+          "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
+          "SonarQube.Client": "[1.0.0, )"
+        }
+      },
       "sonarqube.client": {
         "type": "Project",
         "dependencies": {
