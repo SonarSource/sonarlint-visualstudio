@@ -21,12 +21,12 @@
 using System.Collections.Generic;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
-namespace SonarLint.VisualStudio.ConnectedMode
+namespace SonarLint.VisualStudio.IssueVisualization
 {
     public interface IClientIssueStore
     {
         /// <summary>
-        /// Returns all IAnalysisIssueVisualizations.
+        /// Returns all issues that have been detected locally.
         /// </summary>
         IEnumerable<IAnalysisIssueVisualization> Get();
     }
