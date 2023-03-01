@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.ConnectedMode;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
@@ -73,8 +74,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             // Set up importers for each of the interfaces exported by the test subject
             var errorDataSourceImporter = new SingleObjectImporter<ISonarErrorListDataSource>();
             var issueLocationStoreImporter = new SingleObjectImporter<IIssueLocationStore>();
+            var clientIssueStore = new SingleObjectImporter<IClientIssueStore>();
             batch.AddPart(errorDataSourceImporter);
             batch.AddPart(issueLocationStoreImporter);
+            batch.AddPart(clientIssueStore);
 
             // Specify the source types that can be used to satify any import requests
             TypeCatalog catalog = new TypeCatalog(typeof(SonarErrorListDataSource));
@@ -86,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
                 // Both imports should be satisfied...
                 errorDataSourceImporter.Import.Should().NotBeNull();
                 issueLocationStoreImporter.Import.Should().NotBeNull();
-
+                clientIssueStore.Import.Should().NotBeNull();
                 // ... and the the export should be a singleton, so the both importers should
                 // get the same instance
                 errorDataSourceImporter.Import.Should().BeSameAs(issueLocationStoreImporter.Import);
