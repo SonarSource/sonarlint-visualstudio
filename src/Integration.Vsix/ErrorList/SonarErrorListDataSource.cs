@@ -255,7 +255,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
 
         public IEnumerable<IAnalysisIssueVisualization> Get()
         {
-            foreach (var factory in this.factories)
+            var currentFactories = this.factories.ToArray();
+
+            foreach (var factory in currentFactories)
             {
                 foreach (var issue in factory.CurrentSnapshot.Issues)
                 {

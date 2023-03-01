@@ -43,13 +43,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 
             var testSubject = CreateTestSubject();
 
-            Get_ShouldContainIssues(testSubject);
+            testSubject.Get().Should().Equal();
 
             testSubject.AddFactory(factory);
-            Get_ShouldContainIssues(testSubject, issue1, issue2);
+            testSubject.Get().Should().Equal(issue1, issue2);
 
             testSubject.RemoveFactory(factory);
-            Get_ShouldContainIssues(testSubject);
+            testSubject.Get().Should().Equal();
         }
 
         [TestMethod]
@@ -65,27 +65,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 
             var testSubject = CreateTestSubject();
 
-            Get_ShouldContainIssues(testSubject);
+            testSubject.Get().Should().Equal();
 
             testSubject.AddFactory(factory);
-            Get_ShouldContainIssues(testSubject, issue1, issue2);
+            testSubject.Get().Should().Equal(issue1, issue2);
 
             testSubject.AddFactory(factory2);
-            Get_ShouldContainIssues(testSubject, issue1, issue2, issue3, issue4);
+            testSubject.Get().Should().Equal(issue1, issue2, issue3, issue4);
 
             testSubject.RemoveFactory(factory);
-            Get_ShouldContainIssues(testSubject, issue3, issue4);
-        }
-
-        private void Get_ShouldContainIssues(SonarErrorListDataSource testSubject, params IAnalysisIssueVisualization[] issues)
-        {
-            var result = testSubject.Get().ToArray();
-            issues.Count().Should().Be(issues.Length);
-
-            foreach (var issue in issues)
-            {
-                result.Should().Contain(issue);
-            }
+            testSubject.Get().Should().Equal(issue3, issue4);
         }
 
         private SonarErrorListDataSource CreateTestSubject()
