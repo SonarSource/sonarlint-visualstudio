@@ -26,10 +26,10 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.ConnectedMode;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
+using SonarLint.VisualStudio.IssueVisualization;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
@@ -93,6 +93,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
                 // ... and the the export should be a singleton, so the both importers should
                 // get the same instance
                 errorDataSourceImporter.Import.Should().BeSameAs(issueLocationStoreImporter.Import);
+                clientIssueStore.Import.Should().BeSameAs(errorDataSourceImporter.Import);
             }
         }
 

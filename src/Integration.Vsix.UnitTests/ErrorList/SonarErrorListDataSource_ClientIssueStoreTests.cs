@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         }
 
         [TestMethod]
-        public void Get_ReturnsCorrectIssuesTwoFactorîes()
+        public void Get_ReturnsCorrectIssuesTwoFactories()
         {
             var issue1 = Mock.Of<IAnalysisIssueVisualization>();
             var issue2 = Mock.Of<IAnalysisIssueVisualization>();
