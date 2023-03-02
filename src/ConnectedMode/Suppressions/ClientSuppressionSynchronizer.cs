@@ -21,7 +21,6 @@ using System.Diagnostics;
 using System.ComponentModel.Composition;
 using System.Linq;
 using SonarLint.VisualStudio.Core.Suppression;
-using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.IssueVisualization;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
@@ -43,16 +42,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
         public void SynchronizeSuppressedIssues()
         {
-            var clientIssues = clientIssueStore.Get().ToArray();
-            var filterableIssues = clientIssues.OfType<IFilterableIssue>().ToArray();
+            var filterableIssues = clientIssueStore.Get().OfType<IFilterableIssue>().ToArray();
 
-            var matches = issueFilter.GetMatches(clientIssues);
+            var matches = issueFilter.GetMatches(filterableIssues);
 
             Debug.Assert(matches.All(x => x is IAnalysisIssueVisualization), "Not expecting the issue filter to change the list item type");
 
-            foreach (var issue in clientIssues)
+            foreach (var issue in filterableIssues)
             {
-                issue.IsSuppressed = matches.Contains(issue);
+                var issueViz = issue as IAnalysisIssueVisualization;
+                issueViz.IsSuppressed = matches.Contains(issue);
             }
         }
     }

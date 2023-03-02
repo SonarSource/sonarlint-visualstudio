@@ -21,7 +21,6 @@
 using System.Collections.Generic;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Suppression;
-using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.IssueVisualization;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -102,7 +101,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             issue3.IsSuppressed.Should().BeFalse();
         }
 
-        private static IClientIssueStore CreateClientIssueStore(params IAnalysisIssueVisualization[] localIssues)
+        private static IClientIssueStore CreateClientIssueStore(IAnalysisIssueVisualization[] localIssues)
         {
             var clientIssueStore = new Mock<IClientIssueStore>();
 
