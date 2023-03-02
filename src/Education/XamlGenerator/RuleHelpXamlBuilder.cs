@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Text;
 using System.Windows.Documents;
 using System.Windows.Markup;
@@ -45,23 +41,15 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
     internal partial class RuleHelpXamlBuilder : IRuleHelpXamlBuilder
     {
         private const string XamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
-        
+
         private XmlWriter writer;
 
-        /// <summary>
-        /// Stack of currently open XAML elements
-        /// </summary>
-        /// <remarks>We need some information about the current structure so we can check whether some 
-        /// operations are valid e.g. can be we add text to the current element?</remarks>
-        private Stack<XamlOutputElementInfo> outputXamlElementStack = new Stack<XamlOutputElementInfo>();
-
-        private IRuleHelpXamlTranslator translator;
+        private readonly IRuleHelpXamlTranslator translator;
 
         public RuleHelpXamlBuilder()
         {
             translator = new RuleHelpXamlTranslator();
         }
-
 
         public FlowDocument Create(IRuleInfo ruleInfo)
         {
@@ -97,7 +85,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             writer.WriteAttributeString("xmlns", "http://schemas.microsoft.com/winfx/2006/xaml/presentation");
 
             WriteTitle(ruleInfo.Name);
-            WriteSubTitle(ruleInfo);            
+            WriteSubTitle(ruleInfo);
         }
 
         private void WriteTitle(string text)
