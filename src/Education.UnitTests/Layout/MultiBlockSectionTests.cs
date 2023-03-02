@@ -28,10 +28,10 @@ using SonarLint.VisualStudio.Education.Layout;
 namespace SonarLint.VisualStudio.Education.UnitTests.Layout
 {
     [TestClass]
-    public class MultiSectionSectionTests
+    public class MultiBlockSectionTests
     {
         [TestMethod]
-        public void CreateVisualization_ReturnsSectionWithHeaderAndSubsections()
+        public void CreateVisualization_ReturnsSectionWithSubsections()
         {
             var headerMock = new Mock<IAbstractVisualizationTreeNode>();
             var header = new Paragraph();
