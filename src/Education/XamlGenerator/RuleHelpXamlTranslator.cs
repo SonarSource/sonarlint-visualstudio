@@ -18,20 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-
-using static Microsoft.VisualStudio.Threading.AsyncReaderWriterLock;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Xml;
-using System.Collections.Generic;
-using System;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
 {
+    /// <summary>
+    /// Translator for html content in rule definition to xaml
+    /// </summary>
+    /// <remarks>
+    /// Our assumption is generated xaml will be partial and will be under a xaml root by caller
+    /// This root will either be <FlowDocument> or <Section>
+    /// </remarks>
     public interface IRuleHelpXamlTranslator
     {
-        string TranslateHtmlToXaml(string htmlContent, bool supportsInline = false);
+        string TranslateHtmlToXaml(string htmlContent);
     }
 
     internal class RuleHelpXamlTranslator : IRuleHelpXamlTranslator
@@ -42,7 +47,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         /// <summary>
         /// Stack of currently open XAML elements
         /// </summary>
-        /// <remarks>We need some information about the current structure so we can check whether some 
+        /// <remarks>We need some information about the current structure so we can check whether some
         /// operations are valid e.g. can be we add text to the current element?</remarks>
         private Stack<XamlOutputElementInfo> outputXamlElementStack;
 
@@ -51,15 +56,15 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         /// </summary>
         private bool tableAlternateRow;
 
-        public string TranslateHtmlToXaml(string htmlContent, bool supportsInline = false)
+        public string TranslateHtmlToXaml(string htmlContent)
         {
             var sb = new StringBuilder();
             writer = CreateXmlWriter(sb);
             reader = CreateXmlReader(htmlContent);
             outputXamlElementStack = new Stack<XamlOutputElementInfo>();
 
-            //We are putting this root as to keep track of whether the root element for the translated xml supports inline or not
-            outputXamlElementStack.Push(new XamlOutputElementInfo("html root", supportsInline));
+            //We are putting this to simulate the root which will accept only Blocks. So we can add paragraph to inline elements to make them compatible.
+            outputXamlElementStack.Push(new XamlOutputElementInfo("xaml root", false));
 
             try
             {
@@ -88,6 +93,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                             } while (xamlOutputElement.HtmlElementName != reader.Name);
 
                             break;
+
                         default:
                             var message = string.Format(Resources.XamlBuilder_UnexpectedNodeError, reader.NodeType, reader.Name, reader.Value);
                             throw new InvalidDataException(message);
@@ -97,11 +103,11 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 // We've processed all of the html elements.
                 // Now, the stack should only contain the root FlowDocument element, plus an extra
                 // block element if the first tag we processed was an Inline.
-                Debug.Assert((outputXamlElementStack.Count <= 2 && supportsInline == false) || (outputXamlElementStack.Count <= 1), "Expecting at most 2 unclosed elements in the stack");
-                Debug.Assert((outputXamlElementStack.Count == 1 && outputXamlElementStack.Peek().HtmlElementName == "html root")
-                    || (outputXamlElementStack.Count == 2 && supportsInline == false &&
+                Debug.Assert((outputXamlElementStack.Count <= 2) || (outputXamlElementStack.Count <= 1), "Expecting at most 2 unclosed elements in the stack");
+                Debug.Assert((outputXamlElementStack.Count == 1 && outputXamlElementStack.Peek().HtmlElementName == "xaml root")
+                    || (outputXamlElementStack.Count == 2 &&
                         outputXamlElementStack.ToArray()[0].HtmlElementName == null &&
-                        outputXamlElementStack.ToArray()[1].HtmlElementName == "html root"),
+                        outputXamlElementStack.ToArray()[1].HtmlElementName == "xaml root"),
                         "Unexpected items in final stack");
 
                 //root element will be on the calling class so opening and closing it should be handled there
@@ -109,7 +115,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 {
                     outputXamlElementStack.Pop();
                     writer.WriteEndElement();
-                }                
+                }
             }
             finally
             {
@@ -307,7 +313,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
             return XmlWriter.Create(stringWriter, settings);
         }
-        
+
         private void WriteText(string text)
         {
             // If we are writing an inline element, we need a parent element that supports text directly.
@@ -369,7 +375,6 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             var current = outputXamlElementStack.Peek();
             if (current.SupportsInlines) { return; }
 
-
             // If the current XAML class doesn't support inlines then we assume that
             // it supports blocks, and add Paragraph.
             // Paragraph is a type of Block that supports Inlines.
@@ -377,11 +382,11 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             // Note that there are some XAML classes where this situation won't be valid
             // e.g. <Table>text
             // In this case, adding a Paragraph to a Table directly is not valid i.e. the
-            // input HTML document is not valid. If the input document isn't valid then 
+            // input HTML document is not valid. If the input document isn't valid then
             // we don't try to produce a valid XAML document from it.
 
             writer.WriteStartElement("Paragraph");
-            PushOutputElementInfo(null, true);            
+            PushOutputElementInfo(null, true);
         }
 
         private void EnsureCurrentOutputSupportsBlocks()
@@ -401,7 +406,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             // ourselves, that don't map to a specific html tag.
 
             // e.g. nested lists - c_s1749.desc
-            // 1. <ol> 
+            // 1. <ol>
             // 2.     <li> type name, spelling of built-in types with more than one type-specifier:
             // 3.        <ol>
             // 4.             <li> signedness - <code>signed</code> or <code>unsigned</code> </li>
@@ -414,7 +419,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             //                      // can't add text to ListItem since it only accepts blocks.
             //                      // So, we add a Paragraph, which is a block that can contain
             //                      // Inlines e.g. text.
-            //                      
+            //
             // c.      <Paragraph>  <-- extra element added by us, not mapped to an html element
             // d.        type name, spelling of..       <-- text from the html
             //

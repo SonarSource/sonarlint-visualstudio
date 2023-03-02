@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-
-using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Education.XamlGenerator;
@@ -30,37 +28,21 @@ namespace SonarLint.VisualStudio.Education.UnitTests
     public class RuleHelpXamlTranslatorTests
     {
         [TestMethod]
-        public void TranslateHtmlToXaml_DoesNotSupportInline_Inline_AddsParagraph()
+        public void TranslateHtmlToXaml_InlineContent_AddsParagraph()
         {
             var testSubject = new RuleHelpXamlTranslator();
 
-            var htmlText = @"<code>inline Text</code>";
+            var htmlText = "inline Text";
 
-            var expectedText =
-@"<Paragraph>
-  <Span Style=""{DynamicResource Code_Span}"">inline Text</Span>
-</Paragraph>";
+            var expectedText = "<Paragraph>inline Text</Paragraph>";
 
-            var result = testSubject.TranslateHtmlToXaml(htmlText, false);
+            var result = testSubject.TranslateHtmlToXaml(htmlText);
 
             result.Should().Be(expectedText);
         }
 
         [TestMethod]
-        public void TranslateHtmlToXaml_SupportInline_Inline_DoesNotAddParagraph()
-        {
-            var testSubject = new RuleHelpXamlTranslator();
-
-            var htmlText = @"<code>inline Text</code>";
-
-            var expectedText = @"<Span Style=""{DynamicResource Code_Span}"">inline Text</Span>";
-
-            var result = testSubject.TranslateHtmlToXaml(htmlText, true);
-
-            result.Should().Be(expectedText);
-        }
-        [TestMethod]
-        public void TranslateHtmlToXaml_DoesNotSupportInline_Block_Translates()
+        public void TranslateHtmlToXaml_BlockContent_Translates()
         {
             var testSubject = new RuleHelpXamlTranslator();
 
@@ -72,23 +54,9 @@ namespace SonarLint.VisualStudio.Education.UnitTests
   </ListItem>
 </List>";
 
-            var result = testSubject.TranslateHtmlToXaml(htmlText, false);
+            var result = testSubject.TranslateHtmlToXaml(htmlText);
 
             result.Should().Be(expectedText);
         }
-
-
-        [TestMethod]
-        public void TranslateHtmlToXaml_SupportInline_Block_Throws()
-        {
-            var testSubject = new RuleHelpXamlTranslator();
-
-            var htmlText = @"<ul><li>some list item</li></ul>";
-
-            Action act = () => testSubject.TranslateHtmlToXaml(htmlText, true);
-
-            act.Should().Throw<InvalidOperationException>().WithMessage("Invalid state: can't find an element that supports blocks");
-        }
-
     }
 }
