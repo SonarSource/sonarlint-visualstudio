@@ -19,30 +19,30 @@
  */
 
 using System.Windows.Documents;
-using SonarLint.VisualStudio.Education.Layout.Tabs;
-using SonarLint.VisualStudio.Education.XamlParser;
 
 namespace SonarLint.VisualStudio.Education.Layout
 {
     /// <summary>
-    /// Represents section with a header that has a configurable set of content subtabs
+    /// Represents section with a header that has a configurable set of content subsections
     /// </summary>
-    internal class MultiTabSection : IAbstractVisualizationTreeNode
+    internal class MultiBlockSection : IAbstractVisualizationTreeNode
     {
-        private readonly IXamlBlockContent header;
-        private readonly ITabGroup tabs;
+        private readonly IAbstractVisualizationTreeNode[] blocks;
 
-        public MultiTabSection(IXamlBlockContent header, ITabGroup tabs)
+        public MultiBlockSection(params IAbstractVisualizationTreeNode[] blocks)
         {
-            this.header = header;
-            this.tabs = tabs;
+            this.blocks = blocks;
         }
 
         public Block CreateVisualization()
         {
             var container = new Section();
-            container.Blocks.Add(header.GetObjectRepresentation());
-            container.Blocks.Add(tabs.CreateVisualization());
+
+            foreach (var block in blocks)
+            {
+                container.Blocks.Add(block.CreateVisualization());
+            }
+
             return container;
         }
     }

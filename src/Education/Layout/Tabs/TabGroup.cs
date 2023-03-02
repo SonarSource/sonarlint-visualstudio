@@ -28,13 +28,7 @@ namespace SonarLint.VisualStudio.Education.Layout.Tabs
     /// <summary>
     /// Represents tab grouping that renders the necessary tab buttons and sets the default active tab
     /// </summary>
-    internal interface ITabGroup : IAbstractVisualizationTreeNode
-    {
-        // marker interface, mainly added for mocking in tests
-    }
-
-    /// <inheritdoc cref="IAbstractVisualizationTreeNode"/>
-    internal class TabGroup : ITabGroup
+    internal class TabGroup : IAbstractVisualizationTreeNode
     {
         private readonly string name;
         private readonly List<TabItem> tabs;

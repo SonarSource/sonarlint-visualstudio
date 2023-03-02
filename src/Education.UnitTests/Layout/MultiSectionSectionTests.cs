@@ -19,13 +19,11 @@
  */
 
 using System.Collections;
-using System.Collections.Generic;
 using System.Windows.Documents;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Education.Layout;
-using SonarLint.VisualStudio.Education.XamlParser;
 
 namespace SonarLint.VisualStudio.Education.UnitTests.Layout
 {
@@ -35,9 +33,9 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout
         [TestMethod]
         public void CreateVisualization_ReturnsSectionWithHeaderAndSubsections()
         {
-            var xamlHeaderMock = new Mock<IXamlBlockContent>();
+            var headerMock = new Mock<IAbstractVisualizationTreeNode>();
             var header = new Paragraph();
-            xamlHeaderMock.Setup(x => x.GetObjectRepresentation()).Returns(header);
+            headerMock.Setup(x => x.CreateVisualization()).Returns(header);
             
             var child1 = new Section();
             var child1Node = new Mock<IAbstractVisualizationTreeNode>();
@@ -48,7 +46,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout
             child2Node.Setup(x => x.CreateVisualization()).Returns(child2);
 
             var testSubject =
-                new MultiSectionSection(xamlHeaderMock.Object, new List<IAbstractVisualizationTreeNode> {child1Node.Object, child2Node.Object});
+                new MultiBlockSection(headerMock.Object, child1Node.Object, child2Node.Object);
 
             var visualization = testSubject.CreateVisualization();
 
