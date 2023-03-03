@@ -35,7 +35,7 @@ using SonarQube.Client.Models;
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
 {
     /// <summary>
-    /// Responsible for listening to <see cref="ISuppressedIssuesMonitor.SuppressionsUpdateRequested"/> and calling
+    /// Responsible for listening to <see cref="ISuppressedIssuesMonitor.ServerSuppressionsChanged"/> and calling
     /// <see cref="IRoslynSettingsFileStorage.Update"/> with the new suppressions.
     /// </summary>
     public interface IRoslynSettingsFileSynchronizer : IDisposable
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
             this.logger = logger;
             this.threadHandling = threadHandling;
 
-            suppressedIssuesMonitor.SuppressionsUpdateRequested += SuppressedIssuesMonitor_SuppressionsUpdateRequested;
+            suppressedIssuesMonitor.ServerSuppressionsChanged += SuppressedIssuesMonitor_SuppressionsUpdateRequested;
         }
 
         private void SuppressedIssuesMonitor_SuppressionsUpdateRequested(object sender, EventArgs e)
@@ -138,7 +138,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
 
         public void Dispose()
         {
-            suppressedIssuesMonitor.SuppressionsUpdateRequested -= SuppressedIssuesMonitor_SuppressionsUpdateRequested;
+            suppressedIssuesMonitor.ServerSuppressionsChanged -= SuppressedIssuesMonitor_SuppressionsUpdateRequested;
         }
 
         // Converts SonarQube issues to SuppressedIssues that can be compared more easily with Roslyn issues

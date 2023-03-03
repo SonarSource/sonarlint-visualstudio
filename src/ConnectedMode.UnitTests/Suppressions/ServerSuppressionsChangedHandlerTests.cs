@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             _ = new ServerSuppressionsChangedHandler(Mock.Of<IClientSuppressionSynchronizer>(), suppressedIssuesMonitor.Object);
 
-            suppressedIssuesMonitor.VerifyAdd(x => x.SuppressionsUpdateRequested += It.IsAny<EventHandler>(), Times.Once());
+            suppressedIssuesMonitor.VerifyAdd(x => x.ServerSuppressionsChanged += It.IsAny<EventHandler>(), Times.Once());
         }
 
         [TestMethod]
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             testSubject.Dispose();
 
-            suppressedIssuesMonitor.VerifyRemove(x => x.SuppressionsUpdateRequested -= It.IsAny<EventHandler>(), Times.Once());
+            suppressedIssuesMonitor.VerifyRemove(x => x.ServerSuppressionsChanged -= It.IsAny<EventHandler>(), Times.Once());
         }
 
         [TestMethod]
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             _ = new ServerSuppressionsChangedHandler(clientSuppressionSynchronizer.Object, suppressedIssuesMonitor.Object);
 
-            suppressedIssuesMonitor.Raise(x => x.SuppressionsUpdateRequested += null, EventArgs.Empty);
+            suppressedIssuesMonitor.Raise(x => x.ServerSuppressionsChanged += null, EventArgs.Empty);
 
             clientSuppressionSynchronizer.Verify(x => x.SynchronizeSuppressedIssues(), Times.Once);
         }
