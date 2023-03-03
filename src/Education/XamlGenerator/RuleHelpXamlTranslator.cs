@@ -23,62 +23,60 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using System.Windows.Documents;
-using System.Windows.Markup;
 using System.Xml;
-using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
 {
-    public interface IRuleHelpXamlBuilder
+    /// <summary>
+    /// Translator for html content in rule definition to xaml
+    /// </summary>
+    /// <remarks>
+    /// Our assumption is generated xaml will be partial and will be under a xaml root by caller
+    /// This root will either be <FlowDocument> or <Section>
+    /// </remarks>
+    public interface IRuleHelpXamlTranslator
     {
         /// <summary>
-        /// Generates a XAML document containing the help information for the specified rule
+        /// Translates the given partial html to Xaml
         /// </summary>
-        /// <remarks>Assumes that the <see cref="IRuleHelp.HtmlDescription"/> is parseable as XML.
-        /// Also assumes that the containing control defines a list of Style resources, one for each
-        /// value in the enum <see cref="StyleResourceNames"/>.
-        /// The document will still render if a style is missing, but the styling won't be correct.</remarks>
-        FlowDocument Create(IRuleInfo ruleInfo);
+        /// <returns>Returns a non-inline xaml.</returns>
+        /// <param name="htmlContent">Partial HTML which can be parsed as an XML</param>
+        /// <remarks>
+        /// Depending on the input return value can be a single block or multiple blocks
+        /// But there can not be an inline item on the top level.
+        /// </remarks>
+        string TranslateHtmlToXaml(string htmlContent);
     }
 
-    internal partial class RuleHelpXamlBuilder : IRuleHelpXamlBuilder
+    internal class RuleHelpXamlTranslator : IRuleHelpXamlTranslator
     {
-        private const string XamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
-        
         private XmlWriter writer;
         private XmlReader reader;
 
         /// <summary>
         /// Stack of currently open XAML elements
         /// </summary>
-        /// <remarks>We need some information about the current structure so we can check whether some 
+        /// <remarks>We need some information about the current structure so we can check whether some
         /// operations are valid e.g. can be we add text to the current element?</remarks>
-        private Stack<XamlOutputElementInfo> outputXamlElementStack = new Stack<XamlOutputElementInfo>();
+        private Stack<XamlOutputElementInfo> outputXamlElementStack;
 
         /// <summary>
         /// Used to add background colour to alternate rows in a table
         /// </summary>
         private bool tableAlternateRow;
 
-
-        public FlowDocument Create(IRuleInfo ruleInfo)
-        {
-            var xaml = CreateXamlString(ruleInfo);
-            var flowDocument = (FlowDocument)XamlReader.Parse(xaml);
-            return flowDocument;
-        }
-
-        internal /* for testing */ string CreateXamlString(IRuleInfo ruleInfo)
+        public string TranslateHtmlToXaml(string htmlContent)
         {
             var sb = new StringBuilder();
             writer = CreateXmlWriter(sb);
-            reader = CreateXmlReader(ruleInfo.Description);
+            reader = CreateXmlReader(htmlContent);
+            outputXamlElementStack = new Stack<XamlOutputElementInfo>();
+
+            //We are putting this to simulate the root which will accept only Blocks. So we can add paragraph to inline elements to make them compatible.
+            outputXamlElementStack.Push(new XamlOutputElementInfo("xaml root", false));
 
             try
             {
-                WriteDocumentHeader(ruleInfo);
-
                 while (reader.Read())
                 {
                     switch (reader.NodeType)
@@ -104,6 +102,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                             } while (xamlOutputElement.HtmlElementName != reader.Name);
 
                             break;
+
                         default:
                             var message = string.Format(Resources.XamlBuilder_UnexpectedNodeError, reader.NodeType, reader.Name, reader.Value);
                             throw new InvalidDataException(message);
@@ -111,16 +110,17 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 }
 
                 // We've processed all of the html elements.
-                // Now, the stack should only contain the root FlowDocument element, plus an extra
+                // Now, the stack should only contain the root element, plus an extra
                 // block element if the first tag we processed was an Inline.
                 Debug.Assert(outputXamlElementStack.Count <= 2, "Expecting at most 2 unclosed elements in the stack");
-                Debug.Assert((outputXamlElementStack.Count == 1 && outputXamlElementStack.Peek().HtmlElementName == "html root")
+                Debug.Assert((outputXamlElementStack.Count == 1 && outputXamlElementStack.Peek().HtmlElementName == "xaml root")
                     || (outputXamlElementStack.Count == 2 &&
                         outputXamlElementStack.ToArray()[0].HtmlElementName == null &&
-                        outputXamlElementStack.ToArray()[1].HtmlElementName == "html root"),
+                        outputXamlElementStack.ToArray()[1].HtmlElementName == "xaml root"),
                         "Unexpected items in final stack");
 
-                while (outputXamlElementStack.Count > 0)
+                //root element will be on the calling class so opening and closing it should be handled there
+                while (outputXamlElementStack.Count > 1)
                 {
                     outputXamlElementStack.Pop();
                     writer.WriteEndElement();
@@ -133,97 +133,6 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             }
 
             return sb.ToString();
-        }
-
-
-        private void WriteDocumentHeader(IRuleInfo ruleInfo)
-        {
-            writer.WriteStartElement("FlowDocument", XamlNamespace);
-            writer.WriteAttributeString("xmlns", "http://schemas.microsoft.com/winfx/2006/xaml/presentation");
-
-            WriteTitle(ruleInfo.Name);
-            WriteSubTitle(ruleInfo);
-
-            outputXamlElementStack.Push(new XamlOutputElementInfo("html root", false));
-        }
-
-        private void WriteTitle(string text)
-        {
-            writer.WriteStartElement("Paragraph");
-            ApplyStyleToStartElement(StyleResourceNames.Title_Paragraph);
-            writer.WriteString(text);
-            writer.WriteEndElement();
-        }
-
-        private void WriteSubTitle(IRuleInfo ruleInfo)
-        {
-            writer.WriteStartElement("Paragraph");
-            ApplyStyleToStartElement(StyleResourceNames.Title_Paragraph);
-
-            WriteSubTitleElement_IssueType(ruleInfo);
-            WriteSubTitleElement_Severity(ruleInfo);
-            WriteSubTitleElement_RuleKey(ruleInfo);
-            WriteSubTitleElement_Tags(ruleInfo);
-
-            writer.WriteEndElement();
-        }
-
-        private void WriteSubTitleElement_IssueType(IRuleInfo ruleInfo)
-        {
-            var imageInfo = SubTitleImageInfo.IssueTypeImages[ruleInfo.IssueType];
-            WriteSubTitleElementWithImage(imageInfo);
-        }
-
-        private void WriteSubTitleElement_Severity(IRuleInfo ruleInfo)
-        {
-            var imageInfo = SubTitleImageInfo.SeverityImages[ruleInfo.DefaultSeverity];
-            WriteSubTitleElementWithImage(imageInfo);
-        }
-
-        private void WriteSubTitleElementWithImage(SubTitleImageInfo imageInfo)
-        {
-            writer.WriteStartElement("Span");
-            ApplyStyleToStartElement(StyleResourceNames.SubtitleElement_Span);
-
-            if (imageInfo.ImageResourceName != null)
-            {
-                writer.WriteStartElement("InlineUIContainer");
-                writer.WriteStartElement("Image");
-                ApplyStyleToStartElement(StyleResourceNames.SubtitleElement_Image);
-                writer.WriteAttributeString("Source", $"{{DynamicResource {imageInfo.ImageResourceName}}}");
-                writer.WriteEndElement(); // Image
-                writer.WriteEndElement(); // InlineUIContainer
-            }
-
-            writer.WriteString(imageInfo.DisplayText);
-            writer.WriteEndElement(); // Span
-        }
-
-        private void WriteSubTitleElement_Tags(IRuleInfo ruleInfo)
-        {
-            if (ruleInfo.Tags.Count == 0)
-            {
-                return;
-            }
-
-            // TODO: icon
-            WriteSubTitleElement("Tags: " + string.Join(" ", ruleInfo.Tags));
-        }
-
-        private void WriteSubTitleElement_RuleKey(IRuleInfo ruleInfo)
-            => WriteSubTitleElement(ruleInfo.FullRuleKey);
-
-        private void WriteSubTitleElement(string text)
-        {
-            writer.WriteStartElement("Span");
-            ApplyStyleToStartElement(StyleResourceNames.SubtitleElement_Span);
-            writer.WriteString(text);
-            writer.WriteEndElement();
-        }
-
-        private void PushOutputElementInfo(string htmlElementName, bool supportsInlines)
-        {
-            outputXamlElementStack.Push(new XamlOutputElementInfo(htmlElementName, supportsInlines));
         }
 
         private void ProcessElement()
@@ -240,7 +149,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "blockquote":
                     WriteBlockElementStart("Section");
-                    ApplyStyleToStartElement(StyleResourceNames.Blockquote_Section);
+                    writer.ApplyStyleToElement(StyleResourceNames.Blockquote_Section);
 
                     PushOutputElementInfo("blockquote", false);
 
@@ -254,7 +163,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "code":
                     WriteInlineElementStart("Span");
-                    ApplyStyleToStartElement(StyleResourceNames.Code_Span);
+                    writer.ApplyStyleToElement(StyleResourceNames.Code_Span);
 
                     break;
 
@@ -264,14 +173,14 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "h2":
                     writer.WriteStartElement("Paragraph");
-                    ApplyStyleToStartElement(StyleResourceNames.Heading2_Paragraph);
+                    writer.ApplyStyleToElement(StyleResourceNames.Heading2_Paragraph);
 
                     PushOutputElementInfo("h2", true);
                     break;
 
                 case "h3":
                     writer.WriteStartElement("Paragraph");
-                    ApplyStyleToStartElement(StyleResourceNames.Heading3_Paragraph);
+                    writer.ApplyStyleToElement(StyleResourceNames.Heading3_Paragraph);
 
                     PushOutputElementInfo("h3", true);
                     break;
@@ -284,7 +193,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "ol":
                     WriteBlockElementStart("List");
-                    ApplyStyleToStartElement(StyleResourceNames.OrderedList);
+                    writer.ApplyStyleToElement(StyleResourceNames.OrderedList);
 
                     PushOutputElementInfo("ol", false);
 
@@ -292,7 +201,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "p":
                     writer.WriteStartElement("Paragraph");
-          
+
                     PushOutputElementInfo("p", true);
 
                     break;
@@ -300,7 +209,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 case "pre":
                     WriteBlockElementStart("Section");
                     writer.WriteAttributeString("xml", "space", null, "preserve");
-                    ApplyStyleToStartElement(StyleResourceNames.Pre_Section);
+                    writer.ApplyStyleToElement(StyleResourceNames.Pre_Section);
 
                     PushOutputElementInfo("pre", false);
                     break;
@@ -312,7 +221,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "ul":
                     WriteBlockElementStart("List");
-                    ApplyStyleToStartElement(StyleResourceNames.UnorderedList);
+                    writer.ApplyStyleToElement(StyleResourceNames.UnorderedList);
 
                     PushOutputElementInfo("ul", false);
 
@@ -320,7 +229,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "table":
                     WriteBlockElementStart("Table");
-                    ApplyStyleToStartElement(StyleResourceNames.Table);
+                    writer.ApplyStyleToElement(StyleResourceNames.Table);
 
                     PushOutputElementInfo("table", false);
 
@@ -340,7 +249,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "thead":
                     writer.WriteStartElement("TableRowGroup");
-                    ApplyStyleToStartElement(StyleResourceNames.TableHeaderRowGroup);
+                    writer.ApplyStyleToElement(StyleResourceNames.TableHeaderRowGroup);
 
                     PushOutputElementInfo("thead", false);
 
@@ -356,7 +265,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "th":
                     writer.WriteStartElement("TableCell");
-                    ApplyStyleToStartElement(StyleResourceNames.TableHeaderCell);
+                    writer.ApplyStyleToElement(StyleResourceNames.TableHeaderCell);
                     PushOutputElementInfo("th", false);
 
                     break;
@@ -373,7 +282,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     PushOutputElementInfo("td", false);
 
                     var cellStyle = tableAlternateRow ? StyleResourceNames.TableBodyCellAlternateRow : StyleResourceNames.TableBodyCell;
-                    ApplyStyleToStartElement(cellStyle);
+                    writer.ApplyStyleToElement(cellStyle);
 
                     break;
 
@@ -383,6 +292,65 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     writer.WriteEndElement();
                     break;
             }
+        }
+
+        private static XmlReader CreateXmlReader(string data)
+        {
+            var settings = new XmlReaderSettings
+            {
+                ConformanceLevel = ConformanceLevel.Fragment,
+                IgnoreWhitespace = false,
+            };
+
+            var stream = new StringReader(data);
+            return XmlReader.Create(stream, settings);
+        }
+
+        internal static XmlWriter CreateXmlWriter(StringBuilder sb)
+        {
+            var stringWriter = new StringWriter(sb);
+
+            var settings = new XmlWriterSettings
+            {
+                ConformanceLevel = ConformanceLevel.Fragment,
+                Encoding = Encoding.UTF8,
+                OmitXmlDeclaration = true,
+                Indent = true,
+                CloseOutput = true,
+                WriteEndDocumentOnClose = true
+            };
+
+            return XmlWriter.Create(stringWriter, settings);
+        }
+
+        private void WriteText(string text)
+        {
+            // If we are writing an inline element, we need a parent element that supports text directly.
+            // e.g. <li> some text ... </li>            -> <li> does not support inlines directly.
+            EnsureCurrentOutputSupportsInlines();
+
+            // Note: we could explicitly wrap the text in a <Run>. However, that will happen implicitly
+            // when the XAML is parsed, and it won't make any difference to the rendered output.
+            writer.WriteString(text);
+        }
+
+        private void WriteInlineElementStart(string elementName)
+        {
+            // If we are writing an inline element, we need a parent element that supports inlines.
+
+            // This might/might not be the case.
+            // e.g. <li><p> some text ... </p><li>      -> <p> does support inlines, so we can just write the text
+            // e.g. <li> <bold>some text ... </bold></li>            -> <li> does not support inlines directly.
+            EnsureCurrentOutputSupportsInlines();
+
+            writer.WriteStartElement(elementName);
+            PushOutputElementInfo(reader.Name, true);
+        }
+
+        private void WriteBlockElementStart(string elementName)
+        {
+            EnsureCurrentOutputSupportsBlocks();
+            writer.WriteStartElement(elementName);
         }
 
         /// <summary>
@@ -400,42 +368,15 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         /// up resources defined in parent elements.
         /// </para>
         /// </remarks>
-        private void ApplyStyleToStartElement(StyleResourceNames style) =>
-            writer.WriteAttributeString("Style", $"{{DynamicResource {style}}}");
+        private void PushOutputElementInfo(string htmlElementName, bool supportsInlines)
+        {
+            outputXamlElementStack.Push(new XamlOutputElementInfo(htmlElementName, supportsInlines));
+        }
 
         private void WriteEmptyElement(string name, string value = null)
         {
             Debug.Assert(reader.IsEmptyElement);
             writer.WriteElementString(name, value);
-        }
-
-        private void WriteInlineElementStart(string elementName)
-        {
-            // If we are writing an inline element, we need a parent element that supports inlines.
-
-            // This might/might not be the case.
-            // e.g. <li><p> some text ... </p><li>      -> <p> does support inlines, so we can just write the text
-            // e.g. <li> <bold>some text ... </bold></li>            -> <li> does not support inlines directly.
-            EnsureCurrentOutputSupportsInlines();
-
-            writer.WriteStartElement(elementName);
-            PushOutputElementInfo(reader.Name, true);
-        }
-
-        private void WriteText(string text)
-        {
-            // If we are writing an inline element, we need a parent element that supports text directly.
-            // e.g. <li> some text ... </li>            -> <li> does not support inlines directly.
-            EnsureCurrentOutputSupportsInlines();
-
-            // Note: we could explicitly wrap the text in a <Run>. However, that will happen implicitly
-            // when the XAML is parsed, and it won't make any difference to the rendered output.
-            writer.WriteString(text);
-        }
-        private void WriteBlockElementStart(string elementName)
-        {
-            EnsureCurrentOutputSupportsBlocks();
-            writer.WriteStartElement(elementName);
         }
 
         private void EnsureCurrentOutputSupportsInlines()
@@ -450,7 +391,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             // Note that there are some XAML classes where this situation won't be valid
             // e.g. <Table>text
             // In this case, adding a Paragraph to a Table directly is not valid i.e. the
-            // input HTML document is not valid. If the input document isn't valid then 
+            // input HTML document is not valid. If the input document isn't valid then
             // we don't try to produce a valid XAML document from it.
 
             writer.WriteStartElement("Paragraph");
@@ -474,7 +415,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             // ourselves, that don't map to a specific html tag.
 
             // e.g. nested lists - c_s1749.desc
-            // 1. <ol> 
+            // 1. <ol>
             // 2.     <li> type name, spelling of built-in types with more than one type-specifier:
             // 3.        <ol>
             // 4.             <li> signedness - <code>signed</code> or <code>unsigned</code> </li>
@@ -487,7 +428,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             //                      // can't add text to ListItem since it only accepts blocks.
             //                      // So, we add a Paragraph, which is a block that can contain
             //                      // Inlines e.g. text.
-            //                      
+            //
             // c.      <Paragraph>  <-- extra element added by us, not mapped to an html element
             // d.        type name, spelling of..       <-- text from the html
             //
@@ -522,35 +463,6 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             {
                 throw new InvalidOperationException("Invalid state: can't find an element that supports blocks");
             }
-        }
-
-        private static XmlReader CreateXmlReader(string data)
-        {
-            var settings = new XmlReaderSettings
-            {
-                ConformanceLevel = ConformanceLevel.Fragment,
-                IgnoreWhitespace = false,
-            };
-
-            var stream = new StringReader(data);
-            return XmlReader.Create(stream, settings);
-        }
-
-        private static XmlWriter CreateXmlWriter(StringBuilder sb)
-        {
-            var stringWriter = new StringWriter(sb);
-
-            var settings = new XmlWriterSettings
-            {
-                ConformanceLevel = ConformanceLevel.Document,
-                Encoding = Encoding.UTF8,
-                OmitXmlDeclaration = true,
-                Indent = true,
-                CloseOutput = true,
-                WriteEndDocumentOnClose = true
-            };
-
-            return XmlWriter.Create(stringWriter, settings);
         }
     }
 }
