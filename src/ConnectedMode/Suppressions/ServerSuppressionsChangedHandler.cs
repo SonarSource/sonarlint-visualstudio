@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             this.clientSuppressionSynchronizer = clientSuppressionSynchronizer;
             this.suppressedIssuesMonitor = suppressedIssuesMonitor;
 
-            suppressedIssuesMonitor.SuppressionsUpdateRequested += ServerSuppressionsChanged;
+            suppressedIssuesMonitor.ServerSuppressionsChanged += ServerSuppressionsChanged;
         }
 
         private void ServerSuppressionsChanged(object sender, EventArgs e)
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
         public void Dispose()
         {
-            suppressedIssuesMonitor.SuppressionsUpdateRequested -= ServerSuppressionsChanged;
+            suppressedIssuesMonitor.ServerSuppressionsChanged -= ServerSuppressionsChanged;
         }
     }
 }

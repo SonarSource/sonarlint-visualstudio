@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
     public class SuppressedIssuesProvider : ISonarQubeIssuesProvider, ISuppressedIssuesMonitor
     {
         public delegate ISonarQubeIssuesProvider CreateProviderFunc(BindingConfiguration bindingConfiguration);
-        public event EventHandler SuppressionsUpdateRequested;
+        public event EventHandler ServerSuppressionsChanged;
 
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly CreateProviderFunc createProviderFunc;
@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             if (configuration.Mode != SonarLintMode.Standalone)
             {
                 instance = createProviderFunc(configuration);
-                SuppressionsUpdateRequested?.Invoke(this, EventArgs.Empty);
+                ServerSuppressionsChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             if (disposing && !disposed)
             {
                 CleanupResources();
-                SuppressionsUpdateRequested = null;
+                ServerSuppressionsChanged = null;
                 activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
                 activeSolutionBoundTracker.SolutionBindingUpdated -= OnSolutionBindingUpdated;
                 disposed = true;
