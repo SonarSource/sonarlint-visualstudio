@@ -57,11 +57,11 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
         {
             var suppressedIssuesMonitor = new Mock<ISuppressedIssuesMonitor>();
 
-            suppressedIssuesMonitor.SetupAdd(x => x.SuppressionsUpdateRequested += null);
+            suppressedIssuesMonitor.SetupAdd(x => x.ServerSuppressionsChanged += null);
 
             CreateTestSubject(suppressedIssuesMonitor: suppressedIssuesMonitor.Object);
 
-            suppressedIssuesMonitor.VerifyAdd(x => x.SuppressionsUpdateRequested += It.IsAny<EventHandler>(), Times.Once());
+            suppressedIssuesMonitor.VerifyAdd(x => x.ServerSuppressionsChanged += It.IsAny<EventHandler>(), Times.Once());
             suppressedIssuesMonitor.VerifyNoOtherCalls();
         }
 
@@ -70,17 +70,17 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
         {
             var suppressedIssuesMonitor = new Mock<ISuppressedIssuesMonitor>();
 
-            suppressedIssuesMonitor.SetupAdd(x => x.SuppressionsUpdateRequested += null);
-            suppressedIssuesMonitor.SetupRemove(x => x.SuppressionsUpdateRequested -= null);
+            suppressedIssuesMonitor.SetupAdd(x => x.ServerSuppressionsChanged += null);
+            suppressedIssuesMonitor.SetupRemove(x => x.ServerSuppressionsChanged -= null);
 
             var testSubject = CreateTestSubject(suppressedIssuesMonitor: suppressedIssuesMonitor.Object);
 
-            suppressedIssuesMonitor.VerifyAdd(x => x.SuppressionsUpdateRequested += It.IsAny<EventHandler>(), Times.Once());
+            suppressedIssuesMonitor.VerifyAdd(x => x.ServerSuppressionsChanged += It.IsAny<EventHandler>(), Times.Once());
             suppressedIssuesMonitor.VerifyNoOtherCalls();
 
             testSubject.Dispose();
 
-            suppressedIssuesMonitor.VerifyRemove(x => x.SuppressionsUpdateRequested -= It.IsAny<EventHandler>(), Times.Once());
+            suppressedIssuesMonitor.VerifyRemove(x => x.ServerSuppressionsChanged -= It.IsAny<EventHandler>(), Times.Once());
             suppressedIssuesMonitor.VerifyNoOtherCalls();
         }
 
@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
                 activeSolutionBoundTracker: activeSolutionBoundTracker.Object,
                 roslynSettingsFileStorage: roslynSettingsFileStorage.Object);
 
-            suppressedIssuesMonitor.Raise(x=> x.SuppressionsUpdateRequested += null, EventArgs.Empty);
+            suppressedIssuesMonitor.Raise(x=> x.ServerSuppressionsChanged += null, EventArgs.Empty);
 
             activeSolutionBoundTracker.Verify(x=> x.CurrentConfiguration, Times.Once);
             roslynSettingsFileStorage.Invocations.Count.Should().Be(0);
@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
                 roslynSettingsFileStorage: roslynSettingsFileStoragerage.Object,
                 suppressedIssuesProvider: suppressedIssuesProvider.Object);
 
-            suppressedIssuesMonitor.Raise(x => x.SuppressionsUpdateRequested += null, EventArgs.Empty);
+            suppressedIssuesMonitor.Raise(x => x.ServerSuppressionsChanged += null, EventArgs.Empty);
 
             roslynSettingsFileStoragerage.Verify(x => x.Update(It.IsAny<RoslynSettings>()), Times.Once);
         }

@@ -222,7 +222,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void SolutionBindingEvent_Standalone_SuppressionsEventNotRaised(SolutionBindingEventType eventType)
         {
             var eventMock = new Mock<EventHandler>();
-            testSubject.SuppressionsUpdateRequested += eventMock.Object;
+            testSubject.ServerSuppressionsChanged += eventMock.Object;
 
             var configuration = new BindingConfiguration(new BoundSonarQubeProject(), SonarLintMode.Standalone, null);
             SimulateBindingEvent(eventType, configuration);
@@ -249,7 +249,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void SolutionBindingEvent_Connected_SuppressionsEventRaised(SolutionBindingEventType eventType, SonarLintMode mode)
         {
             var eventMock = new Mock<EventHandler>();
-            testSubject.SuppressionsUpdateRequested += eventMock.Object;
+            testSubject.ServerSuppressionsChanged += eventMock.Object;
 
             var configuration = new BindingConfiguration(new BoundSonarQubeProject(), mode, null);
             SimulateBindingEvent(eventType, configuration);

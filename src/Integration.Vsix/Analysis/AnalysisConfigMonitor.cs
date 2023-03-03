@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             this.threadHandling = threadHandling;
 
             userSettingsProvider.SettingsChanged += OnUserSettingsChanged;
-            suppressedIssuesMonitor.SuppressionsUpdateRequested += OnSuppressionsUpdated;
+            suppressedIssuesMonitor.ServerSuppressionsChanged += OnSuppressionsUpdated;
         }
 
         private void OnUserSettingsChanged(object sender, EventArgs e)
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 if (disposing)
                 {
                     userSettingsProvider.SettingsChanged -= OnUserSettingsChanged;
-                    suppressedIssuesMonitor.SuppressionsUpdateRequested -= OnSuppressionsUpdated;
+                    suppressedIssuesMonitor.ServerSuppressionsChanged -= OnSuppressionsUpdated;
                 }
                 disposedValue = true;
             }

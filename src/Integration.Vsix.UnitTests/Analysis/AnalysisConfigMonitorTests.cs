@@ -134,7 +134,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             public void SimulateSuppressionsUpdated()
             {
-                suppressedIssuesMonitorMock.Raise(x=> x.SuppressionsUpdateRequested += null, EventArgs.Empty);
+                suppressedIssuesMonitorMock.Raise(x=> x.ServerSuppressionsChanged += null, EventArgs.Empty);
             }
 
             public void AssertAnalysisIsRequested()
