@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
         private static bool ProcessResource(string fullResourceName)
         {
-            var testSubject = new RuleHelpXamlBuilder();
+            var testSubject = new SimpleRuleHelpXamlBuilder();
 
             try
             {

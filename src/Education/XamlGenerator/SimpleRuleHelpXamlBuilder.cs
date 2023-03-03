@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
 {
-    public interface IRuleHelpXamlBuilder
+    public interface ISimpleRuleHelpXamlBuilder
     {
         /// <summary>
         /// Generates a XAML document containing the help information for the specified rule
@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         FlowDocument Create(IRuleInfo ruleInfo);
     }
 
-    internal partial class RuleHelpXamlBuilder : IRuleHelpXamlBuilder
+    internal partial class SimpleRuleHelpXamlBuilder : ISimpleRuleHelpXamlBuilder
     {
         private const string XamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
 
@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
         private readonly IRuleHelpXamlTranslator translator;
 
-        public RuleHelpXamlBuilder()
+        public SimpleRuleHelpXamlBuilder()
         {
             translator = new RuleHelpXamlTranslator();
         }
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             return flowDocument;
         }
 
-        internal /* for testing */ string CreateXamlString(IRuleInfo ruleInfo)
+        internal string CreateXamlString(IRuleInfo ruleInfo)
         {
             var sb = new StringBuilder();
             writer = RuleHelpXamlTranslator.CreateXmlWriter(sb);

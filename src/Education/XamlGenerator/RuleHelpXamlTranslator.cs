@@ -36,6 +36,15 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
     /// </remarks>
     public interface IRuleHelpXamlTranslator
     {
+        /// <summary>
+        /// Translates the given partial html to Xaml
+        /// </summary>
+        /// <returns>Returns a non-inline xaml.</returns>
+        /// <param name="htmlContent">Partial HTML which can be parsed as an XML</param>
+        /// <remarks>
+        /// Depending on the input return value can be a single block or multiple blocks
+        /// But there can not be an inline item on the top level.
+        /// </remarks>
         string TranslateHtmlToXaml(string htmlContent);
     }
 
@@ -101,9 +110,9 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 }
 
                 // We've processed all of the html elements.
-                // Now, the stack should only contain the root FlowDocument element, plus an extra
+                // Now, the stack should only contain the root element, plus an extra
                 // block element if the first tag we processed was an Inline.
-                Debug.Assert((outputXamlElementStack.Count <= 2) || (outputXamlElementStack.Count <= 1), "Expecting at most 2 unclosed elements in the stack");
+                Debug.Assert((outputXamlElementStack.Count <= 2), "Expecting at most 2 unclosed elements in the stack");
                 Debug.Assert((outputXamlElementStack.Count == 1 && outputXamlElementStack.Peek().HtmlElementName == "xaml root")
                     || (outputXamlElementStack.Count == 2 &&
                         outputXamlElementStack.ToArray()[0].HtmlElementName == null &&
