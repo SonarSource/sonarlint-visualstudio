@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 // We've processed all of the html elements.
                 // Now, the stack should only contain the root element, plus an extra
                 // block element if the first tag we processed was an Inline.
-                Debug.Assert((outputXamlElementStack.Count <= 2), "Expecting at most 2 unclosed elements in the stack");
+                Debug.Assert(outputXamlElementStack.Count <= 2, "Expecting at most 2 unclosed elements in the stack");
                 Debug.Assert((outputXamlElementStack.Count == 1 && outputXamlElementStack.Peek().HtmlElementName == "xaml root")
                     || (outputXamlElementStack.Count == 2 &&
                         outputXamlElementStack.ToArray()[0].HtmlElementName == null &&
