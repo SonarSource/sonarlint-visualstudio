@@ -49,6 +49,5 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         {
             suppressedIssuesMonitor.SuppressionsUpdateRequested -= ServerSuppressionsChanged;
         }
-
     }
 }
