@@ -18,15 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.ServerSentEvents;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEvents
+namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
 {
-    [Export(typeof(IIssueServerEventSource))]
-    [Export(typeof(IIssueServerEventSourcePublisher))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class IssueServerEventChannel : ServerEventChannel<IIssueChangedServerEvent>, IIssueServerEventSource, IIssueServerEventSourcePublisher { }
+    /// <inheritdoc cref="IServerSentEventSource{IIssueChangedServerEvent}"/>
+    internal interface IIssueServerEventSource : IServerSentEventSource<IIssueChangedServerEvent> { }
 }

@@ -24,9 +24,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
-using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
+namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
 {
     /// <summary>
     /// Handles <see cref="IIssueServerEvent"/> coming from the server.
@@ -67,7 +66,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
                 {
                     var issueServerEvent = await issueServerEventSource.GetNextEventOrNullAsync();
 
-                    if(issueServerEvent == null)
+                    if (issueServerEvent == null)
                     {
                         // Will return null when issueServerEventSource is disposed
                         return;
