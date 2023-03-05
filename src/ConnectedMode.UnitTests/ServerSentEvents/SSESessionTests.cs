@@ -32,6 +32,7 @@ using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models.ServerSentEvents;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
+using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Taint;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents;
 

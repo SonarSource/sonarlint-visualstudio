@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
+using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Taint;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
 {
