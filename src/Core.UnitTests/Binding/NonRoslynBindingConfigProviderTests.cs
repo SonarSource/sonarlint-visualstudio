@@ -108,7 +108,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
             settings.Rules["repo1:key2"].Severity.Should().Be(IssueSeverity.Critical);
             settings.Rules["repo1:key3"].Severity.Should().BeNull();
 
-
             settings.Rules["repo1:key1"].Parameters.Should().BeNull();
             settings.Rules["repo1:key2"].Parameters.Should().BeNull();
 
@@ -290,8 +289,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
         }
 
         private static SonarQubeRule CreateRule(string ruleKey, string repoKey, bool isActive,
-            SonarQubeIssueSeverity severity, IDictionary<string, string> parameters = null) =>
-            new SonarQubeRule(ruleKey, repoKey, isActive, severity, parameters, SonarQubeIssueType.Unknown);
+            SonarQubeIssueSeverity severity, IDictionary<string, string> parameters = null, IReadOnlyList<SonarQubeDescriptionSection> descriptionSections = null, IReadOnlyList<string> educationPrinciples = null) =>
+            new SonarQubeRule(ruleKey, repoKey, isActive, severity, parameters, SonarQubeIssueType.Unknown, descriptionSections, educationPrinciples);
 
         private static NonRoslynBindingConfigProvider CreateTestSubject(Mock<ISonarQubeService> serviceMock, TestLogger testLogger)
         {
