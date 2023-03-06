@@ -38,13 +38,11 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         [TestMethod]
         public void DescriptionSection_Ctor_SetsProperties()
         {
-            var context1 = new Context("some context key 1", "some display name 1");
-            var context2 = new Context("some context key 2", "some display name 2");
-            var context = new[] { context1, context2 };
+            var context = new Context("some context key", "some display name");
             var testSubject = new DescriptionSection("some descriptionSection key", "some htmlcontent", context);
             testSubject.Key.Should().Be("some descriptionSection key");
             testSubject.HtmlContent.Should().Be("some htmlcontent");
-            testSubject.Context.Should().BeEquivalentTo(context);
+            testSubject.Context.Should().Be(context);
         }
 
         [TestMethod]
@@ -59,9 +57,7 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         [TestMethod]
         public void Ctor_SetsProperties()
         {
-            var context1 = new Context("some context key 1", "some display name 1");
-            var context2 = new Context("some context key 2", "some display name 2");
-            var context = new[] { context1, context2 };
+            var context = new Context("some context key", "some display name");
             var descriptionSection1 = new DescriptionSection("some descriptionSection key 1", "some htmlcontent 1", context);
             var descriptionSection2 = new DescriptionSection("some descriptionSection key 2", "some htmlcontent 2");
             var descriptionSections = new[] { descriptionSection1, descriptionSection2 };
@@ -72,13 +68,13 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
 
             var testSubject = new RuleInfo(
                 Language.CSharp.ServerLanguage.Key,
-                "xxx:S123", 
-                "a description", 
+                "xxx:S123",
+                "a description",
                 "the rule name",
                 RuleIssueSeverity.Blocker,
                 RuleIssueType.Vulnerability,
                 isActiveByDefault: true,
-                tags, 
+                tags,
                 descriptionSections,
                 educationPrinciples);
 
