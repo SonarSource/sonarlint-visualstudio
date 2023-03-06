@@ -21,8 +21,8 @@
 using SonarLint.VisualStudio.Core.ServerSentEvents;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
+namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
 {
-    /// <inheritdoc cref="IServerSentEventSource{IIssueChangedServerEvent}"/>
-    internal interface IIssueServerEventSource : IServerSentEventSource<IIssueChangedServerEvent> { }
+    /// <inheritdoc cref="IServerSentEventSourcePublisher{T}"/>
+    public interface IIssueServerEventSourcePublisher : IServerSentEventSourcePublisher<IIssueChangedServerEvent> { }
 }

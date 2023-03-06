@@ -24,7 +24,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
@@ -32,6 +31,8 @@ using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models.ServerSentEvents;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
+using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Taint;
+using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents;
 
