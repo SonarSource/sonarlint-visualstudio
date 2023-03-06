@@ -20,13 +20,13 @@
 
 using System;
 using System.Threading.Tasks;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
+using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
 {
     [TestClass]
     public class IssueServerEventsListenerTests

@@ -20,12 +20,13 @@
 
 
 using System;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
+using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Taint;
+using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
 {
