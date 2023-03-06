@@ -57,7 +57,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             IThreadHandling threadHandling)
         {
             this.analysisRequester = analysisRequester;
-            this.userSettingsProvider = userSettingsProvider;            this.logger = logger;
+            this.userSettingsProvider = userSettingsProvider;
+            this.logger = logger;
             this.threadHandling = threadHandling;
 
             userSettingsProvider.SettingsChanged += OnUserSettingsChanged;
