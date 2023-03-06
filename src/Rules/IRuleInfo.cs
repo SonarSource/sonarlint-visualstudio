@@ -62,17 +62,16 @@ namespace SonarLint.VisualStudio.Rules
         public string DisplayName { get; }
     }
 
-    
     public interface IDescriptionSection
     {
         string Key { get; }
         string HtmlContent { get; }
-        IReadOnlyList<IContext> Context { get; }
+        IContext Context { get; }
     }
 
     public class DescriptionSection : IDescriptionSection
     {
-        public DescriptionSection(string key, string htmlContent, IReadOnlyList<IContext> context = null)
+        public DescriptionSection(string key, string htmlContent, IContext context = null)
         {
             Key = key;
             HtmlContent = htmlContent;
@@ -81,14 +80,15 @@ namespace SonarLint.VisualStudio.Rules
 
         public string Key { get; }
         public string HtmlContent { get; }
+
         /// <summary>
-        /// Different contexes for Description Sections  
+        /// Different contexes for Description Sections
         /// </summary>
         /// <remarks>
         /// These are subtabs for any given tab such as different languages
         /// The field is optional
         /// </remarks>
-        public IReadOnlyList<IContext> Context { get; }
+        public IContext Context { get; }
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Rules
 
         RuleIssueType IssueType { get; }
 
-        bool IsActiveByDefault {  get; }
+        bool IsActiveByDefault { get; }
 
         string LanguageKey { get; }
 
@@ -146,7 +146,7 @@ namespace SonarLint.VisualStudio.Rules
 
         public string FullRuleKey { get; private set; }
 
-        public string Name {  get; private set; }
+        public string Name { get; private set; }
 
         public RuleIssueSeverity DefaultSeverity { get; private set; }
 
