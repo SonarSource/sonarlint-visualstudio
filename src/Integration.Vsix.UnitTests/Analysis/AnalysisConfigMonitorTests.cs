@@ -61,31 +61,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         }
 
         [TestMethod]
-        public void WhenSuppressionsUpdated_AnalysisIsRequested()
-        {
-            var builder = new TestEnvironmentBuilder();
-
-            builder.SimulateSuppressionsUpdated();
-
-            builder.AssertSwitchedToBackgroundThread();
-            builder.AssertAnalysisIsRequested();
-            builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_SuppressionsUpdated);
-        }
-
-        [TestMethod]
-        public void WhenSuppressionsUpdated_HasSubscribersToConfigChangedEvent_SubscribersNotified()
-        {
-            var builder = new TestEnvironmentBuilder();
-            var eventHandler = new Mock<EventHandler>();
-            builder.TestSubject.ConfigChanged += eventHandler.Object;
-
-            builder.SimulateSuppressionsUpdated();            
-            
-            builder.AssertSwitchedToBackgroundThread();
-            eventHandler.Verify(x => x(builder.TestSubject, EventArgs.Empty), Times.Once);
-        }
-
-        [TestMethod]
         public void WhenDisposed_EventsAreIgnored()
         {
             var builder = new TestEnvironmentBuilder();
@@ -94,8 +69,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             builder.TestSubject.Dispose();
 
             // Raise events and check they are ignored
-            builder.SimulateSuppressionsUpdated();
-
             builder.SimulateUserSettingsChanged();
             builder.AssertAnalysisIsNotRequested();
         }
@@ -104,7 +77,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         {
             private readonly Mock<IAnalysisRequester> analysisRequesterMock;
             private readonly Mock<IUserSettingsProvider> userSettingsProviderMock;
-            private readonly Mock<ISuppressedIssuesMonitor> suppressedIssuesMonitorMock;
             private readonly Mock<IThreadHandling> threadHandling;
 
 
@@ -112,7 +84,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             {
                 analysisRequesterMock = new Mock<IAnalysisRequester>();
                 userSettingsProviderMock = new Mock<IUserSettingsProvider>();
-                suppressedIssuesMonitorMock = new Mock<ISuppressedIssuesMonitor>();
                 threadHandling = new Mock<IThreadHandling>();
                 
                 threadHandling.Setup(th => th.SwitchToBackgroundThread()).Returns(new NoOpAwaitable());
@@ -120,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
                 Logger = new TestLogger();
 
                 TestSubject = new AnalysisConfigMonitor(analysisRequesterMock.Object,
-                    userSettingsProviderMock.Object, suppressedIssuesMonitorMock.Object, Logger, threadHandling.Object);
+                    userSettingsProviderMock.Object, Logger, threadHandling.Object);
             }
 
             public TestLogger Logger { get; }
@@ -130,11 +101,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             public void SimulateUserSettingsChanged()
             {
                 userSettingsProviderMock.Raise(x => x.SettingsChanged += null, EventArgs.Empty);
-            }
-
-            public void SimulateSuppressionsUpdated()
-            {
-                suppressedIssuesMonitorMock.Raise(x=> x.ServerSuppressionsChanged += null, EventArgs.Empty);
             }
 
             public void AssertAnalysisIsRequested()
