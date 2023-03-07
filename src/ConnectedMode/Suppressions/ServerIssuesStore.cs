@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
         public void UpdateIssue(string issueKey, bool isResolved)
         {
-            var issue = serverIssues.SingleOrDefault(x => x.IssueKey == issueKey);
+            var issue = serverIssues?.SingleOrDefault(x => x.IssueKey == issueKey);
 
             if (issue == null)
             {

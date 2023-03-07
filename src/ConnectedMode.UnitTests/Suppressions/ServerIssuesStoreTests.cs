@@ -71,6 +71,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             var testSubject = new ServerIssuesStore();
 
+            // If issue does not exist in list nothing should happen.
+            testSubject.UpdateIssue("issue1", false);
+            issue1.IsResolved.Should().BeTrue();
+
             testSubject.AddIssues(new List<SonarQubeIssue>() { issue1, issue2 }, clearAllExistingIssues: false);
 
             var result = testSubject.Get();
