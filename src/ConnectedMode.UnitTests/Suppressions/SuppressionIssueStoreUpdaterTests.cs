@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             MefTestHelpers.CheckTypeCanBeImported<SuppressionIssueStoreUpdater, ISuppressionIssueStoreUpdater>(
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IServerQueryInfoProvider>(),
-                MefTestHelpers.CreateExport<IServerIssuesStoreWriter>(),
+                MefTestHelpers.CreateExport<IServerIssueStoreWriter>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             // Server query info is not available -> give up
             var queryInfo = CreateQueryInfoProvider(projectKey, branchName);
             var server = new Mock<ISonarQubeService>();
-            var writer = new Mock<IServerIssuesStoreWriter>();
+            var writer = new Mock<IServerIssueStoreWriter>();
 
             var testSubject = CreateTestSubject(queryInfo.Object, server.Object, writer.Object);
 
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var issue = CreateIssue("issue1");
             var server = CreateSonarQubeService("project", "branch", issue);
             
-            var writer = new Mock<IServerIssuesStoreWriter>();
+            var writer = new Mock<IServerIssueStoreWriter>();
 
             var testSubject = CreateTestSubject(queryInfo.Object, server.Object, writer.Object);
 
@@ -179,7 +179,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             bool isFirstCall = true;
 
             var server = new Mock<ISonarQubeService>();
-            var writer = new Mock<IServerIssuesStoreWriter>();
+            var writer = new Mock<IServerIssueStoreWriter>();
 
             var queryInfo = new Mock<IServerQueryInfoProvider>();
             queryInfo.Setup(x => x.GetProjectKeyAndBranchAsync(It.IsAny<CancellationToken>()))
@@ -252,11 +252,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
         private static SuppressionIssueStoreUpdater CreateTestSubject(IServerQueryInfoProvider queryInfo = null,
             ISonarQubeService server = null,
-            IServerIssuesStoreWriter writer = null,
+            IServerIssueStoreWriter writer = null,
             ILogger logger = null,
             IThreadHandling threadHandling = null)
         {
-            writer ??= Mock.Of<IServerIssuesStoreWriter>();
+            writer ??= Mock.Of<IServerIssueStoreWriter>();
             server ??= Mock.Of<ISonarQubeService>();
             queryInfo ??= Mock.Of<IServerQueryInfoProvider>();
             logger ??= new TestLogger(logToConsole: true);
