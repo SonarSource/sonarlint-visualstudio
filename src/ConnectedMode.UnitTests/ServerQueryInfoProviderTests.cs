@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
         [TestMethod]
         [DataRow(SonarLintMode.Connected)]
-        [DataRow(SonarLintMode.Connected)]
+        [DataRow(SonarLintMode.LegacyConnected)]
         public async Task Get_IsConnectedMode_ReturnsExpectedValues(SonarLintMode mode)
         {
             // Happy path - in connected mode, has branch
