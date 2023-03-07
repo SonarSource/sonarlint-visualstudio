@@ -59,6 +59,9 @@ namespace SonarQube.Client.Models
         public string Message { get; }
         public string ModuleKey { get; }
         public string RuleId { get; }
+        /// <remarks>
+        /// This needs to be mutable as SLVS will update it during runtime.
+        /// </remarks>
         public bool IsResolved { get; set; }
         public SonarQubeIssueSeverity Severity { get; }
         public IssueTextRange TextRange { get; }

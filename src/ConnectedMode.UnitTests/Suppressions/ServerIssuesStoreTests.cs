@@ -38,65 +38,90 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         }
 
         [TestMethod]
-        public void AddIssues_ListOfIssuesAsExpected()
+        [DataRow(false)]
+        [DataRow(true)]
+        public void AddIssues_EmptyList_ResultContainsNewIssues(bool clearAllExistingIssues)
         {
             var issue1 = CreateIssue("1", false);
             var issue2 = CreateIssue("2", false);
-            var issue3 = CreateIssue("3", false);
 
             var testSubject = new ServerIssuesStore();
 
             var result = testSubject.Get();
             result.Count().Should().Be(0);
 
-            testSubject.AddIssues(new List<SonarQubeIssue>() { issue1, issue2 }, clearAllExistingIssues: false);
+            testSubject.AddIssues(new List<SonarQubeIssue>() { issue1, issue2 }, clearAllExistingIssues: clearAllExistingIssues);
 
             result = testSubject.Get();
             result.Count().Should().Be(2);
             result.Should().Contain(issue1);
             result.Should().Contain(issue2);
-
-            testSubject.AddIssues(new List<SonarQubeIssue>() { issue3 }, clearAllExistingIssues: true);
-
-            result = testSubject.Get();
-            result.Count().Should().Be(1);
-            result.Should().Contain(issue3);
         }
 
         [TestMethod]
-        public void UpdateIssues_ListOfIssuesAsExpected()
+        public void AddIssues_NonEmptyList_ClearExisting_OldIssuesCleared()
         {
-            var issue1 = CreateIssue("issue1", true);
-            var issue2 = CreateIssue("issue2", false);
+            var issue1 = CreateIssue("1", false);
+            var issue2 = CreateIssue("2", false);
 
             var testSubject = new ServerIssuesStore();
 
-            // If issue does not exist in list nothing should happen.
-            testSubject.UpdateIssue("issue1", false);
-            issue1.IsResolved.Should().BeTrue();
-
-            testSubject.AddIssues(new List<SonarQubeIssue>() { issue1, issue2 }, clearAllExistingIssues: false);
-
             var result = testSubject.Get();
-            result.Count().Should().Be(2);
+            result.Count().Should().Be(0);
+
+            testSubject.AddIssues(new List<SonarQubeIssue>() { issue1 }, clearAllExistingIssues: false);
+
+            result = testSubject.Get();
+            result.Count().Should().Be(1);
             result.Should().Contain(issue1);
+
+            testSubject.AddIssues(new List<SonarQubeIssue>() { issue2 }, clearAllExistingIssues: true);
+
+            result = testSubject.Get();
+            result.Count().Should().Be(1);
             result.Should().Contain(issue2);
-            issue1.IsResolved.Should().BeTrue();
-            issue2.IsResolved.Should().BeFalse();
-
-            testSubject.UpdateIssue("issue1", false);
-            issue1.IsResolved.Should().BeFalse();
-
-            testSubject.UpdateIssue("issue2", true);
-            issue2.IsResolved.Should().BeTrue();
-
-            // This test is to insure it doesn't just flip the state.
-            testSubject.UpdateIssue("issue2", true);
-            issue2.IsResolved.Should().BeTrue();
         }
 
         [TestMethod]
-        public void AddOrUpdateIssues_EventIsInvoked()
+        public void AddIssues_ListOfAddIssues_NonEmptyList_DontClearExisting_OldIssuesAreRetained()
+        {
+            var issue1 = CreateIssue("1", false);
+            var issue2 = CreateIssue("2", false);
+
+            var testSubject = new ServerIssuesStore();
+
+            var result = testSubject.Get();
+            result.Count().Should().Be(0);
+
+            testSubject.AddIssues(new List<SonarQubeIssue>() { issue1 }, clearAllExistingIssues: false);
+
+            result = testSubject.Get();
+            result.Count().Should().Be(1);
+            result.Should().Contain(issue1);
+
+            testSubject.AddIssues(new List<SonarQubeIssue>() { issue2 }, clearAllExistingIssues: false);
+
+            result = testSubject.Get();
+            result.Count().Should().Be(2);
+            result.Should().Contain(issue1);
+            result.Should().Contain(issue2);
+        }
+
+        [TestMethod]
+        public void AddIssues_AddNullIssues_EventIsNotInvoked()
+        {
+            var testSubject = new ServerIssuesStore();
+
+            var eventMock = new Mock<EventHandler>();
+            testSubject.ServerIssuesChanged += eventMock.Object;
+
+            testSubject.AddIssues(null, false);
+
+            eventMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void AddIssues_EventIsInvoked()
         {
             var issue1 = CreateIssue("issue1", true);
 
@@ -106,9 +131,61 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             testSubject.AddIssues(new List<SonarQubeIssue>() { issue1 }, clearAllExistingIssues: false);
             eventMock.Verify(x => x(testSubject, EventArgs.Empty), Times.Once);
+        }
 
+        [TestMethod]
+        public void UpdateIssues_EmptyList_DoesNotInvokeEvent()
+        {
+            var testSubject = new ServerIssuesStore();
+
+            var eventMock = new Mock<EventHandler>();
+            testSubject.ServerIssuesChanged += eventMock.Object;
+
+            var result = testSubject.Get();
+            result.Count().Should().Be(0);
             testSubject.UpdateIssue("issue1", false);
-            eventMock.Verify(x => x(testSubject, EventArgs.Empty), Times.Exactly(2));
+
+            eventMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void UpdateIssues_NonEmptyList_NoMatch_DoesNotInvokeEvent()
+        {
+            var testSubject = new ServerIssuesStore();
+            testSubject.AddIssues(new List<SonarQubeIssue>() { CreateIssue("issue1", true) }, clearAllExistingIssues: false);
+
+            var eventMock = new Mock<EventHandler>();
+            testSubject.ServerIssuesChanged += eventMock.Object;
+            testSubject.UpdateIssue("issue2", false);
+
+            eventMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void UpdateIssues_NonEmptyList_Match_InvokesEventAndPropertyIsChanged()
+        {
+            var issue1 = CreateIssue("issue1", true);
+            var issue2 = CreateIssue("issue2", true);
+            var issue3 = CreateIssue("issue3", false);
+
+            var testSubject = new ServerIssuesStore();
+            testSubject.AddIssues(new List<SonarQubeIssue>() { issue1, issue2, issue3 }, clearAllExistingIssues: false);
+
+            var eventMock = new Mock<EventHandler>();
+            testSubject.ServerIssuesChanged += eventMock.Object;
+
+            testSubject.UpdateIssue("issue2", false);
+            testSubject.UpdateIssue("issue3", true);
+
+            issue1.IsResolved.Should().BeTrue();
+            issue2.IsResolved.Should().BeFalse();
+            issue3.IsResolved.Should().BeTrue();
+
+            // This test is to insure it doesn't just flip the state.
+            testSubject.UpdateIssue("issue2", false);
+            issue2.IsResolved.Should().BeFalse();
+
+            eventMock.Verify(x => x(testSubject, EventArgs.Empty), Times.Exactly(3));
         }
 
         private static SonarQubeIssue CreateIssue(string key, bool isResolved)

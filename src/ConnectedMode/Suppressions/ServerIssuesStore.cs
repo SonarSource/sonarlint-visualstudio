@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ServerIssuesStore : IServerIssuesStore, IServerIssuesStoreWriter
     {
-        private List<SonarQubeIssue> serverIssues;
+        private List<SonarQubeIssue> serverIssues = new List<SonarQubeIssue>();
 
         public event EventHandler ServerIssuesChanged;
 
@@ -48,7 +48,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
         public void AddIssues(IEnumerable<SonarQubeIssue> issues, bool clearAllExistingIssues)
         {
-            if (clearAllExistingIssues || serverIssues == null)
+            if (issues == null) { return; }
+
+            if (clearAllExistingIssues)
             {
                 serverIssues = new List<SonarQubeIssue>();
             }
@@ -60,7 +62,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
         public void UpdateIssue(string issueKey, bool isResolved)
         {
-            var issue = serverIssues?.SingleOrDefault(x => x.IssueKey == issueKey);
+            var issue = serverIssues.SingleOrDefault(x => x.IssueKey == issueKey);
 
             if (issue == null)
             {
