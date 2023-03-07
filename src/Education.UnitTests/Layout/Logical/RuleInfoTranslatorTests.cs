@@ -28,8 +28,9 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Education.Layout.Logical;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.Rules;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Education.UnitTests.Layout
+namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
 {
     [TestClass]
     public class RuleInfoTranslatorTests
@@ -39,7 +40,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout
         {
             var ruleInfo = GetRuleInfo(new[] { new DescriptionSection(Guid.NewGuid().ToString(), "<span>hello</span>") });
             var ruleHelpXamlTranslatorMock = new Mock<IRuleHelpXamlTranslator>();
-            var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorMock.Object);
+            var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorMock.Object, new TestLogger());
 
             var ruleDescriptionSections = testSubject.GetRuleDescriptionSections(ruleInfo).ToList();
 
@@ -88,7 +89,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout
             ruleHelpXamlTranslatorMock.Setup(x => x.TranslateHtmlToXaml(content1)).Returns(content1);
             ruleHelpXamlTranslatorMock.Setup(x => x.TranslateHtmlToXaml(content2)).Returns(content2);
             ruleHelpXamlTranslatorMock.Setup(x => x.TranslateHtmlToXaml(content3)).Returns(content3);
-            var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorMock.Object);
+            var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorMock.Object, new TestLogger());
 
             var ruleDescriptionSections = testSubject.GetRuleDescriptionSections(ruleInfo).ToList();
 
@@ -114,6 +115,30 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout
                 });
         }
 
+        [DataTestMethod]
+        [DataRow(RootCauseSection.RuleInfoKey)]
+        [DataRow(AssesTheProblemSection.RuleInfoKey)]
+        [DataRow(ResourcesSection.RuleInfoKey)]
+        public void GetRuleDescriptionSections_RuleInfoHasDuplicateSections_LogsWarning(string key)
+        {
+            var ruleInfo = GetRuleInfo(new[]
+            {
+                new DescriptionSection(key, ""),
+                new DescriptionSection(key, ""),
+                new DescriptionSection(key, "")
+            });
+            var testLogger = new TestLogger();
+            var testSubject = new RuleInfoTranslator(Mock.Of<IRuleHelpXamlTranslator>(), testLogger);
+
+            var sections = testSubject.GetRuleDescriptionSections(ruleInfo).ToList();
+
+            sections.Should().HaveCount(1);
+            testLogger.OutputStrings.Single()
+                .Should().Contain(key)
+                .And.Contain(ruleInfo.FullRuleKey)
+                .And.Contain("unexpected number of section items");
+        }
+
         [TestMethod]
         public void GetRuleDescriptionSections_OrdersSectionsCorrectly()
         {
@@ -126,7 +151,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout
                 new DescriptionSection("how_to_fix", "3", new Context("2", "2")),
             });
             var ruleHelpXamlTranslatorMock = new Mock<IRuleHelpXamlTranslator>();
-            var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorMock.Object);
+            var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorMock.Object, new TestLogger());
 
             var sections = testSubject.GetRuleDescriptionSections(ruleInfo).ToList();
 
@@ -148,7 +173,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout
             var ruleInfo = GetRuleInfo(new[] { new DescriptionSection(key, htmlContent) });
             var ruleHelpXamlTranslatorMock = new Mock<IRuleHelpXamlTranslator>();
             ruleHelpXamlTranslatorMock.Setup(x => x.TranslateHtmlToXaml(htmlContent)).Returns(xamlContent);
-            var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorMock.Object);
+            var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorMock.Object, new TestLogger());
 
             var ruleDescriptionSections = testSubject.GetRuleDescriptionSections(ruleInfo).ToList();
 
@@ -168,9 +193,9 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout
                 RuleIssueSeverity.Blocker,
                 RuleIssueType.Vulnerability,
                 isActiveByDefault: true,
-                new List<string>{"veryimportantissue"},
+                new List<string> { "veryimportantissue" },
                 sections,
-                new List<string>{"think before you do something", "think again"});
+                new List<string> { "think before you do something", "think again" });
         }
     }
 }

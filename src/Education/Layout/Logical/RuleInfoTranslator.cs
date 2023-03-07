@@ -21,6 +21,7 @@
 using System.Collections.Generic;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using System.Linq;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education.Layout.Logical
@@ -33,26 +34,29 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
     internal class RuleInfoTranslator : IRuleInfoTranslator
     {
         private readonly IRuleHelpXamlTranslator xamlTranslator;
+        private readonly ILogger logger;
 
-        public RuleInfoTranslator(IRuleHelpXamlTranslator xamlTranslator)
+        internal RuleInfoTranslator(IRuleHelpXamlTranslator xamlTranslator, ILogger logger)
         {
+            this.logger = logger;
             this.xamlTranslator = xamlTranslator;
         }
 
         public IEnumerable<IRichRuleDescriptionSection> GetRuleDescriptionSections(IRuleInfo ruleInfo)
         {
-
             var sectionsByKey = ruleInfo.DescriptionSections
                 .GroupBy(x => x.Key)
                 .ToDictionary(x => x.Key, x => x.ToList());
 
             if (sectionsByKey.TryGetValue(RootCauseSection.RuleInfoKey, out var rootCauseSectionContent))
             {
+                LogUnexpectedNumberOfDescriptionSections(ruleInfo.FullRuleKey, RootCauseSection.RuleInfoKey, rootCauseSectionContent.Count);
                 yield return new RootCauseSection(GeneratePartialXaml(rootCauseSectionContent[0].HtmlContent), /*todo in future PR*/false);
             }
 
             if (sectionsByKey.TryGetValue(AssesTheProblemSection.RuleInfoKey, out var assessTheProblemContent))
             {
+                LogUnexpectedNumberOfDescriptionSections(ruleInfo.FullRuleKey, AssesTheProblemSection.RuleInfoKey, assessTheProblemContent.Count);
                 yield return new AssesTheProblemSection(GeneratePartialXaml(assessTheProblemContent[0].HtmlContent));
             }
 
@@ -74,8 +78,24 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
 
             if (sectionsByKey.TryGetValue(ResourcesSection.RuleInfoKey, out var resourcesSectionContent))
             {
+                LogUnexpectedNumberOfDescriptionSections(ruleInfo.FullRuleKey, ResourcesSection.RuleInfoKey, resourcesSectionContent.Count);
                 yield return new ResourcesSection(GeneratePartialXaml(resourcesSectionContent[0].HtmlContent), ruleInfo.EducationPrinciples);
             }
+        }
+
+        private void LogUnexpectedNumberOfDescriptionSections(string ruleKey, string descriptionSection, int sectionsCount, int expectedCount = 1)
+        {
+            if (sectionsCount == expectedCount)
+            {
+                return;
+            }
+
+            logger.WriteLine("[{0}] Encountered rule {1} with unexpected number of section items for {2}: expected {3}, got {4}",
+                nameof(RuleInfoTranslator),
+                ruleKey,
+                descriptionSection,
+                sectionsCount,
+                expectedCount);
         }
 
         private string GeneratePartialXaml(string htmlContent)
