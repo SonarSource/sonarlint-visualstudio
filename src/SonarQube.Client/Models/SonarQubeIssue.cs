@@ -59,7 +59,7 @@ namespace SonarQube.Client.Models
         public string Message { get; }
         public string ModuleKey { get; }
         public string RuleId { get; }
-        public bool IsResolved { get; }
+        public bool IsResolved { get; set; }
         public SonarQubeIssueSeverity Severity { get; }
         public IssueTextRange TextRange { get; }
         public DateTimeOffset CreationTimestamp { get; }
