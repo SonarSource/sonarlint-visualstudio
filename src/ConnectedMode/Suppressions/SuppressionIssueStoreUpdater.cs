@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
     [Export(typeof(ISuppressionIssueStoreUpdater))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class SuppressionIssueStoreUpdater : ISuppressionIssueStoreUpdater, IDisposable
+    internal sealed class SuppressionIssueStoreUpdater : ISuppressionIssueStoreUpdater, IDisposable
     {
         private readonly ISonarQubeService server;
         private readonly IServerQueryInfoProvider serverQueryInfoProvider;
