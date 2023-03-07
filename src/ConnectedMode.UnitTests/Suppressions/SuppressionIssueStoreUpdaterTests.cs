@@ -19,8 +19,10 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
@@ -29,6 +31,7 @@ using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
+using static SonarLint.VisualStudio.TestInfrastructure.NoOpThreadHandler;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 {
@@ -86,6 +89,32 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             server.Invocations.Should().HaveCount(1);
             writer.Invocations.Should().HaveCount(1);
+        }
+
+        [TestMethod]
+        public async Task UpdateAll_RunOnBackgroundThread()
+        {
+            var callSequence = new List<string>();
+
+            var queryInfo = new Mock<IServerQueryInfoProvider>();
+            var threadHandling = new Mock<IThreadHandling>();
+
+            queryInfo.Setup(x => x.GetProjectKeyAndBranchAsync(It.IsAny<CancellationToken>()))
+                .Callback<CancellationToken>(x => callSequence.Add("GetProjectKeyAndBranchAsync"));
+
+            threadHandling.Setup(x => x.SwitchToBackgroundThread())
+                .Returns(new NoOpAwaitable())
+                .Callback(() => callSequence.Add("SwitchToBackgroundThread"));
+
+            var testSubject = CreateTestSubject(queryInfo.Object,
+                threadHandling: threadHandling.Object);
+
+            await testSubject.UpdateAllServerSuppressionsAsync();
+
+            queryInfo.Invocations.Should().HaveCount(1);
+            threadHandling.Invocations.Should().HaveCount(1);
+
+            callSequence.Should().ContainInOrder("SwitchToBackgroundThread", "GetProjectKeyAndBranchAsync");
         }
 
         [TestMethod]
