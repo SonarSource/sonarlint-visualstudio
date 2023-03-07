@@ -19,14 +19,25 @@
  */
 
 using System.Windows.Documents;
+using SonarLint.VisualStudio.Education.XamlParser;
 
-namespace SonarLint.VisualStudio.Education.Layout
+namespace SonarLint.VisualStudio.Education.Layout.Visual
 {
     /// <summary>
-    /// Represents logical building block for rule description page
+    /// Represents section that renders the passed xaml content
     /// </summary>
-    internal interface IAbstractVisualizationTreeNode
+    internal class ContentSection : IAbstractVisualizationTreeNode
     {
-        Block CreateVisualization();
+        private readonly IXamlBlockContent content;
+
+        public ContentSection(IXamlBlockContent content)
+        {
+            this.content = content;
+        }
+
+        public Block CreateVisualization()
+        {
+            return content.GetObjectRepresentation();
+        }
     }
 }

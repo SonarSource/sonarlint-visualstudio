@@ -20,28 +20,13 @@
 
 using System.Windows.Documents;
 
-namespace SonarLint.VisualStudio.Education.Layout.Tabs
+namespace SonarLint.VisualStudio.Education.Layout.Visual
 {
     /// <summary>
-    /// Represents individual tab of a TabGroup
+    /// Represents logical building block for rule description page
     /// </summary>
-    internal class TabItem // NOTE: this does not implement IAbstractVisualizationTreeNode by design, as it cannot be used without TabGroup
+    internal interface IAbstractVisualizationTreeNode
     {
-        private readonly IAbstractVisualizationTreeNode content;
-
-        public TabItem(string name, string displayName, IAbstractVisualizationTreeNode content)
-        {
-            Name = name;
-            DisplayName = displayName;
-            this.content = content;
-        }
-
-        public string Name { get; }
-        public string DisplayName { get; }
-
-        public Block CreateVisualization(string tabGroupName)
-        {
-            return new Section(content.CreateVisualization()) { Name = TabNameProvider.GetTabSectionName(tabGroupName, Name) };
-        }
+        Block CreateVisualization();
     }
 }

@@ -19,28 +19,30 @@
  */
 
 using System.Windows.Documents;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Education.Layout.Visual;
-using SonarLint.VisualStudio.Education.XamlParser;
 
-namespace SonarLint.VisualStudio.Education.UnitTests.Layout
+namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
 {
-    [TestClass]
-    public class ContentSectionTests
+    /// <summary>
+    /// Represents individual tab of a TabGroup
+    /// </summary>
+    internal class TabItem // NOTE: this does not implement IAbstractVisualizationTreeNode by design, as it cannot be used without TabGroup
     {
-        [TestMethod]
-        public void CreateVisualization_ReturnsContentFromXaml()
+        private readonly IAbstractVisualizationTreeNode content;
+
+        public TabItem(string name, string displayName, IAbstractVisualizationTreeNode content)
         {
-            var xamlContentMock = new Mock<IXamlBlockContent>();
-            var content = new Section();
-            xamlContentMock.Setup(x => x.GetObjectRepresentation()).Returns(content);
-            var testSubject = new ContentSection(xamlContentMock.Object);
+            Name = name;
+            DisplayName = displayName;
+            this.content = content;
+        }
 
-            var visualization = testSubject.CreateVisualization();
+        public string Name { get; }
+        public string DisplayName { get; }
 
-            visualization.Should().BeSameAs(content);
+        public Block CreateVisualization(string tabGroupName)
+        {
+            return new Section(content.CreateVisualization()) { Name = TabNameProvider.GetTabSectionName(tabGroupName, Name) };
         }
     }
 }

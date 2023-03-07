@@ -18,29 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Documents;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Education.Layout.Visual;
-using SonarLint.VisualStudio.Education.XamlParser;
+using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
 
-namespace SonarLint.VisualStudio.Education.UnitTests.Layout
+namespace SonarLint.VisualStudio.Education.Layout.Logical
 {
-    [TestClass]
-    public class ContentSectionTests
+    internal interface IRichRuleDescriptionSection
     {
-        [TestMethod]
-        public void CreateVisualization_ReturnsContentFromXaml()
-        {
-            var xamlContentMock = new Mock<IXamlBlockContent>();
-            var content = new Section();
-            xamlContentMock.Setup(x => x.GetObjectRepresentation()).Returns(content);
-            var testSubject = new ContentSection(xamlContentMock.Object);
-
-            var visualization = testSubject.CreateVisualization();
-
-            visualization.Should().BeSameAs(content);
-        }
+        string Key { get; }
+        string Title { get; }
+        IAbstractVisualizationTreeNode GetVisualizationTreeNode(ITabsRepository tabsRepository);
     }
 }

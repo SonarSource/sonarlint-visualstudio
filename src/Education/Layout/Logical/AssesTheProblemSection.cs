@@ -18,30 +18,30 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Documents;
+using System;
+using SonarLint.VisualStudio.Education.Layout.Visual;
+using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
 
-namespace SonarLint.VisualStudio.Education.Layout.Tabs
+namespace SonarLint.VisualStudio.Education.Layout.Logical
 {
-    /// <summary>
-    /// Repository for all created tabs
-    /// </summary>
-    internal interface ITabsRepository
+    internal class AssesTheProblemSection : IRichRuleDescriptionSection
     {
-        /// <summary>
-        /// Saves the tab in the repository. Uses tab.Name as the key
-        /// </summary>
-        /// <param name="tab">Tab block</param>
-        void RegisterTab(Block tab);
-        /// <summary>
-        /// Retrieves the tab by it's key
-        /// </summary>
-        /// <param name="name">Name of the tab</param>
-        /// <param name="tab">The resulting tab</param>
-        /// <returns>true if tab is present, false if not found</returns>
-        bool TryGetTab(string name, out Block tab);
-        /// <summary>
-        /// Removes all of the saved tabs
-        /// </summary>
-        void Clear();
+        public const string RuleInfoKey = "assess_the_problem";
+        internal /* for testing */ readonly string partialXamlContent;
+
+        public AssesTheProblemSection(string partialXaml)
+        {
+            partialXamlContent = partialXaml;
+        }
+
+        public string Key => RuleInfoKey;
+
+        public string Title => "Assess the risk";
+
+        public IAbstractVisualizationTreeNode GetVisualizationTreeNode(ITabsRepository tabsRepository)
+        {
+            throw new NotImplementedException();
+            // todo in the next PR
+        }
     }
 }

@@ -22,8 +22,9 @@ using System.Collections.Generic;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
+using SonarLint.VisualStudio.Education.Layout.Visual;
 
-namespace SonarLint.VisualStudio.Education.Layout.Tabs
+namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
 {
     /// <summary>
     /// Represents tab grouping that renders the necessary tab buttons and sets the default active tab
@@ -63,7 +64,7 @@ namespace SonarLint.VisualStudio.Education.Layout.Tabs
 
             container.Blocks.Add(new BlockUIContainer(buttonsContainer) { Name = name });
             container.Blocks.Add(initiallyActiveTab);
-            
+
             return container;
         }
     }

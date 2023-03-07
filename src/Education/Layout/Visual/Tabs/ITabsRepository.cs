@@ -19,25 +19,29 @@
  */
 
 using System.Windows.Documents;
-using SonarLint.VisualStudio.Education.XamlParser;
 
-namespace SonarLint.VisualStudio.Education.Layout
+namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
 {
     /// <summary>
-    /// Represents section that renders the passed xaml content
+    /// Repository for all created tabs
     /// </summary>
-    internal class ContentSection : IAbstractVisualizationTreeNode
+    internal interface ITabsRepository
     {
-        private readonly IXamlBlockContent content;
-
-        public ContentSection(IXamlBlockContent content)
-        {
-            this.content = content;
-        }
-
-        public Block CreateVisualization()
-        {
-            return content.GetObjectRepresentation();
-        }
+        /// <summary>
+        /// Saves the tab in the repository. Uses tab.Name as the key
+        /// </summary>
+        /// <param name="tab">Tab block</param>
+        void RegisterTab(Block tab);
+        /// <summary>
+        /// Retrieves the tab by it's key
+        /// </summary>
+        /// <param name="name">Name of the tab</param>
+        /// <param name="tab">The resulting tab</param>
+        /// <returns>true if tab is present, false if not found</returns>
+        bool TryGetTab(string name, out Block tab);
+        /// <summary>
+        /// Removes all of the saved tabs
+        /// </summary>
+        void Clear();
     }
 }
