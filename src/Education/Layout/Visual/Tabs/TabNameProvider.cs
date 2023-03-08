@@ -20,7 +20,7 @@
 
 using System;
 
-namespace SonarLint.VisualStudio.Education.Layout.Tabs
+namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
 {
     /// <summary>
     /// Provides WPF element names in specific format that can be parsed back
@@ -30,10 +30,10 @@ namespace SonarLint.VisualStudio.Education.Layout.Tabs
         private const string Separator = "__";
         private static readonly string[] SplitArray = new[] { Separator };
 
-        public static string GetTabButtonName(string tabGroup, string tabName) => 
+        public static string GetTabButtonName(string tabGroup, string tabName) =>
             GetName(tabGroup, tabName, "Button");
 
-        public static string GetTabSectionName(string tabGroup, string tabName) => 
+        public static string GetTabSectionName(string tabGroup, string tabName) =>
             GetName(tabGroup, tabName, "Section");
 
         public static (string TabGroup, string TabName) GetTabIdentifier(string name)

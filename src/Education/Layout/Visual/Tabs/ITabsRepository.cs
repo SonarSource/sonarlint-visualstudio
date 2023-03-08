@@ -19,28 +19,29 @@
  */
 
 using System.Windows.Documents;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.Education.Layout.Visual;
-using SonarLint.VisualStudio.Education.XamlParser;
 
-namespace SonarLint.VisualStudio.Education.UnitTests.Layout
+namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
 {
-    [TestClass]
-    public class ContentSectionTests
+    /// <summary>
+    /// Repository for all created tabs
+    /// </summary>
+    internal interface ITabsRepository
     {
-        [TestMethod]
-        public void CreateVisualization_ReturnsContentFromXaml()
-        {
-            var xamlContentMock = new Mock<IXamlBlockContent>();
-            var content = new Section();
-            xamlContentMock.Setup(x => x.GetObjectRepresentation()).Returns(content);
-            var testSubject = new ContentSection(xamlContentMock.Object);
-
-            var visualization = testSubject.CreateVisualization();
-
-            visualization.Should().BeSameAs(content);
-        }
+        /// <summary>
+        /// Saves the tab in the repository. Uses tab.Name as the key
+        /// </summary>
+        /// <param name="tab">Tab block</param>
+        void RegisterTab(Block tab);
+        /// <summary>
+        /// Retrieves the tab by it's key
+        /// </summary>
+        /// <param name="name">Name of the tab</param>
+        /// <param name="tab">The resulting tab</param>
+        /// <returns>true if tab is present, false if not found</returns>
+        bool TryGetTab(string name, out Block tab);
+        /// <summary>
+        /// Removes all of the saved tabs
+        /// </summary>
+        void Clear();
     }
 }

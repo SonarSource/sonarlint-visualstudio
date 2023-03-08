@@ -19,28 +19,25 @@
  */
 
 using System.Windows.Documents;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.Education.Layout.Visual;
 using SonarLint.VisualStudio.Education.XamlParser;
 
-namespace SonarLint.VisualStudio.Education.UnitTests.Layout
+namespace SonarLint.VisualStudio.Education.Layout.Visual
 {
-    [TestClass]
-    public class ContentSectionTests
+    /// <summary>
+    /// Represents section that renders the passed xaml content
+    /// </summary>
+    internal class ContentSection : IAbstractVisualizationTreeNode
     {
-        [TestMethod]
-        public void CreateVisualization_ReturnsContentFromXaml()
+        private readonly IXamlBlockContent content;
+
+        public ContentSection(IXamlBlockContent content)
         {
-            var xamlContentMock = new Mock<IXamlBlockContent>();
-            var content = new Section();
-            xamlContentMock.Setup(x => x.GetObjectRepresentation()).Returns(content);
-            var testSubject = new ContentSection(xamlContentMock.Object);
+            this.content = content;
+        }
 
-            var visualization = testSubject.CreateVisualization();
-
-            visualization.Should().BeSameAs(content);
+        public Block CreateVisualization()
+        {
+            return content.GetObjectRepresentation();
         }
     }
 }

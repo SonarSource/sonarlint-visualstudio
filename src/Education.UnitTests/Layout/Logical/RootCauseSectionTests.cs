@@ -18,29 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Documents;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.Education.Layout.Visual;
-using SonarLint.VisualStudio.Education.XamlParser;
+using SonarLint.VisualStudio.Education.Layout.Logical;
 
-namespace SonarLint.VisualStudio.Education.UnitTests.Layout
+namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical;
+
+[TestClass]
+public class RootCauseSectionTests
 {
-    [TestClass]
-    public class ContentSectionTests
+    [TestMethod]
+    public void KeyAndTitle_AreCorrect()
     {
-        [TestMethod]
-        public void CreateVisualization_ReturnsContentFromXaml()
-        {
-            var xamlContentMock = new Mock<IXamlBlockContent>();
-            var content = new Section();
-            xamlContentMock.Setup(x => x.GetObjectRepresentation()).Returns(content);
-            var testSubject = new ContentSection(xamlContentMock.Object);
+        var testSubject = new RootCauseSection("", false);
+        var testSubjectHotspot = new RootCauseSection("", true);
 
-            var visualization = testSubject.CreateVisualization();
-
-            visualization.Should().BeSameAs(content);
-        }
+        testSubject.Key.Should().BeSameAs(RootCauseSection.RuleInfoKey).And.Be("root_cause");
+        testSubject.Title.Should().Be("Why is this an issue?");
+        testSubjectHotspot.Key.Should().BeSameAs(RootCauseSection.RuleInfoKey).And.Be("root_cause");
+        testSubjectHotspot.Title.Should().Be("What's the risk?");
     }
 }

@@ -18,29 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Documents;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.Education.Layout.Visual;
-using SonarLint.VisualStudio.Education.XamlParser;
+using SonarLint.VisualStudio.Education.Layout.Logical;
 
-namespace SonarLint.VisualStudio.Education.UnitTests.Layout
+namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
 {
     [TestClass]
-    public class ContentSectionTests
+    public class ResourcesSectionTests
     {
         [TestMethod]
-        public void CreateVisualization_ReturnsContentFromXaml()
+        public void KeyAndTitle_AreCorrect()
         {
-            var xamlContentMock = new Mock<IXamlBlockContent>();
-            var content = new Section();
-            xamlContentMock.Setup(x => x.GetObjectRepresentation()).Returns(content);
-            var testSubject = new ContentSection(xamlContentMock.Object);
+            var testSubject = new ResourcesSection("", null);
 
-            var visualization = testSubject.CreateVisualization();
-
-            visualization.Should().BeSameAs(content);
+            testSubject.Key.Should().BeSameAs(ResourcesSection.RuleInfoKey).And.Be("resources");
+            testSubject.Title.Should().Be("More info");
         }
     }
 }
