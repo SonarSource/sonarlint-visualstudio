@@ -244,7 +244,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             actual.Rules[0].Key.Should().Be("s111");
             actual.Rules[1].Key.Should().Be("s222");
             actual.Rules[2].Key.Should().Be("s333");
-            
+
             actual.Rules[0].Parameters[0].Key.Should().Be("AAA");
             actual.Rules[0].Parameters[0].Value.Should().Be("value 3");
 
@@ -325,8 +325,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         private static SonarQubeRule CreateRuleWithValidParams(string ruleKey, string repoKey) =>
             CreateRule(ruleKey, repoKey, ValidParams);
 
-        private static SonarQubeRule CreateRule(string ruleKey, string repoKey, IDictionary<string, string> parameters = null) =>
-            new SonarQubeRule(ruleKey, repoKey, isActive: false, SonarQubeIssueSeverity.Blocker, parameters, SonarQubeIssueType.Unknown);
+        private static SonarQubeRule CreateRule(string ruleKey, string repoKey, IDictionary<string, string> parameters = null, IReadOnlyList<SonarQubeDescriptionSection> descriptionSections = null, IReadOnlyList<string> educationPrinciples = null) =>
+            new SonarQubeRule(ruleKey, repoKey, isActive: false, SonarQubeIssueSeverity.Blocker, parameters, SonarQubeIssueType.Unknown, descriptionSections, educationPrinciples);
 
         private Language ToLanguage(string sqLanguageKey) => Language.GetLanguageFromLanguageKey(sqLanguageKey);
     }
