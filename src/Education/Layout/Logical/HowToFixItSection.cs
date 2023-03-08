@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
     internal class HowToFixItSection : IRichRuleDescriptionSection
     {
         public const string RuleInfoKey = "how_to_fix";
-        internal /* for testing */ readonly List<Context> contexts;
+        internal /* for testing */ readonly List<HowToFixItSectionContext> contexts;
         internal /* for testing */ readonly string partialXamlContent;
 
         public HowToFixItSection(string partialXaml)
@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
             partialXamlContent = partialXaml;
         }
 
-        public HowToFixItSection(List<Context> contexts)
+        public HowToFixItSection(List<HowToFixItSectionContext> contexts)
         {
             this.contexts = contexts;
         }
@@ -49,21 +49,20 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
         {
             throw new NotImplementedException();
             // todo in the next PR
-
         }
+    }
 
-        public class Context
+    public class HowToFixItSectionContext
+    {
+        public HowToFixItSectionContext(string key, string title, string partialXaml)
         {
-            public Context(string key, string title, string partialXaml)
-            {
-                Key = key;
-                Title = title;
-                PartialXamlContent = partialXaml;
-            }
-
-            public string Key { get; }
-            public string Title { get; }
-            public string PartialXamlContent { get; }
+            Key = key;
+            Title = title;
+            PartialXamlContent = partialXaml;
         }
+
+        public string Key { get; }
+        public string Title { get; }
+        public string PartialXamlContent { get; }
     }
 }
