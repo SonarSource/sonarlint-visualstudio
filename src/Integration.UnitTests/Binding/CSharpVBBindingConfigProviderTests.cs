@@ -33,9 +33,9 @@ using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
+using CoreRuleSet = SonarLint.VisualStudio.Core.CSharpVB.RuleSet;
 using Language = SonarLint.VisualStudio.Core.Language;
 using NuGetPackageInfo = SonarLint.VisualStudio.Core.CSharpVB.NuGetPackageInfo;
-using CoreRuleSet = SonarLint.VisualStudio.Core.CSharpVB.RuleSet;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -52,16 +52,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private CoreRuleSet validRuleSet;
 
         private static readonly SonarQubeRule ActiveRuleWithUnsupportedSeverity = new SonarQubeRule("activeHotspot", "any1",
-            true, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.SecurityHotspot);
+            true, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.SecurityHotspot, null, null);
 
         private static readonly SonarQubeRule InactiveRuleWithUnsupportedSeverity = new SonarQubeRule("inactiveHotspot", "any2",
-            false, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.SecurityHotspot);
+            false, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.SecurityHotspot, null, null);
 
         private static readonly SonarQubeRule ActiveTaintAnalysisRule = new SonarQubeRule("activeTaint", "roslyn.sonaranalyzer.security.foo",
-            true, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.CodeSmell);
+            true, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.CodeSmell, null, null);
 
         private static readonly SonarQubeRule InactiveTaintAnalysisRule = new SonarQubeRule("inactiveTaint", "roslyn.sonaranalyzer.security.bar",
-            false, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.CodeSmell);
+            false, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.CodeSmell, null, null);
 
         [TestInitialize]
         public void TestInitialize()
@@ -70,14 +70,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             validRules = new List<SonarQubeRule>
             {
-                new SonarQubeRule("key", "repoKey", true, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.Bug)
+                new SonarQubeRule("key", "repoKey", true, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.Bug, null, null)
             };
 
             anyProperties = Array.Empty<SonarQubeProperty>();
 
             validQualityProfile = new SonarQubeQualityProfile("qpkey1", "qp name", "any", false, DateTime.UtcNow);
 
-            validNugetPackages = new List<NuGetPackageInfo> {new NuGetPackageInfo("package.id", "1.2")};
+            validNugetPackages = new List<NuGetPackageInfo> { new NuGetPackageInfo("package.id", "1.2") };
 
             validRuleSet = new CoreRuleSet
             {
@@ -336,13 +336,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [DataRow(SonarQubeIssueType.Vulnerability, true)]
         public void IsSupportedRule_Severity(SonarQubeIssueType issueType, bool expected)
         {
-            var rule = new SonarQubeRule("any", "any", true, SonarQubeIssueSeverity.Blocker, null, issueType);
+            var rule = new SonarQubeRule("any", "any", true, SonarQubeIssueSeverity.Blocker, null, issueType, null, null);
 
             CSharpVBBindingConfigProvider.IsSupportedRule(rule).Should().Be(expected);
         }
 
         private static SonarQubeRule CreateRule(string ruleKey, string repoKey, bool isActive) =>
-            new SonarQubeRule(ruleKey, repoKey, isActive, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.CodeSmell);
+            new SonarQubeRule(ruleKey, repoKey, isActive, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.CodeSmell, null, null);
 
         private class TestEnvironmentBuilder
         {
@@ -459,6 +459,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 nugetBindingMock.Verify(x => x.ProcessExport(It.IsAny<Language>(), It.IsAny<IEnumerable<NuGetPackageInfo>>()),
                     Times.Never);
             }
+
             public void AssertNuGetBindingOpWasCalled()
             {
                 nugetBindingMock.Verify(x => x.ProcessExport(It.IsAny<Language>(), It.IsAny<IEnumerable<NuGetPackageInfo>>()),

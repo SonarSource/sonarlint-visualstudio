@@ -72,7 +72,25 @@ namespace SonarQube.Client.Tests
           ""type"": ""STRING""
         }
       ],
-      ""type"": ""CODE_SMELL""
+      ""type"": ""CODE_SMELL"",
+      ""descriptionSections"" : [
+        {
+          ""key"": ""key1"",
+          ""content"": ""content1""
+        },
+        {
+          ""key"": ""key2"",
+          ""content"": ""content2"",
+          ""context"":{
+            ""displayName"":""displayName"",
+            ""key"":""key""
+          }
+        }
+        ],
+         ""educationPrinciples"": [
+            ""education principle 1"",
+            ""education principle 2""
+        ]
     },
   ],
   ""actives"": {
@@ -140,6 +158,18 @@ namespace SonarQube.Client.Tests
             result.Select(r => r.Parameters.Count).Should().Contain(new[] { 0, 2, 0 });
             result.SelectMany(r => r.Parameters.Select(p => p.Key)).Should().ContainInOrder(new[] { "format", "flagsAttributeFormat" });
             result.SelectMany(r => r.Parameters.Select(p => p.Value)).Should().ContainInOrder(new[] { "^([A-Z]{1,3}[a-z0-9]+)*([A-Z]{2})?$", "^([A-Z]{1,3}[a-z0-9]+)*([A-Z]{2})?s$" });
+
+            result[2].DescriptionSections.Count.Should().Be(2);
+            result[2].DescriptionSections[0].Key.Should().Be("key1");
+            result[2].DescriptionSections[0].HtmlContent.Should().Be("content1");
+            result[2].DescriptionSections[0].Context.Should().BeNull();
+
+            result[2].DescriptionSections.Count.Should().Be(2);
+            result[2].DescriptionSections[1].Key.Should().Be("key2");
+            result[2].DescriptionSections[1].HtmlContent.Should().Be("content2");
+            result[2].DescriptionSections[1].Context.Should().NotBeNull();
+            result[2].DescriptionSections[1].Context.Key.Should().Be("key");
+            result[2].DescriptionSections[1].Context.DisplayName.Should().Be("displayName");
 
             // All rules with empty parameters should return the same (read-only) object
             // 0 = S2225, no params; 1 = S4524, no params; 2 = S2342, has params
