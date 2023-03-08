@@ -190,4 +190,27 @@
   <data name="StatefulBranchProvider_ReturnValue" xml:space="preserve">
     <value>[ConnectedMode/BranchMapping] Closest Sonar server branch: {0}</value>
   </data>
+  <data name="Suppressions_CancellingCurrentOperation" xml:space="preserve">
+    <value>[Suppressions] Cancelling current operation...</value>
+  </data>
+  <data name="Suppressions_FetchError_Short" xml:space="preserve">
+    <value>[Suppressions] Fetch operation failed: {0}</value>
+    <comment>0 = short error message</comment>
+  </data>
+  <data name="Suppressions_FetchOperationCancelled" xml:space="preserve">
+    <value>[Suppressions] Fetch operation cancelled</value>
+  </data>
+  <data name="Suppressions_Fetch_AllIssues" xml:space="preserve">
+    <value>[Suppressions] Fetching all suppressions...</value>
+  </data>
+  <data name="Suppressions_NotConnected" xml:space="preserve">
+    <value>[Suppressions] Cannot fetch suppressions - not connected to a Sonar server.</value>
+  </data>
+  <data name="Suppression_FetchError_Verbose" xml:space="preserve">
+    <value>[Suppressions] Error fetching data: {0}</value>
+    <comment>0 = detailed error message</comment>
+  </data>
+  <data name="Suppression_Fetch_AllIssues_Finished" xml:space="preserve">
+    <value>[Suppressions] Finished fetching all suppressions</value>
+  </data>
 </root>
