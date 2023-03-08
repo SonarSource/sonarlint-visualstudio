@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
         }
     }
 
-    public class HowToFixItSectionContext
+    internal class HowToFixItSectionContext
     {
         public HowToFixItSectionContext(string key, string title, string partialXaml)
         {
