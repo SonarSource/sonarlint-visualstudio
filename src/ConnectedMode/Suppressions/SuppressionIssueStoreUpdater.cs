@@ -95,6 +95,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             {
                 logger.WriteLine(Resources.Suppressions_Fetch_AllIssues);
 
+                // TODO: fix the race condition here (two threads could both finish "CancelCurrentOperation" at
+                // the same time. The whole request operation should be atomic).
                 CancelCurrentOperation();
                 var localCopyOfCts = updateAllCancellationTokenSource = new CancellationTokenSource();
                 
@@ -138,7 +140,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         private void CancelCurrentOperation()
         {
             // We don't want multiple "fetch all" operations running at once (e.g. if the
-            // opens a solution then clicks "update").
+            // user opens a solution then clicks "update").
             // If there is an operation in progress we'll cancel it.
             var copy = updateAllCancellationTokenSource;
 
