@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
     {
         private readonly ISonarQubeService server;
         private readonly IServerQueryInfoProvider serverQueryInfoProvider;
-        private readonly IServerIssueStoreWriter storeWriter;
+        private readonly IServerIssuesStoreWriter storeWriter;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
 
@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         [ImportingConstructor]
         public SuppressionIssueStoreUpdater(ISonarQubeService server,
             IServerQueryInfoProvider serverQueryInfoProvider,
-            IServerIssueStoreWriter storeWriter,
+            IServerIssuesStoreWriter storeWriter,
             ILogger logger)
             : this(server, serverQueryInfoProvider, storeWriter, logger, ThreadHandling.Instance)
         {
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
         internal /* for testing */ SuppressionIssueStoreUpdater(ISonarQubeService server,
             IServerQueryInfoProvider serverQueryInfoProvider,
-            IServerIssueStoreWriter storeWriter,
+            IServerIssuesStoreWriter storeWriter,
             ILogger logger,
             IThreadHandling threadHandling)
         {
