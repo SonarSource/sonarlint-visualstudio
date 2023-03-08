@@ -18,30 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Documents;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Education.Layout.Logical;
 
-namespace SonarLint.VisualStudio.Education.Layout.Tabs
+namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical;
+
+[TestClass]
+public class HowToFixSectionTests
 {
-    /// <summary>
-    /// Repository for all created tabs
-    /// </summary>
-    internal interface ITabsRepository
+    [TestMethod]
+    public void KeyAndTitle_AreCorrect()
     {
-        /// <summary>
-        /// Saves the tab in the repository. Uses tab.Name as the key
-        /// </summary>
-        /// <param name="tab">Tab block</param>
-        void RegisterTab(Block tab);
-        /// <summary>
-        /// Retrieves the tab by it's key
-        /// </summary>
-        /// <param name="name">Name of the tab</param>
-        /// <param name="tab">The resulting tab</param>
-        /// <returns>true if tab is present, false if not found</returns>
-        bool TryGetTab(string name, out Block tab);
-        /// <summary>
-        /// Removes all of the saved tabs
-        /// </summary>
-        void Clear();
+        var testSubject = new HowToFixItSection("");
+
+        testSubject.Key.Should().BeSameAs(HowToFixItSection.RuleInfoKey).And.Be("how_to_fix");
+        testSubject.Title.Should().Be("How can I fix it?");
     }
 }

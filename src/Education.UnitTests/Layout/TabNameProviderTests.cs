@@ -21,7 +21,7 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Education.Layout.Tabs;
+using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
 
 namespace SonarLint.VisualStudio.Education.UnitTests.Layout
 {

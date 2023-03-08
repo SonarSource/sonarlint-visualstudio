@@ -18,26 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Documents;
-using SonarLint.VisualStudio.Education.XamlParser;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Education.Layout.Logical;
 
-namespace SonarLint.VisualStudio.Education.Layout
+namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical;
+
+[TestClass]
+public class AssesTheProblemSectionTests
 {
-    /// <summary>
-    /// Represents section that renders the passed xaml content
-    /// </summary>
-    internal class ContentSection : IAbstractVisualizationTreeNode
+    [TestMethod]
+    public void KeyAndTitle_AreCorrect()
     {
-        private readonly IXamlBlockContent content;
+        var testSubject = new AssesTheProblemSection("");
 
-        public ContentSection(IXamlBlockContent content)
-        {
-            this.content = content;
-        }
-
-        public Block CreateVisualization()
-        {
-            return content.GetObjectRepresentation();
-        }
+        testSubject.Key.Should().BeSameAs(AssesTheProblemSection.RuleInfoKey).And.Be("assess_the_problem");
+        testSubject.Title.Should().Be("Assess the risk");
     }
 }

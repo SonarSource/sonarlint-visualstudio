@@ -18,29 +18,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Documents;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+using System;
+using System.Collections.Generic;
 using SonarLint.VisualStudio.Education.Layout.Visual;
-using SonarLint.VisualStudio.Education.XamlParser;
+using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
 
-namespace SonarLint.VisualStudio.Education.UnitTests.Layout
+namespace SonarLint.VisualStudio.Education.Layout.Logical
 {
-    [TestClass]
-    public class ContentSectionTests
+    internal class ResourcesSection : IRichRuleDescriptionSection
     {
-        [TestMethod]
-        public void CreateVisualization_ReturnsContentFromXaml()
+        public const string RuleInfoKey = "resources";
+        internal /* for testing */ readonly string partialXamlContent;
+        internal /* for testing */ readonly IReadOnlyList<string> educationPrinciples;
+
+        public ResourcesSection(string partialXaml, IReadOnlyList<string> educationPrinciples)
         {
-            var xamlContentMock = new Mock<IXamlBlockContent>();
-            var content = new Section();
-            xamlContentMock.Setup(x => x.GetObjectRepresentation()).Returns(content);
-            var testSubject = new ContentSection(xamlContentMock.Object);
+            partialXamlContent = partialXaml;
+            this.educationPrinciples = educationPrinciples;
+        }
 
-            var visualization = testSubject.CreateVisualization();
+        public string Key => RuleInfoKey;
+        public string Title => "More info";
 
-            visualization.Should().BeSameAs(content);
+        public IAbstractVisualizationTreeNode GetVisualizationTreeNode(ITabsRepository tabsRepository)
+        {
+            throw new NotImplementedException();
+            // todo in the next PR
         }
     }
 }

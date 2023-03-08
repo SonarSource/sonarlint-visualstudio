@@ -20,7 +20,7 @@
 
 using System.Windows.Documents;
 
-namespace SonarLint.VisualStudio.Education.Layout
+namespace SonarLint.VisualStudio.Education.Layout.Visual
 {
     /// <summary>
     /// Represents section with a header that has a configurable set of content subsections

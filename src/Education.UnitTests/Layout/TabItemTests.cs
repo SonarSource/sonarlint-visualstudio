@@ -23,8 +23,8 @@ using System.Windows.Documents;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Education.Layout;
-using SonarLint.VisualStudio.Education.Layout.Tabs;
+using SonarLint.VisualStudio.Education.Layout.Visual;
+using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
 
 namespace SonarLint.VisualStudio.Education.UnitTests.Layout
 {
