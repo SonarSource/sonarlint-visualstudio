@@ -262,7 +262,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             logger ??= new TestLogger(logToConsole: true);
             threadHandling ??= new NoOpThreadHandler();
 
-            return new SuppressionIssueStoreUpdater(server, queryInfo, writer, logger, threadHandling);
+            return new SuppressionIssueStoreUpdater(server, queryInfo, writer, logger, threadHandling, new SingleActiveOpTokenSourceProvider(logger));
         }
 
         private static Mock<IServerQueryInfoProvider> CreateQueryInfoProvider(string projectKey, string branchName)

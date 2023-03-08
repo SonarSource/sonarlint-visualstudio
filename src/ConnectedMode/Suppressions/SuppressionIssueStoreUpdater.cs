@@ -59,15 +59,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         private readonly IServerIssueStoreWriter storeWriter;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
+        private readonly ICancellationTokenSourceProvider singleActiveOpCtsProvider;
 
-        private CancellationTokenSource updateAllCancellationTokenSource = new CancellationTokenSource();
 
         [ImportingConstructor]
         public SuppressionIssueStoreUpdater(ISonarQubeService server,
             IServerQueryInfoProvider serverQueryInfoProvider,
             IServerIssueStoreWriter storeWriter,
             ILogger logger)
-            : this(server, serverQueryInfoProvider, storeWriter, logger, ThreadHandling.Instance)
+            : this(server, serverQueryInfoProvider, storeWriter, logger,ThreadHandling.Instance,
+                  new SingleActiveOpTokenSourceProvider(logger))
         {
         }
 
@@ -75,7 +76,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             IServerQueryInfoProvider serverQueryInfoProvider,
             IServerIssueStoreWriter storeWriter,
             ILogger logger,
-            IThreadHandling threadHandling)
+            IThreadHandling threadHandling,
+            ICancellationTokenSourceProvider singleActiveOpCtsProvider)
         {
             this.server = server;
             this.serverQueryInfoProvider = serverQueryInfoProvider;
@@ -83,6 +85,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             this.storeWriter = storeWriter;
             this.logger = logger;
             this.threadHandling = threadHandling;
+            this.singleActiveOpCtsProvider = singleActiveOpCtsProvider;
         }
 
         #region ISuppressionIssueStoreUpdater
@@ -91,25 +94,29 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         {
             await threadHandling.SwitchToBackgroundThread();
 
+            // The CTS provider will handle cancelling the previous "fetch all"
+            // if one is still in progress.
+            var cts = singleActiveOpCtsProvider.Create();
+
             try
             {
                 logger.WriteLine(Resources.Suppressions_Fetch_AllIssues);
 
-                CancelCurrentOperation();
-                var localCopyOfCts = updateAllCancellationTokenSource = new CancellationTokenSource();
-                
-                (string projectKey, string serverBranch) queryInfo = await serverQueryInfoProvider.GetProjectKeyAndBranchAsync(localCopyOfCts.Token);
+                (string projectKey, string serverBranch) queryInfo = await serverQueryInfoProvider.GetProjectKeyAndBranchAsync(cts.Token);
 
-                localCopyOfCts.Token.ThrowIfCancellationRequested();
+                cts.Token.ThrowIfCancellationRequested();
 
                 if (queryInfo.projectKey == null || queryInfo.serverBranch == null)
                 {
                     return;
                 }
 
-                localCopyOfCts.Token.ThrowIfCancellationRequested();
+                cts.Token.ThrowIfCancellationRequested();
 
-                var allSuppressedIssues = await server.GetSuppressedIssuesAsync(queryInfo.projectKey, queryInfo.serverBranch, localCopyOfCts.Token);
+                var allSuppressedIssues = await server.GetSuppressedIssuesAsync(queryInfo.projectKey, queryInfo.serverBranch, cts.Token);
+                
+                cts.Token.ThrowIfCancellationRequested();
+                
                 storeWriter.AddIssues(allSuppressedIssues, clearAllExistingIssues: true);
 
                 logger.WriteLine(Resources.Suppression_Fetch_AllIssues_Finished);
@@ -118,10 +125,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             {
                 logger.WriteLine(Resources.Suppressions_FetchOperationCancelled);
             }
-            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.LogVerbose(Resources.Suppression_FetchError_Verbose, ex);
                 logger.WriteLine(Resources.Suppressions_FetchError_Short, ex.Message);
+            }
+            finally
+            {
+                cts.Dispose();                
             }
         }
 
@@ -135,23 +146,77 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             throw new NotImplementedException();
         }
 
-        private void CancelCurrentOperation()
-        {
-            // We don't want multiple "fetch all" operations running at once (e.g. if the
-            // opens a solution then clicks "update").
-            // If there is an operation in progress we'll cancel it.
-            var copy = updateAllCancellationTokenSource;
+        #endregion
 
-            // If there is already a fetch operation in process then cancel it.
-            if (copy != null && !copy.IsCancellationRequested)
+        public void Dispose() => singleActiveOpCtsProvider.Dispose();
+    }
+
+    /// <summary>
+    /// Provides a testable abstraction for creating cancellation token sources.
+    /// Also provides an abstraction over different CTS management strategies.
+    /// </summary>
+    internal interface ICancellationTokenSourceProvider : IDisposable
+    {
+        /// <summary>
+        /// Provides a new token source for the caller to use
+        /// </summary>
+        /// <remarks>
+        /// The caller should dispose of the token source when they have finished with it
+        /// </remarks>
+        CancellationTokenSource Create();
+    }
+
+    /// <summary>
+    /// A CTS provider that allows only one active running operation
+    /// </summary>
+    /// <remarks>
+    /// On the first call, <see cref="Create"/> will return a new token source.
+    /// Subsequent calls will cancel the previous token before returning a new one.
+    /// The class is thread-safe.
+    /// </remarks>
+    internal class SingleActiveOpTokenSourceProvider : ICancellationTokenSourceProvider
+    {
+        private CancellationTokenSource current;
+        private object lockObject = new object();
+
+        private readonly ILogger logger;
+
+        public SingleActiveOpTokenSourceProvider(ILogger logger)
+        {
+            this.logger = logger;
+        }
+
+        public CancellationTokenSource Create()
+        {
+            lock (lockObject)
             {
-                logger.LogVerbose(Resources.Suppressions_CancellingCurrentOperation);
-                copy.Cancel();
+                CancelCurrentOperation();              
+                current = new CancellationTokenSource();
+                return current;
             }
         }
 
-        #endregion
+        private void CancelCurrentOperation()
+        {
+            // We don't want multiple operations running at once.
+            // If there is an operation in progress we'll cancel it.
+            if (current != null && !current.IsCancellationRequested)
+            {
+                logger.LogVerbose(Resources.Suppressions_CancellingCurrentOperation);
 
-        public void Dispose() => updateAllCancellationTokenSource?.Dispose();
+                try
+                {
+                    current.Cancel();
+                }
+                catch (OperationCanceledException)
+                {
+                    // We have no way of telling whether the cts has already been disposed or not.
+                    // If it has, calling current.Cancel() will throw. All we can do is catch and
+                    // squash the exception.
+                }
+            }
+        }
+
+        public void Dispose() => current?.Dispose();
     }
 }
