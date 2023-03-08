@@ -19,24 +19,61 @@
  */
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
     [Export(typeof(IServerIssuesStore))]
+    [Export(typeof(IServerIssuesStoreWriter))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ServerIssuesStore : IServerIssuesStore
+    internal class ServerIssuesStore : IServerIssuesStore, IServerIssuesStoreWriter
     {
-        private IEnumerable<SonarQubeIssue> serverIssues;
+        private List<SonarQubeIssue> serverIssues = new List<SonarQubeIssue>();
 
         public event EventHandler ServerIssuesChanged;
+
+        #region IServerIssuesStore implementation
 
         public IEnumerable<SonarQubeIssue> Get()
         {
             return serverIssues ?? Enumerable.Empty<SonarQubeIssue>();
         }
+
+        #endregion IServerIssuesStore implementation
+
+        #region IServerIssueStoreWriter implementation
+
+        public void AddIssues(IEnumerable<SonarQubeIssue> issues, bool clearAllExistingIssues)
+        {
+            if (issues == null) { return; }
+
+            if (clearAllExistingIssues)
+            {
+                serverIssues = new List<SonarQubeIssue>();
+            }
+
+            serverIssues.AddRange(issues);
+
+            ServerIssuesChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void UpdateIssue(string issueKey, bool isResolved)
+        {
+            var issue = serverIssues.SingleOrDefault(x => x.IssueKey == issueKey);
+
+            if (issue == null)
+            {
+                return;
+            }
+
+            issue.IsResolved = isResolved;
+
+            ServerIssuesChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        #endregion IServerIssueStoreWriter implementation
     }
 }
