@@ -275,5 +275,68 @@ namespace SonarLint.VisualStudio.ConnectedMode {
                 return ResourceManager.GetString("StatefulBranchProvider_ReturnValue", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Finished fetching all suppressions.
+        /// </summary>
+        internal static string Suppression_Fetch_AllIssues_Finished {
+            get {
+                return ResourceManager.GetString("Suppression_Fetch_AllIssues_Finished", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Error fetching data: {0}.
+        /// </summary>
+        internal static string Suppression_FetchError_Verbose {
+            get {
+                return ResourceManager.GetString("Suppression_FetchError_Verbose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Cancelling current operation....
+        /// </summary>
+        internal static string Suppressions_CancellingCurrentOperation {
+            get {
+                return ResourceManager.GetString("Suppressions_CancellingCurrentOperation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Fetching all suppressions....
+        /// </summary>
+        internal static string Suppressions_Fetch_AllIssues {
+            get {
+                return ResourceManager.GetString("Suppressions_Fetch_AllIssues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Fetch operation failed: {0}.
+        /// </summary>
+        internal static string Suppressions_FetchError_Short {
+            get {
+                return ResourceManager.GetString("Suppressions_FetchError_Short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Fetch operation cancelled.
+        /// </summary>
+        internal static string Suppressions_FetchOperationCancelled {
+            get {
+                return ResourceManager.GetString("Suppressions_FetchOperationCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Cannot fetch suppressions - not connected to a Sonar server..
+        /// </summary>
+        internal static string Suppressions_NotConnected {
+            get {
+                return ResourceManager.GetString("Suppressions_NotConnected", resourceCulture);
+            }
+        }
     }
 }

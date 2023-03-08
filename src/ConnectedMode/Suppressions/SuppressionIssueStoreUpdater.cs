@@ -19,6 +19,13 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
@@ -30,16 +37,123 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         /// <summary>
         /// Fetches all available suppressions from the server and updates the server issues store
         /// </summary>
-        void FetchAllServerSuppressions();
+        Task UpdateAllServerSuppressionsAsync();
 
         /// <summary>
         /// Fetches suppressions from the server from the specified timestamp onwards and updates the issues store
         /// </summary>
-        void FetchServerSuppressions(DateTimeOffset fromTimestamp);
+        Task UpdateServerSuppressionsAsync(DateTimeOffset fromTimestamp);
 
         /// <summary>
         /// Clears all issues from the store
         /// </summary>
         void Clear();
+    }
+
+    [Export(typeof(ISuppressionIssueStoreUpdater))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal sealed class SuppressionIssueStoreUpdater : ISuppressionIssueStoreUpdater, IDisposable
+    {
+        private readonly ISonarQubeService server;
+        private readonly IServerQueryInfoProvider serverQueryInfoProvider;
+        private readonly IServerIssuesStoreWriter storeWriter;
+        private readonly ILogger logger;
+        private readonly IThreadHandling threadHandling;
+
+        private CancellationTokenSource updateAllCancellationTokenSource = new CancellationTokenSource();
+
+        [ImportingConstructor]
+        public SuppressionIssueStoreUpdater(ISonarQubeService server,
+            IServerQueryInfoProvider serverQueryInfoProvider,
+            IServerIssuesStoreWriter storeWriter,
+            ILogger logger)
+            : this(server, serverQueryInfoProvider, storeWriter, logger, ThreadHandling.Instance)
+        {
+        }
+
+        internal /* for testing */ SuppressionIssueStoreUpdater(ISonarQubeService server,
+            IServerQueryInfoProvider serverQueryInfoProvider,
+            IServerIssuesStoreWriter storeWriter,
+            ILogger logger,
+            IThreadHandling threadHandling)
+        {
+            this.server = server;
+            this.serverQueryInfoProvider = serverQueryInfoProvider;
+
+            this.storeWriter = storeWriter;
+            this.logger = logger;
+            this.threadHandling = threadHandling;
+        }
+
+        #region ISuppressionIssueStoreUpdater
+
+        public async Task UpdateAllServerSuppressionsAsync()
+        {
+            await threadHandling.SwitchToBackgroundThread();
+
+            try
+            {
+                logger.WriteLine(Resources.Suppressions_Fetch_AllIssues);
+
+                // TODO: fix the race condition here (two threads could both finish "CancelCurrentOperation" at
+                // the same time. The whole request operation should be atomic).
+                CancelCurrentOperation();
+                var localCopyOfCts = updateAllCancellationTokenSource = new CancellationTokenSource();
+                
+                (string projectKey, string serverBranch) queryInfo = await serverQueryInfoProvider.GetProjectKeyAndBranchAsync(localCopyOfCts.Token);
+
+                localCopyOfCts.Token.ThrowIfCancellationRequested();
+
+                if (queryInfo.projectKey == null || queryInfo.serverBranch == null)
+                {
+                    return;
+                }
+
+                localCopyOfCts.Token.ThrowIfCancellationRequested();
+
+                var allSuppressedIssues = await server.GetSuppressedIssuesAsync(queryInfo.projectKey, queryInfo.serverBranch, localCopyOfCts.Token);
+                storeWriter.AddIssues(allSuppressedIssues, clearAllExistingIssues: true);
+
+                logger.WriteLine(Resources.Suppression_Fetch_AllIssues_Finished);
+            }
+            catch (OperationCanceledException)
+            {
+                logger.WriteLine(Resources.Suppressions_FetchOperationCancelled);
+            }
+            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.LogVerbose(Resources.Suppression_FetchError_Verbose, ex);
+                logger.WriteLine(Resources.Suppressions_FetchError_Short, ex.Message);
+            }
+        }
+
+        public Task UpdateServerSuppressionsAsync(DateTimeOffset fromTimestamp)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Clear()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void CancelCurrentOperation()
+        {
+            // We don't want multiple "fetch all" operations running at once (e.g. if the
+            // user opens a solution then clicks "update").
+            // If there is an operation in progress we'll cancel it.
+            var copy = updateAllCancellationTokenSource;
+
+            // If there is already a fetch operation in process then cancel it.
+            if (copy != null && !copy.IsCancellationRequested)
+            {
+                logger.LogVerbose(Resources.Suppressions_CancellingCurrentOperation);
+                copy.Cancel();
+            }
+        }
+
+        #endregion
+
+        public void Dispose() => updateAllCancellationTokenSource?.Dispose();
     }
 }
