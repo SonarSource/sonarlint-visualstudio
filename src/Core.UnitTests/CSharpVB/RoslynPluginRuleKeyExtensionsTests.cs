@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
     {
         [TestMethod]
         [DataRow("roslyn.x", "x")]
-        [DataRow("roslyn.ANYTHING","ANYTHING")]
+        [DataRow("roslyn.ANYTHING", "ANYTHING")]
         [DataRow("roslyn.", null)]
         [DataRow("roslynx.wrongprefix", null)]
         [DataRow("ROSLYN.case.sensitive", null)]
@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         [DataRow("vbnet", "sonaranalyzer-vbnet")] // special case for SonarVBNet
         public void TryGetPrefix(string ruleKey, string expectedPrefix)
         {
-            var rule = new SonarQubeRule("any", ruleKey, false, SonarQubeIssueSeverity.Unknown, null, SonarQubeIssueType.Unknown);
+            var rule = new SonarQubeRule("any", ruleKey, false, SonarQubeIssueSeverity.Unknown, null, SonarQubeIssueType.Unknown, null, null);
 
             rule.TryGetRoslynPluginPropertyPrefix().Should().Be(expectedPrefix);
         }

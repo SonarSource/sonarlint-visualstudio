@@ -68,14 +68,14 @@ namespace SonarQube.Client.Api.V5_50
             IEnumerable<QualityProfileResponse> activeQualityProfiles)
         {
             var isActive = activeQualityProfiles.Any();
-            
+
             SonarQubeIssueSeverity severity;
             Dictionary<string, string> parameters;
             if (isActive)
             {
                 var activeQP = activeQualityProfiles.First();
                 severity = SonarQubeIssueSeverityConverter.Convert(activeQP.Severity);
-                
+
                 // Optimisation: avoid creating objects if there are no parameters
                 parameters = activeQP.Parameters.Length > 0 ?
                     activeQP.Parameters.ToDictionary(p => p.Key, p => p.Value) : null;
@@ -88,7 +88,9 @@ namespace SonarQube.Client.Api.V5_50
 
             var issueType = SonarQubeIssueTypeConverter.Convert(response.Type);
 
-            return new SonarQubeRule(GetRuleKey(response.Key), response.RepositoryKey, isActive, severity, parameters, issueType);
+            var descriptionSections = response.DescriptionSections?.Select(ds => ds.ToSonarQubeDescriptionSection()).ToList();
+
+            return new SonarQubeRule(GetRuleKey(response.Key), response.RepositoryKey, isActive, severity, parameters, issueType, descriptionSections, response.EducationPrinciples);
         }
 
         private static string GetRuleKey(string compositeKey) =>
@@ -104,6 +106,12 @@ namespace SonarQube.Client.Api.V5_50
 
             [JsonProperty("type")]
             public string Type { get; set; }
+
+            [JsonProperty("descriptionSections")]
+            public IReadOnlyList<DescriptionSectionResponse> DescriptionSections { get; set; }
+
+            [JsonProperty("educationPrinciples")]
+            public IReadOnlyList<string> EducationPrinciples { get; set; }
         }
 
         private sealed class QualityProfileResponse
@@ -125,6 +133,37 @@ namespace SonarQube.Client.Api.V5_50
 
             [JsonProperty("value")]
             public string Value { get; set; }
+        }
+
+        private sealed class DescriptionSectionResponse
+        {
+            [JsonProperty("key")]
+            public string Key { get; set; }
+
+            [JsonProperty("content")]
+            public string HtmlContent { get; set; }
+
+            [JsonProperty("context")]
+            public ContextResponse Context { get; set; }
+
+            internal SonarQubeDescriptionSection ToSonarQubeDescriptionSection()
+            {
+                return new SonarQubeDescriptionSection(Key, HtmlContent, Context?.ToSonarQubeContex());
+            }
+        }
+
+        private sealed class ContextResponse
+        {
+            [JsonProperty("displayName")]
+            public string DisplayName { get; set; }
+
+            [JsonProperty("key")]
+            public string Key { get; set; }
+
+            internal SonarQubeContext ToSonarQubeContex()
+            {
+                return new SonarQubeContext(DisplayName, Key);
+            }
         }
     }
 }
