@@ -121,7 +121,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         }
 
         [TestMethod]
-        public void AddIssues_EventIsInvoked()
+        [DataRow(true)]
+        [DataRow(false)]
+        public void AddIssues_EventIsInvoked(bool clearAllExistingIssues)
         {
             var issue1 = CreateIssue("issue1", true);
 
@@ -129,7 +131,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var eventMock = new Mock<EventHandler>();
             testSubject.ServerIssuesChanged += eventMock.Object;
 
-            testSubject.AddIssues(new List<SonarQubeIssue>() { issue1 }, clearAllExistingIssues: false);
+            testSubject.AddIssues(new List<SonarQubeIssue>() { issue1 }, clearAllExistingIssues);
             eventMock.Verify(x => x(testSubject, EventArgs.Empty), Times.Once);
         }
 
