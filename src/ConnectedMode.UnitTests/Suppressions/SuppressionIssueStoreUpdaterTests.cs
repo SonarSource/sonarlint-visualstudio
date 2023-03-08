@@ -247,7 +247,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             {
                 Console.WriteLine($"[Thread {System.Threading.Thread.CurrentThread.ManagedThreadId}] {message}");
             }
-
         }
 
         private static SuppressionIssueStoreUpdater CreateTestSubject(IServerQueryInfoProvider queryInfo = null,
