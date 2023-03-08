@@ -18,15 +18,30 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Documents;
+using System;
+using SonarLint.VisualStudio.Education.Layout.Visual;
+using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
 
-namespace SonarLint.VisualStudio.Education.Layout
+namespace SonarLint.VisualStudio.Education.Layout.Logical
 {
-    /// <summary>
-    /// Represents logical building block for rule description page
-    /// </summary>
-    internal interface IAbstractVisualizationTreeNode
+    internal class AssesTheProblemSection : IRichRuleDescriptionSection
     {
-        Block CreateVisualization();
+        public const string RuleInfoKey = "assess_the_problem";
+        internal /* for testing */ readonly string partialXamlContent;
+
+        public AssesTheProblemSection(string partialXaml)
+        {
+            partialXamlContent = partialXaml;
+        }
+
+        public string Key => RuleInfoKey;
+
+        public string Title => "Assess the risk";
+
+        public IAbstractVisualizationTreeNode GetVisualizationTreeNode(ITabsRepository tabsRepository)
+        {
+            throw new NotImplementedException();
+            // todo in the next PR
+        }
     }
 }
