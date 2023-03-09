@@ -174,7 +174,6 @@
     <value>&lt;h3&gt;How can I fix it in another component or framework?&lt;/h3&gt;
 &lt;p&gt;Although the main framework or component you use in your project is not listed, you may find helpful content in the instructions we provide.&lt;/p&gt;
 &lt;p&gt;Caution: The libraries mentioned in these instructions may not be appropriate for your code.&lt;/p&gt;
-&lt;p&gt;
 &lt;ul&gt;
     &lt;li&gt;Do use libraries that are compatible with the frameworks you are using.&lt;/li&gt;
     &lt;li&gt;Don't blindly copy and paste the fix-ups into your code.&lt;/li&gt;
