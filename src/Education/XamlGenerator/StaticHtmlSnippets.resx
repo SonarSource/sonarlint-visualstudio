@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="EducationPrinciplesDefenseInDepth" xml:space="preserve">
-    <value>&lt;h4&gt;Defense-In-Depth&lt;/h4&gt;
+    <value>&lt;h3&gt;Defense-In-Depth&lt;/h3&gt;
 &lt;p&gt;
     Applications and infrastructure benefit greatly from relying on multiple security mechanisms
     layered on top of each other. If one security mechanism fails, there is a high probability
@@ -143,7 +143,7 @@
     <value>&lt;h2&gt;Education principles&lt;/h2&gt;</value>
   </data>
   <data name="EducationPrinciplesNeverTrustUserInput" xml:space="preserve">
-    <value>&lt;h4&gt;Never Trust User Input&lt;/h4&gt;
+    <value>&lt;h3&gt;Never Trust User Input&lt;/h3&gt;
 &lt;p&gt;
     Applications must treat all user input and, more generally, all third-party data as
     attacker-controlled data.
@@ -171,7 +171,7 @@
 &lt;/p&gt;</value>
   </data>
   <data name="HowToFixItFallbackContext" xml:space="preserve">
-    <value>&lt;h4&gt;How can I fix it in another component or framework?&lt;/h4&gt;
+    <value>&lt;h3&gt;How can I fix it in another component or framework?&lt;/h3&gt;
 &lt;p&gt;Although the main framework or component you use in your project is not listed, you may find helpful content in the instructions we provide.&lt;/p&gt;
 &lt;p&gt;Caution: The libraries mentioned in these instructions may not be appropriate for your code.&lt;/p&gt;
 &lt;p&gt;
@@ -179,7 +179,7 @@
     &lt;li&gt;Do use libraries that are compatible with the frameworks you are using.&lt;/li&gt;
     &lt;li&gt;Don't blindly copy and paste the fix-ups into your code.&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h4&gt;Help us improve&lt;/h4&gt;
+&lt;h3&gt;Help us improve&lt;/h3&gt;
 &lt;p&gt;Let us know if the instructions we provide do not work for you.
     Tell us which framework you use and why our solution does not work by submitting an idea on the SonarLint product-board.&lt;/p&gt;
 &lt;a href="https://portal.productboard.com/sonarsource/4-sonarlint/submit-idea"&gt;Submit an idea&lt;/a&gt;

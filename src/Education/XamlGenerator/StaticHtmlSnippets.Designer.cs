@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;h4&gt;Defense-In-Depth&lt;/h4&gt;
+        ///   Looks up a localized string similar to &lt;h3&gt;Defense-In-Depth&lt;/h3&gt;
         ///&lt;p&gt;
         ///    Applications and infrastructure benefit greatly from relying on multiple security mechanisms
         ///    layered on top of each other. If one security mechanism fails, there is a high probability
@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;h4&gt;Never Trust User Input&lt;/h4&gt;
+        ///   Looks up a localized string similar to &lt;h3&gt;Never Trust User Input&lt;/h3&gt;
         ///&lt;p&gt;
         ///    Applications must treat all user input and, more generally, all third-party data as
         ///    attacker-controlled data.
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;h4&gt;How can I fix it in another component or framework?&lt;/h4&gt;
+        ///   Looks up a localized string similar to &lt;h3&gt;How can I fix it in another component or framework?&lt;/h3&gt;
         ///&lt;p&gt;Although the main framework or component you use in your project is not listed, you may find helpful content in the instructions we provide.&lt;/p&gt;
         ///&lt;p&gt;Caution: The libraries mentioned in these instructions may not be appropriate for your code.&lt;/p&gt;
         ///&lt;p&gt;
@@ -120,8 +120,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator {
         ///    &lt;li&gt;Do use libraries that are compatible with the frameworks you are using.&lt;/li&gt;
         ///    &lt;li&gt;Don&apos;t blindly copy and paste the fix-ups into your code.&lt;/li&gt;
         ///&lt;/ul&gt;
-        ///&lt;h4&gt;Help us improve&lt;/h4&gt;
-        /// [rest of string was truncated]&quot;;.
+        ///&lt;h3&gt;Help us improve&lt;/h3&gt;        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string HowToFixItFallbackContext {
             get {
