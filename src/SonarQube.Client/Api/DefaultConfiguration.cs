@@ -56,7 +56,7 @@ namespace SonarQube.Client.Api
                 .RegisterRequest<IGetTaintVulnerabilitiesRequest, V8_6.GetTaintVulnerabilitiesRequest>("8.6")
                 .RegisterRequest<IGetExclusionsRequest, V7_20.GetExclusionsRequest>("7.2")
                 .RegisterRequest<IGetSonarLintEventStream, V9_4.GetSonarLintEventStream>("9.4")
-                .RegisterRequest<IGetIssuesSinceTimestampRequest, V9_4.GetIssuesRequest>("9.4");
+                .RegisterRequest<IGetIssuesSinceTimestampRequest, V9_5.GetIssuesRequest>("9.5");
             return requestFactory;
         }
 

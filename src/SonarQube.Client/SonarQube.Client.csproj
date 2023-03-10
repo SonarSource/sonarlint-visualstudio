@@ -34,9 +34,7 @@
   </ItemGroup>
 
   <!-- Generate protobuf classes, only supports Windows execution, adapted from SonarAnalyzer.Common -->
-  <Target Name="GenerateProtobufClasses" BeforeTargets="CoreCompile" AfterTargets="RestorePackages" 
-          Outputs="Messages/Protobuf/ScannerInput.cs,Messages/Protobuf/Constants.cs,Messages/Protobuf/Issues.cs" 
-          Inputs="Messages/Protobuf/scanner_input.proto,Messages/Protobuf/constants.proto,Messages/Protobuf/issues.proto">
+  <Target Name="GenerateProtobufClasses" BeforeTargets="CoreCompile" AfterTargets="RestorePackages" Outputs="Messages/Protobuf/ScannerInput.cs,Messages/Protobuf/Constants.cs,Messages/Protobuf/Issues.cs" Inputs="Messages/Protobuf/scanner_input.proto,Messages/Protobuf/constants.proto,Messages/Protobuf/issues.proto">
     <Message Importance="high" Text="Generating protobuf classes..." />
     <PropertyGroup>
       <ProtocCompiler>"$(UserProfile)/.nuget/packages/Grpc.Tools/1.4.1/tools/windows_x64/protoc.exe"</ProtocCompiler>

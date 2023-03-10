@@ -31,7 +31,7 @@ using SonarQube.Client.Models;
 using SonarQube.Client.Requests;
 using Severity = SonarQube.Client.Messages.Issues.Severity;
 
-namespace SonarQube.Client.Api.V9_4
+namespace SonarQube.Client.Api.V9_5
 {
     internal class GetIssuesRequest : RequestBase<SonarQubeIssue[]>, IGetIssuesSinceTimestampRequest
     {

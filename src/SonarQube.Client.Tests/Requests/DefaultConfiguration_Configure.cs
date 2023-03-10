@@ -67,7 +67,7 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Api.V8_6.GetTaintVulnerabilitiesRequest for 8.6",
                     "Registered SonarQube.Client.Api.V7_20.GetExclusionsRequest for 7.2",
                     "Registered SonarQube.Client.Api.V9_4.GetSonarLintEventStream for 9.4",
-                    "Registered SonarQube.Client.Api.V9_4.GetIssuesRequest for 9.4",
+                    "Registered SonarQube.Client.Api.V9_5.GetIssuesRequest for 9.5",
                 };
 
             DefaultConfiguration.ConfigureSonarQube(new RequestFactory(logger));

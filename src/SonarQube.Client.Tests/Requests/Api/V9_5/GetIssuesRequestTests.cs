@@ -27,13 +27,13 @@ using FluentAssertions;
 using Google.Protobuf;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarQube.Client.Api.V9_4;
+using SonarQube.Client.Api.V9_5;
 using SonarQube.Client.Logging;
 using SonarQube.Client.Messages.Issues;
 using SonarQube.Client.Models;
 using SonarQube.Client.Tests.Infra;
 
-namespace SonarQube.Client.Tests.Requests.Api.V9_4
+namespace SonarQube.Client.Tests.Requests.Api.V9_5
 {
     [TestClass]
     public class GetIssuesRequestTests
@@ -51,7 +51,7 @@ namespace SonarQube.Client.Tests.Requests.Api.V9_4
                 messageHandler,
                 requestRelativePath:
                 "api/issues/pull?projectKey=someproj&languages=cs%2Cvbnet%2Ccpp%2Cc%2Cjs%2Cts%2Csecrets&branchName=main&resolvedOnly=false",
-                responseMessage: new HttpResponseMessage {Content = new StreamContent(testedStream)});
+                responseMessage: new HttpResponseMessage { Content = new StreamContent(testedStream) });
 
             var testSubject = new GetIssuesRequest { ProjectKey = "someproj", Branch = "main", Logger = Mock.Of<ILogger>() };
 
@@ -190,9 +190,9 @@ namespace SonarQube.Client.Tests.Requests.Api.V9_4
             MocksHelper.SetupHttpRequest(
                 messageHandler,
                 requestRelativePath: "api/issues/pull?projectKey=someproj&languages=cs%2Cvbnet%2Ccpp%2Cc%2Cjs%2Cts%2Csecrets&branchName=main&resolvedOnly=false",
-                responseMessage: new HttpResponseMessage {Content = new StreamContent(testedStream) });
+                responseMessage: new HttpResponseMessage { Content = new StreamContent(testedStream) });
 
-            var testSubject = new GetIssuesRequest {ProjectKey = "someproj", Branch = "main", Logger = Mock.Of<ILogger>()};
+            var testSubject = new GetIssuesRequest { ProjectKey = "someproj", Branch = "main", Logger = Mock.Of<ILogger>() };
 
             var response = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
             response.Should().NotBeNullOrEmpty();
