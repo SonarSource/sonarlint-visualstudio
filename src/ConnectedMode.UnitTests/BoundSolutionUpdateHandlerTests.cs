@@ -36,7 +36,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
                 MefTestHelpers.CreateExport<ISuppressionIssueStoreUpdater>());
         }
 
-
         [TestMethod]
         public void Ctor_SubscribesToEvents()
         {
@@ -57,10 +56,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             _ = new BoundSolutionUpdateHandler(activeSolutionTracker.Object, suppressionIssueStoreUpdater.Object);
 
             activeSolutionTracker.Raise(x => x.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(BindingConfiguration.Standalone));
-            suppressionIssueStoreUpdater.Verify(x => x.FetchAllServerSuppressions(), Times.Once);
+            suppressionIssueStoreUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Once);
 
             activeSolutionTracker.Raise(x => x.SolutionBindingUpdated += null, EventArgs.Empty);
-            suppressionIssueStoreUpdater.Verify(x => x.FetchAllServerSuppressions(), Times.Exactly(2));
+            suppressionIssueStoreUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Exactly(2));
         }
 
         [TestMethod]

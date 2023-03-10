@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Binding;
 
@@ -46,12 +47,12 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
         private void OnSolutionBindingUpdated(object sender, EventArgs e)
         {
-            suppressionIssueStoreUpdater.FetchAllServerSuppressions();
+            suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync().Forget();
         }
 
         private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
         {
-            suppressionIssueStoreUpdater.FetchAllServerSuppressions();
+            suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync().Forget();
         }
 
         #region IDisposable
