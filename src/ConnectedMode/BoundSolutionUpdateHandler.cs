@@ -20,31 +20,38 @@
 
 using System;
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.Core.Suppression;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
+using SonarLint.VisualStudio.Core.Binding;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
+namespace SonarLint.VisualStudio.ConnectedMode
 {
-    [Export(typeof(ServerSuppressionsChangedHandler))]
+    [Export(typeof(BoundSolutionUpdateHandler))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class ServerSuppressionsChangedHandler : IDisposable
+    internal sealed class BoundSolutionUpdateHandler : IDisposable
     {
-        private readonly IClientSuppressionSynchronizer clientSuppressionSynchronizer;
-        private readonly ISuppressedIssuesMonitor suppressedIssuesMonitor;
+        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private readonly ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater;
 
         private bool disposed;
 
         [ImportingConstructor]
-        public ServerSuppressionsChangedHandler(IClientSuppressionSynchronizer clientSuppressionSynchronizer, ISuppressedIssuesMonitor suppressedIssuesMonitor)
+        public BoundSolutionUpdateHandler(IActiveSolutionBoundTracker activeSolutionBoundTracker, ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater)
         {
-            this.clientSuppressionSynchronizer = clientSuppressionSynchronizer;
-            this.suppressedIssuesMonitor = suppressedIssuesMonitor;
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+            this.suppressionIssueStoreUpdater = suppressionIssueStoreUpdater;
 
-            suppressedIssuesMonitor.ServerSuppressionsChanged += ServerSuppressionsChanged;
+            this.activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
+            this.activeSolutionBoundTracker.SolutionBindingUpdated += OnSolutionBindingUpdated;
         }
 
-        private void ServerSuppressionsChanged(object sender, EventArgs e)
+        private void OnSolutionBindingUpdated(object sender, EventArgs e)
         {
-            clientSuppressionSynchronizer.SynchronizeSuppressedIssues();
+            suppressionIssueStoreUpdater.FetchAllServerSuppressions();
+        }
+
+        private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
+        {
+            suppressionIssueStoreUpdater.FetchAllServerSuppressions();
         }
 
         #region IDisposable
@@ -55,7 +62,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             {
                 if (disposing)
                 {
-                    suppressedIssuesMonitor.ServerSuppressionsChanged -= ServerSuppressionsChanged;
+                    this.activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
+                    this.activeSolutionBoundTracker.SolutionBindingUpdated -= OnSolutionBindingUpdated;
                 }
                 disposed = true;
             }
