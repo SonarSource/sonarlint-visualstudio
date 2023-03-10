@@ -319,6 +319,17 @@ namespace SonarQube.Client
                 },
                 token);
 
+        public async Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string projectKey, string branch, DateTimeOffset? changedSince, CancellationToken token) =>
+            await InvokeCheckedRequestAsync<IGetIssuesSinceTimestampRequest, SonarQubeIssue[]>(
+                request =>
+                {
+                    request.ProjectKey = projectKey;
+                    request.Branch = branch;
+                    request.ChangedSince = changedSince;
+                    request.ResolvedOnly = true; // return only issues with resolved status
+                },
+                token);
+
         public async Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(string projectKey, DateTimeOffset eventsSince,
             CancellationToken token) =>
             await InvokeCheckedRequestAsync<IGetNotificationsRequest, SonarQubeNotification[]>(

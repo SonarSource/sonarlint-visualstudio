@@ -83,6 +83,12 @@ namespace SonarQube.Client
         /// the issues for the "main" branch will be returned.</param>
         Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string projectKey, string branch, CancellationToken token);
 
+        /// <summary>
+        /// Returns the suppressed issues for the specified project/branch that were changed since the given timestamp.
+        /// If no timestamp is given, it returns all the suppressed issues for the specified project/branch.
+        /// </summary>
+        Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string projectKey, string branch, DateTimeOffset? changedSince, CancellationToken token);
+
         Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(string projectKey,
             DateTimeOffset eventsSince, CancellationToken token);
 

@@ -1,0 +1,78 @@
+/*
+ * SonarLint for Visual Studio
+ * Copyright (C) 2016-2023 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+syntax = "proto3";
+
+package  SonarQube.Client.Messages.Issues;
+
+option java_package = "org.sonarlint.sonarqube.issues";
+option java_outer_classname = "Issues";
+option optimize_for = SPEED;
+
+// Response of GET api/issues/pull
+message IssuesPullQueryTimestamp {
+  int64 queryTimestamp = 1;
+}
+
+message TextRange {
+  int32 startLine = 1;
+  int32 startLineOffset = 2;
+  int32 endLine = 3;
+  int32 endLineOffset = 4;
+  string hash = 5;
+}
+
+message Location {
+  string filePath = 1;
+  string message = 2;
+  TextRange textRange = 3;
+}
+
+message IssueLite {
+  string key = 1;
+  int64 creationDate = 2;
+  bool resolved = 3;
+  string ruleKey = 4;
+  Severity userSeverity = 5;
+  RuleType type = 6;
+  Location mainLocation = 7;
+  bool closed = 8;
+}
+
+enum Severity {
+  INFO = 0;
+  MINOR = 1;
+  MAJOR = 2;
+  CRITICAL = 3;
+  BLOCKER = 4;
+}
+
+enum RuleType {
+  // Zero is in order to not get CODE_SMELL as default value
+  // See http://androiddevblog.com/protocol-buffers-pitfall-adding-enum-values/
+  UNKNOWN = 0;
+
+  // same name as in Java enum IssueType,
+  // same index values as in database (see column ISSUES.ISSUE_TYPE)
+  CODE_SMELL = 1;
+  BUG = 2;
+  VULNERABILITY = 3;
+  SECURITY_HOTSPOT = 4;
+}
