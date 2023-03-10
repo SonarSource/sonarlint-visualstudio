@@ -18,9 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using SonarLint.VisualStudio.Education.Layout.Visual;
-using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
+using SonarLint.VisualStudio.Education.XamlGenerator;
 
 namespace SonarLint.VisualStudio.Education.Layout.Logical
 {
@@ -38,10 +37,9 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
 
         public string Title => "Assess the risk";
 
-        public IAbstractVisualizationTreeNode GetVisualizationTreeNode(ITabsRepository tabsRepository)
+        public IAbstractVisualizationTreeNode GetVisualizationTreeNode(IStaticXamlStorage staticXamlStorage)
         {
-            throw new NotImplementedException();
-            // todo in the next PR
+            return new ContentSection(partialXamlContent);
         }
     }
 }

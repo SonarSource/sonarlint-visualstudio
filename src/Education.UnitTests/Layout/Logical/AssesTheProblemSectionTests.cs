@@ -21,6 +21,7 @@
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Education.Layout.Logical;
+using SonarLint.VisualStudio.Education.Layout.Visual;
 
 namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical;
 
@@ -34,5 +35,16 @@ public class AssesTheProblemSectionTests
 
         testSubject.Key.Should().BeSameAs(AssesTheProblemSection.RuleInfoKey).And.Be("assess_the_problem");
         testSubject.Title.Should().Be("Assess the risk");
+    }
+
+    [TestMethod]
+    public void GetVisualizationTreeNode_ProducesOneContentSection()
+    {
+        var partialXaml = "<Paragraph>Think about the problem more</Paragraph>";
+        var testSubject = new AssesTheProblemSection(partialXaml);
+
+        var visualizationTreeNode = testSubject.GetVisualizationTreeNode(null);
+
+        visualizationTreeNode.Should().BeOfType<ContentSection>().Which.content.Should().Be(partialXaml);
     }
 }

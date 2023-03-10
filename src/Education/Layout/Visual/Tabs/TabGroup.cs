@@ -18,11 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
-using SonarLint.VisualStudio.Education.Layout.Visual;
 
 namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
 {
@@ -31,41 +29,42 @@ namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
     /// </summary>
     internal class TabGroup : IAbstractVisualizationTreeNode
     {
-        private readonly string name;
-        private readonly List<TabItem> tabs;
-        private readonly ITabsRepository tabsRepository;
+        // private readonly string name;
+        internal /* for testing */ readonly List<TabItem> tabs;
+        // private readonly ITabsRepository tabsRepository;
 
-        public TabGroup(string name, List<TabItem> tabs, ITabsRepository tabsRepository)
+        public TabGroup(List<TabItem> tabs)
         {
-            this.name = name;
+            // this.name = name;
             this.tabs = tabs;
-            this.tabsRepository = tabsRepository;
+            // this.tabsRepository = tabsRepository;
         }
 
         public Block CreateVisualization()
         {
-            var container = new Section();
-            var buttonsContainer = new StackPanel();
-            Block initiallyActiveTab = null;
-
-            for (var i = 0; i < tabs.Count; i++)
-            {
-                var tabItem = tabs[i];
-                buttonsContainer.Children.Add(
-                    new ToggleButton() { Name = TabNameProvider.GetTabButtonName(name, tabItem.Name), Content = tabItem.DisplayName });
-                var tabVisualization = tabItem.CreateVisualization(name);
-                tabsRepository.RegisterTab(tabVisualization);
-
-                if (i == 0)
-                {
-                    initiallyActiveTab = tabVisualization;
-                }
-            }
-
-            container.Blocks.Add(new BlockUIContainer(buttonsContainer) { Name = name });
-            container.Blocks.Add(initiallyActiveTab);
-
-            return container;
+            throw new NotImplementedException();
+            // var container = new Section();
+            // var buttonsContainer = new StackPanel();
+            // Block initiallyActiveTab = null;
+            //
+            // for (var i = 0; i < tabs.Count; i++)
+            // {
+            //     var tabItem = tabs[i];
+            //     buttonsContainer.Children.Add(
+            //         new ToggleButton() { Name = TabNameProvider.GetTabButtonName(name, tabItem.Name), Content = tabItem.DisplayName });
+            //     var tabVisualization = tabItem.CreateVisualization(name);
+            //     tabsRepository.RegisterTab(tabVisualization);
+            //
+            //     if (i == 0)
+            //     {
+            //         initiallyActiveTab = tabVisualization;
+            //     }
+            // }
+            //
+            // container.Blocks.Add(new BlockUIContainer(buttonsContainer) { Name = name });
+            // container.Blocks.Add(initiallyActiveTab);
+            //
+            // return container;
         }
     }
 }
