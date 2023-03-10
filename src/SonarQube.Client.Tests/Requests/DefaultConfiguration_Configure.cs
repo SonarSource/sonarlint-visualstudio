@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Api;
 using SonarQube.Client.Requests;
 using SonarQube.Client.Tests.Infra;
-using static Google.Protobuf.WellKnownTypes.Field.Types;
 
 namespace SonarQube.Client.Tests.Requests
 {
@@ -68,6 +67,7 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Api.V8_6.GetTaintVulnerabilitiesRequest for 8.6",
                     "Registered SonarQube.Client.Api.V7_20.GetExclusionsRequest for 7.2",
                     "Registered SonarQube.Client.Api.V9_4.GetSonarLintEventStream for 9.4",
+                    "Registered SonarQube.Client.Api.V9_4.GetIssuesRequest for 9.4",
                 };
 
             DefaultConfiguration.ConfigureSonarQube(new RequestFactory(logger));
@@ -182,6 +182,11 @@ namespace SonarQube.Client.Tests.Requests
             Action act = () => testSubject.Create<IGetSonarLintEventStream>(serverInfo);
             act.Should().Throw<InvalidOperationException>().And.Message.Should()
                 .Be("Could not find factory for 'IGetSonarLintEventStream'.");
+
+
+            act = () => testSubject.Create<IGetIssuesSinceTimestampRequest>(serverInfo);
+            act.Should().Throw<InvalidOperationException>().And.Message.Should()
+                .Be("Could not find factory for 'IGetIssuesSinceTimestampRequest'.");
         }
 
         private static void DumpDebugMessages(TestLogger logger)
