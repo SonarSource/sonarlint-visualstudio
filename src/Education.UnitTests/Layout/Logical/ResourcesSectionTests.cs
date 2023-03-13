@@ -18,9 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Education.Layout.Logical;
+using SonarLint.VisualStudio.Education.Layout.Visual;
+using SonarLint.VisualStudio.Education.XamlGenerator;
 
 namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
 {
@@ -34,6 +38,46 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
 
             testSubject.Key.Should().BeSameAs(ResourcesSection.RuleInfoKey).And.Be("resources");
             testSubject.Title.Should().Be("More info");
+        }
+
+        [DataTestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void GetVisualizationTreeNode_NoEducation_ProducesCorrectMultiBlockSection(bool emptyOrNull)
+        {
+            var partialXaml = "<Paragraph>please read coding 101</Paragraph>";
+            var testSubject = new ResourcesSection(partialXaml,
+                emptyOrNull ? new List<string>() : null);
+            var staticXamlStorage = new StaticXamlStorage(new RuleHelpXamlTranslator());
+
+            var visualizationTreeNode = testSubject.GetVisualizationTreeNode(staticXamlStorage);
+
+            var multiBlockSection = visualizationTreeNode.Should().BeOfType<MultiBlockSection>().Subject;
+            multiBlockSection.blocks.Should().HaveCount(2);
+            multiBlockSection.blocks[0].Should().BeOfType<ContentSection>()
+                .Which.content.Should().Be(staticXamlStorage.ResourcesHeader);
+            multiBlockSection.blocks[1].Should().BeOfType<ContentSection>()
+                .Which.content.Should().Be(partialXaml);
+        }
+
+        [TestMethod]
+        public void GetVisualizationTreeNode_WithEducation_ProducesCorrectMultiBlockSection()
+        {
+            var partialXaml = "<Paragraph>please read coding 101</Paragraph>";
+            var testSubject = new ResourcesSection(partialXaml,
+                new List<string>{ "defense_in_depth", "unknown_section_to_be_ignored", "never_trust_user_input" });
+            var staticXamlStorage = new StaticXamlStorage(new RuleHelpXamlTranslator());
+
+            var visualizationTreeNode = testSubject.GetVisualizationTreeNode(staticXamlStorage);
+
+            var multiBlockSection = visualizationTreeNode.Should().BeOfType<MultiBlockSection>().Subject;
+            multiBlockSection.blocks.Should().HaveCount(5);
+            multiBlockSection.blocks[2].Should().BeOfType<ContentSection>()
+                .Which.content.Should().Be(staticXamlStorage.EducationPrinciplesHeader);
+            multiBlockSection.blocks[3].Should().BeOfType<ContentSection>()
+                .Which.content.Should().Be(staticXamlStorage.EducationPrinciplesDefenseInDepth);
+            multiBlockSection.blocks[4].Should().BeOfType<ContentSection>()
+                .Which.content.Should().Be(staticXamlStorage.EducationPrinciplesNeverTrustUserInput);
         }
     }
 }

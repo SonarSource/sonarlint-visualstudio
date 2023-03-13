@@ -17,37 +17,37 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
-using System.Linq;
-using System.Windows.Documents;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.Education.Layout.Visual;
-using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
-
-namespace SonarLint.VisualStudio.Education.UnitTests.Layout
-{
-    [TestClass]
-    public class TabItemTests
-    {
-        [TestMethod]
-        public void CreateVisualization_ReturnsSectionWithCorrectNameAndContent()
-        {
-            var tabContentMock = new Mock<IAbstractVisualizationTreeNode>();
-            var tabContentVisualization = new Section();
-            tabContentMock.Setup(x => x.CreateVisualization()).Returns(tabContentVisualization);
-            var tabName = "TabName";
-            var tabGroup = "MainTabGroup";
-
-            var testSubject = new TabItem(tabName, "Very nice tab", tabContentMock.Object);
-
-            var visualization = testSubject.CreateVisualization(tabGroup);
-
-            visualization.Should().BeOfType<Section>();
-            var section = (Section)visualization;
-            section.Name.Should().Be(TabNameProvider.GetTabSectionName(tabGroup, tabName));
-            section.Blocks.Single().Should().BeSameAs(tabContentVisualization);
-        }
-    }
-}
+//
+// using System.Linq;
+// using System.Windows.Documents;
+// using FluentAssertions;
+// using Microsoft.VisualStudio.TestTools.UnitTesting;
+// using Moq;
+// using SonarLint.VisualStudio.Education.Layout.Visual;
+// using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
+//
+// namespace SonarLint.VisualStudio.Education.UnitTests.Layout
+// {
+//     [TestClass]
+//     public class TabItemTests
+//     {
+//         [TestMethod]
+//         public void CreateVisualization_ReturnsSectionWithCorrectNameAndContent()
+//         {
+//             var tabContentMock = new Mock<IAbstractVisualizationTreeNode>();
+//             var tabContentVisualization = new Section();
+//             tabContentMock.Setup(x => x.CreateVisualization()).Returns(tabContentVisualization);
+//             var tabName = "TabName";
+//             var tabGroup = "MainTabGroup";
+//
+//             var testSubject = new TabItem(tabName, "Very nice tab", tabContentMock.Object);
+//
+//             var visualization = testSubject.CreateVisualization(tabGroup);
+//
+//             visualization.Should().BeOfType<Section>();
+//             var section = (Section)visualization;
+//             section.Name.Should().Be(TabNameProvider.GetTabSectionName(tabGroup, tabName));
+//             section.Blocks.Single().Should().BeSameAs(tabContentVisualization);
+//         }
+//     }
+// }

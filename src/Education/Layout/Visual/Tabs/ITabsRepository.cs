@@ -17,31 +17,31 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
-using System.Windows.Documents;
-
-namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
-{
-    /// <summary>
-    /// Repository for all created tabs
-    /// </summary>
-    internal interface ITabsRepository
-    {
-        /// <summary>
-        /// Saves the tab in the repository. Uses tab.Name as the key
-        /// </summary>
-        /// <param name="tab">Tab block</param>
-        void RegisterTab(Block tab);
-        /// <summary>
-        /// Retrieves the tab by it's key
-        /// </summary>
-        /// <param name="name">Name of the tab</param>
-        /// <param name="tab">The resulting tab</param>
-        /// <returns>true if tab is present, false if not found</returns>
-        bool TryGetTab(string name, out Block tab);
-        /// <summary>
-        /// Removes all of the saved tabs
-        /// </summary>
-        void Clear();
-    }
-}
+//
+// using System.Windows.Documents;
+//
+// namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
+// {
+//     /// <summary>
+//     /// Repository for all created tabs
+//     /// </summary>
+//     internal interface ITabsRepository
+//     {
+//         /// <summary>
+//         /// Saves the tab in the repository. Uses tab.Name as the key
+//         /// </summary>
+//         /// <param name="tab">Tab block</param>
+//         void RegisterTab(Block tab);
+//         /// <summary>
+//         /// Retrieves the tab by it's key
+//         /// </summary>
+//         /// <param name="name">Name of the tab</param>
+//         /// <param name="tab">The resulting tab</param>
+//         /// <returns>true if tab is present, false if not found</returns>
+//         bool TryGetTab(string name, out Block tab);
+//         /// <summary>
+//         /// Removes all of the saved tabs
+//         /// </summary>
+//         void Clear();
+//     }
+// }

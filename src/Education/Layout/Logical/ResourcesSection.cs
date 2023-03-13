@@ -18,10 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using SonarLint.VisualStudio.Education.Layout.Visual;
-using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
+using SonarLint.VisualStudio.Education.XamlGenerator;
 
 namespace SonarLint.VisualStudio.Education.Layout.Logical
 {
@@ -40,10 +39,39 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
         public string Key => RuleInfoKey;
         public string Title => "More info";
 
-        public IAbstractVisualizationTreeNode GetVisualizationTreeNode(ITabsRepository tabsRepository)
+        public IAbstractVisualizationTreeNode GetVisualizationTreeNode(IStaticXamlStorage staticXamlStorage)
         {
-            throw new NotImplementedException();
-            // todo in the next PR
+            var sections = new List<IAbstractVisualizationTreeNode>
+            {
+                new ContentSection(staticXamlStorage.ResourcesHeader),
+                new ContentSection(partialXamlContent)
+            };
+
+            if (educationPrinciples != null && educationPrinciples.Count != 0)
+            {
+                sections.Add(new ContentSection(staticXamlStorage.EducationPrinciplesHeader));                                                        
+                foreach (var educationPrinciple in educationPrinciples)
+                {
+                    string educationPrincipleXamlContent = null;
+                    switch (educationPrinciple)
+                    {
+                        case "defense_in_depth":
+                            educationPrincipleXamlContent = staticXamlStorage.EducationPrinciplesDefenseInDepth;
+                            break;
+                        case "never_trust_user_input":
+                            educationPrincipleXamlContent = staticXamlStorage.EducationPrinciplesNeverTrustUserInput;
+                            break;
+                    }
+
+                    if (educationPrincipleXamlContent != null)
+                    {
+
+                        sections.Add(new ContentSection(educationPrincipleXamlContent));
+                    }
+                }
+            }
+
+            return new MultiBlockSection(sections);
         }
     }
 }

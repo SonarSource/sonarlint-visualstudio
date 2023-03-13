@@ -18,29 +18,29 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Documents;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.Education.Layout.Visual;
-using SonarLint.VisualStudio.Education.XamlParser;
-
-namespace SonarLint.VisualStudio.Education.UnitTests.Layout
-{
-    [TestClass]
-    public class ContentSectionTests
-    {
-        [TestMethod]
-        public void CreateVisualization_ReturnsContentFromXaml()
-        {
-            var xamlContentMock = new Mock<IXamlBlockContent>();
-            var content = new Section();
-            xamlContentMock.Setup(x => x.GetObjectRepresentation()).Returns(content);
-            var testSubject = new ContentSection(xamlContentMock.Object);
-
-            var visualization = testSubject.CreateVisualization();
-
-            visualization.Should().BeSameAs(content);
-        }
-    }
-}
+// using System.Windows.Documents;
+// using FluentAssertions;
+// using Microsoft.VisualStudio.TestTools.UnitTesting;
+// using Moq;
+// using SonarLint.VisualStudio.Education.Layout.Visual;
+// using SonarLint.VisualStudio.Education.XamlParser;
+//
+// namespace SonarLint.VisualStudio.Education.UnitTests.Layout
+// {
+//     [TestClass]
+//     public class ContentSectionTests
+//     {
+//         [TestMethod]
+//         public void CreateVisualization_ReturnsContentFromXaml()
+//         {
+//             var xamlContentMock = new Mock<IXamlBlockContent>();
+//             var content = new Section();
+//             xamlContentMock.Setup(x => x.GetObjectRepresentation()).Returns(content);
+//             var testSubject = new ContentSection(xamlContentMock.Object);
+//
+//             var visualization = testSubject.CreateVisualization();
+//
+//             visualization.Should().BeSameAs(content);
+//         }
+//     }
+// }

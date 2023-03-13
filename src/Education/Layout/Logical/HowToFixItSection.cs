@@ -18,10 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using SonarLint.VisualStudio.Education.Layout.Visual;
 using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
+using SonarLint.VisualStudio.Education.XamlGenerator;
 
 namespace SonarLint.VisualStudio.Education.Layout.Logical
 {
@@ -45,10 +46,21 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
 
         public string Title => "How can I fix it?";
 
-        public IAbstractVisualizationTreeNode GetVisualizationTreeNode(ITabsRepository tabsRepository)
+        public IAbstractVisualizationTreeNode GetVisualizationTreeNode(IStaticXamlStorage staticXamlStorage)
         {
-            throw new NotImplementedException();
-            // todo in the next PR
+            if (partialXamlContent != null)
+            {
+                return new ContentSection(partialXamlContent);
+            }
+            
+            var contextTabs = contexts
+                .Select(x => new TabItem(x.Title, new ContentSection(x.PartialXamlContent)))
+                .ToList();
+            contextTabs.Add(new TabItem("Other", new ContentSection(staticXamlStorage.HowToFixItFallbackContext)));
+
+            return new MultiBlockSection(
+                new ContentSection(staticXamlStorage.HowToFixItHeader),
+                new TabGroup(contextTabs));
         }
     }
 
@@ -60,7 +72,7 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
             Title = title;
             PartialXamlContent = partialXaml;
         }
-
+        
         public string Key { get; }
         public string Title { get; }
         public string PartialXamlContent { get; }
