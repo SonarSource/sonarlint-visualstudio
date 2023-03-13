@@ -36,7 +36,7 @@ namespace SonarQube.Client.Tests
             await ConnectToSonarQube();
 
             // One active rule
-            SetupRequest("api/rules/search?activation=true&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives&p=1&ps=500", @"
+            SetupRequest("api/rules/search?activation=true&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples&p=1&ps=500", @"
 {
   ""total"": 1,
   ""p"": 1,
@@ -94,7 +94,7 @@ namespace SonarQube.Client.Tests
 ");
 
             // One inactive rule
-            SetupRequest("api/rules/search?activation=false&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives&p=1&ps=500", @"
+            SetupRequest("api/rules/search?activation=false&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples&p=1&ps=500", @"
 {
   ""total"": 1,
   ""p"": 1,
@@ -112,15 +112,14 @@ namespace SonarQube.Client.Tests
 }
 ");
 
-
             var result = await service.GetAllRulesAsync("quality-profile-1", CancellationToken.None);
 
             messageHandler.VerifyAll();
 
             result.Should().HaveCount(2);
             result.Select(r => r.Key).Should().Contain(new[] { "S2225", "S2342" });
-            result.Select(r => r.RepositoryKey).Should().Contain(new[] { "csharpsquid", "csharpsquid"});
-            
+            result.Select(r => r.RepositoryKey).Should().Contain(new[] { "csharpsquid", "csharpsquid" });
+
             // Active rules should be returned first
             result.Select(r => r.IsActive).Should().Contain(new[] { true, false });
 
@@ -136,10 +135,10 @@ namespace SonarQube.Client.Tests
 
             // One active rule, no inactive rules
             var ruleJson = SingleValidRuleJson("repo1", "rule1");
-            SetupRequest("api/rules/search?activation=true&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives&p=1&ps=500",
+            SetupRequest("api/rules/search?activation=true&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples&p=1&ps=500",
                 ruleJson);
 
-            SetupRequest("api/rules/search?activation=false&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives&p=1&ps=500",
+            SetupRequest("api/rules/search?activation=false&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples&p=1&ps=500",
                 NoRulesJson);
 
             var result = await service.GetAllRulesAsync("quality-profile-1", CancellationToken.None);
@@ -158,10 +157,10 @@ namespace SonarQube.Client.Tests
 
             // One active rule, no inactive rules
             var ruleJson = SingleValidRuleJson("repo1", "rule1");
-            SetupRequest("api/rules/search?activation=true&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives&p=1&ps=500",
+            SetupRequest("api/rules/search?activation=true&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples&p=1&ps=500",
                 NoRulesJson);
 
-            SetupRequest("api/rules/search?activation=false&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives&p=1&ps=500",
+            SetupRequest("api/rules/search?activation=false&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples&p=1&ps=500",
                 ruleJson);
 
             var result = await service.GetAllRulesAsync("quality-profile-1", CancellationToken.None);
@@ -181,10 +180,10 @@ namespace SonarQube.Client.Tests
 
             // One active rule, no inactive rules
             var ruleJson = SingleValidRuleJson("repo1", "rule1");
-            SetupRequest("api/rules/search?activation=true&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives&p=1&ps=500",
+            SetupRequest("api/rules/search?activation=true&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples&p=1&ps=500",
                 ruleJson);
 
-            SetupRequestWithOperation("api/rules/search?activation=false&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives&p=1&ps=500",
+            SetupRequestWithOperation("api/rules/search?activation=false&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples&p=1&ps=500",
                 () => { throw new InvalidOperationException("xxx"); });
 
             // Act
@@ -224,6 +223,5 @@ namespace SonarQube.Client.Tests
 }"
 .Replace("***REPO_ID***", repoId)
 .Replace("***RULE_ID***", ruleId);
-
     }
 }

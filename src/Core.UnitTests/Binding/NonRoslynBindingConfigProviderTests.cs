@@ -289,8 +289,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
         }
 
         private static SonarQubeRule CreateRule(string ruleKey, string repoKey, bool isActive,
-            SonarQubeIssueSeverity severity, IDictionary<string, string> parameters = null, IReadOnlyList<SonarQubeDescriptionSection> descriptionSections = null, IReadOnlyList<string> educationPrinciples = null) =>
-            new SonarQubeRule(ruleKey, repoKey, isActive, severity, parameters, SonarQubeIssueType.Unknown, descriptionSections, educationPrinciples);
+            SonarQubeIssueSeverity severity, IDictionary<string, string> parameters = null, string description = null, IReadOnlyList<SonarQubeDescriptionSection> descriptionSections = null, IReadOnlyList<string> educationPrinciples = null) =>
+            new SonarQubeRule(ruleKey, repoKey, isActive, severity, parameters, SonarQubeIssueType.Unknown, description, descriptionSections, educationPrinciples);
 
         private static NonRoslynBindingConfigProvider CreateTestSubject(Mock<ISonarQubeService> serviceMock, TestLogger testLogger)
         {

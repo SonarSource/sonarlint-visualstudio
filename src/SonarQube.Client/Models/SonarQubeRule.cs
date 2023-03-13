@@ -30,11 +30,12 @@ namespace SonarQube.Client.Models
         /// </summary>
         private static readonly IReadOnlyDictionary<string, string> Empty = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>());
 
-        public SonarQubeRule(string key, string repositoryKey, bool isActive, SonarQubeIssueSeverity severity, IDictionary<string, string> parameters, SonarQubeIssueType issueType, IReadOnlyList<SonarQubeDescriptionSection> descriptionSections, IReadOnlyList<string> educationPrinciples)
+        public SonarQubeRule(string key, string repositoryKey, bool isActive, SonarQubeIssueSeverity severity, IDictionary<string, string> parameters, SonarQubeIssueType issueType, string description, IReadOnlyList<SonarQubeDescriptionSection> descriptionSections, IReadOnlyList<string> educationPrinciples)
 
         {
             Key = key;
             RepositoryKey = repositoryKey;
+            Description = description;
             IsActive = isActive;
             Severity = severity;
             IssueType = issueType;
@@ -54,6 +55,8 @@ namespace SonarQube.Client.Models
         public string Key { get; }
 
         public string RepositoryKey { get; }
+
+        public string Description { get; set; }
 
         public bool IsActive { get; }
 

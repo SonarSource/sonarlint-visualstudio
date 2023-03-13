@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -67,8 +68,8 @@ namespace SonarQube.Client
         }
 
         internal /* for testing */ SonarQubeService(HttpMessageHandler messageHandler, string userAgent, ILogger logger,
-            IRequestFactorySelector requestFactorySelector, 
-            ISecondaryIssueHashUpdater secondaryIssueHashUpdater, 
+            IRequestFactorySelector requestFactorySelector,
+            ISecondaryIssueHashUpdater secondaryIssueHashUpdater,
             ISSEStreamReaderFactory sseStreamReaderFactory)
         {
             if (messageHandler == null)
@@ -345,7 +346,15 @@ namespace SonarQube.Client
                     request.IsActive = isActive;
                     request.QualityProfileKey = qualityProfileKey;
                 },
-                token);
+        token);
+
+        public async Task<SonarQubeRule> GetRuleByKeyAsync(string ruleKey, CancellationToken token)
+        {
+            var rules = await InvokeCheckedRequestAsync<IGetRulesRequest, SonarQubeRule[]>(request => { request.RuleKey = ruleKey; }, token);
+            Debug.Assert(rules.Length <= 1);
+
+            return rules.FirstOrDefault();
+        }
 
         public async Task<SonarQubeHotspot> GetHotspotAsync(string hotspotKey, CancellationToken token) =>
             await InvokeCheckedRequestAsync<IGetHotspotRequest, SonarQubeHotspot>(
@@ -433,6 +442,7 @@ namespace SonarQube.Client
         }
 
         #region IDisposable Support
+
         private bool disposedValue; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
@@ -458,6 +468,7 @@ namespace SonarQube.Client
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
         #endregion // IDisposable Support
 
         internal /* for testing */ static string GetOrganizationKeyForWebApiCalls(string organizationKey, ILogger logger)
@@ -474,6 +485,5 @@ namespace SonarQube.Client
             }
             return organizationKey;
         }
-
     }
 }
