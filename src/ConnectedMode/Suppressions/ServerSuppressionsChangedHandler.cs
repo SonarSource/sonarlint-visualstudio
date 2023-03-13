@@ -26,10 +26,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
     [Export(typeof(ServerSuppressionsChangedHandler))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ServerSuppressionsChangedHandler : IDisposable
+    internal sealed class ServerSuppressionsChangedHandler : IDisposable
     {
         private readonly IClientSuppressionSynchronizer clientSuppressionSynchronizer;
         private readonly ISuppressedIssuesMonitor suppressedIssuesMonitor;
+
+        private bool disposed;
 
         [ImportingConstructor]
         public ServerSuppressionsChangedHandler(IClientSuppressionSynchronizer clientSuppressionSynchronizer, ISuppressedIssuesMonitor suppressedIssuesMonitor)
@@ -47,7 +49,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
         public void Dispose()
         {
-            suppressedIssuesMonitor.ServerSuppressionsChanged -= ServerSuppressionsChanged;
+            if (!disposed)
+            {
+                suppressedIssuesMonitor.ServerSuppressionsChanged -= ServerSuppressionsChanged;
+                disposed = true;
+            }
         }
     }
 }
