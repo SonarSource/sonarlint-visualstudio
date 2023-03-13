@@ -53,6 +53,8 @@ namespace SonarQube.Client
         Task<IList<SonarQubeRule>> GetRulesAsync(bool isActive, string qualityProfileKey,
             CancellationToken token);
 
+        Task<SonarQubeRule> GetRuleByKeyAsync(string ruleKey, CancellationToken token);
+
         Task<IList<SonarQubeLanguage>> GetAllLanguagesAsync(CancellationToken token);
 
         Task<Stream> DownloadStaticFileAsync(string pluginKey, string fileName, CancellationToken token);

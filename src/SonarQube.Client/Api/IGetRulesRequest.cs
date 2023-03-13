@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -28,5 +28,7 @@ namespace SonarQube.Client.Api
         bool? IsActive { get; set; }
 
         string QualityProfileKey { get; set; }
+
+        string RuleKey { get; set; }
     }
 }
