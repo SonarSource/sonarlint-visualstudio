@@ -43,6 +43,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
         private ISSESessionManager sseSessionManager;
         private IIssueServerEventsListener issueServerEventsListener;
         private ServerSuppressionsChangedHandler serverSuppressionsChangedHandler;
+        private BoundSolutionUpdateHandler boundSolutionUpdateHandler;
+        private TimedUpdateHandler timedUpdateHandler;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -59,6 +61,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
             issueServerEventsListener.ListenAsync().Forget();
 
             serverSuppressionsChangedHandler = componentModel.GetService<ServerSuppressionsChangedHandler>();
+            boundSolutionUpdateHandler = componentModel.GetService<BoundSolutionUpdateHandler>();
+            timedUpdateHandler = componentModel.GetService<TimedUpdateHandler>();
 
             logger.WriteLine(Resources.Package_Initialized);
         }
@@ -70,6 +74,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 sseSessionManager?.Dispose();
                 issueServerEventsListener?.Dispose();
                 serverSuppressionsChangedHandler?.Dispose();
+                boundSolutionUpdateHandler?.Dispose();
+                timedUpdateHandler?.Dispose();
             }
 
             base.Dispose(disposing);
