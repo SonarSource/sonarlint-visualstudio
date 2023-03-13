@@ -21,6 +21,7 @@
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Education.Layout.Logical;
+using SonarLint.VisualStudio.Education.Layout.Visual;
 
 namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical;
 
@@ -37,5 +38,16 @@ public class RootCauseSectionTests
         testSubject.Title.Should().Be("Why is this an issue?");
         testSubjectHotspot.Key.Should().BeSameAs(RootCauseSection.RuleInfoKey).And.Be("root_cause");
         testSubjectHotspot.Title.Should().Be("What's the risk?");
+    }
+
+    [TestMethod]
+    public void GetVisualizationTreeNode_ProducesOneContentSection()
+    {
+        var partialXaml = "<Paragraph>Your code is bad</Paragraph>";
+        var testSubject = new RootCauseSection(partialXaml, false);
+
+        var visualizationTreeNode = testSubject.GetVisualizationTreeNode(null);
+
+        visualizationTreeNode.Should().BeOfType<ContentSection>().Which.content.Should().Be(partialXaml);
     }
 }

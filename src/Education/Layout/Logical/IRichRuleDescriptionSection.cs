@@ -19,7 +19,7 @@
  */
 
 using SonarLint.VisualStudio.Education.Layout.Visual;
-using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
+using SonarLint.VisualStudio.Education.XamlGenerator;
 
 namespace SonarLint.VisualStudio.Education.Layout.Logical
 {
@@ -27,6 +27,6 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
     {
         string Key { get; }
         string Title { get; }
-        IAbstractVisualizationTreeNode GetVisualizationTreeNode(ITabsRepository tabsRepository);
+        IAbstractVisualizationTreeNode GetVisualizationTreeNode(IStaticXamlStorage staticXamlStorage);
     }
 }

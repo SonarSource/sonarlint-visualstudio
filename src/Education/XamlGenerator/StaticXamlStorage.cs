@@ -29,6 +29,8 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         string EducationPrinciplesDefenseInDepth { get; }
         string EducationPrinciplesNeverTrustUserInput { get; }
         string HowToFixItFallbackContext { get; }
+        string HowToFixItHeader { get; }
+        string ResourcesHeader { get; }
     }
 
     internal class StaticXamlStorage : IStaticXamlStorage
@@ -37,6 +39,8 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         private readonly Lazy<string> educationPrinciplesDefenseInDepth;
         private readonly Lazy<string> educationPrinciplesNeverTrustUserInput;
         private readonly Lazy<string> howToFixItFallbackContext;
+        private readonly Lazy<string> howToFixItHeader;
+        private readonly Lazy<string> resourcesHeader;
 
         public StaticXamlStorage(IRuleHelpXamlTranslator ruleHelpXamlTranslator)
         {
@@ -44,11 +48,15 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             educationPrinciplesDefenseInDepth = new Lazy<string>(() => ruleHelpXamlTranslator.TranslateHtmlToXaml(StaticHtmlSnippets.EducationPrinciplesDefenseInDepth), LazyThreadSafetyMode.None);
             educationPrinciplesNeverTrustUserInput = new Lazy<string>(() => ruleHelpXamlTranslator.TranslateHtmlToXaml(StaticHtmlSnippets.EducationPrinciplesNeverTrustUserInput), LazyThreadSafetyMode.None);
             howToFixItFallbackContext = new Lazy<string>(() => ruleHelpXamlTranslator.TranslateHtmlToXaml(StaticHtmlSnippets.HowToFixItFallbackContext), LazyThreadSafetyMode.None);
+            howToFixItHeader = new Lazy<string>(() => ruleHelpXamlTranslator.TranslateHtmlToXaml(StaticHtmlSnippets.HowToFixItHeader), LazyThreadSafetyMode.None);
+            resourcesHeader = new Lazy<string>(() => ruleHelpXamlTranslator.TranslateHtmlToXaml(StaticHtmlSnippets.ResourcesHeader), LazyThreadSafetyMode.None);
         }
 
         public string EducationPrinciplesHeader => educationPrinciplesHeader.Value;
         public string EducationPrinciplesDefenseInDepth => educationPrinciplesDefenseInDepth.Value;
         public string EducationPrinciplesNeverTrustUserInput => educationPrinciplesNeverTrustUserInput.Value;
         public string HowToFixItFallbackContext => howToFixItFallbackContext.Value;
+        public string HowToFixItHeader => howToFixItHeader.Value;
+        public string ResourcesHeader => resourcesHeader.Value;
     }
 }

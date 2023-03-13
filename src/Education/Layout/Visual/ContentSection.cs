@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Windows.Documents;
-using SonarLint.VisualStudio.Education.XamlParser;
 
 namespace SonarLint.VisualStudio.Education.Layout.Visual
 {
@@ -28,16 +28,17 @@ namespace SonarLint.VisualStudio.Education.Layout.Visual
     /// </summary>
     internal class ContentSection : IAbstractVisualizationTreeNode
     {
-        private readonly IXamlBlockContent content;
+        internal /* for testing */ readonly string content;
 
-        public ContentSection(IXamlBlockContent content)
+        public ContentSection(string content)
         {
             this.content = content;
         }
 
         public Block CreateVisualization()
         {
-            return content.GetObjectRepresentation();
+            throw new NotImplementedException();
+            // return content.GetObjectRepresentation();
         }
     }
 }
