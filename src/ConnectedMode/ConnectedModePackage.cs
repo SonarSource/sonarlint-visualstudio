@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
             serverSuppressionsChangedHandler = componentModel.GetService<ServerSuppressionsChangedHandler>();
             boundSolutionUpdateHandler = componentModel.GetService<BoundSolutionUpdateHandler>();
-            timedUpdateHandler= componentModel.GetService<TimedUpdateHandler>();
+            timedUpdateHandler = componentModel.GetService<TimedUpdateHandler>();
 
             logger.WriteLine(Resources.Package_Initialized);
         }
