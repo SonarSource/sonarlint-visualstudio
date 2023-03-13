@@ -50,7 +50,7 @@ public class HowToFixSectionTests
 
         var visualizationTreeNode = testSubject.GetVisualizationTreeNode(null);
 
-        visualizationTreeNode.Should().BeOfType<ContentSection>().Which.content.Should().Be(partialXaml);
+        visualizationTreeNode.Should().BeOfType<ContentSection>().Which.xamlContent.Should().Be(partialXaml);
     }
 
     [TestMethod]
@@ -70,16 +70,17 @@ public class HowToFixSectionTests
         multiBlockSection.blocks.Should().HaveCount(2);
         
         multiBlockSection.blocks[0].Should().BeOfType<ContentSection>()
-            .Which.content.Should().Be(staticXamlStorage.HowToFixItHeader);
+            .Which.xamlContent.Should().Be(staticXamlStorage.HowToFixItHeader);
         
         var tabGroup = multiBlockSection.blocks[1].Should().BeOfType<TabGroup>().Subject;
+        tabGroup.isScrollable.Should().BeFalse();
         tabGroup.tabs.Should().HaveCount(contexts.Count + 1);
         
         for (var i = 0; i < contexts.Count; i++)
         {
-            tabGroup.tabs[i].content.Should().BeOfType<ContentSection>().Which.content.Should().Be(contexts[i].PartialXamlContent);
+            ((TabItem)tabGroup.tabs[i]).content.Should().BeOfType<ContentSection>().Which.xamlContent.Should().Be(contexts[i].PartialXamlContent);
         }
 
-        tabGroup.tabs.Last().content.Should().BeOfType<ContentSection>().Which.content.Should().Be(staticXamlStorage.HowToFixItFallbackContext);
+        ((TabItem)tabGroup.tabs.Last()).content.Should().BeOfType<ContentSection>().Which.xamlContent.Should().Be(staticXamlStorage.HowToFixItFallbackContext);
     }
 }
