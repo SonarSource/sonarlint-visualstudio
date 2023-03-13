@@ -181,7 +181,7 @@ namespace SonarQube.Client.Tests
         }
 
         [TestMethod]
-        public void GetRulesAsync_NotConnected()
+        public void GetRuleByKeyAsync_NotConnected()
         {
             // No calls to Connect
             // No need to setup request, the operation should fail
