@@ -353,7 +353,7 @@ namespace SonarQube.Client
             var rules = await InvokeCheckedRequestAsync<IGetRulesRequest, SonarQubeRule[]>(request => { request.RuleKey = ruleKey; }, token);
             Debug.Assert(rules.Length <= 1);
 
-            return rules.AsEnumerable().FirstOrDefault();
+            return rules.FirstOrDefault();
         }
 
         public async Task<SonarQubeHotspot> GetHotspotAsync(string hotspotKey, CancellationToken token) =>

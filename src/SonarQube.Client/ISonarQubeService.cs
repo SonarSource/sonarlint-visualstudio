@@ -53,6 +53,11 @@ namespace SonarQube.Client
         Task<IList<SonarQubeRule>> GetRulesAsync(bool isActive, string qualityProfileKey,
             CancellationToken token);
 
+        /// <summary>
+        /// Returns SonarQubeRule based on the key. If rule not found returns null
+        /// </summary>
+        /// <param name="ruleKey">Composite rule key eg: roslyn.sonaranalyzer.security.cs:S5135 </param>
+        /// <returns></returns>
         Task<SonarQubeRule> GetRuleByKeyAsync(string ruleKey, CancellationToken token);
 
         Task<IList<SonarQubeLanguage>> GetAllLanguagesAsync(CancellationToken token);

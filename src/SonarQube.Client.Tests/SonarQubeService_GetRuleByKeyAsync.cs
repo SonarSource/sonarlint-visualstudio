@@ -18,10 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Tests
 {
@@ -176,6 +178,21 @@ namespace SonarQube.Client.Tests
             messageHandler.VerifyAll();
 
             result.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void GetRulesAsync_NotConnected()
+        {
+            // No calls to Connect
+            // No need to setup request, the operation should fail
+
+            Func<Task<SonarQubeRule>> func = async () =>
+                await service.GetRuleByKeyAsync("whatever", CancellationToken.None);
+
+            func.Should().ThrowExactly<InvalidOperationException>().And
+                .Message.Should().Be("This operation expects the service to be connected.");
+
+            logger.ErrorMessages.Should().Contain("The service is expected to be connected.");
         }
     }
 }
