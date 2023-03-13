@@ -37,7 +37,7 @@ namespace SonarQube.Client.Tests
         {
             await ConnectToSonarQube();
 
-            SetupRequest("api/rules/search?activation=true&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives&p=1&ps=500", @"
+            SetupRequest("api/rules/search?activation=true&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples&p=1&ps=500", @"
 {
   ""total"": 4,
   ""p"": 1,
@@ -58,6 +58,7 @@ namespace SonarQube.Client.Tests
     {
       ""key"": ""csharpsquid:S2342"",
       ""repo"": ""csharpsquid"",
+      ""htmlDesc"": ""Html Description"",
       ""params"": [
         {
           ""key"": ""format"",
@@ -159,12 +160,13 @@ namespace SonarQube.Client.Tests
             result.SelectMany(r => r.Parameters.Select(p => p.Key)).Should().ContainInOrder(new[] { "format", "flagsAttributeFormat" });
             result.SelectMany(r => r.Parameters.Select(p => p.Value)).Should().ContainInOrder(new[] { "^([A-Z]{1,3}[a-z0-9]+)*([A-Z]{2})?$", "^([A-Z]{1,3}[a-z0-9]+)*([A-Z]{2})?s$" });
 
+            result[2].Description.Should().Be("Html Description");
+
             result[2].DescriptionSections.Count.Should().Be(2);
             result[2].DescriptionSections[0].Key.Should().Be("key1");
             result[2].DescriptionSections[0].HtmlContent.Should().Be("content1");
             result[2].DescriptionSections[0].Context.Should().BeNull();
 
-            result[2].DescriptionSections.Count.Should().Be(2);
             result[2].DescriptionSections[1].Key.Should().Be("key2");
             result[2].DescriptionSections[1].HtmlContent.Should().Be("content2");
             result[2].DescriptionSections[1].Context.Should().NotBeNull();
@@ -184,7 +186,7 @@ namespace SonarQube.Client.Tests
         {
             await ConnectToSonarQube();
 
-            SetupRequest("api/rules/search?activation=false&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives&p=1&ps=500", @"
+            SetupRequest("api/rules/search?activation=false&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples&p=1&ps=500", @"
 {
   ""total"": 4,
   ""p"": 1,

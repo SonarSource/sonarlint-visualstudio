@@ -37,12 +37,15 @@ namespace SonarQube.Client.Api.V5_50
         [JsonProperty("qprofile")]
         public string QualityProfileKey { get; set; }
 
+        [JsonProperty("rule_key")]
+        public string RuleKey { get; set; }
+
         // Update this property if more fields are needed in the response. Have in mind
         // that the field names here do not always correspond to the actual field names
         // in the response! For example 'internalKey' in the request corresponds to 'key'
         // in the response. The server error message (400) returns all supported fields.
         [JsonProperty("f")]
-        public string ResponseFields => "repo,internalKey,params,actives";
+        public string ResponseFields => "repo,internalKey,params,actives,htmlDesc,descriptionSections,educationPrinciples";
 
         protected override SonarQubeRule[] ParseResponse(string response)
         {
@@ -90,7 +93,7 @@ namespace SonarQube.Client.Api.V5_50
 
             var descriptionSections = response.DescriptionSections?.Select(ds => ds.ToSonarQubeDescriptionSection()).ToList();
 
-            return new SonarQubeRule(GetRuleKey(response.Key), response.RepositoryKey, isActive, severity, parameters, issueType, descriptionSections, response.EducationPrinciples);
+            return new SonarQubeRule(GetRuleKey(response.Key), response.RepositoryKey, isActive, severity, parameters, issueType, response.Description, descriptionSections, response.EducationPrinciples);
         }
 
         private static string GetRuleKey(string compositeKey) =>
@@ -103,6 +106,9 @@ namespace SonarQube.Client.Api.V5_50
 
             [JsonProperty("repo")]
             public string RepositoryKey { get; set; }
+
+            [JsonProperty("htmlDesc")]
+            public string Description { get; set; }
 
             [JsonProperty("type")]
             public string Type { get; set; }
