@@ -17,35 +17,31 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
-using System.Windows.Documents;
-
-namespace SonarLint.VisualStudio.Education.XamlParser
-{
-
-    /// <summary>
-    /// Represents a XAML entity that is parseable into Block object
-    /// </summary>
-    internal interface IXamlBlockContent
-    {
-        Block GetObjectRepresentation();
-    }
-
-    internal class GeneratedXamlBlockContent : IXamlBlockContent
-    {
-        public Block GetObjectRepresentation()
-        {
-            // todo XamlReader.Parse(xamlString)
-            throw new System.NotImplementedException();
-        }
-    }
-
-    internal class StaticXamlBlockContent : IXamlBlockContent
-    {
-        public Block GetObjectRepresentation()
-        {
-            // todo something like XamlReader.Load(someXamlResource)
-            throw new System.NotImplementedException();
-        }
-    }
-}
+//
+// using System.Windows.Documents;
+//
+// namespace SonarLint.VisualStudio.Education.XamlParser
+// {
+//
+//     /// <summary>
+//     /// Represents a XAML entity that is parseable into Block object
+//     /// </summary>
+//     internal interface IXamlBlockContent
+//     {
+//         Block GetObjectRepresentation();
+//     }
+//
+//     internal class GeneratedXamlBlockContent : IXamlBlockContent
+//     {
+//         public GeneratedXamlBlockContent()
+//         {
+//             throw new System.NotImplementedException();
+//         }
+//
+//         public Block GetObjectRepresentation()
+//         {
+//             // todo XamlReader.Parse(xamlString)
+//             throw new System.NotImplementedException();
+//         }
+//     }
+// }

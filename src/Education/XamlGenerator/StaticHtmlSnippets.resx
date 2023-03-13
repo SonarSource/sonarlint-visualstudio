@@ -140,7 +140,7 @@
 &lt;/p&gt;</value>
   </data>
   <data name="EducationPrinciplesHeader" xml:space="preserve">
-    <value>&lt;h2&gt;Education principles&lt;/h2&gt;</value>
+    <value>&lt;h2&gt;Clean Code principles&lt;/h2&gt;</value>
   </data>
   <data name="EducationPrinciplesNeverTrustUserInput" xml:space="preserve">
     <value>&lt;h3&gt;Never Trust User Input&lt;/h3&gt;
@@ -183,5 +183,11 @@
     Tell us which framework you use and why our solution does not work by submitting an idea on the SonarLint product-board.&lt;/p&gt;
 &lt;a href="https://portal.productboard.com/sonarsource/4-sonarlint/submit-idea"&gt;Submit an idea&lt;/a&gt;
 &lt;p&gt;We will do our best to provide you with more relevant instructions in the future.&lt;/p&gt;</value>
+  </data>
+  <data name="HowToFixItHeader" xml:space="preserve">
+    <value>&lt;h2&gt;Which component or framework contains the issue?&lt;/h2&gt;</value>
+  </data>
+  <data name="ResourcesHeader" xml:space="preserve">
+    <value>&lt;h2&gt;Resources&lt;/h2&gt;</value>
   </data>
 </root>

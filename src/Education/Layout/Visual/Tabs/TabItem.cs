@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Windows.Documents;
 using SonarLint.VisualStudio.Education.Layout.Visual;
 
@@ -28,21 +29,22 @@ namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
     /// </summary>
     internal class TabItem // NOTE: this does not implement IAbstractVisualizationTreeNode by design, as it cannot be used without TabGroup
     {
-        private readonly IAbstractVisualizationTreeNode content;
+        internal /* for testing */ readonly IAbstractVisualizationTreeNode content;
 
-        public TabItem(string name, string displayName, IAbstractVisualizationTreeNode content)
+        public TabItem(string displayName, IAbstractVisualizationTreeNode content)
         {
-            Name = name;
+            // Name = name;
             DisplayName = displayName;
             this.content = content;
         }
 
-        public string Name { get; }
+        // public string Name { get; }
         public string DisplayName { get; }
 
         public Block CreateVisualization(string tabGroupName)
         {
-            return new Section(content.CreateVisualization()) { Name = TabNameProvider.GetTabSectionName(tabGroupName, Name) };
+            throw new NotImplementedException();
+            // return new Section(content.CreateVisualization()) { Name = TabNameProvider.GetTabSectionName(tabGroupName, Name) };
         }
     }
 }

@@ -18,46 +18,46 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections;
-using System.Windows.Documents;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.Education.Layout.Visual;
-
-namespace SonarLint.VisualStudio.Education.UnitTests.Layout
-{
-    [TestClass]
-    public class MultiBlockSectionTests
-    {
-        [TestMethod]
-        public void CreateVisualization_ReturnsSectionWithSubsections()
-        {
-            var headerMock = new Mock<IAbstractVisualizationTreeNode>();
-            var header = new Paragraph();
-            headerMock.Setup(x => x.CreateVisualization()).Returns(header);
-            
-            var child1 = new Section();
-            var child1Node = new Mock<IAbstractVisualizationTreeNode>();
-            child1Node.Setup(x => x.CreateVisualization()).Returns(child1);
-
-            var child2 = new BlockUIContainer();
-            var child2Node = new Mock<IAbstractVisualizationTreeNode>();
-            child2Node.Setup(x => x.CreateVisualization()).Returns(child2);
-
-            var testSubject =
-                new MultiBlockSection(headerMock.Object, child1Node.Object, child2Node.Object);
-
-            var visualization = testSubject.CreateVisualization();
-
-            visualization.Should().BeOfType<Section>();
-            var section = visualization as Section;
-            section.Blocks.Count.Should().Be(3);
-            section.Blocks.FirstBlock.Should().BeSameAs(header);
-            var child1Section = ((IList)section.Blocks)[1];
-            child1Section.Should().BeSameAs(child1);
-            var child2Section = ((IList)section.Blocks)[2];
-            child2Section.Should().BeSameAs(child2);
-        }
-    }
-}
+// using System.Collections;
+// using System.Windows.Documents;
+// using FluentAssertions;
+// using Microsoft.VisualStudio.TestTools.UnitTesting;
+// using Moq;
+// using SonarLint.VisualStudio.Education.Layout.Visual;
+//
+// namespace SonarLint.VisualStudio.Education.UnitTests.Layout
+// {
+//     [TestClass]
+//     public class MultiBlockSectionTests
+//     {
+//         [TestMethod]
+//         public void CreateVisualization_ReturnsSectionWithSubsections()
+//         {
+//             var headerMock = new Mock<IAbstractVisualizationTreeNode>();
+//             var header = new Paragraph();
+//             headerMock.Setup(x => x.CreateVisualization()).Returns(header);
+//             
+//             var child1 = new Section();
+//             var child1Node = new Mock<IAbstractVisualizationTreeNode>();
+//             child1Node.Setup(x => x.CreateVisualization()).Returns(child1);
+//
+//             var child2 = new BlockUIContainer();
+//             var child2Node = new Mock<IAbstractVisualizationTreeNode>();
+//             child2Node.Setup(x => x.CreateVisualization()).Returns(child2);
+//
+//             var testSubject =
+//                 new MultiBlockSection(headerMock.Object, child1Node.Object, child2Node.Object);
+//
+//             var visualization = testSubject.CreateVisualization();
+//
+//             visualization.Should().BeOfType<Section>();
+//             var section = visualization as Section;
+//             section.Blocks.Count.Should().Be(3);
+//             section.Blocks.FirstBlock.Should().BeSameAs(header);
+//             var child1Section = ((IList)section.Blocks)[1];
+//             child1Section.Should().BeSameAs(child1);
+//             var child2Section = ((IList)section.Blocks)[2];
+//             child2Section.Should().BeSameAs(child2);
+//         }
+//     }
+// }

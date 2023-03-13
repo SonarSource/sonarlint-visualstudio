@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
 using System.Windows.Documents;
 
 namespace SonarLint.VisualStudio.Education.Layout.Visual
@@ -27,23 +29,29 @@ namespace SonarLint.VisualStudio.Education.Layout.Visual
     /// </summary>
     internal class MultiBlockSection : IAbstractVisualizationTreeNode
     {
-        private readonly IAbstractVisualizationTreeNode[] blocks;
+        internal /* for testing */ readonly IList<IAbstractVisualizationTreeNode> blocks;
 
         public MultiBlockSection(params IAbstractVisualizationTreeNode[] blocks)
         {
             this.blocks = blocks;
         }
 
+        public MultiBlockSection(IList<IAbstractVisualizationTreeNode> blocks)
+        {
+            this.blocks = blocks;
+        }
+
         public Block CreateVisualization()
         {
-            var container = new Section();
-
-            foreach (var block in blocks)
-            {
-                container.Blocks.Add(block.CreateVisualization());
-            }
-
-            return container;
+            throw new NotImplementedException();
+            // var container = new Section();
+            //
+            // foreach (var block in blocks)
+            // {
+            //     container.Blocks.Add(block.CreateVisualization());
+            // }
+            //
+            // return container;
         }
     }
 }
