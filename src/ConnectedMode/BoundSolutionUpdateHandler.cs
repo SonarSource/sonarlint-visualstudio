@@ -45,38 +45,20 @@ namespace SonarLint.VisualStudio.ConnectedMode
             this.activeSolutionBoundTracker.SolutionBindingUpdated += OnSolutionBindingUpdated;
         }
 
-        private void OnSolutionBindingUpdated(object sender, EventArgs e)
-        {
-            suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync().Forget();
-        }
+        private void OnSolutionBindingUpdated(object sender, EventArgs e) => TriggerUpdate();
 
-        private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
-        {
-            suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync().Forget();
-        }
+        private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e) => TriggerUpdate();
 
-        #region IDisposable
-
-        private void Dispose(bool disposing)
-        {
-            if (!disposed)
-            {
-                if (disposing)
-                {
-                    this.activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
-                    this.activeSolutionBoundTracker.SolutionBindingUpdated -= OnSolutionBindingUpdated;
-                }
-                disposed = true;
-            }
-        }
+        private void TriggerUpdate() => suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync().Forget();
 
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            if (!disposed)
+            {
+                this.activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
+                this.activeSolutionBoundTracker.SolutionBindingUpdated -= OnSolutionBindingUpdated;
+                disposed = true;
+            }
         }
-
-        #endregion IDisposable
     }
 }

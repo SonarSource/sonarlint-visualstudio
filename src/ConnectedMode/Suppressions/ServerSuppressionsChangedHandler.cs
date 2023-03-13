@@ -47,27 +47,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             clientSuppressionSynchronizer.SynchronizeSuppressedIssues();
         }
 
-        #region IDisposable
-
-        private void Dispose(bool disposing)
+        public void Dispose()
         {
             if (!disposed)
             {
-                if (disposing)
-                {
-                    suppressedIssuesMonitor.ServerSuppressionsChanged -= ServerSuppressionsChanged;
-                }
+                suppressedIssuesMonitor.ServerSuppressionsChanged -= ServerSuppressionsChanged;
                 disposed = true;
             }
         }
-
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
-        }
-
-        #endregion IDisposable
     }
 }
