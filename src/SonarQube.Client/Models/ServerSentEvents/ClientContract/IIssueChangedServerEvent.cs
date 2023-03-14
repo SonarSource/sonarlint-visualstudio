@@ -20,6 +20,7 @@
 
 
 using System;
+using System.Text;
 using Newtonsoft.Json;
 
 namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
@@ -53,6 +54,19 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
 
         [JsonProperty("issues")]
         public IBranchAndIssueKey[] BranchAndIssueKeys { get; }
+
+        // Display-friendly override for logging/debugging
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine($"ProjectKey: {ProjectKey}, IsResolved: {IsResolved}, Issue count: " + BranchAndIssueKeys.Length);
+            foreach (var item in BranchAndIssueKeys)
+            {
+                sb.AppendLine($"\tBranch: {item.BranchName}, IssueKey: {item.IssueKey}");
+            }
+
+            return sb.ToString();
+        }
     }
 
     /// <summary>
