@@ -194,6 +194,46 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
             actualSuppressions[1].RoslynRuleId.Should().Be("S222");
         }
 
+        [TestMethod]
+        public async Task UpdateFileStorage_OnySuppressedIssuesAreInSettings()
+        {
+            var configuration = CreateConnectedConfiguration("some project key");
+            var activeSolutionBoundTracker = CreateActiveSolutionBoundTracker(configuration);
+
+            var sonarIssues = new[]
+            {
+                CreateSonarQubeIssue(ruleId: "csharpsquid:S111", isSuppressed:false),
+                CreateSonarQubeIssue(ruleId: "vbnet:S222", isSuppressed:true),
+                CreateSonarQubeIssue(ruleId: "csharpsquid:S333", isSuppressed:true),
+                CreateSonarQubeIssue(ruleId: "vbnet:S444", isSuppressed:false),
+            };
+
+            var serverIssuesStore = CreateServerIssuesStore(sonarIssues);
+
+            RoslynSettings actualSettings = null;
+            var roslynSettingsFileStorage = new Mock<IRoslynSettingsFileStorage>();
+            roslynSettingsFileStorage.Setup(x => x.Update(It.IsAny<RoslynSettings>()))
+                .Callback<RoslynSettings>(x => actualSettings = x);
+
+            var testSubject = CreateTestSubject(
+                serverIssuesStore: serverIssuesStore.Object,
+                roslynSettingsFileStorage: roslynSettingsFileStorage.Object,
+                activeSolutionBoundTracker: activeSolutionBoundTracker.Object);
+
+            await testSubject.UpdateFileStorageAsync();
+
+            actualSettings.Should().NotBeNull();
+            actualSettings.SonarProjectKey.Should().Be("some project key");
+            actualSettings.Suppressions.Should().NotBeNull();
+
+            var actualSuppressions = actualSettings.Suppressions.ToList();
+            actualSuppressions.Count.Should().Be(2);
+            actualSuppressions[0].RoslynLanguage.Should().Be(RoslynLanguage.VB);
+            actualSuppressions[0].RoslynRuleId.Should().Be("S222");
+            actualSuppressions[1].RoslynLanguage.Should().Be(RoslynLanguage.CSharp);
+            actualSuppressions[1].RoslynRuleId.Should().Be("S333");
+        }
+
         private static Mock<IActiveSolutionBoundTracker> CreateActiveSolutionBoundTracker(BindingConfiguration configuration)
         {
             var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
