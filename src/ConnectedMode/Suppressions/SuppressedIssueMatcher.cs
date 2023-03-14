@@ -20,12 +20,16 @@
 
 using System;
 using System.Linq;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.Suppression
+namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
+    public interface ISuppressedIssueMatcher
+    {
+        bool SuppressionExists(IFilterableIssue issue);
+    }
+
     public class SuppressedIssueMatcher : ISuppressedIssueMatcher
     {
         private readonly IServerIssuesStore serverIssuesStore;
