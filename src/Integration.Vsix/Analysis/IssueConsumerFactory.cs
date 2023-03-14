@@ -21,8 +21,8 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis

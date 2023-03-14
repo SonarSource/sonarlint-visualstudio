@@ -22,11 +22,15 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Suppression;
 
-namespace SonarLint.VisualStudio.Integration.Suppression
+namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
+    public interface IIssuesFilter
+    {
+        IEnumerable<IFilterableIssue> GetMatches(IEnumerable<IFilterableIssue> issues);
+    }
+
     [Export(typeof(IIssuesFilter))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class IssuesFilter : IIssuesFilter
