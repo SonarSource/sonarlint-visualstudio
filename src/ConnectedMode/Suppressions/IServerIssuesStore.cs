@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
     /// Stores all server issues known to the client for the current branch i.e. that have been fetched from the server.
     /// </summary>
     /// <returns>There may be other server-side issues that have not been fetched</returns>
-    internal interface IServerIssuesStore
+    public interface IServerIssuesStore
     {
         /// <summary>
         /// Raised when the contents of the store have changed
