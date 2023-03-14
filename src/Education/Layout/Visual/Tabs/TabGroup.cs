@@ -18,9 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
-using System.Windows.Documents;
+using System.Xml;
 
 namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
 {
@@ -29,42 +28,25 @@ namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
     /// </summary>
     internal class TabGroup : IAbstractVisualizationTreeNode
     {
-        // private readonly string name;
-        internal /* for testing */ readonly List<TabItem> tabs;
-        // private readonly ITabsRepository tabsRepository;
+        internal /* for testing */ readonly List<ITabItem> tabs;
+        internal /* for testing */ readonly bool isScrollable;
 
-        public TabGroup(List<TabItem> tabs)
+        public TabGroup(List<ITabItem> tabs, bool isScrollable)
         {
-            // this.name = name;
             this.tabs = tabs;
-            // this.tabsRepository = tabsRepository;
+            this.isScrollable = isScrollable;
         }
 
-        public Block CreateVisualization()
+        public void ProduceXaml(XmlWriter writer)
         {
-            throw new NotImplementedException();
-            // var container = new Section();
-            // var buttonsContainer = new StackPanel();
-            // Block initiallyActiveTab = null;
-            //
-            // for (var i = 0; i < tabs.Count; i++)
-            // {
-            //     var tabItem = tabs[i];
-            //     buttonsContainer.Children.Add(
-            //         new ToggleButton() { Name = TabNameProvider.GetTabButtonName(name, tabItem.Name), Content = tabItem.DisplayName });
-            //     var tabVisualization = tabItem.CreateVisualization(name);
-            //     tabsRepository.RegisterTab(tabVisualization);
-            //
-            //     if (i == 0)
-            //     {
-            //         initiallyActiveTab = tabVisualization;
-            //     }
-            // }
-            //
-            // container.Blocks.Add(new BlockUIContainer(buttonsContainer) { Name = name });
-            // container.Blocks.Add(initiallyActiveTab);
-            //
-            // return container;
+            writer.WriteStartElement("BlockUIContainer");
+            writer.WriteStartElement("TabControl");
+            foreach (var tab in tabs)
+            {
+                tab.ProduceXaml(writer, isScrollable);
+            }
+            writer.WriteFullEndElement();
+            writer.WriteFullEndElement();
         }
     }
 }

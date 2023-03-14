@@ -48,6 +48,6 @@ public class RootCauseSectionTests
 
         var visualizationTreeNode = testSubject.GetVisualizationTreeNode(null);
 
-        visualizationTreeNode.Should().BeOfType<ContentSection>().Which.content.Should().Be(partialXaml);
+        visualizationTreeNode.Should().BeOfType<ContentSection>().Which.xamlContent.Should().Be(partialXaml);
     }
 }

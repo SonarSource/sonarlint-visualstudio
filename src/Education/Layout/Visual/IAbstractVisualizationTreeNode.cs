@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Documents;
+using System.Xml;
 
 namespace SonarLint.VisualStudio.Education.Layout.Visual
 {
@@ -27,6 +27,6 @@ namespace SonarLint.VisualStudio.Education.Layout.Visual
     /// </summary>
     internal interface IAbstractVisualizationTreeNode
     {
-        Block CreateVisualization();
+        void ProduceXaml(XmlWriter writer);
     }
 }

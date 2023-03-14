@@ -55,12 +55,12 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
             
             var contextTabs = contexts
                 .Select(x => new TabItem(x.Title, new ContentSection(x.PartialXamlContent)))
-                .ToList();
+                .ToList<ITabItem>();
             contextTabs.Add(new TabItem("Other", new ContentSection(staticXamlStorage.HowToFixItFallbackContext)));
 
             return new MultiBlockSection(
                 new ContentSection(staticXamlStorage.HowToFixItHeader),
-                new TabGroup(contextTabs));
+                new TabGroup(contextTabs, false));
         }
     }
 

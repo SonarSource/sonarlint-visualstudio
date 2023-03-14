@@ -18,25 +18,30 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Xml;
 
-namespace SonarLint.VisualStudio.Education.Layout.Visual
+using System.Text;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Education.Layout.Visual;
+using SonarLint.VisualStudio.Education.XamlGenerator;
+
+namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Visual
 {
-    /// <summary>
-    /// Represents section that renders the passed xaml content
-    /// </summary>
-    internal class ContentSection : IAbstractVisualizationTreeNode
+    [TestClass]
+    public class ContentSectionTests
     {
-        internal /* for testing */ readonly string xamlContent;
-
-        public ContentSection(string xamlContent)
+        [TestMethod]
+        public void CreateVisualization_ReturnsContentFromXaml()
         {
-            this.xamlContent = xamlContent;
-        }
+            var sb = new StringBuilder();
+            const string xamlContent = "<Paragraph>Hi</Paragraph>";
+            var testSubject = new ContentSection(xamlContent);
+            var xmlWriter = RuleHelpXamlTranslator.CreateXmlWriter(sb);
 
-        public void ProduceXaml(XmlWriter writer)
-        {
-            writer.WriteRaw(xamlContent);
+            testSubject.ProduceXaml(xmlWriter);
+            xmlWriter.Close();
+
+            sb.ToString().Should().BeEquivalentTo(xamlContent);
         }
     }
 }
