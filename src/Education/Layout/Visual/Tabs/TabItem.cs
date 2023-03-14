@@ -18,33 +18,45 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Windows.Documents;
-using SonarLint.VisualStudio.Education.Layout.Visual;
+using System.Xml;
 
 namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
 {
+    internal interface ITabItem
+    {
+        void ProduceXaml(XmlWriter writer, bool isScrollable);
+    }
+
     /// <summary>
     /// Represents individual tab of a TabGroup
     /// </summary>
     internal class TabItem // NOTE: this does not implement IAbstractVisualizationTreeNode by design, as it cannot be used without TabGroup
+        : ITabItem
     {
         internal /* for testing */ readonly IAbstractVisualizationTreeNode content;
+        private readonly string displayName;
 
         public TabItem(string displayName, IAbstractVisualizationTreeNode content)
         {
-            // Name = name;
-            DisplayName = displayName;
+            this.displayName = displayName;
             this.content = content;
         }
 
-        // public string Name { get; }
-        public string DisplayName { get; }
-
-        public Block CreateVisualization(string tabGroupName)
+        public void ProduceXaml(XmlWriter writer, bool isScrollable)
         {
-            throw new NotImplementedException();
-            // return new Section(content.CreateVisualization()) { Name = TabNameProvider.GetTabSectionName(tabGroupName, Name) };
+            writer.WriteStartElement("TabItem");
+            writer.WriteAttributeString("Header", displayName);
+            writer.WriteStartElement("NestingFlowDocumentScrollViewer");
+            if (!isScrollable)
+            {
+                writer.WriteAttributeString("HorizontalScrollBarVisibility", "Disabled");
+                writer.WriteAttributeString("VerticalScrollBarVisibility", "Disabled");
+            }
+            writer.WriteStartElement("FlowDocument");
+            content.ProduceXaml(writer);
+            writer.WriteFullEndElement();
+            writer.WriteFullEndElement();
+            writer.WriteFullEndElement();
         }
     }
 }

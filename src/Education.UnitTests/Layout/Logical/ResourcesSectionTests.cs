@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -55,9 +54,9 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
             var multiBlockSection = visualizationTreeNode.Should().BeOfType<MultiBlockSection>().Subject;
             multiBlockSection.blocks.Should().HaveCount(2);
             multiBlockSection.blocks[0].Should().BeOfType<ContentSection>()
-                .Which.content.Should().Be(staticXamlStorage.ResourcesHeader);
+                .Which.xamlContent.Should().Be(staticXamlStorage.ResourcesHeader);
             multiBlockSection.blocks[1].Should().BeOfType<ContentSection>()
-                .Which.content.Should().Be(partialXaml);
+                .Which.xamlContent.Should().Be(partialXaml);
         }
 
         [TestMethod]
@@ -73,11 +72,11 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
             var multiBlockSection = visualizationTreeNode.Should().BeOfType<MultiBlockSection>().Subject;
             multiBlockSection.blocks.Should().HaveCount(5);
             multiBlockSection.blocks[2].Should().BeOfType<ContentSection>()
-                .Which.content.Should().Be(staticXamlStorage.EducationPrinciplesHeader);
+                .Which.xamlContent.Should().Be(staticXamlStorage.EducationPrinciplesHeader);
             multiBlockSection.blocks[3].Should().BeOfType<ContentSection>()
-                .Which.content.Should().Be(staticXamlStorage.EducationPrinciplesDefenseInDepth);
+                .Which.xamlContent.Should().Be(staticXamlStorage.EducationPrinciplesDefenseInDepth);
             multiBlockSection.blocks[4].Should().BeOfType<ContentSection>()
-                .Which.content.Should().Be(staticXamlStorage.EducationPrinciplesNeverTrustUserInput);
+                .Which.xamlContent.Should().Be(staticXamlStorage.EducationPrinciplesNeverTrustUserInput);
         }
     }
 }
