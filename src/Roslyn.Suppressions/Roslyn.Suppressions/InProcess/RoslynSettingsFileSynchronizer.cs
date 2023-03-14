@@ -83,10 +83,10 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
             this.logger = logger;
             this.threadHandling = threadHandling;
 
-            serverIssuesStore.ServerIssuesChanged += ServerIssuesChanged;
+            serverIssuesStore.ServerIssuesChanged += OnServerIssuesChanged;
         }
 
-        private void ServerIssuesChanged(object sender, EventArgs e)
+        private void OnServerIssuesChanged(object sender, EventArgs e)
         {
             // Called on the UI thread, so unhandled exceptions will crash VS.
             // Note: we don't expect any exceptions to be thrown, since the called method
@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
 
         public void Dispose()
         {
-            serverIssuesStore.ServerIssuesChanged -= ServerIssuesChanged;
+            serverIssuesStore.ServerIssuesChanged -= OnServerIssuesChanged;
         }
 
         // Converts SonarQube issues to SuppressedIssues that can be compared more easily with Roslyn issues
