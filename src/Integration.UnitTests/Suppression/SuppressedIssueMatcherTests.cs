@@ -123,8 +123,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [DataTestMethod]
         [DataRow("RightRuleId", null, null, true, true)]
         [DataRow("RightRuleId", null, null, false, false)]
-        [DataRow("RightRuleId", null, null, true, true)]
-        [DataRow("RightRuleId", null, null, false, false)]
         public void MatchExists_ResultDependsOnSuppressionState(string serverRuleId, int? serverIssueLine, string serverHash, bool isSuppressed, bool expectedResult)
         {
             // File issues have line number of 0 and an empty hash
