@@ -112,12 +112,13 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
 
                 if (!string.IsNullOrEmpty(sonarProjectKey))
                 {
-                    var allSuppressedIssues = serverIssuesStore.Get().Where(x => x.IsResolved).ToArray();
+                    var allSuppressedIssues = serverIssuesStore.Get();
 
                     var settings = new RoslynSettings
                     {
                         SonarProjectKey = sonarProjectKey,
                         Suppressions = allSuppressedIssues
+                                            .Where(x => x.IsResolved)
                                             .Select(x => IssueConverter.Convert(x))
                                             .Where(x => x.RoslynLanguage != RoslynLanguage.Unknown && !string.IsNullOrEmpty(x.RoslynRuleId))
                                             .ToArray(),
