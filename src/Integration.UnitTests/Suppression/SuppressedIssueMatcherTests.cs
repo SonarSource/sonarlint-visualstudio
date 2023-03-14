@@ -22,6 +22,7 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Suppression;
 using SonarQube.Client.Models;
@@ -32,20 +33,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
     public class SuppressedIssueMatcherTests
     {
         private SuppressedIssueMatcher testSubject;
-        private Mock<ISonarQubeIssuesProvider> mockIssuesProvider;
+        private Mock<IServerIssuesStore> mockServerIssuesStore;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            mockIssuesProvider = new Mock<ISonarQubeIssuesProvider>();
-            testSubject = new SuppressedIssueMatcher(mockIssuesProvider.Object);
+            mockServerIssuesStore = new Mock<IServerIssuesStore>();
+            testSubject = new SuppressedIssueMatcher(mockServerIssuesStore.Object);
         }
 
         [TestMethod]
         public void Ctor_NullProvider_Throws()
         {
             Action act = () => new SuppressedIssueMatcher(null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issuesProvider");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverIssuesStore");
         }
 
         [TestMethod]
@@ -56,35 +57,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         }
 
         [DataTestMethod]
-        [DataRow("RightRuleId", 1, "RightHash", true)]    // exact matches
-        [DataRow("rightRULEID", 1, "RightHash", true)]    // rule-id is case-insensitive
-        [DataRow("RightRuleId", 1, "wrong hash", true)]   // matches on line
-        [DataRow("RightRuleId", 9999, "RightHash", true)] // matches on hash only
-
-        [DataRow("RightRuleId", 2, "righthash", false)]   // hash is case-sensitive
-        [DataRow("RightRuleId", 2, "wrong hash", false)]  // wrong line and hash
-        [DataRow("RightRuleId", null, null, false)]       // server file issue
-        [DataRow("wrong rule Id", 1, "RightHash", false)]
+        [DataRow("CorrectRuleId", 1, "CorrectHash", true)]    // exact matches
+        [DataRow("correctRULEID", 1, "CorrectHash", true)]    // rule-id is case-insensitive
+        [DataRow("CorrectRuleId", 1, "wrong hash", true)]   // matches on line
+        [DataRow("CorrectRuleId", 9999, "CorrectHash", true)] // matches on hash only
+        [DataRow("CorrectRuleId", 2, "correcthash", false)]   // hash is case-sensitive
+        [DataRow("CorrectRuleId", 2, "wrong hash", false)]  // wrong line and hash
+        [DataRow("CorrectRuleId", null, null, false)]       // server file issue
+        [DataRow("wrong rule Id", 1, "CorrectHash", false)]
         public void MatchExists_LocalNonFileIssue_SingleServerIssue(string serverRuleId, int? serverIssueLine, string serverHash, bool expectedResult)
         {
-            var issueToMatch = CreateIssueToMatch("RightRuleId", 1, "RightHash");
-            ConfigureServerIssues(issueToMatch, CreateServerIssue(serverRuleId, serverIssueLine, serverHash));
+            var issueToMatch = CreateIssueToMatch("CorrectRuleId", 1, "CorrectHash");
+            ConfigureServerIssues(CreateServerIssue(serverRuleId, serverIssueLine, serverHash, isSuppressed: true));
 
             // Act and assert
             testSubject.SuppressionExists(issueToMatch).Should().Be(expectedResult);
         }
 
         [DataTestMethod]
-        [DataRow("RightRuleId", null, null, true)]      // exact matches
-        [DataRow("RightRuleId", null, "hash", true)]    // hash should be ignored for file-level issues
+        [DataRow("CorrectRuleId", null, null, true)]      // exact matches
+        [DataRow("CorrectRuleId", null, "hash", true)]    // hash should be ignored for file-level issues
         [DataRow("WrongRuleId", null, null, false)]     // wrong rule
-        [DataRow("RightRuleId", 1, "hash", false)]      // not a file issue
-        [DataRow("RightRuleId", 999, null, false)]      // not a file issue - should not match a file issue, even though the hash is the same
+        [DataRow("CorrectRuleId", 1, "hash", false)]      // not a file issue
+        [DataRow("CorrectRuleId", 999, null, false)]      // not a file issue - should not match a file issue, even though the hash is the same
         public void MatchExists_LocalFileIssue_SingleServerIssue(string serverRuleId, int? serverIssueLine, string serverHash, bool expectedResult)
         {
             // File issues have line number of 0 and an empty hash
-            var issueToMatch = CreateIssueToMatch("RightRuleId", null, null);
-            ConfigureServerIssues(issueToMatch, CreateServerIssue(serverRuleId, serverIssueLine, serverHash));
+            var issueToMatch = CreateIssueToMatch("CorrectRuleId", null, null);
+            ConfigureServerIssues(CreateServerIssue(serverRuleId, serverIssueLine, serverHash, expectedResult));
 
             // Act and assert
             testSubject.SuppressionExists(issueToMatch).Should().Be(expectedResult);
@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         {
             // Arrange
             var issueToMatch = CreateIssueToMatch("rule1", 1, "hash1");
-            ConfigureServerIssues(issueToMatch, Array.Empty<SonarQubeIssue>());
+            ConfigureServerIssues(Array.Empty<SonarQubeIssue>());
 
             // Act and assert
             testSubject.SuppressionExists(issueToMatch).Should().BeFalse();
@@ -111,10 +111,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // Arrange
             var issueToMatch = CreateIssueToMatch(localRuleId, localIssueLine, localHash);
 
-            ConfigureServerIssues(issueToMatch,
-                CreateServerIssue("aaa", 222, "aaa hash"),
-                CreateServerIssue("bbb", 333, "bbb hash"),
-                CreateServerIssue("ccc", 444, "ccc hash"));
+            ConfigureServerIssues(
+                CreateServerIssue("aaa", 222, "aaa hash", isSuppressed: true),
+                CreateServerIssue("bbb", 333, "bbb hash", isSuppressed: true),
+                CreateServerIssue("ccc", 444, "ccc hash", isSuppressed: true));
+
+            // Act and assert
+            testSubject.SuppressionExists(issueToMatch).Should().Be(expectedResult);
+        }
+
+        [DataTestMethod]
+        [DataRow("CorrectRuleId", null, null, true, true)]
+        [DataRow("CorrectRuleId", null, null, false, false)]
+        public void MatchExists_ResultDependsOnSuppressionState(string serverRuleId, int? serverIssueLine, string serverHash, bool isSuppressed, bool expectedResult)
+        {
+            // File issues have line number of 0 and an empty hash
+            var issueToMatch = CreateIssueToMatch("CorrectRuleId", null, null);
+            ConfigureServerIssues(CreateServerIssue(serverRuleId, serverIssueLine, serverHash, isSuppressed));
 
             // Act and assert
             testSubject.SuppressionExists(issueToMatch).Should().Be(expectedResult);
@@ -130,20 +143,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 FilePath = "well known file path"
             };
 
-        private SonarQubeIssue CreateServerIssue(string ruleId, int? startLine, string lineHash)
-            => new SonarQubeIssue(null, null, lineHash, null, null, ruleId, false, SonarQubeIssueSeverity.Info,
-                DateTimeOffset.MinValue, DateTimeOffset.MinValue,
-                startLine.HasValue
-                    ? new IssueTextRange(startLine.Value, 1, 1, 1)
-                    : null,
-                flows: null);
+        private SonarQubeIssue CreateServerIssue(string ruleId, int? startLine, string lineHash, bool isSuppressed)
+        {
+            var sonarQubeIssue = new SonarQubeIssue(null, null, lineHash, null, null, ruleId, false, SonarQubeIssueSeverity.Info,
+                 DateTimeOffset.MinValue, DateTimeOffset.MinValue,
+                 startLine.HasValue
+                     ? new IssueTextRange(startLine.Value, 1, 1, 1)
+                     : null,
+                 flows: null);
+
+            sonarQubeIssue.IsResolved = isSuppressed;
+
+            return sonarQubeIssue;
+        }
 
         private void ConfigureServerIssues(
-            IFilterableIssue issueToMatch,
             params SonarQubeIssue[] issuesToReturn)
         {
-            mockIssuesProvider
-                .Setup(x => x.GetSuppressedIssues(issueToMatch.ProjectGuid, issueToMatch.FilePath)).Returns(issuesToReturn);
+            mockServerIssuesStore
+                .Setup(x => x.Get()).Returns(issuesToReturn);
         }
 
         private class TestFilterableIssue : IFilterableIssue
