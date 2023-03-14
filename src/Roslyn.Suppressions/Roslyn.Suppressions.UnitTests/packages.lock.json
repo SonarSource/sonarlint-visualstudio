@@ -1257,6 +1257,14 @@
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )"
         }
       },
+      "SonarLint.VisualStudio.ConnectedMode": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
+          "SonarLint.VisualStudio.Core": "[1.0.0, )",
+          "SonarLint.VisualStudio.IssueVisualization": "[1.0.0, )"
+        }
+      },
       "SonarLint.VisualStudio.Core": {
         "type": "Project",
         "dependencies": {
@@ -1307,6 +1315,15 @@
           "System.IO.Abstractions.TestingHelpers": "[9.0.4, )"
         }
       },
+      "SonarLint.VisualStudio.IssueVisualization": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
+          "SonarLint.VisualStudio.Core": "[1.0.0, )",
+          "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
+          "SonarQube.Client": "[1.0.0, )"
+        }
+      },
       "SonarLint.VisualStudio.Progress": {
         "type": "Project"
       },
@@ -1322,6 +1339,7 @@
         "dependencies": {
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
           "Newtonsoft.Json": "[13.0.1, )",
+          "SonarLint.VisualStudio.ConnectedMode": "[1.0.0, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
           "SonarQube.Client": "[1.0.0, )",
