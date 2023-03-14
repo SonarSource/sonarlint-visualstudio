@@ -37,11 +37,13 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
                 RoslynIssueLine = line
             };
 
-    public static SonarQubeIssue CreateSonarQubeIssue(string ruleId = "any",
-            int? line = null,
-            string filePath = "filePath",
-            string hash = "hash") =>
-            new SonarQubeIssue(
+        public static SonarQubeIssue CreateSonarQubeIssue(string ruleId = "any",
+                int? line = null,
+                string filePath = "filePath",
+                string hash = "hash",
+                bool isSuppressed = true)
+        { 
+            var sonarQubeIssue = new SonarQubeIssue(
                 "issuedId",
                 filePath,
                 hash,
@@ -55,6 +57,11 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
                 line.HasValue ? new IssueTextRange(line.Value, line.Value, 1, 999) : null,
                 null
                 );
+
+            sonarQubeIssue.IsResolved = isSuppressed;
+
+            return sonarQubeIssue;
+        }
     }
 
 

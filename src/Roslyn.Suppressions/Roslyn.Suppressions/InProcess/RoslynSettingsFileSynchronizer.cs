@@ -118,6 +118,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
                     {
                         SonarProjectKey = sonarProjectKey,
                         Suppressions = allSuppressedIssues
+                                            .Where(x => x.IsResolved)
                                             .Select(x => IssueConverter.Convert(x))
                                             .Where(x => x.RoslynLanguage != RoslynLanguage.Unknown && !string.IsNullOrEmpty(x.RoslynRuleId))
                                             .ToArray(),
