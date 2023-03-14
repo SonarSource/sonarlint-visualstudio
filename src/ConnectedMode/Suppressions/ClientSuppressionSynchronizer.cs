@@ -26,6 +26,14 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
+    internal interface IClientSuppressionSynchronizer
+    {
+        /// <summary>
+        /// Synchronizes server side issues with client side issues.
+        /// </summary>
+        void SynchronizeSuppressedIssues();
+    }
+
     [Export(typeof(IClientSuppressionSynchronizer))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class ClientSuppressionSynchronizer : IClientSuppressionSynchronizer
