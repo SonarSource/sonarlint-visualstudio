@@ -54,9 +54,9 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             var serverIssues = serverIssuesStore.Get();
 
             // Try to find an issue with the same ID and either the same line number or some line hash
-            bool foundIssueIsSuppressed = serverIssues.Any(s => IsMatch(issue, s) && s.IsResolved);
+            bool isSuppressed = serverIssues.Any(s => s.IsResolved && IsMatch(issue, s));
 
-            return foundIssueIsSuppressed;
+            return isSuppressed;
         }
 
         private static bool IsMatch(IFilterableIssue issue, SonarQubeIssue serverIssue)

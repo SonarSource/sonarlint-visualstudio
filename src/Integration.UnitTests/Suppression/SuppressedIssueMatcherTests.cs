@@ -57,17 +57,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         }
 
         [DataTestMethod]
-        [DataRow("RightRuleId", 1, "RightHash", true)]    // exact matches
-        [DataRow("rightRULEID", 1, "RightHash", true)]    // rule-id is case-insensitive
-        [DataRow("RightRuleId", 1, "wrong hash", true)]   // matches on line
-        [DataRow("RightRuleId", 9999, "RightHash", true)] // matches on hash only
-        [DataRow("RightRuleId", 2, "righthash", false)]   // hash is case-sensitive
-        [DataRow("RightRuleId", 2, "wrong hash", false)]  // wrong line and hash
-        [DataRow("RightRuleId", null, null, false)]       // server file issue
-        [DataRow("wrong rule Id", 1, "RightHash", false)]
+        [DataRow("CorrectRuleId", 1, "CorrectHash", true)]    // exact matches
+        [DataRow("correctRULEID", 1, "CorrectHash", true)]    // rule-id is case-insensitive
+        [DataRow("CorrectRuleId", 1, "wrong hash", true)]   // matches on line
+        [DataRow("CorrectRuleId", 9999, "CorrectHash", true)] // matches on hash only
+        [DataRow("CorrectRuleId", 2, "correcthash", false)]   // hash is case-sensitive
+        [DataRow("CorrectRuleId", 2, "wrong hash", false)]  // wrong line and hash
+        [DataRow("CorrectRuleId", null, null, false)]       // server file issue
+        [DataRow("wrong rule Id", 1, "CorrectHash", false)]
         public void MatchExists_LocalNonFileIssue_SingleServerIssue(string serverRuleId, int? serverIssueLine, string serverHash, bool expectedResult)
         {
-            var issueToMatch = CreateIssueToMatch("RightRuleId", 1, "RightHash");
+            var issueToMatch = CreateIssueToMatch("CorrectRuleId", 1, "CorrectHash");
             ConfigureServerIssues(CreateServerIssue(serverRuleId, serverIssueLine, serverHash, isSuppressed: true));
 
             // Act and assert
@@ -75,15 +75,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         }
 
         [DataTestMethod]
-        [DataRow("RightRuleId", null, null, true)]      // exact matches
-        [DataRow("RightRuleId", null, "hash", true)]    // hash should be ignored for file-level issues
+        [DataRow("CorrectRuleId", null, null, true)]      // exact matches
+        [DataRow("CorrectRuleId", null, "hash", true)]    // hash should be ignored for file-level issues
         [DataRow("WrongRuleId", null, null, false)]     // wrong rule
-        [DataRow("RightRuleId", 1, "hash", false)]      // not a file issue
-        [DataRow("RightRuleId", 999, null, false)]      // not a file issue - should not match a file issue, even though the hash is the same
+        [DataRow("CorrectRuleId", 1, "hash", false)]      // not a file issue
+        [DataRow("CorrectRuleId", 999, null, false)]      // not a file issue - should not match a file issue, even though the hash is the same
         public void MatchExists_LocalFileIssue_SingleServerIssue(string serverRuleId, int? serverIssueLine, string serverHash, bool expectedResult)
         {
             // File issues have line number of 0 and an empty hash
-            var issueToMatch = CreateIssueToMatch("RightRuleId", null, null);
+            var issueToMatch = CreateIssueToMatch("CorrectRuleId", null, null);
             ConfigureServerIssues(CreateServerIssue(serverRuleId, serverIssueLine, serverHash, expectedResult));
 
             // Act and assert
@@ -121,12 +121,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         }
 
         [DataTestMethod]
-        [DataRow("RightRuleId", null, null, true, true)]
-        [DataRow("RightRuleId", null, null, false, false)]
+        [DataRow("CorrectRuleId", null, null, true, true)]
+        [DataRow("CorrectRuleId", null, null, false, false)]
         public void MatchExists_ResultDependsOnSuppressionState(string serverRuleId, int? serverIssueLine, string serverHash, bool isSuppressed, bool expectedResult)
         {
             // File issues have line number of 0 and an empty hash
-            var issueToMatch = CreateIssueToMatch("RightRuleId", null, null);
+            var issueToMatch = CreateIssueToMatch("CorrectRuleId", null, null);
             ConfigureServerIssues(CreateServerIssue(serverRuleId, serverIssueLine, serverHash, isSuppressed));
 
             // Act and assert
