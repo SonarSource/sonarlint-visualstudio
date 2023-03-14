@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Suppression
@@ -33,8 +34,8 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         private readonly ISuppressedIssueMatcher issueMatcher;
 
         [ImportingConstructor]
-        public IssuesFilter(ISonarQubeIssuesProvider sonarQubeIssuesProvider)
-            : this(new SuppressedIssueMatcher(sonarQubeIssuesProvider))
+        public IssuesFilter(IServerIssuesStore serverIssuesStore)
+            : this(new SuppressedIssueMatcher(serverIssuesStore))
         {
         }
 

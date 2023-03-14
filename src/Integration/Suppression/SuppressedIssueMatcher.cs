@@ -20,6 +20,7 @@
 
 using System;
 using System.Linq;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarQube.Client.Models;
 
@@ -27,11 +28,11 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 {
     public class SuppressedIssueMatcher : ISuppressedIssueMatcher
     {
-        private readonly ISonarQubeIssuesProvider issuesProvider;
+        private readonly IServerIssuesStore serverIssuesStore;
 
-        public SuppressedIssueMatcher(ISonarQubeIssuesProvider issuesProvider)
+        public SuppressedIssueMatcher(IServerIssuesStore serverIssuesStore)
         {
-            this.issuesProvider = issuesProvider ?? throw new ArgumentNullException(nameof(issuesProvider));
+            this.serverIssuesStore = serverIssuesStore ?? throw new ArgumentNullException(nameof(serverIssuesStore));
         }
 
         public bool SuppressionExists(IFilterableIssue issue)
@@ -40,7 +41,6 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             {
                 throw new ArgumentNullException(nameof(issue));
             }
-
 
             // File-level issues (i.e. line = null) match if:
             // 1. Same component, same file, same error code.
@@ -51,13 +51,12 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
             // File-level issues never match non-file-level issues.
 
-            // Retrieve all issues relating to this file (file level or precise location) or project (for module level issues)
-            var serverIssues = issuesProvider.GetSuppressedIssues(issue.ProjectGuid, issue.FilePath);
+            var serverIssues = serverIssuesStore.Get();
 
             // Try to find an issue with the same ID and either the same line number or some line hash
-            bool matchFound = serverIssues.Any(s => IsMatch(issue, s));
+            bool isSuppressed = serverIssues.Any(s => s.IsResolved && IsMatch(issue, s));
 
-            return matchFound;
+            return isSuppressed;
         }
 
         private static bool IsMatch(IFilterableIssue issue, SonarQubeIssue serverIssue)

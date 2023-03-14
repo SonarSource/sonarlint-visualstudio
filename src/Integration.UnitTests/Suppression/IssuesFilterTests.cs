@@ -24,8 +24,10 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NuGet;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Suppression;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 {
@@ -51,6 +53,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 .Returns((IFilterableIssue i) => matchedIssues.Contains(i));
 
             testSubject = new IssuesFilter(issueMatcher.Object);
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<IssuesFilter, IIssuesFilter>(
+                MefTestHelpers.CreateExport<IServerIssuesStore>());
         }
 
         [TestMethod]
