@@ -27,7 +27,6 @@ using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ETW;
-using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
@@ -49,19 +48,16 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
     {
         private readonly IThreadHandling threadHandling;
         private readonly IServerIssuesStore serverIssuesStore;
-        private readonly ISonarQubeIssuesProvider suppressedIssuesProvider;
         private readonly IRoslynSettingsFileStorage roslynSettingsFileStorage;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public RoslynSettingsFileSynchronizer(IServerIssuesStore serverIssuesStore,
-            ISonarQubeIssuesProvider suppressedIssuesProvider,
             IRoslynSettingsFileStorage roslynSettingsFileStorage,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ILogger logger)
             : this(serverIssuesStore,
-                suppressedIssuesProvider,
                 roslynSettingsFileStorage,
                 activeSolutionBoundTracker,
                 logger,
@@ -70,14 +66,12 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
         }
 
         internal RoslynSettingsFileSynchronizer(IServerIssuesStore serverIssuesStore,
-            ISonarQubeIssuesProvider suppressedIssuesProvider,
             IRoslynSettingsFileStorage roslynSettingsFileStorage,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ILogger logger,
             IThreadHandling threadHandling)
         {
             this.serverIssuesStore = serverIssuesStore;
-            this.suppressedIssuesProvider = suppressedIssuesProvider;
             this.roslynSettingsFileStorage = roslynSettingsFileStorage;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.logger = logger;
@@ -118,7 +112,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
 
                 if (!string.IsNullOrEmpty(sonarProjectKey))
                 {
-                    var allSuppressedIssues = await suppressedIssuesProvider.GetAllSuppressedIssuesAsync();
+                    var allSuppressedIssues = serverIssuesStore.Get();
 
                     var settings = new RoslynSettings
                     {
