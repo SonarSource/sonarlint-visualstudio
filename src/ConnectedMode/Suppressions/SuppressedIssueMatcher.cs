@@ -25,7 +25,7 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
-    public interface ISuppressedIssueMatcher
+    internal interface ISuppressedIssueMatcher
     {
         bool SuppressionExists(IFilterableIssue issue);
     }
