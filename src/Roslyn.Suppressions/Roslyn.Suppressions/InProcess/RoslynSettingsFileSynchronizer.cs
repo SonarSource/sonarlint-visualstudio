@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
 
                 if (!string.IsNullOrEmpty(sonarProjectKey))
                 {
-                    var allSuppressedIssues = serverIssuesStore.Get();
+                    var allSuppressedIssues = serverIssuesStore.Get().Where(x => x.IsResolved).ToArray();
 
                     var settings = new RoslynSettings
                     {
