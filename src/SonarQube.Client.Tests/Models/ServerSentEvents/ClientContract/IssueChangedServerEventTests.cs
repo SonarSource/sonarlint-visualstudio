@@ -50,7 +50,7 @@ namespace SonarQube.Client.Tests.Models.ServerSentEvents.ClientContract
         [TestMethod]
         public void ToString_MultipleItemsInList_ContainsExpectedStrings()
         {
-            var testSubject = new IssueChangedServerEvent("projectKey B", true,
+            var testSubject = new IssueChangedServerEvent("projectKey B", false,
                 new BranchAndIssueKey[]
                 {
                     new BranchAndIssueKey("issuekey1", "branch1"),
