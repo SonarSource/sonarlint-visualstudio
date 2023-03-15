@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
                     }
 
                     // TODO: Implement handling of event.
-                    logger.LogVerbose("[Suppressions] Issue changed event received: {0}", issueServerEvent);
+                    logger.LogVerbose(Resources.Suppression_IssueChangedEventReceived, issueServerEvent);
                 }
                 catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {
