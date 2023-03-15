@@ -29,7 +29,6 @@ namespace SonarLint.VisualStudio.Core.Suppression
         string RuleId { get; }
         string FilePath { get; }
         string LineHash { get; }
-        string ProjectGuid { get; }
         int? StartLine { get; }
     }
 }

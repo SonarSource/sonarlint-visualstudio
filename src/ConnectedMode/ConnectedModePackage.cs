@@ -64,6 +64,12 @@ namespace SonarLint.VisualStudio.ConnectedMode
             boundSolutionUpdateHandler = componentModel.GetService<BoundSolutionUpdateHandler>();
             timedUpdateHandler = componentModel.GetService<TimedUpdateHandler>();
 
+            // Trigger an initial update of suppressions (we might have missed the solution binding
+            // event from the ActiveSolutionBoundTracker)
+            // See https://github.com/SonarSource/sonarlint-visualstudio/issues/3886
+            var updater = componentModel.GetService<ISuppressionIssueStoreUpdater>();
+            updater.UpdateAllServerSuppressionsAsync().Forget();
+
             logger.WriteLine(Resources.Package_Initialized);
         }
 
