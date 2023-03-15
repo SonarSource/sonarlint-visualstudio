@@ -39,11 +39,13 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
     internal class SimpleRuleHelpXamlBuilder : ISimpleRuleHelpXamlBuilder
     {
-        private readonly IRuleHelpXamlTranslator translator;
+        private readonly IXamlGeneratorHelperFactory xamlGeneratorHelperFactory;
+        private readonly IRuleHelpXamlTranslator ruleHelpXamlTranslator;
 
-        public SimpleRuleHelpXamlBuilder()
+        public SimpleRuleHelpXamlBuilder(IRuleHelpXamlTranslator ruleHelpXamlTranslator, IXamlGeneratorHelperFactory xamlGeneratorHelperFactory)
         {
-            translator = new RuleHelpXamlTranslator();
+            this.xamlGeneratorHelperFactory = xamlGeneratorHelperFactory;
+            this.ruleHelpXamlTranslator = ruleHelpXamlTranslator;
         }
 
         public FlowDocument Create(IRuleInfo ruleInfo)
@@ -58,10 +60,10 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         {
             var sb = new StringBuilder();
             var writer = RuleHelpXamlTranslator.CreateXmlWriter(sb);
-            var helper = new XamlGeneratorHelper(writer);
+            var helper = xamlGeneratorHelperFactory.Create(writer);
 
             helper.WriteDocumentHeader(ruleInfo);
-            writer.WriteRaw(translator.TranslateHtmlToXaml(ruleInfo.Description));
+            writer.WriteRaw(ruleHelpXamlTranslator.TranslateHtmlToXaml(ruleInfo.Description));
             helper.EndDocument();
 
             return sb.ToString();

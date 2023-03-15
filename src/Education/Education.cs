@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Education
 
         [ImportingConstructor]
         public Education(IToolWindowService toolWindowService, IRuleMetadataProvider ruleMetadataProvider, IShowRuleInBrowser showRuleInBrowser, ILogger logger)
-            : this(toolWindowService, ruleMetadataProvider, showRuleInBrowser, logger, new SimpleRuleHelpXamlBuilder(), ThreadHandling.Instance) { }
+            : this(toolWindowService, ruleMetadataProvider, showRuleInBrowser, logger, new SimpleRuleHelpXamlBuilder(new RuleHelpXamlTranslator(), new XamlGeneratorHelperFactory()), ThreadHandling.Instance) { }
 
         internal /* for testing */ Education(IToolWindowService toolWindowService,
             IRuleMetadataProvider ruleMetadataProvider,
