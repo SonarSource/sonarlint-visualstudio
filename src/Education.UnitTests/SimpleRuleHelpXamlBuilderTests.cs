@@ -22,8 +22,11 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Windows.Documents;
+using System.Xml;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Education.XamlGenerator;
@@ -32,9 +35,53 @@ using SonarLint.VisualStudio.Rules;
 namespace SonarLint.VisualStudio.Education.UnitTests
 {
     [TestClass]
-    public class RuleHelpXamlBuilderTests
+    public class SimpleRuleHelpXamlBuilderTests
     {
         private static readonly Assembly ResourceAssembly = typeof(RuleMetadataProvider).Assembly;
+
+        [TestMethod]
+        public void Create_FormsCorrectStructure()
+        {
+            var callSequence = new MockSequence();
+            var description = "<p>Hi</p>";
+            var ruleHelpXamlTranslatorMock = new Mock<IRuleHelpXamlTranslator>(MockBehavior.Strict);
+            var xamlGeneratorHelperFactoryMock = new Mock<IXamlGeneratorHelperFactory>(MockBehavior.Strict);
+            var xamlGeneratorHelperMock = new Mock<IXamlGeneratorHelper>(MockBehavior.Strict);
+            var ruleInfoMock = new Mock<IRuleInfo>(MockBehavior.Strict);
+            XmlWriter writer = null;
+            
+            xamlGeneratorHelperFactoryMock
+                .InSequence(callSequence)
+                .Setup(x => x.Create(It.IsAny<XmlWriter>()))
+                .Callback<XmlWriter>(w => writer = w)
+                .Returns(xamlGeneratorHelperMock.Object);
+            xamlGeneratorHelperMock
+                .InSequence(callSequence)
+                .Setup(x => x.WriteDocumentHeader(ruleInfoMock.Object))
+                .Callback(() => { writer.WriteStartElement("FlowDocument", "http://schemas.microsoft.com/winfx/2006/xaml/presentation"); });
+            ruleInfoMock
+                .InSequence(callSequence)
+                .SetupGet(x => x.Description)
+                .Returns(description);
+            ruleHelpXamlTranslatorMock
+                .InSequence(callSequence)
+                .Setup(x => x.TranslateHtmlToXaml(description))
+                .Returns("<Paragraph>Hi</Paragraph>");
+            xamlGeneratorHelperMock
+                .InSequence(callSequence)
+                .Setup(x => x.EndDocument())
+                .Callback(() =>
+                {
+                    writer.WriteFullEndElement();
+                    writer.Close();
+                });
+
+            var simpleRuleHelpXamlBuilder = new SimpleRuleHelpXamlBuilder(ruleHelpXamlTranslatorMock.Object, xamlGeneratorHelperFactoryMock.Object);
+
+            var flowDocument = simpleRuleHelpXamlBuilder.Create(ruleInfoMock.Object);
+
+            flowDocument.Blocks.Single().Should().BeOfType<Paragraph>().Which.Inlines.Single().Should().BeOfType<Run>().Which.Text.Should().Be("Hi");
+        }
 
         [TestMethod]
         public void Create_CheckAllEmbedded()
@@ -57,7 +104,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
         private static bool ProcessResource(string fullResourceName)
         {
-            var testSubject = new SimpleRuleHelpXamlBuilder();
+            var testSubject = new SimpleRuleHelpXamlBuilder(new RuleHelpXamlTranslator(), new XamlGeneratorHelperFactory());
 
             try
             {
