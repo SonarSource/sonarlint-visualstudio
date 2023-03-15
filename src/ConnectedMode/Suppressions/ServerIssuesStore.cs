@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using SonarLint.VisualStudio.Integration;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
@@ -31,9 +32,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ServerIssuesStore : IServerIssuesStore, IServerIssuesStoreWriter
     {
+        private readonly ILogger logger;
         private List<SonarQubeIssue> serverIssues = new List<SonarQubeIssue>();
 
         public event EventHandler ServerIssuesChanged;
+
+        [ImportingConstructor]
+        public ServerIssuesStore(ILogger logger)
+        {
+            this.logger = logger;
+        }
 
         #region IServerIssuesStore implementation
 
@@ -57,7 +65,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
             serverIssues.AddRange(issues);
 
-            ServerIssuesChanged?.Invoke(this, EventArgs.Empty);
+            RaiseEventIfRequired();
         }
 
         public void UpdateIssue(string issueKey, bool isResolved)
@@ -66,12 +74,30 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
             if (issue == null)
             {
+                logger.LogVerbose(Resources.Store_UpdateIssue_NoMatch, issueKey);
                 return;
             }
 
-            issue.IsResolved = isResolved;
+            if (issue.IsResolved == isResolved)
+            {
+                logger.LogVerbose(Resources.Store_UpdateIssue_UpdateNotRequired, issueKey);
+            }
+            else
+            {
+                logger.LogVerbose(Resources.Store_UpdateIssue_UpdateRequired, issueKey, isResolved);
+                issue.IsResolved = isResolved;
 
-            ServerIssuesChanged?.Invoke(this, EventArgs.Empty);
+                RaiseEventIfRequired();
+            }
+        }
+
+        private void RaiseEventIfRequired()
+        {
+            if (ServerIssuesChanged != null)
+            {
+                logger.WriteLine(Resources.Store_UpdateIssue_RaisingEvent);
+                ServerIssuesChanged?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         #endregion IServerIssueStoreWriter implementation

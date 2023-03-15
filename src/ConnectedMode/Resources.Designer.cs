@@ -277,6 +277,42 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [ServerIssueStore] Updating issue: {0}. No matching issue in store. Event will be ignored..
+        /// </summary>
+        internal static string Store_UpdateIssue_NoMatch {
+            get {
+                return ResourceManager.GetString("Store_UpdateIssue_NoMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ServerIssueStore] Raising change event....
+        /// </summary>
+        internal static string Store_UpdateIssue_RaisingEvent {
+            get {
+                return ResourceManager.GetString("Store_UpdateIssue_RaisingEvent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ServerIssueStore] Updating issue: {0}. Match found, update not required.
+        /// </summary>
+        internal static string Store_UpdateIssue_UpdateNotRequired {
+            get {
+                return ResourceManager.GetString("Store_UpdateIssue_UpdateNotRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ServerIssueStore] Updating issue: {0}. Match found, update required. New IsResolved value: {1}.
+        /// </summary>
+        internal static string Store_UpdateIssue_UpdateRequired {
+            get {
+                return ResourceManager.GetString("Store_UpdateIssue_UpdateRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Suppressions] Finished fetching all suppressions.
         /// </summary>
         internal static string Suppression_Fetch_AllIssues_Finished {
@@ -291,6 +327,15 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         internal static string Suppression_FetchError_Verbose {
             get {
                 return ResourceManager.GetString("Suppression_FetchError_Verbose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] IssueChangedEvent received: {0}.
+        /// </summary>
+        internal static string Suppression_IssueChangedEventReceived {
+            get {
+                return ResourceManager.GetString("Suppression_IssueChangedEventReceived", resourceCulture);
             }
         }
         
