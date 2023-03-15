@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         /// <summary>
         /// Returns the list of supplied objects that match the filter
         /// </summary>
-        /// <remarks>The returned objects are a subset of the input objects i.e. no new objects will be returned2</remarks>
+        /// <remarks>The returned objects are a subset of the input objects i.e. no new objects will be returned</remarks>
         IEnumerable<IFilterableIssue> GetMatches(IEnumerable<IFilterableIssue> issues);
     }
 

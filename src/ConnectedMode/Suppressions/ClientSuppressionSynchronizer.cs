@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             {
                 var issueViz = issue as IAnalysisIssueVisualization;
 
-                // If the object was matched then it is suppressed
+                // If the object was matched then it is suppressed on the server
                 var newIsSuppressedValue = matches.Contains(issueViz);
 
                 if (issueViz.IsSuppressed != newIsSuppressedValue)
