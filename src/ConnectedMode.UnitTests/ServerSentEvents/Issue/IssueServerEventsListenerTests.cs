@@ -21,6 +21,7 @@
 using System;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -36,8 +37,54 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
         {
             MefTestHelpers.CheckTypeCanBeImported<IssueServerEventsListener, IIssueServerEventsListener>(
                 MefTestHelpers.CreateExport<IIssueServerEventSource>(),
+                MefTestHelpers.CreateExport<IServerIssuesStoreWriter>(),
                 MefTestHelpers.CreateExport<IThreadHandling>(),
                 MefTestHelpers.CreateExport<ILogger>());
+        }
+
+        [TestMethod]
+        public async Task OnEvent_SingleEvent_MultipleTuples_StoreIsUpdated()
+        {
+            var event1 = CreateServerEvent(isResolved: true,
+                new BranchAndIssueKey("issueKey1", "branch1"),
+                new BranchAndIssueKey("issueKey2", "branch2"));
+            var issueServerEventSource = SetupIssueServerEventSource(event1);
+
+            var storeWriter = new Mock<IServerIssuesStoreWriter>();
+
+            var testSubject = CreateTestSubject(issueServerEventSource.Object, storeWriter.Object);
+
+            await testSubject.ListenAsync();
+
+            issueServerEventSource.Verify(x => x.GetNextEventOrNullAsync(), Times.Exactly(2));
+            issueServerEventSource.VerifyNoOtherCalls();
+
+            storeWriter.Verify(x => x.UpdateIssue("issueKey1", true), Times.Once);
+            storeWriter.Verify(x => x.UpdateIssue("issueKey2", true), Times.Once);
+            storeWriter.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public async Task OnEvent_MultipleEvents_StoreIsUpdated()
+        {
+            var event1 = CreateServerEvent(isResolved: true,
+                new BranchAndIssueKey("issueKey1", "branch1"));
+            var event2 = CreateServerEvent(isResolved: false,
+                new BranchAndIssueKey("issueKey2", "branch2"));
+            var issueServerEventSource = SetupIssueServerEventSource(event1, event2);
+
+            var storeWriter = new Mock<IServerIssuesStoreWriter>();
+
+            var testSubject = CreateTestSubject(issueServerEventSource.Object, storeWriter.Object);
+
+            await testSubject.ListenAsync();
+
+            issueServerEventSource.Verify(x => x.GetNextEventOrNullAsync(), Times.Exactly(3));
+            issueServerEventSource.VerifyNoOtherCalls();
+
+            storeWriter.Verify(x => x.UpdateIssue("issueKey1", true), Times.Once);
+            storeWriter.Verify(x => x.UpdateIssue("issueKey2", false), Times.Once);
+            storeWriter.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -90,14 +137,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
 
         private static IssueServerEventsListener CreateTestSubject(
             IIssueServerEventSource issueServerEventSource = null,
+            IServerIssuesStoreWriter serverIssuesStoreWriter = null,
             IThreadHandling threadHandling = null,
             ILogger logger = null)
         {
             issueServerEventSource ??= Mock.Of<IIssueServerEventSource>();
+            serverIssuesStoreWriter ??= Mock.Of<IServerIssuesStoreWriter>();
             threadHandling ??= new NoOpThreadHandler();
             logger ??= Mock.Of<ILogger>();
 
-            return new IssueServerEventsListener(issueServerEventSource, threadHandling, logger);
+            return new IssueServerEventsListener(issueServerEventSource, serverIssuesStoreWriter, threadHandling, logger);
+        }
+
+        private static IIssueChangedServerEvent CreateServerEvent(bool isResolved, params BranchAndIssueKey[] branchAndIssueKeys)
+        {
+            var serverEvent = new Mock<IIssueChangedServerEvent>();
+            serverEvent.Setup(x => x.IsResolved).Returns(isResolved);
+            serverEvent.Setup(x => x.BranchAndIssueKeys).Returns(branchAndIssueKeys);
+            return serverEvent.Object;
         }
     }
 }

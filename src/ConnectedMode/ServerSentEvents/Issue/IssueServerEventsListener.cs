@@ -22,6 +22,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 
@@ -40,16 +41,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
     internal sealed class IssueServerEventsListener : IIssueServerEventsListener
     {
         private readonly IIssueServerEventSource issueServerEventSource;
+        private readonly IServerIssuesStoreWriter serverIssuesStoreWriter;
         private readonly IThreadHandling threadHandling;
         private readonly ILogger logger;
         private readonly CancellationTokenSource cancellationTokenSource;
 
         [ImportingConstructor]
         public IssueServerEventsListener(IIssueServerEventSource issueServerEventSource,
+            IServerIssuesStoreWriter serverIssuesStoreWriter,
             IThreadHandling threadHandling,
             ILogger logger)
         {
             this.issueServerEventSource = issueServerEventSource;
+            this.serverIssuesStoreWriter = serverIssuesStoreWriter;
             this.threadHandling = threadHandling;
             this.logger = logger;
 
@@ -72,8 +76,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
                         return;
                     }
 
-                    // TODO: Implement handling of event.
                     logger.LogVerbose(Resources.Suppression_IssueChangedEventReceived, issueServerEvent);
+                    foreach(var item in issueServerEvent.BranchAndIssueKeys)
+                    {
+                        // TODO - check branch handling. Are issueKeys unique for each branch?
+                        serverIssuesStoreWriter.UpdateIssue(item.IssueKey, issueServerEvent.IsResolved);
+                    }
                 }
                 catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {
