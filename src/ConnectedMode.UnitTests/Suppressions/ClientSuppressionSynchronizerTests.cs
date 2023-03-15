@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Suppression;
@@ -101,6 +102,82 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             issue3.IsSuppressed.Should().BeFalse();
         }
 
+        [TestMethod]
+        [DataRow(true, true)]
+        [DataRow(false, false)]
+        [DataRow(true, false)]
+        [DataRow(false, true)]
+        public void Synchronize_EventRaisedIfSuppressionValueChanged(bool isSuppressedLocally, bool isSuppressedOnServer)
+        {
+            var localIssue = CreateIssue(isSuppressedLocally: isSuppressedLocally);
+            var localIssues = new[] { localIssue };
+            var clientIssueStore = CreateClientIssueStore(localIssues);
+
+            // Issues in the matched list are treated as being suppressed
+            var matches = new List<IAnalysisIssueVisualization>();
+            if (isSuppressedOnServer)
+            {
+                matches.Add(localIssue);
+            }
+            var issueFilter = CreateIssuesFilter(localIssues, matches);
+
+            var testSubject = new ClientSuppressionSynchronizer(clientIssueStore, issueFilter);
+
+            var eventMock = new Mock<EventHandler<LocalSuppressionsChangedEventArgs>>();
+            testSubject.LocalSuppressionsChanged += eventMock.Object;
+
+            testSubject.SynchronizeSuppressedIssues();
+
+            // We only expect an event if the local and server values don't match
+            var expectedEventCount = (isSuppressedLocally == isSuppressedOnServer) ? 0 : 1;
+            eventMock.Verify(x => x(testSubject, It.IsAny<LocalSuppressionsChangedEventArgs>()), Times.Exactly(expectedEventCount));
+        }
+
+        [TestMethod]
+        public void Synchronize_EventRaised_EventArgsContainsExpectedFiles()
+        {
+            var suppressedLocally_NotSuppressedOnServer = CreateIssue(isSuppressedLocally: true, filePath: "path 1");
+            var suppressedLocally_SuppressedOnServer = CreateIssue(isSuppressedLocally: true, filePath: "path 2");
+            var notSuppressedLocally_NotSuppressedOnServer = CreateIssue(isSuppressedLocally: false, filePath: "path 3");
+            var notSuppressedLocally_SuppressedOnServer = CreateIssue(isSuppressedLocally: false, filePath: "path 4");
+
+            var localIssues = new[]
+            {
+                suppressedLocally_NotSuppressedOnServer,
+                suppressedLocally_SuppressedOnServer,
+                notSuppressedLocally_NotSuppressedOnServer,
+                notSuppressedLocally_SuppressedOnServer
+            };
+            var clientIssueStore = CreateClientIssueStore(localIssues);
+
+            // Issues in the matched list are treated as being suppressed
+            // => anything that should be treated as suppressed on the server should
+            //    be in the list
+            var matches = new List<IAnalysisIssueVisualization>
+            {
+                suppressedLocally_SuppressedOnServer,
+                notSuppressedLocally_SuppressedOnServer
+            };
+            var issueFilter = CreateIssuesFilter(localIssues, matches);
+
+            var testSubject = new ClientSuppressionSynchronizer(clientIssueStore, issueFilter);
+
+            var eventMock = new Mock<EventHandler<LocalSuppressionsChangedEventArgs>>();
+            testSubject.LocalSuppressionsChanged += eventMock.Object;
+
+            testSubject.SynchronizeSuppressedIssues();
+
+            eventMock.Verify(x => x(testSubject, It.IsAny<LocalSuppressionsChangedEventArgs>()), Times.Once);
+
+            eventMock.Invocations[0].Arguments[0].Should().BeSameAs(testSubject);
+            var actualEventArgs = eventMock.Invocations[0].Arguments[1] as LocalSuppressionsChangedEventArgs;
+
+            actualEventArgs.Should().NotBeNull();
+
+            // We expect to see the paths where the local and server values don't match
+            actualEventArgs.ChangedFiles.Should().BeEquivalentTo("path 1", "path 4");
+        }
+
         private static IClientIssueStore CreateClientIssueStore(IAnalysisIssueVisualization[] localIssues)
         {
             var clientIssueStore = new Mock<IClientIssueStore>();
@@ -110,18 +187,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             return clientIssueStore.Object;
         }
 
-        private static IIssuesFilter CreateIssuesFilter(IEnumerable<IAnalysisIssueVisualization> localIssues, IEnumerable<IFilterableIssue> matches = null)
+        private static IIssuesFilter CreateIssuesFilter(IEnumerable<IAnalysisIssueVisualization> expectedLocalIssues, IEnumerable<IFilterableIssue> matches = null)
         {
             var issueFilter = new Mock<IIssuesFilter>();
-            issueFilter.Setup(x => x.GetMatches(localIssues)).Returns(matches);
+            issueFilter.Setup(x => x.GetMatches(expectedLocalIssues)).Returns(matches);
 
             return issueFilter.Object;
         }
 
-        private static IAnalysisIssueVisualization CreateIssue(bool isSuppressedLocally)
+        private static IAnalysisIssueVisualization CreateIssue(bool isSuppressedLocally, string filePath = "any")
         {
             var issue = new Mock<IAnalysisIssueVisualization>();
             issue.SetupProperty(x => x.IsSuppressed);
+            issue.Setup(x => x.CurrentFilePath).Returns(filePath);
 
             issue.Object.IsSuppressed = isSuppressedLocally;
 

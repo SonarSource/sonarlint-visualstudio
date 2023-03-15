@@ -28,6 +28,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
     public interface IIssuesFilter
     {
+        /// <summary>
+        /// Returns the list of supplied objects that match the filter
+        /// </summary>
+        /// <remarks>The returned objects are a subset of the input objects i.e. no new objects will be returned</remarks>
         IEnumerable<IFilterableIssue> GetMatches(IEnumerable<IFilterableIssue> issues);
     }
 

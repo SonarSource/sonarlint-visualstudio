@@ -23,23 +23,19 @@ using System.Linq;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.IssueVisualization;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using System.Collections.Generic;
+using System;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
-    internal interface IClientSuppressionSynchronizer
-    {
-        /// <summary>
-        /// Synchronizes server side issues with client side issues.
-        /// </summary>
-        void SynchronizeSuppressedIssues();
-    }
-
     [Export(typeof(IClientSuppressionSynchronizer))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class ClientSuppressionSynchronizer : IClientSuppressionSynchronizer
+    internal class ClientSuppressionSynchronizer : IClientSuppressionSynchronizer
     {
         private readonly IClientIssueStore clientIssueStore;
         private readonly IIssuesFilter issueFilter;
+        
+        public event EventHandler<LocalSuppressionsChangedEventArgs> LocalSuppressionsChanged;
 
         [ImportingConstructor]
         public ClientSuppressionSynchronizer(IClientIssueStore clientSideIssueStore, IIssuesFilter issueFilter)
@@ -50,6 +46,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
         public void SynchronizeSuppressedIssues()
         {
+            var changedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
             var filterableIssues = clientIssueStore.Get().OfType<IFilterableIssue>().ToArray();
 
             var matches = issueFilter.GetMatches(filterableIssues);
@@ -59,7 +57,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             foreach (var issue in filterableIssues)
             {
                 var issueViz = issue as IAnalysisIssueVisualization;
-                issueViz.IsSuppressed = matches.Contains(issue);
+
+                // If the object was matched then it is suppressed on the server
+                var newIsSuppressedValue = matches.Contains(issueViz);
+
+                if (issueViz.IsSuppressed != newIsSuppressedValue)
+                {
+                    issueViz.IsSuppressed = newIsSuppressedValue;
+                    changedFiles.Add(issueViz.CurrentFilePath);
+                }
+            }
+
+            if (LocalSuppressionsChanged != null && changedFiles.Count > 0)
+            {
+                var eventArgs = new LocalSuppressionsChangedEventArgs(changedFiles);
+                LocalSuppressionsChanged?.Invoke(this, eventArgs);
             }
         }
     }
