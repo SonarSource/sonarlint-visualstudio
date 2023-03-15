@@ -113,8 +113,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
 
         string IFilterableIssue.LineHash => Issue.PrimaryLocation.TextRange.LineHash;
 
-        string IFilterableIssue.ProjectGuid => null; // not used for non-Roslyn issues
-
         int? IFilterableIssue.StartLine => Issue.PrimaryLocation.TextRange.StartLine;
     }
 

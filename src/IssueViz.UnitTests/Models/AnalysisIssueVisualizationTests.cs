@@ -227,7 +227,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
             filterable.FilePath.Should().Be(issueMock.Object.PrimaryLocation.FilePath);
             filterable.StartLine.Should().Be(issueMock.Object.PrimaryLocation.TextRange.StartLine);
             filterable.LineHash.Should().Be(issueMock.Object.PrimaryLocation.TextRange.LineHash);
-            filterable.ProjectGuid.Should().BeNull();
         }
 
         private SnapshotSpan CreateSpan()

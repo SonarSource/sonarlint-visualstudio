@@ -135,7 +135,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
                 RuleId = ruleId,
                 StartLine = startLine,
                 LineHash = lineHash,
-                ProjectGuid = "well known project guid",
                 FilePath = "well known file path"
             };
 
@@ -166,7 +165,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             public string LineHash { get; set; }
             public int? StartLine { get; set; }
             public string FilePath { get; set; }
-            public string ProjectGuid { get; set; }
 
             // Not expecting the other property to be used
             public string WholeLineText => throw new NotImplementedException();
