@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Education
     {
         private readonly IToolWindowService toolWindowService;
         private readonly IRuleMetadataProvider ruleMetadataProvider;
-        private readonly ISimpleRuleHelpXamlBuilder ruleHelpXamlBuilder;
+        private readonly IRuleHelpXamlBuilder ruleHelpXamlBuilder;
         private readonly IShowRuleInBrowser showRuleInBrowser;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Education
             IRuleMetadataProvider ruleMetadataProvider,
             IShowRuleInBrowser showRuleInBrowser,
             ILogger logger,
-            ISimpleRuleHelpXamlBuilder ruleHelpXamlBuilder,
+            IRuleHelpXamlBuilder ruleHelpXamlBuilder,
             IThreadHandling threadHandling)
         {
             this.toolWindowService = toolWindowService;
