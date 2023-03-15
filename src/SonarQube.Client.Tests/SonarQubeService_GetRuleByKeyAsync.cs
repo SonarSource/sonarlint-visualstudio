@@ -35,7 +35,7 @@ namespace SonarQube.Client.Tests
         {
             await ConnectToSonarQube();
 
-            SetupRequest("api/rules/search?rule_key=csharpsquid%3AS2342&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples&p=1&ps=500", @"
+            SetupRequest("api/rules/search?rule_key=csharpsquid%3AS2342&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples%2Ctags%2Cname&p=1&ps=500", @"
 {
   ""total"": 1,
   ""p"": 1,
@@ -45,6 +45,8 @@ namespace SonarQube.Client.Tests
       ""key"": ""csharpsquid:S2342"",
       ""repo"": ""csharpsquid"",
       ""htmlDesc"": ""Html Description"",
+      ""name"": ""RuleName"",
+      ""tags"": [""tag1"",""tag2""],
       ""params"": [
         {
           ""key"": ""format"",
@@ -140,6 +142,8 @@ namespace SonarQube.Client.Tests
             result.Key.Should().Be("S2342");
             result.RepositoryKey.Should().Be("csharpsquid");
             result.Description.Should().Be("Html Description");
+            result.Name.Should().Be("RuleName");
+            result.Tags.Should().BeEquivalentTo(new[] { "tag1", "tag2" });
 
             result.DescriptionSections.Count.Should().Be(2);
             result.DescriptionSections[0].Key.Should().Be("key1");
@@ -158,7 +162,7 @@ namespace SonarQube.Client.Tests
         {
             await ConnectToSonarQube();
 
-            SetupRequest("api/rules/search?rule_key=csharpsquid%3AS2342XX&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples&p=1&ps=500", @"{
+            SetupRequest("api/rules/search?rule_key=csharpsquid%3AS2342XX&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples%2Ctags%2Cname&p=1&ps=500", @"{
     ""total"": 0,
     ""p"": 1,
     ""ps"": 100,
