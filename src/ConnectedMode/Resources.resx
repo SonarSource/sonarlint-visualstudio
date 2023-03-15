@@ -225,4 +225,7 @@
   <data name="Suppression_Fetch_AllIssues_Finished" xml:space="preserve">
     <value>[Suppressions] Finished fetching all suppressions</value>
   </data>
+  <data name="Suppression_IssueChangedEventReceived" xml:space="preserve">
+    <value>[Suppressions] IssueChangedEvent received: {0}</value>
+  </data>
 </root>
