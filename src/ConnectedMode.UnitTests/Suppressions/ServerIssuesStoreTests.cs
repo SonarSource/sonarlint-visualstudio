@@ -20,8 +20,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition.Primitives;
 using System.Linq;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 
@@ -33,8 +35,32 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<ServerIssuesStore, IServerIssuesStore>();
-            MefTestHelpers.CheckTypeCanBeImported<ServerIssuesStore, IServerIssuesStoreWriter>();
+            MefTestHelpers.CheckTypeCanBeImported<ServerIssuesStore, IServerIssuesStore>(
+                MefTestHelpers.CreateExport<ILogger>());
+
+            MefTestHelpers.CheckTypeCanBeImported<ServerIssuesStore, IServerIssuesStoreWriter>(
+                MefTestHelpers.CreateExport<ILogger>());
+        }
+
+        [TestMethod]
+        public void MefCtor_Check_SameInstanceExported()
+        {
+            // Importing via either exported interface should return the same store instance
+
+            var storeImporter = new SingleObjectImporter<IServerIssuesStore>();
+            var storeWriterImporter = new SingleObjectImporter<IServerIssuesStoreWriter>();
+            var importers = new object[] { storeImporter, storeWriterImporter };
+
+            var loggerExport = MefTestHelpers.CreateExport<ILogger>();
+
+            var typesToExport = new Type[] { typeof(ServerIssuesStore) };
+
+            MefTestHelpers.Compose(importers, typesToExport, loggerExport);
+
+            storeImporter.AssertImportIsNotNull();
+            storeWriterImporter.AssertImportIsNotNull();
+
+            storeImporter.Import.Should().BeSameAs(storeWriterImporter.Import);
         }
 
         [TestMethod]
@@ -45,7 +71,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var issue1 = CreateIssue("1", false);
             var issue2 = CreateIssue("2", false);
 
-            var testSubject = new ServerIssuesStore();
+            var testSubject = CreateTestSubject();
 
             var result = testSubject.Get();
             result.Count().Should().Be(0);
@@ -64,7 +90,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var issue1 = CreateIssue("1", false);
             var issue2 = CreateIssue("2", false);
 
-            var testSubject = new ServerIssuesStore();
+            var testSubject = CreateTestSubject();
 
             var result = testSubject.Get();
             result.Count().Should().Be(0);
@@ -88,7 +114,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var issue1 = CreateIssue("1", false);
             var issue2 = CreateIssue("2", false);
 
-            var testSubject = new ServerIssuesStore();
+            var testSubject = CreateTestSubject();
 
             var result = testSubject.Get();
             result.Count().Should().Be(0);
@@ -110,7 +136,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         [TestMethod]
         public void AddIssues_AddNullIssues_EventIsNotInvoked()
         {
-            var testSubject = new ServerIssuesStore();
+            var testSubject = CreateTestSubject();
 
             var eventMock = new Mock<EventHandler>();
             testSubject.ServerIssuesChanged += eventMock.Object;
@@ -127,7 +153,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         {
             var issue1 = CreateIssue("issue1", true);
 
-            var testSubject = new ServerIssuesStore();
+            var testSubject = CreateTestSubject();
             var eventMock = new Mock<EventHandler>();
             testSubject.ServerIssuesChanged += eventMock.Object;
 
@@ -138,7 +164,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         [TestMethod]
         public void UpdateIssues_EmptyList_DoesNotInvokeEvent()
         {
-            var testSubject = new ServerIssuesStore();
+            var testSubject = CreateTestSubject();
 
             var eventMock = new Mock<EventHandler>();
             testSubject.ServerIssuesChanged += eventMock.Object;
@@ -153,7 +179,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         [TestMethod]
         public void UpdateIssues_NonEmptyList_NoMatch_DoesNotInvokeEvent()
         {
-            var testSubject = new ServerIssuesStore();
+            var testSubject = CreateTestSubject();
             testSubject.AddIssues(new List<SonarQubeIssue>() { CreateIssue("issue1", true) }, clearAllExistingIssues: false);
 
             var eventMock = new Mock<EventHandler>();
@@ -170,7 +196,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var issue2 = CreateIssue("issue2", true);
             var issue3 = CreateIssue("issue3", false);
 
-            var testSubject = new ServerIssuesStore();
+            var testSubject = CreateTestSubject();
             testSubject.AddIssues(new List<SonarQubeIssue>() { issue1, issue2, issue3 }, clearAllExistingIssues: false);
 
             var eventMock = new Mock<EventHandler>();
@@ -183,11 +209,36 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             issue2.IsResolved.Should().BeFalse();
             issue3.IsResolved.Should().BeTrue();
 
-            // This test is to insure it doesn't just flip the state.
-            testSubject.UpdateIssue("issue2", false);
-            issue2.IsResolved.Should().BeFalse();
+            eventMock.Verify(x => x(testSubject, EventArgs.Empty), Times.Exactly(2));
+        }
 
-            eventMock.Verify(x => x(testSubject, EventArgs.Empty), Times.Exactly(3));
+        [TestMethod]
+        [DataRow(true, true)]
+        [DataRow(false, false)]
+        [DataRow(true, false)]
+        [DataRow(false, true)]
+        public void UpdateIssues_IssueExists_InvokesEventIfPropertyDoesNotMatch(bool storeValue, bool newValue)
+        {
+            var issue1 = CreateIssue("issue1Key", storeValue);
+
+            var testSubject = CreateTestSubject();
+            testSubject.AddIssues(new List<SonarQubeIssue>() { issue1 }, clearAllExistingIssues: true);
+
+            var eventMock = new Mock<EventHandler>();
+            testSubject.ServerIssuesChanged += eventMock.Object;
+
+            testSubject.UpdateIssue("issue1Key", newValue);
+
+            issue1.IsResolved.Should().Be(newValue);
+
+            var expectedEventCount = (storeValue == newValue) ? 0 : 1;
+            eventMock.Verify(x => x(testSubject, EventArgs.Empty), Times.Exactly(expectedEventCount));
+        }
+
+        private static ServerIssuesStore CreateTestSubject(ILogger logger = null)
+        {
+            logger ??= new TestLogger(logToConsole: true);
+            return new ServerIssuesStore(logger);
         }
 
         private static SonarQubeIssue CreateIssue(string key, bool isResolved)
