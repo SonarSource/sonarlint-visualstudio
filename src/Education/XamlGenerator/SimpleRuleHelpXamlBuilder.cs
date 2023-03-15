@@ -21,7 +21,6 @@
 using System.Text;
 using System.Windows.Documents;
 using System.Windows.Markup;
-using System.Xml;
 using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
@@ -38,17 +37,15 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         FlowDocument Create(IRuleInfo ruleInfo);
     }
 
-    internal partial class SimpleRuleHelpXamlBuilder : ISimpleRuleHelpXamlBuilder
+    internal class SimpleRuleHelpXamlBuilder : ISimpleRuleHelpXamlBuilder
     {
-        private const string XamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
+        private readonly IXamlGeneratorHelperFactory xamlGeneratorHelperFactory;
+        private readonly IRuleHelpXamlTranslator ruleHelpXamlTranslator;
 
-        private XmlWriter writer;
-
-        private readonly IRuleHelpXamlTranslator translator;
-
-        public SimpleRuleHelpXamlBuilder()
+        public SimpleRuleHelpXamlBuilder(IRuleHelpXamlTranslator ruleHelpXamlTranslator, IXamlGeneratorHelperFactory xamlGeneratorHelperFactory)
         {
-            translator = new RuleHelpXamlTranslator();
+            this.xamlGeneratorHelperFactory = xamlGeneratorHelperFactory;
+            this.ruleHelpXamlTranslator = ruleHelpXamlTranslator;
         }
 
         public FlowDocument Create(IRuleInfo ruleInfo)
@@ -59,107 +56,17 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             return flowDocument;
         }
 
-        internal string CreateXamlString(IRuleInfo ruleInfo)
+        private string CreateXamlString(IRuleInfo ruleInfo)
         {
             var sb = new StringBuilder();
-            writer = RuleHelpXamlTranslator.CreateXmlWriter(sb);
-            WriteDocumentHeader(ruleInfo);
+            var writer = RuleHelpXamlTranslator.CreateXmlWriter(sb);
+            var helper = xamlGeneratorHelperFactory.Create(writer);
 
-            var htmlContent = translator.TranslateHtmlToXaml(ruleInfo.Description);
-
-            EndDocument(htmlContent);
+            helper.WriteDocumentHeader(ruleInfo);
+            writer.WriteRaw(ruleHelpXamlTranslator.TranslateHtmlToXaml(ruleInfo.Description));
+            helper.EndDocument();
 
             return sb.ToString();
-        }
-
-        private void EndDocument(string htmlContent)
-        {
-            writer.WriteRaw(htmlContent);
-            writer.WriteEndElement();
-            writer.Close();
-        }
-
-        private void WriteDocumentHeader(IRuleInfo ruleInfo)
-        {
-            writer.WriteStartElement("FlowDocument", XamlNamespace);
-            writer.WriteAttributeString("xmlns", "http://schemas.microsoft.com/winfx/2006/xaml/presentation");
-
-            WriteTitle(ruleInfo.Name);
-            WriteSubTitle(ruleInfo);
-        }
-
-        private void WriteTitle(string text)
-        {
-            writer.WriteStartElement("Paragraph");
-            writer.ApplyStyleToElement(StyleResourceNames.Title_Paragraph);
-            writer.WriteString(text);
-            writer.WriteEndElement();
-        }
-
-        private void WriteSubTitle(IRuleInfo ruleInfo)
-        {
-            writer.WriteStartElement("Paragraph");
-            writer.ApplyStyleToElement(StyleResourceNames.Title_Paragraph);
-
-            WriteSubTitleElement_IssueType(ruleInfo);
-            WriteSubTitleElement_Severity(ruleInfo);
-            WriteSubTitleElement_RuleKey(ruleInfo);
-            WriteSubTitleElement_Tags(ruleInfo);
-
-            writer.WriteEndElement();
-        }
-
-        private void WriteSubTitleElement_IssueType(IRuleInfo ruleInfo)
-        {
-            var imageInfo = SubTitleImageInfo.IssueTypeImages[ruleInfo.IssueType];
-            WriteSubTitleElementWithImage(imageInfo);
-        }
-
-        private void WriteSubTitleElement_Severity(IRuleInfo ruleInfo)
-        {
-            var imageInfo = SubTitleImageInfo.SeverityImages[ruleInfo.DefaultSeverity];
-            WriteSubTitleElementWithImage(imageInfo);
-        }
-
-        private void WriteSubTitleElementWithImage(SubTitleImageInfo imageInfo)
-        {
-            writer.WriteStartElement("Span");
-            writer.ApplyStyleToElement(StyleResourceNames.SubtitleElement_Span);
-
-            if (imageInfo.ImageResourceName != null)
-            {
-                writer.WriteStartElement("InlineUIContainer");
-                writer.WriteStartElement("Image");
-                writer.ApplyStyleToElement(StyleResourceNames.SubtitleElement_Image);
-                writer.WriteAttributeString("Source", $"{{DynamicResource {imageInfo.ImageResourceName}}}");
-                writer.WriteEndElement(); // Image
-                writer.WriteEndElement(); // InlineUIContainer
-            }
-
-            writer.WriteString(imageInfo.DisplayText);
-            writer.WriteEndElement(); // Span
-        }
-
-        private void WriteSubTitleElement_Tags(IRuleInfo ruleInfo)
-        {
-            if (ruleInfo.Tags.Count == 0)
-            {
-                return;
-            }
-
-            // TODO: icon
-            WriteSubTitleElement("Tags: " + string.Join(" ", ruleInfo.Tags));
-        }
-
-        private void WriteSubTitleElement_RuleKey(IRuleInfo ruleInfo)
-            => WriteSubTitleElement(ruleInfo.FullRuleKey);
-
-        private void WriteSubTitleElement(string text)
-        {
-            writer.WriteStartElement("Span");
-            writer.ApplyStyleToElement(StyleResourceNames.SubtitleElement_Span);
-            writer.WriteString(text);
-            writer.WriteEndElement();
         }
     }
 }
