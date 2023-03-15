@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             return new XamlGeneratorHelper(writer);
         }
 
-        private class XamlGeneratorHelper : IXamlGeneratorHelper
+        private sealed class XamlGeneratorHelper : IXamlGeneratorHelper
         {
             private const string XamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
             private readonly XmlWriter writer;
