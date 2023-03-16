@@ -199,7 +199,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         /// This delegate is passed into that common method to make a call to either 
         /// "Refresh(file)" or "RefreshOnBufferChanged(files)"
         /// </summary>
-        private delegate void RefreshXXXTestOperation(SonarErrorListDataSource testSubject, string filePath);
+        private delegate void RefreshImplTestOperation(SonarErrorListDataSource testSubject, string filePath);
 
         private static void CallRefresh(SonarErrorListDataSource testSubject, string filePath)
             => testSubject.Refresh(new[] { filePath });
@@ -216,13 +216,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         }
         [TestMethod]
         public void Refresh_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed()
-            => RefreshXXX_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed(CallRefresh, shouldRaiseIssuesChanged: true);
+            => RefreshImpl_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed(CallRefresh, shouldRaiseIssuesChanged: true);
 
         [TestMethod]
         public void RefreshOnBufferChanged_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed()
-            => RefreshXXX_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed(CallRefreshOnBufferChanged, shouldRaiseIssuesChanged: false);
+            => RefreshImpl_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed(CallRefreshOnBufferChanged, shouldRaiseIssuesChanged: false);
 
-        private void RefreshXXX_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed(RefreshXXXTestOperation testOp,
+        private void RefreshImpl_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed(RefreshImplTestOperation testOp,
             bool shouldRaiseIssuesChanged)
         {
             var testSubject = CreateTestSubject();
@@ -268,16 +268,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         [DataRow(true)]
         [DataRow(false)]
         public void Refresh_SelectedIssueIsNotInFactory_SelectedIssueNotChanged(bool hasSelectedIssue)
-            => RefreshXXX_SelectedIssueIsNotInFactory_SelectedIssueNotChanged(hasSelectedIssue, CallRefresh);
+            => RefreshImpl_SelectedIssueIsNotInFactory_SelectedIssueNotChanged(hasSelectedIssue, CallRefresh);
 
         [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
         public void RefreshOnBufferChanged_SelectedIssueIsNotInFactory_SelectedIssueNotChanged(bool hasSelectedIssue)
-            => RefreshXXX_SelectedIssueIsNotInFactory_SelectedIssueNotChanged(hasSelectedIssue, CallRefreshOnBufferChanged);
+            => RefreshImpl_SelectedIssueIsNotInFactory_SelectedIssueNotChanged(hasSelectedIssue, CallRefreshOnBufferChanged);
 
-        private void RefreshXXX_SelectedIssueIsNotInFactory_SelectedIssueNotChanged(bool hasSelectedIssue,
-            RefreshXXXTestOperation testOp)
+        private void RefreshImpl_SelectedIssueIsNotInFactory_SelectedIssueNotChanged(bool hasSelectedIssue,
+            RefreshImplTestOperation testOp)
         {
             var selectedIssue = hasSelectedIssue ? Mock.Of<IAnalysisIssueVisualization>() : null;
             var selectionService = CreateSelectionService(selectedIssue);
@@ -293,13 +293,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 
         [TestMethod]
         public void Refresh_SelectedIssueIsInFactory_IssueIsNavigable_SelectedIssueNotChanged()
-            => RefreshXXX_SelectedIssueIsInFactory_IssueIsNavigable_SelectedIssueNotChanged(CallRefresh);
+            => RefreshImpl_SelectedIssueIsInFactory_IssueIsNavigable_SelectedIssueNotChanged(CallRefresh);
 
         [TestMethod]
         public void RefreshOnBufferChanged_SelectedIssueIsInFactory_IssueIsNavigable_SelectedIssueNotChanged()
-            => RefreshXXX_SelectedIssueIsInFactory_IssueIsNavigable_SelectedIssueNotChanged(CallRefreshOnBufferChanged);
+            => RefreshImpl_SelectedIssueIsInFactory_IssueIsNavigable_SelectedIssueNotChanged(CallRefreshOnBufferChanged);
 
-        private void RefreshXXX_SelectedIssueIsInFactory_IssueIsNavigable_SelectedIssueNotChanged(RefreshXXXTestOperation testOp)
+        private void RefreshImpl_SelectedIssueIsInFactory_IssueIsNavigable_SelectedIssueNotChanged(RefreshImplTestOperation testOp)
         {
             var navigableSpan = (SnapshotSpan?) null;
             var navigableIssue = CreateIssueVizWithSpan(navigableSpan);
@@ -316,13 +316,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 
         [TestMethod]
         public void LocationsUpdated_SelectedIssueIsInFactory_IssueIsNotNavigable_SelectedIssueIsCleared()
-            => RefreshXXX_SelectedIssueIsInFactory_IssueIsNotNavigable_SelectedIssueIsCleared(CallRefresh);
+            => RefreshImpl_SelectedIssueIsInFactory_IssueIsNotNavigable_SelectedIssueIsCleared(CallRefresh);
 
         [TestMethod]
         public void RefreshOnBufferChanged_SelectedIssueIsInFactory_IssueIsNotNavigable_SelectedIssueIsCleared()
-            => RefreshXXX_SelectedIssueIsInFactory_IssueIsNotNavigable_SelectedIssueIsCleared(CallRefreshOnBufferChanged);
+            => RefreshImpl_SelectedIssueIsInFactory_IssueIsNotNavigable_SelectedIssueIsCleared(CallRefreshOnBufferChanged);
 
-        private void RefreshXXX_SelectedIssueIsInFactory_IssueIsNotNavigable_SelectedIssueIsCleared(RefreshXXXTestOperation testOp)
+        private void RefreshImpl_SelectedIssueIsInFactory_IssueIsNotNavigable_SelectedIssueIsCleared(RefreshImplTestOperation testOp)
         {
             var nonNavigableSpan = new SnapshotSpan();
             var nonNavigableIssue = CreateIssueVizWithSpan(nonNavigableSpan);

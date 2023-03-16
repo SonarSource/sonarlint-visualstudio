@@ -240,6 +240,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
 
                         if (notifyListeners)
                         {
+                            // TODO: this might result in duplicate notifications in cases involving secondary locations e.g.
+                            // Factory1 has Issue1 that refers to FileA and FileB
+                            // Factory2 has Issue2 that refers to FileC and FileB
+                            // -> listeners for FileB will be notified twice
                             NotifyIssuesChanged(factory);
                         }
                     }

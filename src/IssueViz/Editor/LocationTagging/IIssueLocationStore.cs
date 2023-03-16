@@ -43,10 +43,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
         /// The set of issues can be changed without the content changing if e.g.
         /// - a new analysis has been performed
         /// - issues have been suppressed/unsuppressed
-        /// <para>
-        /// This is a batch notification. We don't want to notify for each individual location change as that would be
-        /// too noisy.
-        /// </para>
         /// <seealso cref="RefreshOnBufferChanged(string)"/>
         /// </remarks>
         void Refresh(IEnumerable<string> affectedFilePaths);
@@ -60,11 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
         /// - if content has been added or removed then the location of issues may have changed.
         /// This method allows the service to update necessary action to update the UI.
         /// The assumption is that Editor-related components (e.g. taggers) do not need
-        /// to updated as they will already be aware of the change.
-        /// <para>
-        /// This is a batch notification. We don't want to notify for each individual location change as that would be
-        /// too noisy.
-        /// </para>
+        /// to be updated as they will already be aware of the change.
         /// <seealso cref="Refresh(IEnumerable{string})"/>
         /// </remarks>
         void RefreshOnBufferChanged(string affectedFilePath);
