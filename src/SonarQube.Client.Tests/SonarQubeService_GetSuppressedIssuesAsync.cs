@@ -423,9 +423,9 @@ namespace SonarQube.Client.Tests
             SetupHttpRequest(messageHandler, EmptyGetIssuesResponse);
             _ = await service.GetSuppressedIssuesAsync("any", null, new[]{"issue1", "issue2"}, CancellationToken.None);
 
-            // The wrapper is expected to make three calls, for code smells, bugs, then vulnerabilities
+            // The wrapper is expected to make one call with the given issueKeys
             var actualRequests = messageHandler.GetSendAsyncRequests();
-            actualRequests.Should().HaveCount(3);
+            actualRequests.Should().HaveCount(1);
             actualRequests.All(x => x.RequestUri.Query.Contains("issues=issue1%2Cissue2")).Should().BeTrue();
         }
 

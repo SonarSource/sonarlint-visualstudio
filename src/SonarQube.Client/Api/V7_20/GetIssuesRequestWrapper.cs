@@ -62,6 +62,13 @@ namespace SonarQube.Client.Api.V7_20
             innerRequest.Logger = Logger;
             innerRequest.IssueKeys = IssueKeys;
 
+            if (innerRequest.IssueKeys != null)
+            {
+                var response = await innerRequest.InvokeAsync(httpClient, token);
+
+                return response;
+            }
+
             ResetInnerRequest();
             innerRequest.Types = "CODE_SMELL";
             var codeSmells = await innerRequest.InvokeAsync(httpClient, token);
