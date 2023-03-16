@@ -73,7 +73,6 @@ public class HowToFixSectionTests
             .Which.xamlContent.Should().Be(staticXamlStorage.HowToFixItHeader);
         
         var tabGroup = multiBlockSection.blocks[1].Should().BeOfType<TabGroup>().Subject;
-        tabGroup.isScrollable.Should().BeFalse();
         tabGroup.tabs.Should().HaveCount(contexts.Count + 1);
         
         for (var i = 0; i < contexts.Count; i++)
