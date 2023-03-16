@@ -48,6 +48,8 @@ namespace SonarQube.Client.Api.V7_20
 
         public string Branch { get; set; }
 
+        public string[] IssueKeys { get; set; }
+
         public ILogger Logger { get; set; }
 
         public async Task<SonarQubeIssue[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
@@ -58,6 +60,7 @@ namespace SonarQube.Client.Api.V7_20
             innerRequest.Statuses = Statuses;
             innerRequest.Branch = Branch;
             innerRequest.Logger = Logger;
+            innerRequest.IssueKeys = IssueKeys;
 
             ResetInnerRequest();
             innerRequest.Types = "CODE_SMELL";

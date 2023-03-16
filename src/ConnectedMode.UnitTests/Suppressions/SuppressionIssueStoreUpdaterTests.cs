@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             await testSubject.UpdateAllServerSuppressionsAsync();
 
             queryInfo.Verify(x => x.GetProjectKeyAndBranchAsync(It.IsAny<CancellationToken>()), Times.Once());
-            server.Verify(x => x.GetSuppressedIssuesAsync("project", "branch", It.IsAny<CancellationToken>()), Times.Once());
+            server.Verify(x => x.GetSuppressedIssuesAsync("project", "branch", null, It.IsAny<CancellationToken>()), Times.Once());
             writer.Verify(x => x.AddIssues(new[] { issue }, true), Times.Once);
 
             server.Invocations.Should().HaveCount(1);
@@ -274,7 +274,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         private static Mock<ISonarQubeService> CreateSonarQubeService(string projectKey, string branchName, params SonarQubeIssue[] issuesToReturn)
         {
             var mock = new Mock<ISonarQubeService>();
-            mock.Setup(x => x.GetSuppressedIssuesAsync(projectKey, branchName, It.IsAny<CancellationToken>()))
+            mock.Setup(x => x.GetSuppressedIssuesAsync(projectKey, branchName, null, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(issuesToReturn);
             return mock;
         }
