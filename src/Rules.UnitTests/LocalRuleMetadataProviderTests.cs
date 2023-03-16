@@ -31,12 +31,12 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.Rules.UnitTests
 {
     [TestClass]
-    public class RuleMetadataProviderTests
+    public class LocalRuleMetadataProviderTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<RuleMetadataProvider, IRuleMetadataProvider>(
+            MefTestHelpers.CheckTypeCanBeImported<LocalRuleMetadataProvider, ILocalRuleMetadataProvider>(
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         [TestMethod]
         public void GetRuleHelp_UnknownRuleKey_ReturnsMissingHelp()
         {
-            var ruleId = new SonarCompositeRuleId("cpp","unknown rule key");
+            var ruleId = new SonarCompositeRuleId("cpp", "unknown rule key");
 
             var testSubject = CreateTestSubject();
 
@@ -84,7 +84,6 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
                 CheckRule(name);
             }
 
-  
             void CheckRule(string fullResourceName)
             {
                 Console.WriteLine("Checking " + fullResourceName);
@@ -100,8 +99,8 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             }
         }
 
-        private static RuleMetadataProvider CreateTestSubject()
-            => new RuleMetadataProvider(new TestLogger(logToConsole: true));
+        private static LocalRuleMetadataProvider CreateTestSubject()
+            => new LocalRuleMetadataProvider(new TestLogger(logToConsole: true));
 
         private static SonarCompositeRuleId GetCompositeRuleIdFromResourceName(string fullResourceName)
         {
@@ -117,7 +116,7 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
 
         private static string GetEmbeddedRuleDescription(string fullResourceName)
         {
-            using var reader = new StreamReader(typeof(RuleMetadataProvider).Assembly.GetManifestResourceStream(fullResourceName));
+            using var reader = new StreamReader(typeof(LocalRuleMetadataProvider).Assembly.GetManifestResourceStream(fullResourceName));
             var data = reader.ReadToEnd();
             return JsonConvert.DeserializeObject<RuleInfo>(data).Description;
         }
