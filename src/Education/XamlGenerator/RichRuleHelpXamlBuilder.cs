@@ -18,43 +18,47 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Linq;
 using System.Text;
 using System.Windows.Documents;
 using System.Windows.Markup;
+using SonarLint.VisualStudio.Education.Layout.Logical;
+using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
 using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
 {
-    internal class SimpleRuleHelpXamlBuilder : IRuleHelpXamlBuilder
+    internal class RichRuleHelpXamlBuilder : IRuleHelpXamlBuilder
     {
+        private readonly IRuleInfoTranslator ruleInfoTranslator;
         private readonly IXamlGeneratorHelperFactory xamlGeneratorHelperFactory;
-        private readonly IRuleHelpXamlTranslator ruleHelpXamlTranslator;
+        private readonly IStaticXamlStorage staticXamlStorage;
 
-        public SimpleRuleHelpXamlBuilder(IRuleHelpXamlTranslator ruleHelpXamlTranslator, IXamlGeneratorHelperFactory xamlGeneratorHelperFactory)
+        public RichRuleHelpXamlBuilder(IRuleInfoTranslator ruleInfoTranslator, IXamlGeneratorHelperFactory xamlGeneratorHelperFactory, IStaticXamlStorage staticXamlStorage)
         {
+            this.ruleInfoTranslator = ruleInfoTranslator;
             this.xamlGeneratorHelperFactory = xamlGeneratorHelperFactory;
-            this.ruleHelpXamlTranslator = ruleHelpXamlTranslator;
+            this.staticXamlStorage = staticXamlStorage;
         }
 
         public FlowDocument Create(IRuleInfo ruleInfo)
         {
-            var xaml = CreateXamlString(ruleInfo);
-            var flowDocument = (FlowDocument)XamlReader.Parse(xaml);
+            var richRuleDescriptionSections = ruleInfoTranslator.GetRuleDescriptionSections(ruleInfo).ToList();
+            var mainTabGroup = new TabGroup(richRuleDescriptionSections
+                .Select(richRuleDescriptionSection =>
+                    new TabItem(richRuleDescriptionSection.Title,
+                        richRuleDescriptionSection.GetVisualizationTreeNode(staticXamlStorage)))
+                .ToList<ITabItem>());
 
-            return flowDocument;
-        }
-
-        private string CreateXamlString(IRuleInfo ruleInfo)
-        {
             var sb = new StringBuilder();
             var writer = RuleHelpXamlTranslator.CreateXmlWriter(sb);
             var helper = xamlGeneratorHelperFactory.Create(writer);
 
             helper.WriteDocumentHeader(ruleInfo);
-            writer.WriteRaw(ruleHelpXamlTranslator.TranslateHtmlToXaml(ruleInfo.Description));
+            mainTabGroup.ProduceXaml(writer);
             helper.EndDocument();
 
-            return sb.ToString();
+            return (FlowDocument)XamlReader.Parse(sb.ToString());
         }
     }
 }

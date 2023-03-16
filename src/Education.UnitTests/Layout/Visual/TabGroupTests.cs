@@ -26,7 +26,7 @@ using Moq;
 using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 
-namespace SonarLint.VisualStudio.Education.UnitTests.Layout
+namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Visual
 {
     [TestClass]
     public class TabGroupTests
@@ -51,12 +51,12 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout
                 var indexCopy = index;
                 tabItem
                     .InSequence(order)
-                    .Setup(x => x.ProduceXaml(xmlWriter, isScrollable))
+                    .Setup(x => x.ProduceXaml(xmlWriter))
                     .Callback(() => xmlWriter.WriteRaw($"<TabItem>Tab {indexCopy} placeholder</TabItem>"));
 
             }
 
-            var testSubject = new TabGroup(tabItems.Select(x => x.Object).ToList(), isScrollable);
+            var testSubject = new TabGroup(tabItems.Select(x => x.Object).ToList());
 
             testSubject.ProduceXaml(xmlWriter);
             xmlWriter.Close();
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout
             sb.ToString().Should().BeEquivalentTo("<BlockUIContainer>\r\n  <TabControl><TabItem>Tab 0 placeholder</TabItem><TabItem>Tab 1 placeholder</TabItem><TabItem>Tab 2 placeholder</TabItem></TabControl>\r\n</BlockUIContainer>");
             foreach (var tabItem in tabItems)
             {
-                tabItem.Verify(x => x.ProduceXaml(xmlWriter, isScrollable), Times.Once);
+                tabItem.Verify(x => x.ProduceXaml(xmlWriter), Times.Once);
             }
         }
     }
