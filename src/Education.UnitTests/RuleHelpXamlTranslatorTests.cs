@@ -59,14 +59,20 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             result.Should().Be(expectedText);
         }
 
-        [TestMethod]
-        public void TranslateHtmlToXaml_H4_IsHandled()
+        [DataTestMethod]
+        [DataRow(1)]
+        [DataRow(2)]
+        [DataRow(3)]
+        [DataRow(4)]
+        [DataRow(5)]
+        [DataRow(6)]
+        public void TranslateHtmlToXaml_HTagsAreHandled(int headerSize)
         {
             var testSubject = new RuleHelpXamlTranslator();
 
-            var htmlText = "<h4>Text</h4>";
+            var htmlText = $"<h{headerSize}>Text</h{headerSize}>";
 
-            var expectedText = "<Paragraph Style=\"{DynamicResource Heading4_Paragraph}\">Text</Paragraph>";
+            var expectedText = $"<Paragraph Style=\"{{DynamicResource Heading{headerSize}_Paragraph}}\">Text</Paragraph>";
 
             var result = testSubject.TranslateHtmlToXaml(htmlText);
 
