@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             // we update the analyzers.
 
             // TODO: embed the rule json file, and use that to check for the expected rules
-            var resourceNames = typeof(RuleMetadataProvider).Assembly.GetManifestResourceNames()
+            var resourceNames = typeof(LocalRuleMetadataProvider).Assembly.GetManifestResourceNames()
                 .Where(x => x.StartsWith($"{BaseResourcePath}{repoKey}") && x.EndsWith(".json"));
 
             Console.WriteLine($"{repoKey}: number of rules = {resourceNames.Count()}");
@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         {
             // Performance: this test is loading and parsing nearly 2000 files,
             // but is still only takes a few hundred milliseconds.
-            var asm = typeof(RuleMetadataProvider).Assembly;
+            var asm = typeof(LocalRuleMetadataProvider).Assembly;
             var resourceNames = asm.GetManifestResourceNames()
                 .Where(x => x.EndsWith(".desc"));
 
@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         [DataRow("vbnet")]
         public void CheckEmbeddedJson_ByLanguage(string languageKey)
         {
-            using var jsonStream = typeof(RuleMetadataProvider).Assembly
+            using var jsonStream = typeof(LocalRuleMetadataProvider).Assembly
                 .GetManifestResourceStream($"{BaseResourcePath}{languageKey}.rules.json");
 
             jsonStream.Should().NotBeNull();

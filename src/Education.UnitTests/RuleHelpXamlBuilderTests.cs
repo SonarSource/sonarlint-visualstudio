@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
     [TestClass]
     public class RuleHelpXamlBuilderTests
     {
-        private static readonly Assembly ResourceAssembly = typeof(RuleMetadataProvider).Assembly;
+        private static readonly Assembly ResourceAssembly = typeof(LocalRuleMetadataProvider).Assembly;
 
         [TestMethod]
         public void Create_CheckAllEmbedded()
