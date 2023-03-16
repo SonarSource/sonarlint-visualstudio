@@ -18,33 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Xml;
+using System.Windows.Documents;
+using SonarLint.VisualStudio.Rules;
 
-namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
+namespace SonarLint.VisualStudio.Education.XamlGenerator
 {
-    /// <summary>
-    /// Represents tab grouping that renders the necessary tab buttons and sets the default active tab
-    /// </summary>
-    internal class TabGroup : IAbstractVisualizationTreeNode
+    public interface IRuleHelpXamlBuilder
     {
-        internal /* for testing */ readonly List<ITabItem> tabs;
-
-        public TabGroup(List<ITabItem> tabs)
-        {
-            this.tabs = tabs;
-        }
-
-        public void ProduceXaml(XmlWriter writer)
-        {
-            writer.WriteStartElement("BlockUIContainer");
-            writer.WriteStartElement("TabControl");
-            foreach (var tab in tabs)
-            {
-                tab.ProduceXaml(writer);
-            }
-            writer.WriteFullEndElement();
-            writer.WriteFullEndElement();
-        }
+        /// <summary>
+        /// Generates a XAML document containing the help information for the specified rule
+        /// </summary>
+        /// <remarks>Assumes that the <see cref="IRuleInfo.Description"/> and <see cref="IRuleInfo.DescriptionSections"/> are parseable as XML.
+        /// Also assumes that the containing control defines a list of Style resources, one for each
+        /// value in the enum <see cref="StyleResourceNames"/>.
+        /// The document will still render if a style is missing, but the styling won't be correct.</remarks>
+        FlowDocument Create(IRuleInfo ruleInfo);
     }
 }

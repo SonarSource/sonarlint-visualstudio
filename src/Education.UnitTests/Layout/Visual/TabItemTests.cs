@@ -26,15 +26,13 @@ using SonarLint.VisualStudio.Education.Layout.Visual;
 using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 
-namespace SonarLint.VisualStudio.Education.UnitTests.Layout
+namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Visual
 {
     [TestClass]
     public class TabItemTests
     {
-        [DataTestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public void CreateVisualization_ReturnsSectionWithCorrectNameAndContent(bool isScrollable)
+        [TestMethod]
+        public void CreateVisualization_ReturnsSectionWithCorrectNameAndContent()
         {
             var sb = new StringBuilder();
             var xmlWriter = RuleHelpXamlTranslator.CreateXmlWriter(sb);
@@ -44,13 +42,10 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout
 
             var testSubject = new TabItem(tabName, tabContentMock.Object);
 
-            testSubject.ProduceXaml(xmlWriter, isScrollable);
+            testSubject.ProduceXaml(xmlWriter);
             xmlWriter.Close();
 
-            var scrollingAttributes = isScrollable 
-                ? string.Empty 
-                : " HorizontalScrollBarVisibility=\"Disabled\" VerticalScrollBarVisibility=\"Disabled\"";
-            sb.ToString().Should().BeEquivalentTo($"<TabItem Header=\"Tab Display Name\">\r\n  <NestingFlowDocumentScrollViewer{scrollingAttributes}>\r\n    <FlowDocument><Paragraph>Hi</Paragraph></FlowDocument>\r\n  </NestingFlowDocumentScrollViewer>\r\n</TabItem>");
+            sb.ToString().Should().BeEquivalentTo("<TabItem Header=\"Tab Display Name\">\r\n  <FlowDocumentScrollViewer HorizontalScrollBarVisibility=\"Disabled\" VerticalScrollBarVisibility=\"Disabled\">\r\n    <FlowDocument><Paragraph>Hi</Paragraph></FlowDocument>\r\n  </FlowDocumentScrollViewer>\r\n</TabItem>");
             tabContentMock.Verify(x => x.ProduceXaml(xmlWriter), Times.Once);
         }
     }
