@@ -72,6 +72,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
             return locationStores.SelectMany(x => x.GetLocations(filePath));
         }
 
+        public void RefreshOnBufferChanged(string affectedFilePath)
+        {
+            if (affectedFilePath == null)
+            {
+                throw new ArgumentNullException(nameof(affectedFilePath));
+            }
+
+            foreach (var issueLocationStore in locationStores)
+            {
+                issueLocationStore.RefreshOnBufferChanged(affectedFilePath);
+            }
+        }
+
         public void Refresh(IEnumerable<string> affectedFilePaths)
         {
             if (affectedFilePaths == null)
