@@ -204,6 +204,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
             return locVizs;
         }
 
+        public void RefreshOnBufferChanged(string affectedFilePath)
+        {
+            if (affectedFilePath == null)
+            {
+                throw new ArgumentNullException(nameof(affectedFilePath));
+            }
+
+            InternalRefreshAffectedFiles(new[] { affectedFilePath }, notifyListeners: false);
+        }
+
         public void Refresh(IEnumerable<string> affectedFilePaths)
         {
             if (affectedFilePaths == null)
@@ -211,6 +221,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
                 throw new ArgumentNullException(nameof(affectedFilePaths));
             }
 
+            InternalRefreshAffectedFiles(affectedFilePaths, notifyListeners: true);
+        }
+
+        private void InternalRefreshAffectedFiles(IEnumerable<string> affectedFilePaths, bool notifyListeners)
+        {
             lock (sinks)
             {
                 foreach (var factory in factories)
@@ -222,6 +237,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
                     {
                         factory.UpdateSnapshot(factory.CurrentSnapshot.GetUpdatedSnapshot());
                         InternalRefreshErrorList(factory);
+
+                        if (notifyListeners)
+                        {
+                            NotifyIssuesChanged(factory);
+                        }
                     }
 
                     var selectedIssue = issueSelectionService.SelectedIssue;
