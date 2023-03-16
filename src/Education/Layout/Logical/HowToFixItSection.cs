@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
 
             return new MultiBlockSection(
                 new ContentSection(staticXamlStorage.HowToFixItHeader),
-                new TabGroup(contextTabs, false));
+                new TabGroup(contextTabs));
         }
     }
 

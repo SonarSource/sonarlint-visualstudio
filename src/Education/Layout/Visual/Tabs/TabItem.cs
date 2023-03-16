@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
 {
     internal interface ITabItem
     {
-        void ProduceXaml(XmlWriter writer, bool isScrollable);
+        void ProduceXaml(XmlWriter writer);
     }
 
     /// <summary>
@@ -42,20 +42,21 @@ namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
             this.content = content;
         }
 
-        public void ProduceXaml(XmlWriter writer, bool isScrollable)
+        public void ProduceXaml(XmlWriter writer)
         {
             writer.WriteStartElement("TabItem");
             writer.WriteAttributeString("Header", displayName);
-            writer.WriteStartElement("NestingFlowDocumentScrollViewer");
-            if (!isScrollable)
-            {
-                writer.WriteAttributeString("HorizontalScrollBarVisibility", "Disabled");
-                writer.WriteAttributeString("VerticalScrollBarVisibility", "Disabled");
-            }
+
+            writer.WriteStartElement("FlowDocumentScrollViewer");
+            writer.WriteAttributeString("HorizontalScrollBarVisibility", "Disabled");
+            writer.WriteAttributeString("VerticalScrollBarVisibility", "Disabled");
+
             writer.WriteStartElement("FlowDocument");
             content.ProduceXaml(writer);
             writer.WriteFullEndElement();
+
             writer.WriteFullEndElement();
+            
             writer.WriteFullEndElement();
         }
     }

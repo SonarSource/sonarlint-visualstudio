@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             ruleMetaDataProvider.Setup(x => x.GetRuleInfo(It.IsAny<SonarCompositeRuleId>())).Returns(ruleInfo);
 
             var flowDocument = Mock.Of<FlowDocument>();
-            var ruleHelpXamlBuilder = new Mock<ISimpleRuleHelpXamlBuilder>();
+            var ruleHelpXamlBuilder = new Mock<IRuleHelpXamlBuilder>();
             ruleHelpXamlBuilder.Setup(x => x.Create(ruleInfo)).Returns(flowDocument);
 
             var ruleDescriptionToolWindow = new Mock<IRuleHelpToolWindow>();
@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         {
             var toolWindowService = new Mock<IToolWindowService>();
             var ruleMetadataProvider = new Mock<IRuleMetadataProvider>();
-            var ruleHelpXamlBuilder = new Mock<ISimpleRuleHelpXamlBuilder>();
+            var ruleHelpXamlBuilder = new Mock<IRuleHelpXamlBuilder>();
             var showRuleInBrowser = new Mock<IShowRuleInBrowser>();
 
             var unknownRule = new SonarCompositeRuleId("known", "xxx");
@@ -114,12 +114,12 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         private Education CreateEducation(IToolWindowService toolWindowService = null,
             IRuleMetadataProvider ruleMetadataProvider = null,
             IShowRuleInBrowser showRuleInBrowser = null,
-            ISimpleRuleHelpXamlBuilder ruleHelpXamlBuilder = null)
+            IRuleHelpXamlBuilder ruleHelpXamlBuilder = null)
         {
             toolWindowService ??= Mock.Of<IToolWindowService>();
             ruleMetadataProvider ??= Mock.Of<IRuleMetadataProvider>();
             showRuleInBrowser ??= Mock.Of<IShowRuleInBrowser>();
-            ruleHelpXamlBuilder ??= Mock.Of<ISimpleRuleHelpXamlBuilder>();
+            ruleHelpXamlBuilder ??= Mock.Of<IRuleHelpXamlBuilder>();
             var logger = new TestLogger(logToConsole: true);
             var threadHandling = new NoOpThreadHandler();
 
