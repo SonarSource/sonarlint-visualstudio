@@ -185,6 +185,13 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     PushOutputElementInfo("h3", true);
                     break;
 
+                case "h4":
+                    writer.WriteStartElement("Paragraph");
+                    writer.ApplyStyleToElement(StyleResourceNames.Heading4_Paragraph);
+
+                    PushOutputElementInfo("h4", true);
+                    break;
+
                 case "li":
                     writer.WriteStartElement("ListItem");
                     PushOutputElementInfo("li", false);
