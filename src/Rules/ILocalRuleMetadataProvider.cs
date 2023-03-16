@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Rules
     /// <remarks>
     /// The metadata is extracted from the Java plugins using the plugin API
     /// </remarks>
-    public interface IRuleMetadataProvider
+    public interface ILocalRuleMetadataProvider
     {
         /// <summary>
         /// Fetches rule info for the specified language rule
@@ -42,21 +42,21 @@ namespace SonarLint.VisualStudio.Rules
         IRuleInfo GetRuleInfo(SonarCompositeRuleId ruleId);
     }
 
-    [Export(typeof(IRuleMetadataProvider))]
+    [Export(typeof(ILocalRuleMetadataProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class RuleMetadataProvider : IRuleMetadataProvider
+    public class LocalRuleMetadataProvider : ILocalRuleMetadataProvider
     {
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public RuleMetadataProvider(ILogger logger)
+        public LocalRuleMetadataProvider(ILogger logger)
         {
             this.logger = logger;
         }
 
         public IRuleInfo GetRuleInfo(SonarCompositeRuleId ruleId)
                 => LoadRuleInfo(ruleId);
-        
+
         private IRuleInfo LoadRuleInfo(SonarCompositeRuleId ruleId)
         {
             var resourcePath = CalcFullResourceName(ruleId);

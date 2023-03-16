@@ -34,6 +34,7 @@ namespace SonarLint.VisualStudio.Rules
         Major,
         Minor,
         Info,
+        Unknown
     }
 
     public enum RuleIssueType
@@ -41,7 +42,8 @@ namespace SonarLint.VisualStudio.Rules
         CodeSmell,      // SonarQube serialization = CODE_SMELL
         Bug,
         Vulnerability,
-        Hotspot         // SonarQube serialization = SECURITY_HOTSPOT
+        Hotspot,        // SonarQube serialization = SECURITY_HOTSPOT
+        Unknown
     }
 
     public interface IContext

@@ -35,7 +35,8 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             { RuleIssueSeverity.Blocker, new SubTitleImageInfo("blockerDrawingImage", "Blocker" )},
             { RuleIssueSeverity.Major, new SubTitleImageInfo("majorDrawingImage", "Major" )},
             { RuleIssueSeverity.Minor, new SubTitleImageInfo("minorDrawingImage", "Minor" )},
-            { RuleIssueSeverity.Info, new SubTitleImageInfo("infoDrawingImage", "Info" )}
+            { RuleIssueSeverity.Info, new SubTitleImageInfo("infoDrawingImage", "Info" )},
+            { RuleIssueSeverity.Unknown, new SubTitleImageInfo("infoDrawingImage", "Unknown" )}
         };
 
         public static readonly IReadOnlyDictionary<RuleIssueType, SubTitleImageInfo> IssueTypeImages = new Dictionary<RuleIssueType, SubTitleImageInfo>()
@@ -44,6 +45,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             { RuleIssueType.CodeSmell, new SubTitleImageInfo("codeSmellDrawingImage", "Code Smell" )},
             { RuleIssueType.Bug, new SubTitleImageInfo("bugDrawingImage", "Bug" )},
             { RuleIssueType.Hotspot, new SubTitleImageInfo("hotspotDrawingImage", "Hotspot" )},
+            { RuleIssueType.Unknown, new SubTitleImageInfo("codeSmellDrawingImage", "Unknown" )}
         };
 
         private SubTitleImageInfo(string imageResourceName, string displayText)
@@ -63,6 +65,5 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         /// Text to display for the image
         /// </summary>
         public string DisplayText { get; }
-
     }
 }
