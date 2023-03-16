@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         {
             MefTestHelpers.CheckTypeCanBeImported<Education, IEducation>(
                 MefTestHelpers.CreateExport<IToolWindowService>(),
-                MefTestHelpers.CreateExport<IRuleMetadataProvider>(),
+                MefTestHelpers.CreateExport<ILocalRuleMetadataProvider>(),
                 MefTestHelpers.CreateExport<IShowRuleInBrowser>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void ShowRuleHelp_KnownRule_DocumentIsDisplayedInToolWindow()
         {
-            var ruleMetaDataProvider = new Mock<IRuleMetadataProvider>();
+            var ruleMetaDataProvider = new Mock<ILocalRuleMetadataProvider>();
             var ruleId = new SonarCompositeRuleId("repoKey","ruleKey");
 
             var ruleInfo = Mock.Of<IRuleInfo>();
@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         public void ShowRuleHelp_UnknownRule_RuleIsShownInBrowser()
         {
             var toolWindowService = new Mock<IToolWindowService>();
-            var ruleMetadataProvider = new Mock<IRuleMetadataProvider>();
+            var ruleMetadataProvider = new Mock<ILocalRuleMetadataProvider>();
             var ruleHelpXamlBuilder = new Mock<IRuleHelpXamlBuilder>();
             var showRuleInBrowser = new Mock<IShowRuleInBrowser>();
 
@@ -112,12 +112,12 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         }
 
         private Education CreateEducation(IToolWindowService toolWindowService = null,
-            IRuleMetadataProvider ruleMetadataProvider = null,
+            ILocalRuleMetadataProvider ruleMetadataProvider = null,
             IShowRuleInBrowser showRuleInBrowser = null,
             IRuleHelpXamlBuilder ruleHelpXamlBuilder = null)
         {
             toolWindowService ??= Mock.Of<IToolWindowService>();
-            ruleMetadataProvider ??= Mock.Of<IRuleMetadataProvider>();
+            ruleMetadataProvider ??= Mock.Of<ILocalRuleMetadataProvider>();
             showRuleInBrowser ??= Mock.Of<IShowRuleInBrowser>();
             ruleHelpXamlBuilder ??= Mock.Of<IRuleHelpXamlBuilder>();
             var logger = new TestLogger(logToConsole: true);
