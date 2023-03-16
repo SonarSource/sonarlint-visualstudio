@@ -236,6 +236,45 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
         }
 
         [TestMethod]
+        public void RefreshOnBufferChanged_NullFilePaths_ArgumentNullException()
+        {
+            var testSubject = new IssueLocationStoreAggregator(Enumerable.Empty<IIssueLocationStore>());
+
+            Action act = () => testSubject.RefreshOnBufferChanged(null);
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("affectedFilePath");
+        }
+
+        [TestMethod]
+        public void RefreshOnBufferChanged_NoStores_NoException()
+        {
+            var testSubject = new IssueLocationStoreAggregator(Enumerable.Empty<IIssueLocationStore>());
+
+            Action act = () => testSubject.RefreshOnBufferChanged("test.cpp");
+            act.Should().NotThrow();
+        }
+
+        [TestMethod]
+        public void RefreshOnBufferChanged_HasStores_AllStoresRefreshed()
+        {
+            var stores = new List<Mock<IIssueLocationStore>>
+            {
+                new Mock<IIssueLocationStore>(),
+                new Mock<IIssueLocationStore>(),
+                new Mock<IIssueLocationStore>()
+            };
+
+            var affectedFilePath = "a.cpp";
+
+            var testSubject = new IssueLocationStoreAggregator(stores.Select(x => x.Object));
+            testSubject.RefreshOnBufferChanged(affectedFilePath);
+
+            foreach (var store in stores)
+            {
+                store.Verify(x => x.RefreshOnBufferChanged(affectedFilePath), Times.Once);
+            }
+        }
+
+        [TestMethod]
         public void Contains_IssueVizIsNull_ArgumentNullException()
         {
             var testSubject = new IssueLocationStoreAggregator(Enumerable.Empty<IIssueLocationStore>());
