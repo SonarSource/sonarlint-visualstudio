@@ -30,7 +30,7 @@ namespace ExtractRuleDescFromJson;
 /// </summary>
 /// <remarks>
 /// It's assumed that each language has its own folder
-/// e.g. 
+/// e.g.
 ///      /cs
 ///         /S100.desc
 ///         /S101.desc
@@ -38,7 +38,7 @@ namespace ExtractRuleDescFromJson;
 ///      /vbnet
 ///         /S100.desc
 ///         ...
-///         
+///
 /// We also expect the rule description to be an HTML fragment, but the extractor
 /// doesn't actually care - we just treat it as text.
 /// </remarks>
@@ -78,8 +78,8 @@ internal class RuleDescExtractor
         {
             Logger.LogMessage("Removing existing .desc files from destination directory: " + context.DestinationDirectory);
             var descFiles = Directory.GetFiles(context.DestinationDirectory, "*.desc", SearchOption.TopDirectoryOnly);
-            var deleteCount = 0; 
-            foreach(var file in descFiles)
+            var deleteCount = 0;
+            foreach (var file in descFiles)
             {
                 File.Delete(file);
                 deleteCount++;
@@ -112,6 +112,7 @@ internal class RuleDescExtractor
                 ConvertPluginIssueType(pluginRule.Type),
                 Convert.ToBoolean(pluginRule.IsActiveByDefault),
                 pluginRule.Tags ?? Array.Empty<string>(),
+                null,
                 null,
                 null
                 );
@@ -152,6 +153,7 @@ internal class RuleDescExtractor
     // e.g. <br>  =>  <br/>
     // e.g. <col span="123">  =>  <col span="123"/>
     private static Regex cleanCol = new Regex("(?<element>(<col\\s*)|(col\\s+[^/^>]*))>", RegexOptions.Compiled);
+
     private static Regex cleanBr = new Regex("(?<element>(<br\\s*)|(br\\s+[^/^>]*))>", RegexOptions.Compiled);
 
     private static string EnsureHtmlIsXml(string? pluginRuleDescription)

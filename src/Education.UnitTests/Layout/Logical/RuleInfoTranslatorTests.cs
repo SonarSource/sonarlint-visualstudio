@@ -195,7 +195,8 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
                 isActiveByDefault: true,
                 new List<string> { "veryimportantissue" },
                 sections,
-                new List<string> { "think before you do something", "think again" });
+                new List<string> { "think before you do something", "think again" },
+                null);
         }
     }
 }
