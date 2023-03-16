@@ -216,14 +216,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         }
         [TestMethod]
         public void Refresh_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed()
-            => RefreshImpl_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed(CallRefresh, shouldRaiseIssuesChanged: true);
+            => RefreshImpl_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed(CallRefresh);
 
         [TestMethod]
         public void RefreshOnBufferChanged_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed()
-            => RefreshImpl_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed(CallRefreshOnBufferChanged, shouldRaiseIssuesChanged: false);
+            => RefreshImpl_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed(CallRefreshOnBufferChanged);
 
-        private void RefreshImpl_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed(RefreshImplTestOperation testOp,
-            bool shouldRaiseIssuesChanged)
+        private void RefreshImpl_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed(RefreshImplTestOperation testOp)
         {
             var testSubject = CreateTestSubject();
 
@@ -240,20 +239,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             testSubject.Subscribe(sinkMock1.Object);
             testSubject.Subscribe(sinkMock2.Object);
 
-            var issuesChangedEvent = CreateAndRegisterIssuesEventHandler(testSubject);
-
             testOp(testSubject, "match.txt");
-
-            if (shouldRaiseIssuesChanged)
-            {
-                CheckIssuesChangedEvents(issuesChangedEvent, testSubject,
-                    "match.txt", "MATCH.TXT"); // two separate events, even though they are the same file
-                // Event should not raised for the file with no matches
-            }
-            else
-            {
-                CheckIssuesChangedEventIsNotRaised(issuesChangedEvent);
-            }
 
             CheckUpdateSnapshotCalled(factoryWithMatch1);
             CheckUpdateSnapshotCalled(factoryWithMatch2);
@@ -262,6 +248,38 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             // All sinks should be notified about updates to only factories with matches
             CheckSinkNotifiedOfChangeToFactories(sinkMock1, factoryWithMatch1, factoryWithMatch2);
             CheckSinkNotifiedOfChangeToFactories(sinkMock2, factoryWithMatch1, factoryWithMatch2);
+        }
+
+        [TestMethod]
+        public void RefreshImpl_SomeFactoriesWithMatchingFiles_RaisesSingleIssueChangeEventContainingExpectedFiles()
+        {
+            var testSubject = CreateTestSubject();
+
+            var factoryWithMatch1 = CreateFactoryAndSnapshotWithSpecifiedFiles("match1.aaa", "match2.bbb");
+            var factoryWithMatch2 = CreateFactoryAndSnapshotWithSpecifiedFiles("MATCH1.AAA", "match3.ccc"); // tests case-insensitivity
+            var factoryWithMatch3 = CreateFactoryAndSnapshotWithSpecifiedFiles("not a match but still included.txt", "match4.ddd");
+            var factoryWithMatch4 = CreateFactoryAndSnapshotWithSpecifiedFiles("match5.eee");
+            var factoryWithoutMatches1 = CreateFactoryAndSnapshotWithSpecifiedFiles("not a match.txt");
+            var factoryWithoutMatches2 = CreateFactoryAndSnapshotWithSpecifiedFiles("another not a match.txt");
+
+            testSubject.AddFactory(factoryWithMatch1);
+            testSubject.AddFactory(factoryWithoutMatches1);
+            testSubject.AddFactory(factoryWithMatch2);
+            testSubject.AddFactory(factoryWithoutMatches2);
+            testSubject.AddFactory(factoryWithMatch3);
+            testSubject.AddFactory(factoryWithMatch4);
+
+            var issuesChangedEvent = CreateAndRegisterIssuesEventHandler(testSubject);
+
+            // XXX.txt and YYY.ccc won't match any of the snapshot files
+            testSubject.Refresh(new[] { "XXX.txt", "match1.aaa", "match2.bbb", "match3.ccc", "YYY.ccc", "match4.ddd", "match5.eee" });
+
+            // Should be one event with all directyl and indirectly affected files
+            CheckSingleIssuesChangedEvent(issuesChangedEvent, testSubject,
+                    "match1.aaa", "match2.bbb", "match3.ccc", "match4.ddd", "match5.eee",
+                    // this file is included because it is indirectly included i.e. is in a snapshot a file that does match
+                    "not a match but still included.txt"
+                    );
         }
 
         [TestMethod]
@@ -490,24 +508,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         private static void CheckIssuesChangedEventIsNotRaised(Mock<EventHandler<IssuesChangedEventArgs>> issuesChangedEvent)
             => issuesChangedEvent.Invocations.Should().HaveCount(0);
 
-        private static void CheckIssuesChangedEvents(Mock<EventHandler<IssuesChangedEventArgs>> issuesChangedEvent,
+        private static void CheckSingleIssuesChangedEvent(Mock<EventHandler<IssuesChangedEventArgs>> issuesChangedEvent,
             SonarErrorListDataSource testSubject,
-            params string[] expectedFileNamesPerEvent)
+            params string[] expectedFileNames)
         {
-            issuesChangedEvent.Invocations.Should().HaveCount(expectedFileNamesPerEvent.Length);
+            issuesChangedEvent.Invocations.Should().HaveCount(1);
+            issuesChangedEvent.Invocations[0].Arguments[0].Should().BeSameAs(testSubject);
 
-            // Check the expected file names are raised for each account
-            for (int eventNumber = 0; eventNumber < expectedFileNamesPerEvent.Length; eventNumber++)
-            {
-                var expectedFileName = expectedFileNamesPerEvent[eventNumber];
-
-                issuesChangedEvent.Invocations[eventNumber].Arguments[0].Should().BeSameAs(testSubject);
-
-                var actualEventArgs = issuesChangedEvent.Invocations[eventNumber].Arguments[1] as IssuesChangedEventArgs;
-                actualEventArgs.Should().NotBeNull();
-                actualEventArgs.AnalyzedFiles.Should().BeEquivalentTo(expectedFileName);
-            }
+            var actualEventArgs = issuesChangedEvent.Invocations[0].Arguments[1] as IssuesChangedEventArgs;
+            actualEventArgs.Should().NotBeNull();
+            actualEventArgs.AnalyzedFiles.Should().BeEquivalentTo(expectedFileNames);
         }
+        
         private Mock<IIssueSelectionService> CreateSelectionService(IAnalysisIssueVisualization selectedIssueViz)
         {
             var selectionService = new Mock<IIssueSelectionService>();
