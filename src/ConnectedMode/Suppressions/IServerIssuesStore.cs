@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
     /// <summary>
     /// Write-interface for <see cref="IServerIssuesStore"/> i.e. contains methods to update the store
     /// </summary>
-    internal interface IServerIssuesStoreWriter
+    internal interface IServerIssuesStoreWriter : IServerIssuesStore
     {
         /// <summary>
         /// Updates the IsResolved status of the issue with the specified key 

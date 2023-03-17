@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
@@ -37,7 +38,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
         {
             MefTestHelpers.CheckTypeCanBeImported<IssueServerEventsListener, IIssueServerEventsListener>(
                 MefTestHelpers.CreateExport<IIssueServerEventSource>(),
-                MefTestHelpers.CreateExport<IServerIssuesStoreWriter>(),
+                MefTestHelpers.CreateExport<ISuppressionIssueStoreUpdater>(),
                 MefTestHelpers.CreateExport<IThreadHandling>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
@@ -48,20 +49,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
             var event1 = CreateServerEvent(isResolved: true,
                 new BranchAndIssueKey("issueKey1", "branch1"),
                 new BranchAndIssueKey("issueKey2", "branch2"));
+
             var issueServerEventSource = SetupIssueServerEventSource(event1);
 
-            var storeWriter = new Mock<IServerIssuesStoreWriter>();
+            var storeUpdater = new Mock<ISuppressionIssueStoreUpdater>();
 
-            var testSubject = CreateTestSubject(issueServerEventSource.Object, storeWriter.Object);
+            var testSubject = CreateTestSubject(issueServerEventSource.Object, storeUpdater.Object);
 
             await testSubject.ListenAsync();
 
             issueServerEventSource.Verify(x => x.GetNextEventOrNullAsync(), Times.Exactly(2));
             issueServerEventSource.VerifyNoOtherCalls();
 
-            storeWriter.Verify(x => x.UpdateIssue("issueKey1", true), Times.Once);
-            storeWriter.Verify(x => x.UpdateIssue("issueKey2", true), Times.Once);
-            storeWriter.VerifyNoOtherCalls();
+            storeUpdater.Verify(x => x.UpdateSuppressedIssues(
+                    true,
+                    new[] {"issueKey1", "issueKey2"},
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+            storeUpdater.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -73,18 +78,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
                 new BranchAndIssueKey("issueKey2", "branch2"));
             var issueServerEventSource = SetupIssueServerEventSource(event1, event2);
 
-            var storeWriter = new Mock<IServerIssuesStoreWriter>();
+            var storeUpdater = new Mock<ISuppressionIssueStoreUpdater>();
 
-            var testSubject = CreateTestSubject(issueServerEventSource.Object, storeWriter.Object);
+            var testSubject = CreateTestSubject(issueServerEventSource.Object, storeUpdater.Object);
 
             await testSubject.ListenAsync();
 
             issueServerEventSource.Verify(x => x.GetNextEventOrNullAsync(), Times.Exactly(3));
             issueServerEventSource.VerifyNoOtherCalls();
 
-            storeWriter.Verify(x => x.UpdateIssue("issueKey1", true), Times.Once);
-            storeWriter.Verify(x => x.UpdateIssue("issueKey2", false), Times.Once);
-            storeWriter.VerifyNoOtherCalls();
+            storeUpdater.Verify(x => x.UpdateSuppressedIssues(
+                    true,
+                    new[] { "issueKey1" },
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+
+            storeUpdater.Verify(x => x.UpdateSuppressedIssues(
+                    false,
+                    new[] {"issueKey2" },
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+
+            storeUpdater.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -137,16 +152,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
 
         private static IssueServerEventsListener CreateTestSubject(
             IIssueServerEventSource issueServerEventSource = null,
-            IServerIssuesStoreWriter serverIssuesStoreWriter = null,
+            ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater = null,
             IThreadHandling threadHandling = null,
             ILogger logger = null)
         {
             issueServerEventSource ??= Mock.Of<IIssueServerEventSource>();
-            serverIssuesStoreWriter ??= Mock.Of<IServerIssuesStoreWriter>();
+            suppressionIssueStoreUpdater ??= Mock.Of<ISuppressionIssueStoreUpdater>();
             threadHandling ??= new NoOpThreadHandler();
             logger ??= Mock.Of<ILogger>();
 
-            return new IssueServerEventsListener(issueServerEventSource, serverIssuesStoreWriter, threadHandling, logger);
+            return new IssueServerEventsListener(issueServerEventSource, suppressionIssueStoreUpdater, threadHandling, logger);
         }
 
         private static IIssueChangedServerEvent CreateServerEvent(bool isResolved, params BranchAndIssueKey[] branchAndIssueKeys)
@@ -154,6 +169,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
             var serverEvent = new Mock<IIssueChangedServerEvent>();
             serverEvent.Setup(x => x.IsResolved).Returns(isResolved);
             serverEvent.Setup(x => x.BranchAndIssueKeys).Returns(branchAndIssueKeys);
+
             return serverEvent.Object;
         }
     }

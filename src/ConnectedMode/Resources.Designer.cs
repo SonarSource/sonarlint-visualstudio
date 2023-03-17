@@ -331,11 +331,29 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] IssueChangedEvent finished.
+        /// </summary>
+        internal static string Suppression_IssueChangedEventFinished {
+            get {
+                return ResourceManager.GetString("Suppression_IssueChangedEventFinished", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Suppressions] IssueChangedEvent received: {0}.
         /// </summary>
         internal static string Suppression_IssueChangedEventReceived {
             get {
                 return ResourceManager.GetString("Suppression_IssueChangedEventReceived", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Error updating data: {0}.
+        /// </summary>
+        internal static string Suppression_UpdateError_Verbose {
+            get {
+                return ResourceManager.GetString("Suppression_UpdateError_Verbose", resourceCulture);
             }
         }
         
@@ -381,6 +399,24 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         internal static string Suppressions_NotConnected {
             get {
                 return ResourceManager.GetString("Suppressions_NotConnected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Update operation failed: {0}.
+        /// </summary>
+        internal static string Suppressions_UpdateError_Short {
+            get {
+                return ResourceManager.GetString("Suppressions_UpdateError_Short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Update operation cancelled.
+        /// </summary>
+        internal static string Suppressions_UpdateOperationCancelled {
+            get {
+                return ResourceManager.GetString("Suppressions_UpdateOperationCancelled", resourceCulture);
             }
         }
     }

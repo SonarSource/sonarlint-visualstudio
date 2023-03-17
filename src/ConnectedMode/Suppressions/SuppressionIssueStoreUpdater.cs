@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
@@ -40,14 +41,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         Task UpdateAllServerSuppressionsAsync();
 
         /// <summary>
-        /// Fetches suppressions from the server from the specified timestamp onwards and updates the issues store
+        /// Updates the suppression status of the given issue key(s). If the issues are not found locally, they are fetched.
         /// </summary>
-        Task UpdateServerSuppressionsAsync(DateTimeOffset fromTimestamp);
-
-        /// <summary>
-        /// Clears all issues from the store
-        /// </summary>
-        void Clear();
+        Task UpdateSuppressedIssues(bool isResolved, string[] issueKeys, CancellationToken cancellationToken);
     }
 
     [Export(typeof(ISuppressionIssueStoreUpdater))]
@@ -79,7 +75,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         {
             this.server = server;
             this.serverQueryInfoProvider = serverQueryInfoProvider;
-
             this.storeWriter = storeWriter;
             this.logger = logger;
             this.threadHandling = threadHandling;
@@ -127,14 +122,47 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             }
         }
 
-        public Task UpdateServerSuppressionsAsync(DateTimeOffset fromTimestamp)
+        public async Task UpdateSuppressedIssues(bool isResolved, string[] issueKeys, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
-        }
+            if (!issueKeys.Any())
+            {
+                return;
+            }
 
-        public void Clear()
-        {
-            throw new NotImplementedException();
+            await threadHandling.SwitchToBackgroundThread();
+
+            try
+            {
+                var existingIssuesInStore = storeWriter.Get();
+                var missingIssueKeys = issueKeys.Where(x => existingIssuesInStore.All(y => !y.IssueKey.Equals(x, StringComparison.Ordinal))).ToArray();
+
+                // Fetch only missing suppressed issues
+                if (isResolved && missingIssueKeys.Any())
+                {
+                    var queryInfo = await serverQueryInfoProvider.GetProjectKeyAndBranchAsync(cancellationToken);
+                    var issues = await server.GetSuppressedIssuesAsync(
+                        queryInfo.projectKey,
+                        queryInfo.branchName,
+                        missingIssueKeys,
+                        cancellationToken);
+
+                    storeWriter.AddIssues(issues, clearAllExistingIssues: false);
+                }
+
+                foreach (var issueKey in issueKeys)
+                {
+                    storeWriter.UpdateIssue(issueKey, isResolved);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                logger.WriteLine(Resources.Suppressions_UpdateOperationCancelled);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.LogVerbose(Resources.Suppression_UpdateError_Verbose, ex);
+                logger.WriteLine(Resources.Suppressions_UpdateError_Short, ex.Message);
+            }
         }
 
         private void CancelCurrentOperation()
