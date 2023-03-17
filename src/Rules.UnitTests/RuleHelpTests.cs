@@ -76,7 +76,8 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
                 isActiveByDefault: true,
                 tags,
                 descriptionSections,
-                educationPrinciples);
+                educationPrinciples,
+                "some user note");
 
             testSubject.LanguageKey.Should().Be(Language.CSharp.ServerLanguage.Key);
             testSubject.FullRuleKey.Should().Be("xxx:S123");
@@ -88,6 +89,7 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             testSubject.Tags.Should().BeEquivalentTo(tags);
             testSubject.DescriptionSections.Should().BeEquivalentTo(descriptionSections);
             testSubject.EducationPrinciples.Should().BeEquivalentTo(educationPrinciples);
+            testSubject.HtmlNote.Should().Be("some user note");
         }
     }
 }

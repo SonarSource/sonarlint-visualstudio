@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var xmlWriter = RuleHelpXamlTranslator.CreateXmlWriter(sb);
             var ruleInfo = new RuleInfo("cs", "cs:123", "<p>Hi</p>", "Hi", RuleIssueSeverity.Critical,
                 RuleIssueType.Vulnerability, true, new List<string>(), new List<IDescriptionSection>(),
-                new List<string>());
+                new List<string>(), null);
 
             var testSubject = (new XamlGeneratorHelperFactory()).Create(xmlWriter);
 
