@@ -51,9 +51,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         /// Updates the IsResolved status of the issues with the specified keys
         /// </summary>
         /// <remarks>If an issue key cannot be matched to an issue in the store it will be ignored.
-        /// Design decision: if we can't find an issue we could have decided to go to the server and
-        /// fetch it, but there could be dozens or even hundreds of IDEs listening to the server
-        /// events, so we don't want to trigger hundreds of requests to the server.
         /// </remarks>
         void UpdateIssues(bool isResolved, IEnumerable<string> issueKeys);
 
