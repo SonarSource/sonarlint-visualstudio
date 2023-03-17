@@ -44,17 +44,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
         private readonly IIssueServerEventSource issueServerEventSource;
         private readonly ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater;
         private readonly IThreadHandling threadHandling;
+        private readonly IStatefulServerBranchProvider branchProvider;
         private readonly ILogger logger;
         private readonly CancellationTokenSource cancellationTokenSource;
 
         [ImportingConstructor]
         public IssueServerEventsListener(IIssueServerEventSource issueServerEventSource,
             ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
+            IStatefulServerBranchProvider branchProvider,
             IThreadHandling threadHandling,
             ILogger logger)
         {
             this.issueServerEventSource = issueServerEventSource;
             this.suppressionIssueStoreUpdater = suppressionIssueStoreUpdater;
+            this.branchProvider = branchProvider;
             this.threadHandling = threadHandling;
             this.logger = logger;
 
@@ -77,12 +80,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
                         return;
                     }
 
-                    logger.LogVerbose(Resources.Suppression_IssueChangedEventReceived, issueServerEvent);
+                    var serverBranch = await branchProvider.GetServerBranchNameAsync(cancellationTokenSource.Token);
 
-                    // todo: filter for branch
-                    var issueKeys = issueServerEvent.BranchAndIssueKeys.Select(x => x.IssueKey).ToArray();
+                    var issueKeysForCurrentBranch = issueServerEvent.BranchAndIssueKeys
+                        .Where(x => x.BranchName.Equals(serverBranch))
+                        .Select(x => x.IssueKey)
+                        .ToArray();
 
-                    await suppressionIssueStoreUpdater.UpdateSuppressedIssues(issueServerEvent.IsResolved, issueKeys, cancellationTokenSource.Token);
+                    logger.LogVerbose(Resources.Suppression_IssueChangedEvent, issueServerEvent.IsResolved, string.Join(",", issueKeysForCurrentBranch));
+
+                    if (issueKeysForCurrentBranch.Any())
+                    {
+                        await suppressionIssueStoreUpdater.UpdateSuppressedIssues(issueServerEvent.IsResolved, issueKeysForCurrentBranch, cancellationTokenSource.Token);
+                    }
 
                     logger.LogVerbose(Resources.Suppression_IssueChangedEventFinished);
                 }
