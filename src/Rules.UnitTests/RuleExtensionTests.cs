@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         [TestMethod]
         public void GetCompositeKey_GetsKey()
         {
-            var testSubject = new SonarQubeRule("key", "repositoryKey", true, SonarQubeIssueSeverity.Info, null, SonarQubeIssueType.Unknown, null, null, null, null, null);
+            var testSubject = new SonarQubeRule("key", "repositoryKey", true, SonarQubeIssueSeverity.Info, null, SonarQubeIssueType.Unknown, null, null, null, null, null, null);
 
             var result = testSubject.GetCompositeKey();
 
