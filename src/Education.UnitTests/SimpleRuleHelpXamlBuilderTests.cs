@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
         private static bool ProcessResource(string fullResourceName)
         {
-            var testSubject = new SimpleRuleHelpXamlBuilder(new RuleHelpXamlTranslator(), new XamlGeneratorHelperFactory());
+            var testSubject = new SimpleRuleHelpXamlBuilder(new RuleHelpXamlTranslator(), new XamlGeneratorHelperFactory(new RuleHelpXamlTranslator()));
 
             try
             {

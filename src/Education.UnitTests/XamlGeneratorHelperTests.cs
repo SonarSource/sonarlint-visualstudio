@@ -35,11 +35,44 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void Factory_Create_ReturnsNonNull()
         {
-            var testSubject = new XamlGeneratorHelperFactory();
+            var testSubject = new XamlGeneratorHelperFactory(Mock.Of<IRuleHelpXamlTranslator>());
 
             var xamlGeneratorHelper = testSubject.Create(Mock.Of<XmlWriter>());
 
             xamlGeneratorHelper.Should().NotBeNull();
+        }
+
+        [TestMethod]
+        public void WriteDocumentHeaderAndEndDocument_ExtendedDescription_ProduceCorrectStructure()
+        {
+            var sb = new StringBuilder();
+            var xmlWriter = RuleHelpXamlTranslator.CreateXmlWriter(sb);
+            var ruleInfo = new RuleInfo("cs", "cs:123", "<p>Hi</p>", "Hi", RuleIssueSeverity.Critical,
+                RuleIssueType.Vulnerability, true, new List<string>(), new List<IDescriptionSection>(),
+                new List<string>(), "<p>fix this pls</p>");
+
+            var testSubject = (new XamlGeneratorHelperFactory(new RuleHelpXamlTranslator())).Create(xmlWriter);
+
+            testSubject.WriteDocumentHeader(ruleInfo);
+            xmlWriter.WriteStartElement("LineBreak");
+            xmlWriter.WriteEndElement();
+            testSubject.EndDocument();
+
+            sb.ToString().Should().BeEquivalentTo(
+@"<FlowDocument xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
+  <Paragraph Style=""{DynamicResource Title_Paragraph}"">Hi</Paragraph>
+  <Paragraph Style=""{DynamicResource Title_Paragraph}"">
+    <Span Style=""{DynamicResource SubtitleElement_Span}"">
+      <InlineUIContainer>
+        <Image Style=""{DynamicResource SubtitleElement_Image}"" Source=""{DynamicResource vulnerabilityDrawingImage}"" />
+      </InlineUIContainer>Vulnerability</Span>
+    <Span Style=""{DynamicResource SubtitleElement_Span}"">
+      <InlineUIContainer>
+        <Image Style=""{DynamicResource SubtitleElement_Image}"" Source=""{DynamicResource criticalDrawingImage}"" />
+      </InlineUIContainer>Critical</Span>
+    <Span Style=""{DynamicResource SubtitleElement_Span}"">cs:123</Span>
+  </Paragraph>
+  <LineBreak /><Paragraph>fix this pls</Paragraph><LineBreak /></FlowDocument>");
         }
 
         [TestMethod]
@@ -51,7 +84,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
                 RuleIssueType.Vulnerability, true, new List<string>(), new List<IDescriptionSection>(),
                 new List<string>(), null);
 
-            var testSubject = (new XamlGeneratorHelperFactory()).Create(xmlWriter);
+            var testSubject = (new XamlGeneratorHelperFactory(new RuleHelpXamlTranslator())).Create(xmlWriter);
 
             testSubject.WriteDocumentHeader(ruleInfo);
             xmlWriter.WriteStartElement("LineBreak");
