@@ -126,13 +126,15 @@ namespace SonarLint.VisualStudio.Rules
         IReadOnlyList<IDescriptionSection> DescriptionSections { get; }
 
         IReadOnlyList<string> EducationPrinciples { get; }
+
+        string HtmlNote { get; }
     }
 
     public class RuleInfo : IRuleInfo
     {
         public RuleInfo(string languageKey, string fullRuleKey, string description, string name,
             RuleIssueSeverity defaultSeverity, RuleIssueType issueType, bool isActiveByDefault,
-            IReadOnlyList<string> tags, IReadOnlyList<IDescriptionSection> descriptionSections, IReadOnlyList<string> educationPrinciples)
+            IReadOnlyList<string> tags, IReadOnlyList<IDescriptionSection> descriptionSections, IReadOnlyList<string> educationPrinciples, string htmlNote)
         {
             LanguageKey = languageKey;
             FullRuleKey = fullRuleKey;
@@ -144,6 +146,7 @@ namespace SonarLint.VisualStudio.Rules
             Tags = tags ?? Array.Empty<string>();
             DescriptionSections = descriptionSections;
             EducationPrinciples = educationPrinciples;
+            HtmlNote = htmlNote;
         }
 
         public string FullRuleKey { get; private set; }
@@ -165,5 +168,7 @@ namespace SonarLint.VisualStudio.Rules
         public IReadOnlyList<IDescriptionSection> DescriptionSections { get; }
 
         public IReadOnlyList<string> EducationPrinciples { get; }
+
+        public string HtmlNote { get; }
     }
 }
