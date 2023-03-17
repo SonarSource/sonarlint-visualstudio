@@ -228,6 +228,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
         {
             lock (sinks)
             {
+                var affectedSnapshotFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
                 foreach (var factory in factories)
                 {
                     var oldSnapshot = factory.CurrentSnapshot;
@@ -240,11 +242,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
 
                         if (notifyListeners)
                         {
-                            // TODO: this might result in duplicate notifications in cases involving secondary locations e.g.
-                            // Factory1 has Issue1 that refers to FileA and FileB
-                            // Factory2 has Issue2 that refers to FileC and FileB
-                            // -> listeners for FileB will be notified twice
-                            NotifyIssuesChanged(factory);
+                            // Aggregate the list of affected snapshot files and raise one event at the end e.g.
+                            // * Factory1 refers to files A and B
+                            // * Factory2 refers to files C and B
+                            // * Factory3 refers to file D
+                            // -> we want to notify changes to files [A, B, C, D] once only
+                            foreach (var file in factory.CurrentSnapshot.FilesInSnapshot)
+                            {
+                                affectedSnapshotFiles.Add(file);
+                            }
                         }
                     }
 
@@ -256,6 +262,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
                     {
                         issueSelectionService.SelectedIssue = null;
                     }
+                }
+
+                if (notifyListeners && affectedSnapshotFiles.Count > 0)
+                {
+                    IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(affectedSnapshotFiles));
                 }
             }
         }
