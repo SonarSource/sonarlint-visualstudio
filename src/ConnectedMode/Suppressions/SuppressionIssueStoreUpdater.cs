@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         /// <summary>
         /// Updates the suppression status of the given issue key(s). If the issues are not found locally, they are fetched.
         /// </summary>
-        Task UpdateSuppressedIssues(bool isResolved, string[] issueKeys, CancellationToken cancellationToken);
+        Task UpdateSuppressedIssuesAsync(bool isResolved, string[] issueKeys, CancellationToken cancellationToken);
     }
 
     [Export(typeof(ISuppressionIssueStoreUpdater))]
@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             }
         }
 
-        public async Task UpdateSuppressedIssues(bool isResolved, string[] issueKeys, CancellationToken cancellationToken)
+        public async Task UpdateSuppressedIssuesAsync(bool isResolved, string[] issueKeys, CancellationToken cancellationToken)
         {
             if (!issueKeys.Any())
             {
