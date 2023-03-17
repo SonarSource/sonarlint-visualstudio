@@ -236,10 +236,10 @@
   <data name="Suppression_Fetch_AllIssues_Finished" xml:space="preserve">
     <value>[Suppressions] Finished fetching all suppressions</value>
   </data>
-  <data name="Suppression_IssueChangedEventReceived" xml:space="preserve">
-    <value>[Suppressions] IssueChangedEvent received: {0}</value>
-  </data>
   <data name="Suppression_IssueChangedEventFinished" xml:space="preserve">
     <value>[Suppressions] IssueChangedEvent finished</value>
+  </data>
+  <data name="Suppression_IssueChangedEvent" xml:space="preserve">
+    <value>[Suppressions] Handling IssueChangedEvent, isResolved: {0}, issue keys for current branch: {1}</value>
   </data>
 </root>
