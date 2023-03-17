@@ -203,7 +203,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             var result = testSubject.Get();
             result.Count().Should().Be(0);
-            testSubject.UpdateIssue("issue1", false);
+            testSubject.UpdateIssues(false, new[] { "issue1" });
 
             eventMock.VerifyNoOtherCalls();
         }
@@ -216,7 +216,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             var eventMock = new Mock<EventHandler>();
             testSubject.ServerIssuesChanged += eventMock.Object;
-            testSubject.UpdateIssue("issue2", false);
+            testSubject.UpdateIssues(false, new[] { "issue2" });
 
             eventMock.VerifyNoOtherCalls();
         }
@@ -225,7 +225,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         public void UpdateIssues_NonEmptyList_Match_InvokesEventAndPropertyIsChanged()
         {
             var issue1 = CreateIssue("issue1", true);
-            var issue2 = CreateIssue("issue2", true);
+            var issue2 = CreateIssue("issue2", true); // this property should be changed
             var issue3 = CreateIssue("issue3", false);
 
             var testSubject = CreateTestSubject();
@@ -234,14 +234,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var eventMock = new Mock<EventHandler>();
             testSubject.ServerIssuesChanged += eventMock.Object;
 
-            testSubject.UpdateIssue("issue2", false);
-            testSubject.UpdateIssue("issue3", true);
+            testSubject.UpdateIssues(false, new[] { "issue2", "issue3" });
 
             issue1.IsResolved.Should().BeTrue();
             issue2.IsResolved.Should().BeFalse();
-            issue3.IsResolved.Should().BeTrue();
+            issue3.IsResolved.Should().BeFalse();
 
-            eventMock.Verify(x => x(testSubject, EventArgs.Empty), Times.Exactly(2));
+            // Changing a single property should be enough to trigger the event
+            eventMock.Verify(x => x(testSubject, EventArgs.Empty), Times.Exactly(1));
         }
 
         [TestMethod]
@@ -259,7 +259,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var eventMock = new Mock<EventHandler>();
             testSubject.ServerIssuesChanged += eventMock.Object;
 
-            testSubject.UpdateIssue("issue1Key", newValue);
+            testSubject.UpdateIssues(newValue, new[] { "issue1Key" });
 
             issue1.IsResolved.Should().Be(newValue);
 

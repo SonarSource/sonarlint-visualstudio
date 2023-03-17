@@ -48,14 +48,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
     internal interface IServerIssuesStoreWriter : IServerIssuesStore
     {
         /// <summary>
-        /// Updates the IsResolved status of the issue with the specified key 
+        /// Updates the IsResolved status of the issues with the specified keys
         /// </summary>
-        /// <remarks>If the issue key cannot be matched to an issue in the store it will be ignored.
-        /// Design decision: if we can't find an issue we could have decided to go to the server and
-        /// fetch it, but there could be dozens or even hundreds of IDEs listening to the server
-        /// events, so we don't want to trigger hundreds of requests to the server.
+        /// <remarks>If an issue key cannot be matched to an issue in the store it will be ignored.
         /// </remarks>
-        void UpdateIssue(string issueKey, bool isResolved);
+        void UpdateIssues(bool isResolved, IEnumerable<string> issueKeys);
 
         /// <summary>
         /// Adds the specified issues to the repository
