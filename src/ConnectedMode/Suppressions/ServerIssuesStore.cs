@@ -78,30 +78,36 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             RaiseEventIfRequired();
         }
 
-        public void UpdateIssue(string issueKey, bool isResolved)
+        public void UpdateIssues(bool isResolved, IEnumerable<string> issueKeys)
         {
-            SonarQubeIssue issue = null;
+            bool issuesChanged = false;
             lock (serverIssuesLock)
             {
-                // Only need to lock when reading the dictionary
-                serverIssues.TryGetValue(issueKey, out issue);
+                foreach (var issueKey in issueKeys)
+                {
+                    serverIssues.TryGetValue(issueKey, out var issue);
+
+                    if (issue == null)
+                    {
+                        logger.LogVerbose(Resources.Store_UpdateIssue_NoMatch, issueKey);
+                        return;
+                    }
+
+                    if (issue.IsResolved == isResolved)
+                    {
+                        logger.LogVerbose(Resources.Store_UpdateIssue_UpdateNotRequired, issueKey);
+                    }
+                    else
+                    {
+                        logger.LogVerbose(Resources.Store_UpdateIssue_UpdateRequired, issueKey, isResolved);
+                        issue.IsResolved = isResolved;
+                        issuesChanged = true;
+                    }
+                }
             }
 
-            if (issue == null)
+            if (issuesChanged)
             {
-                logger.LogVerbose(Resources.Store_UpdateIssue_NoMatch, issueKey);
-                return;
-            }
-
-            if (issue.IsResolved == isResolved)
-            {
-                logger.LogVerbose(Resources.Store_UpdateIssue_UpdateNotRequired, issueKey);
-            }
-            else
-            {
-                logger.LogVerbose(Resources.Store_UpdateIssue_UpdateRequired, issueKey, isResolved);
-                issue.IsResolved = isResolved;
-
                 RaiseEventIfRequired();
             }
         }
