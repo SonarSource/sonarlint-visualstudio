@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition.Primitives;
 using System.Linq;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Integration;
@@ -134,6 +133,39 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         }
 
         [TestMethod]
+        public void AddIssues_ExistingIssues_NewIssuesUpdateExistingIssues()
+        {
+            var testSubject = CreateTestSubject();
+
+            var existing1 = CreateIssue("e1");
+            var existing2 = CreateIssue("e2");
+
+            // Set the initial list of items
+            testSubject.AddIssues(new[] { existing1, existing2 }, true);
+            var initialIssues = testSubject.Get();
+            initialIssues.Should().HaveCount(2);
+            initialIssues.Should().BeEquivalentTo(existing1, existing2);
+
+            // Modify the items in the store
+            // e1 is unchanged
+            // e2 is replaced
+            // n1 is added
+            // E1 is added - different case from "e1" so should be treated as different
+            var mod1 = CreateIssue("e2");
+            var mod2 = CreateIssue("e3");
+            var new1 = CreateIssue("n1");
+            var new2 = CreateIssue("E1");
+
+            testSubject.AddIssues(new[] { mod1, mod2, new1, new2 }, false);
+
+            var actual = testSubject.Get();
+            actual.Should().HaveCount(5);
+            actual.Should().BeEquivalentTo(existing1, mod1, mod2, new1, new2);
+
+            actual.Should().NotContain(existing2);
+        }
+
+        [TestMethod]
         public void AddIssues_AddNullIssues_EventIsNotInvoked()
         {
             var testSubject = CreateTestSubject();
@@ -241,7 +273,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             return new ServerIssuesStore(logger);
         }
 
-        private static SonarQubeIssue CreateIssue(string key, bool isResolved)
+        private static SonarQubeIssue CreateIssue(string key, bool isResolved = false)
         {
             var issue = new SonarQubeIssue(key, "", "", "", "", "", isResolved, SonarQubeIssueSeverity.Info, DateTimeOffset.MinValue, DateTimeOffset.MinValue, null, null);
 

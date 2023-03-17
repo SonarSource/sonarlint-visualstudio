@@ -33,7 +33,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
     internal class ServerIssuesStore : IServerIssuesStore, IServerIssuesStoreWriter
     {
         private readonly ILogger logger;
-        private List<SonarQubeIssue> serverIssues = new List<SonarQubeIssue>();
+        private readonly object serverIssuesLock = new object();
+        private readonly Dictionary<string, SonarQubeIssue> serverIssues = new Dictionary<string, SonarQubeIssue>(StringComparer.Ordinal);
 
         public event EventHandler ServerIssuesChanged;
 
@@ -47,7 +48,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
         public IEnumerable<SonarQubeIssue> Get()
         {
-            return serverIssues ?? Enumerable.Empty<SonarQubeIssue>();
+            lock (serverIssuesLock)
+            {
+                return serverIssues?.Values.ToArray() ?? Enumerable.Empty<SonarQubeIssue>();
+            }
         }
 
         #endregion IServerIssuesStore implementation
@@ -57,20 +61,31 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         public void AddIssues(IEnumerable<SonarQubeIssue> issues, bool clearAllExistingIssues)
         {
             if (issues == null) { return; }
-
-            if (clearAllExistingIssues)
+            
+            lock (serverIssuesLock)
             {
-                serverIssues = new List<SonarQubeIssue>();
-            }
+                if (clearAllExistingIssues)
+                {
+                    serverIssues.Clear();
+                }
 
-            serverIssues.AddRange(issues);
+                foreach(var issue in issues)
+                {
+                    serverIssues[issue.IssueKey] = issue;
+                }
+            }
 
             RaiseEventIfRequired();
         }
 
         public void UpdateIssue(string issueKey, bool isResolved)
         {
-            var issue = serverIssues.SingleOrDefault(x => x.IssueKey == issueKey);
+            SonarQubeIssue issue = null;
+            lock (serverIssuesLock)
+            {
+                // Only need to lock when reading the dictionary
+                serverIssues.TryGetValue(issueKey, out issue);
+            }
 
             if (issue == null)
             {
@@ -95,6 +110,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         {
             if (ServerIssuesChanged != null)
             {
+                // Note: we don't need to raise the event inside the lock
+                // - there is no data about what changed in the event args, it's just a
+                // "something changed" notification, so if there are multiple threads
+                // trying to update the store concurrently it doesn't matter which order
+                // the events are raised in.
+                // This is different from the TaintStore, where the event does contain information
+                // about what changed, so the order of event processing matters.
                 logger.WriteLine(Resources.Store_UpdateIssue_RaisingEvent);
                 ServerIssuesChanged?.Invoke(this, EventArgs.Empty);
             }
