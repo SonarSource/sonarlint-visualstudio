@@ -164,6 +164,6 @@ namespace SonarQube.Client.Tests.RoslynExporterAdapter
         }
 
         private static SonarQubeRule CreateRule(string repoKey, string ruleKey) =>
-            new SonarQubeRule(ruleKey, repoKey, true, SonarQubeIssueSeverity.Critical, null, SonarQubeIssueType.Unknown, null, null, null, null, null);
+            new SonarQubeRule(ruleKey, repoKey, true, SonarQubeIssueSeverity.Critical, null, SonarQubeIssueType.Unknown, null, null, null, null, null, null);
     }
 }
