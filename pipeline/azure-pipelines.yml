@@ -147,6 +147,8 @@ jobs:
       projectKey: sonarlint-visualstudio
       projectName: SonarLint for Visual Studio
       projectVersion: $(SONAR_PROJECT_VERSION)
+      extraProperties: |
+        sonar.verbose=true
 
   - task: VSBuild@1
     displayName: Build solution SonarLint.VisualStudio.Integration.sln
