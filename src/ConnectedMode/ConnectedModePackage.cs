@@ -45,6 +45,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
         private ServerSuppressionsChangedHandler serverSuppressionsChangedHandler;
         private BoundSolutionUpdateHandler boundSolutionUpdateHandler;
         private TimedUpdateHandler timedUpdateHandler;
+        private LocalSuppressionsChangedHandler localSuppressionsChangedHandler;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -63,6 +64,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             serverSuppressionsChangedHandler = componentModel.GetService<ServerSuppressionsChangedHandler>();
             boundSolutionUpdateHandler = componentModel.GetService<BoundSolutionUpdateHandler>();
             timedUpdateHandler = componentModel.GetService<TimedUpdateHandler>();
+            localSuppressionsChangedHandler = componentModel.GetService<LocalSuppressionsChangedHandler>();
 
             // Trigger an initial update of suppressions (we might have missed the solution binding
             // event from the ActiveSolutionBoundTracker)
@@ -82,6 +84,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 serverSuppressionsChangedHandler?.Dispose();
                 boundSolutionUpdateHandler?.Dispose();
                 timedUpdateHandler?.Dispose();
+                localSuppressionsChangedHandler?.Dispose();
             }
 
             base.Dispose(disposing);
