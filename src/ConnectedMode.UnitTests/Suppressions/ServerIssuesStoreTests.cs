@@ -139,16 +139,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             var existing1 = CreateIssue("e1");
             var existing2 = CreateIssue("e2");
-            var existing3 = CreateIssue("e3");
 
             // Set the initial list of items
-            testSubject.AddIssues(new[] { existing1, existing2, existing3 }, true);
-            testSubject.Get().Count().Should().Be(3);
+            testSubject.AddIssues(new[] { existing1, existing2 }, true);
+            var initialIssues = testSubject.Get();
+            initialIssues.Should().HaveCount(2);
+            initialIssues.Should().BeEquivalentTo(existing1, existing2);
 
             // Modify the items in the store
             // e1 is unchanged
-            // e2 is updated
-            // e3 is updated
+            // e2 is replaced
             // n1 is added
             // E1 is added - different case from "e1" so should be treated as different
             var mod1 = CreateIssue("e2");
@@ -159,11 +159,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             testSubject.AddIssues(new[] { mod1, mod2, new1, new2 }, false);
 
             var actual = testSubject.Get();
-            actual.Should().HaveCount(4);
+            actual.Should().HaveCount(5);
             actual.Should().BeEquivalentTo(existing1, mod1, mod2, new1, new2);
 
             actual.Should().NotContain(existing2);
-            actual.Should().NotContain(existing3);
         }
 
         [TestMethod]
