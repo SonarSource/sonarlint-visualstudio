@@ -138,6 +138,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
         public async Task UpdateSuppressedIssues(bool isResolved, string[] issueKeys, CancellationToken cancellationToken)
         {
+            if (!issueKeys.Any())
+            {
+                return;
+            }
+
             await threadHandling.SwitchToBackgroundThread();
 
             var existingIssuesInStore = serverIssuesStore.Get();
