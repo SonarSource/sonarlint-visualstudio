@@ -331,6 +331,15 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] IssueChangedEvent finished.
+        /// </summary>
+        internal static string Suppression_IssueChangedEventFinished {
+            get {
+                return ResourceManager.GetString("Suppression_IssueChangedEventFinished", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Suppressions] IssueChangedEvent received: {0}.
         /// </summary>
         internal static string Suppression_IssueChangedEventReceived {

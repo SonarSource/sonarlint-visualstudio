@@ -228,4 +228,7 @@
   <data name="Suppression_IssueChangedEventReceived" xml:space="preserve">
     <value>[Suppressions] IssueChangedEvent received: {0}</value>
   </data>
+  <data name="Suppression_IssueChangedEventFinished" xml:space="preserve">
+    <value>[Suppressions] IssueChangedEvent finished</value>
+  </data>
 </root>

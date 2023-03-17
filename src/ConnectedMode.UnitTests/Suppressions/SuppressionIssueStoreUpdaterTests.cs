@@ -214,7 +214,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var testSubject = CreateTestSubject(queryInfo.Object,
                 server.Object,
                 writer.Object,
-                logger,
+                logger:logger,
                 // Note: need a real thread-handling implementation here as the test
                 // needs multiple threads.
                 threadHandling: ThreadHandling.Instance);
@@ -252,16 +252,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         private static SuppressionIssueStoreUpdater CreateTestSubject(IServerQueryInfoProvider queryInfo = null,
             ISonarQubeService server = null,
             IServerIssuesStoreWriter writer = null,
+            IServerIssuesStore store = null,
             ILogger logger = null,
             IThreadHandling threadHandling = null)
         {
             writer ??= Mock.Of<IServerIssuesStoreWriter>();
             server ??= Mock.Of<ISonarQubeService>();
+            store ??= Mock.Of<IServerIssuesStore>();
             queryInfo ??= Mock.Of<IServerQueryInfoProvider>();
             logger ??= new TestLogger(logToConsole: true);
             threadHandling ??= new NoOpThreadHandler();
 
-            return new SuppressionIssueStoreUpdater(server, queryInfo, writer, logger, threadHandling);
+            return new SuppressionIssueStoreUpdater(server, queryInfo, writer, store, logger, threadHandling);
         }
 
         private static Mock<IServerQueryInfoProvider> CreateQueryInfoProvider(string projectKey, string branchName)

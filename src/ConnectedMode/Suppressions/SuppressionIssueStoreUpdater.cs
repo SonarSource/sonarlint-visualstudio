@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
@@ -40,14 +41,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         Task UpdateAllServerSuppressionsAsync();
 
         /// <summary>
-        /// Fetches suppressions from the server from the specified timestamp onwards and updates the issues store
-        /// </summary>
-        Task UpdateServerSuppressionsAsync(DateTimeOffset fromTimestamp);
-
-        /// <summary>
         /// Clears all issues from the store
         /// </summary>
         void Clear();
+
+        /// <summary>
+        /// Updates the suppression status of the given issue key(s). If the issues are not found locally, they are fetched.
+        /// </summary>
+        Task UpdateSuppressedIssues(bool isResolved, string[] issueKeys, CancellationToken cancellationToken);
     }
 
     [Export(typeof(ISuppressionIssueStoreUpdater))]
@@ -57,6 +58,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         private readonly ISonarQubeService server;
         private readonly IServerQueryInfoProvider serverQueryInfoProvider;
         private readonly IServerIssuesStoreWriter storeWriter;
+        private readonly IServerIssuesStore serverIssuesStore;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
 
@@ -66,21 +68,23 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         public SuppressionIssueStoreUpdater(ISonarQubeService server,
             IServerQueryInfoProvider serverQueryInfoProvider,
             IServerIssuesStoreWriter storeWriter,
+            IServerIssuesStore serverIssuesStore,
             ILogger logger)
-            : this(server, serverQueryInfoProvider, storeWriter, logger, ThreadHandling.Instance)
+            : this(server, serverQueryInfoProvider, storeWriter, serverIssuesStore, logger, ThreadHandling.Instance)
         {
         }
 
         internal /* for testing */ SuppressionIssueStoreUpdater(ISonarQubeService server,
             IServerQueryInfoProvider serverQueryInfoProvider,
             IServerIssuesStoreWriter storeWriter,
+            IServerIssuesStore serverIssuesStore,
             ILogger logger,
             IThreadHandling threadHandling)
         {
             this.server = server;
             this.serverQueryInfoProvider = serverQueryInfoProvider;
-
             this.storeWriter = storeWriter;
+            this.serverIssuesStore = serverIssuesStore;
             this.logger = logger;
             this.threadHandling = threadHandling;
         }
@@ -127,14 +131,35 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             }
         }
 
-        public Task UpdateServerSuppressionsAsync(DateTimeOffset fromTimestamp)
+        public void Clear()
         {
             throw new NotImplementedException();
         }
 
-        public void Clear()
+        public async Task UpdateSuppressedIssues(bool isResolved, string[] issueKeys, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            await threadHandling.SwitchToBackgroundThread();
+
+            var existingIssuesInStore = serverIssuesStore.Get();
+            var missingIssueKeys = issueKeys.Where(x=> existingIssuesInStore.All(y => y.IssueKey != x)).ToArray();
+
+            // Fetch only missing suppressed issues
+            if (isResolved && missingIssueKeys.Any())
+            {
+                var queryInfo = await serverQueryInfoProvider.GetProjectKeyAndBranchAsync(cancellationToken);
+                var issues = await server.GetSuppressedIssuesAsync(
+                    queryInfo.projectKey,
+                    queryInfo.branchName,
+                    missingIssueKeys,
+                    cancellationToken);
+
+                storeWriter.AddIssues(issues, clearAllExistingIssues: false);
+            }
+
+            foreach (var issueKey in issueKeys)
+            {
+                storeWriter.UpdateIssue(issueKey, isResolved);
+            }
         }
 
         private void CancelCurrentOperation()

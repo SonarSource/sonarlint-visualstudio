@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
@@ -41,19 +42,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
     internal sealed class IssueServerEventsListener : IIssueServerEventsListener
     {
         private readonly IIssueServerEventSource issueServerEventSource;
-        private readonly IServerIssuesStoreWriter serverIssuesStoreWriter;
+        private readonly ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater;
         private readonly IThreadHandling threadHandling;
         private readonly ILogger logger;
         private readonly CancellationTokenSource cancellationTokenSource;
 
         [ImportingConstructor]
         public IssueServerEventsListener(IIssueServerEventSource issueServerEventSource,
-            IServerIssuesStoreWriter serverIssuesStoreWriter,
+            ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
             IThreadHandling threadHandling,
             ILogger logger)
         {
             this.issueServerEventSource = issueServerEventSource;
-            this.serverIssuesStoreWriter = serverIssuesStoreWriter;
+            this.suppressionIssueStoreUpdater = suppressionIssueStoreUpdater;
             this.threadHandling = threadHandling;
             this.logger = logger;
 
@@ -77,11 +78,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
                     }
 
                     logger.LogVerbose(Resources.Suppression_IssueChangedEventReceived, issueServerEvent);
-                    foreach(var item in issueServerEvent.BranchAndIssueKeys)
-                    {
-                        // TODO - check branch handling. Are issueKeys unique for each branch?
-                        serverIssuesStoreWriter.UpdateIssue(item.IssueKey, issueServerEvent.IsResolved);
-                    }
+
+                    // todo: filter for branch
+                    var issueKeys = issueServerEvent.BranchAndIssueKeys.Select(x => x.IssueKey).ToArray();
+
+                    await suppressionIssueStoreUpdater.UpdateSuppressedIssues(issueServerEvent.IsResolved, issueKeys, cancellationTokenSource.Token);
+
+                    logger.LogVerbose(Resources.Suppression_IssueChangedEventFinished);
                 }
                 catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {
