@@ -281,8 +281,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             await testSubject.UpdateSuppressedIssues(isResolved, new[]{"issue1", "issue2"}, CancellationToken.None);
 
             storeWriter.Verify(x=> x.Get(), Times.Once);
-            storeWriter.Verify(x=> x.UpdateIssue("issue1", isResolved), Times.Once);
-            storeWriter.Verify(x=> x.UpdateIssue("issue2", isResolved), Times.Once);
+            storeWriter.Verify(x=> x.UpdateIssues(isResolved, new[] { "issue1", "issue2" }), Times.Once);
             storeWriter.VerifyNoOtherCalls();
 
             server.Invocations.Count.Should().Be(0);
@@ -301,9 +300,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             await testSubject.UpdateSuppressedIssues(false, new[] { "issue1", "issue2", "issue3" }, CancellationToken.None);
 
             storeWriter.Verify(x => x.Get(), Times.Once);
-            storeWriter.Verify(x => x.UpdateIssue("issue1", false), Times.Once);
-            storeWriter.Verify(x => x.UpdateIssue("issue2", false), Times.Once);
-            storeWriter.Verify(x => x.UpdateIssue("issue3", false), Times.Once);
+            storeWriter.Verify(x => x.UpdateIssues(false, new[] { "issue1", "issue2", "issue3" }), Times.Once);
             storeWriter.VerifyNoOtherCalls();
 
             // the missing issue is not suppressed, so we will not fetch it
@@ -338,9 +335,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             storeWriter.Verify(x => x.Get(), Times.Once);
             storeWriter.Verify(x => x.AddIssues(expectedFetchedIssues, false), Times.Once);
-            storeWriter.Verify(x => x.UpdateIssue("issue1", true), Times.Once);
-            storeWriter.Verify(x => x.UpdateIssue("issue2", true), Times.Once);
-            storeWriter.Verify(x => x.UpdateIssue("issue3", true), Times.Once);
+            storeWriter.Verify(x => x.UpdateIssues(true, new[] { "issue1", "issue2", "issue3" }), Times.Once);
             storeWriter.VerifyNoOtherCalls();
         }
 

@@ -149,10 +149,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
                     storeWriter.AddIssues(issues, clearAllExistingIssues: false);
                 }
 
-                foreach (var issueKey in issueKeys)
-                {
-                    storeWriter.UpdateIssue(issueKey, isResolved);
-                }
+                storeWriter.UpdateIssues(isResolved, issueKeys);
             }
             catch (OperationCanceledException)
             {
