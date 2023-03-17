@@ -349,6 +349,15 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Error updating data: {0}.
+        /// </summary>
+        internal static string Suppression_UpdateError_Verbose {
+            get {
+                return ResourceManager.GetString("Suppression_UpdateError_Verbose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Suppressions] Cancelling current operation....
         /// </summary>
         internal static string Suppressions_CancellingCurrentOperation {
@@ -390,6 +399,24 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         internal static string Suppressions_NotConnected {
             get {
                 return ResourceManager.GetString("Suppressions_NotConnected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Update operation failed: {0}.
+        /// </summary>
+        internal static string Suppressions_UpdateError_Short {
+            get {
+                return ResourceManager.GetString("Suppressions_UpdateError_Short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Update operation cancelled.
+        /// </summary>
+        internal static string Suppressions_UpdateOperationCancelled {
+            get {
+                return ResourceManager.GetString("Suppressions_UpdateOperationCancelled", resourceCulture);
             }
         }
     }

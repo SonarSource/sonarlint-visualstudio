@@ -145,25 +145,37 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
             await threadHandling.SwitchToBackgroundThread();
 
-            var existingIssuesInStore = serverIssuesStore.Get();
-            var missingIssueKeys = issueKeys.Where(x=> existingIssuesInStore.All(y => y.IssueKey != x)).ToArray();
-
-            // Fetch only missing suppressed issues
-            if (isResolved && missingIssueKeys.Any())
+            try
             {
-                var queryInfo = await serverQueryInfoProvider.GetProjectKeyAndBranchAsync(cancellationToken);
-                var issues = await server.GetSuppressedIssuesAsync(
-                    queryInfo.projectKey,
-                    queryInfo.branchName,
-                    missingIssueKeys,
-                    cancellationToken);
+                var existingIssuesInStore = serverIssuesStore.Get();
+                var missingIssueKeys = issueKeys.Where(x => existingIssuesInStore.All(y => y.IssueKey != x)).ToArray();
 
-                storeWriter.AddIssues(issues, clearAllExistingIssues: false);
+                // Fetch only missing suppressed issues
+                if (isResolved && missingIssueKeys.Any())
+                {
+                    var queryInfo = await serverQueryInfoProvider.GetProjectKeyAndBranchAsync(cancellationToken);
+                    var issues = await server.GetSuppressedIssuesAsync(
+                        queryInfo.projectKey,
+                        queryInfo.branchName,
+                        missingIssueKeys,
+                        cancellationToken);
+
+                    storeWriter.AddIssues(issues, clearAllExistingIssues: false);
+                }
+
+                foreach (var issueKey in issueKeys)
+                {
+                    storeWriter.UpdateIssue(issueKey, isResolved);
+                }
             }
-
-            foreach (var issueKey in issueKeys)
+            catch (OperationCanceledException)
             {
-                storeWriter.UpdateIssue(issueKey, isResolved);
+                logger.WriteLine(Resources.Suppressions_UpdateOperationCancelled);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.LogVerbose(Resources.Suppression_UpdateError_Verbose, ex);
+                logger.WriteLine(Resources.Suppressions_UpdateError_Short, ex.Message);
             }
         }
 
