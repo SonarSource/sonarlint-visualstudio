@@ -357,14 +357,52 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
             actualQueryString.Contains($"&branch={requestedBranch}&").Should().BeTrue();
         }
 
-        private static GetIssuesRequest CreateTestSubject(string projectKey, string statusesToRequest, string branch = null)
+        [TestMethod]
+        public async Task InvokeAsync_IssueKeysAreNotSpecified_IssueKeysAreNotIncludedInQueryString()
+        {
+            var testSubject = CreateTestSubject("any", "any", issueKeys: null);
+
+            var handlerMock = new Mock<HttpMessageHandler>();
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri(ValidBaseAddress)
+            };
+
+            SetupHttpRequest(handlerMock, EmptyGetIssuesResponse);
+            _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
+
+            var actualQueryString = GetSingleActualQueryString(handlerMock);
+            actualQueryString.Contains("issues").Should().BeFalse();
+        }
+
+        [TestMethod]
+        public async Task InvokeAsync_IssueKeysAreSpecified_IssueKeysAreIncludedInQueryString()
+        {
+            var issueKeys = new[] {"issue1", "issue2"};
+            var testSubject = CreateTestSubject("any", "any", issueKeys: issueKeys);
+
+            var handlerMock = new Mock<HttpMessageHandler>();
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri(ValidBaseAddress)
+            };
+
+            SetupHttpRequest(handlerMock, EmptyGetIssuesResponse);
+            _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
+
+            var actualQueryString = GetSingleActualQueryString(handlerMock);
+            actualQueryString.Contains("issues=issue1%2Cissue2").Should().BeTrue();
+        }
+
+        private static GetIssuesRequest CreateTestSubject(string projectKey, string statusesToRequest, string branch = null, string[] issueKeys = null)
         {
             var testSubject = new GetIssuesRequest
             {
                 Logger = new TestLogger(),
                 ProjectKey = projectKey,
                 Statuses = statusesToRequest,
-                Branch = branch
+                Branch = branch,
+                IssueKeys = issueKeys
             };
 
             return testSubject;

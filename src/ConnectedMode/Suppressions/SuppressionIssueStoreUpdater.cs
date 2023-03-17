@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
                 localCopyOfCts.Token.ThrowIfCancellationRequested();
 
-                var allSuppressedIssues = await server.GetSuppressedIssuesAsync(queryInfo.projectKey, queryInfo.serverBranch, localCopyOfCts.Token);
+                var allSuppressedIssues = await server.GetSuppressedIssuesAsync(queryInfo.projectKey, queryInfo.serverBranch, null, localCopyOfCts.Token);
                 storeWriter.AddIssues(allSuppressedIssues, clearAllExistingIssues: true);
 
                 logger.WriteLine(Resources.Suppression_Fetch_AllIssues_Finished);
