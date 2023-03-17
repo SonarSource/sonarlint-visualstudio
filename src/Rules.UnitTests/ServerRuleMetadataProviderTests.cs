@@ -50,15 +50,15 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
 
             var tags = new[] { "tag1", "tag2" };
 
-            var sqRule = new SonarQubeRule("Key", "repoKey", true, SonarQubeIssueSeverity.Info, parameters, SonarQubeIssueType.Vulnerability, "html Description", descriptionSections, educationPrinciples, "RuleName", tags);
+            var sqRule = new SonarQubeRule("Key", "repoKey", true, SonarQubeIssueSeverity.Info, parameters, SonarQubeIssueType.Vulnerability, "html Description", descriptionSections, educationPrinciples, "RuleName", tags, "htmlNote");
 
-            service.Setup(s => s.GetRuleByKeyAsync("repoKey:Key", It.IsAny<CancellationToken>())).ReturnsAsync(sqRule);
+            service.Setup(s => s.GetRuleByKeyAsync("repoKey:Key", It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(sqRule);
 
             var testSubject = new ServerRuleMetadataProvider(service.Object);
 
             var ruleKey = new SonarCompositeRuleId("repoKey", "Key");
 
-            var result = await testSubject.GetRuleInfoAsync(ruleKey, CancellationToken.None);
+            var result = await testSubject.GetRuleInfoAsync(ruleKey, "qpKey", CancellationToken.None);
 
             result.Should().NotBeNull();
 
@@ -71,6 +71,8 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             result.IsActiveByDefault.Should().BeTrue();
             result.Tags.Should().BeEquivalentTo(tags);
             result.EducationPrinciples.Should().BeEquivalentTo(educationPrinciples);
+            result.HtmlNote.Should().Be("htmlNote");
+
             result.DescriptionSections.Count.Should().Be(3);
 
             for (int i = 0; i < 3; i++)
@@ -93,13 +95,13 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         public async Task GetRuleInfoAsync_RuleNotFound_ReturnNull()
         {
             var service = new Mock<ISonarQubeService>();
-            service.Setup(s => s.GetRuleByKeyAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((SonarQubeRule)null);
+            service.Setup(s => s.GetRuleByKeyAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((SonarQubeRule)null);
 
             var testSubject = new ServerRuleMetadataProvider(service.Object);
 
             var ruleKey = new SonarCompositeRuleId("repoKey", "Key");
 
-            var result = await testSubject.GetRuleInfoAsync(ruleKey, CancellationToken.None);
+            var result = await testSubject.GetRuleInfoAsync(ruleKey, "qpKey", CancellationToken.None);
 
             result.Should().BeNull();
         }

@@ -350,9 +350,15 @@ namespace SonarQube.Client
                 },
         token);
 
-        public async Task<SonarQubeRule> GetRuleByKeyAsync(string ruleKey, CancellationToken token)
+        public async Task<SonarQubeRule> GetRuleByKeyAsync(string ruleKey, string qualityProfileKey, CancellationToken token)
         {
-            var rules = await InvokeCheckedRequestAsync<IGetRulesRequest, SonarQubeRule[]>(request => { request.RuleKey = ruleKey; }, token);
+            var rules = await InvokeCheckedRequestAsync<IGetRulesRequest, SonarQubeRule[]>(
+                request =>
+                {
+                    request.RuleKey = ruleKey;
+                    request.QualityProfileKey = qualityProfileKey;
+                },
+            token);
             Debug.Assert(rules.Length <= 1);
 
             return rules.FirstOrDefault();
