@@ -75,7 +75,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore
 
         public void Refresh(IEnumerable<string> affectedFilePaths)
         {
-            // TODO: update comment when #3898, #3899 and #3900 are complete 
+            // Currently, this is called when the set of suppressed issues has changed.
+            // We don't support suppressions for Taint or Hotspots yet.
+
+            // NOTE: same comment as RefreshOnBufferChanged - we're making assumptions about the implementations of IIssueStore.
         }
 
         public bool Contains(IAnalysisIssueVisualization issueVisualization)
