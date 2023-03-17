@@ -32,8 +32,12 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
     {
         Pre_Section,                // html <pre>
         Blockquote_Section,         // html <blockquote>, rendered in a XAML <Section>
+        Heading1_Paragraph,         // html <h1>, rendered in a XAML <Paragraph>
         Heading2_Paragraph,         // html <h2>, rendered in a XAML <Paragraph>
         Heading3_Paragraph,         // html <h3>, rendered in a XAML <Paragraph>
+        Heading4_Paragraph,         // html <h4>, rendered in a XAML <Paragraph>
+        Heading5_Paragraph,         // html <h5>, rendered in a XAML <Paragraph>
+        Heading6_Paragraph,         // html <h6>, rendered in a XAML <Paragraph>
         Table,                      // html <table>, rendered in a XAML <Table>
         TableHeaderRowGroup,        // html <thead>, rendered in a XAML <TableRowGroup>
         TableHeaderCell,            // html <th>, rendered in a XAML <TableCell>

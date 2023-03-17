@@ -171,6 +171,13 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     WriteInlineElementStart("Italic");
                     break;
 
+                case "h1":
+                    writer.WriteStartElement("Paragraph");
+                    writer.ApplyStyleToElement(StyleResourceNames.Heading1_Paragraph);
+
+                    PushOutputElementInfo("h1", true);
+                    break;
+
                 case "h2":
                     writer.WriteStartElement("Paragraph");
                     writer.ApplyStyleToElement(StyleResourceNames.Heading2_Paragraph);
@@ -183,6 +190,25 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     writer.ApplyStyleToElement(StyleResourceNames.Heading3_Paragraph);
 
                     PushOutputElementInfo("h3", true);
+                    break;
+
+                case "h4":
+                    writer.WriteStartElement("Paragraph");
+                    writer.ApplyStyleToElement(StyleResourceNames.Heading4_Paragraph);
+
+                    PushOutputElementInfo("h4", true);
+                    break;
+                case "h5":
+                    writer.WriteStartElement("Paragraph");
+                    writer.ApplyStyleToElement(StyleResourceNames.Heading5_Paragraph);
+
+                    PushOutputElementInfo("h5", true);
+                    break;
+                case "h6":
+                    writer.WriteStartElement("Paragraph");
+                    writer.ApplyStyleToElement(StyleResourceNames.Heading6_Paragraph);
+
+                    PushOutputElementInfo("h6", true);
                     break;
 
                 case "li":
