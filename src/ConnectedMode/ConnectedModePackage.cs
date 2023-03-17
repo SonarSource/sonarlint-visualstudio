@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 serverSuppressionsChangedHandler?.Dispose();
                 boundSolutionUpdateHandler?.Dispose();
                 timedUpdateHandler?.Dispose();
-                localSuppressionsChangedHandler.Dispose();
+                localSuppressionsChangedHandler?.Dispose();
             }
 
             base.Dispose(disposing);
