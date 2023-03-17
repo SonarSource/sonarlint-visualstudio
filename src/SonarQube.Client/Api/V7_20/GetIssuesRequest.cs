@@ -38,6 +38,12 @@ namespace SonarQube.Client.Api.V7_20
         [JsonProperty("statuses")]
         public string Statuses { get; set; }
 
+        [JsonProperty("issues")] 
+        public string IssueKeysAsString => IssueKeys == null ? null : string.Join(",", IssueKeys);
+
+        [JsonIgnore] 
+        public string[] IssueKeys { get; set; }
+
         // Notes:
         // 1) Branch support is not available in SQ Community edition. SQ will just ignore it.
         // 2) SonarQube has supported the parameter since v6.6. However, the LTS at the point

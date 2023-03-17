@@ -51,6 +51,9 @@ namespace SonarQube.Client.Api.V5_10
         [JsonIgnore] // We don't support the branch parameter in v5.10
         public string Branch { get; set; }
 
+        [JsonIgnore] // We decided not to support it for API calls older than v7.20
+        public string[] IssueKeys { get; set; }
+
         protected override string Path => "batch/issues";
 
         protected async override Task<Result<SonarQubeIssue[]>> ReadResponseAsync(HttpResponseMessage httpResponse)
