@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
     [Export(typeof(IServerIssuesStore))]
     [Export(typeof(IServerIssuesStoreWriter))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ServerIssuesStore : IServerIssuesStore, IServerIssuesStoreWriter
+    internal class ServerIssuesStore : IServerIssuesStoreWriter
     {
         private readonly ILogger logger;
         private readonly object serverIssuesLock = new object();

@@ -260,7 +260,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             var testSubject = CreateTestSubject(queryInfo.Object, server.Object, storeWriter.Object);
 
-            await testSubject.UpdateSuppressedIssues(isResolved, Array.Empty<string>(), CancellationToken.None);
+            await testSubject.UpdateSuppressedIssuesAsync(isResolved, Array.Empty<string>(), CancellationToken.None);
 
             queryInfo.Invocations.Count.Should().Be(0);
             storeWriter.Invocations.Count.Should().Be(0);
@@ -278,7 +278,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             var testSubject = CreateTestSubject(queryInfo.Object, server.Object, storeWriter.Object);
 
-            await testSubject.UpdateSuppressedIssues(isResolved, new[]{"issue1", "issue2"}, CancellationToken.None);
+            await testSubject.UpdateSuppressedIssuesAsync(isResolved, new[]{"issue1", "issue2"}, CancellationToken.None);
 
             storeWriter.Verify(x=> x.Get(), Times.Once);
             storeWriter.Verify(x=> x.UpdateIssues(isResolved, new[] { "issue1", "issue2" }), Times.Once);
@@ -297,7 +297,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             var testSubject = CreateTestSubject(queryInfo.Object, server.Object, storeWriter.Object);
 
-            await testSubject.UpdateSuppressedIssues(false, new[] { "issue1", "issue2", "issue3" }, CancellationToken.None);
+            await testSubject.UpdateSuppressedIssuesAsync(false, new[] { "issue1", "issue2", "issue3" }, CancellationToken.None);
 
             storeWriter.Verify(x => x.Get(), Times.Once);
             storeWriter.Verify(x => x.UpdateIssues(false, new[] { "issue1", "issue2", "issue3" }), Times.Once);
@@ -323,7 +323,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             var testSubject = CreateTestSubject(queryInfo.Object, server.Object, storeWriter.Object);
 
-            await testSubject.UpdateSuppressedIssues(true, new[] { "issue1", "issue2", "issue3" }, CancellationToken.None);
+            await testSubject.UpdateSuppressedIssuesAsync(true, new[] { "issue1", "issue2", "issue3" }, CancellationToken.None);
 
             // the missing issues are suppressed, so we need to fetch them and add them to the store
             server.Verify(x => x.GetSuppressedIssuesAsync(
@@ -350,7 +350,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             var testSubject = CreateTestSubject(writer: storeWriter.Object, logger: logger);
 
-            Func<Task> operation = () => testSubject.UpdateSuppressedIssues(true, new[]{"issue1"}, CancellationToken.None);
+            Func<Task> operation = () => testSubject.UpdateSuppressedIssuesAsync(true, new[]{"issue1"}, CancellationToken.None);
             operation.Should().Throw<StackOverflowException>().And.Message.Should().Be("thrown in a test");
 
             logger.AssertPartialOutputStringDoesNotExist("thrown in a test");
@@ -367,7 +367,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             var testSubject = CreateTestSubject(writer: storeWriter.Object, logger: logger);
 
-            Func<Task> operation = () => testSubject.UpdateSuppressedIssues(true, new[] { "issue1" }, CancellationToken.None);
+            Func<Task> operation = () => testSubject.UpdateSuppressedIssuesAsync(true, new[] { "issue1" }, CancellationToken.None);
             operation.Should().NotThrow();
 
             logger.AssertPartialOutputStringExists("thrown in a test");
@@ -384,7 +384,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             var testSubject = CreateTestSubject(writer: storeWriter.Object, logger: logger);
 
-            Func<Task> operation = () => testSubject.UpdateSuppressedIssues(true, new[] { "issue1" }, CancellationToken.None);
+            Func<Task> operation = () => testSubject.UpdateSuppressedIssuesAsync(true, new[] { "issue1" }, CancellationToken.None);
             operation.Should().NotThrow();
 
             logger.AssertPartialOutputStringDoesNotExist("thrown in a test");

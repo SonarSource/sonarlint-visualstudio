@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
 
                     if (issueKeysForCurrentBranch.Any())
                     {
-                        await suppressionIssueStoreUpdater.UpdateSuppressedIssues(issueServerEvent.IsResolved, issueKeysForCurrentBranch, cancellationTokenSource.Token);
+                        await suppressionIssueStoreUpdater.UpdateSuppressedIssuesAsync(issueServerEvent.IsResolved, issueKeysForCurrentBranch, cancellationTokenSource.Token);
                     }
 
                     logger.LogVerbose(Resources.Suppression_IssueChangedEventFinished);
