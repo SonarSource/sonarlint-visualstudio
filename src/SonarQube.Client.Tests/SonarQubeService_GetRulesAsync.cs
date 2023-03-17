@@ -37,7 +37,7 @@ namespace SonarQube.Client.Tests
         {
             await ConnectToSonarQube();
 
-            SetupRequest("api/rules/search?activation=true&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples%2Ctags%2Cname&p=1&ps=500", @"
+            SetupRequest("api/rules/search?activation=true&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples%2Ctags%2Cname%2ChtmlNote&p=1&ps=500", @"
 {
   ""total"": 4,
   ""p"": 1,
@@ -188,7 +188,7 @@ namespace SonarQube.Client.Tests
         {
             await ConnectToSonarQube();
 
-            SetupRequest("api/rules/search?activation=false&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples%2Ctags%2Cname&p=1&ps=500", @"
+            SetupRequest("api/rules/search?activation=false&qprofile=quality-profile-1&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples%2Ctags%2Cname%2ChtmlNote&p=1&ps=500", @"
 {
   ""total"": 4,
   ""p"": 1,

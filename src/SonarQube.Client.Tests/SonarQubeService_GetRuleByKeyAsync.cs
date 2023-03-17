@@ -35,7 +35,7 @@ namespace SonarQube.Client.Tests
         {
             await ConnectToSonarQube();
 
-            SetupRequest("api/rules/search?rule_key=csharpsquid%3AS2342&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples%2Ctags%2Cname&p=1&ps=500", @"
+            SetupRequest("api/rules/search?qprofile=qpKey&rule_key=csharpsquid%3AS2342&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples%2Ctags%2Cname%2ChtmlNote&p=1&ps=500", @"
 {
   ""total"": 1,
   ""p"": 1,
@@ -45,6 +45,7 @@ namespace SonarQube.Client.Tests
       ""key"": ""csharpsquid:S2342"",
       ""repo"": ""csharpsquid"",
       ""htmlDesc"": ""Html Description"",
+      ""htmlNote"": ""HTML Note"",
       ""name"": ""RuleName"",
       ""tags"": [""tag1"",""tag2""],
       ""params"": [
@@ -133,7 +134,7 @@ namespace SonarQube.Client.Tests
 }
 ");
 
-            var result = await service.GetRuleByKeyAsync("csharpsquid:S2342", CancellationToken.None);
+            var result = await service.GetRuleByKeyAsync("csharpsquid:S2342", "qpKey", CancellationToken.None);
 
             messageHandler.VerifyAll();
 
@@ -142,6 +143,8 @@ namespace SonarQube.Client.Tests
             result.Key.Should().Be("S2342");
             result.RepositoryKey.Should().Be("csharpsquid");
             result.Description.Should().Be("Html Description");
+            result.HtmlNote.Should().Be("HTML Note");
+            result.Severity.Should().Be(SonarQubeIssueSeverity.Minor);
             result.Name.Should().Be("RuleName");
             result.Tags.Should().BeEquivalentTo(new[] { "tag1", "tag2" });
 
@@ -162,7 +165,7 @@ namespace SonarQube.Client.Tests
         {
             await ConnectToSonarQube();
 
-            SetupRequest("api/rules/search?rule_key=csharpsquid%3AS2342XX&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples%2Ctags%2Cname&p=1&ps=500", @"{
+            SetupRequest("api/rules/search?qprofile=qpKey&rule_key=csharpsquid%3AS2342XX&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples%2Ctags%2Cname%2ChtmlNote&p=1&ps=500", @"{
     ""total"": 0,
     ""p"": 1,
     ""ps"": 100,
@@ -177,7 +180,7 @@ namespace SonarQube.Client.Tests
 }
 ");
 
-            var result = await service.GetRuleByKeyAsync("csharpsquid:S2342XX", CancellationToken.None);
+            var result = await service.GetRuleByKeyAsync("csharpsquid:S2342XX", "qpKey", CancellationToken.None);
 
             messageHandler.VerifyAll();
 
@@ -191,7 +194,7 @@ namespace SonarQube.Client.Tests
             // No need to setup request, the operation should fail
 
             Func<Task<SonarQubeRule>> func = async () =>
-                await service.GetRuleByKeyAsync("whatever", CancellationToken.None);
+                await service.GetRuleByKeyAsync("whatever", "qpKey", CancellationToken.None);
 
             func.Should().ThrowExactly<InvalidOperationException>().And
                 .Message.Should().Be("This operation expects the service to be connected.");

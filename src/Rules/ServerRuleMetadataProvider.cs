@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Rules
         /// Fetches rule info for the specified language rule
         /// </summary>
         /// <returns>The rule info, or null if the repo key/rule was not recognised</returns>
-        Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, CancellationToken token);
+        Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, string qualityProfileKey, CancellationToken token);
     }
 
     [Export(typeof(IServerRuleMetadataProvider))]
@@ -54,15 +54,15 @@ namespace SonarLint.VisualStudio.Rules
             this.service = service;
         }
 
-        public async Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, CancellationToken token)
+        public async Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, string qualityProfileKey, CancellationToken token)
         {
-            var sqRule = await service.GetRuleByKeyAsync(ruleId.ToString(), token);
+            var sqRule = await service.GetRuleByKeyAsync(ruleId.ToString(), qualityProfileKey, token);
 
             if (sqRule == null) return null;
 
             var descriptionSections = sqRule.DescriptionSections.Select(ds => ds.ToDescriptionSection()).ToList();
 
-            return new RuleInfo(sqRule.RepositoryKey, sqRule.GetCompositeKey(), sqRule.Description, sqRule.Name, sqRule.Severity.ToRuleIssueSeverity(), sqRule.IssueType.ToRuleIssueType(), sqRule.IsActive, sqRule.Tags, descriptionSections, sqRule.EducationPrinciples, null);
+            return new RuleInfo(sqRule.RepositoryKey, sqRule.GetCompositeKey(), sqRule.Description, sqRule.Name, sqRule.Severity.ToRuleIssueSeverity(), sqRule.IssueType.ToRuleIssueType(), sqRule.IsActive, sqRule.Tags, descriptionSections, sqRule.EducationPrinciples, sqRule.HtmlNote);
         }
     }
 }

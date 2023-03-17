@@ -45,7 +45,7 @@ namespace SonarQube.Client.Api.V5_50
         // in the response! For example 'internalKey' in the request corresponds to 'key'
         // in the response. The server error message (400) returns all supported fields.
         [JsonProperty("f")]
-        public string ResponseFields => "repo,internalKey,params,actives,htmlDesc,descriptionSections,educationPrinciples,tags,name";
+        public string ResponseFields => "repo,internalKey,params,actives,htmlDesc,descriptionSections,educationPrinciples,tags,name,htmlNote";
 
         protected override SonarQubeRule[] ParseResponse(string response)
         {
@@ -93,7 +93,7 @@ namespace SonarQube.Client.Api.V5_50
 
             var descriptionSections = response.DescriptionSections?.Select(ds => ds.ToSonarQubeDescriptionSection()).ToList();
 
-            return new SonarQubeRule(GetRuleKey(response.Key), response.RepositoryKey, isActive, severity, parameters, issueType, response.Description, descriptionSections, response.EducationPrinciples, response.Name, response.Tags);
+            return new SonarQubeRule(GetRuleKey(response.Key), response.RepositoryKey, isActive, severity, parameters, issueType, response.Description, descriptionSections, response.EducationPrinciples, response.Name, response.Tags, response.HtmlNote);
         }
 
         private static string GetRuleKey(string compositeKey) =>
@@ -109,6 +109,9 @@ namespace SonarQube.Client.Api.V5_50
 
             [JsonProperty("htmlDesc")]
             public string Description { get; set; }
+
+            [JsonProperty("htmlNote")]
+            public string HtmlNote { get; set; }
 
             [JsonProperty("type")]
             public string Type { get; set; }
