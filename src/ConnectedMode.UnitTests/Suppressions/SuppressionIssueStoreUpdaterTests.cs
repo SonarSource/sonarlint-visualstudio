@@ -44,7 +44,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IServerQueryInfoProvider>(),
                 MefTestHelpers.CreateExport<IServerIssuesStoreWriter>(),
-                MefTestHelpers.CreateExport<IServerIssuesStore>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
@@ -146,7 +145,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var testSubject = CreateTestSubject(queryInfo.Object, logger: logger);
 
             Func<Task> operation = testSubject.UpdateAllServerSuppressionsAsync;
-            operation.Should().NotThrow<InvalidOperationException>();
+            operation.Should().NotThrow();
 
             logger.AssertPartialOutputStringExists("thrown in a test");
         }
@@ -163,7 +162,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var testSubject = CreateTestSubject(queryInfo.Object, logger: logger);
 
             Func<Task> operation = testSubject.UpdateAllServerSuppressionsAsync;
-            operation.Should().NotThrow<OperationCanceledException>();
+            operation.Should().NotThrow();
 
             logger.AssertPartialOutputStringDoesNotExist("thrown in a test");
             logger.AssertOutputStringExists(Resources.Suppressions_FetchOperationCancelled);
@@ -257,16 +256,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         {
             var queryInfo = CreateQueryInfoProvider("proj1", "branch1");
             var storeWriter = new Mock<IServerIssuesStoreWriter>();
-            var store = new Mock<IServerIssuesStore>();
             var server = new Mock<ISonarQubeService>();
 
-            var testSubject = CreateTestSubject(queryInfo.Object, server.Object, storeWriter.Object, store.Object);
+            var testSubject = CreateTestSubject(queryInfo.Object, server.Object, storeWriter.Object);
 
             await testSubject.UpdateSuppressedIssues(isResolved, Array.Empty<string>(), CancellationToken.None);
 
             queryInfo.Invocations.Count.Should().Be(0);
             storeWriter.Invocations.Count.Should().Be(0);
-            store.Invocations.Count.Should().Be(0);
             server.Invocations.Count.Should().Be(0);
         }
 
@@ -276,14 +273,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         public async Task UpdateSuppressedIssues_AllIssuesAreFoundInStore_NoServerCalls(bool isResolved)
         {
             var queryInfo = CreateQueryInfoProvider("proj1", "branch1");
-            var storeWriter = new Mock<IServerIssuesStoreWriter>();
-            var store = CreateIssuesStore(CreateIssue("issue1"), CreateIssue("issue2"));
+            var storeWriter = CreateIssuesStore(CreateIssue("issue1"), CreateIssue("issue2"));
             var server = new Mock<ISonarQubeService>();
 
-            var testSubject = CreateTestSubject(queryInfo.Object, server.Object, storeWriter.Object, store.Object);
+            var testSubject = CreateTestSubject(queryInfo.Object, server.Object, storeWriter.Object);
 
             await testSubject.UpdateSuppressedIssues(isResolved, new[]{"issue1", "issue2"}, CancellationToken.None);
 
+            storeWriter.Verify(x=> x.Get(), Times.Once);
             storeWriter.Verify(x=> x.UpdateIssue("issue1", isResolved), Times.Once);
             storeWriter.Verify(x=> x.UpdateIssue("issue2", isResolved), Times.Once);
             storeWriter.VerifyNoOtherCalls();
@@ -296,14 +293,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         public async Task UpdateSuppressedIssues_IssuesAreNotFoundInStore_IssuesAreNotSuppressed_NoServerCalls()
         {
             var queryInfo = CreateQueryInfoProvider("proj1", "branch1");
-            var storeWriter = new Mock<IServerIssuesStoreWriter>();
-            var store = CreateIssuesStore(CreateIssue("issue1"), CreateIssue("issue3"));
+            var storeWriter = CreateIssuesStore(CreateIssue("issue1"), CreateIssue("issue3"));
             var server = new Mock<ISonarQubeService>();
 
-            var testSubject = CreateTestSubject(queryInfo.Object, server.Object, storeWriter.Object, store.Object);
+            var testSubject = CreateTestSubject(queryInfo.Object, server.Object, storeWriter.Object);
 
             await testSubject.UpdateSuppressedIssues(false, new[] { "issue1", "issue2", "issue3" }, CancellationToken.None);
 
+            storeWriter.Verify(x => x.Get(), Times.Once);
             storeWriter.Verify(x => x.UpdateIssue("issue1", false), Times.Once);
             storeWriter.Verify(x => x.UpdateIssue("issue2", false), Times.Once);
             storeWriter.Verify(x => x.UpdateIssue("issue3", false), Times.Once);
@@ -318,8 +315,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         public async Task UpdateSuppressedIssues_IssuesAreNotFoundInStore_IssuesAreSuppressed_IssuesFetched()
         {
             var queryInfo = CreateQueryInfoProvider("proj1", "branch1");
-            var storeWriter = new Mock<IServerIssuesStoreWriter>();
-            var store = CreateIssuesStore(CreateIssue("issue1"));
+            var storeWriter = CreateIssuesStore(CreateIssue("issue1"));
             var expectedFetchedIssues = new[] {CreateIssue("issue2"), CreateIssue("issue3")};
 
             var server = CreateSonarQubeService(
@@ -328,7 +324,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
                 new[] {"issue2", "issue3"},
                 expectedFetchedIssues);
 
-            var testSubject = CreateTestSubject(queryInfo.Object, server.Object, storeWriter.Object, store.Object);
+            var testSubject = CreateTestSubject(queryInfo.Object, server.Object, storeWriter.Object);
 
             await testSubject.UpdateSuppressedIssues(true, new[] { "issue1", "issue2", "issue3" }, CancellationToken.None);
 
@@ -340,6 +336,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
                     CancellationToken.None),
                 Times.Once);
 
+            storeWriter.Verify(x => x.Get(), Times.Once);
             storeWriter.Verify(x => x.AddIssues(expectedFetchedIssues, false), Times.Once);
             storeWriter.Verify(x => x.UpdateIssue("issue1", true), Times.Once);
             storeWriter.Verify(x => x.UpdateIssue("issue2", true), Times.Once);
@@ -347,21 +344,71 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             storeWriter.VerifyNoOtherCalls();
         }
 
+        [TestMethod]
+        public void UpdateSuppressedIssues_CriticalExpression_NotHandled()
+        {
+            var storeWriter = new Mock<IServerIssuesStoreWriter>();
+            storeWriter.Setup(x => x.Get())
+                .Throws(new StackOverflowException("thrown in a test"));
+
+            var logger = new TestLogger(logToConsole: true);
+
+            var testSubject = CreateTestSubject(writer: storeWriter.Object, logger: logger);
+
+            Func<Task> operation = () => testSubject.UpdateSuppressedIssues(true, new[]{"issue1"}, CancellationToken.None);
+            operation.Should().Throw<StackOverflowException>().And.Message.Should().Be("thrown in a test");
+
+            logger.AssertPartialOutputStringDoesNotExist("thrown in a test");
+        }
+
+        [TestMethod]
+        public void UpdateSuppressedIssues_NonCriticalExpression_IsSuppressed()
+        {
+            var storeWriter = new Mock<IServerIssuesStoreWriter>();
+            storeWriter.Setup(x => x.Get())
+                .Throws(new InvalidOperationException("thrown in a test"));
+
+            var logger = new TestLogger(logToConsole: true);
+
+            var testSubject = CreateTestSubject(writer: storeWriter.Object, logger: logger);
+
+            Func<Task> operation = () => testSubject.UpdateSuppressedIssues(true, new[] { "issue1" }, CancellationToken.None);
+            operation.Should().NotThrow();
+
+            logger.AssertPartialOutputStringExists("thrown in a test");
+        }
+
+        [TestMethod]
+        public void UpdateSuppressedIssues_OperationCancelledException_CancellationMessageLogged()
+        {
+            var storeWriter = new Mock<IServerIssuesStoreWriter>();
+            storeWriter.Setup(x => x.Get())
+                .Throws(new OperationCanceledException("thrown in a test"));
+
+            var logger = new TestLogger(logToConsole: true);
+
+            var testSubject = CreateTestSubject(writer: storeWriter.Object, logger: logger);
+
+            Func<Task> operation = () => testSubject.UpdateSuppressedIssues(true, new[] { "issue1" }, CancellationToken.None);
+            operation.Should().NotThrow();
+
+            logger.AssertPartialOutputStringDoesNotExist("thrown in a test");
+            logger.AssertOutputStringExists(Resources.Suppressions_UpdateOperationCancelled);
+        }
+
         private static SuppressionIssueStoreUpdater CreateTestSubject(IServerQueryInfoProvider queryInfo = null,
             ISonarQubeService server = null,
             IServerIssuesStoreWriter writer = null,
-            IServerIssuesStore store = null,
             ILogger logger = null,
             IThreadHandling threadHandling = null)
         {
             writer ??= Mock.Of<IServerIssuesStoreWriter>();
             server ??= Mock.Of<ISonarQubeService>();
-            store ??= Mock.Of<IServerIssuesStore>();
             queryInfo ??= Mock.Of<IServerQueryInfoProvider>();
             logger ??= new TestLogger(logToConsole: true);
             threadHandling ??= new NoOpThreadHandler();
 
-            return new SuppressionIssueStoreUpdater(server, queryInfo, writer, store, logger, threadHandling);
+            return new SuppressionIssueStoreUpdater(server, queryInfo, writer, logger, threadHandling);
         }
 
         private static Mock<IServerQueryInfoProvider> CreateQueryInfoProvider(string projectKey, string branchName)
@@ -392,9 +439,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             => System.Diagnostics.Debugger.IsAttached ?
                 TimeSpan.FromMinutes(2) : TimeSpan.FromMilliseconds(200);
 
-        private static Mock<IServerIssuesStore> CreateIssuesStore(params SonarQubeIssue[] issuesInStore)
+        private static Mock<IServerIssuesStoreWriter> CreateIssuesStore(params SonarQubeIssue[] issuesInStore)
         {
-            var store = new Mock<IServerIssuesStore>();
+            var store = new Mock<IServerIssuesStoreWriter>();
 
             store.Setup(x => x.Get()).Returns(issuesInStore);
 

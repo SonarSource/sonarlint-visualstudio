@@ -41,11 +41,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         Task UpdateAllServerSuppressionsAsync();
 
         /// <summary>
-        /// Clears all issues from the store
-        /// </summary>
-        void Clear();
-
-        /// <summary>
         /// Updates the suppression status of the given issue key(s). If the issues are not found locally, they are fetched.
         /// </summary>
         Task UpdateSuppressedIssues(bool isResolved, string[] issueKeys, CancellationToken cancellationToken);
@@ -58,7 +53,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         private readonly ISonarQubeService server;
         private readonly IServerQueryInfoProvider serverQueryInfoProvider;
         private readonly IServerIssuesStoreWriter storeWriter;
-        private readonly IServerIssuesStore serverIssuesStore;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
 
@@ -68,23 +62,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         public SuppressionIssueStoreUpdater(ISonarQubeService server,
             IServerQueryInfoProvider serverQueryInfoProvider,
             IServerIssuesStoreWriter storeWriter,
-            IServerIssuesStore serverIssuesStore,
             ILogger logger)
-            : this(server, serverQueryInfoProvider, storeWriter, serverIssuesStore, logger, ThreadHandling.Instance)
+            : this(server, serverQueryInfoProvider, storeWriter, logger, ThreadHandling.Instance)
         {
         }
 
         internal /* for testing */ SuppressionIssueStoreUpdater(ISonarQubeService server,
             IServerQueryInfoProvider serverQueryInfoProvider,
             IServerIssuesStoreWriter storeWriter,
-            IServerIssuesStore serverIssuesStore,
             ILogger logger,
             IThreadHandling threadHandling)
         {
             this.server = server;
             this.serverQueryInfoProvider = serverQueryInfoProvider;
             this.storeWriter = storeWriter;
-            this.serverIssuesStore = serverIssuesStore;
             this.logger = logger;
             this.threadHandling = threadHandling;
         }
@@ -131,11 +122,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             }
         }
 
-        public void Clear()
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task UpdateSuppressedIssues(bool isResolved, string[] issueKeys, CancellationToken cancellationToken)
         {
             if (!issueKeys.Any())
@@ -147,8 +133,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
             try
             {
-                var existingIssuesInStore = serverIssuesStore.Get();
-                var missingIssueKeys = issueKeys.Where(x => existingIssuesInStore.All(y => y.IssueKey != x)).ToArray();
+                var existingIssuesInStore = storeWriter.Get();
+                var missingIssueKeys = issueKeys.Where(x => existingIssuesInStore.All(y => !y.IssueKey.Equals(x, StringComparison.Ordinal))).ToArray();
 
                 // Fetch only missing suppressed issues
                 if (isResolved && missingIssueKeys.Any())
