@@ -62,7 +62,17 @@ namespace SonarLint.VisualStudio.Rules
 
             var descriptionSections = sqRule.DescriptionSections.Select(ds => ds.ToDescriptionSection()).ToList();
 
-            return new RuleInfo(sqRule.RepositoryKey, sqRule.GetCompositeKey(), sqRule.Description, sqRule.Name, sqRule.Severity.ToRuleIssueSeverity(), sqRule.IssueType.ToRuleIssueType(), sqRule.IsActive, sqRule.Tags, descriptionSections, sqRule.EducationPrinciples, sqRule.HtmlNote);
+            return new RuleInfo(sqRule.RepositoryKey,
+                sqRule.GetCompositeKey(),
+                HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(sqRule.Description),
+                sqRule.Name,
+                sqRule.Severity.ToRuleIssueSeverity(),
+                sqRule.IssueType.ToRuleIssueType(),
+                sqRule.IsActive,
+                sqRule.Tags,
+                descriptionSections,
+                sqRule.EducationPrinciples,
+                HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(sqRule.HtmlNote));
         }
     }
 }

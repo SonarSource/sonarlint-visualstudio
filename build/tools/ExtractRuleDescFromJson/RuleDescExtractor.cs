@@ -101,7 +101,7 @@ internal class RuleDescExtractor
     {
         try
         {
-            var descAsxml = EnsureHtmlIsXml(pluginRule.Description);
+            var descAsxml = HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(pluginRule.Description);
 
             var slvsRule = new RuleInfo(
                 pluginRule.Language?.ToLower() ?? throw new ArgumentNullException("language"),
@@ -145,31 +145,6 @@ internal class RuleDescExtractor
             "CODE_SMELL" => RuleIssueType.CodeSmell,
             _ => throw new ArgumentException("Invalid enum value for pluginIssueType" + pluginIssueType, nameof(pluginIssueType)),
         };
-
-    // Regular expression that find empty "col"and "br" HTML elements
-    // e.g. <br>, <br >, <col>, <col span="123">
-    // This is valid HTML, but means we can't parse it as XML. So, we find
-    // the empty elements and replace them with elements with closing tags
-    // e.g. <br>  =>  <br/>
-    // e.g. <col span="123">  =>  <col span="123"/>
-    private static Regex cleanCol = new Regex("(?<element>(<col\\s*)|(col\\s+[^/^>]*))>", RegexOptions.Compiled);
-
-    private static Regex cleanBr = new Regex("(?<element>(<br\\s*)|(br\\s+[^/^>]*))>", RegexOptions.Compiled);
-
-    private static string EnsureHtmlIsXml(string? pluginRuleDescription)
-    {
-        if (pluginRuleDescription == null)
-        {
-            throw new ArgumentNullException(nameof(pluginRuleDescription));
-        }
-
-        var xml = pluginRuleDescription.Replace("&nbsp;", "&#160;");
-
-        xml = cleanCol.Replace(xml, "${element}/>");
-        xml = cleanBr.Replace(xml, "${element}/>");
-
-        return xml;
-    }
 
     private void SaveRuleFile(RuleInfo slvsRuleInfo)
     {
