@@ -36,19 +36,28 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
     internal class XamlGeneratorHelperFactory : IXamlGeneratorHelperFactory
     {
+        private readonly IRuleHelpXamlTranslator ruleHelpXamlTranslator;
+
+        public XamlGeneratorHelperFactory(IRuleHelpXamlTranslator ruleHelpXamlTranslator)
+        {
+            this.ruleHelpXamlTranslator = ruleHelpXamlTranslator;
+        }
+
         public IXamlGeneratorHelper Create(XmlWriter writer)
         {
-            return new XamlGeneratorHelper(writer);
+            return new XamlGeneratorHelper(writer, ruleHelpXamlTranslator);
         }
 
         private sealed class XamlGeneratorHelper : IXamlGeneratorHelper
         {
             private const string XamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
             private readonly XmlWriter writer;
+            private readonly IRuleHelpXamlTranslator ruleHelpXamlTranslator;
 
-            public XamlGeneratorHelper(XmlWriter writer)
+            public XamlGeneratorHelper(XmlWriter writer, IRuleHelpXamlTranslator ruleHelpXamlTranslator)
             {
                 this.writer = writer;
+                this.ruleHelpXamlTranslator = ruleHelpXamlTranslator;
             }
 
             public void WriteDocumentHeader(IRuleInfo ruleInfo)
@@ -58,6 +67,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 WriteTitle(ruleInfo.Name);
                 WriteSubTitle(ruleInfo);
+                WriteExtendedDescriptionIfPresent(ruleInfo);
             }
 
             public void EndDocument()
@@ -72,6 +82,19 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 writer.ApplyStyleToElement(StyleResourceNames.Title_Paragraph);
                 writer.WriteString(text);
                 writer.WriteEndElement();
+            }
+
+            private void WriteExtendedDescriptionIfPresent(IRuleInfo ruleInfo)
+            {
+                if (string.IsNullOrWhiteSpace(ruleInfo.HtmlNote))
+                {
+                    return;
+                }
+
+                writer.WriteStartElement("LineBreak");
+                writer.WriteEndElement();
+
+                writer.WriteRaw(ruleHelpXamlTranslator.TranslateHtmlToXaml(ruleInfo.HtmlNote));
             }
 
             private void WriteSubTitle(IRuleInfo ruleInfo)
