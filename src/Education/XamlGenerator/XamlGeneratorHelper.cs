@@ -90,10 +90,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 {
                     return;
                 }
-
-                writer.WriteStartElement("LineBreak");
-                writer.WriteEndElement();
-
+                
                 writer.WriteRaw(ruleHelpXamlTranslator.TranslateHtmlToXaml(ruleInfo.HtmlNote));
             }
 
