@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Rules
 
         internal static IDescriptionSection ToDescriptionSection(this SonarQubeDescriptionSection sonarQubeDescriptionSection)
         {
-            return new DescriptionSection(sonarQubeDescriptionSection.Key, sonarQubeDescriptionSection.HtmlContent, sonarQubeDescriptionSection.Context?.ToContext());
+            return new DescriptionSection(sonarQubeDescriptionSection.Key, HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(sonarQubeDescriptionSection.HtmlContent), sonarQubeDescriptionSection.Context?.ToContext());
         }
 
         private static IContext ToContext(this SonarQubeContext sonarQubeContext)
