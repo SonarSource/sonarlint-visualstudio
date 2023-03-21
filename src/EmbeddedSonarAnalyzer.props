@@ -5,10 +5,10 @@
   <PropertyGroup>
     <!-- Note: Guide on how to update the analyzers is on the xtranet! -->
     <EmbeddedSonarAnalyzerVersion>8.54.0.64047</EmbeddedSonarAnalyzerVersion>
-    <EmbeddedSonarCFamilyAnalyzerVersion>6.42.0.61084</EmbeddedSonarCFamilyAnalyzerVersion>
+    <EmbeddedSonarCFamilyAnalyzerVersion>6.43.0.61486</EmbeddedSonarCFamilyAnalyzerVersion>
     <EmbeddedSonarJSAnalyzerVersion>10.0.1.20755</EmbeddedSonarJSAnalyzerVersion>
-	
-	<!-- Secrets
+
+  <!-- Secrets
 	     Secrets are special case: we get the analyzer binaries from a NuGet package, and the
 		 rule help from an "normal" Java plugin. The two artefacts are versioned separately.
 	-->
