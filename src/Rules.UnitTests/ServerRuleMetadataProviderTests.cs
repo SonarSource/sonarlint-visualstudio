@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
 
             var parameters = new Dictionary<string, string> { { "parameter Key 1", "parameter Value 1" }, { "parameter Key 2", "parameter Value 2" } };
 
-            var descriptionSection1 = new SonarQubeDescriptionSection("key1", "Content1", null);
+            var descriptionSection1 = new SonarQubeDescriptionSection("key1", "Content1<br>", null);
             var descriptionSection2 = new SonarQubeDescriptionSection("key2", "Content2", new SonarQubeContext("Display1", "contextKey1"));
             var descriptionSection3 = new SonarQubeDescriptionSection("key2", "Content3", new SonarQubeContext("Display1", "contextKey1"));
 
@@ -50,7 +50,18 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
 
             var tags = new[] { "tag1", "tag2" };
 
-            var sqRule = new SonarQubeRule("Key", "repoKey", true, SonarQubeIssueSeverity.Info, parameters, SonarQubeIssueType.Vulnerability, "html Description", descriptionSections, educationPrinciples, "RuleName", tags, "htmlNote");
+            var sqRule = new SonarQubeRule("Key",
+                "repoKey",
+                true,
+                SonarQubeIssueSeverity.Info,
+                parameters,
+                SonarQubeIssueType.Vulnerability,
+                "<p>html Description</p><br>",
+                descriptionSections,
+                educationPrinciples,
+                "RuleName",
+                tags,
+                "htmlNote<br>");
 
             service.Setup(s => s.GetRuleByKeyAsync("repoKey:Key", It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(sqRule);
 
@@ -64,21 +75,21 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
 
             result.LanguageKey.Should().Be("repoKey");
             result.FullRuleKey.Should().Be("repoKey:Key");
-            result.Description.Should().Be("html Description");
+            result.Description.Should().Be("<p>html Description</p><br/>");
             result.Name.Should().Be("RuleName");
             result.DefaultSeverity.Should().Be(RuleIssueSeverity.Info);
             result.IssueType.Should().Be(RuleIssueType.Vulnerability);
             result.IsActiveByDefault.Should().BeTrue();
             result.Tags.Should().BeEquivalentTo(tags);
             result.EducationPrinciples.Should().BeEquivalentTo(educationPrinciples);
-            result.HtmlNote.Should().Be("htmlNote");
+            result.HtmlNote.Should().Be("htmlNote<br/>");
 
             result.DescriptionSections.Count.Should().Be(3);
 
             for (int i = 0; i < 3; i++)
             {
                 result.DescriptionSections[i].Key.Should().Be(descriptionSections[i].Key);
-                result.DescriptionSections[i].HtmlContent.Should().Be(descriptionSections[i].HtmlContent);
+                result.DescriptionSections[i].HtmlContent.Should().Be(descriptionSections[i].HtmlContent.Replace("<br>", "<br/>"));
 
                 if (result.DescriptionSections[i].Context == null)
                 {

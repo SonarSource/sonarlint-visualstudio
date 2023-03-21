@@ -19,6 +19,7 @@
   <ItemGroup Label="SLVS Linked product code">
     <Folder Include="SLVS_LinkedProductCode\" />
     <Compile Include="..\..\..\src\Rules\IRuleInfo.cs" Link="SLVS_LinkedProductCode\IRuleHelp.cs" />
+    <Compile Include="..\..\..\src\Rules\HtmlXmlCompatibilityHelper.cs" Link="SLVS_LinkedProductCode\HtmlXmlCompatibilityHelper.cs" />
   </ItemGroup>
 
 </Project>
