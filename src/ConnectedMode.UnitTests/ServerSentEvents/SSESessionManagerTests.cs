@@ -41,7 +41,8 @@ public class SSESessionManagerTests
 
         MefTestHelpers.CheckTypeCanBeImported<SSESessionManager, ISSESessionManager>(
             MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(activeSolutionBoundTrackerMock.Object),
-            MefTestHelpers.CreateExport<ISSESessionFactory>());
+            MefTestHelpers.CreateExport<ISSESessionFactory>(),
+            MefTestHelpers.CreateExport<ILogger>());
     }
 
     [TestMethod]

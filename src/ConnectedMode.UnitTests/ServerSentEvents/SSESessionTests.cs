@@ -206,7 +206,7 @@ public class SSESessionTests
             TaintPublisherMock = mockRepository.Create<ITaintServerEventSourcePublisher>(MockBehavior.Loose);
             IssuePublisherMock = mockRepository.Create<IIssueServerEventSourcePublisher>(MockBehavior.Loose);
             ThreadHandlingMock = mockRepository.Create<IThreadHandling>();
-            LoggerMock = mockRepository.Create<ILogger>();
+            LoggerMock = new Mock<ILogger>();
 
             var factory = new SSESessionFactory(
                 SonarQubeServiceMock.Object,
