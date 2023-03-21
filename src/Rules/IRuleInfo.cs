@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.Rules
 
         string Name { get; }
 
-        RuleIssueSeverity DefaultSeverity { get; }
+        RuleIssueSeverity DefaultSeverity { get; set; }
 
         RuleIssueType IssueType { get; }
 
@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.Rules
 
         IReadOnlyList<string> EducationPrinciples { get; }
 
-        string HtmlNote { get; }
+        string HtmlNote { get; set; }
     }
 
     public class RuleInfo : IRuleInfo
@@ -153,7 +153,7 @@ namespace SonarLint.VisualStudio.Rules
 
         public string Name { get; private set; }
 
-        public RuleIssueSeverity DefaultSeverity { get; private set; }
+        public RuleIssueSeverity DefaultSeverity { get; set; }
 
         public RuleIssueType IssueType { get; private set; }
 
@@ -169,6 +169,6 @@ namespace SonarLint.VisualStudio.Rules
 
         public IReadOnlyList<string> EducationPrinciples { get; }
 
-        public string HtmlNote { get; }
+        public string HtmlNote { get; set; }
     }
 }
