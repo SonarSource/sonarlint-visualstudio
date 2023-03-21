@@ -137,6 +137,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             {
                 if (disposed)
                 {
+                    logger.LogVerbose("[SSESession] Session {0} is disposed", GetHashCode());
                     throw new ObjectDisposedException(nameof(SSESession));
                 }
 
@@ -146,6 +147,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
                 if (sseStreamReader == null)
                 {
+                    logger.LogVerbose("[SSESession] Failed to create CreateSSEStreamReader");
                     return;
                 }
 
@@ -160,14 +162,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
                             continue;
                         }
 
+                        logger.LogVerbose("[SSESession] Received server event: {0}", serverEvent.GetType());
+
                         switch (serverEvent)
                         {
                             case ITaintServerEvent taintServerEvent:
+                            {
+                                logger.LogVerbose("[SSESession] Publishing taint event...");
                                 taintServerEventSourcePublisher.Publish(taintServerEvent);
                                 break;
+                            }
                             case IIssueChangedServerEvent issueChangedServerEvent:
+                            {
+                                logger.LogVerbose("[SSESession] Publishing issue changed event...");
                                 issueServerEventSourcePublisher.Publish(issueChangedServerEvent);
                                 break;
+                            }
                         }
                     }
                     catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -177,10 +187,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
                         return;
                     }
                 }
+
+                logger.LogVerbose("[SSESession] Session stopped, session token was canceled");
             }
 
             public void Dispose()
             {
+                logger.LogVerbose("[SSESession] Disposing session: {0}", GetHashCode());
+
                 if (disposed)
                 {
                     return;
