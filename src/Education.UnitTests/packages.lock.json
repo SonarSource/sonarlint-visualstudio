@@ -1308,7 +1308,6 @@
       "SonarLint.VisualStudio.Rules": {
         "type": "Project",
         "dependencies": {
-          "Newtonsoft.Json": "[13.0.1, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )"
         }
       },
