@@ -83,13 +83,38 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             testSubject.FullRuleKey.Should().Be("xxx:S123");
             testSubject.Description.Should().Be("a description");
             testSubject.Name.Should().Be("the rule name");
-            testSubject.DefaultSeverity.Should().Be(RuleIssueSeverity.Blocker);
+            testSubject.Severity.Should().Be(RuleIssueSeverity.Blocker);
             testSubject.IssueType.Should().Be(RuleIssueType.Vulnerability);
             testSubject.IsActiveByDefault.Should().BeTrue();
             testSubject.Tags.Should().BeEquivalentTo(tags);
             testSubject.DescriptionSections.Should().BeEquivalentTo(descriptionSections);
             testSubject.EducationPrinciples.Should().BeEquivalentTo(educationPrinciples);
             testSubject.HtmlNote.Should().Be("some user note");
+        }
+
+        [TestMethod]
+        public void WithOverridenHtmlNote_CreatesNewCopy()
+        {
+            var testSubject = new RuleInfo(
+               Language.CSharp.ServerLanguage.Key,
+               "xxx:S123",
+               null,
+               null,
+               RuleIssueSeverity.Blocker,
+               RuleIssueType.Unknown,
+               true,
+               null,
+               null,
+               null,
+               "some user note");
+
+            var result = testSubject.WithServerOverride(RuleIssueSeverity.Major, "new Note");
+
+            result.Should().NotBe(testSubject);
+            result.LanguageKey.Should().Be(Language.CSharp.ServerLanguage.Key);
+            result.FullRuleKey.Should().Be("xxx:S123");
+            result.Severity.Should().Be(RuleIssueSeverity.Major);
+            result.HtmlNote.Should().Be("new Note");
         }
     }
 }
