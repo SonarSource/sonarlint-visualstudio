@@ -70,5 +70,14 @@ namespace SonarLint.VisualStudio.Rules {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to [Rules] Error getting rules from SQ Server. Rule ID: {0} 
+        ///Error:{1}.
+        /// </summary>
+        internal static string ServerMetadataProvider_GetRulesError {
+            get {
+                return ResourceManager.GetString("ServerMetadataProvider_GetRulesError", resourceCulture);
+            }
+        }
     }
 }

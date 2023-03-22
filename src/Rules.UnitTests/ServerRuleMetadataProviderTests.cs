@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +26,8 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 
@@ -65,7 +68,7 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
 
             service.Setup(s => s.GetRuleByKeyAsync("repoKey:Key", It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(sqRule);
 
-            var testSubject = new ServerRuleMetadataProvider(service.Object);
+            var testSubject = CreateTestSubject(service.Object);
 
             var ruleKey = new SonarCompositeRuleId("repoKey", "Key");
 
@@ -108,13 +111,38 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             var service = new Mock<ISonarQubeService>();
             service.Setup(s => s.GetRuleByKeyAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((SonarQubeRule)null);
 
-            var testSubject = new ServerRuleMetadataProvider(service.Object);
+            var testSubject = CreateTestSubject(service.Object);
 
             var ruleKey = new SonarCompositeRuleId("repoKey", "Key");
 
             var result = await testSubject.GetRuleInfoAsync(ruleKey, "qpKey", CancellationToken.None);
 
             result.Should().BeNull();
+        }
+
+        [TestMethod]
+        public async Task GetRuleInfoAsync_GotError_ReturnNull()
+        {
+            var service = new Mock<ISonarQubeService>();
+            service.Setup(s => s.GetRuleByKeyAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ThrowsAsync(new Exception("Some server error"));
+
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(service.Object, logger);
+
+            var ruleKey = new SonarCompositeRuleId("repoKey", "Key");
+
+            var result = await testSubject.GetRuleInfoAsync(ruleKey, "qpKey", CancellationToken.None);
+
+            result.Should().BeNull();
+            logger.AssertPartialOutputStrings("Some server error");
+        }
+
+        private static ServerRuleMetadataProvider CreateTestSubject(ISonarQubeService service, ILogger logger = null)
+        {
+            logger ??= new TestLogger();
+
+            return new ServerRuleMetadataProvider(service, logger);
         }
     }
 }
