@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
@@ -30,12 +31,15 @@ namespace SonarLint.VisualStudio.Rules
         Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, CancellationToken token);
     }
 
+    [Export(typeof(IRuleMetaDataProvider))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class RuleMetaDataProvider : IRuleMetaDataProvider
     {
         private readonly ILocalRuleMetadataProvider localRuleMetadataProvider;
         private readonly IServerRuleMetadataProvider serverRuleMetadataProvider;
         private readonly IConfigurationProvider configurationProvider;
 
+        [ImportingConstructor]
         public RuleMetaDataProvider(ILocalRuleMetadataProvider localRuleMetadataProvider, IServerRuleMetadataProvider serverRuleMetadataProvider, IConfigurationProvider configurationProvider)
         {
             this.localRuleMetadataProvider = localRuleMetadataProvider;
