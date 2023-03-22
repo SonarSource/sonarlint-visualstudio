@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.IssueVisualization;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -37,11 +38,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
 {
     [Export(typeof(ISonarErrorListDataSource))]
     [Export(typeof(IIssueLocationStore))]
+    [Export(typeof(IClientIssueStore))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class SonarErrorListDataSource :
         ITableDataSource,           // Allows us to provide entries to the Error List
         ISonarErrorListDataSource,  // Used by analyzers to push new analysis results to the data source
         IIssueLocationStore,        // Used by the taggers to get/update locations for specific files
+        IClientIssueStore,          // Used by Issue synchronizers to update issues.
         IDisposable
     {
         private readonly IFileRenamesEventSource fileRenamesEventSource;
@@ -50,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
         private readonly ISet<IIssuesSnapshotFactory> factories = new HashSet<IIssuesSnapshotFactory>();
 
         [ImportingConstructor]
-        internal SonarErrorListDataSource(ITableManagerProvider tableManagerProvider, 
+        internal SonarErrorListDataSource(ITableManagerProvider tableManagerProvider,
             IFileRenamesEventSource fileRenamesEventSource,
             IIssueSelectionService issueSelectionService)
         {
@@ -70,7 +73,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
                                                    StandardTableColumnDefinitions.ErrorSource, StandardTableColumnDefinitions.ErrorCategory,
                                                    StandardTableColumnDefinitions.Text, StandardTableColumnDefinitions.DocumentName,
                                                    StandardTableColumnDefinitions.Line, StandardTableColumnDefinitions.Column,
-                                                   StandardTableColumnDefinitions.ProjectName);
+                                                   StandardTableColumnDefinitions.ProjectName,
+                                                   SuppressionsColumnHelper.SuppressionStateColumnName);
         }
 
         #region ITableDataSource members
@@ -200,6 +204,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
             return locVizs;
         }
 
+        public void RefreshOnBufferChanged(string affectedFilePath)
+        {
+            if (affectedFilePath == null)
+            {
+                throw new ArgumentNullException(nameof(affectedFilePath));
+            }
+
+            InternalRefreshAffectedFiles(new[] { affectedFilePath }, notifyListeners: false);
+        }
+
         public void Refresh(IEnumerable<string> affectedFilePaths)
         {
             if (affectedFilePaths == null)
@@ -207,8 +221,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
                 throw new ArgumentNullException(nameof(affectedFilePaths));
             }
 
+            InternalRefreshAffectedFiles(affectedFilePaths, notifyListeners: true);
+        }
+
+        private void InternalRefreshAffectedFiles(IEnumerable<string> affectedFilePaths, bool notifyListeners)
+        {
             lock (sinks)
             {
+                var affectedSnapshotFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
                 foreach (var factory in factories)
                 {
                     var oldSnapshot = factory.CurrentSnapshot;
@@ -218,16 +239,34 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
                     {
                         factory.UpdateSnapshot(factory.CurrentSnapshot.GetUpdatedSnapshot());
                         InternalRefreshErrorList(factory);
+
+                        if (notifyListeners)
+                        {
+                            // Aggregate the list of affected snapshot files and raise one event at the end e.g.
+                            // * Factory1 refers to files A and B
+                            // * Factory2 refers to files C and B
+                            // * Factory3 refers to file D
+                            // -> we want to notify changes to files [A, B, C, D] once only
+                            foreach (var file in factory.CurrentSnapshot.FilesInSnapshot)
+                            {
+                                affectedSnapshotFiles.Add(file);
+                            }
+                        }
                     }
 
                     var selectedIssue = issueSelectionService.SelectedIssue;
 
-                    // If the issue became non-navigable, it would not exist in the new snapshot. 
+                    // If the issue became non-navigable, it would not exist in the new snapshot.
                     // Hence, the selection should be checked based on the old snapshot's contents
                     if (oldSnapshot.Issues.Contains(selectedIssue) && !selectedIssue.IsNavigable())
                     {
                         issueSelectionService.SelectedIssue = null;
                     }
+                }
+
+                if (notifyListeners && affectedSnapshotFiles.Count > 0)
+                {
+                    IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(affectedSnapshotFiles));
                 }
             }
         }
@@ -246,6 +285,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
         }
 
         #endregion IIssueLocationStore implementation
+
+        #region IClientIssueStore implementation
+
+        public IEnumerable<IAnalysisIssueVisualization> Get()
+        {
+            var currentFactories = this.factories.ToArray();
+
+            foreach (var factory in currentFactories)
+            {
+                foreach (var issue in factory.CurrentSnapshot.Issues)
+                {
+                    yield return issue;
+                }
+            }
+        }
+
+        #endregion IClientIssueStore implementation
 
         private static void SafeOperation(ITableDataSink sink, string operationName, Action op)
         {
@@ -268,7 +324,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
             lock (sinks)
             {
                 var currentFactories = factories.ToArray();
-                
+
                 foreach (var factory in currentFactories)
                 {
                     var factoryChanged = factory.HandleFileRenames(e.OldNewFilePaths);

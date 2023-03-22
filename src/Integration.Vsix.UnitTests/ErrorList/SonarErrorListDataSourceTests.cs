@@ -22,12 +22,14 @@ using System;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
+using SonarLint.VisualStudio.IssueVisualization;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
@@ -72,8 +74,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             // Set up importers for each of the interfaces exported by the test subject
             var errorDataSourceImporter = new SingleObjectImporter<ISonarErrorListDataSource>();
             var issueLocationStoreImporter = new SingleObjectImporter<IIssueLocationStore>();
+            var clientIssueStore = new SingleObjectImporter<IClientIssueStore>();
             batch.AddPart(errorDataSourceImporter);
             batch.AddPart(issueLocationStoreImporter);
+            batch.AddPart(clientIssueStore);
 
             // Specify the source types that can be used to satify any import requests
             TypeCatalog catalog = new TypeCatalog(typeof(SonarErrorListDataSource));
@@ -85,10 +89,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
                 // Both imports should be satisfied...
                 errorDataSourceImporter.Import.Should().NotBeNull();
                 issueLocationStoreImporter.Import.Should().NotBeNull();
-
+                clientIssueStore.Import.Should().NotBeNull();
                 // ... and the the export should be a singleton, so the both importers should
                 // get the same instance
                 errorDataSourceImporter.Import.Should().BeSameAs(issueLocationStoreImporter.Import);
+                clientIssueStore.Import.Should().BeSameAs(errorDataSourceImporter.Import);
             }
         }
 
@@ -106,11 +111,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         }
 
         [TestMethod]
-        public void Ctor_FetchesErrorTableManagerAndRegistersDataSource()
+        public void Ctor_FetchesErrorTableManagerAndRegistersDataSourceAndTableColumnDefinitions()
         {
+            var tableColumnDefinitions = new[] { StandardTableColumnDefinitions.DetailsExpander,
+                                                   StandardTableColumnDefinitions.ErrorSeverity, StandardTableColumnDefinitions.ErrorCode,
+                                                   StandardTableColumnDefinitions.ErrorSource, StandardTableColumnDefinitions.BuildTool,
+                                                   StandardTableColumnDefinitions.ErrorSource, StandardTableColumnDefinitions.ErrorCategory,
+                                                   StandardTableColumnDefinitions.Text, StandardTableColumnDefinitions.DocumentName,
+                                                   StandardTableColumnDefinitions.Line, StandardTableColumnDefinitions.Column,
+                                                   StandardTableColumnDefinitions.ProjectName,
+                                                   SuppressionsColumnHelper.SuppressionStateColumnName};
             var testSubject = CreateTestSubject();
 
-            mockTableManager.Verify(x => x.AddSource(testSubject, It.IsAny<string[]>()), Times.Once);
+            mockTableManager.Verify(x => x.AddSource(testSubject, tableColumnDefinitions), Times.Once);
         }
 
         [TestMethod]

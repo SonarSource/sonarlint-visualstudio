@@ -177,7 +177,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         }
 
         [TestMethod]
-        public void LocationsUpdated_NullArg_Throws()
+        public void Refresh_NullArg_Throws()
         {
             var testSubject = CreateTestSubject();
             Action act = () => testSubject.Refresh(null);
@@ -185,7 +185,44 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         }
 
         [TestMethod]
-        public void LocationsUpdated_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed()
+        public void RefreshOnBufferChanged_NullArg_Throws()
+        {
+            var testSubject = CreateTestSubject();
+            Action act = () => testSubject.RefreshOnBufferChanged(null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("affectedFilePath");
+        }
+
+        /// <summary>
+        /// Most of the behaviour of Refresh(file) and RefreshOnBufferChanged(files) is the same.
+        /// This delegate is used by tests that check the common functionality
+        /// i.e. there is a common internal test method that does the common setup and assertions.
+        /// This delegate is passed into that common method to make a call to either 
+        /// "Refresh(file)" or "RefreshOnBufferChanged(files)"
+        /// </summary>
+        private delegate void RefreshImplTestOperation(SonarErrorListDataSource testSubject, string filePath);
+
+        private static void CallRefresh(SonarErrorListDataSource testSubject, string filePath)
+            => testSubject.Refresh(new[] { filePath });
+
+        private static void CallRefreshOnBufferChanged(SonarErrorListDataSource testSubject, string filePath)
+        {
+            // The RefreshOnBufferChanged method should never raise an IssuesChanged event, so we
+            // can add it here as an invariant check in all tests
+            var issueChangedHandler = CreateAndRegisterIssuesEventHandler(testSubject);
+
+            testSubject.RefreshOnBufferChanged(filePath);
+
+            CheckIssuesChangedEventIsNotRaised(issueChangedHandler);
+        }
+        [TestMethod]
+        public void Refresh_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed()
+            => RefreshImpl_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed(CallRefresh);
+
+        [TestMethod]
+        public void RefreshOnBufferChanged_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed()
+            => RefreshImpl_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed(CallRefreshOnBufferChanged);
+
+        private void RefreshImpl_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed(RefreshImplTestOperation testOp)
         {
             var testSubject = CreateTestSubject();
 
@@ -202,7 +239,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             testSubject.Subscribe(sinkMock1.Object);
             testSubject.Subscribe(sinkMock2.Object);
 
-            testSubject.Refresh(new[] { "match.txt" });
+            testOp(testSubject, "match.txt");
 
             CheckUpdateSnapshotCalled(factoryWithMatch1);
             CheckUpdateSnapshotCalled(factoryWithMatch2);
@@ -214,9 +251,51 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         }
 
         [TestMethod]
+        public void RefreshImpl_SomeFactoriesWithMatchingFiles_RaisesSingleIssueChangeEventContainingExpectedFiles()
+        {
+            var testSubject = CreateTestSubject();
+
+            var factoryWithMatch1 = CreateFactoryAndSnapshotWithSpecifiedFiles("match1.aaa", "match2.bbb");
+            var factoryWithMatch2 = CreateFactoryAndSnapshotWithSpecifiedFiles("MATCH1.AAA", "match3.ccc"); // tests case-insensitivity
+            var factoryWithMatch3 = CreateFactoryAndSnapshotWithSpecifiedFiles("not a match but still included.txt", "match4.ddd");
+            var factoryWithMatch4 = CreateFactoryAndSnapshotWithSpecifiedFiles("match5.eee");
+            var factoryWithoutMatches1 = CreateFactoryAndSnapshotWithSpecifiedFiles("not a match.txt");
+            var factoryWithoutMatches2 = CreateFactoryAndSnapshotWithSpecifiedFiles("another not a match.txt");
+
+            testSubject.AddFactory(factoryWithMatch1);
+            testSubject.AddFactory(factoryWithoutMatches1);
+            testSubject.AddFactory(factoryWithMatch2);
+            testSubject.AddFactory(factoryWithoutMatches2);
+            testSubject.AddFactory(factoryWithMatch3);
+            testSubject.AddFactory(factoryWithMatch4);
+
+            var issuesChangedEvent = CreateAndRegisterIssuesEventHandler(testSubject);
+
+            // XXX.txt and YYY.ccc won't match any of the snapshot files
+            testSubject.Refresh(new[] { "XXX.txt", "match1.aaa", "match2.bbb", "match3.ccc", "YYY.ccc", "match4.ddd", "match5.eee" });
+
+            // Should be one event with all directyl and indirectly affected files
+            CheckSingleIssuesChangedEvent(issuesChangedEvent, testSubject,
+                    "match1.aaa", "match2.bbb", "match3.ccc", "match4.ddd", "match5.eee",
+                    // this file is included because it is indirectly included i.e. is in a snapshot a file that does match
+                    "not a match but still included.txt"
+                    );
+        }
+
+        [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
-        public void LocationsUpdated_SelectedIssueIsNotInFactory_SelectedIssueNotChanged(bool hasSelectedIssue)
+        public void Refresh_SelectedIssueIsNotInFactory_SelectedIssueNotChanged(bool hasSelectedIssue)
+            => RefreshImpl_SelectedIssueIsNotInFactory_SelectedIssueNotChanged(hasSelectedIssue, CallRefresh);
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void RefreshOnBufferChanged_SelectedIssueIsNotInFactory_SelectedIssueNotChanged(bool hasSelectedIssue)
+            => RefreshImpl_SelectedIssueIsNotInFactory_SelectedIssueNotChanged(hasSelectedIssue, CallRefreshOnBufferChanged);
+
+        private void RefreshImpl_SelectedIssueIsNotInFactory_SelectedIssueNotChanged(bool hasSelectedIssue,
+            RefreshImplTestOperation testOp)
         {
             var selectedIssue = hasSelectedIssue ? Mock.Of<IAnalysisIssueVisualization>() : null;
             var selectionService = CreateSelectionService(selectedIssue);
@@ -225,13 +304,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var testSubject = CreateTestSubject(selectionService.Object);
             testSubject.AddFactory(factory);
 
-            testSubject.Refresh(new[] { "test.txt" });
+            testOp(testSubject, "test.txt");
 
             selectionService.VerifySet(x => x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never);
         }
 
         [TestMethod]
-        public void LocationsUpdated_SelectedIssueIsInFactory_IssueIsNavigable_SelectedIssueNotChanged()
+        public void Refresh_SelectedIssueIsInFactory_IssueIsNavigable_SelectedIssueNotChanged()
+            => RefreshImpl_SelectedIssueIsInFactory_IssueIsNavigable_SelectedIssueNotChanged(CallRefresh);
+
+        [TestMethod]
+        public void RefreshOnBufferChanged_SelectedIssueIsInFactory_IssueIsNavigable_SelectedIssueNotChanged()
+            => RefreshImpl_SelectedIssueIsInFactory_IssueIsNavigable_SelectedIssueNotChanged(CallRefreshOnBufferChanged);
+
+        private void RefreshImpl_SelectedIssueIsInFactory_IssueIsNavigable_SelectedIssueNotChanged(RefreshImplTestOperation testOp)
         {
             var navigableSpan = (SnapshotSpan?) null;
             var navigableIssue = CreateIssueVizWithSpan(navigableSpan);
@@ -241,13 +327,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var testSubject = CreateTestSubject(selectionService.Object);
             testSubject.AddFactory(factory);
 
-            testSubject.Refresh(new[] { "test.txt" });
+            testOp(testSubject, "test.txt");
 
             selectionService.VerifySet(x => x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never);
         }
 
         [TestMethod]
         public void LocationsUpdated_SelectedIssueIsInFactory_IssueIsNotNavigable_SelectedIssueIsCleared()
+            => RefreshImpl_SelectedIssueIsInFactory_IssueIsNotNavigable_SelectedIssueIsCleared(CallRefresh);
+
+        [TestMethod]
+        public void RefreshOnBufferChanged_SelectedIssueIsInFactory_IssueIsNotNavigable_SelectedIssueIsCleared()
+            => RefreshImpl_SelectedIssueIsInFactory_IssueIsNotNavigable_SelectedIssueIsCleared(CallRefreshOnBufferChanged);
+
+        private void RefreshImpl_SelectedIssueIsInFactory_IssueIsNotNavigable_SelectedIssueIsCleared(RefreshImplTestOperation testOp)
         {
             var nonNavigableSpan = new SnapshotSpan();
             var nonNavigableIssue = CreateIssueVizWithSpan(nonNavigableSpan);
@@ -257,7 +350,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var testSubject = CreateTestSubject(selectionService.Object);
             testSubject.AddFactory(factory);
 
-            testSubject.Refresh(new[] { "test.txt" });
+            testOp(testSubject, "test.txt");
 
             selectionService.VerifySet(x => x.SelectedIssue = null, Times.Once);
         }
@@ -405,6 +498,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             sinkMock.Verify(x => x.FactorySnapshotChanged(It.IsAny<ITableEntriesSnapshotFactory>()), Times.Exactly(factories.Length));
         }
 
+        private static Mock<EventHandler<IssuesChangedEventArgs>> CreateAndRegisterIssuesEventHandler(SonarErrorListDataSource testSubject)
+        {
+            var issuesChangedHandler = new Mock<EventHandler<IssuesChangedEventArgs>>();
+            testSubject.IssuesChanged += issuesChangedHandler.Object;
+            return issuesChangedHandler;
+        }
+
+        private static void CheckIssuesChangedEventIsNotRaised(Mock<EventHandler<IssuesChangedEventArgs>> issuesChangedEvent)
+            => issuesChangedEvent.Invocations.Should().HaveCount(0);
+
+        private static void CheckSingleIssuesChangedEvent(Mock<EventHandler<IssuesChangedEventArgs>> issuesChangedEvent,
+            SonarErrorListDataSource testSubject,
+            params string[] expectedFileNames)
+        {
+            issuesChangedEvent.Invocations.Should().HaveCount(1);
+            issuesChangedEvent.Invocations[0].Arguments[0].Should().BeSameAs(testSubject);
+
+            var actualEventArgs = issuesChangedEvent.Invocations[0].Arguments[1] as IssuesChangedEventArgs;
+            actualEventArgs.Should().NotBeNull();
+            actualEventArgs.AnalyzedFiles.Should().BeEquivalentTo(expectedFileNames);
+        }
+        
         private Mock<IIssueSelectionService> CreateSelectionService(IAnalysisIssueVisualization selectedIssueViz)
         {
             var selectionService = new Mock<IIssueSelectionService>();

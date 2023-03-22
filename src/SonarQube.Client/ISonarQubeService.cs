@@ -87,8 +87,10 @@ namespace SonarQube.Client
         /// </summary>
         /// <param name="projectKey">The project identifier</param>
         /// <param name="branch">(optional) The Sonar branch for which issues should be returned. If null/empty,
-        /// the issues for the "main" branch will be returned.</param>
-        Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string projectKey, string branch, CancellationToken token);
+        ///     the issues for the "main" branch will be returned.</param>
+        /// <param name="token"></param>
+        /// <param name="issueKeys">(optional) The ids of the issues to return. If empty, all issues will be returned.</param>
+        Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string projectKey, string branch, string[] issueKeys, CancellationToken token);
 
         Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(string projectKey,
             DateTimeOffset eventsSince, CancellationToken token);

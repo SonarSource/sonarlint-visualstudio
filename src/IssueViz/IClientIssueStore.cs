@@ -18,11 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.ServerSentEvents;
-using SonarQube.Client.Models.ServerSentEvents.ClientContract;
+using System.Collections.Generic;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
-namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
+namespace SonarLint.VisualStudio.IssueVisualization
 {
-    /// <inheritdoc cref="IServerSentEventSourcePublisher{T}"/>
-    public interface ITaintServerEventSourcePublisher : IServerSentEventSourcePublisher<ITaintServerEvent> { }
+    public interface IClientIssueStore
+    {
+        /// <summary>
+        /// Returns all issues that have been detected locally.
+        /// </summary>
+        IEnumerable<IAnalysisIssueVisualization> Get();
+    }
 }
