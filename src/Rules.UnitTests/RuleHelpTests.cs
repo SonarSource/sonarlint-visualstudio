@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
                "xxx:S123",
                null,
                null,
-               RuleIssueSeverity.Unknown,
+               RuleIssueSeverity.Blocker,
                RuleIssueType.Unknown,
                true,
                null,
@@ -108,36 +108,13 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
                null,
                "some user note");
 
-            var result = testSubject.WithOverridenHtmlNote("new Note");
-
-            result.Should().NotBe(testSubject);
-            result.LanguageKey.Should().Be(Language.CSharp.ServerLanguage.Key);
-            result.FullRuleKey.Should().Be("xxx:S123");
-            result.HtmlNote.Should().Be("new Note");
-        }
-
-        [TestMethod]
-        public void WithOverridenSeverity_CreatesNewCopy()
-        {
-            var testSubject = new RuleInfo(
-               Language.CSharp.ServerLanguage.Key,
-               "xxx:S123",
-               null,
-               null,
-               RuleIssueSeverity.Blocker,
-               RuleIssueType.Unknown,
-               true,
-               null,
-               null,
-               null,
-               null);
-
-            var result = testSubject.WithOverridenSeverity(RuleIssueSeverity.Major);
+            var result = testSubject.WithServerOverride(RuleIssueSeverity.Major, "new Note");
 
             result.Should().NotBe(testSubject);
             result.LanguageKey.Should().Be(Language.CSharp.ServerLanguage.Key);
             result.FullRuleKey.Should().Be("xxx:S123");
             result.Severity.Should().Be(RuleIssueSeverity.Major);
+            result.HtmlNote.Should().Be("new Note");
         }
     }
 }

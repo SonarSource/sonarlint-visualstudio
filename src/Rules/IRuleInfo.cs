@@ -131,9 +131,7 @@ namespace SonarLint.VisualStudio.Rules
 
         string HtmlNote { get; }
 
-        IRuleInfo WithOverridenSeverity(RuleIssueSeverity newSeverity);
-
-        IRuleInfo WithOverridenHtmlNote(string newHtmlNote);
+        IRuleInfo WithServerOverride(RuleIssueSeverity newSeverity, string newHtmlNote);
     }
 
     public class RuleInfo : IRuleInfo
@@ -177,14 +175,9 @@ namespace SonarLint.VisualStudio.Rules
 
         public string HtmlNote { get; set; }
 
-        public IRuleInfo WithOverridenSeverity(RuleIssueSeverity newSeverity)
+        public IRuleInfo WithServerOverride(RuleIssueSeverity newSeverity, string newHtmlNote)
         {
-            return new RuleInfo(LanguageKey, FullRuleKey, Description, Name, newSeverity, IssueType, IsActiveByDefault, Tags, DescriptionSections, EducationPrinciples, HtmlNote);
-        }
-
-        public IRuleInfo WithOverridenHtmlNote(string newHtmlNote)
-        {
-            return new RuleInfo(LanguageKey, FullRuleKey, Description, Name, Severity, IssueType, IsActiveByDefault, Tags, DescriptionSections, EducationPrinciples, newHtmlNote);
+            return new RuleInfo(LanguageKey, FullRuleKey, Description, Name, newSeverity, IssueType, IsActiveByDefault, Tags, DescriptionSections, EducationPrinciples, newHtmlNote);
         }
     }
 }

@@ -71,9 +71,7 @@ namespace SonarLint.VisualStudio.Rules
 
             if (serverMetaData != null)
             {
-                return localMetaData
-                    .WithOverridenSeverity(serverMetaData.Severity)
-                    .WithOverridenHtmlNote(serverMetaData.HtmlNote);
+                return localMetaData.WithServerOverride(serverMetaData.Severity, serverMetaData.HtmlNote);
             }
 
             return localMetaData;

@@ -26,12 +26,23 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Rules.UnitTests
 {
     [TestClass]
     public class RuleMetaDataProviderTests
     {
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<RuleMetaDataProvider, IRuleMetaDataProvider>(
+                MefTestHelpers.CreateExport<ILocalRuleMetadataProvider>(),
+                MefTestHelpers.CreateExport<IServerRuleMetadataProvider>(),
+                MefTestHelpers.CreateExport<IConfigurationProvider>()
+                );
+        }
+
         [TestMethod]
         public async Task GetRuleInfoAsync_NotInConnectedMode_ReturnsLocal()
         {
