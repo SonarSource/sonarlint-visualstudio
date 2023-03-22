@@ -18,12 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using SonarLint.VisualStudio.Core.ServerSentEvents;
+using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
-namespace SonarLint.VisualStudio.Core.Suppression
+namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
 {
-    public interface ISuppressedIssuesMonitor
-    {
-        event EventHandler SuppressionsUpdateRequested;
-    }
+    /// <inheritdoc cref="IServerSentEventSourcePublisher{T}"/>
+    public interface IIssueServerEventSourcePublisher : IServerSentEventSourcePublisher<IIssueChangedServerEvent> { }
 }

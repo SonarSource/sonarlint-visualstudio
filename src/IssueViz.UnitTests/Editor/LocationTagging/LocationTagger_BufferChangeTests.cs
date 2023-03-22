@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             RaiseBufferChangedEvent(bufferMock, bufferMock.Object.CurrentSnapshot, bufferMock.Object.CurrentSnapshot);
 
             // Check the store was notified using the new name
-            storeMock.Verify(x => x.Refresh(new[] { changedName }), Times.Once);
+            storeMock.Verify(x => x.RefreshOnBufferChanged(changedName), Times.Once);
         }
 
         [TestMethod]
@@ -150,11 +150,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             CreateTestSubject(bufferMock.Object, storeMock.Object);
 
             storeMock.Invocations.Clear();
-            storeMock.Setup(x => x.Refresh(It.IsAny<IEnumerable<string>>())).Throws(new InvalidOperationException("this is a test"));
+            storeMock.Setup(x => x.RefreshOnBufferChanged(It.IsAny<string>())).Throws(new InvalidOperationException("this is a test"));
 
             RaiseBufferChangedEvent(bufferMock, snapshot, snapshot);
 
-            storeMock.Verify(x => x.Refresh(It.IsAny<IEnumerable<string>>()), Times.Once);
+            storeMock.Verify(x => x.RefreshOnBufferChanged(It.IsAny<string>()), Times.Once);
         }
 
         [TestMethod]
@@ -166,7 +166,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
 
             CreateTestSubject(bufferMock.Object, storeMock.Object);
 
-            storeMock.Setup(x => x.Refresh(It.IsAny<IEnumerable<string>>())).Throws(new StackOverflowException("this is a test"));
+            storeMock.Setup(x => x.RefreshOnBufferChanged(It.IsAny<string>())).Throws(new StackOverflowException("this is a test"));
 
             Action act = () => RaiseBufferChangedEvent(bufferMock, snapshot, snapshot);
 
@@ -198,10 +198,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             testSubject.TagSpans[0].Tag.Location.Span.Value.Snapshot.Should().Be(afterSnapshot);
         }
 
-        private static void CheckStoreRefreshWasCalled(IIssueLocationStore store, params string[] expectedFilePaths)
+        private static void CheckStoreRefreshOnBufferChangedWasCalled(IIssueLocationStore store, string expectedFilePath)
         {
             var storeMock = ((IMocked<IIssueLocationStore>)store).Mock;
-            storeMock.Verify(x => x.Refresh(expectedFilePaths), Times.Once);
+            storeMock.Verify(x => x.RefreshOnBufferChanged(expectedFilePath), Times.Once);
         }
 
         private static void RaiseBufferChangedEvent(Mock<ITextBuffer> bufferMock, ITextSnapshot before, ITextSnapshot after) =>
@@ -273,7 +273,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             actualTagsChangedArgs.Span.End.Position.Should().Be(expectedAffectedSpan.End);
 
             // Location store should have been notified
-            CheckStoreRefreshWasCalled(store, validBufferDocName);
+            CheckStoreRefreshOnBufferChangedWasCalled(store, validBufferDocName);
         }
     }
 }

@@ -24,8 +24,17 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using SonarLint.VisualStudio.Core.Suppression;
 
-namespace SonarLint.VisualStudio.Integration.Suppression
+namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
+    public interface IIssuesFilter
+    {
+        /// <summary>
+        /// Returns the list of supplied objects that match the filter
+        /// </summary>
+        /// <remarks>The returned objects are a subset of the input objects i.e. no new objects will be returned</remarks>
+        IEnumerable<IFilterableIssue> GetMatches(IEnumerable<IFilterableIssue> issues);
+    }
+
     [Export(typeof(IIssuesFilter))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class IssuesFilter : IIssuesFilter
@@ -33,8 +42,8 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         private readonly ISuppressedIssueMatcher issueMatcher;
 
         [ImportingConstructor]
-        public IssuesFilter(ISonarQubeIssuesProvider sonarQubeIssuesProvider)
-            : this(new SuppressedIssueMatcher(sonarQubeIssuesProvider))
+        public IssuesFilter(IServerIssuesStore serverIssuesStore)
+            : this(new SuppressedIssueMatcher(serverIssuesStore))
         {
         }
 
@@ -43,17 +52,17 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             this.issueMatcher = issueMatcher ?? throw new ArgumentNullException(nameof(issueMatcher));
         }
 
-        public IEnumerable<IFilterableIssue> Filter(IEnumerable<IFilterableIssue> issues)
+        public IEnumerable<IFilterableIssue> GetMatches(IEnumerable<IFilterableIssue> issues)
         {
             if (issues == null)
             {
                 throw new ArgumentNullException(nameof(issues));
             }
 
-            var filteredIssues = issues
-                .Where(i => !issueMatcher.SuppressionExists(i))
+            var matches = issues
+                .Where(i => issueMatcher.SuppressionExists(i))
                 .ToArray();
-            return filteredIssues;
+            return matches;
         }
     }
 }

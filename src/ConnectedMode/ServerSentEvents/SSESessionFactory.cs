@@ -22,6 +22,8 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
+using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Taint;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ServerSentEvents;
 using SonarLint.VisualStudio.Integration;
@@ -54,6 +56,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
     {
         private readonly ISonarQubeService sonarQubeClient;
         private readonly ITaintServerEventSourcePublisher taintServerEventSourcePublisher;
+        private readonly IIssueServerEventSourcePublisher issueServerEventSourcePublisher;
         private readonly IThreadHandling threadHandling;
 
         private bool disposed;
@@ -62,11 +65,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
         [ImportingConstructor]
         public SSESessionFactory(ISonarQubeService sonarQubeClient,
             ITaintServerEventSourcePublisher taintServerEventSourcePublisher,
+            IIssueServerEventSourcePublisher issueServerEventSourcePublisher,
             IThreadHandling threadHandling, 
             ILogger logger)
         {
             this.sonarQubeClient = sonarQubeClient;
             this.taintServerEventSourcePublisher = taintServerEventSourcePublisher;
+            this.issueServerEventSourcePublisher = issueServerEventSourcePublisher;
             this.threadHandling = threadHandling;
             this.logger = logger;
         }
@@ -79,6 +84,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             }
 
             var session = new SSESession(taintServerEventSourcePublisher,
+                issueServerEventSourcePublisher,
                 projectKey,
                 threadHandling,
                 sonarQubeClient,
@@ -95,12 +101,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             }
 
             taintServerEventSourcePublisher.Dispose();
+            issueServerEventSourcePublisher.Dispose();
             disposed = true;
         }
 
         internal sealed class SSESession : ISSESession
         {
             private readonly ITaintServerEventSourcePublisher taintServerEventSourcePublisher;
+            private readonly IIssueServerEventSourcePublisher issueServerEventSourcePublisher;
             private readonly string projectKey;
             private readonly IThreadHandling threadHandling;
             private readonly ISonarQubeService sonarQubeService;
@@ -110,12 +118,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             private bool disposed;
 
             internal SSESession(ITaintServerEventSourcePublisher taintServerEventSourcePublisher,
+                IIssueServerEventSourcePublisher issueServerEventSourcePublisher,
                 string projectKey,
                 IThreadHandling threadHandling,
                 ISonarQubeService sonarQubeService,
                 ILogger logger)
             {
                 this.taintServerEventSourcePublisher = taintServerEventSourcePublisher;
+                this.issueServerEventSourcePublisher = issueServerEventSourcePublisher;
                 this.projectKey = projectKey;
                 this.threadHandling = threadHandling;
                 this.sonarQubeService = sonarQubeService;
@@ -127,6 +137,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             {
                 if (disposed)
                 {
+                    logger.LogVerbose("[SSESession] Session {0} is disposed", GetHashCode());
                     throw new ObjectDisposedException(nameof(SSESession));
                 }
 
@@ -136,6 +147,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
                 if (sseStreamReader == null)
                 {
+                    logger.LogVerbose("[SSESession] Failed to create CreateSSEStreamReader");
                     return;
                 }
 
@@ -150,11 +162,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
                             continue;
                         }
 
+                        logger.LogVerbose("[SSESession] Received server event: {0}", serverEvent.GetType());
+
                         switch (serverEvent)
                         {
                             case ITaintServerEvent taintServerEvent:
+                            {
+                                logger.LogVerbose("[SSESession] Publishing taint event...");
                                 taintServerEventSourcePublisher.Publish(taintServerEvent);
                                 break;
+                            }
+                            case IIssueChangedServerEvent issueChangedServerEvent:
+                            {
+                                logger.LogVerbose("[SSESession] Publishing issue changed event...");
+                                issueServerEventSourcePublisher.Publish(issueChangedServerEvent);
+                                break;
+                            }
                         }
                     }
                     catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -164,10 +187,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
                         return;
                     }
                 }
+
+                logger.LogVerbose("[SSESession] Session stopped, session token was canceled");
             }
 
             public void Dispose()
             {
+                logger.LogVerbose("[SSESession] Disposing session: {0}", GetHashCode());
+
                 if (disposed)
                 {
                     return;

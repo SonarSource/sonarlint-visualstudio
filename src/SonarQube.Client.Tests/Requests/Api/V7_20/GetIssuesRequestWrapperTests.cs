@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,9 +35,9 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
     public class GetIssuesRequestWrapperTests
     {
         [TestMethod]
-        public async Task InvokeAsync_ExpectedPropertiesArePassed()
+        public async Task InvokeAsync_NoIssueKeys_ExpectedPropertiesArePassedInMultipleRequests()
         {
-            var testSubject = CreateTestSubject("aaaProject", "xStatus", "yBranch");
+            var testSubject = CreateTestSubject("aaaProject", "xStatus", "yBranch", null);
 
             var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             var httpClient = new HttpClient(handlerMock.Object)
@@ -51,20 +50,47 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
             _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
 
             // The wrapper is expected to make three calls, for code smells, bugs, then vulnerabilities
-            handlerMock.Invocations.Count().Should().Be(3);
+            handlerMock.Invocations.Count.Should().Be(3);
             CheckExpectedQueryStringsParameters(handlerMock, 0, "aaaProject", "xStatus", "yBranch", "CODE_SMELL");
             CheckExpectedQueryStringsParameters(handlerMock, 1, "aaaProject", "xStatus", "yBranch", "BUG");
             CheckExpectedQueryStringsParameters(handlerMock, 2, "aaaProject", "xStatus", "yBranch", "VULNERABILITY");
         }
 
-        private static GetIssuesRequestWrapper CreateTestSubject(string projectKey, string statusesToRequest, string branch)
+        [TestMethod]
+        public async Task InvokeAsync_HasIssueKeys_ExpectedPropertiesArePassedInASingleRequest()
+        {
+            var testSubject = CreateTestSubject("aaaProject", "xStatus", "yBranch", new[] {"issue1", "issue2"});
+
+            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri(ValidBaseAddress)
+            };
+
+            SetupHttpRequest(handlerMock, EmptyGetIssuesResponse);
+
+            _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
+
+            // The wrapper is expected to make one call with the given issueKeys
+            handlerMock.Invocations.Count.Should().Be(1);
+
+            var actualQueryString = GetActualQueryStringForInvocation(handlerMock, 0);
+            actualQueryString.Contains("?projects=aaaProject").Should().BeTrue();
+            actualQueryString.Contains("&statuses=xStatus&").Should().BeTrue();
+            actualQueryString.Contains("&branch=yBranch&").Should().BeTrue();
+            actualQueryString.Contains("&issues=issue1%2Cissue2&").Should().BeTrue();
+            actualQueryString.Contains("types").Should().BeFalse();
+        }
+
+        private static GetIssuesRequestWrapper CreateTestSubject(string projectKey, string statusesToRequest, string branch, string[] issueKeys)
         {
             var testSubject = new GetIssuesRequestWrapper
             {
                 Logger = new TestLogger(),
                 ProjectKey = projectKey,
                 Statuses = statusesToRequest,
-                Branch = branch
+                Branch = branch,
+                IssueKeys = issueKeys
             };
 
             return testSubject;

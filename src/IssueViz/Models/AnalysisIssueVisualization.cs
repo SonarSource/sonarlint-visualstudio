@@ -35,6 +35,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         IAnalysisIssueBase Issue { get; }
 
         IReadOnlyList<IQuickFixVisualization> QuickFixes { get; }
+
+        bool IsSuppressed { get; set; }
     }
 
     internal class AnalysisIssueVisualization : IAnalysisIssueVisualization
@@ -42,6 +44,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         private static readonly SnapshotSpan EmptySpan = new SnapshotSpan();
         private string currentFilePath;
         private SnapshotSpan? span;
+        private bool isSuppressed;
 
         public AnalysisIssueVisualization(IReadOnlyList<IAnalysisIssueFlowVisualization> flows,
             IAnalysisIssueBase issue, 
@@ -67,6 +70,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             set
             {
                 span = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public bool IsSuppressed
+        {
+            get => isSuppressed;
+            set
+            {
+                isSuppressed = value;
                 NotifyPropertyChanged();
             }
         }
@@ -99,8 +112,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         string IFilterableIssue.FilePath => CurrentFilePath;
 
         string IFilterableIssue.LineHash => Issue.PrimaryLocation.TextRange.LineHash;
-
-        string IFilterableIssue.ProjectGuid => null; // not used for non-Roslyn issues
 
         int? IFilterableIssue.StartLine => Issue.PrimaryLocation.TextRange.StartLine;
     }

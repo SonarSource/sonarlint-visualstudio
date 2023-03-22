@@ -23,10 +23,10 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ETW;
-using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
@@ -35,7 +35,7 @@ using SonarQube.Client.Models;
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
 {
     /// <summary>
-    /// Responsible for listening to <see cref="ISuppressedIssuesMonitor.SuppressionsUpdateRequested"/> and calling
+    /// Responsible for listening to <see cref="IServerIssuesStore.ServerIssuesChanged"/> and calling
     /// <see cref="IRoslynSettingsFileStorage.Update"/> with the new suppressions.
     /// </summary>
     public interface IRoslynSettingsFileSynchronizer : IDisposable
@@ -47,20 +47,17 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
     internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchronizer
     {
         private readonly IThreadHandling threadHandling;
-        private readonly ISuppressedIssuesMonitor suppressedIssuesMonitor;
-        private readonly ISonarQubeIssuesProvider suppressedIssuesProvider;
+        private readonly IServerIssuesStore serverIssuesStore;
         private readonly IRoslynSettingsFileStorage roslynSettingsFileStorage;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public RoslynSettingsFileSynchronizer(ISuppressedIssuesMonitor suppressedIssuesMonitor,
-            ISonarQubeIssuesProvider suppressedIssuesProvider,
+        public RoslynSettingsFileSynchronizer(IServerIssuesStore serverIssuesStore,
             IRoslynSettingsFileStorage roslynSettingsFileStorage,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ILogger logger)
-            : this(suppressedIssuesMonitor,
-                suppressedIssuesProvider,
+            : this(serverIssuesStore,
                 roslynSettingsFileStorage,
                 activeSolutionBoundTracker,
                 logger,
@@ -68,24 +65,22 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
         {
         }
 
-        internal RoslynSettingsFileSynchronizer(ISuppressedIssuesMonitor suppressedIssuesMonitor,
-            ISonarQubeIssuesProvider suppressedIssuesProvider,
+        internal RoslynSettingsFileSynchronizer(IServerIssuesStore serverIssuesStore,
             IRoslynSettingsFileStorage roslynSettingsFileStorage,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ILogger logger,
             IThreadHandling threadHandling)
         {
-            this.suppressedIssuesMonitor = suppressedIssuesMonitor;
-            this.suppressedIssuesProvider = suppressedIssuesProvider;
+            this.serverIssuesStore = serverIssuesStore;
             this.roslynSettingsFileStorage = roslynSettingsFileStorage;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.logger = logger;
             this.threadHandling = threadHandling;
 
-            suppressedIssuesMonitor.SuppressionsUpdateRequested += SuppressedIssuesMonitor_SuppressionsUpdateRequested;
+            serverIssuesStore.ServerIssuesChanged += OnServerIssuesChanged;
         }
 
-        private void SuppressedIssuesMonitor_SuppressionsUpdateRequested(object sender, EventArgs e)
+        private void OnServerIssuesChanged(object sender, EventArgs e)
         {
             // Called on the UI thread, so unhandled exceptions will crash VS.
             // Note: we don't expect any exceptions to be thrown, since the called method
@@ -117,12 +112,13 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
 
                 if (!string.IsNullOrEmpty(sonarProjectKey))
                 {
-                    var allSuppressedIssues = await suppressedIssuesProvider.GetAllSuppressedIssuesAsync();
+                    var allSuppressedIssues = serverIssuesStore.Get();
 
                     var settings = new RoslynSettings
                     {
                         SonarProjectKey = sonarProjectKey,
                         Suppressions = allSuppressedIssues
+                                            .Where(x => x.IsResolved)
                                             .Select(x => IssueConverter.Convert(x))
                                             .Where(x => x.RoslynLanguage != RoslynLanguage.Unknown && !string.IsNullOrEmpty(x.RoslynRuleId))
                                             .ToArray(),
@@ -138,7 +134,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
 
         public void Dispose()
         {
-            suppressedIssuesMonitor.SuppressionsUpdateRequested -= SuppressedIssuesMonitor_SuppressionsUpdateRequested;
+            serverIssuesStore.ServerIssuesChanged -= OnServerIssuesChanged;
         }
 
         // Converts SonarQube issues to SuppressedIssues that can be compared more easily with Roslyn issues
