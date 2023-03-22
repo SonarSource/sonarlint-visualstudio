@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.Rules
 {
@@ -105,7 +106,8 @@ namespace SonarLint.VisualStudio.Rules
 
         string Name { get; }
 
-        RuleIssueSeverity DefaultSeverity { get; }
+        [JsonProperty("DefaultSeverity")]
+        RuleIssueSeverity Severity { get; }
 
         RuleIssueType IssueType { get; }
 
@@ -128,19 +130,21 @@ namespace SonarLint.VisualStudio.Rules
         IReadOnlyList<string> EducationPrinciples { get; }
 
         string HtmlNote { get; }
+
+        IRuleInfo WithServerOverride(RuleIssueSeverity newSeverity, string newHtmlNote);
     }
 
     public class RuleInfo : IRuleInfo
     {
         public RuleInfo(string languageKey, string fullRuleKey, string description, string name,
-            RuleIssueSeverity defaultSeverity, RuleIssueType issueType, bool isActiveByDefault,
+            RuleIssueSeverity severity, RuleIssueType issueType, bool isActiveByDefault,
             IReadOnlyList<string> tags, IReadOnlyList<IDescriptionSection> descriptionSections, IReadOnlyList<string> educationPrinciples, string htmlNote)
         {
             LanguageKey = languageKey;
             FullRuleKey = fullRuleKey;
             Description = description;
             Name = name;
-            DefaultSeverity = defaultSeverity;
+            Severity = severity;
             IssueType = issueType;
             IsActiveByDefault = isActiveByDefault;
             Tags = tags ?? Array.Empty<string>();
@@ -153,7 +157,7 @@ namespace SonarLint.VisualStudio.Rules
 
         public string Name { get; private set; }
 
-        public RuleIssueSeverity DefaultSeverity { get; private set; }
+        public RuleIssueSeverity Severity { get; set; }
 
         public RuleIssueType IssueType { get; private set; }
 
@@ -169,6 +173,11 @@ namespace SonarLint.VisualStudio.Rules
 
         public IReadOnlyList<string> EducationPrinciples { get; }
 
-        public string HtmlNote { get; }
+        public string HtmlNote { get; set; }
+
+        public IRuleInfo WithServerOverride(RuleIssueSeverity newSeverity, string newHtmlNote)
+        {
+            return new RuleInfo(LanguageKey, FullRuleKey, Description, Name, newSeverity, IssueType, IsActiveByDefault, Tags, DescriptionSections, EducationPrinciples, newHtmlNote);
+        }
     }
 }
