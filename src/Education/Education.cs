@@ -74,13 +74,13 @@ namespace SonarLint.VisualStudio.Education
                 }
                 else
                 {
-                    ShowRuleInIde(ruleInfo);
+                    ShowRuleInIde(ruleInfo, ruleId);
                 }
 
             }).Forget();
         }
 
-        private void ShowRuleInIde(IRuleInfo ruleInfo)
+        private void ShowRuleInIde(IRuleInfo ruleInfo, SonarCompositeRuleId ruleId)
         {
             threadHandling.ThrowIfNotOnUIThread();
 
@@ -90,17 +90,18 @@ namespace SonarLint.VisualStudio.Education
                 ruleHelpToolWindow = toolWindowService.GetToolWindow<RuleHelpToolWindow, IRuleHelpToolWindow>();
             }
 
-            var flowDocument = ruleHelpXamlBuilder.Create(ruleInfo);
-
-            ruleHelpToolWindow.UpdateContent(flowDocument);
-
             try
             {
+                var flowDocument = ruleHelpXamlBuilder.Create(ruleInfo);
+
+                ruleHelpToolWindow.UpdateContent(flowDocument);
+
                 toolWindowService.Show(RuleHelpToolWindow.ToolWindowId);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(string.Format(Resources.ERR_RuleHelpToolWindow_Exception, ex));
+                showRuleInBrowser.ShowRuleDescription(ruleId);
             }
         }
     }

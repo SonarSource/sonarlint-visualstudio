@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Windows.Documents;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -80,6 +81,39 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             toolWindowService.Verify(x => x.Show(RuleHelpToolWindow.ToolWindowId), Times.Once);
 
             showRuleInBrowser.Invocations.Should().HaveCount(0);
+        }
+
+        [TestMethod]
+        public void ShowRuleHelp_FailedToDisplayRule_RuleIsShownInBrowser()
+        {
+            var toolWindowService = new Mock<IToolWindowService>();
+            var ruleMetadataProvider = new Mock<ILocalRuleMetadataProvider>();
+            var ruleHelpXamlBuilder = new Mock<IRuleHelpXamlBuilder>();
+            var showRuleInBrowser = new Mock<IShowRuleInBrowser>();
+
+            var ruleId = new SonarCompositeRuleId("repoKey", "ruleKey");
+
+            var ruleInfo = Mock.Of<IRuleInfo>();
+            ruleMetadataProvider.Setup(x => x.GetRuleInfo(It.IsAny<SonarCompositeRuleId>())).Returns(ruleInfo);
+
+            ruleHelpXamlBuilder.Setup(x => x.Create(ruleInfo)).Throws(new Exception("some layout error"));
+
+            var testSubject = CreateEducation(
+                toolWindowService.Object,
+                ruleMetadataProvider.Object,
+                showRuleInBrowser.Object,
+                ruleHelpXamlBuilder.Object);
+
+            toolWindowService.Reset(); // Called in the constructor, so need to reset to clear the list of invocations
+
+            testSubject.ShowRuleHelp(ruleId);
+
+            ruleMetadataProvider.Verify(x => x.GetRuleInfo(ruleId), Times.Once);
+            showRuleInBrowser.Verify(x => x.ShowRuleDescription(ruleId), Times.Once);
+
+            // should have attempted to build the rule, but failed
+            ruleHelpXamlBuilder.Invocations.Should().HaveCount(1);
+            toolWindowService.Invocations.Should().HaveCount(1);
         }
 
         [TestMethod]
