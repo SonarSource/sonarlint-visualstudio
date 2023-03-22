@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
   <ListItem>
     <Paragraph>some list item</Paragraph>
   </ListItem>
-</List>";
+</List>".Replace("\r\n", "\n").Replace("\n", "\r\n");
 
             var result = testSubject.TranslateHtmlToXaml(htmlText);
 
