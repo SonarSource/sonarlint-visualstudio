@@ -94,8 +94,8 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
 
             var result = await testSubject.GetRuleInfoAsync(ruleId, CancellationToken.None);
 
-            result.Should().Be(localRule);
-            result.DefaultSeverity.Should().Be(RuleIssueSeverity.Critical);
+            result.Should().NotBe(localRule);
+            result.Severity.Should().Be(RuleIssueSeverity.Critical);
             result.HtmlNote.Should().Be("Extended Rule Description");
             result.Description.Should().Be("Local Description");
 
@@ -123,7 +123,7 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             var result = await testSubject.GetRuleInfoAsync(ruleId, CancellationToken.None);
 
             result.Should().Be(serverRule);
-            result.DefaultSeverity.Should().Be(RuleIssueSeverity.Critical);
+            result.Severity.Should().Be(RuleIssueSeverity.Critical);
             result.HtmlNote.Should().Be("Extended Rule Description");
             result.Description.Should().Be("Server Description");
 

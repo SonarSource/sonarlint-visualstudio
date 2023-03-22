@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             result.FullRuleKey.Should().Be("repoKey:Key");
             result.Description.Should().Be("<p>html Description</p><br/>");
             result.Name.Should().Be("RuleName");
-            result.DefaultSeverity.Should().Be(RuleIssueSeverity.Info);
+            result.Severity.Should().Be(RuleIssueSeverity.Info);
             result.IssueType.Should().Be(RuleIssueType.Vulnerability);
             result.IsActiveByDefault.Should().BeTrue();
             result.Tags.Should().BeEquivalentTo(tags);

@@ -118,7 +118,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
             private void WriteSubTitleElement_Severity(IRuleInfo ruleInfo)
             {
-                var imageInfo = SubTitleImageInfo.SeverityImages[ruleInfo.DefaultSeverity];
+                var imageInfo = SubTitleImageInfo.SeverityImages[ruleInfo.Severity];
                 WriteSubTitleElementWithImage(imageInfo);
             }
 
