@@ -20,13 +20,15 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Education.Commands;
+using SonarLint.VisualStudio.Education.XamlGenerator;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Rules;
-using SonarLint.VisualStudio.Infrastructure.VS;
-using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.Education.XamlGenerator;
 
 namespace SonarLint.VisualStudio.Education
 {
@@ -35,7 +37,7 @@ namespace SonarLint.VisualStudio.Education
     internal class Education : IEducation
     {
         private readonly IToolWindowService toolWindowService;
-        private readonly ILocalRuleMetadataProvider ruleMetadataProvider;
+        private readonly IRuleMetaDataProvider ruleMetadataProvider;
         private readonly IRuleHelpXamlBuilder ruleHelpXamlBuilder;
         private readonly IShowRuleInBrowser showRuleInBrowser;
         private readonly ILogger logger;
@@ -44,11 +46,11 @@ namespace SonarLint.VisualStudio.Education
         private IRuleHelpToolWindow ruleHelpToolWindow;
 
         [ImportingConstructor]
-        public Education(IToolWindowService toolWindowService, ILocalRuleMetadataProvider ruleMetadataProvider, IShowRuleInBrowser showRuleInBrowser, ILogger logger)
+        public Education(IToolWindowService toolWindowService, IRuleMetaDataProvider ruleMetadataProvider, IShowRuleInBrowser showRuleInBrowser, ILogger logger)
             : this(toolWindowService, ruleMetadataProvider, showRuleInBrowser, logger, new SimpleRuleHelpXamlBuilder(new RuleHelpXamlTranslator(), new XamlGeneratorHelperFactory(new RuleHelpXamlTranslator())), ThreadHandling.Instance) { }
 
         internal /* for testing */ Education(IToolWindowService toolWindowService,
-            ILocalRuleMetadataProvider ruleMetadataProvider,
+            IRuleMetaDataProvider ruleMetadataProvider,
             IShowRuleInBrowser showRuleInBrowser,
             ILogger logger,
             IRuleHelpXamlBuilder ruleHelpXamlBuilder,
@@ -64,9 +66,16 @@ namespace SonarLint.VisualStudio.Education
 
         public void ShowRuleHelp(SonarCompositeRuleId ruleId)
         {
-            var ruleInfo = ruleMetadataProvider.GetRuleInfo(ruleId);
+            ShowRuleHelpAsync(ruleId, CancellationToken.None).Forget();
+        }
 
-            threadHandling.RunOnUIThread(() =>
+        private async Task ShowRuleHelpAsync(SonarCompositeRuleId ruleId, CancellationToken token)
+        {
+            await threadHandling.SwitchToBackgroundThread();
+
+            var ruleInfo = await ruleMetadataProvider.GetRuleInfoAsync(ruleId, token);
+
+            await threadHandling.RunOnUIThread(() =>
             {
                 if (ruleInfo == null)
                 {
@@ -76,8 +85,7 @@ namespace SonarLint.VisualStudio.Education
                 {
                     ShowRuleInIde(ruleInfo, ruleId);
                 }
-
-            }).Forget();
+            });
         }
 
         private void ShowRuleInIde(IRuleInfo ruleInfo, SonarCompositeRuleId ruleId)
@@ -106,4 +114,3 @@ namespace SonarLint.VisualStudio.Education
         }
     }
 }
-

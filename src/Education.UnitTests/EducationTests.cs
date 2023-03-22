@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Threading;
 using System.Windows.Documents;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -27,8 +28,8 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Education.Commands;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.Rules;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Education.UnitTests
 {
@@ -40,7 +41,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         {
             MefTestHelpers.CheckTypeCanBeImported<Education, IEducation>(
                 MefTestHelpers.CreateExport<IToolWindowService>(),
-                MefTestHelpers.CreateExport<ILocalRuleMetadataProvider>(),
+                MefTestHelpers.CreateExport<IRuleMetaDataProvider>(),
                 MefTestHelpers.CreateExport<IShowRuleInBrowser>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
@@ -48,11 +49,11 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void ShowRuleHelp_KnownRule_DocumentIsDisplayedInToolWindow()
         {
-            var ruleMetaDataProvider = new Mock<ILocalRuleMetadataProvider>();
-            var ruleId = new SonarCompositeRuleId("repoKey","ruleKey");
+            var ruleMetaDataProvider = new Mock<IRuleMetaDataProvider>();
+            var ruleId = new SonarCompositeRuleId("repoKey", "ruleKey");
 
             var ruleInfo = Mock.Of<IRuleInfo>();
-            ruleMetaDataProvider.Setup(x => x.GetRuleInfo(It.IsAny<SonarCompositeRuleId>())).Returns(ruleInfo);
+            ruleMetaDataProvider.Setup(x => x.GetRuleInfoAsync(It.IsAny<SonarCompositeRuleId>(), It.IsAny<CancellationToken>())).ReturnsAsync(ruleInfo);
 
             var flowDocument = Mock.Of<FlowDocument>();
             var ruleHelpXamlBuilder = new Mock<IRuleHelpXamlBuilder>();
@@ -75,7 +76,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             // Act
             testSubject.ShowRuleHelp(ruleId);
 
-            ruleMetaDataProvider.Verify(x => x.GetRuleInfo(ruleId), Times.Once);
+            ruleMetaDataProvider.Verify(x => x.GetRuleInfoAsync(ruleId, CancellationToken.None), Times.Once);
             ruleHelpXamlBuilder.Verify(x => x.Create(ruleInfo), Times.Once);
             ruleDescriptionToolWindow.Verify(x => x.UpdateContent(flowDocument), Times.Once);
             toolWindowService.Verify(x => x.Show(RuleHelpToolWindow.ToolWindowId), Times.Once);
@@ -87,14 +88,14 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         public void ShowRuleHelp_FailedToDisplayRule_RuleIsShownInBrowser()
         {
             var toolWindowService = new Mock<IToolWindowService>();
-            var ruleMetadataProvider = new Mock<ILocalRuleMetadataProvider>();
+            var ruleMetadataProvider = new Mock<IRuleMetaDataProvider>();
             var ruleHelpXamlBuilder = new Mock<IRuleHelpXamlBuilder>();
             var showRuleInBrowser = new Mock<IShowRuleInBrowser>();
 
             var ruleId = new SonarCompositeRuleId("repoKey", "ruleKey");
 
             var ruleInfo = Mock.Of<IRuleInfo>();
-            ruleMetadataProvider.Setup(x => x.GetRuleInfo(It.IsAny<SonarCompositeRuleId>())).Returns(ruleInfo);
+            ruleMetadataProvider.Setup(x => x.GetRuleInfoAsync(It.IsAny<SonarCompositeRuleId>(), It.IsAny<CancellationToken>())).ReturnsAsync(ruleInfo);
 
             ruleHelpXamlBuilder.Setup(x => x.Create(ruleInfo)).Throws(new Exception("some layout error"));
 
@@ -108,7 +109,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
             testSubject.ShowRuleHelp(ruleId);
 
-            ruleMetadataProvider.Verify(x => x.GetRuleInfo(ruleId), Times.Once);
+            ruleMetadataProvider.Verify(x => x.GetRuleInfoAsync(ruleId, CancellationToken.None), Times.Once);
             showRuleInBrowser.Verify(x => x.ShowRuleDescription(ruleId), Times.Once);
 
             // should have attempted to build the rule, but failed
@@ -120,12 +121,12 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         public void ShowRuleHelp_UnknownRule_RuleIsShownInBrowser()
         {
             var toolWindowService = new Mock<IToolWindowService>();
-            var ruleMetadataProvider = new Mock<ILocalRuleMetadataProvider>();
+            var ruleMetadataProvider = new Mock<IRuleMetaDataProvider>();
             var ruleHelpXamlBuilder = new Mock<IRuleHelpXamlBuilder>();
             var showRuleInBrowser = new Mock<IShowRuleInBrowser>();
 
             var unknownRule = new SonarCompositeRuleId("known", "xxx");
-            ruleMetadataProvider.Setup(x => x.GetRuleInfo(unknownRule)).Returns((IRuleInfo)null);
+            ruleMetadataProvider.Setup(x => x.GetRuleInfoAsync(unknownRule, It.IsAny<CancellationToken>())).ReturnsAsync((IRuleInfo)null);
 
             var testSubject = CreateEducation(
                 toolWindowService.Object,
@@ -134,10 +135,10 @@ namespace SonarLint.VisualStudio.Education.UnitTests
                 ruleHelpXamlBuilder.Object);
 
             toolWindowService.Reset(); // Called in the constructor, so need to reset to clear the list of invocations
-            
+
             testSubject.ShowRuleHelp(unknownRule);
 
-            ruleMetadataProvider.Verify(x => x.GetRuleInfo(unknownRule), Times.Once);
+            ruleMetadataProvider.Verify(x => x.GetRuleInfoAsync(unknownRule, CancellationToken.None), Times.Once);
             showRuleInBrowser.Verify(x => x.ShowRuleDescription(unknownRule), Times.Once);
 
             // Should not have attempted to build the rule
@@ -146,12 +147,12 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         }
 
         private Education CreateEducation(IToolWindowService toolWindowService = null,
-            ILocalRuleMetadataProvider ruleMetadataProvider = null,
+            IRuleMetaDataProvider ruleMetadataProvider = null,
             IShowRuleInBrowser showRuleInBrowser = null,
             IRuleHelpXamlBuilder ruleHelpXamlBuilder = null)
         {
             toolWindowService ??= Mock.Of<IToolWindowService>();
-            ruleMetadataProvider ??= Mock.Of<ILocalRuleMetadataProvider>();
+            ruleMetadataProvider ??= Mock.Of<IRuleMetaDataProvider>();
             showRuleInBrowser ??= Mock.Of<IShowRuleInBrowser>();
             ruleHelpXamlBuilder ??= Mock.Of<IRuleHelpXamlBuilder>();
             var logger = new TestLogger(logToConsole: true);
