@@ -191,6 +191,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
         }
 
         [TestMethod]
+        public void SetIsSuppressed_HasSubscribers_VerifyRaised()
+        {
+            var testSubject = CreateTestSubject();
+
+            testSubject.IsSuppressed.Should().BeFalse();
+
+            var propertyChangedEventHandler = new Mock<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += propertyChangedEventHandler.Object;
+
+            testSubject.IsSuppressed = true;
+
+            VerifyPropertyChangedRaised(propertyChangedEventHandler, nameof(testSubject.IsSuppressed));
+            propertyChangedEventHandler.VerifyNoOtherCalls();
+
+            testSubject.IsSuppressed.Should().BeTrue();
+        }
+
+        [TestMethod]
         public void IsFilterable()
         {
             var issueMock = new Mock<IAnalysisIssue>();
@@ -209,7 +227,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
             filterable.FilePath.Should().Be(issueMock.Object.PrimaryLocation.FilePath);
             filterable.StartLine.Should().Be(issueMock.Object.PrimaryLocation.TextRange.StartLine);
             filterable.LineHash.Should().Be(issueMock.Object.PrimaryLocation.TextRange.LineHash);
-            filterable.ProjectGuid.Should().BeNull();
         }
 
         private SnapshotSpan CreateSpan()

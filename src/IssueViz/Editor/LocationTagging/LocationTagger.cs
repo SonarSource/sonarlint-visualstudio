@@ -204,7 +204,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
                 var newTextSnapshot = e.After;
 
                 TranslateTagSpans(newTextSnapshot);
-                locationService.Refresh(new[] { GetCurrentFilePath() });
+                locationService.RefreshOnBufferChanged(GetCurrentFilePath());
 
                 var affectedSpan = CalculateSpanOfChanges(e.Changes, newTextSnapshot);
                 NotifyTagsChanged(affectedSpan);

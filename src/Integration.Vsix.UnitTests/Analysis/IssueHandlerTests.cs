@@ -26,7 +26,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
-using SonarLint.VisualStudio.Core.Suppression;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         }
 
         [TestMethod]
-        public void HandleNewIssues_IssuesAreFiltered()
+        public void HandleNewIssues_IssuesGetMatchesIsCalled()
         {
             var inputIssues = new[]
             {
@@ -87,13 +87,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
                 CreateIssue("S222", startLine: 2, endLine: 2)
             };
 
-            var issuesToReturnFromFilter = new[]
-            {
-                CreateIssue("xxx", startLine: 3, endLine: 3)
-            };
-
-            var issuesFilter = CreateIssuesFilter(issuesToReturnFromFilter);
             var notificationHandler = new SnapshotChangeHandler();
+            var issuesFilter = new Mock<IIssuesFilter>();
+
 
             var testSubject = CreateTestSubject(notificationHandler.OnSnapshotChanged, issuesFilter.Object);
 
@@ -101,12 +97,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             testSubject.HandleNewIssues(inputIssues);
 
             // Assert
-            issuesFilter.Verify(x => x.Filter(inputIssues), Times.Once);
+            issuesFilter.Verify(x => x.GetMatches(inputIssues), Times.Once);
             notificationHandler.InvocationCount.Should().Be(1);
 
             // Check the updated issues
-            notificationHandler.UpdatedSnapshot.Issues.Count().Should().Be(1);
-            notificationHandler.UpdatedSnapshot.Issues.Should().BeEquivalentTo(issuesToReturnFromFilter);
+            notificationHandler.UpdatedSnapshot.Issues.Count().Should().Be(2);
+            notificationHandler.UpdatedSnapshot.Issues.Should().BeEquivalentTo(inputIssues);
         }
 
         [TestMethod]
@@ -122,7 +118,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
                 CreateIssue("yyy", startLine: 2, endLine: 2)
             };
 
-            var issuesFilter = CreatePassthroughIssuesFilter();
             var notificationHandler = new SnapshotChangeHandler();
 
             var textDocument = CreateValidTextDocument("any.txt");
@@ -131,8 +126,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             translator.Setup(x => x.Invoke(It.IsAny<IEnumerable<IAnalysisIssueVisualization>>(), textDocument.TextBuffer.CurrentSnapshot))
                 .Returns(issuesToReturnFromTranslator);
 
-            var testSubject = CreateTestSubject(notificationHandler.OnSnapshotChanged, issuesFilter,
-                translator.Object, textDocument);
+            var testSubject = CreateTestSubject(notificationHandler:notificationHandler.OnSnapshotChanged, translator:translator.Object, textDocument:textDocument);
 
             // Act
             testSubject.HandleNewIssues(inputIssues);
@@ -141,26 +135,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             translator.VerifyAll();
             notificationHandler.InvocationCount.Should().Be(1);
             notificationHandler.UpdatedSnapshot.Issues.Should().BeEquivalentTo(issuesToReturnFromTranslator);
-        }
-
-        [TestMethod]
-        public void HandleNewIssues_AllIssuesFilteredOut_ReturnedSnapshotIsEmpty()
-        {
-            // Arrange
-            var inputIssues = new[] { CreateIssue("single issue", startLine: 1, endLine: 1) };
-
-            var issuesToReturnFromFilter = Enumerable.Empty<IAnalysisIssueVisualization>();
-            var issuesFilter = CreateIssuesFilter(issuesToReturnFromFilter);
-
-            var notificationHandler = new SnapshotChangeHandler();
-            var testSubject = CreateTestSubject(notificationHandler.OnSnapshotChanged, issuesFilter.Object);
-
-            // Act
-            testSubject.HandleNewIssues(inputIssues);
-
-            // Assert
-            notificationHandler.InvocationCount.Should().Be(1);
-            notificationHandler.UpdatedSnapshot.Issues.Count().Should().Be(0);
         }
 
         [TestMethod]
@@ -197,17 +171,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             notificationHandler.UpdatedSnapshot.Issues.Count().Should().Be(0);
         }
 
-        private static IIssuesFilter CreatePassthroughIssuesFilter()
-            => CreateIssuesFilter(null).Object;
-
-        private static Mock<IIssuesFilter> CreateIssuesFilter(IEnumerable<IFilterableIssue> optionalDataToReturn = null)
+        [TestMethod]
+        public void HandleNewIssues_SomeSuppressedIssues_IssuesGetMarkedCorrectly()
         {
+            // Arrange
+            var issue1 = CreateIssue("xxx", startLine: 1, endLine: 1);
+            var issue2 = CreateIssue("xxx2", startLine: 2, endLine: 2);
+            var issue3 = CreateIssue("xxx3", startLine: 3, endLine: 3);
+            var issue4 = CreateIssue("xxx4", startLine: 4, endLine: 4);
+
+            var issues = new[] { issue1, issue2, issue3, issue4 };
             var issuesFilter = new Mock<IIssuesFilter>();
-            var captured = new List<IFilterableIssue>();
-            issuesFilter.Setup(x => x.Filter(It.IsAny<IEnumerable<IFilterableIssue>>()))
-                .Callback((IEnumerable<IFilterableIssue> inputIssues) => captured.AddRange(inputIssues))
-                .Returns(optionalDataToReturn ?? captured);
-            return issuesFilter;
+            issuesFilter.Setup(x => x.GetMatches(issues)).Returns(new[] { issue1, issue4 });
+
+            var notificationHandler = new SnapshotChangeHandler();
+            var testSubject = CreateTestSubject(notificationHandler.OnSnapshotChanged, issuesFilter: issuesFilter.Object);
+
+            // Act
+            testSubject.HandleNewIssues(issues);
+
+            // Assert
+            notificationHandler.InvocationCount.Should().Be(1);
+            notificationHandler.UpdatedSnapshot.Issues.Count().Should().Be(4);
+
+            issue1.IsSuppressed = true;
+
+            issue1.IsSuppressed.Should().BeTrue();
+            issue2.IsSuppressed.Should().BeFalse();
+            issue3.IsSuppressed.Should().BeFalse();
+            issue4.IsSuppressed.Should().BeTrue();
         }
 
         private static IAnalysisIssueVisualization CreateIssue(string ruleKey, int startLine, int endLine)
@@ -230,6 +222,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             issueVizMock.Setup(x => x.Location).Returns(issue.PrimaryLocation);
             issueVizMock.Setup(x => x.Flows).Returns(Array.Empty<IAnalysisIssueFlowVisualization>());
             issueVizMock.SetupProperty(x => x.Span);
+            issueVizMock.SetupProperty(x => x.IsSuppressed);
             issueVizMock.Object.Span = new SnapshotSpan(CreateMockTextSnapshot(1000, "any line text").Object, 0, 1);
 
             return issueVizMock.Object;
@@ -297,7 +290,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             TranslateSpans translator = null,
             ITextDocument textDocument = null)
         {
-            issuesFilter ??= CreatePassthroughIssuesFilter();
+            issuesFilter ??= Mock.Of<IIssuesFilter>();
             translator ??= PassthroughSpanTranslator;
             textDocument ??= CreateValidTextDocument("any");
 

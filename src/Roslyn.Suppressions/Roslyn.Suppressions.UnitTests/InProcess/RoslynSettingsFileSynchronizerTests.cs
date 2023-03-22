@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppression;
@@ -45,8 +46,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<RoslynSettingsFileSynchronizer, IRoslynSettingsFileSynchronizer>(
-                MefTestHelpers.CreateExport<ISuppressedIssuesMonitor>(),
-                MefTestHelpers.CreateExport<ISonarQubeIssuesProvider>(),
+                MefTestHelpers.CreateExport<IServerIssuesStore>(),
                 MefTestHelpers.CreateExport<IRoslynSettingsFileStorage>(),
                 MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
                 MefTestHelpers.CreateExport<ILogger>());
@@ -55,47 +55,47 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
         [TestMethod]
         public void Ctor_RegisterToSuppressionsUpdateRequestedEvent()
         {
-            var suppressedIssuesMonitor = new Mock<ISuppressedIssuesMonitor>();
+            var serverIssuesStore = new Mock<IServerIssuesStore>();
 
-            suppressedIssuesMonitor.SetupAdd(x => x.SuppressionsUpdateRequested += null);
+            serverIssuesStore.SetupAdd(x => x.ServerIssuesChanged += null);
 
-            CreateTestSubject(suppressedIssuesMonitor: suppressedIssuesMonitor.Object);
+            CreateTestSubject(serverIssuesStore: serverIssuesStore.Object);
 
-            suppressedIssuesMonitor.VerifyAdd(x => x.SuppressionsUpdateRequested += It.IsAny<EventHandler>(), Times.Once());
-            suppressedIssuesMonitor.VerifyNoOtherCalls();
+            serverIssuesStore.VerifyAdd(x => x.ServerIssuesChanged += It.IsAny<EventHandler>(), Times.Once());
+            serverIssuesStore.VerifyNoOtherCalls();
         }
 
         [TestMethod]
         public void Dispose_UnregisterFromSuppressionsUpdateRequestedEvent()
         {
-            var suppressedIssuesMonitor = new Mock<ISuppressedIssuesMonitor>();
+            var serverIssuesStore = new Mock<IServerIssuesStore>();
 
-            suppressedIssuesMonitor.SetupAdd(x => x.SuppressionsUpdateRequested += null);
-            suppressedIssuesMonitor.SetupRemove(x => x.SuppressionsUpdateRequested -= null);
+            serverIssuesStore.SetupAdd(x => x.ServerIssuesChanged += null);
+            serverIssuesStore.SetupRemove(x => x.ServerIssuesChanged -= null);
 
-            var testSubject = CreateTestSubject(suppressedIssuesMonitor: suppressedIssuesMonitor.Object);
+            var testSubject = CreateTestSubject(serverIssuesStore: serverIssuesStore.Object);
 
-            suppressedIssuesMonitor.VerifyAdd(x => x.SuppressionsUpdateRequested += It.IsAny<EventHandler>(), Times.Once());
-            suppressedIssuesMonitor.VerifyNoOtherCalls();
+            serverIssuesStore.VerifyAdd(x => x.ServerIssuesChanged += It.IsAny<EventHandler>(), Times.Once());
+            serverIssuesStore.VerifyNoOtherCalls();
 
             testSubject.Dispose();
 
-            suppressedIssuesMonitor.VerifyRemove(x => x.SuppressionsUpdateRequested -= It.IsAny<EventHandler>(), Times.Once());
-            suppressedIssuesMonitor.VerifyNoOtherCalls();
+            serverIssuesStore.VerifyRemove(x => x.ServerIssuesChanged -= It.IsAny<EventHandler>(), Times.Once());
+            serverIssuesStore.VerifyNoOtherCalls();
         }
 
         [TestMethod]
         public void OnSuppressionsUpdateRequested_StandaloneMode_StorageNotUpdated()
         {
-            var suppressedIssuesMonitor = new Mock<ISuppressedIssuesMonitor>();
+            var serverIssuesStore = new Mock<IServerIssuesStore>();
             var roslynSettingsFileStorage = new Mock<IRoslynSettingsFileStorage>();
             var activeSolutionBoundTracker = CreateActiveSolutionBoundTracker(BindingConfiguration.Standalone);
             
-            CreateTestSubject(suppressedIssuesMonitor: suppressedIssuesMonitor.Object,
+            CreateTestSubject(serverIssuesStore: serverIssuesStore.Object,
                 activeSolutionBoundTracker: activeSolutionBoundTracker.Object,
                 roslynSettingsFileStorage: roslynSettingsFileStorage.Object);
 
-            suppressedIssuesMonitor.Raise(x=> x.SuppressionsUpdateRequested += null, EventArgs.Empty);
+            serverIssuesStore.Raise(x=> x.ServerIssuesChanged += null, EventArgs.Empty);
 
             activeSolutionBoundTracker.Verify(x=> x.CurrentConfiguration, Times.Once);
             roslynSettingsFileStorage.Invocations.Count.Should().Be(0);
@@ -106,21 +106,19 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
         [DataRow(false)] // should update storage even when there are no issues
         public void OnSuppressionsUpdateRequested_ConnectedMode_StorageUpdated(bool hasIssues)
         {
-            var suppressedIssuesMonitor = new Mock<ISuppressedIssuesMonitor>();
             var roslynSettingsFileStoragerage = new Mock<IRoslynSettingsFileStorage>();
 
             var configuration = CreateConnectedConfiguration("some project key");
             var activeSolutionBoundTracker = CreateActiveSolutionBoundTracker(configuration);
 
             var issues = hasIssues ? new[] { CreateSonarQubeIssue(), CreateSonarQubeIssue() } : Array.Empty<SonarQubeIssue>();
-            var suppressedIssuesProvider = CreateSuppressedIssuesProvider(issues);
+            var serverIssuesStore = CreateServerIssuesStore(issues);
 
-            CreateTestSubject(suppressedIssuesMonitor: suppressedIssuesMonitor.Object,
+            CreateTestSubject(serverIssuesStore: serverIssuesStore.Object,
                 activeSolutionBoundTracker: activeSolutionBoundTracker.Object,
-                roslynSettingsFileStorage: roslynSettingsFileStoragerage.Object,
-                suppressedIssuesProvider: suppressedIssuesProvider.Object);
+                roslynSettingsFileStorage: roslynSettingsFileStoragerage.Object);
 
-            suppressedIssuesMonitor.Raise(x => x.SuppressionsUpdateRequested += null, EventArgs.Empty);
+            serverIssuesStore.Raise(x => x.ServerIssuesChanged += null, EventArgs.Empty);
 
             roslynSettingsFileStoragerage.Verify(x => x.Update(It.IsAny<RoslynSettings>()), Times.Once);
         }
@@ -137,11 +135,11 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
             var roslynSettingsFileStorage = new Mock<IRoslynSettingsFileStorage>();
 
             var issues = new[] { CreateSonarQubeIssue() };
-            var suppressedIssuesProvider = CreateSuppressedIssuesProvider(issues);
+            var serverIssuesStore = CreateServerIssuesStore(issues);
 
             var testSubject = CreateTestSubject(
+                serverIssuesStore: serverIssuesStore.Object,
                 threadHandling: threadHandling.Object,
-                suppressedIssuesProvider: suppressedIssuesProvider.Object,
                 roslynSettingsFileStorage: roslynSettingsFileStorage.Object,
                 activeSolutionBoundTracker: activeSolutionBoundTracker.Object);
 
@@ -169,7 +167,8 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
                 CreateSonarQubeIssue(ruleId: "xxxS555"),// invalid repo key - ignored
                 CreateSonarQubeIssue(ruleId: "xxx:"),// invalid repo key (no rule id) - ignored
             };
-            var suppressedIssuesProvider = CreateSuppressedIssuesProvider(sonarIssues);
+
+            var serverIssuesStore = CreateServerIssuesStore(sonarIssues);
 
             RoslynSettings actualSettings = null;
             var roslynSettingsFileStorage = new Mock<IRoslynSettingsFileStorage>();
@@ -177,7 +176,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
                 .Callback<RoslynSettings>(x => actualSettings = x);
 
             var testSubject = CreateTestSubject(
-                suppressedIssuesProvider: suppressedIssuesProvider.Object,
+                serverIssuesStore: serverIssuesStore.Object,
                 roslynSettingsFileStorage: roslynSettingsFileStorage.Object,
                 activeSolutionBoundTracker: activeSolutionBoundTracker.Object);
 
@@ -195,6 +194,46 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
             actualSuppressions[1].RoslynRuleId.Should().Be("S222");
         }
 
+        [TestMethod]
+        public async Task UpdateFileStorage_OnySuppressedIssuesAreInSettings()
+        {
+            var configuration = CreateConnectedConfiguration("some project key");
+            var activeSolutionBoundTracker = CreateActiveSolutionBoundTracker(configuration);
+
+            var sonarIssues = new[]
+            {
+                CreateSonarQubeIssue(ruleId: "csharpsquid:S111", isSuppressed:false),
+                CreateSonarQubeIssue(ruleId: "vbnet:S222", isSuppressed:true),
+                CreateSonarQubeIssue(ruleId: "csharpsquid:S333", isSuppressed:true),
+                CreateSonarQubeIssue(ruleId: "vbnet:S444", isSuppressed:false),
+            };
+
+            var serverIssuesStore = CreateServerIssuesStore(sonarIssues);
+
+            RoslynSettings actualSettings = null;
+            var roslynSettingsFileStorage = new Mock<IRoslynSettingsFileStorage>();
+            roslynSettingsFileStorage.Setup(x => x.Update(It.IsAny<RoslynSettings>()))
+                .Callback<RoslynSettings>(x => actualSettings = x);
+
+            var testSubject = CreateTestSubject(
+                serverIssuesStore: serverIssuesStore.Object,
+                roslynSettingsFileStorage: roslynSettingsFileStorage.Object,
+                activeSolutionBoundTracker: activeSolutionBoundTracker.Object);
+
+            await testSubject.UpdateFileStorageAsync();
+
+            actualSettings.Should().NotBeNull();
+            actualSettings.SonarProjectKey.Should().Be("some project key");
+            actualSettings.Suppressions.Should().NotBeNull();
+
+            var actualSuppressions = actualSettings.Suppressions.ToList();
+            actualSuppressions.Count.Should().Be(2);
+            actualSuppressions[0].RoslynLanguage.Should().Be(RoslynLanguage.VB);
+            actualSuppressions[0].RoslynRuleId.Should().Be("S222");
+            actualSuppressions[1].RoslynLanguage.Should().Be(RoslynLanguage.CSharp);
+            actualSuppressions[1].RoslynRuleId.Should().Be("S333");
+        }
+
         private static Mock<IActiveSolutionBoundTracker> CreateActiveSolutionBoundTracker(BindingConfiguration configuration)
         {
             var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
@@ -203,12 +242,12 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
             return activeSolutionBoundTracker;
         }
 
-        private static Mock<ISonarQubeIssuesProvider> CreateSuppressedIssuesProvider(IEnumerable<SonarQubeIssue> issues)
+        private static Mock<IServerIssuesStore> CreateServerIssuesStore(IEnumerable<SonarQubeIssue> issues = null)
         {
-            var suppressedIssuesProvider = new Mock<ISonarQubeIssuesProvider>();
-            suppressedIssuesProvider.Setup(x => x.GetAllSuppressedIssuesAsync()).Returns(Task.FromResult(issues));
+            var serverIssuesStore = new Mock<IServerIssuesStore>();
+            serverIssuesStore.Setup(x => x.Get()).Returns(issues);
 
-            return suppressedIssuesProvider;
+            return serverIssuesStore;
         }
 
 
@@ -219,22 +258,19 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
             return BindingConfiguration.CreateBoundConfiguration(project, SonarLintMode.Connected, "some directory");
         }
 
-        private RoslynSettingsFileSynchronizer CreateTestSubject(ISuppressedIssuesMonitor suppressedIssuesMonitor = null,
-            ISonarQubeIssuesProvider suppressedIssuesProvider = null,
+        private RoslynSettingsFileSynchronizer CreateTestSubject(IServerIssuesStore serverIssuesStore = null,
             IRoslynSettingsFileStorage roslynSettingsFileStorage = null,
             IActiveSolutionBoundTracker activeSolutionBoundTracker = null,
             IThreadHandling threadHandling = null,
             ILogger logger = null)
         {
-            suppressedIssuesMonitor ??= Mock.Of<ISuppressedIssuesMonitor>();
-            suppressedIssuesProvider ??= Mock.Of<ISonarQubeIssuesProvider>();
+            serverIssuesStore ??= Mock.Of<IServerIssuesStore>();
             roslynSettingsFileStorage ??= Mock.Of<IRoslynSettingsFileStorage>();
             activeSolutionBoundTracker ??= Mock.Of<IActiveSolutionBoundTracker>();
             threadHandling ??= new NoOpThreadHandler();
             logger ??= new TestLogger();
 
-            return new RoslynSettingsFileSynchronizer(suppressedIssuesMonitor, 
-                suppressedIssuesProvider, 
+            return new RoslynSettingsFileSynchronizer(serverIssuesStore,
                 roslynSettingsFileStorage, 
                 activeSolutionBoundTracker,
                 logger,
