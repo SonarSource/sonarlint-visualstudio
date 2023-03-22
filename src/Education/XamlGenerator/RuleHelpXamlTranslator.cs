@@ -157,6 +157,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 case "br":
                     // This is an empty element, so there is nothing to push onto the stack.
+                    EnsureCurrentOutputSupportsInlines();
                     WriteEmptyElement("LineBreak");
 
                     break;
@@ -172,40 +173,40 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     break;
 
                 case "h1":
-                    writer.WriteStartElement("Paragraph");
+                    WriteBlockElementStart("Paragraph");
                     writer.ApplyStyleToElement(StyleResourceNames.Heading1_Paragraph);
 
                     PushOutputElementInfo("h1", true);
                     break;
 
                 case "h2":
-                    writer.WriteStartElement("Paragraph");
+                    WriteBlockElementStart("Paragraph");
                     writer.ApplyStyleToElement(StyleResourceNames.Heading2_Paragraph);
 
                     PushOutputElementInfo("h2", true);
                     break;
 
                 case "h3":
-                    writer.WriteStartElement("Paragraph");
+                    WriteBlockElementStart("Paragraph");
                     writer.ApplyStyleToElement(StyleResourceNames.Heading3_Paragraph);
 
                     PushOutputElementInfo("h3", true);
                     break;
 
                 case "h4":
-                    writer.WriteStartElement("Paragraph");
+                    WriteBlockElementStart("Paragraph");
                     writer.ApplyStyleToElement(StyleResourceNames.Heading4_Paragraph);
 
                     PushOutputElementInfo("h4", true);
                     break;
                 case "h5":
-                    writer.WriteStartElement("Paragraph");
+                    WriteBlockElementStart("Paragraph");
                     writer.ApplyStyleToElement(StyleResourceNames.Heading5_Paragraph);
 
                     PushOutputElementInfo("h5", true);
                     break;
                 case "h6":
-                    writer.WriteStartElement("Paragraph");
+                    WriteBlockElementStart("Paragraph");
                     writer.ApplyStyleToElement(StyleResourceNames.Heading6_Paragraph);
 
                     PushOutputElementInfo("h6", true);
@@ -226,7 +227,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     break;
 
                 case "p":
-                    writer.WriteStartElement("Paragraph");
+                    WriteBlockElementStart("Paragraph");
 
                     PushOutputElementInfo("p", true);
 
