@@ -52,7 +52,7 @@ namespace SonarQube.Client.Tests
                 SetupRequest("batch/issues?key=project1", reader.ReadToEnd());
             }
 
-            var result = await service.GetSuppressedIssuesAsync("project1", null, CancellationToken.None);
+            var result = await service.GetSuppressedIssuesAsync("project1", null, null, CancellationToken.None);
 
             // TODO: create a protobuf file with more than one issue with different states
             // the one above does not have suppressed issues, hence the Count==0
@@ -69,7 +69,7 @@ namespace SonarQube.Client.Tests
             SetupRequest("batch/issues?key=project1", "", HttpStatusCode.NotFound);
 
             Func<Task<IList<SonarQubeIssue>>> func = async () =>
-                await service.GetSuppressedIssuesAsync("project1", null, CancellationToken.None);
+                await service.GetSuppressedIssuesAsync("project1", null, null, CancellationToken.None);
 
             func.Should().ThrowExactly<HttpRequestException>().And
                 .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
@@ -251,7 +251,7 @@ namespace SonarQube.Client.Tests
 }
 ");
 
-            var result = await service.GetSuppressedIssuesAsync("shared", null,CancellationToken.None);
+            var result = await service.GetSuppressedIssuesAsync("shared", null, null,CancellationToken.None);
 
             result.Should().HaveCount(4);
 
@@ -304,7 +304,7 @@ namespace SonarQube.Client.Tests
             SetupRequest("api/issues/search?projects=project1&statuses=RESOLVED&types=CODE_SMELL&p=1&ps=500", "", HttpStatusCode.NotFound);
 
             Func<Task<IList<SonarQubeIssue>>> func = async () =>
-                await service.GetSuppressedIssuesAsync("project1", null, CancellationToken.None);
+                await service.GetSuppressedIssuesAsync("project1", null, null, CancellationToken.None);
 
             func.Should().ThrowExactly<HttpRequestException>().And
                 .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
@@ -321,7 +321,7 @@ namespace SonarQube.Client.Tests
             SetupPageOfResponses("simplcom", 1, 0, "BUG");
             SetupPageOfResponses("simplcom", 1, 0, "VULNERABILITY");
 
-            var result = await service.GetSuppressedIssuesAsync("simplcom", null, CancellationToken.None);
+            var result = await service.GetSuppressedIssuesAsync("simplcom", null, null, CancellationToken.None);
 
             result.Should().HaveCount(1001);
             result.Select(i => i.FilePath).Should().Match(paths => paths.All(p => p == "Program.cs"));
@@ -344,7 +344,7 @@ namespace SonarQube.Client.Tests
             SetupPagesOfResponses("proj1", numBugs, "BUG");
             SetupPagesOfResponses("proj1", numVulnerabilities, "VULNERABILITY");
 
-            var result = await service.GetSuppressedIssuesAsync("proj1", null, CancellationToken.None);
+            var result = await service.GetSuppressedIssuesAsync("proj1", null, null, CancellationToken.None);
 
             result.Should().HaveCount(
                 Math.Min(MaxAllowedIssues, numCodeSmells) +
@@ -376,12 +376,12 @@ namespace SonarQube.Client.Tests
             messageHandler.Reset();
 
             SetupHttpRequest(messageHandler, EmptyGetIssuesResponse);
-            _ = await service.GetSuppressedIssuesAsync("any", emptyBranch, CancellationToken.None);
+            _ = await service.GetSuppressedIssuesAsync("any", emptyBranch, null, CancellationToken.None);
 
             // Branch is null/empty => should not be passed
             var actualRequests = messageHandler.GetSendAsyncRequests();
             actualRequests.Should().HaveCount(3);
-            actualRequests.All(x => x.RequestUri.Query.Contains("branch")).Should().BeFalse();
+            actualRequests.Should().NotContain(x => x.RequestUri.Query.Contains("branch"));
         }
 
         [TestMethod]
@@ -391,13 +391,42 @@ namespace SonarQube.Client.Tests
             messageHandler.Reset();
 
             SetupHttpRequest(messageHandler, EmptyGetIssuesResponse);
-            _ = await service.GetSuppressedIssuesAsync("any", "aBranch", CancellationToken.None);
+            _ = await service.GetSuppressedIssuesAsync("any", "aBranch", null, CancellationToken.None);
 
             // The wrapper is expected to make three calls, for code smells, bugs, then vulnerabilities
             var actualRequests = messageHandler.GetSendAsyncRequests();
             actualRequests.Should().HaveCount(3);
-
             actualRequests.Should().OnlyContain(x => x.RequestUri.Query.Contains("&branch=aBranch&"));
+        }
+
+        [TestMethod]
+        public async Task GetSuppressedIssuesAsync_From_7_20_IssueKeysAreNotSpecified_IssueKeysAreNotIncludedInQueryString()
+        {
+            await ConnectToSonarQube("7.2.0.0");
+            messageHandler.Reset();
+
+            SetupHttpRequest(messageHandler, EmptyGetIssuesResponse);
+            _ = await service.GetSuppressedIssuesAsync("any", null, null, CancellationToken.None);
+
+            // The wrapper is expected to make three calls, for code smells, bugs, then vulnerabilities
+            var actualRequests = messageHandler.GetSendAsyncRequests();
+            actualRequests.Should().HaveCount(3);
+            actualRequests.Should().NotContain(x => x.RequestUri.Query.Contains("issues"));
+        }
+
+        [TestMethod]
+        public async Task GetSuppressedIssuesAsync_From_7_20_IssueKeysAreSpecified_IssueKeysAreIncludedInQueryString()
+        {
+            await ConnectToSonarQube("7.2.0.0");
+            messageHandler.Reset();
+
+            SetupHttpRequest(messageHandler, EmptyGetIssuesResponse);
+            _ = await service.GetSuppressedIssuesAsync("any", null, new[]{"issue1", "issue2"}, CancellationToken.None);
+
+            // The wrapper is expected to make one call with the given issueKeys
+            var actualRequests = messageHandler.GetSendAsyncRequests();
+            actualRequests.Should().ContainSingle();
+            actualRequests.Should().OnlyContain(x => x.RequestUri.Query.Contains("issues=issue1%2Cissue2"));
         }
 
         [TestMethod]
@@ -407,7 +436,7 @@ namespace SonarQube.Client.Tests
             // No need to setup request, the operation should fail
 
             Func<Task<IList<SonarQubeIssue>>> func = async () =>
-                await service.GetSuppressedIssuesAsync("simplcom", null, CancellationToken.None);
+                await service.GetSuppressedIssuesAsync("simplcom", null, null, CancellationToken.None);
 
             func.Should().ThrowExactly<InvalidOperationException>().And
                 .Message.Should().Be("This operation expects the service to be connected.");

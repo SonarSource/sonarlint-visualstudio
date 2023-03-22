@@ -17,24 +17,33 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using SonarQube.Client.Models;
+using System.Linq;
 
-namespace SonarLint.VisualStudio.Core.Suppression
+namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
-    public interface ISonarQubeIssuesProvider : IDisposable
+    internal interface IClientSuppressionSynchronizer
     {
         /// <summary>
-        /// Returns SonarQube suppressed issues for the specified project and file
+        /// Notifies listeners that the set of local suppressions has changed
         /// </summary>
-        IEnumerable<SonarQubeIssue> GetSuppressedIssues(string projectGuid, string filePath);
+        event EventHandler<LocalSuppressionsChangedEventArgs> LocalSuppressionsChanged;
 
         /// <summary>
-        /// Returns all SonarQube suppressed issues
+        /// Synchronizes server side issues with client side issues.
         /// </summary>
-        Task<IEnumerable<SonarQubeIssue>> GetAllSuppressedIssuesAsync();
+        void SynchronizeSuppressedIssues();
+    }
+
+    internal class LocalSuppressionsChangedEventArgs : EventArgs
+    {
+        public LocalSuppressionsChangedEventArgs(IEnumerable<string> changedFiles)
+            => ChangedFiles = changedFiles?.ToArray() ?? Array.Empty<string>();
+
+        /// <summary>
+        /// The list of files affected by the issues that were updated
+        /// </summary>
+        public IEnumerable<string> ChangedFiles { get; }
     }
 }

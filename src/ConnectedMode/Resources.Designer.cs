@@ -275,5 +275,149 @@ namespace SonarLint.VisualStudio.ConnectedMode {
                 return ResourceManager.GetString("StatefulBranchProvider_ReturnValue", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ServerIssueStore] Updating issue: {0}. No matching issue in store. Event will be ignored..
+        /// </summary>
+        internal static string Store_UpdateIssue_NoMatch {
+            get {
+                return ResourceManager.GetString("Store_UpdateIssue_NoMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ServerIssueStore] Raising change event....
+        /// </summary>
+        internal static string Store_UpdateIssue_RaisingEvent {
+            get {
+                return ResourceManager.GetString("Store_UpdateIssue_RaisingEvent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ServerIssueStore] Updating issue: {0}. Match found, update not required.
+        /// </summary>
+        internal static string Store_UpdateIssue_UpdateNotRequired {
+            get {
+                return ResourceManager.GetString("Store_UpdateIssue_UpdateNotRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ServerIssueStore] Updating issue: {0}. Match found, update required. New IsResolved value: {1}.
+        /// </summary>
+        internal static string Store_UpdateIssue_UpdateRequired {
+            get {
+                return ResourceManager.GetString("Store_UpdateIssue_UpdateRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Finished fetching all suppressions.
+        /// </summary>
+        internal static string Suppression_Fetch_AllIssues_Finished {
+            get {
+                return ResourceManager.GetString("Suppression_Fetch_AllIssues_Finished", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Error fetching data: {0}.
+        /// </summary>
+        internal static string Suppression_FetchError_Verbose {
+            get {
+                return ResourceManager.GetString("Suppression_FetchError_Verbose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Handling IssueChangedEvent, isResolved: {0}, issue keys for current branch: {1}.
+        /// </summary>
+        internal static string Suppression_IssueChangedEvent {
+            get {
+                return ResourceManager.GetString("Suppression_IssueChangedEvent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] IssueChangedEvent finished.
+        /// </summary>
+        internal static string Suppression_IssueChangedEventFinished {
+            get {
+                return ResourceManager.GetString("Suppression_IssueChangedEventFinished", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Error updating data: {0}.
+        /// </summary>
+        internal static string Suppression_UpdateError_Verbose {
+            get {
+                return ResourceManager.GetString("Suppression_UpdateError_Verbose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Cancelling current operation....
+        /// </summary>
+        internal static string Suppressions_CancellingCurrentOperation {
+            get {
+                return ResourceManager.GetString("Suppressions_CancellingCurrentOperation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Fetching all suppressions....
+        /// </summary>
+        internal static string Suppressions_Fetch_AllIssues {
+            get {
+                return ResourceManager.GetString("Suppressions_Fetch_AllIssues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Fetch operation failed: {0}.
+        /// </summary>
+        internal static string Suppressions_FetchError_Short {
+            get {
+                return ResourceManager.GetString("Suppressions_FetchError_Short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Fetch operation cancelled.
+        /// </summary>
+        internal static string Suppressions_FetchOperationCancelled {
+            get {
+                return ResourceManager.GetString("Suppressions_FetchOperationCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Cannot fetch suppressions - not connected to a Sonar server..
+        /// </summary>
+        internal static string Suppressions_NotConnected {
+            get {
+                return ResourceManager.GetString("Suppressions_NotConnected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Update operation failed: {0}.
+        /// </summary>
+        internal static string Suppressions_UpdateError_Short {
+            get {
+                return ResourceManager.GetString("Suppressions_UpdateError_Short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Suppressions] Update operation cancelled.
+        /// </summary>
+        internal static string Suppressions_UpdateOperationCancelled {
+            get {
+                return ResourceManager.GetString("Suppressions_UpdateOperationCancelled", resourceCulture);
+            }
+        }
     }
 }

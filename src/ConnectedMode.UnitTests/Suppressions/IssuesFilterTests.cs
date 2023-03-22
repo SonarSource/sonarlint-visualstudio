@@ -20,12 +20,10 @@
 
 using System;
 using System.Collections.Generic;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using NuGet;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Suppression;
-using SonarLint.VisualStudio.Integration.Suppression;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 {
@@ -54,6 +52,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         }
 
         [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<IssuesFilter, IIssuesFilter>(
+                MefTestHelpers.CreateExport<IServerIssuesStore>());
+        }
+
+        [TestMethod]
         public void Ctor_NullSonarQubeIssuesProvider_ThrowsArgumentNullException()
         {
             Action act = () => new IssuesFilter((SuppressedIssueMatcher)null);
@@ -64,50 +69,50 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestMethod]
         public void Filter_NullIssues_ThrowsArgumentNullException()
         {
-            Action act = () => testSubject.Filter(null);
+            Action act = () => testSubject.GetMatches(null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issues");
         }
 
         [TestMethod]
-        public void Filter_NoMatchingIssues_ReturnsOriginalIssues()
+        public void Filter_NoMatchingIssues_ReturnsNoIssues()
         {
             // Arrange
             var inputIssues = new[] { Issue1, Issue2, Issue3 };
             SetMatchableIssues(Issue4, Issue5);
 
             // Act
-            var result = testSubject.Filter(inputIssues);
+            var result = testSubject.GetMatches(inputIssues);
 
             // Assert
-            result.Should().BeEquivalentTo(inputIssues);
+            result.Should().BeEmpty();
         }
 
         [TestMethod]
-        public void Filter_SomeIssuesMatch_ReturnsUnmatchedIssues()
+        public void Filter_SomeIssuesMatch_ReturnsMatchedIssues()
         {
             // Arrange
             var inputIssues = new[] { Issue1, Issue2, Issue3, Issue4 };
             SetMatchableIssues(Issue1, Issue2, Issue5);
 
             // Act
-            var result = testSubject.Filter(inputIssues);
+            var result = testSubject.GetMatches(inputIssues);
 
             // Assert
-            result.Should().BeEquivalentTo(Issue3, Issue4);
+            result.Should().BeEquivalentTo(Issue1, Issue2);
         }
 
         [TestMethod]
-        public void Filter_AllIssuesMatch_ReturnsEmptyList()
+        public void Filter_AllIssuesMatch_ReturnsAllIssues()
         {
             // Arrange
             var inputIssues = new[] { Issue1, Issue2, Issue3, Issue4 };
             SetMatchableIssues(inputIssues);
 
             // Act
-            var result = testSubject.Filter(inputIssues);
+            var result = testSubject.GetMatches(inputIssues);
 
             // Assert
-            result.Should().BeEmpty();
+            result.Should().BeEquivalentTo(inputIssues);
         }
 
         private static IFilterableIssue CreateIssue()

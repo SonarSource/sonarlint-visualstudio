@@ -18,12 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core.ServerSentEvents;
+using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
-namespace SonarLint.VisualStudio.Core.Suppression
+namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
 {
-    public interface IIssuesFilter
-    {
-        IEnumerable<IFilterableIssue> Filter(IEnumerable<IFilterableIssue> issues);
-    }
+    [Export(typeof(IIssueServerEventSource))]
+    [Export(typeof(IIssueServerEventSourcePublisher))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class IssueServerEventChannel : ServerEventChannel<IIssueChangedServerEvent>, IIssueServerEventSource, IIssueServerEventSourcePublisher { }
 }

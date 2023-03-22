@@ -18,10 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Suppression
+using SonarLint.VisualStudio.Core.ServerSentEvents;
+using SonarQube.Client.Models.ServerSentEvents.ClientContract;
+
+namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
 {
-    public interface ISuppressedIssueMatcher
-    {
-        bool SuppressionExists(IFilterableIssue issue);
-    }
+    /// <inheritdoc cref="IServerSentEventSource{IIssueChangedServerEvent}"/>
+    internal interface IIssueServerEventSource : IServerSentEventSource<IIssueChangedServerEvent> { }
 }

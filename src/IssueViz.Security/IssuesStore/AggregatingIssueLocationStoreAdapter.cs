@@ -61,11 +61,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore
             return matchingLocations;
         }
 
-        public void Refresh(IEnumerable<string> affectedFilePaths)
+        public void RefreshOnBufferChanged(string affectedFilePath)
         {
             // Implementation is not required:
-            // This method was originally added in order to notify the error list sinks that the taggers changed the span of the issue visualizations.
-            // The newer issue stores display their data in plain xaml lists, and the span changes are tracked via NotifyPropertyChanged mechanism in IAnalysisIssueVisualization.
+            // The assumption is that the set of issues in the aggregated stores (taint and hotspot) is not affected
+            // by changes in the buffer. The taggers will already have updated the spans in the IAnalysisIssueVisualization,
+            // and those changes will have been propagated to the taint and hotspot UI lists via NotifyPropertyChanged mechanism
+
+            // NOTE: we're making assumptions about all of the implementations of IIssueStore.
+            // A better approach would be to propagate the call and allow individual store implementations to ignore
+            // it if appropriate.
+        }
+
+        public void Refresh(IEnumerable<string> affectedFilePaths)
+        {
+            // Currently, this is called when the set of suppressed issues has changed.
+            // We don't support suppressions for Taint or Hotspots yet.
+
+            // NOTE: same comment as RefreshOnBufferChanged - we're making assumptions about the implementations of IIssueStore.
         }
 
         public bool Contains(IAnalysisIssueVisualization issueVisualization)

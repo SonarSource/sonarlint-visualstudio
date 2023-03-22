@@ -22,6 +22,7 @@ using System;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents;
@@ -40,7 +41,8 @@ public class SSESessionManagerTests
 
         MefTestHelpers.CheckTypeCanBeImported<SSESessionManager, ISSESessionManager>(
             MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(activeSolutionBoundTrackerMock.Object),
-            MefTestHelpers.CreateExport<ISSESessionFactory>());
+            MefTestHelpers.CreateExport<ISSESessionFactory>(),
+            MefTestHelpers.CreateExport<ILogger>());
     }
 
     [TestMethod]
@@ -223,7 +225,8 @@ public class SSESessionManagerTests
         {
             return new SSESessionManager(
                 ActiveSolutionBoundTrackerMock.Object,
-                SSESessionFactoryMock.Object);
+                SSESessionFactoryMock.Object,
+                Mock.Of<ILogger>());
         }
 
         public static BindingConfiguration CreateConnectedModeBindingConfiguration(string projectKey)

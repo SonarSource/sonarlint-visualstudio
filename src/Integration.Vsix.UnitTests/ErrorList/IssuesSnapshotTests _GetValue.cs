@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -251,6 +252,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             GetValue(SonarLintTableControlConstants.IssueVizColumnName).Should().BeSameAs(issueViz);
         }
 
+        [TestMethod]
+        public void GetValue_SuppressionState_Is_SuppressionState()
+        {
+            issueViz.IsSuppressed = true;
+            GetValue(SuppressionsColumnHelper.SuppressionStateColumnName).Should().BeSameAs(SuppressionsColumnHelper.SuppressionState_Suppressed);
+            issueViz.IsSuppressed = false;
+            GetValue(SuppressionsColumnHelper.SuppressionStateColumnName).Should().BeSameAs(SuppressionsColumnHelper.SuppressionState_Active);
+        }
+
         private object GetValue(string columnName)
         {
             object content;
@@ -273,6 +283,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             issueVizMock.Setup(x => x.Flows).Returns(Array.Empty<IAnalysisIssueFlowVisualization>());
             issueVizMock.SetupProperty(x => x.Span);
             issueVizMock.Object.Span = snapshotSpan;
+            issueVizMock.SetupProperty(x => x.IsSuppressed);
 
             return issueVizMock.Object;
         }

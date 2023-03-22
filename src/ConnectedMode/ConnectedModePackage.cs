@@ -24,7 +24,10 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
+using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
@@ -38,9 +41,16 @@ namespace SonarLint.VisualStudio.ConnectedMode
     public sealed class ConnectedModePackage : AsyncPackage
     {
         private ISSESessionManager sseSessionManager;
+        private IIssueServerEventsListener issueServerEventsListener;
+        private ServerSuppressionsChangedHandler serverSuppressionsChangedHandler;
+        private BoundSolutionUpdateHandler boundSolutionUpdateHandler;
+        private TimedUpdateHandler timedUpdateHandler;
+        private LocalSuppressionsChangedHandler localSuppressionsChangedHandler;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             var componentModel = await GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
             var logger = componentModel.GetService<ILogger>();
 
@@ -48,7 +58,19 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
             sseSessionManager = componentModel.GetService<ISSESessionManager>();
 
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            issueServerEventsListener = componentModel.GetService<IIssueServerEventsListener>();
+            issueServerEventsListener.ListenAsync().Forget();
+
+            serverSuppressionsChangedHandler = componentModel.GetService<ServerSuppressionsChangedHandler>();
+            boundSolutionUpdateHandler = componentModel.GetService<BoundSolutionUpdateHandler>();
+            timedUpdateHandler = componentModel.GetService<TimedUpdateHandler>();
+            localSuppressionsChangedHandler = componentModel.GetService<LocalSuppressionsChangedHandler>();
+
+            // Trigger an initial update of suppressions (we might have missed the solution binding
+            // event from the ActiveSolutionBoundTracker)
+            // See https://github.com/SonarSource/sonarlint-visualstudio/issues/3886
+            var updater = componentModel.GetService<ISuppressionIssueStoreUpdater>();
+            updater.UpdateAllServerSuppressionsAsync().Forget();
 
             logger.WriteLine(Resources.Package_Initialized);
         }
@@ -58,7 +80,13 @@ namespace SonarLint.VisualStudio.ConnectedMode
             if (disposing)
             {
                 sseSessionManager?.Dispose();
+                issueServerEventsListener?.Dispose();
+                serverSuppressionsChangedHandler?.Dispose();
+                boundSolutionUpdateHandler?.Dispose();
+                timedUpdateHandler?.Dispose();
+                localSuppressionsChangedHandler?.Dispose();
             }
+
             base.Dispose(disposing);
         }
     }

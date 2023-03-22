@@ -40,7 +40,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     {
         private readonly IAnalysisRequester analysisRequester;
         private readonly IUserSettingsProvider userSettingsProvider;
-        private readonly ISuppressedIssuesMonitor suppressedIssuesMonitor;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
 
@@ -49,36 +48,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         [ImportingConstructor]
         public AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
             IUserSettingsProvider userSettingsProvider, // reports changes to user settings.json
-            ISuppressedIssuesMonitor suppressedIssuesMonitor,
-            ILogger logger) : this(analysisRequester, userSettingsProvider, suppressedIssuesMonitor, logger, ThreadHandling.Instance)
+            ILogger logger) : this(analysisRequester, userSettingsProvider, logger, ThreadHandling.Instance)
         { }
 
         internal AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
-            IUserSettingsProvider userSettingsProvider, 
-            ISuppressedIssuesMonitor suppressedIssuesMonitor,
+            IUserSettingsProvider userSettingsProvider,
             ILogger logger,
             IThreadHandling threadHandling)
         {
             this.analysisRequester = analysisRequester;
             this.userSettingsProvider = userSettingsProvider;
-            this.suppressedIssuesMonitor = suppressedIssuesMonitor;
             this.logger = logger;
             this.threadHandling = threadHandling;
 
             userSettingsProvider.SettingsChanged += OnUserSettingsChanged;
-            suppressedIssuesMonitor.SuppressionsUpdateRequested += OnSuppressionsUpdated;
         }
 
         private void OnUserSettingsChanged(object sender, EventArgs e)
         {
             // There is a corner-case where we want to raise the event even in Connected Mode - see https://github.com/SonarSource/sonarlint-visualstudio/issues/3701
             logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
-            OnSettingsChangedAsync().Forget();
-        }
-
-        private void OnSuppressionsUpdated(object sender, EventArgs e)
-        {
-            logger.WriteLine(AnalysisStrings.ConfigMonitor_SuppressionsUpdated);
             OnSettingsChangedAsync().Forget();
         }
 
@@ -106,7 +95,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 if (disposing)
                 {
                     userSettingsProvider.SettingsChanged -= OnUserSettingsChanged;
-                    suppressedIssuesMonitor.SuppressionsUpdateRequested -= OnSuppressionsUpdated;
                 }
                 disposedValue = true;
             }

@@ -22,6 +22,7 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 {
@@ -39,16 +40,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
         private readonly object syncRoot = new object();
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ISSESessionFactory sseSessionFactory;
+        private readonly ILogger logger;
 
         private ISSESession currentSession;
 
         private bool disposed;
 
         [ImportingConstructor]
-        public SSESessionManager(IActiveSolutionBoundTracker activeSolutionBoundTracker, ISSESessionFactory sseSessionFactory)
+        public SSESessionManager(IActiveSolutionBoundTracker activeSolutionBoundTracker, 
+            ISSESessionFactory sseSessionFactory,
+            ILogger logger)
         {
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.sseSessionFactory = sseSessionFactory;
+            this.logger = logger;
 
             activeSolutionBoundTracker.SolutionBindingChanged += SolutionBindingChanged;
 
@@ -75,7 +80,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
         private void CreateSessionIfInConnectedMode(BindingConfiguration bindingConfiguration)
         {
-            ISSESession sessionToLaunch;
             lock (syncRoot)
             {
                 EndCurrentSession();
@@ -84,19 +88,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
                 if (!isInConnectedMode)
                 {
+                    logger.LogVerbose("[SSESessionManager] Not in connected mode");
                     return;
                 }
 
-                currentSession = sessionToLaunch = sseSessionFactory.Create(bindingConfiguration.Project.ProjectKey);
-            }
+                logger.LogVerbose("[SSESessionManager] In connected mode, creating session...");
 
-            sessionToLaunch.PumpAllAsync().Forget();
+                currentSession = sseSessionFactory.Create(bindingConfiguration.Project.ProjectKey);
+
+                logger.LogVerbose("[SSESessionManager] Created session: {0}", currentSession.GetHashCode());
+
+                currentSession.PumpAllAsync().Forget();
+
+                logger.LogVerbose("[SSESessionManager] Session started");
+            }
         }
 
         private void EndCurrentSession()
         {
             lock (syncRoot)
             {
+                logger.LogVerbose("[SSESessionManager] Disposing current session: {0}", currentSession?.GetHashCode());
+
                 currentSession?.Dispose();
                 currentSession = null;
             }
