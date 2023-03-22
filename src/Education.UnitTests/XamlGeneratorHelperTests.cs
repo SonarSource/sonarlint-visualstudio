@@ -71,8 +71,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         <Image Style=""{DynamicResource SubtitleElement_Image}"" Source=""{DynamicResource criticalDrawingImage}"" />
       </InlineUIContainer>Critical</Span>
     <Span Style=""{DynamicResource SubtitleElement_Span}"">cs:123</Span>
-  </Paragraph>
-  <LineBreak /><Paragraph>fix this pls</Paragraph><LineBreak /></FlowDocument>");
+  </Paragraph><Paragraph>fix this pls</Paragraph><LineBreak /></FlowDocument>".Replace("\r\n", "\n").Replace("\n", "\r\n"));
         }
 
         [TestMethod]
@@ -87,7 +86,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var testSubject = (new XamlGeneratorHelperFactory(new RuleHelpXamlTranslator())).Create(xmlWriter);
 
             testSubject.WriteDocumentHeader(ruleInfo);
-            xmlWriter.WriteStartElement("LineBreak");
+            xmlWriter.WriteStartElement("Section");
             xmlWriter.WriteEndElement();
             testSubject.EndDocument();
 
@@ -105,8 +104,8 @@ namespace SonarLint.VisualStudio.Education.UnitTests
       </InlineUIContainer>Critical</Span>
     <Span Style=""{DynamicResource SubtitleElement_Span}"">cs:123</Span>
   </Paragraph>
-  <LineBreak />
-</FlowDocument>");
+  <Section />
+</FlowDocument>".Replace("\r\n", "\n").Replace("\n", "\r\n"));
         }
     }
 }
