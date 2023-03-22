@@ -121,4 +121,8 @@
     <value>[Rules] Error deserializing rule metadata. Resource name: {0}
     Error:{1}</value>
   </data>
+  <data name="ServerMetadataProvider_GetRulesError" xml:space="preserve">
+    <value>[Rules] Error getting rules from SQ Server. Rule ID: {0} 
+Error:{1}</value>
+  </data>
 </root>

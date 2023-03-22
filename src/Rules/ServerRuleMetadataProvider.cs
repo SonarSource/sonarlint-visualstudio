@@ -18,12 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
 using SonarQube.Client;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Rules
 {
@@ -47,17 +50,26 @@ namespace SonarLint.VisualStudio.Rules
     public class ServerRuleMetadataProvider : IServerRuleMetadataProvider
     {
         private readonly ISonarQubeService service;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
-        public ServerRuleMetadataProvider(ISonarQubeService service)
+        public ServerRuleMetadataProvider(ISonarQubeService service, ILogger logger)
         {
             this.service = service;
+            this.logger = logger;
         }
 
         public async Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, string qualityProfileKey, CancellationToken token)
         {
-            var sqRule = await service.GetRuleByKeyAsync(ruleId.ToString(), qualityProfileKey, token);
-
+            SonarQubeRule sqRule = null;
+            try
+            {
+                sqRule = await service.GetRuleByKeyAsync(ruleId.ToString(), qualityProfileKey, token);
+            }
+            catch (Exception ex)
+            {
+                logger.WriteLine(Resources.ServerMetadataProvider_GetRulesError, ruleId.ToString(), ex.Message);
+            }
             if (sqRule == null) return null;
 
             var descriptionSections = sqRule.DescriptionSections.Select(ds => ds.ToDescriptionSection()).ToList();
