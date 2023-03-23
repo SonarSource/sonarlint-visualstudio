@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Rules
         {
             if (pluginRuleDescription == null)
             {
-                throw new ArgumentNullException(nameof(pluginRuleDescription));
+                return null;
             }
 
             var xml = pluginRuleDescription.Replace("&nbsp;", "&#160;");
