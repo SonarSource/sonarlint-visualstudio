@@ -39,14 +39,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<IssueConsumerFactory, IIssueConsumerFactory>(
-                MefTestHelpers.CreateExport<IIssuesFilter>(),
+                MefTestHelpers.CreateExport<IClientSuppressionSynchronizer>(),
                 MefTestHelpers.CreateExport<IAnalysisIssueVisualizationConverter>());
         }
 
         [TestMethod]
         public void Create_InitializedIssueConsumerReturned()
         {
-            var testSubject = new IssueConsumerFactory(Mock.Of<IIssuesFilter>(), Mock.Of<IAnalysisIssueVisualizationConverter>());
+            var testSubject = new IssueConsumerFactory(Mock.Of<IClientSuppressionSynchronizer>(), Mock.Of<IAnalysisIssueVisualizationConverter>());
 
             IIssuesSnapshot publishedSnaphot = null;
             var consumer = testSubject.Create(CreateValidTextDocument("file.txt"), "project name", Guid.NewGuid(), x => { publishedSnaphot = x; });

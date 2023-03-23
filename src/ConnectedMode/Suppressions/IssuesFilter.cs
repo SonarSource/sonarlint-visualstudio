@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.Core.Suppression;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
-    public interface IIssuesFilter
+    internal interface IIssuesFilter
     {
         /// <summary>
         /// Returns the list of supplied objects that match the filter
@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
     [Export(typeof(IIssuesFilter))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class IssuesFilter : IIssuesFilter
+    internal class IssuesFilter : IIssuesFilter
     {
         private readonly ISuppressedIssueMatcher issueMatcher;
 

@@ -49,20 +49,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal partial class IssueConsumerFactory : IIssueConsumerFactory
     {
-        private readonly IIssuesFilter issuesFilter;
+        private readonly IClientSuppressionSynchronizer clientSuppressionSynchronizer;
         private readonly IAnalysisIssueVisualizationConverter converter;
 
         [ImportingConstructor]
-        internal IssueConsumerFactory(IIssuesFilter issuesFilter,
+        internal IssueConsumerFactory(IClientSuppressionSynchronizer clientSuppressionSynchronizer,
             IAnalysisIssueVisualizationConverter converter)
         {
-            this.issuesFilter = issuesFilter;
+            this.clientSuppressionSynchronizer = clientSuppressionSynchronizer;
             this.converter = converter;
         }
 
         public IIssueConsumer Create(ITextDocument textDocument, string projectName, Guid projectGuid, SnapshotChangedHandler onSnapshotChanged)
         {
-            var issueHandler = new IssueHandler(textDocument, projectName, projectGuid, issuesFilter, onSnapshotChanged);
+            var issueHandler = new IssueHandler(textDocument, projectName, projectGuid, clientSuppressionSynchronizer, onSnapshotChanged);
             var issueConsumer = new AccumulatingIssueConsumer(textDocument.TextBuffer.CurrentSnapshot, textDocument.FilePath, issueHandler.HandleNewIssues, converter);
 
             return issueConsumer;

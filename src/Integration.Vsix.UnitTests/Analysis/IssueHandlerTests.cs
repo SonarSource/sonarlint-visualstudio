@@ -79,30 +79,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         }
 
         [TestMethod]
-        public void HandleNewIssues_IssuesGetMatchesIsCalled()
+        public void HandleNewIssues_ClientSuppressionSynchronizerIsCalled()
         {
-            var inputIssues = new[]
-            {
-                CreateIssue("S111", startLine: 1, endLine: 1),
-                CreateIssue("S222", startLine: 2, endLine: 2)
-            };
-
             var notificationHandler = new SnapshotChangeHandler();
-            var issuesFilter = new Mock<IIssuesFilter>();
+            var clientSuppressionSynchronizer = new Mock<IClientSuppressionSynchronizer>();
 
-
-            var testSubject = CreateTestSubject(notificationHandler.OnSnapshotChanged, issuesFilter.Object);
+            var testSubject = CreateTestSubject(notificationHandler.OnSnapshotChanged, clientSuppressionSynchronizer.Object);
 
             // Act
-            testSubject.HandleNewIssues(inputIssues);
+            testSubject.HandleNewIssues(new List<IAnalysisIssueVisualization>());
 
             // Assert
-            issuesFilter.Verify(x => x.GetMatches(inputIssues), Times.Once);
+            clientSuppressionSynchronizer.Verify(x => x.SynchronizeSuppressedIssues(), Times.Once);
             notificationHandler.InvocationCount.Should().Be(1);
-
-            // Check the updated issues
-            notificationHandler.UpdatedSnapshot.Issues.Count().Should().Be(2);
-            notificationHandler.UpdatedSnapshot.Issues.Should().BeEquivalentTo(inputIssues);
         }
 
         [TestMethod]
@@ -169,37 +158,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             // Assert
             notificationHandler.InvocationCount.Should().Be(1);
             notificationHandler.UpdatedSnapshot.Issues.Count().Should().Be(0);
-        }
-
-        [TestMethod]
-        public void HandleNewIssues_SomeSuppressedIssues_IssuesGetMarkedCorrectly()
-        {
-            // Arrange
-            var issue1 = CreateIssue("xxx", startLine: 1, endLine: 1);
-            var issue2 = CreateIssue("xxx2", startLine: 2, endLine: 2);
-            var issue3 = CreateIssue("xxx3", startLine: 3, endLine: 3);
-            var issue4 = CreateIssue("xxx4", startLine: 4, endLine: 4);
-
-            var issues = new[] { issue1, issue2, issue3, issue4 };
-            var issuesFilter = new Mock<IIssuesFilter>();
-            issuesFilter.Setup(x => x.GetMatches(issues)).Returns(new[] { issue1, issue4 });
-
-            var notificationHandler = new SnapshotChangeHandler();
-            var testSubject = CreateTestSubject(notificationHandler.OnSnapshotChanged, issuesFilter: issuesFilter.Object);
-
-            // Act
-            testSubject.HandleNewIssues(issues);
-
-            // Assert
-            notificationHandler.InvocationCount.Should().Be(1);
-            notificationHandler.UpdatedSnapshot.Issues.Count().Should().Be(4);
-
-            issue1.IsSuppressed = true;
-
-            issue1.IsSuppressed.Should().BeTrue();
-            issue2.IsSuppressed.Should().BeFalse();
-            issue3.IsSuppressed.Should().BeFalse();
-            issue4.IsSuppressed.Should().BeTrue();
         }
 
         private static IAnalysisIssueVisualization CreateIssue(string ruleKey, int startLine, int endLine)
@@ -272,11 +230,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         }
 
         private static IssueHandler CreateTestSubject(SnapshotChangedHandler notificationHandler,
-            IIssuesFilter issuesFilter = null, 
+            IClientSuppressionSynchronizer clientSuppressionSynchronizer = null, 
             TranslateSpans translator = null,
             ITextDocument textDocument = null)
             => CreateTestSubject(notificationHandler, "any project name", Guid.NewGuid(),
-                issuesFilter, translator, textDocument);
+                clientSuppressionSynchronizer, translator, textDocument);
 
         private static IssueHandler CreateTestSubject(SnapshotChangedHandler notificationHandler,
             string projectName,
@@ -286,19 +244,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
 
         private static IssueHandler CreateTestSubject(SnapshotChangedHandler notificationHandler,
             string projectName, Guid projectGuid,
-            IIssuesFilter issuesFilter = null,
+            IClientSuppressionSynchronizer clientSuppressionSynchronizer = null,
             TranslateSpans translator = null,
             ITextDocument textDocument = null)
         {
-            issuesFilter ??= Mock.Of<IIssuesFilter>();
+            clientSuppressionSynchronizer ??= Mock.Of<IClientSuppressionSynchronizer>();
             translator ??= PassthroughSpanTranslator;
             textDocument ??= CreateValidTextDocument("any");
 
             var testSubject = new IssueHandler(
                 textDocument,
                 projectName,
-                projectGuid,                
-                issuesFilter,
+                projectGuid,
+                clientSuppressionSynchronizer,
                 notificationHandler,
                 // Override the un-testable "TranslateSpans" behaviour
                 translator);

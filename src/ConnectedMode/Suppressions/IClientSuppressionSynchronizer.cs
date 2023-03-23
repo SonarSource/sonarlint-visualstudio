@@ -23,7 +23,7 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
-    internal interface IClientSuppressionSynchronizer
+    public interface IClientSuppressionSynchronizer
     {
         /// <summary>
         /// Notifies listeners that the set of local suppressions has changed
@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         void SynchronizeSuppressedIssues();
     }
 
-    internal class LocalSuppressionsChangedEventArgs : EventArgs
+    public class LocalSuppressionsChangedEventArgs : EventArgs
     {
         public LocalSuppressionsChangedEventArgs(IEnumerable<string> changedFiles)
             => ChangedFiles = changedFiles?.ToArray() ?? Array.Empty<string>();

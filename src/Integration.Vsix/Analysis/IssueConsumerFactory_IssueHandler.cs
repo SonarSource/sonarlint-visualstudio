@@ -20,12 +20,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
@@ -42,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             private readonly ITextDocument textDocument;
             private readonly string projectName;
             private readonly Guid projectGuid;
-            private readonly IIssuesFilter issuesFilter;
+            private readonly IClientSuppressionSynchronizer clientSuppressionSynchronizer;
             private readonly SnapshotChangedHandler onSnapshotChanged;
 
             private readonly TranslateSpans translateSpans;
@@ -50,23 +48,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             public IssueHandler(ITextDocument textDocument,
                 string projectName,
                 Guid projectGuid,
-                IIssuesFilter issuesFilter,
+                IClientSuppressionSynchronizer clientSuppressionSynchronizer,
                 SnapshotChangedHandler onSnapshotChanged)
-                : this (textDocument, projectName, projectGuid, issuesFilter, onSnapshotChanged, DoTranslateSpans)
+                : this(textDocument, projectName, projectGuid, clientSuppressionSynchronizer, onSnapshotChanged, DoTranslateSpans)
             {
             }
 
             internal /* for testing */ IssueHandler(ITextDocument textDocument,
                 string projectName,
                 Guid projectGuid,
-                IIssuesFilter issuesFilter,
+                IClientSuppressionSynchronizer clientSuppressionSynchronizer,
                 SnapshotChangedHandler onSnapshotChanged,
                 TranslateSpans translateSpans)
             {
                 this.textDocument = textDocument;
                 this.projectName = projectName;
                 this.projectGuid = projectGuid;
-                this.issuesFilter = issuesFilter;
+                this.clientSuppressionSynchronizer = clientSuppressionSynchronizer;
                 this.onSnapshotChanged = onSnapshotChanged;
 
                 this.translateSpans = translateSpans;
@@ -74,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
             internal /* for testing */ void HandleNewIssues(IEnumerable<IAnalysisIssueVisualization> issues)
             {
-                MarkSuppressedIssues(issues);
+                clientSuppressionSynchronizer.SynchronizeSuppressedIssues();
 
                 // The text buffer might have changed since the analysis was triggered, so translate
                 // all issues to the current snapshot.
@@ -83,19 +81,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
                 var newSnapshot = new IssuesSnapshot(projectName, projectGuid, textDocument.FilePath, translatedIssues);
                 onSnapshotChanged(newSnapshot);
-            }
-
-            private void MarkSuppressedIssues(IEnumerable<IAnalysisIssueVisualization> issues)
-            {
-                var filterableIssues = issues.OfType<IFilterableIssue>().ToArray();
-
-                var matches = issuesFilter.GetMatches(filterableIssues);
-                Debug.Assert(matches.All(x => x is IAnalysisIssueVisualization), "Not expecting the issue filter to change the list item type");
-                
-                foreach (var issue in issues)
-                {
-                    issue.IsSuppressed = matches.Contains(issue);
-                }
             }
 
             private static IEnumerable<IAnalysisIssueVisualization> DoTranslateSpans(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot)
