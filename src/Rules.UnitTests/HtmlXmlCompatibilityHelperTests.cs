@@ -39,5 +39,11 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
                 .Should()
                 .BeEquivalentTo("Lalala<col span=\"2\" style=\"background-color:red\"/>Hi");
         }
+
+        [TestMethod]
+        public void EnsureHtmlIsXml_Null_ReturnsNull()
+        {
+            HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(null).Should().BeNull();
+        }
     }
 }
