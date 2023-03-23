@@ -91,7 +91,7 @@
             <Style x:Key="Heading5_Paragraph" TargetType="Paragraph">
                 <Setter Property="FontFamily" Value="{DynamicResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}"/>
                 <Setter Property="FontSize" Value="{DynamicResource {x:Static vsshell:VsFonts.Environment111PercentFontSizeKey}}"/>
-                <Setter Property="FontWeight" Value="{DynamicResource {x:Static vsshell:VsFonts.Environment122PercentFontWeightKey}}"/>
+                <Setter Property="FontWeight" Value="{DynamicResource {x:Static vsshell:VsFonts.Environment111PercentFontWeightKey}}"/>
                 <Setter Property="Margin" Value="0,10,0,5" />
             </Style>
             <Style x:Key="Heading6_Paragraph" TargetType="Paragraph">
