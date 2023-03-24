@@ -20,7 +20,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.Core.Suppression;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
