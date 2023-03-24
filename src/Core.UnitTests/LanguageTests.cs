@@ -137,6 +137,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             var ts = Language.GetLanguageFromRepositoryKey("typescript");
             var unknown = Language.GetLanguageFromRepositoryKey("unknown");
 
+            var csSecurity = Language.GetLanguageFromRepositoryKey("roslyn.sonaranalyzer.security.cs");
+            var jsSecurity = Language.GetLanguageFromRepositoryKey("jssecurity");
+            var tsSecurity = Language.GetLanguageFromRepositoryKey("tssecurity");
+
             cs.Should().Be(Language.CSharp);
             vbnet.Should().Be(Language.VBNET);
             cpp.Should().Be(Language.Cpp);
@@ -144,6 +148,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             js.Should().Be(Language.Js);
             ts.Should().Be(Language.Ts);
             unknown.Should().Be(null);
+
+            csSecurity.Should().Be(Language.CSharp);
+            jsSecurity.Should().Be(Language.Js);
+            tsSecurity.Should().Be(Language.Ts);
         }
 
         [TestMethod]
