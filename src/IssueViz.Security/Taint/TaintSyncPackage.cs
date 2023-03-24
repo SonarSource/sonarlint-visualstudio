@@ -55,8 +55,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
             var componentModel = await GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
             var logger = componentModel.GetService<ILogger>();
 
