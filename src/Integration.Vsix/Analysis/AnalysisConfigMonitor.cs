@@ -24,8 +24,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis

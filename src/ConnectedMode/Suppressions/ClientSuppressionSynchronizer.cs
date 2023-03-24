@@ -20,7 +20,7 @@
 using System.Diagnostics;
 using System.ComponentModel.Composition;
 using System.Linq;
-using SonarLint.VisualStudio.Core.Suppression;
+using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.IssueVisualization;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using System.Collections.Generic;
