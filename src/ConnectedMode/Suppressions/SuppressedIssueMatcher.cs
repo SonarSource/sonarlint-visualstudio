@@ -20,7 +20,7 @@
 
 using System;
 using System.Linq;
-using SonarLint.VisualStudio.Core.Suppression;
+using SonarLint.VisualStudio.Core.Suppressions;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions

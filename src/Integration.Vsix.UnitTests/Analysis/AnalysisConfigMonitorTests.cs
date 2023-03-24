@@ -24,7 +24,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.TestInfrastructure;
 using static SonarLint.VisualStudio.TestInfrastructure.NoOpThreadHandler;
 

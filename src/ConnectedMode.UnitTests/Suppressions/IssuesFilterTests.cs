@@ -22,10 +22,10 @@ using System;
 using System.Collections.Generic;
 using NuGet;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
-using SonarLint.VisualStudio.Core.Suppression;
+using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 {
     [TestClass]
     public class IssuesFilterTests

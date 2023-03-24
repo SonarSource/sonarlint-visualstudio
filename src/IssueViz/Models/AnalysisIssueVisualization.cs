@@ -24,7 +24,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Suppression;
+using SonarLint.VisualStudio.Core.Suppressions;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Models
 {
