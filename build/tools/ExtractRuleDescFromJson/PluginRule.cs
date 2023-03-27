@@ -40,4 +40,35 @@ public class PluginRule
     public string? Language { get; set; }
 
     public string[]? Tags { get; set; }
+
+    public DescriptionSection[]? DescriptionSections { get; set; }
+
+    public string[]? EducationPrinciples { get; set; }
+}
+
+public class DescriptionSection
+{
+    public DescriptionSection(string key, string htmlContent, DescriptionSectionContext context = null)
+    {
+        Key = key;
+        HtmlContent = htmlContent;
+        Context = context;
+    }
+
+    public string Key { get; }
+    public string HtmlContent { get; }
+
+    public DescriptionSectionContext? Context { get; }
+}
+
+public class DescriptionSectionContext
+{
+    public DescriptionSectionContext(string key, string displayName)
+    {
+        Key = key;
+        DisplayName = displayName;
+    }
+
+    public string Key { get; }
+    public string DisplayName { get; }
 }
