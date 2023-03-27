@@ -36,7 +36,7 @@ using SonarQube.Client.Requests;
 
 namespace SonarQube.Client
 {
-    public class SonarQubeService : ISonarQubeService, IDisposable
+    public class SonarQubeService : ISonarQubeService, ISSEConnectionFactory, IDisposable
     {
         private readonly HttpMessageHandler messageHandler;
         private IRequestFactory requestFactory;
@@ -437,16 +437,19 @@ namespace SonarQube.Client
                     request.ProjectKey = projectKey;
                 }, token);
 
-        public async Task<ISSEStreamReader> CreateSSEStreamReader(string projectKey, CancellationToken token)
+        public Task<ISSEStreamReader> CreateSSEStreamReader(string projectKey, CancellationToken token)
         {
-            var networkStream = await InvokeCheckedRequestAsync<IGetSonarLintEventStream, Stream>(
+            return Task.FromResult(sseStreamReaderFactory.Create(projectKey, this, token));
+        }
+
+        public Task<Stream> CreateSSEConnectionAsync(string projectKey, CancellationToken cancellationToken)
+        {
+            return InvokeCheckedRequestAsync<IGetSonarLintEventStream, Stream>(
                 request =>
                 {
                     request.ProjectKey = projectKey;
                 },
-                token);
-
-            return sseStreamReaderFactory.Create(networkStream, token);
+                cancellationToken);
         }
 
         #region IDisposable Support

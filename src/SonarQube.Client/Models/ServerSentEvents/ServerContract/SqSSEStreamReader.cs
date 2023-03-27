@@ -43,20 +43,27 @@ namespace SonarQube.Client.Models.ServerSentEvents.ServerContract
     /// </summary>
     internal sealed class SqSSEStreamReader : ISqSSEStreamReader
     {
-        private readonly StreamReader networkStreamReader;
+        private StreamReader networkStreamReader;
         private readonly CancellationToken cancellationToken;
         private readonly ISqServerSentEventParser sqServerSentEventParser;
+        private readonly ISSEConnectionFactory connectionFactory;
+        private readonly string projectKey;
 
-        public SqSSEStreamReader(StreamReader networkStreamReader, CancellationToken cancellationToken)
-            : this(networkStreamReader, cancellationToken, new SqServerSentEventParser())
+        private int reconnectionsCount = -1;
+        private const int MaxReconnectionsCount = 5;
+
+        public SqSSEStreamReader(string projectKey, ISSEConnectionFactory connectionFactory, CancellationToken cancellationToken)
+            : this(projectKey, connectionFactory, cancellationToken, new SqServerSentEventParser())
         {
         }
 
-        internal SqSSEStreamReader(StreamReader networkStreamReader,
+        internal SqSSEStreamReader(string projectKey,
+            ISSEConnectionFactory connectionFactory,
             CancellationToken cancellationToken,
             ISqServerSentEventParser sqServerSentEventParser)
         {
-            this.networkStreamReader = networkStreamReader;
+            this.projectKey = projectKey;
+            this.connectionFactory = connectionFactory;
             this.cancellationToken = cancellationToken;
             this.sqServerSentEventParser = sqServerSentEventParser;
         }
@@ -65,9 +72,17 @@ namespace SonarQube.Client.Models.ServerSentEvents.ServerContract
         {
             var eventLines = new List<string>();
 
-            while (!networkStreamReader.EndOfStream && !cancellationToken.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested
+                   && await IsNetworkStreamReaderConnected()
+                   && !networkStreamReader.EndOfStream)
             {
-                var line = await networkStreamReader.ReadLineAsync();
+                var (isReadSuccessful, line) = await TryReadLine();
+
+                if (!isReadSuccessful)
+                {
+                    continue;
+                }
+
                 var isEventEnd = string.IsNullOrEmpty(line);
 
                 if (isEventEnd)
@@ -90,9 +105,49 @@ namespace SonarQube.Client.Models.ServerSentEvents.ServerContract
             return null;
         }
 
+        private async Task<bool> IsNetworkStreamReaderConnected()
+        {
+            if (networkStreamReader == null)
+            {
+                await TryReconnect();
+            }
+
+            return networkStreamReader != null;
+        }
+
+        private async Task TryReconnect()
+        {
+            if (reconnectionsCount++ > MaxReconnectionsCount)
+            {
+                return;
+            }
+
+            var sseStream = await connectionFactory.CreateSSEConnectionAsync(projectKey, cancellationToken);
+
+            if (sseStream != null)
+            {
+                networkStreamReader = new StreamReader(sseStream);
+                reconnectionsCount = 0;
+            }
+        }
+
+        private async Task<(bool isSuccessful, string line)> TryReadLine()
+        {
+            try
+            {
+                return (true, await networkStreamReader.ReadLineAsync());
+            }
+            catch (Exception)
+            {
+                networkStreamReader.Dispose();
+                networkStreamReader = null;
+                return (false, null);
+            }
+        }
+
         public void Dispose()
         {
-            networkStreamReader.Dispose();
+            networkStreamReader?.Dispose();
         }
     }
 }

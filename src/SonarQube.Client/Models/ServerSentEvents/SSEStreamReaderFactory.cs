@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
 using System.Threading;
 using SonarQube.Client.Logging;
 using SonarQube.Client.Models.ServerSentEvents.ServerContract;
@@ -27,7 +26,7 @@ namespace SonarQube.Client.Models.ServerSentEvents
 {
     internal interface ISSEStreamReaderFactory
     {
-        ISSEStreamReader Create(Stream networkStream, CancellationToken cancellationToken);
+        ISSEStreamReader Create(string projectKey, ISSEConnectionFactory connectionFactory, CancellationToken cancellationToken);
     }
 
     internal class SSEStreamReaderFactory : ISSEStreamReaderFactory
@@ -39,9 +38,9 @@ namespace SonarQube.Client.Models.ServerSentEvents
             this.logger = logger;
         }
 
-        public ISSEStreamReader Create(Stream networkStream, CancellationToken cancellationToken)
+        public ISSEStreamReader Create(string projectKey, ISSEConnectionFactory connectionFactory, CancellationToken cancellationToken)
         {
-            var sqStreamReader = new SqSSEStreamReader(new StreamReader(networkStream), cancellationToken);
+            var sqStreamReader = new SqSSEStreamReader(projectKey, connectionFactory, cancellationToken);
             var sseStreamReader = new SSEStreamReader(sqStreamReader, logger);
 
             return sseStreamReader;
