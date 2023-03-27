@@ -112,8 +112,12 @@ internal class RuleDescExtractor
                 ConvertPluginIssueType(pluginRule.Type),
                 Convert.ToBoolean(pluginRule.IsActiveByDefault),
                 pluginRule.Tags ?? Array.Empty<string>(),
-                null,
-                null,
+                pluginRule.DescriptionSections?.Select(x => new SonarLint.VisualStudio.Rules.DescriptionSection(x.Key,
+                    HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(x.HtmlContent),
+                    x.Context != null
+                        ? new SonarLint.VisualStudio.Rules.Context(x.Context.Key, x.Context.DisplayName)
+                        : null)).ToList(),
+                pluginRule.EducationPrinciples,
                 null
                 );
 
