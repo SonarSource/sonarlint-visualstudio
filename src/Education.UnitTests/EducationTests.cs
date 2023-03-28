@@ -43,6 +43,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
                 MefTestHelpers.CreateExport<IToolWindowService>(),
                 MefTestHelpers.CreateExport<IRuleMetaDataProvider>(),
                 MefTestHelpers.CreateExport<IShowRuleInBrowser>(),
+                MefTestHelpers.CreateExport<IRuleHelpXamlBuilder>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 

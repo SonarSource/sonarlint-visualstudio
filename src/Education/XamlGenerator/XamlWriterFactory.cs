@@ -18,30 +18,37 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-
+using System.ComponentModel.Composition;
+using System.IO;
 using System.Text;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Education.Layout.Visual;
-using SonarLint.VisualStudio.Education.XamlGenerator;
+using System.Xml;
 
-namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Visual
+namespace SonarLint.VisualStudio.Education.XamlGenerator
 {
-    [TestClass]
-    public class ContentSectionTests
+    internal interface IXamlWriterFactory
     {
-        [TestMethod]
-        public void CreateVisualization_ReturnsContentFromXaml()
+        XmlWriter Create(StringBuilder sb);
+    }
+
+    [Export(typeof(IXamlWriterFactory))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class XamlWriterFactory : IXamlWriterFactory
+    {
+        public XmlWriter Create(StringBuilder sb)
         {
-            var sb = new StringBuilder();
-            const string xamlContent = "<Paragraph>Hi</Paragraph>";
-            var testSubject = new ContentSection(xamlContent);
-            var xmlWriter = new XamlWriterFactory().Create(sb);
+            var stringWriter = new StringWriter(sb);
 
-            testSubject.ProduceXaml(xmlWriter);
-            xmlWriter.Close();
+            var settings = new XmlWriterSettings
+            {
+                ConformanceLevel = ConformanceLevel.Fragment,
+                Encoding = Encoding.UTF8,
+                OmitXmlDeclaration = true,
+                Indent = true,
+                CloseOutput = true,
+                WriteEndDocumentOnClose = true
+            };
 
-            sb.ToString().Should().BeEquivalentTo(xamlContent);
+            return XmlWriter.Create(stringWriter, settings);
         }
     }
 }
