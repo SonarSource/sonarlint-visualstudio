@@ -22,7 +22,6 @@
     <!-- NuGet packages required during the T4 transformation -->
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="3.3.1" PrivateAssets="all" IncludeAssets="none" GeneratePathProperty="true" />
     <PackageReference Include="System.Composition.AttributedModel" Version="1.0.31" PrivateAssets="all" IncludeAssets="none" GeneratePathProperty="true" />
-
   </ItemGroup>
   
   <PropertyGroup>
@@ -38,7 +37,7 @@
          See https://learn.microsoft.com/en-us/visualstudio/modeling/code-generation-in-a-build-process?view=vs-2022&tabs=csharp
     -->
     <TransformOnBuild>true</TransformOnBuild>
-    <TransformOutOfDateOnly>false</TransformOutOfDateOnly>
+    <TransformOutOfDateOnly>true</TransformOutOfDateOnly>
   </PropertyGroup>
 
   <ItemGroup Label="Build variables used in the T4 template">
@@ -55,10 +54,6 @@
     </T4ParameterValues>
     <T4ParameterValues Include="MSCodeAnalysisCommonDllPath">
       <Value>$(MSCodeAnalysisCommonDllPath)</Value>
-      <Visible>false</Visible>
-    </T4ParameterValues>
-    <T4ParameterValues Include="NuGetPackageRoot">
-      <Value>$(NuGetPackageRoot)</Value>
       <Visible>false</Visible>
     </T4ParameterValues>
     <T4ParameterValues Include="MSCodeAnalysisWorkspacesDllPath">

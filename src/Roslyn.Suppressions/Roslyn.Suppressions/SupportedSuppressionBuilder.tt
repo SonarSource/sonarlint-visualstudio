@@ -6,7 +6,6 @@
 <#@ assembly name="$(MSCodeAnalysisCommonDllPath)" #>
 <#@ assembly name="$(MSCodeAnalysisWorkspacesDllPath)" #>
 <#@ assembly name="$(SystemCompositionAttributedModelDllPath)" #>
-<#@ assembly name="$(NuGetPackageRoot)system.collections.immutable\1.5.0\lib\netstandard2.0\System.Collections.Immutable.dll" #>
 <#@ assembly name="netstandard" #>
 <#@ assembly name="System.Runtime" #>
 <#@ import namespace="System.Linq" #>
