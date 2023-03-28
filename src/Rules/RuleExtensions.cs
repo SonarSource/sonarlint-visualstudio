@@ -22,7 +22,7 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Rules
 {
-    public static class RuleInfoExtensions
+    public static class RuleExtensions
     {
         public static bool IsRichRuleDescription(this IRuleInfo ruleInfo)
         {
