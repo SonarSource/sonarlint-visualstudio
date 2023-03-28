@@ -174,7 +174,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
         }
 
         [TestMethod]
-        public void GetLocations_HasMatchingLocations_LocationsReturned()
+        public void GetLocations_HasMatchingLocations_AggregatedLocationsList()
         {
             const string filePath = "test.cpp";
 
@@ -330,6 +330,37 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             var result = testSubject.Contains(issueViz);
 
             result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void Get_NoStores_EmptyList()
+        {
+            var testSubject = new IssueLocationStoreAggregator(Enumerable.Empty<IIssueLocationStore>());
+
+            var result = testSubject.Get();
+
+            result.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void Get_HasStores_AggregatedLocationsList()
+        {
+            var store1 = new Mock<IIssueLocationStore>();
+            store1.Setup(x => x.Get()).Returns(Enumerable.Empty<IAnalysisIssueVisualization>());
+
+            var location1 = Mock.Of<IAnalysisIssueVisualization>();
+            var store2 = new Mock<IIssueLocationStore>();
+            store2.Setup(x => x.Get()).Returns(new[] { location1 });
+
+            var location2 = Mock.Of<IAnalysisIssueVisualization>();
+            var location3 = Mock.Of<IAnalysisIssueVisualization>();
+            var store3 = new Mock<IIssueLocationStore>();
+            store3.Setup(x => x.Get()).Returns(new[] { location2, location3 });
+
+            var testSubject = new IssueLocationStoreAggregator(new[] { store1.Object, store2.Object, store3.Object });
+            var result = testSubject.Get();
+
+            result.Should().BeEquivalentTo(location1, location2, location3);
         }
     }
 }

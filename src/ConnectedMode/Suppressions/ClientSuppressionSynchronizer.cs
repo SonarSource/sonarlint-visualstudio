@@ -21,10 +21,10 @@ using System.Diagnostics;
 using System.ComponentModel.Composition;
 using System.Linq;
 using SonarLint.VisualStudio.Core.Suppressions;
-using SonarLint.VisualStudio.IssueVisualization;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using System.Collections.Generic;
 using System;
+using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
@@ -32,15 +32,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ClientSuppressionSynchronizer : IClientSuppressionSynchronizer
     {
-        private readonly IClientIssueStore clientIssueStore;
+        private readonly IIssueLocationStoreAggregator issuesStore;
         private readonly IIssuesFilter issueFilter;
         
         public event EventHandler<LocalSuppressionsChangedEventArgs> LocalSuppressionsChanged;
 
         [ImportingConstructor]
-        public ClientSuppressionSynchronizer(IClientIssueStore clientSideIssueStore, IIssuesFilter issueFilter)
+        public ClientSuppressionSynchronizer(IIssueLocationStoreAggregator clientSideIssueStore, IIssuesFilter issueFilter)
         {
-            this.clientIssueStore = clientSideIssueStore;
+            this.issuesStore = clientSideIssueStore;
             this.issueFilter = issueFilter;
         }
 
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         {
             var changedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            var filterableIssues = clientIssueStore.Get().OfType<IFilterableIssue>().ToArray();
+            var filterableIssues = issuesStore.Get().OfType<IFilterableIssue>().ToArray();
 
             var matches = issueFilter.GetMatches(filterableIssues);
 
