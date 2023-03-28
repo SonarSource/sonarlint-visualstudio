@@ -28,17 +28,19 @@ using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
 {
-    internal class RichRuleHelpXamlBuilder : IRuleHelpXamlBuilder
+    internal class RichRuleHelpXamlBuilder
     {
         private readonly IRuleInfoTranslator ruleInfoTranslator;
         private readonly IXamlGeneratorHelperFactory xamlGeneratorHelperFactory;
         private readonly IStaticXamlStorage staticXamlStorage;
+        private readonly IXamlWriterFactory xamlWriterFactory;
 
-        public RichRuleHelpXamlBuilder(IRuleInfoTranslator ruleInfoTranslator, IXamlGeneratorHelperFactory xamlGeneratorHelperFactory, IStaticXamlStorage staticXamlStorage)
+        public RichRuleHelpXamlBuilder(IRuleInfoTranslator ruleInfoTranslator, IXamlGeneratorHelperFactory xamlGeneratorHelperFactory, IStaticXamlStorage staticXamlStorage, IXamlWriterFactory xamlWriterFactory)
         {
             this.ruleInfoTranslator = ruleInfoTranslator;
             this.xamlGeneratorHelperFactory = xamlGeneratorHelperFactory;
             this.staticXamlStorage = staticXamlStorage;
+            this.xamlWriterFactory = xamlWriterFactory;
         }
 
         public FlowDocument Create(IRuleInfo ruleInfo)
@@ -51,7 +53,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 .ToList<ITabItem>());
 
             var sb = new StringBuilder();
-            var writer = RuleHelpXamlTranslator.CreateXmlWriter(sb);
+            var writer = xamlWriterFactory.Create(sb);
             var helper = xamlGeneratorHelperFactory.Create(writer);
 
             helper.WriteDocumentHeader(ruleInfo);

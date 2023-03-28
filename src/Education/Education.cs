@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Education.Commands;
+using SonarLint.VisualStudio.Education.Layout.Logical;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
@@ -46,8 +47,13 @@ namespace SonarLint.VisualStudio.Education
         private IRuleHelpToolWindow ruleHelpToolWindow;
 
         [ImportingConstructor]
-        public Education(IToolWindowService toolWindowService, IRuleMetaDataProvider ruleMetadataProvider, IShowRuleInBrowser showRuleInBrowser, ILogger logger)
-            : this(toolWindowService, ruleMetadataProvider, showRuleInBrowser, logger, new SimpleRuleHelpXamlBuilder(new RuleHelpXamlTranslator(), new XamlGeneratorHelperFactory(new RuleHelpXamlTranslator())), ThreadHandling.Instance) { }
+        public Education(IToolWindowService toolWindowService, IRuleMetaDataProvider ruleMetadataProvider, IShowRuleInBrowser showRuleInBrowser, ILogger logger, IRuleHelpXamlBuilder ruleHelpXamlBuilder)
+            : this(toolWindowService,
+                ruleMetadataProvider,
+                showRuleInBrowser,
+                logger,
+                ruleHelpXamlBuilder,
+                ThreadHandling.Instance) { }
 
         internal /* for testing */ Education(IToolWindowService toolWindowService,
             IRuleMetaDataProvider ruleMetadataProvider,

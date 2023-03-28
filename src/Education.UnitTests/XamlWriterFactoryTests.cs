@@ -18,30 +18,31 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-
 using System.Text;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Education.Layout.Visual;
 using SonarLint.VisualStudio.Education.XamlGenerator;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Visual
+namespace SonarLint.VisualStudio.Education.UnitTests;
+
+[TestClass]
+public class XamlWriterFactoryTests
 {
-    [TestClass]
-    public class ContentSectionTests
+    [TestMethod]
+    public void MefCtor_CheckExports()
     {
-        [TestMethod]
-        public void CreateVisualization_ReturnsContentFromXaml()
-        {
-            var sb = new StringBuilder();
-            const string xamlContent = "<Paragraph>Hi</Paragraph>";
-            var testSubject = new ContentSection(xamlContent);
-            var xmlWriter = new XamlWriterFactory().Create(sb);
+        MefTestHelpers.CheckTypeCanBeImported<XamlWriterFactory, IXamlWriterFactory>();
+    }
 
-            testSubject.ProduceXaml(xmlWriter);
-            xmlWriter.Close();
+    [TestMethod]
+    public void Create_NewInstanceEachTime()
+    {
+        var testSubject = new XamlWriterFactory();
 
-            sb.ToString().Should().BeEquivalentTo(xamlContent);
-        }
+        var o1 = testSubject.Create(new StringBuilder());
+        var o2 = testSubject.Create(new StringBuilder());
+
+        o1.Should().NotBeSameAs(o2);
     }
 }
