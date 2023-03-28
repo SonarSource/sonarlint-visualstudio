@@ -4,6 +4,8 @@
 <#@ assembly name="$(SonarCSharpDllPath)" #>
 <#@ assembly name="$(SonarVBDllPath)" #>
 <#@ assembly name="$(MSCodeAnalysisCommonDllPath)" #>
+<#@ assembly name="$(MSCodeAnalysisWorkspacesDllPath)" #>
+<#@ assembly name="$(SystemCompositionAttributedModelDllPath)" #>
 <#@ assembly name="$(NuGetPackageRoot)system.collections.immutable\1.5.0\lib\netstandard2.0\System.Collections.Immutable.dll" #>
 <#@ assembly name="netstandard" #>
 <#@ assembly name="System.Runtime" #>
@@ -64,6 +66,8 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
                 // investigate! There may be a problem with code generator.
                 // *************************************************************************************************
 <#
+                        System.AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+
                         var idList = GetFilteredDiagnosticIds();
                         WriteLine("                // Number of unique diagnostic ids (C# and VB.NET): " + idList.Count());
                         foreach(var id in idList)
@@ -94,6 +98,27 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
 // A dialogue should pop up asking you attach a debugger.
 //
 //
+// Notes on resolving Roslyn assemblies
+// ------------------------------------
+// The T4 transformation can be done inside VS (by saving the .tt file, or right-clicking on it in the Solution Explorer
+// and selecting "Run Custom Tool"). When run that way, the transformation is hosted in-memory in VS, and it uses its 
+// versions of the Roslyn assemblies. It also uses the binding redirects in devenv.exe.config to forward references from
+// older versions of Roslyn to the VS versions.
+//
+// When the transformation is done at build time (whether building in VS or outside), the transformation is hosted by
+// MSBuild, which locates and resolves the assemblies separately.
+// To make the transformation work in MSBuild, we need to:
+// 1) reference some Roslyn NuGet packages required during the transformation,
+// 2) handling the binding redirects in code (using the AssemblyResolve event), and
+// 3) use Reflection to create the analyzer instances and extract the analyzer ids.
+
+        private System.Reflection.Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            // Simple binding redirect - try a simple match based on name, ignoring the version.
+            // This approximates to what VS is doing when redirecting the Roslyn assemblies.
+            var requiredAsm = new System.Reflection.AssemblyName(args.Name);            
+            return System.AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == requiredAsm.Name);
+        }
 
         // The set of assemblies in which we should look for diagnostics
         private readonly Assembly[] AssembliesWithDiagnostics = new Assembly[]
@@ -104,9 +129,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
 
         private IEnumerable<string> GetAllDiagnosticIds() =>
             AssembliesWithDiagnostics.SelectMany(asm => asm.GetTypes())
-                                     .SelectMany(type => GetDiagnosticDescriptors(type))
-                                     .Select(diag => diag.Id);
-
+                                       .SelectMany(type => GetIdsUsingReflection(type));
         private IEnumerable<string> GetFilteredDiagnosticIds()
         {
             return GetAllDiagnosticIds()
@@ -115,24 +138,43 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
                 .OrderBy(x => x);
         }
 
-        private IEnumerable<DiagnosticDescriptor> GetDiagnosticDescriptors(Type t)
+        private IEnumerable<string> GetIdsUsingReflection(Type t)
         {
             try
             {
-                if (!t.IsAbstract && t.GetCustomAttributes(DiagnosticAnalyzerAttribute, true).Any())
+                if (IsDiagnosticAnalyzer(t))
                 {
-                    return Create(t).SupportedDiagnostics;
+                    var analyzer = Create(t);
+                    return GetDiagnosticIds(analyzer);
                 }
             }
             catch(Exception e)
             {
                 WriteLine($"[ERROR] Error creating diagnostic. {t.FullName}, Error: {e.Message}");
             }
-            return Array.Empty<DiagnosticDescriptor>();
+            return Array.Empty<string>();
         }
 
-        private static DiagnosticAnalyzer Create(Type t) =>
-            Activator.CreateInstance(t) as DiagnosticAnalyzer;
+        private static object Create(Type t) =>
+            Activator.CreateInstance(t);
 
-        private static readonly Type DiagnosticAnalyzerAttribute = typeof(DiagnosticAnalyzerAttribute);
+        private bool IsDiagnosticAnalyzer(Type t)
+        {
+            if (t.IsAbstract) { return false; }
+            return t.GetCustomAttributes(true).Any(x => x.GetType().Name == "DiagnosticAnalyzerAttribute");
+        }
+
+        private IEnumerable<string> GetDiagnosticIds(object analyzerInstance)
+        {
+            var propertyInfo = analyzerInstance.GetType().GetProperty("SupportedDiagnostics");
+            var supportedDiagnostics = propertyInfo.GetValue(analyzerInstance) as IEnumerable<object>;
+
+            return supportedDiagnostics.Select(GetIdFromDescriptor);
+        }
+
+        private string GetIdFromDescriptor(object diagnosticDescriptor)
+        {
+            var propertyInfo = diagnosticDescriptor.GetType().GetProperty("Id");
+            return propertyInfo.GetValue(diagnosticDescriptor) as string;
+        }
 #>
