@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Visual
         public void CreateVisualization_GeneratesCorrectStructure(bool isScrollable)
         {
             var sb = new StringBuilder();
-            var xmlWriter = RuleHelpXamlTranslator.CreateXmlWriter(sb);
+            var xmlWriter = new XamlWriterFactory().Create(sb);
             var order = new MockSequence();
             var tabItems = new Mock<ITabItem>[]
             {
