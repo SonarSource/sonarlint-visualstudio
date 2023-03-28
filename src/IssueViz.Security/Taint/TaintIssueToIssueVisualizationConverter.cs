@@ -32,7 +32,7 @@ using ITaintIssue = SonarQube.Client.Models.ServerSentEvents.ClientContract.ITai
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 {
-    interface ITaintIssueToIssueVisualizationConverter
+    internal interface ITaintIssueToIssueVisualizationConverter
     {
         IAnalysisIssueVisualization Convert(SonarQubeIssue sonarQubeIssue);
         IAnalysisIssueVisualization Convert(ITaintIssue sonarQubeTaintIssue);
@@ -54,8 +54,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         public IAnalysisIssueVisualization Convert(SonarQubeIssue sonarQubeIssue)
         {
             var analysisIssue = ConvertToAnalysisIssue(sonarQubeIssue);
+            var issueViz = CreateAnalysisIssueVisualization(analysisIssue);
+            issueViz.IsSuppressed = sonarQubeIssue.IsResolved;
 
-            return CreateAnalysisIssueVisualization(analysisIssue);
+            return issueViz;
         }
 
         public IAnalysisIssueVisualization Convert(ITaintIssue sonarQubeTaintIssue)
