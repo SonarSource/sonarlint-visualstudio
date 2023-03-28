@@ -31,6 +31,7 @@ using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using IssuesChangedEventArgs = SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging.IssuesChangedEventArgs;
+using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
 {
@@ -258,7 +259,51 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
             eventCount.Should().Be(0);
         }
 
-        private IAnalysisIssueLocationVisualization CreateLocation(string filePath)
+        [TestMethod]
+        public void Get_NoMatchingLocations_EmptyList()
+        {
+            var stores = new List<Mock<IIssuesStore>>
+            {
+                new(),
+                new(),
+                new()
+            };
+
+            foreach (var store in stores)
+            {
+                store
+                    .Setup(x => x.GetAll())
+                    .Returns(Array.Empty<IAnalysisIssueVisualization>());
+            }
+
+            var testSubject = CreateTestSubject(stores.Select(x=> x.Object).ToArray());
+            var result = testSubject.Get();
+
+            result.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void GetLocations_HasMatchingLocations_AggregatedLocationsList()
+        {
+            var store1 = new Mock<IIssuesStore>();
+            store1.Setup(x => x.GetAll()).Returns(Array.Empty<IAnalysisIssueVisualization>());
+
+            var location1 = Mock.Of<IAnalysisIssueVisualization>();
+            var store2 = new Mock<IIssuesStore>();
+            store2.Setup(x => x.GetAll()).Returns(new[] { location1 });
+
+            var location2 = Mock.Of<IAnalysisIssueVisualization>();
+            var location3 = Mock.Of<IAnalysisIssueVisualization>();
+            var store3 = new Mock<IIssuesStore>();
+            store3.Setup(x => x.GetAll()).Returns(new[] { location2, location3 });
+
+            var testSubject = CreateTestSubject(store1.Object, store2.Object, store3.Object);
+            var result = testSubject.Get();
+
+            result.Should().BeEquivalentTo(location1, location2, location3);
+        }
+
+        private static IAnalysisIssueLocationVisualization CreateLocation(string filePath)
         {
             var location = new Mock<IAnalysisIssueLocationVisualization>();
             location.SetupGet(x => x.CurrentFilePath).Returns(filePath);
