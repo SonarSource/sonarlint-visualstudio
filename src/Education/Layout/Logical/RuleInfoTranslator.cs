@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using System.Linq;
 using SonarLint.VisualStudio.Integration;
@@ -31,15 +32,18 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
         IEnumerable<IRichRuleDescriptionSection> GetRuleDescriptionSections(IRuleInfo ruleInfo);
     }
 
+    [Export(typeof(IRuleInfoTranslator))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class RuleInfoTranslator : IRuleInfoTranslator
     {
         private readonly IRuleHelpXamlTranslator xamlTranslator;
         private readonly ILogger logger;
 
-        internal RuleInfoTranslator(IRuleHelpXamlTranslator xamlTranslator, ILogger logger)
+        [ImportingConstructor]
+        public RuleInfoTranslator(IRuleHelpXamlTranslatorFactory xamlTranslatorFactory, ILogger logger)
         {
             this.logger = logger;
-            this.xamlTranslator = xamlTranslator;
+            xamlTranslator = xamlTranslatorFactory.Create();
         }
 
         public IEnumerable<IRichRuleDescriptionSection> GetRuleDescriptionSections(IRuleInfo ruleInfo)

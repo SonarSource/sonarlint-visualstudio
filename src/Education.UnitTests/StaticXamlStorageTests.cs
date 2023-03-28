@@ -23,6 +23,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Education.XamlGenerator;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Education.UnitTests
 {
@@ -30,10 +31,19 @@ namespace SonarLint.VisualStudio.Education.UnitTests
     public class StaticXamlStorageTests
     {
         [TestMethod]
+        public void MefCtor_CheckExports()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<StaticXamlStorage, IStaticXamlStorage>(
+                MefTestHelpers.CreateExport<IRuleHelpXamlTranslatorFactory>());
+        }
+
+        [TestMethod]
         public void EducationPrinciplesHeader_IsLazy()
         {
+            var translatorFactoryMock = new Mock<IRuleHelpXamlTranslatorFactory>();
             var translatorMock = new Mock<IRuleHelpXamlTranslator>();
-            var testSubject = new StaticXamlStorage(translatorMock.Object);
+            translatorFactoryMock.Setup(x => x.Create()).Returns(translatorMock.Object);
+            var testSubject = new StaticXamlStorage(translatorFactoryMock.Object);
 
             _  = testSubject.EducationPrinciplesHeader;
             _  = testSubject.EducationPrinciplesHeader;
@@ -44,7 +54,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void EducationPrinciplesHeader_DoesNotThrow()
         {
-            var testSubject = new StaticXamlStorage(new RuleHelpXamlTranslator());
+            var testSubject = new StaticXamlStorage(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()));
 
             Action act = () =>
             {
@@ -57,8 +67,10 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void EducationPrinciplesDefenseInDepth_IsLazy()
         {
+            var translatorFactoryMock = new Mock<IRuleHelpXamlTranslatorFactory>();
             var translatorMock = new Mock<IRuleHelpXamlTranslator>();
-            var testSubject = new StaticXamlStorage(translatorMock.Object);
+            translatorFactoryMock.Setup(x => x.Create()).Returns(translatorMock.Object);
+            var testSubject = new StaticXamlStorage(translatorFactoryMock.Object);
 
             _ = testSubject.EducationPrinciplesDefenseInDepth;
             _ = testSubject.EducationPrinciplesDefenseInDepth;
@@ -69,7 +81,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void EducationPrinciplesDefenseInDepth_DoesNotThrow()
         {
-            var testSubject = new StaticXamlStorage(new RuleHelpXamlTranslator());
+            var testSubject = new StaticXamlStorage(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()));
 
             Action act = () =>
             {
@@ -82,8 +94,10 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void EducationPrinciplesNeverTrustUserInput_IsLazy()
         {
+            var translatorFactoryMock = new Mock<IRuleHelpXamlTranslatorFactory>();
             var translatorMock = new Mock<IRuleHelpXamlTranslator>();
-            var testSubject = new StaticXamlStorage(translatorMock.Object);
+            translatorFactoryMock.Setup(x => x.Create()).Returns(translatorMock.Object);
+            var testSubject = new StaticXamlStorage(translatorFactoryMock.Object);
 
             _ = testSubject.EducationPrinciplesNeverTrustUserInput;
             _ = testSubject.EducationPrinciplesNeverTrustUserInput;
@@ -94,7 +108,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void EducationPrinciplesNeverTrustUserInput_DoesNotThrow()
         {
-            var testSubject = new StaticXamlStorage(new RuleHelpXamlTranslator());
+            var testSubject = new StaticXamlStorage(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()));
 
             Action act = () =>
             {
@@ -107,8 +121,10 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void HowToFixItFallbackContext_IsLazy()
         {
+            var translatorFactoryMock = new Mock<IRuleHelpXamlTranslatorFactory>();
             var translatorMock = new Mock<IRuleHelpXamlTranslator>();
-            var testSubject = new StaticXamlStorage(translatorMock.Object);
+            translatorFactoryMock.Setup(x => x.Create()).Returns(translatorMock.Object);
+            var testSubject = new StaticXamlStorage(translatorFactoryMock.Object);
 
             _ = testSubject.HowToFixItFallbackContext;
             _ = testSubject.HowToFixItFallbackContext;
@@ -119,7 +135,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void HowToFixItFallbackContext_DoesNotThrow()
         {
-            var testSubject = new StaticXamlStorage(new RuleHelpXamlTranslator());
+            var testSubject = new StaticXamlStorage(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()));
 
             Action act = () =>
             {

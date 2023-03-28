@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Text;
 using System.Windows.Controls;
 using FluentAssertions;
 using System.Windows.Documents;
@@ -22,6 +23,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var ruleInfoTranslatorMock = new Mock<IRuleInfoTranslator>(MockBehavior.Strict);
             var xamlGeneratorHelperFactoryMock = new Mock<IXamlGeneratorHelperFactory>(MockBehavior.Strict);
             var xamlGeneratorHelperMock = new Mock<IXamlGeneratorHelper>(MockBehavior.Strict);
+            var xamlWriterFactoryMock = new Mock<IXamlWriterFactory>(MockBehavior.Strict);
             var ruleInfo = Mock.Of<IRuleInfo>();
             XmlWriter writer = null;
             ruleInfoTranslatorMock
@@ -40,10 +42,17 @@ namespace SonarLint.VisualStudio.Education.UnitTests
                             .Returns(new ContentSection($"<Paragraph>{x}</Paragraph>"));
                         return mock.Object;
                     }));
+            xamlWriterFactoryMock
+                .InSequence(callSequence)
+                .Setup(x => x.Create(It.IsAny<StringBuilder>()))
+                .Returns((StringBuilder sb) =>
+                {
+                    writer = new XamlWriterFactory().Create(sb);
+                    return writer;
+                });
             xamlGeneratorHelperFactoryMock
                 .InSequence(callSequence)
                 .Setup(x => x.Create(It.IsAny<XmlWriter>()))
-                .Callback<XmlWriter>(w => writer = w)
                 .Returns(xamlGeneratorHelperMock.Object);
             xamlGeneratorHelperMock
                 .InSequence(callSequence)
@@ -58,7 +67,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
                     writer.Close();
                 });
 
-            var testSubject = new RichRuleHelpXamlBuilder(ruleInfoTranslatorMock.Object, xamlGeneratorHelperFactoryMock.Object, Mock.Of<IStaticXamlStorage>());
+            var testSubject = new RichRuleHelpXamlBuilder(ruleInfoTranslatorMock.Object, xamlGeneratorHelperFactoryMock.Object, Mock.Of<IStaticXamlStorage>(), xamlWriterFactoryMock.Object);
 
             var flowDocument = testSubject.Create(ruleInfo);
 
