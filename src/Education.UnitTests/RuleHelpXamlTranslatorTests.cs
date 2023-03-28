@@ -32,16 +32,6 @@ namespace SonarLint.VisualStudio.Education.UnitTests
     public class RuleHelpXamlTranslatorTests
     {
         [TestMethod]
-        public void MefCtor_CheckExports()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<RichRuleHelpXamlBuilder, IRichRuleHelpXamlBuilder>(
-                MefTestHelpers.CreateExport<IRuleInfoTranslator>(),
-                MefTestHelpers.CreateExport<IXamlGeneratorHelperFactory>(),
-                MefTestHelpers.CreateExport<IStaticXamlStorage>(),
-                MefTestHelpers.CreateExport<IXamlWriterFactory>());
-        }
-
-        [TestMethod]
         public void Factory_MefCtor_CheckExports()
         {
             MefTestHelpers.CheckTypeCanBeImported<RuleHelpXamlTranslatorFactory, IRuleHelpXamlTranslatorFactory>(MefTestHelpers.CreateExport<IXamlWriterFactory>());

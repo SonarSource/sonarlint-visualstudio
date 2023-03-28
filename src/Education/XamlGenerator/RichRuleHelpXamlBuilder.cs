@@ -42,6 +42,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         private readonly IStaticXamlStorage staticXamlStorage;
         private readonly IXamlWriterFactory xamlWriterFactory;
 
+        [ImportingConstructor]
         public RichRuleHelpXamlBuilder(IRuleInfoTranslator ruleInfoTranslator, IXamlGeneratorHelperFactory xamlGeneratorHelperFactory, IStaticXamlStorage staticXamlStorage, IXamlWriterFactory xamlWriterFactory)
         {
             this.ruleInfoTranslator = ruleInfoTranslator;

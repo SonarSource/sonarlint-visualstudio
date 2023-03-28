@@ -10,12 +10,23 @@ using SonarLint.VisualStudio.Education.Layout.Logical;
 using SonarLint.VisualStudio.Education.Layout.Visual;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.Rules;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Education.UnitTests
 {
     [TestClass]
     public class RichRuleHelpXamlBuilderTests
     {
+        [TestMethod]
+        public void MefCtor_CheckExports()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<RichRuleHelpXamlBuilder, IRichRuleHelpXamlBuilder>(
+                MefTestHelpers.CreateExport<IRuleInfoTranslator>(),
+                MefTestHelpers.CreateExport<IXamlGeneratorHelperFactory>(),
+                MefTestHelpers.CreateExport<IStaticXamlStorage>(),
+                MefTestHelpers.CreateExport<IXamlWriterFactory>());
+        }
+
         [TestMethod]
         public void Create_GeneratesCorrectStructure()
         {
