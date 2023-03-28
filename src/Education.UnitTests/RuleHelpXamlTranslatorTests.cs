@@ -22,6 +22,7 @@ using System.Text;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Education.Layout.Logical;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -30,6 +31,16 @@ namespace SonarLint.VisualStudio.Education.UnitTests
     [TestClass]
     public class RuleHelpXamlTranslatorTests
     {
+        [TestMethod]
+        public void MefCtor_CheckExports()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<RichRuleHelpXamlBuilder, IRichRuleHelpXamlBuilder>(
+                MefTestHelpers.CreateExport<IRuleInfoTranslator>(),
+                MefTestHelpers.CreateExport<IXamlGeneratorHelperFactory>(),
+                MefTestHelpers.CreateExport<IStaticXamlStorage>(),
+                MefTestHelpers.CreateExport<IXamlWriterFactory>());
+        }
+
         [TestMethod]
         public void Factory_MefCtor_CheckExports()
         {

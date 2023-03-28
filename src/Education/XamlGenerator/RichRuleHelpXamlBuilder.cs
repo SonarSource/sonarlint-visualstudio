@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Text;
 using System.Windows.Documents;
@@ -28,7 +29,13 @@ using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
 {
-    internal class RichRuleHelpXamlBuilder
+    internal interface IRichRuleHelpXamlBuilder : IRuleHelpXamlBuilder
+    {
+    }
+
+    [Export(typeof(IRichRuleHelpXamlBuilder))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class RichRuleHelpXamlBuilder : IRichRuleHelpXamlBuilder
     {
         private readonly IRuleInfoTranslator ruleInfoTranslator;
         private readonly IXamlGeneratorHelperFactory xamlGeneratorHelperFactory;
