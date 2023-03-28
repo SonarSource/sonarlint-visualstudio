@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore
             return matchingLocations;
         }
 
-        public IEnumerable<IAnalysisIssueVisualization> Get()
+        public IEnumerable<IAnalysisIssueVisualization> GetIssues()
         {
             return issueStores.SelectMany(x => x.GetAll());
         }

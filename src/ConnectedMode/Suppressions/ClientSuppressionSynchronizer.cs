@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         {
             var changedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            var filterableIssues = issuesStore.Get().OfType<IFilterableIssue>().ToArray();
+            var filterableIssues = issuesStore.GetIssues().OfType<IFilterableIssue>().ToArray();
 
             var matches = issueFilter.GetMatches(filterableIssues);
 

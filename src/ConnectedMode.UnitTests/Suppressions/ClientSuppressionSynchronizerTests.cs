@@ -182,7 +182,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         {
             var clientIssueStore = new Mock<IIssueLocationStoreAggregator>();
 
-            clientIssueStore.Setup(x => x.Get()).Returns(localIssues);
+            clientIssueStore.Setup(x => x.GetIssues()).Returns(localIssues);
 
             return clientIssueStore.Object;
         }

@@ -260,7 +260,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
         }
 
         [TestMethod]
-        public void Get_NoMatchingLocations_EmptyList()
+        public void GetIssues_NoIssuesInStores_AggregatedIssuesList()
         {
             var stores = new List<Mock<IIssuesStore>>
             {
@@ -277,13 +277,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
             }
 
             var testSubject = CreateTestSubject(stores.Select(x=> x.Object).ToArray());
-            var result = testSubject.Get();
+            var result = testSubject.GetIssues();
 
             result.Should().BeEmpty();
         }
 
         [TestMethod]
-        public void GetLocations_HasMatchingLocations_AggregatedLocationsList()
+        public void GetIssues_HasIssuesInStores_AggregatedIssuesList()
         {
             var store1 = new Mock<IIssuesStore>();
             store1.Setup(x => x.GetAll()).Returns(Array.Empty<IAnalysisIssueVisualization>());
@@ -298,7 +298,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
             store3.Setup(x => x.GetAll()).Returns(new[] { location2, location3 });
 
             var testSubject = CreateTestSubject(store1.Object, store2.Object, store3.Object);
-            var result = testSubject.Get();
+            var result = testSubject.GetIssues();
 
             result.Should().BeEquivalentTo(location1, location2, location3);
         }

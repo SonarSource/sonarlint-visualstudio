@@ -292,7 +292,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
 
         #region IClientIssueStore implementation
 
-        public IEnumerable<IAnalysisIssueVisualization> Get()
+        public IEnumerable<IAnalysisIssueVisualization> GetIssues()
         {
             IIssuesSnapshotFactory[] currentFactories;
 

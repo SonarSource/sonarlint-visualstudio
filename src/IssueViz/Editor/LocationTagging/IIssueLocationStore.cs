@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
         /// <summary>
         /// Returns all the primary issues
         /// </summary>
-        IEnumerable<IAnalysisIssueVisualization> Get();
+        IEnumerable<IAnalysisIssueVisualization> GetIssues();
 
         /// <summary>
         /// Notifies the service that one or more issues in the specified files have changed
