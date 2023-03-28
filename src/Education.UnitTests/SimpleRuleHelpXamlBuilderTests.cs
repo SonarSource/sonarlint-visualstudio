@@ -22,6 +22,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Windows.Documents;
 using System.Xml;
 using FluentAssertions;
@@ -31,6 +32,7 @@ using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.Rules;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Education.UnitTests
 {
@@ -40,20 +42,40 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         private static readonly Assembly ResourceAssembly = typeof(LocalRuleMetadataProvider).Assembly;
 
         [TestMethod]
+        public void MefCtor_CheckExports()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<SimpleRuleHelpXamlBuilder, IRuleHelpXamlBuilder>(
+                MefTestHelpers.CreateExport<IRuleHelpXamlTranslatorFactory>(), MefTestHelpers.CreateExport<IXamlGeneratorHelperFactory>(), MefTestHelpers.CreateExport<IXamlWriterFactory>());
+        }
+
+        [TestMethod]
         public void Create_FormsCorrectStructure()
         {
             var callSequence = new MockSequence();
             var description = "<p>Hi</p>";
+            var ruleHelpXamlTranslatorFactoryMock = new Mock<IRuleHelpXamlTranslatorFactory>(MockBehavior.Strict);
             var ruleHelpXamlTranslatorMock = new Mock<IRuleHelpXamlTranslator>(MockBehavior.Strict);
             var xamlGeneratorHelperFactoryMock = new Mock<IXamlGeneratorHelperFactory>(MockBehavior.Strict);
             var xamlGeneratorHelperMock = new Mock<IXamlGeneratorHelper>(MockBehavior.Strict);
             var ruleInfoMock = new Mock<IRuleInfo>(MockBehavior.Strict);
+            var xamlWriterFactoryMock = new Mock<IXamlWriterFactory>(MockBehavior.Strict);
             XmlWriter writer = null;
-            
+
+            ruleHelpXamlTranslatorFactoryMock
+                .InSequence(callSequence)
+                .Setup(x => x.Create())
+                .Returns(ruleHelpXamlTranslatorMock.Object);
+            xamlWriterFactoryMock
+                .InSequence(callSequence)
+                .Setup(x => x.Create(It.IsAny<StringBuilder>()))
+                .Returns((StringBuilder sb) =>
+                {
+                    writer = new XamlWriterFactory().Create(sb);
+                    return writer;
+                });
             xamlGeneratorHelperFactoryMock
                 .InSequence(callSequence)
                 .Setup(x => x.Create(It.IsAny<XmlWriter>()))
-                .Callback<XmlWriter>(w => writer = w)
                 .Returns(xamlGeneratorHelperMock.Object);
             xamlGeneratorHelperMock
                 .InSequence(callSequence)
@@ -76,9 +98,9 @@ namespace SonarLint.VisualStudio.Education.UnitTests
                     writer.Close();
                 });
 
-            var simpleRuleHelpXamlBuilder = new SimpleRuleHelpXamlBuilder(ruleHelpXamlTranslatorMock.Object, xamlGeneratorHelperFactoryMock.Object);
+            var testSubject = new SimpleRuleHelpXamlBuilder(ruleHelpXamlTranslatorFactoryMock.Object, xamlGeneratorHelperFactoryMock.Object, xamlWriterFactoryMock.Object);
 
-            var flowDocument = simpleRuleHelpXamlBuilder.Create(ruleInfoMock.Object);
+            var flowDocument = testSubject.Create(ruleInfoMock.Object);
 
             flowDocument.Blocks.Single().Should().BeOfType<Paragraph>().Which.Inlines.Single().Should().BeOfType<Run>().Which.Text.Should().Be("Hi");
         }
@@ -104,7 +126,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
         private static bool ProcessResource(string fullResourceName)
         {
-            var testSubject = new SimpleRuleHelpXamlBuilder(new RuleHelpXamlTranslator(), new XamlGeneratorHelperFactory(new RuleHelpXamlTranslator()));
+            var testSubject = new SimpleRuleHelpXamlBuilder(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()), new XamlGeneratorHelperFactory(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory())), new XamlWriterFactory());
 
             try
             {
