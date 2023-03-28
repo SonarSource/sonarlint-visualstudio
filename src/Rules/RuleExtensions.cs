@@ -22,8 +22,13 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Rules
 {
-    internal static class RuleExtensions
+    public static class RuleExtensions
     {
+        public static bool IsRichRuleDescription(this IRuleInfo ruleInfo)
+        {
+            return ruleInfo.DescriptionSections != null && ruleInfo.DescriptionSections.Count > 0;
+        }
+
         internal static string GetCompositeKey(this SonarQubeRule sonarQubeRule) => $"{sonarQubeRule.RepositoryKey}:{sonarQubeRule.Key}";
 
         internal static RuleIssueSeverity ToRuleIssueSeverity(this SonarQubeIssueSeverity sonarQubeIssueSeverity)
