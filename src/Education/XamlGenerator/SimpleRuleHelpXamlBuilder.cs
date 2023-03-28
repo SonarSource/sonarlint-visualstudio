@@ -26,9 +26,13 @@ using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
 {
-    [Export(typeof(IRuleHelpXamlBuilder))]
+    internal interface ISimpleRuleHelpXamlBuilder : IRuleHelpXamlBuilder
+    {
+    }
+
+    [Export(typeof(ISimpleRuleHelpXamlBuilder))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class SimpleRuleHelpXamlBuilder : IRuleHelpXamlBuilder
+    internal class SimpleRuleHelpXamlBuilder : ISimpleRuleHelpXamlBuilder
     {
     }
 
