@@ -62,7 +62,7 @@ public class HowToFixSectionTests
             new HowToFixItSectionContext("aspnetcore","asp net core", "<Paragraph>nothing to worry about, unless...</Paragraph>"),
         };
         var testSubject = new HowToFixItSection(contexts);
-        var staticXamlStorage = new StaticXamlStorage(new RuleHelpXamlTranslator());
+        var staticXamlStorage = new StaticXamlStorage(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()));
         
         var visualizationTreeNode = testSubject.GetVisualizationTreeNode(staticXamlStorage);
         

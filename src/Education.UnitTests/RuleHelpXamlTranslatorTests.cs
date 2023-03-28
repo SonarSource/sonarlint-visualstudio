@@ -18,9 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Text;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Education.XamlGenerator;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Education.UnitTests
 {
@@ -28,9 +31,44 @@ namespace SonarLint.VisualStudio.Education.UnitTests
     public class RuleHelpXamlTranslatorTests
     {
         [TestMethod]
+        public void Factory_MefCtor_CheckExports()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<RuleHelpXamlTranslatorFactory, IRuleHelpXamlTranslatorFactory>(MefTestHelpers.CreateExport<IXamlWriterFactory>());
+        }
+
+        [TestMethod]
+        public void Factory_Create_NewInstanceEachTime()
+        {
+            var xamlWriterFactoryMock = new Mock<IXamlWriterFactory>();
+            var testSubject = new RuleHelpXamlTranslatorFactory(xamlWriterFactoryMock.Object);
+
+            var o1 = testSubject.Create();
+            var o2 = testSubject.Create();
+
+            o1.Should().NotBeSameAs(o2);
+            xamlWriterFactoryMock.Verify(x => x.Create(It.IsAny<StringBuilder>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void TranslateHtmlToXaml_CreatesNewWriter()
+        {
+            var xamlWriterFactoryActual = new XamlWriterFactory();
+            var xamlWriterFactoryMock = new Mock<IXamlWriterFactory>();
+            xamlWriterFactoryMock.Setup(x => x.Create(It.IsAny<StringBuilder>()))
+                .Returns((StringBuilder sb) => xamlWriterFactoryActual.Create(sb));
+            var testSubject = new RuleHelpXamlTranslatorFactory(xamlWriterFactoryMock.Object).Create();
+
+            for (int i = 0; i < 5; i++)
+            {
+                testSubject.TranslateHtmlToXaml("inline Text");
+                xamlWriterFactoryMock.Verify(x => x.Create(It.IsAny<StringBuilder>()), Times.Exactly(i + 1));
+            }
+        }
+
+        [TestMethod]
         public void TranslateHtmlToXaml_InlineContent_AddsParagraph()
         {
-            var testSubject = new RuleHelpXamlTranslator();
+            var testSubject = new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()).Create();
 
             var htmlText = "inline Text";
 
@@ -44,7 +82,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void TranslateHtmlToXaml_BlockContent_Translates()
         {
-            var testSubject = new RuleHelpXamlTranslator();
+            var testSubject = new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()).Create();
 
             var htmlText = @"<ul><li>some list item</li></ul>";
 
@@ -68,7 +106,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [DataRow(6)]
         public void TranslateHtmlToXaml_HTagsAreHandled(int headerSize)
         {
-            var testSubject = new RuleHelpXamlTranslator();
+            var testSubject = new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()).Create();
 
             var htmlText = $"<h{headerSize}>Text</h{headerSize}>";
 

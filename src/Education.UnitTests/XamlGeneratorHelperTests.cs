@@ -35,23 +35,25 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void Factory_Create_ReturnsNonNull()
         {
-            var testSubject = new XamlGeneratorHelperFactory(Mock.Of<IRuleHelpXamlTranslator>());
+            var ruleHelpXamlTranslatorFactoryMock = new Mock<IRuleHelpXamlTranslatorFactory>();
+            var testSubject = new XamlGeneratorHelperFactory(ruleHelpXamlTranslatorFactoryMock.Object);
 
             var xamlGeneratorHelper = testSubject.Create(Mock.Of<XmlWriter>());
 
             xamlGeneratorHelper.Should().NotBeNull();
+            ruleHelpXamlTranslatorFactoryMock.Verify(x => x.Create());
         }
 
         [TestMethod]
         public void WriteDocumentHeaderAndEndDocument_ExtendedDescription_ProduceCorrectStructure()
         {
             var sb = new StringBuilder();
-            var xmlWriter = RuleHelpXamlTranslator.CreateXmlWriter(sb);
+            var xmlWriter = new XamlWriterFactory().Create(sb);
             var ruleInfo = new RuleInfo("cs", "cs:123", "<p>Hi</p>", "Hi", RuleIssueSeverity.Critical,
                 RuleIssueType.Vulnerability, true, new List<string>(), new List<IDescriptionSection>(),
                 new List<string>(), "<p>fix this pls</p>");
 
-            var testSubject = (new XamlGeneratorHelperFactory(new RuleHelpXamlTranslator())).Create(xmlWriter);
+            var testSubject = (new XamlGeneratorHelperFactory(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()))).Create(xmlWriter);
 
             testSubject.WriteDocumentHeader(ruleInfo);
             xmlWriter.WriteStartElement("LineBreak");
@@ -78,12 +80,12 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         public void WriteDocumentHeaderAndEndDocument_ProduceCorrectStructure()
         {
             var sb = new StringBuilder();
-            var xmlWriter = RuleHelpXamlTranslator.CreateXmlWriter(sb);
+            var xmlWriter = new XamlWriterFactory().Create(sb);
             var ruleInfo = new RuleInfo("cs", "cs:123", "<p>Hi</p>", "Hi", RuleIssueSeverity.Critical,
                 RuleIssueType.Vulnerability, true, new List<string>(), new List<IDescriptionSection>(),
                 new List<string>(), null);
 
-            var testSubject = (new XamlGeneratorHelperFactory(new RuleHelpXamlTranslator())).Create(xmlWriter);
+            var testSubject = (new XamlGeneratorHelperFactory(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()))).Create(xmlWriter);
 
             testSubject.WriteDocumentHeader(ruleInfo);
             xmlWriter.WriteStartElement("Section");

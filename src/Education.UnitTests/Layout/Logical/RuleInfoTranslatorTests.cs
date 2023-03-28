@@ -27,6 +27,7 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Education.Layout.Logical;
 using SonarLint.VisualStudio.Education.XamlGenerator;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Rules;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -36,11 +37,21 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
     public class RuleInfoTranslatorTests
     {
         [TestMethod]
+        public void MefCtor_CheckExports()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<RuleInfoTranslator, IRuleInfoTranslator>(
+                    MefTestHelpers.CreateExport<IRuleHelpXamlTranslatorFactory>(),
+                    MefTestHelpers.CreateExport<ILogger>());
+        }
+
+        [TestMethod]
         public void GetRuleDescriptionSections_IgnoresUnknownSection()
         {
             var ruleInfo = GetRuleInfo(new[] { new DescriptionSection(Guid.NewGuid().ToString(), "<span>hello</span>") });
+            var ruleHelpXamlTranslatorFactoryMock = new Mock<IRuleHelpXamlTranslatorFactory>();
             var ruleHelpXamlTranslatorMock = new Mock<IRuleHelpXamlTranslator>();
-            var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorMock.Object, new TestLogger());
+            ruleHelpXamlTranslatorFactoryMock.Setup(x => x.Create()).Returns(ruleHelpXamlTranslatorMock.Object);
+            var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorFactoryMock.Object, new TestLogger());
 
             var ruleDescriptionSections = testSubject.GetRuleDescriptionSections(ruleInfo).ToList();
 
@@ -85,11 +96,13 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
                 new DescriptionSection("how_to_fix", content2, new Context("console", "CLI")),
                 new DescriptionSection("how_to_fix", content3, new Context("xamarin", "Xamarin")),
             });
+            var ruleHelpXamlTranslatorFactoryMock = new Mock<IRuleHelpXamlTranslatorFactory>();
             var ruleHelpXamlTranslatorMock = new Mock<IRuleHelpXamlTranslator>();
+            ruleHelpXamlTranslatorFactoryMock.Setup(x => x.Create()).Returns(ruleHelpXamlTranslatorMock.Object);
             ruleHelpXamlTranslatorMock.Setup(x => x.TranslateHtmlToXaml(content1)).Returns(content1);
             ruleHelpXamlTranslatorMock.Setup(x => x.TranslateHtmlToXaml(content2)).Returns(content2);
             ruleHelpXamlTranslatorMock.Setup(x => x.TranslateHtmlToXaml(content3)).Returns(content3);
-            var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorMock.Object, new TestLogger());
+            var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorFactoryMock.Object, new TestLogger());
 
             var ruleDescriptionSections = testSubject.GetRuleDescriptionSections(ruleInfo).ToList();
 
@@ -127,8 +140,11 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
                 new DescriptionSection(key, ""),
                 new DescriptionSection(key, "")
             });
+            var ruleHelpXamlTranslatorFactoryMock = new Mock<IRuleHelpXamlTranslatorFactory>();
+            ruleHelpXamlTranslatorFactoryMock.Setup(x => x.Create()).Returns(Mock.Of<IRuleHelpXamlTranslator>());
             var testLogger = new TestLogger();
-            var testSubject = new RuleInfoTranslator(Mock.Of<IRuleHelpXamlTranslator>(), testLogger);
+
+            var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorFactoryMock.Object, testLogger);
 
             var sections = testSubject.GetRuleDescriptionSections(ruleInfo).ToList();
 
@@ -150,8 +166,10 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
                 new DescriptionSection("root_cause", "1"),
                 new DescriptionSection("how_to_fix", "3", new Context("2", "2")),
             });
-            var ruleHelpXamlTranslatorMock = new Mock<IRuleHelpXamlTranslator>();
-            var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorMock.Object, new TestLogger());
+            var ruleHelpXamlTranslatorFactoryMock = new Mock<IRuleHelpXamlTranslatorFactory>();
+            ruleHelpXamlTranslatorFactoryMock.Setup(x => x.Create()).Returns(Mock.Of<IRuleHelpXamlTranslator>());
+
+            var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorFactoryMock.Object, new TestLogger());
 
             var sections = testSubject.GetRuleDescriptionSections(ruleInfo).ToList();
 
@@ -171,9 +189,12 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
             var htmlContent = "<h3>hello</h3>";
             var xamlContent = "<Paragraph>hello</Paragraph>";
             var ruleInfo = GetRuleInfo(new[] { new DescriptionSection(key, htmlContent) });
+            var ruleHelpXamlTranslatorFactoryMock = new Mock<IRuleHelpXamlTranslatorFactory>();
             var ruleHelpXamlTranslatorMock = new Mock<IRuleHelpXamlTranslator>();
+            ruleHelpXamlTranslatorFactoryMock.Setup(x => x.Create()).Returns(ruleHelpXamlTranslatorMock.Object);
             ruleHelpXamlTranslatorMock.Setup(x => x.TranslateHtmlToXaml(htmlContent)).Returns(xamlContent);
-            var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorMock.Object, new TestLogger());
+
+            var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorFactoryMock.Object, new TestLogger());
 
             var ruleDescriptionSections = testSubject.GetRuleDescriptionSections(ruleInfo).ToList();
 
