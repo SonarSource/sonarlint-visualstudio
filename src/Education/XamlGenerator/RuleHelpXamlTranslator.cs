@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             return new RuleHelpXamlTranslator(xamlWriterFactory);
         }
 
-        private class RuleHelpXamlTranslator : IRuleHelpXamlTranslator
+        private sealed class RuleHelpXamlTranslator : IRuleHelpXamlTranslator
         {
             private readonly IXamlWriterFactory xamlWriterFactory;
             private XmlWriter writer;
