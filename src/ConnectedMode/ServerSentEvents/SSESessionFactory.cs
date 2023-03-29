@@ -22,6 +22,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Taint;
 using SonarLint.VisualStudio.Core;
@@ -33,12 +34,14 @@ using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
 namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 {
+    internal delegate Task OnSessionFailedAsync(ISSESession failedSession);
+
     /// <summary>
     /// Factory for <see cref="ISSESession"/>. Responsible for disposing EventSourcePublishers <see cref="IServerSentEventSourcePublisher{T}"/>
     /// </summary>
     internal interface ISSESessionFactory : IDisposable
     {
-        ISSESession Create(string projectKey);
+        ISSESession Create(string projectKey, OnSessionFailedAsync onSessionFailedCallback);
     }
 
     /// <summary>
@@ -76,7 +79,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             this.logger = logger;
         }
 
-        public ISSESession Create(string projectKey)
+        public ISSESession Create(string projectKey, OnSessionFailedAsync onSessionFailedCallback)
         {
             if (disposed)
             {
@@ -88,6 +91,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
                 projectKey,
                 threadHandling,
                 sonarQubeClient,
+                onSessionFailedCallback,
                 logger);
             
             return session;
@@ -112,6 +116,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             private readonly string projectKey;
             private readonly IThreadHandling threadHandling;
             private readonly ISonarQubeService sonarQubeService;
+            private readonly OnSessionFailedAsync onSessionFailedCallback;
             private readonly ILogger logger;
             private readonly CancellationTokenSource sessionTokenSource;
 
@@ -122,6 +127,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
                 string projectKey,
                 IThreadHandling threadHandling,
                 ISonarQubeService sonarQubeService,
+                OnSessionFailedAsync onSessionFailedCallback,
                 ILogger logger)
             {
                 this.taintServerEventSourcePublisher = taintServerEventSourcePublisher;
@@ -129,6 +135,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
                 this.projectKey = projectKey;
                 this.threadHandling = threadHandling;
                 this.sonarQubeService = sonarQubeService;
+                this.onSessionFailedCallback = onSessionFailedCallback;
                 this.logger = logger;
                 this.sessionTokenSource = new CancellationTokenSource();
             }
@@ -199,6 +206,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
                 {
                     return;
                 }
+
+                onSessionFailedCallback(this).Forget();
 
                 disposed = true;
                 sessionTokenSource.Cancel();
