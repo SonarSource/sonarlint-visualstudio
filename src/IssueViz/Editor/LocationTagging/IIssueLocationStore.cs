@@ -37,9 +37,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
         IEnumerable<IAnalysisIssueLocationVisualization> GetLocations(string filePath);
 
         /// <summary>
+        /// Returns all the primary issues
+        /// </summary>
+        IEnumerable<IAnalysisIssueVisualization> GetIssues();
+
+        /// <summary>
         /// Notifies the service that one or more issues in the specified files have changed
         /// independently of the content of the document changing
         /// </summary>
+        /// <remarks>
         /// The set of issues can be changed without the content changing if e.g.
         /// - a new analysis has been performed
         /// - issues have been suppressed/unsuppressed

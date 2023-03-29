@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Suppressions;
-using SonarLint.VisualStudio.IssueVisualization;
+using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<ClientSuppressionSynchronizer, IClientSuppressionSynchronizer>(
-                MefTestHelpers.CreateExport<IClientIssueStore>(),
+                MefTestHelpers.CreateExport<IIssueLocationStoreAggregator>(),
                 MefTestHelpers.CreateExport<IIssuesFilter>());
         }
 
@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var issue = CreateIssue(isSuppressedLocally: false);
 
             var localIssues = new[] { issue };
-            var clientIssueStore = CreateClientIssueStore(localIssues);
+            var clientIssueStore = CreateIssueStore(localIssues);
 
             var matches = new[] { issue };
             var issueFilter = CreateIssuesFilter(localIssues, matches);
@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var issue = CreateIssue(isSuppressedLocally: true);
 
             var localIssues = new[] { issue };
-            var clientIssueStore = CreateClientIssueStore(localIssues);
+            var clientIssueStore = CreateIssueStore(localIssues);
             var issueFilter = CreateIssuesFilter(localIssues, new List<IAnalysisIssueVisualization>());
 
             var testSubject = new ClientSuppressionSynchronizer(clientIssueStore, issueFilter);
@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var issue3 = CreateIssue(isSuppressedLocally: false);
 
             var localIssues = new[] { issue1, issue2, issue3 };
-            var clientIssueStore = CreateClientIssueStore(localIssues);
+            var clientIssueStore = CreateIssueStore(localIssues);
             var matches = new[] { issue1 };
             var issueFilter = CreateIssuesFilter(localIssues, matches);
 
@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         {
             var localIssue = CreateIssue(isSuppressedLocally: isSuppressedLocally);
             var localIssues = new[] { localIssue };
-            var clientIssueStore = CreateClientIssueStore(localIssues);
+            var clientIssueStore = CreateIssueStore(localIssues);
 
             // Issues in the matched list are treated as being suppressed
             var matches = new List<IAnalysisIssueVisualization>();
@@ -148,7 +148,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
                 notSuppressedLocally_NotSuppressedOnServer,
                 notSuppressedLocally_SuppressedOnServer
             };
-            var clientIssueStore = CreateClientIssueStore(localIssues);
+            var clientIssueStore = CreateIssueStore(localIssues);
 
             // Issues in the matched list are treated as being suppressed
             // => anything that should be treated as suppressed on the server should
@@ -178,11 +178,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             actualEventArgs.ChangedFiles.Should().BeEquivalentTo("path 1", "path 4");
         }
 
-        private static IClientIssueStore CreateClientIssueStore(IAnalysisIssueVisualization[] localIssues)
+        private static IIssueLocationStoreAggregator CreateIssueStore(IEnumerable<IAnalysisIssueVisualization> localIssues)
         {
-            var clientIssueStore = new Mock<IClientIssueStore>();
+            var clientIssueStore = new Mock<IIssueLocationStoreAggregator>();
 
-            clientIssueStore.Setup(x => x.Get()).Returns(localIssues);
+            clientIssueStore.Setup(x => x.GetIssues()).Returns(localIssues);
 
             return clientIssueStore.Object;
         }
