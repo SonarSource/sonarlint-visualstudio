@@ -59,7 +59,7 @@
                 <Setter Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUIBackgroundKey}}" />
                 <Setter Property="FontSize" Value="{DynamicResource {x:Static vsshell:VsFonts.Environment122PercentFontSizeKey}}"/>
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUITextKey}}" />
-                <!-- <Setter Property="Padding" Value="20,0,20,0" /> -->
+                <Setter Property="Margin" Value="-2,-2,0,0" />
                 <Setter Property="FocusVisualStyle" Value="{DynamicResource ControlsFocusVisualStyle}" />
                 <Setter Property="Template">
                     <Setter.Value>
@@ -125,6 +125,12 @@
                      debugging are not picked up immediately - you need to recompile to see the difference. -->
                 <Setter Property="TextOptions.TextRenderingMode" Value="ClearType" />
                 <Setter Property="TextOptions.TextFormattingMode" Value="Ideal" />
+            </Style>
+            <Style x:Key="Bordered_Section" TargetType="Section">
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsshell:VsBrushes.PanelBorderKey}}"/>
+                <Setter Property="BorderThickness" Value="2"/>
+                <Setter Property="Padding" Value="5, 0, 5, 0"/>
+                <Setter Property="Margin" Value="0, 5, 0, 5"/>
             </Style>
             <Style x:Key="Pre_Section" TargetType="Section">
                 <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsshell:VsBrushes.PanelBorderKey}}"/>

@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Rules
 
         public async Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, CancellationToken token)
         {
-            // var localMetaData = localRuleMetadataProvider.GetRuleInfo(ruleId);
+            var localMetaData = localRuleMetadataProvider.GetRuleInfo(ruleId);
 
             var configuration = configurationProvider.GetConfiguration();
 
@@ -59,23 +59,22 @@ namespace SonarLint.VisualStudio.Rules
 
             if (!(configuration.Mode.IsInAConnectedMode() && configuration.Project.Profiles.TryGetValue(language, out qualityProfile)))
             {
-                // return localMetaData;
-                return null;
+                return localMetaData;
             }
 
             var serverMetaData = await serverRuleMetadataProvider.GetRuleInfoAsync(ruleId, qualityProfile.ProfileKey, token);
-            return serverMetaData;
-            // if (localMetaData == null)
-            // {
-            //     return serverMetaData;
-            // }
-            //
-            // if (serverMetaData != null)
-            // {
-            //     return localMetaData.WithServerOverride(serverMetaData.Severity, serverMetaData.HtmlNote);
-            // }
-            //
-            // return localMetaData;
+
+            if (localMetaData == null)
+            {
+                return serverMetaData;
+            }
+
+            if (serverMetaData != null)
+            {
+                return localMetaData.WithServerOverride(serverMetaData.Severity, serverMetaData.HtmlNote);
+            }
+
+            return localMetaData;
         }
     }
 }

@@ -19,45 +19,24 @@
  */
 
 using System.Xml;
+using SonarLint.VisualStudio.Education.XamlGenerator;
 
-namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
+namespace SonarLint.VisualStudio.Education.Layout.Visual
 {
-    internal interface ITabItem
-    {
-        void ProduceXaml(XmlWriter writer);
-    }
-
-    /// <summary>
-    /// Represents individual tab of a TabGroup
-    /// </summary>
-    internal class TabItem // NOTE: this does not implement IAbstractVisualizationTreeNode by design, as it cannot be used without TabGroup
-        : ITabItem
+    internal class BorderedSection : IAbstractVisualizationTreeNode
     {
         internal /* for testing */ readonly IAbstractVisualizationTreeNode content;
-        private readonly string displayName;
 
-        public TabItem(string displayName, IAbstractVisualizationTreeNode content)
+        public BorderedSection(IAbstractVisualizationTreeNode content)
         {
-            this.displayName = displayName;
             this.content = content;
         }
-
         public void ProduceXaml(XmlWriter writer)
         {
-            writer.WriteStartElement("TabItem");
-            writer.WriteAttributeString("Header", displayName);
-
-            writer.WriteStartElement("FlowDocumentScrollViewer");
-            writer.WriteAttributeString("HorizontalScrollBarVisibility", "Disabled");
-            writer.WriteAttributeString("VerticalScrollBarVisibility", "Disabled");
-
-            writer.WriteStartElement("FlowDocument");
+            writer.WriteStartElement("Section");
+            writer.ApplyStyleToElement(StyleResourceNames.Bordered_Section);
             content.ProduceXaml(writer);
-            writer.WriteFullEndElement();
-
-            writer.WriteFullEndElement();
-            
-            writer.WriteFullEndElement();
+            writer.WriteEndElement();
         }
     }
 }
