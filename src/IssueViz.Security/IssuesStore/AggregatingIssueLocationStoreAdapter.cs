@@ -61,6 +61,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore
             return matchingLocations;
         }
 
+        public IEnumerable<IAnalysisIssueVisualization> GetIssues()
+        {
+            return issueStores.SelectMany(x => x.GetAll());
+        }
+
         public void RefreshOnBufferChanged(string affectedFilePath)
         {
             // Implementation is not required:

@@ -72,6 +72,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
             return locationStores.SelectMany(x => x.GetLocations(filePath));
         }
 
+        public IEnumerable<IAnalysisIssueVisualization> GetIssues()
+        {
+            return locationStores.SelectMany(x => x.GetIssues());
+        }
+
         public void RefreshOnBufferChanged(string affectedFilePath)
         {
             if (affectedFilePath == null)

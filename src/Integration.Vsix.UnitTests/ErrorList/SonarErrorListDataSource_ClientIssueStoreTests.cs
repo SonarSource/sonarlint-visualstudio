@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
     public class SonarErrorListDataSource_ClientIssueStoreTests
     {
         [TestMethod]
-        public void Get_ReturnsCorrectIssuesOneFactory()
+        public void GetIssues_ReturnsCorrectIssuesOneFactory()
         {
             var issue1 = Mock.Of<IAnalysisIssueVisualization>();
             var issue2 = Mock.Of<IAnalysisIssueVisualization>();
@@ -43,17 +43,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 
             var testSubject = CreateTestSubject();
 
-            testSubject.Get().Should().Equal();
+            testSubject.GetIssues().Should().Equal();
 
             testSubject.AddFactory(factory);
-            testSubject.Get().Should().Equal(issue1, issue2);
+            testSubject.GetIssues().Should().Equal(issue1, issue2);
 
             testSubject.RemoveFactory(factory);
-            testSubject.Get().Should().Equal();
+            testSubject.GetIssues().Should().Equal();
         }
 
         [TestMethod]
-        public void Get_ReturnsCorrectIssuesTwoFactories()
+        public void GetIssues_ReturnsCorrectIssuesTwoFactories()
         {
             var issue1 = Mock.Of<IAnalysisIssueVisualization>();
             var issue2 = Mock.Of<IAnalysisIssueVisualization>();
@@ -65,16 +65,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 
             var testSubject = CreateTestSubject();
 
-            testSubject.Get().Should().Equal();
+            testSubject.GetIssues().Should().Equal();
 
             testSubject.AddFactory(factory);
-            testSubject.Get().Should().Equal(issue1, issue2);
+            testSubject.GetIssues().Should().Equal(issue1, issue2);
 
             testSubject.AddFactory(factory2);
-            testSubject.Get().Should().Equal(issue1, issue2, issue3, issue4);
+            testSubject.GetIssues().Should().Equal(issue1, issue2, issue3, issue4);
 
             testSubject.RemoveFactory(factory);
-            testSubject.Get().Should().Equal(issue3, issue4);
+            testSubject.GetIssues().Should().Equal(issue3, issue4);
         }
 
         private SonarErrorListDataSource CreateTestSubject()
