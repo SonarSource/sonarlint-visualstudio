@@ -30,15 +30,16 @@ using Moq;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.TaintList
@@ -155,7 +156,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             int eventCount = 0;
             PropertyChangedEventArgs suppliedArgs = null;
-            testSubject.PropertyChanged += (sender, args) => { eventCount++;  suppliedArgs = args; };
+            testSubject.PropertyChanged += (sender, args) => { eventCount++; suppliedArgs = args; };
             var originalCaption = testSubject.WindowCaption;
 
             // 1. Change from no active doc with one item -> event
@@ -210,7 +211,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                     Mock.Of<IIssueSelectionService>(),
                     Mock.Of<ICommand>(),
                     Mock.Of<IMenuCommandService>(),
-                    Mock.Of<ISonarQubeService>());
+                    Mock.Of<ISonarQubeService>(),
+                    Mock.Of<INavigateToRuleDescriptionCommand>());
             }
 
             public void ChangeActiveDocument(string filePath)
