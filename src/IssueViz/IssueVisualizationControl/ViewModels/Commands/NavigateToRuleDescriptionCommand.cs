@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands
 {
-    internal interface INavigateToRuleDescriptionCommand : ICommand
+    public interface INavigateToRuleDescriptionCommand : ICommand
     {
     }
 
@@ -37,14 +37,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         public NavigateToRuleDescriptionCommand(IEducation educationService)
             : base(parameter =>
                 {
-                    var fullRuleKey = (string) parameter;
+                    var fullRuleKey = (string)parameter;
                     if (SonarCompositeRuleId.TryParse(fullRuleKey, out var ruleId))
                     {
                         educationService.ShowRuleHelp(ruleId);
                     }
                 },
                 parameter => parameter is string s &&
-                    !string.IsNullOrEmpty(s) && 
+                    !string.IsNullOrEmpty(s) &&
                 SonarCompositeRuleId.TryParse(s, out var _))
         {
         }

@@ -32,14 +32,15 @@ using Moq;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.TaintList
@@ -156,10 +157,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         public void Ctor_ActiveDocumentExists_IssuesFilteredForActiveFilePath()
         {
             var location1 = CreateLocationViz("current.cpp");
-            var issueViz1 = CreateIssueViz(null, locations: new[] {location1});
+            var issueViz1 = CreateIssueViz(null, locations: new[] { location1 });
 
             var location2 = CreateLocationViz(null);
-            var issueViz2 = CreateIssueViz("current.cpp", locations: new[] {location2});
+            var issueViz2 = CreateIssueViz("current.cpp", locations: new[] { location2 });
 
             var location3 = CreateLocationViz("someOtherFile.cpp");
             var issueViz3 = CreateIssueViz(null, locations: new[] { location3 });
@@ -567,7 +568,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         public void SelectionChanged_SelectedIssueExistsInList_RaisesPropertyChanged()
         {
             var issueViz = Mock.Of<IAnalysisIssueVisualization>();
-            var storeHotspots = new[] {issueViz};
+            var storeHotspots = new[] { issueViz };
             var selectionService = new Mock<IIssueSelectionService>();
 
             var testSubject = CreateTestSubject(storeHotspots, selectionService: selectionService.Object);
@@ -616,7 +617,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         public void SelectionChanged_IssueSelected_SelectionServiceNotCalledAgain()
         {
             var selectedIssue = Mock.Of<IAnalysisIssueVisualization>();
-            var storeIssues = new [] { selectedIssue };
+            var storeIssues = new[] { selectedIssue };
             var selectionService = new Mock<IIssueSelectionService>();
 
             CreateTestSubject(storeIssues, selectionService: selectionService.Object);
@@ -724,7 +725,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         [DataRow(ServerType.SonarCloud, ServerType.SonarQube, nameof(ServerType.SonarQube), true)]
         public void ActiveDocChanged_ExpectedServerTypeSetOnlyWhenItIsChanged(
             ServerType? originalServerType,
-            ServerType? newServerType, 
+            ServerType? newServerType,
             string expectedValue,
             bool expectedRaiseEvent)
         {
@@ -732,9 +733,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             var sonarQubeServiceMock = new Mock<ISonarQubeService>();
             SetServerType(originalServerType, sonarQubeServiceMock);
 
-            var testSubject = CreateTestSubject(activeDocumentTracker: activeDocumentTrackerMock.Object, sonarQubeService:sonarQubeServiceMock.Object);
+            var testSubject = CreateTestSubject(activeDocumentTracker: activeDocumentTrackerMock.Object, sonarQubeService: sonarQubeServiceMock.Object);
             var eventCount = 0;
-            testSubject.PropertyChanged += (sender, args) => {
+            testSubject.PropertyChanged += (sender, args) =>
+            {
                 if (args is { PropertyName: nameof(testSubject.ServerType) })
                 {
                     eventCount++;
@@ -782,7 +784,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                 selectionService,
                 Mock.Of<ICommand>(),
                 menuCommandService,
-                sonarQubeService);
+                sonarQubeService,
+                Mock.Of<INavigateToRuleDescriptionCommand>());
         }
 
         private static void SetServerType(ServerType? serverType, Mock<ISonarQubeService> sonarQubeServiceMock)
@@ -815,7 +818,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             var flowViz = new Mock<IAnalysisIssueFlowVisualization>();
             flowViz.Setup(x => x.Locations).Returns(locations);
-            issueViz.Setup(x => x.Flows).Returns(new[] {flowViz.Object});
+            issueViz.Setup(x => x.Flows).Returns(new[] { flowViz.Object });
 
             return issueViz.Object;
         }
