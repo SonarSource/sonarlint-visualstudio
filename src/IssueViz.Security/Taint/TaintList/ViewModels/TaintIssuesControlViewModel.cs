@@ -189,14 +189,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         private void ApplyViewFilter(Predicate<object> filter) =>
             IssuesView.Filter = filter;
 
-        private bool ActiveDocumentFilter(object viewModel)
+        private bool NotSuppressedIssuesInCurrentDocumentFilter(object viewModel)
         {
             if (string.IsNullOrEmpty(activeDocumentFilePath))
             {
                 return false;
             }
 
-            var allFilePaths = ((ITaintIssueViewModel) viewModel).TaintIssueViz.GetAllLocations()
+            var issueViz = ((ITaintIssueViewModel) viewModel).TaintIssueViz;
+
+            if (issueViz.IsSuppressed)
+            {
+                return false;
+            }
+
+            var allFilePaths = issueViz.GetAllLocations()
                 .Select(x => x.CurrentFilePath)
                 .Where(x => !string.IsNullOrEmpty(x));
 
@@ -273,7 +280,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             {
                 // WPF is not automatically re-applying the filter when the underlying list
                 // of issues changes, so we're manually applying the filtering every time.
-                ApplyViewFilter(ActiveDocumentFilter);
+                ApplyViewFilter(NotSuppressedIssuesInCurrentDocumentFilter);
 
                 // We'll show the default caption if:
                 // * there are no underlying issues, or
