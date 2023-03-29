@@ -54,7 +54,7 @@ namespace SonarQube.Client.Tests
         {
             await ConnectToSonarQube("8.6.0.0");
 
-            SetupRequest("api/issues/search?projects=shared&statuses=OPEN%2CCONFIRMED%2CREOPENED&types=VULNERABILITY&p=1&ps=500", @"
+            SetupRequest("api/issues/search?projects=shared&statuses=OPEN%2CCONFIRMED%2CREOPENED%2CRESOLVED&types=VULNERABILITY&p=1&ps=500", @"
 {
 	""total"": 4,
 	""p"": 1,

@@ -153,6 +153,30 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         }
 
         [TestMethod]
+        public void Ctor_ActiveDocumentExists_SuppressedIssuesAreFilteredOut()
+        {
+            var location1 = CreateLocationViz("current.cpp");
+            var issueViz1 = CreateIssueViz(null, locations: new[] { location1 }, isSuppressed: true);
+
+            var location2 = CreateLocationViz(null);
+            var issueViz2 = CreateIssueViz("current.cpp", locations: new[] { location2 }, isSuppressed: false);
+
+            var storeCollection = new[] { issueViz1, issueViz2 };
+
+            var locator = CreateLocatorAndSetActiveDocument("current.cpp");
+
+            var testSubject = CreateTestSubject(storeCollection, activeDocumentLocator: locator);
+
+            CheckExpectedSourceIssueCount(testSubject, 2);
+
+            VerifyFilterIsNotNull(testSubject);
+
+            var filteredItems = GetIssueVizsFromView(testSubject);
+            filteredItems.Count.Should().Be(1);
+            filteredItems[0].Should().Be(issueViz2);
+        }
+
+        [TestMethod]
         public void Ctor_ActiveDocumentExists_IssuesFilteredForActiveFilePath()
         {
             var location1 = CreateLocationViz("current.cpp");
@@ -803,7 +827,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         }
 
         private IAnalysisIssueVisualization CreateIssueViz(string filePath = "test.cpp", string issueKey = "issue key",
-            DateTimeOffset created = default, params IAnalysisIssueLocationVisualization[] locations)
+            DateTimeOffset created = default, bool isSuppressed = false, params IAnalysisIssueLocationVisualization[] locations)
         {
             var issue = new Mock<ITaintIssue>();
             issue.Setup(x => x.IssueKey).Returns(issueKey);
@@ -812,6 +836,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.CurrentFilePath).Returns(filePath);
             issueViz.Setup(x => x.Issue).Returns(issue.Object);
+            issueViz.Setup(x => x.IsSuppressed).Returns(isSuppressed);
 
             var flowViz = new Mock<IAnalysisIssueFlowVisualization>();
             flowViz.Setup(x => x.Locations).Returns(locations);

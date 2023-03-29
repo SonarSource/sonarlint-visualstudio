@@ -41,7 +41,7 @@ namespace SonarQube.Client.Api.V8_6
             getIssuesRequest.Logger = Logger;
             getIssuesRequest.ProjectKey = ProjectKey;
             getIssuesRequest.Branch = Branch;
-            getIssuesRequest.Statuses = "OPEN,CONFIRMED,REOPENED";
+            getIssuesRequest.Statuses = "OPEN,CONFIRMED,REOPENED,RESOLVED";
             getIssuesRequest.Types = "VULNERABILITY";
 
             var vulnerabilities = await getIssuesRequest.InvokeAsync(httpClient, token);
