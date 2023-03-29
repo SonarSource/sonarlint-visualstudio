@@ -23,6 +23,35 @@
             <Style TargetType="TabControl" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTabControlNavigationStyleKey}}">
                 <Setter Property="Margin" Value="0, 0, 0, 0"/>
                 <Setter Property="Padding" Value="0, 0, 0, 0"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TabControl">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <ScrollViewer HorizontalScrollBarVisibility="Auto"  VerticalScrollBarVisibility="Hidden" >
+                                    <TabPanel x:Name="HeaderPanel"
+                                              Panel.ZIndex ="1" 
+                                              KeyboardNavigation.TabIndex="1"
+                                              Grid.Column="0"
+                                              Grid.Row="0"
+                                              Margin="2,2,2,0"
+                                              IsItemsHost="true"/>
+                                </ScrollViewer>
+                                <ContentPresenter x:Name="PART_SelectedContentHost"
+                                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                                  Margin="-10,0,0,0"
+                                                  ContentSource="SelectedContent" 
+                                                  Grid.Row="1"
+                                                  Focusable="True"
+                                                  KeyboardNavigation.TabIndex="3"
+                                                  AutomationProperties.Name="{Binding ElementName=Root, Path=StackTrace}" />
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
 
             <Style TargetType="TabItem">
@@ -37,6 +66,7 @@
                         <ControlTemplate TargetType="{x:Type TabItem}">
                             <Grid x:Name="templateRoot" SnapsToDevicePixels="true">
                                 <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto" />
                                     <RowDefinition Height="auto" />
                                     <RowDefinition Height="auto" />
                                 </Grid.RowDefinitions>
