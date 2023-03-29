@@ -293,7 +293,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         private static void CheckFileWritten(Mock<IFile> file, RoslynSettings settings)
         {
             var expectedFilePath = GetFilePath(settings.SonarProjectKey);
-            var expectedContent = JsonConvert.SerializeObject(settings);
+            var expectedContent = JsonConvert.SerializeObject(settings, Formatting.Indented);
 
             file.Verify(f => f.WriteAllText(expectedFilePath, expectedContent), Times.Once);
         }

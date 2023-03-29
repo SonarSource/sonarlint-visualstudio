@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
             {
                 CodeMarkers.Instance.FileStorageUpdateStart();
                 var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(settings.SonarProjectKey);
-                var fileContent = JsonConvert.SerializeObject(settings);
+                var fileContent = JsonConvert.SerializeObject(settings, Formatting.Indented);
                 fileSystem.File.WriteAllText(filePath, fileContent);
             }
             catch (Exception ex)

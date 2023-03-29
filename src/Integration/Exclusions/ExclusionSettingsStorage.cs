@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
                 throw new InvalidOperationException("Cannot save exclusions in Standalone mode.");
             }
 
-            var fileContent = JsonConvert.SerializeObject(settings);
+            var fileContent = JsonConvert.SerializeObject(settings, Formatting.Indented);
             var exclusionsFilePath = GetFilePath(bindingConfiguration);
 
             fileSystem.File.WriteAllText(exclusionsFilePath, fileContent);
