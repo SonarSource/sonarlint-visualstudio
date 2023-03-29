@@ -28,12 +28,14 @@ using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
@@ -55,6 +57,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         ICollectionView IssuesView { get; }
 
         ITaintIssueViewModel SelectedIssue { get; set; }
+
+        INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; }
 
         bool HasServerIssues { get; }
 
@@ -78,6 +82,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         private readonly ITaintStore store;
         private readonly IMenuCommandService menuCommandService;
         private readonly ISonarQubeService sonarQubeService;
+        private readonly IEducation educationService;
+
         private readonly object Lock = new object();
         private string activeDocumentFilePath;
         private string windowCaption;
@@ -95,6 +101,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         public ICommand ShowVisualizationPaneCommand { get; private set; }
 
         public ICommand ShowDocumentationCommand { get; }
+
+        public INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; }
 
         public bool HasServerIssues => unfilteredIssues.Any();
 
@@ -137,7 +145,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             IIssueSelectionService selectionService,
             ICommand navigateToDocumentationCommand,
             IMenuCommandService menuCommandService,
-            ISonarQubeService sonarQubeService)
+            ISonarQubeService sonarQubeService,
+            INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand
+            )
         {
             unfilteredIssues = new ObservableCollection<ITaintIssueViewModel>();
             AllowMultiThreadedAccessToIssuesCollection();
@@ -150,13 +160,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
             this.showInBrowserService = showInBrowserService;
             this.telemetryManager = telemetryManager;
+            this.NavigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
 
             this.selectionService = selectionService;
             this.selectionService.SelectedIssueChanged += SelectionService_SelectionChanged;
 
             this.store = store;
             this.store.IssuesChanged += Store_IssuesChanged;
-
             UpdateIssues();
 
             IssuesView = new ListCollectionView(unfilteredIssues);
@@ -196,11 +206,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
                 return false;
             }
 
-            var allFilePaths = ((ITaintIssueViewModel) viewModel).TaintIssueViz.GetAllLocations()
+            var allFilePaths = ((ITaintIssueViewModel)viewModel).TaintIssueViz.GetAllLocations()
                 .Select(x => x.CurrentFilePath)
                 .Where(x => !string.IsNullOrEmpty(x));
 
-            return allFilePaths.Any(x=> PathHelper.IsMatchingPath(x, activeDocumentFilePath));
+            return allFilePaths.Any(x => PathHelper.IsMatchingPath(x, activeDocumentFilePath));
         }
 
         private void SetDefaultSortOrder() =>
@@ -246,10 +256,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
                     var commandId = new CommandID(IssueVisualization.Commands.Constants.CommandSetGuid, IssueVisualization.Commands.Constants.ViewToolWindowCommandId);
 
                     menuCommandService.GlobalInvoke(commandId);
-
-                }, parameter => parameter is ITaintIssueViewModel); 
-            
-            
+                }, parameter => parameter is ITaintIssueViewModel);
         }
 
         private void UpdateIssues()
