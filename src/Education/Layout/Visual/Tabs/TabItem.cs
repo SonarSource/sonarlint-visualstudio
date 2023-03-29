@@ -45,6 +45,8 @@ namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
         public void ProduceXaml(XmlWriter writer)
         {
             writer.WriteStartElement("TabItem");
+            writer.WriteAttributeString("HorizontalAlignment", "Left");
+            // writer.WriteAttributeString("Margin", "-2,-2,0,0");
             writer.WriteAttributeString("Header", displayName);
 
             writer.WriteStartElement("FlowDocumentScrollViewer");

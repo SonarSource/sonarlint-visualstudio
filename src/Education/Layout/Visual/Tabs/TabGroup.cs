@@ -39,6 +39,7 @@ namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
         {
             writer.WriteStartElement("BlockUIContainer");
             writer.WriteStartElement("TabControl");
+            writer.WriteAttributeString("TabStripPlacement", "Top");
             foreach (var tab in tabs)
             {
                 tab.ProduceXaml(writer);
