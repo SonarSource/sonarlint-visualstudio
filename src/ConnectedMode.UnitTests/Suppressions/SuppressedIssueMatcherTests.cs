@@ -163,7 +163,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         }
 
         private IFilterableIssue CreateIssueToMatch(string ruleId, int? startLine, string lineHash,
-            string filePath = "well known file path")
+            string filePath = null)
             => new TestFilterableIssue
             {
                 RuleId = ruleId,
@@ -173,7 +173,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             };
 
         private SonarQubeIssue CreateServerIssue(string ruleId, int? startLine, string lineHash, bool isSuppressed,
-            string filePath = "well known file path")
+            string filePath = null)
         {
             var sonarQubeIssue = new SonarQubeIssue(null, filePath, lineHash, null, null, ruleId, false, SonarQubeIssueSeverity.Info,
                  DateTimeOffset.MinValue, DateTimeOffset.MinValue,
