@@ -101,12 +101,13 @@ namespace SonarLint.VisualStudio.CloudSecrets
                 var textDocument = textDocumentFactoryService.CreateAndLoadTextDocument(filePath, filesContentType); // load the document from disc
                 var currentSnapshot = textDocument.TextBuffer.CurrentSnapshot;
                 var fileContent = currentSnapshot.GetText();
+                var rulesSettings = ruleSettingsProvider.Get();
 
                 var issues = new List<IAnalysisIssue>();
 
                 foreach (var secretDetector in secretDetectors)
                 {
-                    if (!IsRuleActive(secretDetector.RuleKey))
+                    if (!IsRuleActive(rulesSettings, secretDetector.RuleKey))
                     {
                         continue;
                     }
@@ -135,10 +136,8 @@ namespace SonarLint.VisualStudio.CloudSecrets
             }
         }
 
-        private bool IsRuleActive(string ruleKey)
+        private static bool IsRuleActive(RulesSettings rulesSettings, string ruleKey)
         {
-            var rulesSettings = ruleSettingsProvider.Get();
-
             if (rulesSettings.Rules.TryGetValue(ruleKey, out var ruleConfig))
             {
                 return ruleConfig.Level == RuleLevel.On;
