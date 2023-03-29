@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
                 return false;
             }
 
-            if (!IsSameFile(issue, serverIssue))
+            if (!IsFileMatch(issue, serverIssue))
             {
                 return false;
             }
@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             return issue.StartLine == serverIssue.TextRange?.StartLine || StringComparer.Ordinal.Equals(issue.LineHash, serverIssue.Hash);
         }
 
-        private static bool IsSameFile(IFilterableIssue issue, SonarQubeIssue serverIssue)
+        private static bool IsFileMatch(IFilterableIssue issue, SonarQubeIssue serverIssue)
         {
             var localPath = issue.FilePath ?? string.Empty;
             var serverPath = serverIssue.FilePath ?? string.Empty;
@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             Debug.Assert(!serverPath.StartsWith("\\"), "Not expecting server file path to start with a back-slash");
             if(localPath.EndsWith(serverPath, StringComparison.OrdinalIgnoreCase))
             {
-                // Check the preceding local character is a backslash  - we want to make sure a server path
+                // Check the preceding local path character is a backslash  - we want to make sure a server path
                 // of `aaa\foo.txt` matches `c:\aaa\foo.txt` but not `c:`bbbaaa\foo.txt`
                 return localPath.Length > serverPath.Length &&
                     localPath[localPath.Length - serverPath.Length - 1] == '\\';
