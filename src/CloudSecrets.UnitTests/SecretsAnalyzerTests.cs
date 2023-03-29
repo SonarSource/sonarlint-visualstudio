@@ -268,6 +268,33 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             telemetryManager.VerifyNoOtherCalls();
         }
 
+        [TestMethod]
+        [Description("Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/3935")]
+        public void ExecuteAnalysis_FetchRulesSettingsOnlyOnce()
+        {
+            var textDocumentFactoryService = SetupTextDocumentFactoryService(ValidFilePath, ValidFileContent);
+            var ruleSettingsProvider = new Mock<IRuleSettingsProvider>();
+
+            var consumer = new Mock<IIssueConsumer>();
+
+            var secretDetectors = new[]
+            {
+                SetupSecretDetector(ValidFileContent, "rule1"),
+                SetupSecretDetector(ValidFileContent, "rule2"),
+                SetupSecretDetector(ValidFileContent, "rule3")
+            };
+
+            var testSubject = CreateTestSubject(
+                textDocumentFactoryService: textDocumentFactoryService,
+                detectors: secretDetectors,
+                ruleSettingsProvider: ruleSettingsProvider);
+
+            ExecuteAnalysis(testSubject, ValidFilePath, consumer.Object);
+
+            ruleSettingsProvider.Verify(x=> x.Get(), Times.Once);
+            ruleSettingsProvider.VerifyNoOtherCalls();
+        }
+
         private void ExecuteAnalysis(SecretsAnalyzer testSubject, string filePath, IIssueConsumer consumer)
         {
             testSubject.ExecuteAnalysis(filePath, "", Array.Empty<AnalysisLanguage>(), consumer, null, CancellationToken.None);
@@ -277,6 +304,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             ITextDocumentFactoryService textDocumentFactoryService = null,
             ISecretsToAnalysisIssueConverter secretsToAnalysisIssueConverter = null,
             RulesSettings rulesSettings = null,
+            Mock<IRuleSettingsProvider> ruleSettingsProvider = null,
             ICloudSecretsTelemetryManager telemetryManager = null,
             params Mock<ISecretDetector>[] detectors)
         {
@@ -286,7 +314,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             secretsToAnalysisIssueConverter ??= Mock.Of<ISecretsToAnalysisIssueConverter>();
             telemetryManager ??= Mock.Of<ICloudSecretsTelemetryManager>();
 
-            var ruleSettingsProviderFactory = SetupRuleProviderFactory(rulesSettings);
+            var ruleSettingsProviderFactory = SetupRuleProviderFactory(rulesSettings, ruleSettingsProvider);
 
             var contentTypeRegistryService = new Mock<IContentTypeRegistryService>();
             contentTypeRegistryService.Setup(x => x.UnknownContentType).Returns(Mock.Of<IContentType>());
@@ -300,11 +328,12 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
                 secretsToAnalysisIssueConverter);
         }
 
-        private IRuleSettingsProviderFactory SetupRuleProviderFactory(RulesSettings rulesSettings = null)
+        private IRuleSettingsProviderFactory SetupRuleProviderFactory(RulesSettings rulesSettings = null,
+            Mock<IRuleSettingsProvider> ruleSettingsProvider = null)
         {
             rulesSettings ??= new RulesSettings();
 
-            var ruleSettingsProvider = new Mock<IRuleSettingsProvider>();
+            ruleSettingsProvider ??= new Mock<IRuleSettingsProvider>();
             ruleSettingsProvider.Setup(x => x.Get()).Returns(rulesSettings);
 
             var ruleSettingsProviderFactory = new Mock<IRuleSettingsProviderFactory>();
