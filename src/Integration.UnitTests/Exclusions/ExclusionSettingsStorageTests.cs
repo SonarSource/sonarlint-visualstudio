@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Exclusions;
 using SonarQube.Client.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
+using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
 {
@@ -195,9 +196,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
                 GlobalExclusions = new[] { "globalExclusion" }
             };
 
+            var expectedSerializedSettings = JsonConvert.SerializeObject(settings, Formatting.Indented);
+
             testSubject.SaveSettings(settings);
 
-            file.Verify(f => f.WriteAllText(ExpectedExclusionsFilePath, SerializedExclusions));
+            file.Verify(f => f.WriteAllText(ExpectedExclusionsFilePath, expectedSerializedSettings));
         }
 
         private ExclusionSettingsStorage CreateTestSubject(IFile file, BindingConfiguration bindingConfiguration = null)

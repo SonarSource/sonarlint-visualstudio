@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var lastUpdate = DateTimeOffset.Parse("2009-02-01T13:14:15+0200");
 
             var issue = CreateServerIssue("issue key", "path4", "hash", "message4", "rule", SonarQubeIssueSeverity.Major,
-                new IssueTextRange(13, 14, 15, 16), created, lastUpdate, flow1, flow2);
+                new IssueTextRange(13, 14, 15, 16), created, lastUpdate, resolved:true, flow1, flow2);
 
             var expectedConvertedIssueViz = CreateIssueViz();
             var issueVizConverter = new Mock<IAnalysisIssueVisualizationConverter>();
@@ -288,6 +288,48 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                 Times.Once);
         }
 
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void Convert_FromSonarQubeIssue_IssueVizIsCorrectlyMarkedAsSuppressed(bool isIssueSuppressed)
+        {
+            var issue = CreateServerIssue(resolved: isIssueSuppressed, textRange: new IssueTextRange(1, 2, 3, 4));
+
+            var expectedConvertedIssueViz = CreateIssueViz();
+
+            var issueVizConverter = new Mock<IAnalysisIssueVisualizationConverter>();
+            issueVizConverter
+                .Setup(x => x.Convert(It.IsAny<IAnalysisIssueBase>(), null))
+                .Returns(expectedConvertedIssueViz);
+
+            var testSubject = CreateTestSubject(issueVizConverter.Object);
+            var result = testSubject.Convert(issue);
+
+            result.Should().Be(expectedConvertedIssueViz);
+            result.IsSuppressed.Should().Be(isIssueSuppressed);
+        }
+
+        [TestMethod]
+        public void Convert_FromTaintIssue_IssueVizIsNotSuppressed()
+        {
+            var taintIssue = CreateTaintServerIssue(
+                    mainLocation: CreateTaintServerLocation(
+                        textRange: CreateTaintTextRange(1, 2, 3, 4, null)));
+
+            var expectedConvertedIssueViz = CreateIssueViz();
+
+            var issueVizConverter = new Mock<IAnalysisIssueVisualizationConverter>();
+            issueVizConverter
+                .Setup(x => x.Convert(It.IsAny<IAnalysisIssueBase>(), null))
+                .Returns(expectedConvertedIssueViz);
+
+            var testSubject = CreateTestSubject(issueVizConverter.Object);
+            var result = testSubject.Convert(taintIssue);
+
+            result.Should().Be(expectedConvertedIssueViz);
+            result.IsSuppressed.Should().BeFalse();
+        }
+
         private static TaintIssueToIssueVisualizationConverter CreateTestSubject(IAnalysisIssueVisualizationConverter issueVizConverter = null, IAbsoluteFilePathLocator absoluteFilePathLocator = null)
         {
             issueVizConverter ??= Mock.Of<IAnalysisIssueVisualizationConverter>();
@@ -298,8 +340,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
         private static SonarQubeIssue CreateServerIssue(string issueKey = "issue key", string filePath = "test.cpp", string hash = "hash", string message = "message", string rule = "rule",
             SonarQubeIssueSeverity severity = SonarQubeIssueSeverity.Info, IssueTextRange textRange = null,
-            DateTimeOffset created = default, DateTimeOffset lastUpdate = default, params IssueFlow[] flows) => 
-            new(issueKey, filePath, hash, message, null, rule, true, severity, created, lastUpdate, textRange, flows.ToList());
+            DateTimeOffset created = default, DateTimeOffset lastUpdate = default, bool resolved = true, params IssueFlow[] flows) => 
+            new(issueKey, filePath, hash, message, null, rule, resolved, severity, created, lastUpdate, textRange, flows.ToList());
 
         private static IssueLocation CreateServerLocation(string filePath = "test.cpp", string message = "message",
             IssueTextRange textRange = null) => new(filePath, null, textRange, message);
@@ -316,6 +358,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             issueViz.Setup(x => x.Flows).Returns(new[] { flowViz.Object });
             issueViz.SetupGet(x => x.Location.FilePath).Returns(serverFilePath);
             issueViz.SetupProperty(x => x.CurrentFilePath);
+            issueViz.SetupProperty(x => x.IsSuppressed);
 
             return issueViz.Object;
         }
@@ -341,7 +384,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                     textRange: CreateTaintTextRange(1, 2, 3, 4, "hash")));
         }
 
-        private static ITaintIssue CreateTaintServerIssue(string issueKey, string ruleKey, DateTimeOffset creationDate, SonarQubeIssueSeverity severity, ILocation mainLocation, params IFlow[] flows)
+        private static ITaintIssue CreateTaintServerIssue(string issueKey = "issue1",
+            string ruleKey = "rule1", 
+            DateTimeOffset creationDate = default, 
+            SonarQubeIssueSeverity severity = SonarQubeIssueSeverity.Blocker,
+            ILocation mainLocation = null, 
+            params IFlow[] flows)
         {
             var issue = new Mock<ITaintIssue>();
 
@@ -364,7 +412,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             return flow.Object;
         }
 
-        private static ILocation CreateTaintServerLocation(string serverFilePath, string message, ITextRange textRange)
+        private static ILocation CreateTaintServerLocation(string serverFilePath = "file.cpp", string message = "message", ITextRange textRange = null)
         {
             var location = new Mock<ILocation>();
 

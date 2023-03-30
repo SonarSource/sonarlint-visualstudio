@@ -189,14 +189,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         private void ApplyViewFilter(Predicate<object> filter) =>
             IssuesView.Filter = filter;
 
-        private bool ActiveDocumentFilter(object viewModel)
+        private bool NotSuppressedIssuesInCurrentDocumentFilter(object viewModel)
         {
             if (string.IsNullOrEmpty(activeDocumentFilePath))
             {
                 return false;
             }
 
-            var allFilePaths = ((ITaintIssueViewModel) viewModel).TaintIssueViz.GetAllLocations()
+            var issueViz = ((ITaintIssueViewModel) viewModel).TaintIssueViz;
+
+            if (issueViz.IsSuppressed)
+            {
+                return false;
+            }
+
+            var allFilePaths = issueViz.GetAllLocations()
                 .Select(x => x.CurrentFilePath)
                 .Where(x => !string.IsNullOrEmpty(x));
 
@@ -254,11 +261,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         private void UpdateIssues()
         {
+            foreach (var taintIssueViewModel in unfilteredIssues)
+            {
+                taintIssueViewModel.TaintIssueViz.PropertyChanged -= OnTaintIssuePropertyChanged;
+            }
+
             unfilteredIssues.Clear();
 
             foreach (var issueViz in store.GetAll())
             {
-                unfilteredIssues.Add(new TaintIssueViewModel(issueViz));
+                var taintIssueViewModel = new TaintIssueViewModel(issueViz);
+                unfilteredIssues.Add(taintIssueViewModel);
+
+                taintIssueViewModel.TaintIssueViz.PropertyChanged += OnTaintIssuePropertyChanged;
             }
 
             AnalysisInformation = store.GetAnalysisInformation();
@@ -267,13 +282,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             NotifyPropertyChanged(nameof(AnalysisInformation));
         }
 
+
+        private void OnTaintIssuePropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(IAnalysisIssueVisualization.IsSuppressed))
+            {
+                UpdateCaptionAndListFilter();
+            }
+        }
+
         private void UpdateCaptionAndListFilter()
         {
             RunOnUIThread.Run(() =>
             {
                 // WPF is not automatically re-applying the filter when the underlying list
                 // of issues changes, so we're manually applying the filtering every time.
-                ApplyViewFilter(ActiveDocumentFilter);
+                ApplyViewFilter(NotSuppressedIssuesInCurrentDocumentFilter);
 
                 // We'll show the default caption if:
                 // * there are no underlying issues, or

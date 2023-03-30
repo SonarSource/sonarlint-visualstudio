@@ -21,6 +21,7 @@
 using System;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Suppressions;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
@@ -39,10 +40,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         }
 
         [TestMethod]
-        public void Ctor_NullProvider_Throws()
+        public void MefCtor_CheckIsExported()
         {
-            Action act = () => new SuppressedIssueMatcher(null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverIssuesStore");
+            MefTestHelpers.CheckTypeCanBeImported<SuppressedIssueMatcher, ISuppressedIssueMatcher>(
+                MefTestHelpers.CreateExport<IServerIssuesStore>());
         }
 
         [TestMethod]
