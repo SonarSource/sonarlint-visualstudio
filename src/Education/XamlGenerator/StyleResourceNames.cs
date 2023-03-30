@@ -32,6 +32,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
     {
         Pre_Section,                // html <pre>
         Blockquote_Section,         // html <blockquote>, rendered in a XAML <Section>
+        Bordered_Section,           // Section with border
         Heading1_Paragraph,         // html <h1>, rendered in a XAML <Paragraph>
         Heading2_Paragraph,         // html <h2>, rendered in a XAML <Paragraph>
         Heading3_Paragraph,         // html <h3>, rendered in a XAML <Paragraph>
