@@ -261,17 +261,34 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         private void UpdateIssues()
         {
+            foreach (var taintIssueViewModel in unfilteredIssues)
+            {
+                taintIssueViewModel.TaintIssueViz.PropertyChanged -= OnTaintIssuePropertyChanged;
+            }
+
             unfilteredIssues.Clear();
 
             foreach (var issueViz in store.GetAll())
             {
-                unfilteredIssues.Add(new TaintIssueViewModel(issueViz));
+                var taintIssueViewModel = new TaintIssueViewModel(issueViz);
+                unfilteredIssues.Add(taintIssueViewModel);
+
+                taintIssueViewModel.TaintIssueViz.PropertyChanged += OnTaintIssuePropertyChanged;
             }
 
             AnalysisInformation = store.GetAnalysisInformation();
 
             NotifyPropertyChanged(nameof(HasServerIssues));
             NotifyPropertyChanged(nameof(AnalysisInformation));
+        }
+
+
+        private void OnTaintIssuePropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(IAnalysisIssueVisualization.IsSuppressed))
+            {
+                UpdateCaptionAndListFilter();
+            }
         }
 
         private void UpdateCaptionAndListFilter()
