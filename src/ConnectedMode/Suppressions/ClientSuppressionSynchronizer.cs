@@ -33,15 +33,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
     internal class ClientSuppressionSynchronizer : IClientSuppressionSynchronizer
     {
         private readonly IIssueLocationStoreAggregator issuesStore;
-        private readonly IIssuesFilter issueFilter;
-        
+        private readonly ISuppressedIssueMatcher suppressedIssueMatcher;
+
         public event EventHandler<LocalSuppressionsChangedEventArgs> LocalSuppressionsChanged;
 
         [ImportingConstructor]
-        public ClientSuppressionSynchronizer(IIssueLocationStoreAggregator clientSideIssueStore, IIssuesFilter issueFilter)
+        public ClientSuppressionSynchronizer(IIssueLocationStoreAggregator issuesStore, ISuppressedIssueMatcher suppressedIssueMatcher)
         {
-            this.issuesStore = clientSideIssueStore;
-            this.issueFilter = issueFilter;
+            this.issuesStore = issuesStore;
+            this.suppressedIssueMatcher = suppressedIssueMatcher;
         }
 
         public void SynchronizeSuppressedIssues()
@@ -50,7 +50,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
             var filterableIssues = issuesStore.GetIssues().OfType<IFilterableIssue>().ToArray();
 
-            var matches = issueFilter.GetMatches(filterableIssues);
+            var matches = filterableIssues
+                .Where(i => suppressedIssueMatcher.SuppressionExists(i))
+                .ToArray();
 
             Debug.Assert(matches.All(x => x is IAnalysisIssueVisualization), "Not expecting the issue filter to change the list item type");
 

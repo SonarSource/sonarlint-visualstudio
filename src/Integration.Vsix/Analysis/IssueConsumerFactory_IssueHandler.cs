@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             private readonly ITextDocument textDocument;
             private readonly string projectName;
             private readonly Guid projectGuid;
-            private readonly IIssuesFilter issuesFilter;
+            private readonly ISuppressedIssueMatcher suppressedIssueMatcher;
             private readonly SnapshotChangedHandler onSnapshotChanged;
 
             private readonly TranslateSpans translateSpans;
@@ -50,23 +50,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             public IssueHandler(ITextDocument textDocument,
                 string projectName,
                 Guid projectGuid,
-                IIssuesFilter issuesFilter,
+                ISuppressedIssueMatcher suppressedIssueMatcher,
                 SnapshotChangedHandler onSnapshotChanged)
-                : this (textDocument, projectName, projectGuid, issuesFilter, onSnapshotChanged, DoTranslateSpans)
+                : this (textDocument, projectName, projectGuid, suppressedIssueMatcher, onSnapshotChanged, DoTranslateSpans)
             {
             }
 
             internal /* for testing */ IssueHandler(ITextDocument textDocument,
                 string projectName,
                 Guid projectGuid,
-                IIssuesFilter issuesFilter,
+                ISuppressedIssueMatcher suppressedIssueMatcher,
                 SnapshotChangedHandler onSnapshotChanged,
                 TranslateSpans translateSpans)
             {
                 this.textDocument = textDocument;
                 this.projectName = projectName;
                 this.projectGuid = projectGuid;
-                this.issuesFilter = issuesFilter;
+                this.suppressedIssueMatcher = suppressedIssueMatcher;
                 this.onSnapshotChanged = onSnapshotChanged;
 
                 this.translateSpans = translateSpans;
@@ -89,7 +89,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             {
                 var filterableIssues = issues.OfType<IFilterableIssue>().ToArray();
 
-                var matches = issuesFilter.GetMatches(filterableIssues);
+                var matches = filterableIssues
+                    .Where(i => suppressedIssueMatcher.SuppressionExists(i))
+                    .ToArray();
+
                 Debug.Assert(matches.All(x => x is IAnalysisIssueVisualization), "Not expecting the issue filter to change the list item type");
                 
                 foreach (var issue in issues)
