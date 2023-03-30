@@ -20,12 +20,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
-using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
@@ -87,17 +84,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
             private void MarkSuppressedIssues(IEnumerable<IAnalysisIssueVisualization> issues)
             {
-                var filterableIssues = issues.OfType<IFilterableIssue>().ToArray();
-
-                var matches = filterableIssues
-                    .Where(i => suppressedIssueMatcher.SuppressionExists(i))
-                    .ToArray();
-
-                Debug.Assert(matches.All(x => x is IAnalysisIssueVisualization), "Not expecting the issue filter to change the list item type");
-                
                 foreach (var issue in issues)
                 {
-                    issue.IsSuppressed = matches.Contains(issue);
+                    issue.IsSuppressed = suppressedIssueMatcher.SuppressionExists(issue);
                 }
             }
 
