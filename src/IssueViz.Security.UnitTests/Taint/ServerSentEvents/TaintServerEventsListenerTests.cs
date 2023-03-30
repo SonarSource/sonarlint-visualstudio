@@ -228,6 +228,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Ser
             taintStore.VerifyNoOtherCalls();
         }
 
+        [TestMethod]
+        [Description("Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/3946")]
+        public void Dispose_CalledASecondTime_NoException()
+        {
+            var testSubject = CreateTestSubject();
+
+            testSubject.Dispose();
+
+            Action act = () => testSubject.Dispose();
+            act.Should().NotThrow();
+        }
+
         private static ITaintVulnerabilityClosedServerEvent CreateTaintClosedServerEvent(string taintKey)
         {
             var serverEvent = new Mock<ITaintVulnerabilityClosedServerEvent>();
