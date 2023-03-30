@@ -35,7 +35,7 @@ namespace SonarQube.Client.Tests
         {
             await ConnectToSonarQube();
 
-            SetupRequest("api/rules/search?qprofile=qpKey&rule_key=csharpsquid%3AS2342&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples%2Ctags%2Cname%2ChtmlNote&p=1&ps=500", @"
+            SetupRequest("api/rules/search?qprofile=qpKey&rule_key=csharpsquid%3AS2342&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2Ctags%2Cname%2ChtmlNote&p=1&ps=500", @"
 {
   ""total"": 1,
   ""p"": 1,
@@ -165,7 +165,7 @@ namespace SonarQube.Client.Tests
         {
             await ConnectToSonarQube();
 
-            SetupRequest("api/rules/search?qprofile=qpKey&rule_key=csharpsquid%3AS2342XX&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2CdescriptionSections%2CeducationPrinciples%2Ctags%2Cname%2ChtmlNote&p=1&ps=500", @"{
+            SetupRequest("api/rules/search?qprofile=qpKey&rule_key=csharpsquid%3AS2342XX&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2Ctags%2Cname%2ChtmlNote&p=1&ps=500", @"{
     ""total"": 0,
     ""p"": 1,
     ""ps"": 100,
