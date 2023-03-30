@@ -31,10 +31,8 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Visual
     [TestClass]
     public class TabGroupTests
     {
-        [DataTestMethod]
-        [DataRow(false)]
-        [DataRow(true)]
-        public void CreateVisualization_GeneratesCorrectStructure(bool isScrollable)
+        [TestMethod]
+        public void CreateVisualization_GeneratesCorrectStructure()
         {
             var sb = new StringBuilder();
             var xmlWriter = new XamlWriterFactory().Create(sb);
@@ -61,7 +59,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Visual
             testSubject.ProduceXaml(xmlWriter);
             xmlWriter.Close();
 
-            sb.ToString().Should().BeEquivalentTo("<BlockUIContainer>\r\n  <TabControl><TabItem>Tab 0 placeholder</TabItem><TabItem>Tab 1 placeholder</TabItem><TabItem>Tab 2 placeholder</TabItem></TabControl>\r\n</BlockUIContainer>");
+            sb.ToString().Should().BeEquivalentTo("<BlockUIContainer>\r\n  <TabControl TabStripPlacement=\"Top\"><TabItem>Tab 0 placeholder</TabItem><TabItem>Tab 1 placeholder</TabItem><TabItem>Tab 2 placeholder</TabItem></TabControl>\r\n</BlockUIContainer>");
             foreach (var tabItem in tabItems)
             {
                 tabItem.Verify(x => x.ProduceXaml(xmlWriter), Times.Once);
