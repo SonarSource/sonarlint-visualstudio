@@ -56,7 +56,7 @@ public class SSESessionManagerTests
             tracker => tracker.SolutionBindingChanged +=
                 It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>(), Times.Once);
     }
-/*
+
     [TestMethod]
     public void Ctor_ForceConnectsAfterSubscriptionToBindingChangedEvent()
     {
@@ -75,7 +75,7 @@ public class SSESessionManagerTests
 
         testScope.ActiveSolutionBoundTrackerMock.VerifyAdd(tracker => tracker.SolutionBindingChanged += It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>(), Times.Once);
         testScope.SSESessionFactoryMock.Verify(factory => factory.Create(DefaultProjectKey, It.IsAny<OnSessionFailedAsync>()), Times.Once);
-    }*/
+    }
 
     [TestMethod]
     public void Ctor_WhenInConnectedModeOnCreation_CreatesSession()
@@ -151,19 +151,17 @@ public class SSESessionManagerTests
     }
 
     [DataTestMethod]
-    public void OnSessionFailed_CancelsSessionAndStartsNewOne()
+    public async Task OnSessionFailed_CancelsSessionAndStartsNewOne()
     {
-        var testScope = new TestScope();
+        var testScope = new TestScope(TestScope.CreateConnectedModeBindingConfiguration(DefaultProjectKey));
+
+        var sessionMock1 = testScope.SetUpSSEFactoryToReturnNoOpSSESession(DefaultProjectKey);
+        sessionMock1.Setup(session => session.Dispose());
         var _ = testScope.CreateTestSubject();
 
-        OnSessionFailedAsync callback = null;
-        var sessionMock1 = testScope.SetUpSSEFactoryToReturnNoOpSSESession(DefaultProjectKey, callback);
-        sessionMock1.Setup(session => session.Dispose());
-        testScope.RaiseInConnectedModeEvent(DefaultProjectKey);
+        var sessionMock2 = testScope.SetUpSSEFactoryToReturnNoOpSSESession(DefaultProjectKey);
 
-        callback?.Invoke(sessionMock1.Object);
-
-        var sessionMock2 = testScope.SetUpSSEFactoryToReturnNoOpSSESession(DefaultProjectKey, callback);
+        await testScope.CapturedSessionFailedCallback(sessionMock1.Object);
 
         sessionMock1.Verify(session => session.Dispose(), Times.Once);
         testScope.SSESessionFactoryMock.Verify(factory => factory.Create(DefaultProjectKey, It.IsAny<OnSessionFailedAsync>()), Times.Exactly(2));
@@ -232,14 +230,15 @@ public class SSESessionManagerTests
             ActiveSolutionBoundTrackerMock = mockRepository.Create<IActiveSolutionBoundTracker>();
             SSESessionFactoryMock = mockRepository.Create<ISSESessionFactory>();
 
+            // This is not in a sequence so we can call it multiple times
             ActiveSolutionBoundTrackerMock
-                .InSequence(callOrder)
                 .SetupGet(tracker => tracker.CurrentConfiguration)
                 .Returns(initialBindingState ?? BindingConfiguration.Standalone);
         }
 
         public Mock<IActiveSolutionBoundTracker> ActiveSolutionBoundTrackerMock { get; }
         public Mock<ISSESessionFactory> SSESessionFactoryMock { get; }
+        public OnSessionFailedAsync CapturedSessionFailedCallback { get; private set; }
 
         public SSESessionManager CreateTestSubject()
         {
@@ -269,18 +268,17 @@ public class SSESessionManagerTests
             currentSession?.InSequence(callOrder).Setup(session => session.Dispose());
         }
 
-        public Mock<ISSESession> SetUpSSEFactoryToReturnNoOpSSESession(string projectKey, OnSessionFailedAsync onSessionFailedCallBack = null, Action factoryMockCallback = null)
+        public Mock<ISSESession> SetUpSSEFactoryToReturnNoOpSSESession(string projectKey, Action factoryMockCallback = null)
         {
             var sseSessionMock = mockRepository.Create<ISSESession>();
-           /*SSESessionFactoryMock.InSequence(callOrder)
-                .Setup(sessionFactory => sessionFactory.Create(projectKey, It.IsAny<OnSessionFailedAsync>()))
-                .Returns(sseSessionMock.Object)
-                .Callback(() => factoryMockCallback?.Invoke());*/
 
             SSESessionFactoryMock.InSequence(callOrder)
-               .Setup(sessionFactory => sessionFactory.Create(projectKey, It.IsAny<OnSessionFailedAsync>()))
-               .Returns(sseSessionMock.Object)
-               .Callback((OnSessionFailedAsync callbackAction) => onSessionFailedCallBack = callbackAction);
+                 .Setup(sessionFactory => sessionFactory.Create(projectKey, It.IsAny<OnSessionFailedAsync>()))
+                 .Returns(sseSessionMock.Object)
+                 .Callback((string projectKey,OnSessionFailedAsync callbackAction) => {
+                     CapturedSessionFailedCallback = callbackAction;
+                     factoryMockCallback?.Invoke();
+                     });
 
             sseSessionMock
                 .InSequence(callOrder)
