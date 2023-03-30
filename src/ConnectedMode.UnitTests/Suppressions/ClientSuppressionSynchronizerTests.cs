@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         {
             MefTestHelpers.CheckTypeCanBeImported<ClientSuppressionSynchronizer, IClientSuppressionSynchronizer>(
                 MefTestHelpers.CreateExport<IIssueLocationStoreAggregator>(),
-                MefTestHelpers.CreateExport<IIssuesFilter>());
+                MefTestHelpers.CreateExport<ISuppressedIssueMatcher>());
         }
 
         [TestMethod]
@@ -46,11 +46,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             var localIssues = new[] { issue };
             var clientIssueStore = CreateIssueStore(localIssues);
-
-            var matches = new[] { issue };
-            var issueFilter = CreateIssuesFilter(localIssues, matches);
-
-            var testSubject = new ClientSuppressionSynchronizer(clientIssueStore, issueFilter);
+            var suppressedIssueMatcher = CreateSuppressedIssueMatcher(issue);
+            
+            var testSubject = new ClientSuppressionSynchronizer(clientIssueStore, suppressedIssueMatcher);
 
             issue.IsSuppressed.Should().BeFalse();
 
@@ -65,10 +63,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var issue = CreateIssue(isSuppressedLocally: true);
 
             var localIssues = new[] { issue };
-            var clientIssueStore = CreateIssueStore(localIssues);
-            var issueFilter = CreateIssuesFilter(localIssues, new List<IAnalysisIssueVisualization>());
+            var issueStore = CreateIssueStore(localIssues);
+            var suppressedIssueMatcher = CreateSuppressedIssueMatcher();
 
-            var testSubject = new ClientSuppressionSynchronizer(clientIssueStore, issueFilter);
+            var testSubject = new ClientSuppressionSynchronizer(issueStore, suppressedIssueMatcher);
 
             issue.IsSuppressed.Should().BeTrue();
 
@@ -85,11 +83,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var issue3 = CreateIssue(isSuppressedLocally: false);
 
             var localIssues = new[] { issue1, issue2, issue3 };
-            var clientIssueStore = CreateIssueStore(localIssues);
-            var matches = new[] { issue1 };
-            var issueFilter = CreateIssuesFilter(localIssues, matches);
+            var issueStore = CreateIssueStore(localIssues);
+            var suppressedIssueMatcher = CreateSuppressedIssueMatcher(issue1);
 
-            var testSubject = new ClientSuppressionSynchronizer(clientIssueStore, issueFilter);
+            var testSubject = new ClientSuppressionSynchronizer(issueStore, suppressedIssueMatcher);
 
             issue1.IsSuppressed.Should().BeFalse();
             issue2.IsSuppressed.Should().BeTrue();
@@ -119,9 +116,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             {
                 matches.Add(localIssue);
             }
-            var issueFilter = CreateIssuesFilter(localIssues, matches);
+            var suppressedIssueMatcher = CreateSuppressedIssueMatcher(matches.ToArray());
 
-            var testSubject = new ClientSuppressionSynchronizer(clientIssueStore, issueFilter);
+            var testSubject = new ClientSuppressionSynchronizer(clientIssueStore, suppressedIssueMatcher);
 
             var eventMock = new Mock<EventHandler<LocalSuppressionsChangedEventArgs>>();
             testSubject.LocalSuppressionsChanged += eventMock.Object;
@@ -158,9 +155,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
                 suppressedLocally_SuppressedOnServer,
                 notSuppressedLocally_SuppressedOnServer
             };
-            var issueFilter = CreateIssuesFilter(localIssues, matches);
+            var suppressedIssueMatcher = CreateSuppressedIssueMatcher(matches.ToArray());
 
-            var testSubject = new ClientSuppressionSynchronizer(clientIssueStore, issueFilter);
+            var testSubject = new ClientSuppressionSynchronizer(clientIssueStore, suppressedIssueMatcher);
 
             var eventMock = new Mock<EventHandler<LocalSuppressionsChangedEventArgs>>();
             testSubject.LocalSuppressionsChanged += eventMock.Object;
@@ -180,19 +177,23 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
         private static IIssueLocationStoreAggregator CreateIssueStore(IEnumerable<IAnalysisIssueVisualization> localIssues)
         {
-            var clientIssueStore = new Mock<IIssueLocationStoreAggregator>();
+            var issuesStore = new Mock<IIssueLocationStoreAggregator>();
 
-            clientIssueStore.Setup(x => x.GetIssues()).Returns(localIssues);
+            issuesStore.Setup(x => x.GetIssues()).Returns(localIssues);
 
-            return clientIssueStore.Object;
+            return issuesStore.Object;
         }
 
-        private static IIssuesFilter CreateIssuesFilter(IEnumerable<IAnalysisIssueVisualization> expectedLocalIssues, IEnumerable<IFilterableIssue> matches = null)
+        private static ISuppressedIssueMatcher CreateSuppressedIssueMatcher(params IFilterableIssue[] matches)
         {
-            var issueFilter = new Mock<IIssuesFilter>();
-            issueFilter.Setup(x => x.GetMatches(expectedLocalIssues)).Returns(matches);
+            var suppressedIssuesMatcher = new Mock<ISuppressedIssueMatcher>();
 
-            return issueFilter.Object;
+            foreach (var match in matches)
+            {
+                suppressedIssuesMatcher.Setup(x => x.SuppressionExists(match)).Returns(true);
+            }
+
+            return suppressedIssuesMatcher.Object;
         }
 
         private static IAnalysisIssueVisualization CreateIssue(bool isSuppressedLocally, string filePath = "any")

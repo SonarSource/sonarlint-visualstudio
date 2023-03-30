@@ -17,7 +17,6 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-using System.Diagnostics;
 using System.ComponentModel.Composition;
 using System.Linq;
 using SonarLint.VisualStudio.Core.Suppressions;
@@ -33,15 +32,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
     internal class ClientSuppressionSynchronizer : IClientSuppressionSynchronizer
     {
         private readonly IIssueLocationStoreAggregator issuesStore;
-        private readonly IIssuesFilter issueFilter;
-        
+        private readonly ISuppressedIssueMatcher suppressedIssueMatcher;
+
         public event EventHandler<LocalSuppressionsChangedEventArgs> LocalSuppressionsChanged;
 
         [ImportingConstructor]
-        public ClientSuppressionSynchronizer(IIssueLocationStoreAggregator clientSideIssueStore, IIssuesFilter issueFilter)
+        public ClientSuppressionSynchronizer(IIssueLocationStoreAggregator issuesStore, ISuppressedIssueMatcher suppressedIssueMatcher)
         {
-            this.issuesStore = clientSideIssueStore;
-            this.issueFilter = issueFilter;
+            this.issuesStore = issuesStore;
+            this.suppressedIssueMatcher = suppressedIssueMatcher;
         }
 
         public void SynchronizeSuppressedIssues()
@@ -50,16 +49,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
             var filterableIssues = issuesStore.GetIssues().OfType<IFilterableIssue>().ToArray();
 
-            var matches = issueFilter.GetMatches(filterableIssues);
-
-            Debug.Assert(matches.All(x => x is IAnalysisIssueVisualization), "Not expecting the issue filter to change the list item type");
-
             foreach (var issue in filterableIssues)
             {
                 var issueViz = issue as IAnalysisIssueVisualization;
 
                 // If the object was matched then it is suppressed on the server
-                var newIsSuppressedValue = matches.Contains(issueViz);
+                var newIsSuppressedValue = suppressedIssueMatcher.SuppressionExists(issueViz);
 
                 if (issueViz.IsSuppressed != newIsSuppressedValue)
                 {
