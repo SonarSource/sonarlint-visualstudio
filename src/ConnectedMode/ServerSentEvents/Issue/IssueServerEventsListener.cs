@@ -103,10 +103,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
             }
         }
 
+        private bool disposed;
+
         public void Dispose()
         {
+            if (disposed)
+            {
+                return;
+            }
+
             cancellationTokenSource.Cancel();
-            cancellationTokenSource?.Dispose();
+            cancellationTokenSource.Dispose();
+            disposed = true;
         }
     }
 }

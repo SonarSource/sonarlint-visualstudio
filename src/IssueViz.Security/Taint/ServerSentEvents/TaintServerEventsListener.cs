@@ -119,10 +119,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEve
             }
         }
 
+        private bool disposed;
+
         public void Dispose()
         {
+            if (disposed)
+            {
+                return;
+            }
+
             cancellationTokenSource.Cancel();
-            cancellationTokenSource?.Dispose();
+            cancellationTokenSource.Dispose();
+            disposed = true;
         }
     }
 }
