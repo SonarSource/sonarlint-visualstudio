@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
                     if (educationPrincipleXamlContent != null)
                     {
 
-                        sections.Add(new ContentSection(educationPrincipleXamlContent));
+                        sections.Add(new BorderedSection(new ContentSection(educationPrincipleXamlContent)));
                     }
                 }
             }

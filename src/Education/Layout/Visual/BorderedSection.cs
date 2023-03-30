@@ -18,34 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.Xml;
+using SonarLint.VisualStudio.Education.XamlGenerator;
 
-namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
+namespace SonarLint.VisualStudio.Education.Layout.Visual
 {
-    /// <summary>
-    /// Represents tab grouping that renders the necessary tab buttons and sets the default active tab
-    /// </summary>
-    internal class TabGroup : IAbstractVisualizationTreeNode
+    internal class BorderedSection : IAbstractVisualizationTreeNode
     {
-        internal /* for testing */ readonly List<ITabItem> tabs;
+        internal /* for testing */ readonly IAbstractVisualizationTreeNode content;
 
-        public TabGroup(List<ITabItem> tabs)
+        public BorderedSection(IAbstractVisualizationTreeNode content)
         {
-            this.tabs = tabs;
+            this.content = content;
         }
-
         public void ProduceXaml(XmlWriter writer)
         {
-            writer.WriteStartElement("BlockUIContainer");
-            writer.WriteStartElement("TabControl");
-            writer.WriteAttributeString("TabStripPlacement", "Top");
-            foreach (var tab in tabs)
-            {
-                tab.ProduceXaml(writer);
-            }
-            writer.WriteFullEndElement();
-            writer.WriteFullEndElement();
+            writer.WriteStartElement("Section");
+            writer.ApplyStyleToElement(StyleResourceNames.Bordered_Section);
+            content.ProduceXaml(writer);
+            writer.WriteEndElement();
         }
     }
 }

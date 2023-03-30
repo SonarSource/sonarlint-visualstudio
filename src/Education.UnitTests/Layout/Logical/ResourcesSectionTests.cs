@@ -73,9 +73,11 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
             multiBlockSection.blocks.Should().HaveCount(5);
             multiBlockSection.blocks[2].Should().BeOfType<ContentSection>()
                 .Which.xamlContent.Should().Be(staticXamlStorage.EducationPrinciplesHeader);
-            multiBlockSection.blocks[3].Should().BeOfType<ContentSection>()
+            multiBlockSection.blocks[3].Should().BeOfType<BorderedSection>()
+                .Which.content.Should().BeOfType<ContentSection>()
                 .Which.xamlContent.Should().Be(staticXamlStorage.EducationPrinciplesDefenseInDepth);
-            multiBlockSection.blocks[4].Should().BeOfType<ContentSection>()
+            multiBlockSection.blocks[4].Should().BeOfType<BorderedSection>()
+                .Which.content.Should().BeOfType<ContentSection>()
                 .Which.xamlContent.Should().Be(staticXamlStorage.EducationPrinciplesNeverTrustUserInput);
         }
     }

@@ -16,6 +16,100 @@
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Defines the standard set of style used by the document elements -->
+            <Style TargetType="ScrollViewer" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ScrollViewerStyleKey}}" >
+                <Setter Property="Margin" Value="0, 0, 0, 0"/>
+                <Setter Property="Padding" Value="0, 0, 0, 0"/>
+            </Style>
+            <Style TargetType="TabControl">
+                <Setter Property="Margin" Value="0, 0, 0, 0"/>
+                <Setter Property="Padding" Value="0, 0, 0, 0"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TabControl">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <ScrollViewer HorizontalScrollBarVisibility="Auto"  VerticalScrollBarVisibility="Hidden" >
+                                    <TabPanel x:Name="HeaderPanel"
+                                              Panel.ZIndex ="1" 
+                                              KeyboardNavigation.TabIndex="1"
+                                              Grid.Column="0"
+                                              Grid.Row="0"
+                                              Margin="2,2,2,0"
+                                              IsItemsHost="true"/>
+                                </ScrollViewer>
+                                <ContentPresenter x:Name="PART_SelectedContentHost"
+                                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                                  Margin="-10,0,0,0"
+                                                  ContentSource="SelectedContent" 
+                                                  Grid.Row="1"
+                                                  Focusable="True"
+                                                  KeyboardNavigation.TabIndex="3"
+                                                  AutomationProperties.Name="{Binding ElementName=Root, Path=StackTrace}" />
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style TargetType="TabItem">
+                <Setter Property="FontFamily" Value="{DynamicResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUIBackgroundKey}}" />
+                <Setter Property="FontSize" Value="{DynamicResource {x:Static vsshell:VsFonts.Environment122PercentFontSizeKey}}"/>
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUITextKey}}" />
+                <Setter Property="Margin" Value="-2,-2,0,0" />
+                <Setter Property="FocusVisualStyle" Value="{DynamicResource ControlsFocusVisualStyle}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type TabItem}">
+                            <Grid x:Name="templateRoot" SnapsToDevicePixels="true">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                </Grid.RowDefinitions>
+                                <Border x:Name="mainBorder" Background="{TemplateBinding Background}" BorderThickness="0" Margin="0">
+                                </Border>
+                                <ContentPresenter  Grid.Row="0" x:Name="contentPresenter" ContentSource="Header" Focusable="False" HorizontalAlignment="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+                                <!-- the line under the text to indicate that this label is selected -->
+                                <Rectangle
+                            x:Name="_underline"
+                            Grid.Row="1"
+                            Height="3"
+                            Visibility="Collapsed"
+                            Width="{Binding ActualWidth, ElementName=contentPresenter}"
+                            HorizontalAlignment="Center"
+                            Fill="{DynamicResource {x:Static vsTheming:CommonDocumentColors.InnerTabInactiveHoverTextBrushKey}}"/>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Self}}" Value="true"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" TargetName="_underline" Value="Visible" />
+                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsTheming:CommonDocumentColors.InnerTabSelectedTextBrushKey }}" />
+                                </MultiDataTrigger>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsKeyboardFocused, RelativeSource={RelativeSource Self}}" Value="true" />
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsTheming:CommonDocumentColors.InnerTabTextFocusedBrushKey}}" />
+                                </MultiDataTrigger>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="true" />
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsTheming:CommonDocumentColors.InnerTabTextHoverBrushKey }}" />
+                                </MultiDataTrigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+
             <Style TargetType="FlowDocument">
                 <Setter Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"/>
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"/>
@@ -31,6 +125,12 @@
                      debugging are not picked up immediately - you need to recompile to see the difference. -->
                 <Setter Property="TextOptions.TextRenderingMode" Value="ClearType" />
                 <Setter Property="TextOptions.TextFormattingMode" Value="Ideal" />
+            </Style>
+            <Style x:Key="Bordered_Section" TargetType="Section">
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsshell:VsBrushes.PanelBorderKey}}"/>
+                <Setter Property="BorderThickness" Value="2"/>
+                <Setter Property="Padding" Value="5, 0, 5, 0"/>
+                <Setter Property="Margin" Value="0, 5, 0, 5"/>
             </Style>
             <Style x:Key="Pre_Section" TargetType="Section">
                 <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsshell:VsBrushes.PanelBorderKey}}"/>
