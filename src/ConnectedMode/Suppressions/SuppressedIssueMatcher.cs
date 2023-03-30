@@ -19,24 +19,27 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
 using System.Linq;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
-    internal interface ISuppressedIssueMatcher
+    public interface ISuppressedIssueMatcher
     {
         bool SuppressionExists(IFilterableIssue issue);
     }
 
+    [Export(typeof(ISuppressedIssueMatcher))]
     public class SuppressedIssueMatcher : ISuppressedIssueMatcher
     {
         private readonly IServerIssuesStore serverIssuesStore;
 
+        [ImportingConstructor]
         public SuppressedIssueMatcher(IServerIssuesStore serverIssuesStore)
         {
-            this.serverIssuesStore = serverIssuesStore ?? throw new ArgumentNullException(nameof(serverIssuesStore));
+            this.serverIssuesStore = serverIssuesStore;
         }
 
         public bool SuppressionExists(IFilterableIssue issue)
