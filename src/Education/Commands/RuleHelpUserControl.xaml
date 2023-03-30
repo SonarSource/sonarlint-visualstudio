@@ -20,7 +20,7 @@
                 <Setter Property="Margin" Value="0, 0, 0, 0"/>
                 <Setter Property="Padding" Value="0, 0, 0, 0"/>
             </Style>
-            <Style TargetType="TabControl" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTabControlNavigationStyleKey}}">
+            <Style TargetType="TabControl">
                 <Setter Property="Margin" Value="0, 0, 0, 0"/>
                 <Setter Property="Padding" Value="0, 0, 0, 0"/>
                 <Setter Property="Template">
