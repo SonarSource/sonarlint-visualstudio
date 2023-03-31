@@ -6,6 +6,7 @@
              
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:SonarLint.VisualStudio.Education.Controls"
              mc:Ignorable="d" >
     
     <UserControl.Resources>
@@ -238,8 +239,10 @@
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>
-
-    <FlowDocumentScrollViewer x:Name="docViewer" Hyperlink.RequestNavigate="HandleRequestNavigate">
+    <controls:NestingFlowDocumentScrollViewer>
+        <FlowDocument>
+            <BlockUIContainer>
+                <FlowDocumentScrollViewer x:Name="docViewer" Hyperlink.RequestNavigate="HandleRequestNavigate" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden">
         <FlowDocument>
             
             <!-- Design-time only control to check the embedding and rendering of the images.
@@ -299,4 +302,7 @@
             </Paragraph>
         </FlowDocument>
     </FlowDocumentScrollViewer>
+            </BlockUIContainer>
+        </FlowDocument>
+    </controls:NestingFlowDocumentScrollViewer>
 </UserControl>
