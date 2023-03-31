@@ -28,6 +28,9 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
         /// <summary>
         /// Generates the data for a SonarLint.xml file for the specified language
         /// </summary>
-        SonarLintConfiguration Generate(IEnumerable<SonarQubeRule> rules, IDictionary<string, string> sonarProperties, Language language);
+        SonarLintConfiguration Generate(IEnumerable<SonarQubeRule> rules,
+            IDictionary<string, string> sonarProperties,
+            ServerExclusions serverExclusions,
+            Language language);
     }
 }

@@ -39,13 +39,16 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         [TestMethod]
         public void Generate_NullArguments_Throws()
         {
-            Action act = () => new SonarLintConfigGenerator().Generate(null, EmptyProperties, ValidLanguage);
+            Action act = () => new SonarLintConfigGenerator().Generate(null, EmptyProperties, new ServerExclusions(), ValidLanguage);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("rules");
 
-            act = () => new SonarLintConfigGenerator().Generate(EmptyRules, null, ValidLanguage);
+            act = () => new SonarLintConfigGenerator().Generate(EmptyRules, null, new ServerExclusions(), ValidLanguage);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarProperties");
 
-            act = () => new SonarLintConfigGenerator().Generate(EmptyRules, EmptyProperties, null);
+            act = () => new SonarLintConfigGenerator().Generate(EmptyRules, EmptyProperties, null, ValidLanguage);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverExclusions");
+
+            act = () => new SonarLintConfigGenerator().Generate(EmptyRules, EmptyProperties, new ServerExclusions(), null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("language");
         }
 
@@ -55,7 +58,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         [DataRow("vb")] // VB language key is "vbnet"
         public void Generate_UnrecognisedLanguage_Throws(string languageKey)
         {
-            Action act = () => new SonarLintConfigGenerator().Generate(EmptyRules, EmptyProperties, new Language(languageKey, "languageX", ".any", new SonarQubeLanguage(languageKey, "languageX")));
+            Action act = () => new SonarLintConfigGenerator().Generate(EmptyRules, EmptyProperties, new ServerExclusions(), new Language(languageKey, "languageX", ".any", new SonarQubeLanguage(languageKey, "languageX")));
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("language");
         }
 
@@ -65,7 +68,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         public void Generate_NoActiveRulesOrSettings_ValidLanguage_ReturnsValidConfig(string languageKey)
         {
             var testSubject = new SonarLintConfigGenerator();
-            var actual = testSubject.Generate(EmptyRules, EmptyProperties, ToLanguage(languageKey));
+            var actual = testSubject.Generate(EmptyRules, EmptyProperties, new ServerExclusions(), ToLanguage(languageKey));
 
             actual.Should().NotBeNull();
             actual.Rules.Should().BeEmpty();
@@ -90,7 +93,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             var testSubject = new SonarLintConfigGenerator();
 
             // Act
-            var actual = testSubject.Generate(EmptyRules, properties, Language.CSharp);
+            var actual = testSubject.Generate(EmptyRules, properties, new ServerExclusions(), Language.CSharp);
 
             // Assert
             actual.Settings.Should().BeEquivalentTo(new Dictionary<string, string>
@@ -113,7 +116,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             };
 
             // Act
-            var actual = testSubject.Generate(EmptyRules, properties, Language.CSharp);
+            var actual = testSubject.Generate(EmptyRules, properties, new ServerExclusions(), Language.CSharp);
 
             // Assert
             actual.Settings[0].Key.Should().Be("sonar.cs.property1");
@@ -139,7 +142,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             };
 
             // Act
-            var actual = testSubject.Generate(EmptyRules, properties, Language.CSharp);
+            var actual = testSubject.Generate(EmptyRules, properties, new ServerExclusions(), Language.CSharp);
 
             // Assert
             actual.Settings.Should().BeEquivalentTo(new Dictionary<string, string>
@@ -165,7 +168,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             };
 
             // Act
-            var actual = testSubject.Generate(rules, EmptyProperties, ToLanguage(knownLanguageKey));
+            var actual = testSubject.Generate(rules, EmptyProperties, new ServerExclusions(), ToLanguage(knownLanguageKey));
 
             // Assert
             actual.Rules.Select(r => r.Key).Should().BeEquivalentTo(new string[] { "valid1", "valid2", "valid3" });
@@ -185,7 +188,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             };
 
             // Act
-            var actual = testSubject.Generate(rules, EmptyProperties, ToLanguage(languageKey));
+            var actual = testSubject.Generate(rules, EmptyProperties, new ServerExclusions(), ToLanguage(languageKey));
 
             // Assert
             actual.Rules.Should().BeEmpty();
@@ -208,7 +211,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             };
 
             // Act
-            var actual = testSubject.Generate(rules, EmptyProperties, Language.CSharp);
+            var actual = testSubject.Generate(rules, EmptyProperties, new ServerExclusions(), Language.CSharp);
 
             // Assert
             actual.Rules.Count.Should().Be(2);
@@ -236,7 +239,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             };
 
             // Act
-            var actual = testSubject.Generate(rules, EmptyProperties, Language.CSharp);
+            var actual = testSubject.Generate(rules, EmptyProperties, new ServerExclusions(), Language.CSharp);
 
             // Assert
             actual.Rules.Count.Should().Be(3);
@@ -253,6 +256,35 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
 
             actual.Rules[0].Parameters[2].Key.Should().Be("CCC");
             actual.Rules[0].Parameters[2].Value.Should().Be("value 1");
+        }
+
+        [TestMethod]
+        public void Generate_HasExclusions_ExclusionsIncludedInConfig()
+        {
+            var exclusions = new ServerExclusions(
+                exclusions: new[] {"**/path1", "**/*/path2"},
+                globalExclusions: new[] {"**/path3"},
+                inclusions: new[] {"**/path4"});
+
+            var testSubject = new SonarLintConfigGenerator();
+            var actual = testSubject.Generate(EmptyRules, EmptyProperties, exclusions, Language.CSharp);
+
+            actual.Settings.Count.Should().Be(3);
+
+            actual.Settings[0].Should().BeEquivalentTo(new SonarLintKeyValuePair
+            {
+                Key = "sonar.exclusions", Value = "**/path1,**/*/path2"
+            });
+            actual.Settings[1].Should().BeEquivalentTo(new SonarLintKeyValuePair
+            {
+                Key = "sonar.global.exclusions",
+                Value = "**/path3"
+            });
+            actual.Settings[2].Should().BeEquivalentTo(new SonarLintKeyValuePair
+            {
+                Key = "sonar.inclusions",
+                Value = "**/path4"
+            });
         }
 
         [TestMethod]
@@ -278,8 +310,13 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
                 CreateRule("s111", "csharpsquid"),
             };
 
+            var exclusions = new ServerExclusions(
+                exclusions: new[] { "**/path1" },
+                globalExclusions: new[] { "**/path2" },
+                inclusions: new[] { "**/path3" });
+
             // Act
-            var actual = testSubject.Generate(rules, properties, Language.CSharp);
+            var actual = testSubject.Generate(rules, properties, exclusions, Language.CSharp);
             var actualXml = Serializer.ToString(actual);
 
             // Assert
@@ -293,6 +330,18 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
     <Setting>
       <Key>sonar.cs.prop2</Key>
       <Value>value 2</Value>
+    </Setting>
+    <Setting>
+      <Key>sonar.exclusions</Key>
+      <Value>**/path1</Value>
+    </Setting>
+    <Setting>
+      <Key>sonar.global.exclusions</Key>
+      <Value>**/path2</Value>
+    </Setting>
+    <Setting>
+      <Key>sonar.inclusions</Key>
+      <Value>**/path3</Value>
     </Setting>
   </Settings>
   <Rules>
