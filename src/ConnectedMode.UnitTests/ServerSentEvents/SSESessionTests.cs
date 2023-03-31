@@ -194,11 +194,15 @@ public class SSESessionTests
     }
 
     [TestMethod]
-    public void Dispose_InvokesOnSessionFailedAsync()
+    public async Task NonCriticalException_InvokesOnSessionFailedAsync()
     {
         var testScope = new TestScope();
         testScope.SetUpSwitchToBackgroundThread();
-        testScope.TestSubject.Dispose();
+
+        var sseStreamMock = testScope.SetUpSQServiceToSuccessfullyReturnSSEStreamReader();
+        sseStreamMock.Setup(x => x.ReadAsync()).Throws(new NotImplementedException("this is a test"));
+
+        await testScope.TestSubject.PumpAllAsync();
 
         testScope.OnSessionFailedAsyncMock.Invocations.Should().HaveCount(1);
     }

@@ -190,6 +190,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
                     catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                     {
                         logger.LogVerbose($"[SSESession] Failed to handle events: {ex}");
+                        onSessionFailedCallback(this).Forget();
                         Dispose();
                         return;
                     }
@@ -206,8 +207,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
                 {
                     return;
                 }
-
-                onSessionFailedCallback(this).Forget();
 
                 disposed = true;
                 sessionTokenSource.Cancel();
