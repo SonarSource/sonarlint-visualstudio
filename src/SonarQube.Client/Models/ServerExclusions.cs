@@ -39,12 +39,15 @@ namespace SonarQube.Client.Models
             IEnumerable<string> globalExclusions,
             IEnumerable<string> inclusions)
         {
-            Exclusions = AddPathIfNeededPrefix(exclusions) ?? EmptyValues;
-            GlobalExclusions = AddPathIfNeededPrefix(globalExclusions) ?? EmptyValues;
-            Inclusions = AddPathIfNeededPrefix(inclusions) ?? EmptyValues;
+            Exclusions = AddPathPrefixIfNeeded(exclusions) ?? EmptyValues;
+            GlobalExclusions = AddPathPrefixIfNeeded(globalExclusions) ?? EmptyValues;
+            Inclusions = AddPathPrefixIfNeeded(inclusions) ?? EmptyValues;
         }
 
-        private static string[] AddPathIfNeededPrefix(IEnumerable<string> paths) =>
+        /// <summary>
+        /// Similarly to the other SL flavors, we will prefix everything with "**/" it's not already prefixed.
+        /// </summary>
+        private static string[] AddPathPrefixIfNeeded(IEnumerable<string> paths) =>
             paths?.Select(path => path.StartsWith("**/") || path.StartsWith("**\\") ? path : Path.Combine("**", path)).ToArray();
 
         [JsonProperty("sonar.exclusions")]
