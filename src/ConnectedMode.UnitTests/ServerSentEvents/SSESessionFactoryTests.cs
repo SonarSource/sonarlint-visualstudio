@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
         {
             var testSubject = CreateTestSubject();
 
-            var sseSession = testSubject.Create("MyProjectName");
+            var sseSession = testSubject.Create("MyProjectName", null);
 
             sseSession.Should().NotBeNull().And.BeOfType<SSESessionFactory.SSESession>();
         }
@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
             var testSubject = CreateTestSubject();
 
             testSubject.Dispose();
-            Action act = () => testSubject.Create("MyProjectName");
+            Action act = () => testSubject.Create("MyProjectName", null);
 
             act.Should().Throw<ObjectDisposedException>();
         }

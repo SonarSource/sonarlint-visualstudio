@@ -48,7 +48,7 @@ public class SSESessionTests
             .InSequence(testScope.CallOrder)
             .Setup(sqs => sqs.CreateSSEStreamReader(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ISSEStreamReader)null);
-        
+
         Func<Task> act = () => testScope.TestSubject.PumpAllAsync();
 
         act.Should().NotThrow();
@@ -74,7 +74,7 @@ public class SSESessionTests
         testScope.SetUpSSEStreamReaderToReturnEventsSequenceAndExit(sseStreamMock, inputSequence);
 
         await testScope.TestSubject.PumpAllAsync();
-        
+
         CheckEventsSequence<ITaintServerEvent>(testScope.TaintPublisherMock.Invocations);
         CheckEventsSequence<IIssueChangedServerEvent>(testScope.IssuePublisherMock.Invocations);
 
@@ -193,7 +193,28 @@ public class SSESessionTests
         sessionToken.Value.IsCancellationRequested.Should().BeTrue();
     }
 
+    [TestMethod]
+    public async Task NonCriticalException_InvokesOnSessionFailedAsync()
+    {
+        var testScope = new TestScope();
+        testScope.SetUpSwitchToBackgroundThread();
+
+        var sseStreamMock = testScope.SetUpSQServiceToSuccessfullyReturnSSEStreamReader();
+        sseStreamMock.Setup(x => x.ReadAsync()).Throws(new NotImplementedException("this is a test"));
+
+        await testScope.TestSubject.PumpAllAsync();
+
+        testScope.OnSessionFailedAsyncMock.Invocations.Should().HaveCount(1);
+    }
+
     public interface IDummyServerEvent : IServerEvent { }
+
+    private static Mock<OnSessionFailedAsync> GetOnSessionFailedAsyncMock()
+    {
+        var createOp = new Mock<OnSessionFailedAsync>();
+        createOp.Setup(x => x.Invoke(It.IsAny<ISSESession>()));
+        return createOp;
+    }
 
     private class TestScope
     {
@@ -207,6 +228,7 @@ public class SSESessionTests
             IssuePublisherMock = mockRepository.Create<IIssueServerEventSourcePublisher>(MockBehavior.Loose);
             ThreadHandlingMock = mockRepository.Create<IThreadHandling>();
             LoggerMock = new Mock<ILogger>();
+            OnSessionFailedAsyncMock = GetOnSessionFailedAsyncMock();
 
             var factory = new SSESessionFactory(
                 SonarQubeServiceMock.Object,
@@ -215,9 +237,9 @@ public class SSESessionTests
                 ThreadHandlingMock.Object,
                 LoggerMock.Object);
 
-            TestSubject = factory.Create("blalala");
+            TestSubject = factory.Create("blalala", OnSessionFailedAsyncMock.Object);
         }
-
+        
         private Mock<IThreadHandling> ThreadHandlingMock { get; }
         public Mock<ISonarQubeService> SonarQubeServiceMock { get; }
         public Mock<ITaintServerEventSourcePublisher> TaintPublisherMock { get; }
@@ -226,6 +248,7 @@ public class SSESessionTests
         public CancellationToken? CapturedSessionToken { get; private set; }
         public MockSequence CallOrder { get; } = new MockSequence();
         public ISSESession TestSubject { get; }
+        public Mock<OnSessionFailedAsync> OnSessionFailedAsyncMock { get; }
 
         public void SetUpSSEStreamReaderToReturnEventsSequenceAndExit(Mock<ISSEStreamReader> sseStreamMock, IServerEvent[] inputSequence)
         {

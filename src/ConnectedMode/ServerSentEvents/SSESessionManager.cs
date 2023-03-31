@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
@@ -37,6 +38,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class SSESessionManager : ISSESessionManager
     {
+        private const int DelayTimeBetweenRetriesInMilliseconds = 1000;
+
         private readonly object syncRoot = new object();
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ISSESessionFactory sseSessionFactory;
@@ -94,7 +97,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
                 logger.LogVerbose("[SSESessionManager] In connected mode, creating session...");
 
-                currentSession = sseSessionFactory.Create(bindingConfiguration.Project.ProjectKey);
+                currentSession = sseSessionFactory.Create(bindingConfiguration.Project.ProjectKey, OnSessionFailedAsync);
 
                 logger.LogVerbose("[SSESessionManager] Created session: {0}", currentSession.GetHashCode());
 
@@ -104,8 +107,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             }
         }
 
+        private async Task OnSessionFailedAsync(ISSESession failedSession)
+        {
+            logger.LogVerbose("[SSESessionManager] Session failed: " + failedSession.GetHashCode());
+
+            await Task.Delay(DelayTimeBetweenRetriesInMilliseconds);
+            CreateSessionIfInConnectedMode(activeSolutionBoundTracker.CurrentConfiguration);
+
+            logger.LogVerbose("[SSESessionManager] Finished handling session failure");
+        }
+
         private void EndCurrentSession()
         {
+            logger.LogVerbose("[SSESessionManager] Ending current session...");
+
             lock (syncRoot)
             {
                 logger.LogVerbose("[SSESessionManager] Disposing current session: {0}", currentSession?.GetHashCode());
