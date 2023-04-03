@@ -25,11 +25,9 @@ using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Moq;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache;
 using SonarQube.Client;
-using SonarQube.Client.Models;
 using static SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.TestHelper;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
