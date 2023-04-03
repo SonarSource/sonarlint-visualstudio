@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.Education
 
             try
             {
-                var flowDocument = ruleHelpXamlBuilder.Create(ruleInfo);
+                var flowDocument = ruleHelpXamlBuilder.Create(ruleInfo, issueContext);
 
                 ruleHelpToolWindow.UpdateContent(flowDocument);
 
