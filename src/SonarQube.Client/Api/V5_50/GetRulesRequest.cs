@@ -44,8 +44,13 @@ namespace SonarQube.Client.Api.V5_50
         // that the field names here do not always correspond to the actual field names
         // in the response! For example 'internalKey' in the request corresponds to 'key'
         // in the response. The server error message (400) returns all supported fields.
+        // Also Make sure the field is supported in this version of the API.
+        // If not add a new request for API version that supports. e.g. "GetRulesWithDescriptionSectionsRequest"
+        [JsonIgnore]
+        public IList<string> ResponseFieldsList { get; set; } = new List<string> { "repo", "internalKey", "params", "actives", "htmlDesc", "tags", "name", "htmlNote" };
+
         [JsonProperty("f")]
-        public string ResponseFields => "repo,internalKey,params,actives,htmlDesc,tags,name,htmlNote";
+        public string ResponseFields => string.Join(",", ResponseFieldsList);
 
         protected override SonarQubeRule[] ParseResponse(string response)
         {

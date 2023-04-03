@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using SonarQube.Client.Models;
 using SonarQube.Client.Requests;
 
@@ -30,5 +31,7 @@ namespace SonarQube.Client.Api
         string QualityProfileKey { get; set; }
 
         string RuleKey { get; set; }
+
+        IList<string> ResponseFieldsList { get; set; }
     }
 }
