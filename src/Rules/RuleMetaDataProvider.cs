@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
@@ -55,6 +56,8 @@ namespace SonarLint.VisualStudio.Rules
 
             //TODO: this does not seem to support taint.
             var language = Language.GetLanguageFromRepositoryKey(ruleId.RepoKey);
+            Debug.Assert(language != null, $"Unable to determine the language from the repo key. RepoKey: {ruleId.RepoKey}");
+
             ApplicableQualityProfile qualityProfile = null;
 
             if (!(configuration.Mode.IsInAConnectedMode() && configuration.Project.Profiles.TryGetValue(language, out qualityProfile)))

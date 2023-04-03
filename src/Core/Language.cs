@@ -126,11 +126,15 @@ namespace SonarLint.VisualStudio.Core
         private static readonly Dictionary<string, Language> repoKeyToLanguage = new Dictionary<string, Language>()
         {
             { "csharpsquid", CSharp },
+            { "roslyn.sonaranalyzer.security.cs", CSharp },
             { "vbnet", VBNET },
             { "cpp", Cpp },
             { "c", C },
             { "javascript", Js },
+            { "jssecurity", Js },
             { "typescript", Ts },
+            { "tssecurity", Ts },
+            { "secrets", Secrets}
         };
 
         /// <summary>
