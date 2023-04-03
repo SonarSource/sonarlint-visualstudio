@@ -20,10 +20,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Moq;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache;
 using SonarQube.Client;
@@ -104,7 +106,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
             var suppressedIssues = new SuppressedIssue[]
             {
-                CreateIssue("S111", "c:\\wrongFile1.txt")
+                CreateIssue("S111", "wrongFile1.txt")
             };
 
             var cache = CreateSettingsCache("settingsKey", suppressedIssues);
@@ -150,7 +152,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             // Sanity check the diagnostic location is on the expected line
             diag.Location.GetLineSpan().StartLinePosition.Line.Should().Be(0, "Test setup error");
 
-            var issue = CreateIssue("S999", "c:\\issueFile.cs", 1, "hash");
+            var issue = CreateIssue("S999", "issueFile.cs", 1, "hash");
 
             SuppressionChecker.IsMatch(diag, issue, checksumCalculator.Object)
                 .Should().BeFalse();
@@ -181,6 +183,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         // Constants used in for the diagnostic to match against in IsMatch_ReturnsExpectedValue
         // They are defined as constants here so we can use them in the [DataRow]s for the test.
         private const string DiagFileName = "c:\\diag.txt";
+        private const string MatchingServerFileName = "diag.txt";
         private const string DiagRuleId = "S999";
         private const string DiagHash = "diag hash";
 
@@ -189,16 +192,16 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         private const int DiagRoslynLineNumber = 3; // the 0-base line in which the word "text" appears
 
         [TestMethod]
-        [DataRow(DiagFileName, DiagRuleId, DiagRoslynLineNumber, DiagHash, true)]
-        [DataRow("c:\\wrong file name.cs", DiagRuleId, DiagRoslynLineNumber, DiagHash, false)]
-        [DataRow(DiagFileName, "wrong rule id", DiagRoslynLineNumber, DiagHash, false)]
-        [DataRow(DiagFileName, DiagRuleId, 999, "wrong hash", false)] // wrong line, wrong hash -> false
-        [DataRow(DiagFileName, DiagRuleId, DiagRoslynLineNumber, "wrong hash", true)] // right line, wrong hash -> true
-        [DataRow(DiagFileName, DiagRuleId, 888, DiagHash, true)] // wrong line, right hash -> true
+        [DataRow(MatchingServerFileName, DiagRuleId, DiagRoslynLineNumber, DiagHash, true)]
+        [DataRow("wrong file name.cs", DiagRuleId, DiagRoslynLineNumber, DiagHash, false)]
+        [DataRow(MatchingServerFileName, "wrong rule id", DiagRoslynLineNumber, DiagHash, false)]
+        [DataRow(MatchingServerFileName, DiagRuleId, 999, "wrong hash", false)] // wrong line, wrong hash -> false
+        [DataRow(MatchingServerFileName, DiagRuleId, DiagRoslynLineNumber, "wrong hash", true)] // right line, wrong hash -> true
+        [DataRow(MatchingServerFileName, DiagRuleId, 888, DiagHash, true)] // wrong line, right hash -> true
 
         // Special cases
-        [DataRow("C:\\DIAG.TXT", DiagRuleId, DiagRoslynLineNumber, DiagHash, true)] // case-insensitive
-        [DataRow(DiagFileName, "s999", DiagRoslynLineNumber, DiagHash, true)] // case-insensitive
+        [DataRow("DIAG.TXT", DiagRuleId, DiagRoslynLineNumber, DiagHash, true)] // case-insensitive
+        [DataRow(MatchingServerFileName, "s999", DiagRoslynLineNumber, DiagHash, true)] // case-insensitive
         public void IsMatch_ReturnsExpectedValue(string issueFile, string issueRuleId, int issueLine,
             string issueHash, bool expected)
         {
@@ -225,11 +228,11 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         {
             const string text = "000\n111\n222\n";
             var selectedSpan = new TextSpan(roslynStartPosition, length);
-            var syntaxTree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(text, path: "path");
+            var syntaxTree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(text, path: MatchingWellKnownLocalPath);
             var location = Location.Create(syntaxTree, selectedSpan);
             var diagnostic = CreateDiagnostic("id", location);
 
-            var sonarFileLevelIssue = CreateIssue(ruleId: "id", path: "path", hash: "hash", line: null);
+            var sonarFileLevelIssue = CreateIssue(ruleId: "id", path: WellKnownRelativeServerPath, hash: "hash", line: null);
 
             var actual = SuppressionChecker.IsMatch(diagnostic, sonarFileLevelIssue, Mock.Of<IChecksumCalculator>());
 
@@ -241,30 +244,33 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         {
             const string text = "000\n111\n222\n";
             var selectedSpan = new TextSpan(0, 0);
-            var syntaxTree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(text, path: "path");
+            var syntaxTree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(text, path: MatchingWellKnownLocalPath);
             var location = Location.Create(syntaxTree, selectedSpan);
             var diagnostic = CreateDiagnostic("id", location);
 
-            var sonarNonFileLevelIssue = CreateIssue(ruleId: "id", path: "path", hash: "hash", line: 2);
+            var sonarNonFileLevelIssue = CreateIssue(ruleId: "id", path: WellKnownRelativeServerPath, hash: "hash", line: 2);
 
             var actual = SuppressionChecker.IsMatch(diagnostic, sonarNonFileLevelIssue, Mock.Of<IChecksumCalculator>());
 
             actual.Should().BeFalse();
         }
 
+        private const string WellKnownRelativeServerPath = "file.txt";
+        private const string MatchingWellKnownLocalPath = "c:\\" + WellKnownRelativeServerPath;
+
         [TestMethod]
-        [DataRow(@"c:\same.txt", @"c:\same.txt", true)]
-        [DataRow(@"C:\SAME.TXT", @"c:\same.txt", true)]
-        [DataRow(@"differentExt.123", @"differentExt.999", false)]
-        [DataRow(@"partial\file.cs", @"c:aaa\partial\file.cs", true)]
-        [DataRow(@"aaa\partial\file.cs", @"partial\file.cs", false)]
-        public void IsMatch_IsSameFile(string issueFile, string diagFile, bool expected)
+        [DataRow(@"same.txt", @"c:\same.txt", true)]
+        [DataRow(@"SAME.TXT", @"c:\same.txt", true)]
+        [DataRow(@"differentExt.123", @"d:\differentExt.999", false)]
+        [DataRow(@"partial\file.cs", @"c:\aaa\partial\file.cs", true)]
+        [DataRow(@"aaa\partial\file.cs", @"x:\partial\file.cs", false)]
+        public void IsMatch_IsSameFile(string serverIssueFile, string diagFile, bool expected)
         {
             var checksumCalculator = CreateChecksumCalculator("a hash that won't match");
 
             var diag = CreateDiagnostic(DiagRuleId, CreateSourceFileLocation(diagFile, DiagFileText, DiagSelectedText));
 
-            var issue = CreateIssueFromDiagnostic(diag, overrideFilePath: issueFile);
+            var issue = CreateIssueFromDiagnostic(diag, overrideFilePath: serverIssueFile);
 
             SuppressionChecker.IsMatch(diag, issue, checksumCalculator.Object)
                 .Should().Be(expected);
@@ -314,12 +320,25 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             // The issue will match because the line number is the same (so the hash is irrelevant)
             var sonarLine = diagnostic.Location.GetLineSpan().EndLinePosition.Line;
 
-            var issuePath = overrideFilePath ?? diagnostic.Location.SourceTree.FilePath;
-            var issueHash = System.Guid.NewGuid().ToString();
+            var serverIssuePath = overrideFilePath ?? GetMatchingRelativePath(diagnostic.Location.SourceTree.FilePath);
 
-            return CreateIssue(diagnostic.Id, issuePath, sonarLine, issueHash);
+            var issueHash = Guid.NewGuid().ToString();
+
+            return CreateIssue(diagnostic.Id, serverIssuePath, sonarLine, issueHash);
         }
 
+        private static string GetMatchingRelativePath(string absolutePath)
+        {
+            // The matching server should not be rooted, so we'll strip off the
+            // root and return the rest of the path. The product code should be
+            // considered that to be a valid match for the original full path.
+            if (!Path.IsPathRooted(absolutePath))
+            {
+                throw new ArgumentException(nameof(absolutePath), $"Test setup error: path should be rooted. Actual: {absolutePath}");
+            }
+            var root = Path.GetPathRoot(absolutePath);
+            return absolutePath.Substring(root.Length);
+        }
 
         #region Diagnostic helper methods
 
