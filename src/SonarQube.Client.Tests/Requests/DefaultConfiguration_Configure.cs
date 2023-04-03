@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Api;
 using SonarQube.Client.Requests;
 using SonarQube.Client.Tests.Infra;
-using static Google.Protobuf.WellKnownTypes.Field.Types;
 
 namespace SonarQube.Client.Tests.Requests
 {
@@ -68,6 +67,8 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Api.V8_6.GetTaintVulnerabilitiesRequest for 8.6",
                     "Registered SonarQube.Client.Api.V7_20.GetExclusionsRequest for 7.2",
                     "Registered SonarQube.Client.Api.V9_4.GetSonarLintEventStream for 9.4",
+                    "Registered SonarQube.Client.Api.V9_5.GetRulesWithDescriptionSectionsRequest for 9.5",
+                    "Registered SonarQube.Client.Api.V9_6.GetRulesWithEducationPrinciplesRequest for 9.6"
                 };
 
             DefaultConfiguration.ConfigureSonarQube(new RequestFactory(logger));
@@ -90,7 +91,7 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Api.V5_00.GetSourceCodeRequest",
                     "Registered SonarQube.Client.Api.V5_10.GetLanguagesRequest",
                     "Registered SonarQube.Client.Api.V5_40.GetModulesRequest",
-                    "Registered SonarQube.Client.Api.V5_50.GetRulesRequest",
+                    "Registered SonarQube.Client.Api.V9_6.GetRulesWithEducationPrinciplesRequest",
                     "Registered SonarQube.Client.Api.V5_50.DownloadStaticFile",
                     "Registered SonarQube.Client.Api.V6_20.GetProjectsRequest",
                     "Registered SonarQube.Client.Api.V6_30.GetPluginsRequest",
