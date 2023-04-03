@@ -38,11 +38,11 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             this.richRuleHelpXamlBuilder = richRuleHelpXamlBuilder;
         }
 
-        public FlowDocument Create(IRuleInfo ruleInfo)
+        public FlowDocument Create(IRuleInfo ruleInfo, string issueContext)
         {
             return ruleInfo.IsRichRuleDescription()
-                ? richRuleHelpXamlBuilder.Create(ruleInfo)
-                : simpleRuleHelpXamlBuilder.Create(ruleInfo);
+                ? richRuleHelpXamlBuilder.Create(ruleInfo, issueContext)
+                : simpleRuleHelpXamlBuilder.Create(ruleInfo, issueContext);
         }
     }
 }

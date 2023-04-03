@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
             var flowDocument = Mock.Of<FlowDocument>();
             var ruleHelpXamlBuilder = new Mock<IRuleHelpXamlBuilder>();
-            ruleHelpXamlBuilder.Setup(x => x.Create(ruleInfo)).Returns(flowDocument);
+            ruleHelpXamlBuilder.Setup(x => x.Create(ruleInfo, /* todo */ null)).Returns(flowDocument);
 
             var ruleDescriptionToolWindow = new Mock<IRuleHelpToolWindow>();
 
@@ -75,10 +75,10 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             toolWindowService.Invocations.Should().HaveCount(0);
 
             // Act
-            testSubject.ShowRuleHelp(ruleId);
+            testSubject.ShowRuleHelp(ruleId, null);
 
             ruleMetaDataProvider.Verify(x => x.GetRuleInfoAsync(ruleId, CancellationToken.None), Times.Once);
-            ruleHelpXamlBuilder.Verify(x => x.Create(ruleInfo), Times.Once);
+            ruleHelpXamlBuilder.Verify(x => x.Create(ruleInfo, /* todo */ null), Times.Once);
             ruleDescriptionToolWindow.Verify(x => x.UpdateContent(flowDocument), Times.Once);
             toolWindowService.Verify(x => x.Show(RuleHelpToolWindow.ToolWindowId), Times.Once);
 
@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var ruleInfo = Mock.Of<IRuleInfo>();
             ruleMetadataProvider.Setup(x => x.GetRuleInfoAsync(It.IsAny<SonarCompositeRuleId>(), It.IsAny<CancellationToken>())).ReturnsAsync(ruleInfo);
 
-            ruleHelpXamlBuilder.Setup(x => x.Create(ruleInfo)).Throws(new Exception("some layout error"));
+            ruleHelpXamlBuilder.Setup(x => x.Create(ruleInfo, /* todo */ null)).Throws(new Exception("some layout error"));
 
             var testSubject = CreateEducation(
                 toolWindowService.Object,
@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
             toolWindowService.Reset(); // Called in the constructor, so need to reset to clear the list of invocations
 
-            testSubject.ShowRuleHelp(ruleId);
+            testSubject.ShowRuleHelp(ruleId, /* todo */ null);
 
             ruleMetadataProvider.Verify(x => x.GetRuleInfoAsync(ruleId, CancellationToken.None), Times.Once);
             showRuleInBrowser.Verify(x => x.ShowRuleDescription(ruleId), Times.Once);
@@ -137,7 +137,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
             toolWindowService.Reset(); // Called in the constructor, so need to reset to clear the list of invocations
 
-            testSubject.ShowRuleHelp(unknownRule);
+            testSubject.ShowRuleHelp(unknownRule, /* todo */ null);
 
             ruleMetadataProvider.Verify(x => x.GetRuleInfoAsync(unknownRule, CancellationToken.None), Times.Once);
             showRuleInBrowser.Verify(x => x.ShowRuleDescription(unknownRule), Times.Once);
