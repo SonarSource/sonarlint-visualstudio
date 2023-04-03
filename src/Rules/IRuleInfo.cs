@@ -120,13 +120,19 @@ namespace SonarLint.VisualStudio.Rules
         /// </summary>
         string Description { get; }
 
+        /// <summary>
+        /// List of tags. Can be empty. Will not be null.
+        /// </summary>
         IReadOnlyList<string> Tags { get; }
 
         /// <summary>
-        /// Tabs for new educational format
+        /// Tabs for new educational format. Can be empty. Will not be null.
         /// </summary>
         IReadOnlyList<IDescriptionSection> DescriptionSections { get; }
 
+        /// <summary>
+        /// Education principles for the new educational format. Can be empty. Will not be null.
+        /// </summary>
         IReadOnlyList<string> EducationPrinciples { get; }
 
         string HtmlNote { get; }
@@ -148,9 +154,9 @@ namespace SonarLint.VisualStudio.Rules
             IssueType = issueType;
             IsActiveByDefault = isActiveByDefault;
             Tags = tags ?? Array.Empty<string>();
-            DescriptionSections = descriptionSections;
-            EducationPrinciples = educationPrinciples;
-            HtmlNote = htmlNote;
+            DescriptionSections = descriptionSections ?? Array.Empty<IDescriptionSection>();
+            EducationPrinciples = educationPrinciples ?? Array.Empty<string>();
+            HtmlNote = htmlNote ;
         }
 
         public string FullRuleKey { get; private set; }
