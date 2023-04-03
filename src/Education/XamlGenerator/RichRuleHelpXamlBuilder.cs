@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             this.xamlWriterFactory = xamlWriterFactory;
         }
 
-        public FlowDocument Create(IRuleInfo ruleInfo)
+        public FlowDocument Create(IRuleInfo ruleInfo, string issueContext)
         {
             var richRuleDescriptionSections = ruleInfoTranslator.GetRuleDescriptionSections(ruleInfo).ToList();
             var mainTabGroup = new TabGroup(richRuleDescriptionSections

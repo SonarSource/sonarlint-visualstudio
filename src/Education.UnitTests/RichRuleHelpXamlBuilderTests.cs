@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
             var testSubject = new RichRuleHelpXamlBuilder(ruleInfoTranslatorMock.Object, xamlGeneratorHelperFactoryMock.Object, Mock.Of<IStaticXamlStorage>(), xamlWriterFactoryMock.Object);
 
-            var flowDocument = testSubject.Create(ruleInfo);
+            var flowDocument = testSubject.Create(ruleInfo, /* todo */ null);
 
             var blockUiContainer = flowDocument.Blocks.Single().Should().BeOfType<BlockUIContainer>().Subject;
             var tabControl = blockUiContainer.Child.Should().BeOfType<TabControl>().Subject;
