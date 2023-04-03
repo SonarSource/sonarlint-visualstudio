@@ -133,7 +133,8 @@ namespace SonarLint.VisualStudio.Core
             { "javascript", Js },
             { "jssecurity", Js },
             { "typescript", Ts },
-            { "tssecurity", Ts }
+            { "tssecurity", Ts },
+            { "secrets", Secrets}
         };
 
         /// <summary>
