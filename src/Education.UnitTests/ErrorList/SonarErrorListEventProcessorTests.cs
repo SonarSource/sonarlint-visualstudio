@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.ErrorList
 
             errorListHelper.Verify(x => x.TryGetRuleId(handle, out ruleId));
             education.Invocations.Should().HaveCount(1);
-            education.Verify(x => x.ShowRuleHelp(ruleId));
+            education.Verify(x => x.ShowRuleHelp(ruleId, /* todo */ null));
             eventArgs.Handled.Should().BeTrue();
         }
 
