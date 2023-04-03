@@ -69,12 +69,12 @@ namespace SonarLint.VisualStudio.Education
             this.threadHandling = threadHandling;
         }
 
-        public void ShowRuleHelp(SonarCompositeRuleId ruleId)
+        public void ShowRuleHelp(SonarCompositeRuleId ruleId, string issueContext)
         {
-            ShowRuleHelpAsync(ruleId, CancellationToken.None).Forget();
+            ShowRuleHelpAsync(ruleId, issueContext, CancellationToken.None).Forget();
         }
 
-        private async Task ShowRuleHelpAsync(SonarCompositeRuleId ruleId, CancellationToken token)
+        private async Task ShowRuleHelpAsync(SonarCompositeRuleId ruleId, string issueContext, CancellationToken token)
         {
             await threadHandling.SwitchToBackgroundThread();
 
@@ -88,12 +88,12 @@ namespace SonarLint.VisualStudio.Education
                 }
                 else
                 {
-                    ShowRuleInIde(ruleInfo, ruleId);
+                    ShowRuleInIde(ruleInfo, ruleId, issueContext);
                 }
             });
         }
 
-        private void ShowRuleInIde(IRuleInfo ruleInfo, SonarCompositeRuleId ruleId)
+        private void ShowRuleInIde(IRuleInfo ruleInfo, SonarCompositeRuleId ruleId, string issueContext)
         {
             threadHandling.ThrowIfNotOnUIThread();
 
