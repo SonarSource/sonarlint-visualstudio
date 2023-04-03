@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Rules
             }
             if (sqRule == null) return null;
 
-            var descriptionSections = sqRule.DescriptionSections.Select(ds => ds.ToDescriptionSection()).ToList();
+            var descriptionSections = sqRule.DescriptionSections?.Select(ds => ds.ToDescriptionSection()).ToList();
 
             return new RuleInfo(sqRule.RepositoryKey,
                 sqRule.GetCompositeKey(),
