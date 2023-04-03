@@ -70,9 +70,10 @@ namespace SonarLint.VisualStudio.Rules
             {
                 logger.WriteLine(Resources.ServerMetadataProvider_GetRulesError, ruleId.ToString(), ex.Message);
             }
-            if (sqRule == null) return null;
+            
+            if (sqRule == null) { return null; }
 
-            var descriptionSections = sqRule.DescriptionSections.Select(ds => ds.ToDescriptionSection()).ToList();
+            var descriptionSections = sqRule.DescriptionSections?.Select(ds => ds.ToDescriptionSection()).ToList();
 
             return new RuleInfo(sqRule.RepositoryKey,
                 sqRule.GetCompositeKey(),
