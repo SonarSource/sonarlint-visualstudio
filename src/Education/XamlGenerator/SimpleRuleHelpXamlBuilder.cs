@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             ruleHelpXamlTranslator = ruleHelpXamlTranslatorFactory.Create();
         }
 
-        public FlowDocument Create(IRuleInfo ruleInfo)
+        public FlowDocument Create(IRuleInfo ruleInfo, string issueContext)
         {
             var xaml = CreateXamlString(ruleInfo);
             var flowDocument = (FlowDocument)XamlReader.Parse(xaml);
