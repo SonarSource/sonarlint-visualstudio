@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             var actual = testSubject.IsSuppressed(ValidInSourceDiagnostic, "settingsKey1");
 
             actual.Should().Be(false);
-            CheckGetSettingsCalled(cache, "settingsKey1");        
+            CheckGetSettingsCalled(cache, "settingsKey1");
         }
 
         [TestMethod]
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         public void IsSuppressed_HasIssues_NoMatches_ReturnsFalse()
         {
             var diagnostic = CreateDiagnostic("S111", CreateSourceFileLocation("c:\\myfile.cs"));
-            
+
             var suppressedIssues = new SuppressedIssue[]
             {
                 CreateIssue("S111", "c:\\wrongFile1.txt")
@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             var location = CreateSourceFileLocation(DiagFileName, DiagFileText, DiagSelectedText);
             var diagnostic = CreateDiagnostic(DiagRuleId, location);
 
-            var suppressedIssues = new []
+            var suppressedIssues = new[]
             {
                  CreateIssueFromDiagnostic(diagnostic)
             };
@@ -151,7 +151,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             diag.Location.GetLineSpan().StartLinePosition.Line.Should().Be(0, "Test setup error");
 
             var issue = CreateIssue("S999", "c:\\issueFile.cs", 1, "hash");
-            
+
             SuppressionChecker.IsMatch(diag, issue, checksumCalculator.Object)
                 .Should().BeFalse();
 
@@ -376,7 +376,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             diagnostic.Setup(x => x.Id).Returns(ruleId);
             diagnostic.Setup(x => x.Location).Returns(loc);
 
-            return diagnostic.Object;        
+            return diagnostic.Object;
         }
 
         #endregion
