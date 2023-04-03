@@ -21,6 +21,7 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache;
 using SonarQube.Client;
 
@@ -117,8 +118,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
         }
 
         private static bool IsSameFile(Diagnostic diagnostic, SuppressedIssue suppressedIssue) =>
-            diagnostic.Location.SourceTree?.FilePath.EndsWith(suppressedIssue.FilePath, StringComparison.OrdinalIgnoreCase)
-            ?? false;
+            PathHelper.IsServerFileMatch(diagnostic.Location.SourceTree?.FilePath, suppressedIssue.FilePath);
 
         private static bool IsSameLine(FileLinePositionSpan roslynLineSpan, SuppressedIssue suppressedIssue)
         {
