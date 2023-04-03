@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                     var fullRuleKey = (string)parameter;
                     if (SonarCompositeRuleId.TryParse(fullRuleKey, out var ruleId))
                     {
-                        educationService.ShowRuleHelp(ruleId);
+                        educationService.ShowRuleHelp(ruleId, /* todo */ null);
                     }
                 },
                 parameter => parameter is string s &&

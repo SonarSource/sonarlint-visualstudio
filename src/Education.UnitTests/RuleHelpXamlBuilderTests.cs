@@ -51,9 +51,9 @@ public class RuleHelpXamlBuilderTests
         var richRuleHelpXamlBuilderMock = new Mock<IRichRuleHelpXamlBuilder>();
         var testSubject = new RuleHelpXamlBuilder(simpleRuleHelpXamlBuilderMock.Object, richRuleHelpXamlBuilderMock.Object);
 
-        testSubject.Create(ruleInfoMock.Object);
+        testSubject.Create(ruleInfoMock.Object, /* todo */ null);
 
-        simpleRuleHelpXamlBuilderMock.Verify(x => x.Create(ruleInfoMock.Object), isExtendedRule ? Times.Never: Times.Once);
-        richRuleHelpXamlBuilderMock.Verify(x => x.Create(ruleInfoMock.Object), isExtendedRule ? Times.Once: Times.Never);
+        simpleRuleHelpXamlBuilderMock.Verify(x => x.Create(ruleInfoMock.Object, /* todo */ null), isExtendedRule ? Times.Never: Times.Once);
+        richRuleHelpXamlBuilderMock.Verify(x => x.Create(ruleInfoMock.Object, /* todo */ null), isExtendedRule ? Times.Once: Times.Never);
     }
 }
