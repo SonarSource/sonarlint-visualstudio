@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,6 +31,7 @@ namespace SonarQube.Client.Api.V9_6
 {
     public class GetRulesWithEducationPrinciplesRequest : IGetRulesRequest
     {
+        private static readonly IList<string> ResponseFieldsOverride = GetRulesRequest.ResponseList.Concat(new List<string> { "descriptionSections", "educationPrinciples" }).ToList();
         private readonly GetRulesRequest innerRequest = new GetRulesRequest();
 
         public bool? IsActive { get; set; }
@@ -48,8 +50,7 @@ namespace SonarQube.Client.Api.V9_6
             innerRequest.RuleKey = this.RuleKey;
             innerRequest.Logger = this.Logger;
 
-            innerRequest.ResponseFieldsList.Add("descriptionSections");
-            innerRequest.ResponseFieldsList.Add("educationPrinciples");
+            innerRequest.ResponseListField = ResponseFieldsOverride;
 
             return await innerRequest.InvokeAsync(httpClient, token);
         }

@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,6 +31,8 @@ namespace SonarQube.Client.Api.V9_5
 {
     public class GetRulesWithDescriptionSectionsRequest : IGetRulesRequest
     {
+        private static readonly IList<string> ResponseFieldsOverride = GetRulesRequest.ResponseList.Concat(new List<string> { "descriptionSections" }).ToList();
+
         private readonly GetRulesRequest innerRequest = new GetRulesRequest();
 
         public bool? IsActive { get; set; }
@@ -48,7 +51,7 @@ namespace SonarQube.Client.Api.V9_5
             innerRequest.RuleKey = this.RuleKey;
             innerRequest.Logger = this.Logger;
 
-            innerRequest.ResponseFieldsList.Add("descriptionSections");
+            innerRequest.ResponseListField = ResponseFieldsOverride;
 
             return await innerRequest.InvokeAsync(httpClient, token);
         }

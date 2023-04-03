@@ -46,11 +46,14 @@ namespace SonarQube.Client.Api.V5_50
         // in the response. The server error message (400) returns all supported fields.
         // Also Make sure the field is supported in this version of the API.
         // If not add a new request for API version that supports. e.g. "GetRulesWithDescriptionSectionsRequest"
+
+        internal static readonly IList<string> ResponseList = new List<string> { "repo", "internalKey", "params", "actives", "htmlDesc", "tags", "name", "htmlNote" };
+
         [JsonIgnore]
-        public IList<string> ResponseFieldsList { get; set; } = new List<string> { "repo", "internalKey", "params", "actives", "htmlDesc", "tags", "name", "htmlNote" };
+        internal IList<string> ResponseListField { get; set; } = ResponseList;
 
         [JsonProperty("f")]
-        public string ResponseFields => string.Join(",", ResponseFieldsList);
+        public string ResponseFields => string.Join(",", ResponseListField);
 
         protected override SonarQubeRule[] ParseResponse(string response)
         {
