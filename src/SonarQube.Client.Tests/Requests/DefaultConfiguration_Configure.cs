@@ -68,7 +68,8 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Api.V7_20.GetExclusionsRequest for 7.2",
                     "Registered SonarQube.Client.Api.V9_4.GetSonarLintEventStream for 9.4",
                     "Registered SonarQube.Client.Api.V9_5.GetRulesWithDescriptionSectionsRequest for 9.5",
-                    "Registered SonarQube.Client.Api.V9_6.GetRulesWithEducationPrinciplesRequest for 9.6"
+                    "Registered SonarQube.Client.Api.V9_6.GetRulesWithEducationPrinciplesRequest for 9.6",
+                    "Registered SonarQube.Client.Api.V9_6.GetTaintVulnerabilitiesWithContextRequest for 9.6"
                 };
 
             DefaultConfiguration.ConfigureSonarQube(new RequestFactory(logger));
@@ -104,7 +105,7 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Api.V7_00.GetOrganizationsRequest",
                     "Registered SonarQube.Client.Api.V7_20.GetIssuesRequestWrapper",
                     "Registered SonarQube.Client.Api.V8_6.GetHotspotRequest",
-                    "Registered SonarQube.Client.Api.V8_6.GetTaintVulnerabilitiesRequest",
+                    "Registered SonarQube.Client.Api.V9_6.GetTaintVulnerabilitiesWithContextRequest",
                     "Registered SonarQube.Client.Api.V7_20.GetExclusionsRequest",
                 };
 

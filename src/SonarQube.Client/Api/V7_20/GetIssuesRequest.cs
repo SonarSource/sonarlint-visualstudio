@@ -38,16 +38,16 @@ namespace SonarQube.Client.Api.V7_20
         [JsonProperty("statuses")]
         public string Statuses { get; set; }
 
-        [JsonProperty("issues")] 
+        [JsonProperty("issues")]
         public string IssueKeysAsString => IssueKeys == null ? null : string.Join(",", IssueKeys);
 
-        [JsonIgnore] 
+        [JsonIgnore]
         public string[] IssueKeys { get; set; }
 
         // Notes:
         // 1) Branch support is not available in SQ Community edition. SQ will just ignore it.
         // 2) SonarQube has supported the parameter since v6.6. However, the LTS at the point
-        // we added added branch-awareness to SLVS was v8.9.10. To minimise the amount of 
+        // we added added branch-awareness to SLVS was v8.9.10. To minimise the amount of
         // work on the SLVS side, we'll add branch support from SQ v7.2.
         [JsonProperty("branch", DefaultValueHandling = DefaultValueHandling.Ignore), DefaultValue("")]
         public string Branch { get; set; }
@@ -101,7 +101,8 @@ namespace SonarQube.Client.Api.V7_20
                 issue.CreationDate,
                 issue.UpdateDate,
                 ToIssueTextRange(issue.TextRange),
-                ToIssueFlows(issue.Flows));
+                ToIssueFlows(issue.Flows),
+                issue.ContextKey);
 
         private string ComputePath(string component) =>
             FilePathNormalizer.NormalizeSonarQubePath(componentKeyPathLookup[component].FirstOrDefault() ?? string.Empty);
@@ -169,14 +170,19 @@ namespace SonarQube.Client.Api.V7_20
 
             [JsonProperty("flows")]
             public ServerIssueFlow[] Flows { get; set; }
+
+            [JsonProperty("ruleDescriptionContextKey")]
+            public string ContextKey { get; set; }
         }
 
         private sealed class ServerComponent
         {
             [JsonProperty("key")]
             public string Key { get; set; }
+
             [JsonProperty("qualifier")]
             public string Qualifier { get; set; }
+
             [JsonProperty("path")]
             public string Path { get; set; }
 
@@ -196,8 +202,10 @@ namespace SonarQube.Client.Api.V7_20
         {
             [JsonProperty("component")]
             public string Component { get; set; }
+
             [JsonProperty("textRange")]
             public ServerIssueTextRange TextRange { get; set; }
+
             [JsonProperty("msg")]
             public string Message { get; set; }
         }
@@ -206,10 +214,13 @@ namespace SonarQube.Client.Api.V7_20
         {
             [JsonProperty("startLine")]
             public int StartLine { get; set; }
+
             [JsonProperty("endLine")]
             public int EndLine { get; set; }
+
             [JsonProperty("startOffset")]
             public int StartOffset { get; set; }
+
             [JsonProperty("endOffset")]
             public int EndOffset { get; set; }
         }
