@@ -50,7 +50,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
             IHotspotRule rule,
             DateTimeOffset createTimestamp,
             DateTimeOffset lastUpdateTimestamp,
-            IReadOnlyList<IAnalysisIssueFlow> flows)
+            IReadOnlyList<IAnalysisIssueFlow> flows,
+            string context = null)
         {
             HotspotKey = hotspotKey;
             ServerFilePath = serverFilePath;
@@ -59,6 +60,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
             CreationTimestamp = createTimestamp;
             LastUpdateTimestamp = lastUpdateTimestamp;
             Flows = flows ?? EmptyFlows;
+            Context = context;
         }
 
         public string HotspotKey { get; }
@@ -66,8 +68,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
         public IHotspotRule Rule { get; }
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
         public IAnalysisIssueLocation PrimaryLocation { get; }
-        public string ServerFilePath { get;  }
+        public string ServerFilePath { get; }
         public DateTimeOffset CreationTimestamp { get; }
         public DateTimeOffset LastUpdateTimestamp { get; }
+        public string Context { get; }
     }
 }
