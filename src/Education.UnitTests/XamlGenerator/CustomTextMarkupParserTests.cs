@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
     public class CustomTextMarkupParserTests
     {
         [TestMethod]
-        public void ProcessRawText_Mulitline_OneCrossReference_WithSurroundingText_ReturnsResultWithCorrectItems()
+        public void ProcessRawText_Multiline_OneCrossReference_WithSurroundingText_ReturnsResultWithCorrectItems()
         {
             string text = " {rule:javascript:S1656} -" +
                           "\n Implements a check " +

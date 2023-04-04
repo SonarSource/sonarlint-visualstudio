@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using SonarLint.VisualStudio.Core;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -32,9 +33,6 @@ using System.Text.RegularExpressions;
  * 
  *   The cross-references are embedded in the rule description text as follows:
  *      {rule:[repoKey]:[ruleKey]}
- * 
- *   This class parses simple text strings looking for the embedded syntax and
- *   calls the appropriate callback so the caller can render the appropriate output.
  */
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
@@ -61,6 +59,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 Debug.Assert(match.Success, "Expecting match to have succeeded");
                 var matchGroup = match.Groups[0];
 
+                // Each regex match is a an embedded rule cross reference. There might be simple text before the current group and the previous group, so we need to extract that too.
                 var simpleText = text.Substring(endOfLastMatch, matchGroup.Index - endOfLastMatch);
                 AddSimpleText(textTokens, simpleText);
 
@@ -71,6 +70,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 endOfLastMatch = matchGroup.Index + matchGroup.Length;
             }
 
+            // Capture any simple text after the last rule cross reference.
             var endText = text.Substring(endOfLastMatch);
             AddSimpleText(textTokens, endText);
 
@@ -98,6 +98,11 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
         public SimpleText(string text)
         {
+            if (string.IsNullOrEmpty(text))
+            {
+                throw new ArgumentNullException("text");
+            }
+
             Text = text;
         }
     }
@@ -108,6 +113,16 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
         public RuleCrossRef(string repoKey, string ruleKey)
         {
+            if (string.IsNullOrEmpty(repoKey))
+            {
+                throw new ArgumentNullException("repoKey");
+            }
+
+            if (string.IsNullOrEmpty(ruleKey))
+            {
+                throw new ArgumentNullException("repoKey");
+            }
+
             CompositeRuleId = new SonarCompositeRuleId(repoKey, ruleKey);
         }
     }
