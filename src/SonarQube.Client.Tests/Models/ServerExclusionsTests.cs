@@ -124,11 +124,11 @@ namespace SonarQube.Client.Tests.Models
                 inclusions: null);
 
             testSubject.Exclusions.Should().BeEquivalentTo(
-                "**\\path1",
-                "**\\path2",
+                "**/path1",
+                "**/**\\path2",
                 "**/path3",
-                "**\\**path4",
-                "**\\*/*");
+                "**/**path4",
+                "**/*/*");
             testSubject.GlobalExclusions.Should().BeEmpty();
             testSubject.Inclusions.Should().BeEmpty();
         }
@@ -143,11 +143,11 @@ namespace SonarQube.Client.Tests.Models
 
             testSubject.Exclusions.Should().BeEmpty();
             testSubject.GlobalExclusions.Should().BeEquivalentTo(
-                "**\\path1",
-                "**\\path2",
+                "**/path1",
+                "**/**\\path2",
                 "**/path3",
-                "**\\**path4",
-                "**\\*/*");
+                "**/**path4",
+                "**/*/*");
             testSubject.Inclusions.Should().BeEmpty();
         }
 
@@ -162,11 +162,11 @@ namespace SonarQube.Client.Tests.Models
             testSubject.Exclusions.Should().BeEmpty();
             testSubject.GlobalExclusions.Should().BeEmpty();
             testSubject.Inclusions.Should().BeEquivalentTo(
-                "**\\path1",
-                "**\\path2",
+                "**/path1",
+                "**/**\\path2",
                 "**/path3",
-                "**\\**path4",
-                "**\\*/*");
+                "**/**path4",
+                "**/*/*");
         }
 
         [TestMethod]

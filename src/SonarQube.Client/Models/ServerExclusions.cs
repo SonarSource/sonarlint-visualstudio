@@ -48,7 +48,7 @@ namespace SonarQube.Client.Models
         /// Similarly to the other SL flavors, we will prefix everything with "**/" it's not already prefixed.
         /// </summary>
         private static string[] AddPathPrefixIfNeeded(IEnumerable<string> paths) =>
-            paths?.Select(path => path.StartsWith("**/") || path.StartsWith("**\\") ? path : Path.Combine("**", path)).ToArray();
+            paths?.Select(path => path.StartsWith("**/") ? path : $"**/{path}").ToArray();
 
         [JsonProperty("sonar.exclusions")]
         public string[] Exclusions { get; set; }
