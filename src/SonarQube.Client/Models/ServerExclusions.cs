@@ -19,6 +19,9 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace SonarQube.Client.Models
@@ -32,14 +35,20 @@ namespace SonarQube.Client.Models
         {
         }
 
-        public ServerExclusions(string[] exclusions,
-            string[] globalExclusions,
-            string[] inclusions)
+        public ServerExclusions(IEnumerable<string> exclusions,
+            IEnumerable<string> globalExclusions,
+            IEnumerable<string> inclusions)
         {
-            Exclusions = exclusions ?? EmptyValues;
-            GlobalExclusions = globalExclusions ?? EmptyValues;
-            Inclusions = inclusions ?? EmptyValues;
+            Exclusions = AddPathPrefixIfNeeded(exclusions) ?? EmptyValues;
+            GlobalExclusions = AddPathPrefixIfNeeded(globalExclusions) ?? EmptyValues;
+            Inclusions = AddPathPrefixIfNeeded(inclusions) ?? EmptyValues;
         }
+
+        /// <summary>
+        /// Similarly to the other SL flavors, we will prefix everything with "**/" it's not already prefixed.
+        /// </summary>
+        private static string[] AddPathPrefixIfNeeded(IEnumerable<string> paths) =>
+            paths?.Select(path => path.StartsWith("**/") ? path : $"**/{path}").ToArray();
 
         [JsonProperty("sonar.exclusions")]
         public string[] Exclusions { get; set; }
@@ -81,6 +90,18 @@ namespace SonarQube.Client.Models
         public override int GetHashCode()
         {
             return ToString().GetHashCode();
+        }
+
+        public IDictionary<string, string> ToDictionary()
+        {
+            var exclusions = new Dictionary<string, string>
+            {
+                {"sonar.exclusions", string.Join(",", Exclusions)},
+                {"sonar.global.exclusions", string.Join(",", GlobalExclusions)},
+                {"sonar.inclusions", string.Join(",", Inclusions)}
+            };
+
+            return exclusions;
         }
     }
 }
