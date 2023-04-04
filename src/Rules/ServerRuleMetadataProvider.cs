@@ -61,30 +61,32 @@ namespace SonarLint.VisualStudio.Rules
 
         public async Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, string qualityProfileKey, CancellationToken token)
         {
-            SonarQubeRule sqRule = null;
             try
             {
-                sqRule = await service.GetRuleByKeyAsync(ruleId.ToString(), qualityProfileKey, token);
+                var sqRule = await service.GetRuleByKeyAsync(ruleId.ToString(), qualityProfileKey, token);
+
+                if (sqRule == null) { return null; }
+
+                var descriptionSections = sqRule.DescriptionSections?.Select(ds => ds.ToDescriptionSection()).ToList();
+
+                return new RuleInfo(sqRule.RepositoryKey,
+                    sqRule.GetCompositeKey(),
+                    HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(sqRule.Description),
+                    sqRule.Name,
+                    sqRule.Severity.ToRuleIssueSeverity(),
+                    sqRule.IssueType.ToRuleIssueType(),
+                    sqRule.IsActive,
+                    sqRule.Tags,
+                    descriptionSections,
+                    sqRule.EducationPrinciples,
+                    HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(sqRule.HtmlNote));
             }
             catch (Exception ex)
             {
                 logger.WriteLine(Resources.ServerMetadataProvider_GetRulesError, ruleId.ToString(), ex.Message);
             }
-            if (sqRule == null) return null;
 
-            var descriptionSections = sqRule.DescriptionSections?.Select(ds => ds.ToDescriptionSection()).ToList();
-
-            return new RuleInfo(sqRule.RepositoryKey,
-                sqRule.GetCompositeKey(),
-                HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(sqRule.Description),
-                sqRule.Name,
-                sqRule.Severity.ToRuleIssueSeverity(),
-                sqRule.IssueType.ToRuleIssueType(),
-                sqRule.IsActive,
-                sqRule.Tags,
-                descriptionSections,
-                sqRule.EducationPrinciples,
-                HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(sqRule.HtmlNote));
+            return null;
         }
     }
 }

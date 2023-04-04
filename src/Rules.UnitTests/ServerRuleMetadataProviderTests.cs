@@ -105,6 +105,42 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             }
         }
 
+        [TestMethod] // Regression test for part of #3973
+        public async Task GetRuleInfoAsync_RuleFound_ServerCollectionsFieldsAreNull_RuleInfoFieldsAreNotNull()
+        {
+            var service = new Mock<ISonarQubeService>();
+            var sqRule = new SonarQubeRule("Key",
+                "repoKey",
+                true,
+                SonarQubeIssueSeverity.Info,
+                null, // parameters,
+                SonarQubeIssueType.Vulnerability,
+                "<p>html Description</p><br>",
+                null, // descriptionSections
+                null, // educationPrinciples
+                "RuleName",
+                null, // tags
+                "htmlNote<br>");
+
+            service.Setup(s => s.GetRuleByKeyAsync("repoKey:Key", It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(sqRule);
+
+            var testSubject = CreateTestSubject(service.Object);
+
+            var ruleKey = new SonarCompositeRuleId("repoKey", "Key");
+
+            var result = await testSubject.GetRuleInfoAsync(ruleKey, "qpKey", CancellationToken.None);
+
+            result.Should().NotBeNull();
+
+            result.Tags.Should().NotBeNull();
+            result.DescriptionSections.Should().NotBeNull();
+            result.EducationPrinciples.Should().NotBeNull();
+
+            result.Tags.Should().HaveCount(0);
+            result.DescriptionSections.Should().HaveCount(0);
+            result.EducationPrinciples.Should().HaveCount(0);
+        }
+
         [TestMethod]
         public async Task GetRuleInfoAsync_RuleNotFound_ReturnNull()
         {
