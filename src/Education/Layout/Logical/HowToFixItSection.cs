@@ -60,15 +60,12 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
                 .ToList<ITabItem>();
             contextTabs.Add(new TabItem("Other", new ContentSection(staticXamlStorage.HowToFixItFallbackContext)));
 
-            var selectedIndex = GetSelectedIndex(contextTabs);
-
-
             return new MultiBlockSection(
                 new ContentSection(staticXamlStorage.HowToFixItHeader),
-                new TabGroup(contextTabs, selectedIndex));
+                new TabGroup(contextTabs, GetSelectedTabIndex(contextTabs)));
         }
 
-        private int GetSelectedIndex(List<ITabItem> contextTabs)
+        private int GetSelectedTabIndex(List<ITabItem> contextTabs)
         {
             if (selectedIssueContext == null)
             {

@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
             var blockUiContainer = flowDocument.Blocks.Single().Should().BeOfType<BlockUIContainer>().Subject;
             var tabControl = blockUiContainer.Child.Should().BeOfType<TabControl>().Subject;
-            tabControl.SelectedIndex.Should().Be(0);
+            tabControl.SelectedIndex.Should().Be(0);    
             tabControl.Items.Should().HaveCount(3);
             for (var index = 0; index < tabControl.Items.Count; index++)
             {
