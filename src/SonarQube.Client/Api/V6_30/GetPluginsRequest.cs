@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
@@ -29,6 +30,9 @@ namespace SonarQube.Client.Api.V6_30
 {
     public class GetPluginsRequest : RequestBase<SonarQubePlugin[]>, IGetPluginsRequest
     {
+        private const string sonarQubeVersionPattern = @"(?<major>\d+)[\.]?(?<minor>\d+)?[\.]?(?<patch>\d+)?.*";
+        private static readonly Regex SonarVersionRegEx = new Regex(sonarQubeVersionPattern, RegexOptions.None, TimeSpan.FromMilliseconds(300));
+
         protected override string Path => "api/plugins/installed";
 
         protected override SonarQubePlugin[] ParseResponse(string response) =>
@@ -50,10 +54,7 @@ namespace SonarQube.Client.Api.V6_30
         /// <returns>Version field formatted for SonarLint</returns>
         public static string FormatForSonarLint(string version)
         {
-            const string sonarQubeVersionPattern =
-                @"(?<major>\d+)[\.]?(?<minor>\d+)?[\.]?(?<patch>\d+)?.*";
-
-            var match = Regex.Match(version, sonarQubeVersionPattern);
+            var match = SonarVersionRegEx.Match(version);
             if (!match.Success)
             {
                 return version;

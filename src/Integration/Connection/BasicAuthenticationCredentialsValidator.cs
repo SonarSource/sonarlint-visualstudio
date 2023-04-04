@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -23,13 +23,16 @@ using System.Globalization;
 using System.Security;
 using System.Text;
 using System.Text.RegularExpressions;
+using SonarLint.VisualStudio.Core;
 using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Connection
 {
     internal class BasicAuthenticationCredentialsValidator
     {
-        private readonly static Regex InvalidCharacters = new Regex("[:]"); // colon
+        private readonly static Regex InvalidCharacters = new Regex("[:]",
+            RegexOptions.None,
+            RegexConstants.DefaultTimeout); // colon
 
         private string user;
         private SecureString pwd;
