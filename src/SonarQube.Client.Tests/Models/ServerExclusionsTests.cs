@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Models;
@@ -112,5 +114,120 @@ namespace SonarQube.Client.Tests.Models
 
             testSubject.Equals(testSubject).Should().BeTrue();
         }
+
+        [TestMethod]
+        public void Ctor_HasExclusions_AppendPathPrefix()
+        {
+            var testSubject = new ServerExclusions(
+                exclusions: new[] { "path1", "**\\path2", "**/path3", "**path4", "*/*" },
+                globalExclusions: Array.Empty<string>(),
+                inclusions: null);
+
+            testSubject.Exclusions.Should().BeEquivalentTo(
+                "**/path1",
+                "**/**\\path2",
+                "**/path3",
+                "**/**path4",
+                "**/*/*");
+            testSubject.GlobalExclusions.Should().BeEmpty();
+            testSubject.Inclusions.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void Ctor_HasGlobalExclusions_AppendPathPrefix()
+        {
+            var testSubject = new ServerExclusions(
+                exclusions: null,
+                globalExclusions: new[] { "path1", "**\\path2", "**/path3", "**path4", "*/*" },
+                inclusions: Array.Empty<string>());
+
+            testSubject.Exclusions.Should().BeEmpty();
+            testSubject.GlobalExclusions.Should().BeEquivalentTo(
+                "**/path1",
+                "**/**\\path2",
+                "**/path3",
+                "**/**path4",
+                "**/*/*");
+            testSubject.Inclusions.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void Ctor_HasInclusions_AppendPathPrefix()
+        {
+            var testSubject = new ServerExclusions(
+                exclusions: Array.Empty<string>(),
+                globalExclusions: null,
+                inclusions: new[] {"path1", "**\\path2", "**/path3", "**path4", "*/*"});
+
+            testSubject.Exclusions.Should().BeEmpty();
+            testSubject.GlobalExclusions.Should().BeEmpty();
+            testSubject.Inclusions.Should().BeEquivalentTo(
+                "**/path1",
+                "**/**\\path2",
+                "**/path3",
+                "**/**path4",
+                "**/*/*");
+        }
+
+        [TestMethod]
+        public void ToDictionary_HasExclusions_ReturnsConcatenatedValues()
+        {
+            var testSubject = new ServerExclusions(
+                exclusions: new[] { "**/path1", "**/*/path2" },
+                globalExclusions: new[] { "**/path1" },
+                inclusions: null);
+
+            var result = testSubject.ToDictionary();
+
+            result.Should().BeEquivalentTo(
+                new Dictionary<string, string>
+                {
+                    {"sonar.exclusions", "**/path1,**/*/path2"},
+                    {"sonar.global.exclusions", "**/path1"},
+                    {"sonar.inclusions", ""}
+                });
+        }
+
+        [TestMethod]
+        public void ToDictionary_HasGlobalExclusions_ReturnsConcatenatedValues()
+        {
+            var testSubject = new ServerExclusions(
+                exclusions: null,
+                globalExclusions: new[] { "**/path1", "**/*/path2" },
+                inclusions: new[] { "**/path1" });
+
+            var result = testSubject.ToDictionary();
+
+            result.Should().BeEquivalentTo(
+                new Dictionary<string, string>
+                {
+                    {"sonar.exclusions", ""},
+                    {"sonar.global.exclusions", "**/path1,**/*/path2"},
+                    {"sonar.inclusions", "**/path1"}
+                });
+        }
+
+        [TestMethod]
+        public void ToDictionary_HasInclusions_ReturnsConcatenatedValues()
+        {
+            var testSubject = new ServerExclusions(
+                exclusions: new[] {"**/path1"},
+                globalExclusions: null,
+                inclusions: new[] {"**/path1", "**/*/path2"});
+
+            var result = testSubject.ToDictionary();
+
+            result.Should().BeEquivalentTo(
+                new Dictionary<string, string>
+                {
+                    {"sonar.exclusions", "**/path1"},
+                    {"sonar.global.exclusions", ""},
+                    {"sonar.inclusions", "**/path1,**/*/path2"}
+                });
+        }
+
+
+
+        
     }
 }

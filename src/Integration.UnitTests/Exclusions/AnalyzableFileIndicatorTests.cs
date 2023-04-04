@@ -65,8 +65,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             bool globalExclusionsApply,
             bool expectedResult)
         {
-            var projectExclusions = new[] { "exclusion1", "exclusion2" };
-            var globalExclusions = new[] { "exclusion3", "exclusion4" };
+            var projectExclusions = new[] { "**/exclusion1", "**/exclusion2" };
+            var globalExclusions = new[] { "**/exclusion3", "**/exclusion4" };
             var exclusionConfig = CreateServerExclusions(
                 inclusions: null,
                 exclusions: projectExclusions,
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         [DataRow(false, false)]
         public void ShouldAnalyze_HasInclusions_NoExclusions_ReturnsIfIncluded(bool inclusionsApply, bool expectedResult)
         {
-            var inclusions = new[] { "inclusion1", "inclusion2" };
+            var inclusions = new[] { "**/inclusion1", "**/inclusion2" };
             var exclusionConfig = CreateServerExclusions(
                 inclusions: inclusions, 
                 exclusions: null,
@@ -119,9 +119,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             bool globalExclusionsApply,
             bool expectedResult)
         {
-            var inclusions = new[] { "inclusion1", "inclusion2" };
-            var projectExclusions = new[] { "exclusion1", "exclusion2" };
-            var globalExclusions = new[] { "exclusion3", "exclusion4" };
+            var inclusions = new[] { "**/inclusion1", "**/inclusion2" };
+            var projectExclusions = new[] { "**/exclusion1", "**/exclusion2" };
+            var globalExclusions = new[] { "**/exclusion3", "**/exclusion4" };
             var exclusionConfig = CreateServerExclusions(
                 inclusions: inclusions,
                 exclusions: projectExclusions,
@@ -147,7 +147,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         {
             var filePath = "C:\\FooBar\\foo.bar";
 
-            var projectExclusions = new[] { "exclusion" };
+            var projectExclusions = new[] { "**/exclusion" };
             var exclusionConfig = CreateServerExclusions(
                 inclusions: null,
                 exclusions: projectExclusions,
@@ -167,8 +167,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         [TestMethod]
         public void Perf_ShouldAnalyze_HasInclusions_FileNotIncluded_ExclusionsAreNotChecked()
         {
-            var inclusions = new[] { "inclusion1" };
-            var exclusions = new[] { "exclusion1" };
+            var inclusions = new[] { "**/inclusion1" };
+            var exclusions = new[] { "**/exclusion1" };
             var exclusionConfig = CreateServerExclusions(
                 inclusions: inclusions, 
                 exclusions: exclusions, 
@@ -191,8 +191,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         [TestMethod]
         public void Perf_ShouldAnalyze_FileExcludedInProjectSettings_GlobalExclusionsAreNotChecked()
         {
-            var projectExclusions = new[] { "exclusion1" };
-            var globalExclusions = new[] { "exclusion2" };
+            var projectExclusions = new[] { "**/exclusion1" };
+            var globalExclusions = new[] { "**/exclusion2" };
             var exclusionConfig = CreateServerExclusions(
                 inclusions: null,
                 exclusions: projectExclusions,

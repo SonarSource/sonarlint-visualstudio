@@ -143,8 +143,8 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
             var result = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
             result.Should().NotBeNull();
 
-            result.Exclusions.Should().BeEquivalentTo("**/value1", "value2", "some/value/3");
-            result.GlobalExclusions.Should().BeEquivalentTo("some/value/4");
+            result.Exclusions.Should().BeEquivalentTo("**/value1", "**/value2", "**/some/value/3");
+            result.GlobalExclusions.Should().BeEquivalentTo("**/some/value/4");
             result.Inclusions.Should().BeEquivalentTo("**/111");
         }
         
