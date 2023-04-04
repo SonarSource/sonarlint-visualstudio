@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         {
             if (string.IsNullOrEmpty(text))
             {
-                throw new ArgumentNullException(text);
+                throw new ArgumentNullException(nameof(text));
             }
 
             Text = text;
@@ -115,12 +115,12 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         {
             if (string.IsNullOrEmpty(repoKey))
             {
-                throw new ArgumentNullException(repoKey);
+                throw new ArgumentNullException(nameof(repoKey));
             }
 
             if (string.IsNullOrEmpty(ruleKey))
             {
-                throw new ArgumentNullException(ruleKey);
+                throw new ArgumentNullException(nameof(ruleKey));
             }
 
             CompositeRuleId = new SonarCompositeRuleId(repoKey, ruleKey);
