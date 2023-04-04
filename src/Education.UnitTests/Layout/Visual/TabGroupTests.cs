@@ -54,12 +54,12 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Visual
 
             }
 
-            var testSubject = new TabGroup(tabItems.Select(x => x.Object).ToList());
+            var testSubject = new TabGroup(tabItems.Select(x => x.Object).ToList(), 1);
 
             testSubject.ProduceXaml(xmlWriter);
             xmlWriter.Close();
 
-            sb.ToString().Should().BeEquivalentTo("<BlockUIContainer>\r\n  <TabControl TabStripPlacement=\"Top\"><TabItem>Tab 0 placeholder</TabItem><TabItem>Tab 1 placeholder</TabItem><TabItem>Tab 2 placeholder</TabItem></TabControl>\r\n</BlockUIContainer>");
+            sb.ToString().Should().BeEquivalentTo("<BlockUIContainer>\r\n  <TabControl TabStripPlacement=\"Top\" SelectedIndex=\"1\"><TabItem>Tab 0 placeholder</TabItem><TabItem>Tab 1 placeholder</TabItem><TabItem>Tab 2 placeholder</TabItem></TabControl>\r\n</BlockUIContainer>");
             foreach (var tabItem in tabItems)
             {
                 tabItem.Verify(x => x.ProduceXaml(xmlWriter), Times.Once);

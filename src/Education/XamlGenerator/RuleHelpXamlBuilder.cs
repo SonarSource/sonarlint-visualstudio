@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         {
             return ruleInfo.IsRichRuleDescription()
                 ? richRuleHelpXamlBuilder.Create(ruleInfo, issueContext)
-                : simpleRuleHelpXamlBuilder.Create(ruleInfo, issueContext);
+                : simpleRuleHelpXamlBuilder.Create(ruleInfo);
         }
     }
 }

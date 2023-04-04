@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
             ruleHelpXamlTranslatorFactoryMock.Setup(x => x.Create()).Returns(ruleHelpXamlTranslatorMock.Object);
             var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorFactoryMock.Object, new TestLogger());
 
-            var ruleDescriptionSections = testSubject.GetRuleDescriptionSections(ruleInfo).ToList();
+            var ruleDescriptionSections = testSubject.GetRuleDescriptionSections(ruleInfo, null).ToList();
 
             ruleDescriptionSections.Should().HaveCount(0);
             ruleHelpXamlTranslatorMock.Invocations.Should().HaveCount(0);
@@ -87,6 +87,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
         [TestMethod]
         public void GetRuleDescriptionSections_CorrectlyFormsMultiContextHowToFixItSection()
         {
+            var selectedIssueContext = "abrakadabra";
             var content1 = "<span>hello</span>";
             var content2 = "<span>hello2</span>";
             var content3 = "<span>hello3</span>";
@@ -104,11 +105,12 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
             ruleHelpXamlTranslatorMock.Setup(x => x.TranslateHtmlToXaml(content3)).Returns(content3);
             var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorFactoryMock.Object, new TestLogger());
 
-            var ruleDescriptionSections = testSubject.GetRuleDescriptionSections(ruleInfo).ToList();
+            var ruleDescriptionSections = testSubject.GetRuleDescriptionSections(ruleInfo, selectedIssueContext).ToList();
 
             ruleDescriptionSections.Should().HaveCount(1);
             ruleDescriptionSections[0].Should().BeOfType<HowToFixItSection>();
             var howToFixItSection = (HowToFixItSection)ruleDescriptionSections[0];
+            howToFixItSection.selectedIssueContext.Should().Be(selectedIssueContext);
             howToFixItSection.partialXamlContent.Should().BeNull();
             howToFixItSection.contexts.Count.Should().Be(3);
             howToFixItSection.contexts.Select(x => x.Key).Should().BeEquivalentTo(ruleInfo.DescriptionSections.Select(x => x.Context.Key));
@@ -146,7 +148,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
 
             var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorFactoryMock.Object, testLogger);
 
-            var sections = testSubject.GetRuleDescriptionSections(ruleInfo).ToList();
+            var sections = testSubject.GetRuleDescriptionSections(ruleInfo, null).ToList();
 
             sections.Should().HaveCount(1);
             testLogger.OutputStrings.Single()
@@ -171,7 +173,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
 
             var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorFactoryMock.Object, new TestLogger());
 
-            var sections = testSubject.GetRuleDescriptionSections(ruleInfo).ToList();
+            var sections = testSubject.GetRuleDescriptionSections(ruleInfo, null).ToList();
 
             sections.Should().HaveCount(4);
             sections[0].Should().BeOfType<RootCauseSection>();
@@ -196,7 +198,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
 
             var testSubject = new RuleInfoTranslator(ruleHelpXamlTranslatorFactoryMock.Object, new TestLogger());
 
-            var ruleDescriptionSections = testSubject.GetRuleDescriptionSections(ruleInfo).ToList();
+            var ruleDescriptionSections = testSubject.GetRuleDescriptionSections(ruleInfo, null).ToList();
 
             ruleDescriptionSections.Should().HaveCount(1);
             ruleDescriptionSections[0].Should().BeOfType<T>();

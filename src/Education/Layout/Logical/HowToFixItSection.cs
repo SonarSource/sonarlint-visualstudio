@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
     {
         public const string RuleInfoKey = "how_to_fix";
         internal /* for testing */ readonly List<HowToFixItSectionContext> contexts;
+        internal /* for testing */ readonly string selectedIssueContext;
         internal /* for testing */ readonly string partialXamlContent;
 
         public HowToFixItSection(string partialXaml)
@@ -37,9 +38,10 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
             partialXamlContent = partialXaml;
         }
 
-        public HowToFixItSection(List<HowToFixItSectionContext> contexts)
+        public HowToFixItSection(List<HowToFixItSectionContext> contexts, string selectedIssueContext)
         {
             this.contexts = contexts;
+            this.selectedIssueContext = selectedIssueContext;
         }
 
         public string Key => RuleInfoKey;
@@ -58,9 +60,29 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
                 .ToList<ITabItem>();
             contextTabs.Add(new TabItem("Other", new ContentSection(staticXamlStorage.HowToFixItFallbackContext)));
 
+            var selectedIndex = GetSelectedIndex(contextTabs);
+
+
             return new MultiBlockSection(
                 new ContentSection(staticXamlStorage.HowToFixItHeader),
-                new TabGroup(contextTabs));
+                new TabGroup(contextTabs, selectedIndex));
+        }
+
+        private int GetSelectedIndex(List<ITabItem> contextTabs)
+        {
+            if (selectedIssueContext == null)
+            {
+                return 0;
+            }
+
+            var selectedIndex = contexts.FindIndex(x => x.Key.Equals(selectedIssueContext));
+
+            if (selectedIndex > -1)
+            {
+                return selectedIndex;
+            }
+
+            return contextTabs.Count - 1;
         }
     }
 
