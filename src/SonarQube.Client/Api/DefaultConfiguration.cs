@@ -57,7 +57,8 @@ namespace SonarQube.Client.Api
                 .RegisterRequest<IGetExclusionsRequest, V7_20.GetExclusionsRequest>("7.2")
                 .RegisterRequest<IGetSonarLintEventStream, V9_4.GetSonarLintEventStream>("9.4")
                 .RegisterRequest<IGetRulesRequest, V9_5.GetRulesWithDescriptionSectionsRequest>("9.5")
-                .RegisterRequest<IGetRulesRequest, V9_6.GetRulesWithEducationPrinciplesRequest>("9.6");
+                .RegisterRequest<IGetRulesRequest, V9_6.GetRulesWithEducationPrinciplesRequest>("9.6")
+                .RegisterRequest<IGetTaintVulnerabilitiesRequest, V9_6.GetTaintVulnerabilitiesWithContextRequest>("9.6");
 
             return requestFactory;
         }
@@ -83,7 +84,7 @@ namespace SonarQube.Client.Api
                 .RegisterRequest<IGetOrganizationsRequest, V7_00.GetOrganizationsRequest>()
                 .RegisterRequest<IGetIssuesRequest, V7_20.GetIssuesRequestWrapper>()
                 .RegisterRequest<IGetHotspotRequest, V8_6.GetHotspotRequest>()
-                .RegisterRequest<IGetTaintVulnerabilitiesRequest, V8_6.GetTaintVulnerabilitiesRequest>()
+                .RegisterRequest<IGetTaintVulnerabilitiesRequest, V9_6.GetTaintVulnerabilitiesWithContextRequest>()
                 .RegisterRequest<IGetExclusionsRequest, V7_20.GetExclusionsRequest>();
 
             return requestFactory;

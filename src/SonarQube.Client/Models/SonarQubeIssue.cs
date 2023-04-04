@@ -29,7 +29,7 @@ namespace SonarQube.Client.Models
 
         public SonarQubeIssue(string issueKey, string filePath, string hash, string message, string moduleKey, string ruleId, bool isResolved,
             SonarQubeIssueSeverity severity, DateTimeOffset creationTimestamp, DateTimeOffset lastUpdateTimestamp,
-            IssueTextRange textRange, List<IssueFlow> flows)
+            IssueTextRange textRange, List<IssueFlow> flows, string context = null)
         {
             IssueKey = issueKey;
             FilePath = filePath;
@@ -43,6 +43,7 @@ namespace SonarQube.Client.Models
             LastUpdateTimestamp = lastUpdateTimestamp;
             TextRange = textRange;
             Flows = flows ?? EmptyFlows;
+            Context = context;
         }
 
         public string IssueKey { get; }
@@ -55,19 +56,24 @@ namespace SonarQube.Client.Models
         /// The path is in Windows format i.e. the directory separators are backslashes
         /// </remarks>
         public string FilePath { get; }
+
         public string Hash { get; }
         public string Message { get; }
         public string ModuleKey { get; }
         public string RuleId { get; }
+
         /// <remarks>
         /// This needs to be mutable as SLVS will update it during runtime.
         /// </remarks>
         public bool IsResolved { get; set; }
+
         public SonarQubeIssueSeverity Severity { get; }
         public IssueTextRange TextRange { get; }
         public DateTimeOffset CreationTimestamp { get; }
         public DateTimeOffset LastUpdateTimestamp { get; }
         public IReadOnlyList<IssueFlow> Flows { get; }
+
+        public string Context { get; set; }
     }
 
     public class IssueFlow

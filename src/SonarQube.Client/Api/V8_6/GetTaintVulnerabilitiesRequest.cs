@@ -30,13 +30,13 @@ namespace SonarQube.Client.Api.V8_6
 {
     public class GetTaintVulnerabilitiesRequest : IGetTaintVulnerabilitiesRequest
     {
-        private readonly GetIssuesRequest getIssuesRequest = new GetIssuesRequest();
+        protected GetIssuesRequest getIssuesRequest = new GetIssuesRequest();
 
         public string ProjectKey { get; set; }
         public string Branch { get; set; }
         public ILogger Logger { get; set; }
 
-        public async Task<SonarQubeIssue[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
+        public virtual async Task<SonarQubeIssue[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
         {
             getIssuesRequest.Logger = Logger;
             getIssuesRequest.ProjectKey = ProjectKey;
