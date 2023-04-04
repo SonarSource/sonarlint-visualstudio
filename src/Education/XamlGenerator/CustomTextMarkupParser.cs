@@ -42,10 +42,10 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
     /// <summary>
     /// Processes special internal markup embedded in normal text
     /// </summary>
-    internal class CustomTextMarkupParser
+    internal static class CustomTextMarkupParser
     {
         /// <summary>
-        /// Processes a text string that might/might not contain rule cross-references
+        /// Parse a text string that might/might not contain rule cross-references
         /// </summary>
         public static IEnumerable<ITextToken> Parse(string text)
         {
