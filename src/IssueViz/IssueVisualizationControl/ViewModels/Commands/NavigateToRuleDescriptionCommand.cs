@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -63,12 +64,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            return new NavigateToRuleDescriptionCommandParam { FullRuleKey = (string)values[0], Context = (string)values[1] };
+            if (values.Length == 2 && values[0] is string && values[1] is string)
+            {
+                return new NavigateToRuleDescriptionCommandParam { FullRuleKey = (string)values[0], Context = (string)values[1] };
+            }
+            return null;
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            Debug.Fail("We should not hit here");
+            return null;
         }
     }
 }
