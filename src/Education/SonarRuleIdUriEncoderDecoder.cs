@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Education
     /// <summary>
     /// This is a helper class to encode a SonarCompositeRuleId into a valid URI and decode it vice versa.
     /// </summary>
-    internal static class CrossReferenceRuleHelper
+    internal static class SonarRuleIdUriEncoderDecoder
     {
         private const string prefix = "sonarlintrulecrossref";
 

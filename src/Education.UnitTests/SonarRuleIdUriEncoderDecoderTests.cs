@@ -25,14 +25,14 @@ using SonarLint.VisualStudio.Core;
 namespace SonarLint.VisualStudio.Education.UnitTests
 {
     [TestClass]
-    public class CrossReferenceRuleHelperTests
+    public class SonarRuleIdUriEncoderDecoderTests
     {
         [TestMethod]
         public void EncodeToUri_EncodesCompositeKeyCorrectly()
         {
             var compositeKey = new SonarCompositeRuleId("cpp", "S1234");
 
-            var uri = CrossReferenceRuleHelper.EncodeToUri(compositeKey);
+            var uri = SonarRuleIdUriEncoderDecoder.EncodeToUri(compositeKey);
 
             uri.AbsoluteUri.Should().Be("sonarlintrulecrossref://cpp/S1234");
         }

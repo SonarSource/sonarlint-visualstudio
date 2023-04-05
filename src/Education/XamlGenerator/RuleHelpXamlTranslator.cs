@@ -373,13 +373,14 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     HandleCrossReference(ruleCrossRef.CompositeRuleId);
                 }
 
-                Debug.Assert(textToken is IRuleCrossRef || textToken is ISimpleText, "Unknown text token type.");
+                Debug.Assert(textToken is IRuleCrossRef || textToken is ISimpleText,
+                             $"Unknown text token type. Type: {textToken.GetType().FullName}");
             }
         }
 
         private void HandleCrossReference(SonarCompositeRuleId compositeRuleId)
         {
-            var href = CrossReferenceRuleHelper.EncodeToUri(compositeRuleId);
+            var href = SonarRuleIdUriEncoderDecoder.EncodeToUri(compositeRuleId);
 
             writer.WriteStartElement("Hyperlink");
             writer.WriteAttributeString("NavigateUri", href.AbsoluteUri);
