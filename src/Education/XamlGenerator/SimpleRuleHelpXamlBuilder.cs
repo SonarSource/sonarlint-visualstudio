@@ -26,8 +26,17 @@ using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
 {
-    internal interface ISimpleRuleHelpXamlBuilder : IRuleHelpXamlBuilder
+    internal interface ISimpleRuleHelpXamlBuilder
     {
+        /// <summary>
+        /// Generates a XAML document containing the help information for the specified rule
+        /// </summary>
+        /// <remarks>Assumes that the <see cref="IRuleInfo.Description"/> and <see cref="IRuleInfo.DescriptionSections"/> are parseable as XML.
+        /// Also assumes that the containing control defines a list of Style resources, one for each
+        /// value in the enum <see cref="StyleResourceNames"/>.
+        /// The document will still render if a style is missing, but the styling won't be correct.</remarks>
+        /// <param name="ruleInfo">Rule description information</param>
+        FlowDocument Create(IRuleInfo ruleInfo);
     }
 
     [Export(typeof(ISimpleRuleHelpXamlBuilder))]
@@ -46,7 +55,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             ruleHelpXamlTranslator = ruleHelpXamlTranslatorFactory.Create();
         }
 
-        public FlowDocument Create(IRuleInfo ruleInfo, string issueContext)
+        public FlowDocument Create(IRuleInfo ruleInfo)
         {
             var xaml = CreateXamlString(ruleInfo);
             var flowDocument = (FlowDocument)XamlReader.Parse(xaml);

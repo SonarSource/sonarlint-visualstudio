@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void Create_GeneratesCorrectStructure()
         {
+            var selectedIssueContext = "abrakadabra";
             var callSequence = new MockSequence();
             var ruleInfoTranslatorMock = new Mock<IRuleInfoTranslator>(MockBehavior.Strict);
             var xamlGeneratorHelperFactoryMock = new Mock<IXamlGeneratorHelperFactory>(MockBehavior.Strict);
@@ -39,7 +40,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             XmlWriter writer = null;
             ruleInfoTranslatorMock
                 .InSequence(callSequence)
-                .Setup(x => x.GetRuleDescriptionSections(ruleInfo))
+                .Setup(x => x.GetRuleDescriptionSections(ruleInfo, selectedIssueContext))
                 .Returns(Enumerable
                     .Range(0, 3)
                     .Select(x =>
@@ -80,10 +81,11 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
             var testSubject = new RichRuleHelpXamlBuilder(ruleInfoTranslatorMock.Object, xamlGeneratorHelperFactoryMock.Object, Mock.Of<IStaticXamlStorage>(), xamlWriterFactoryMock.Object);
 
-            var flowDocument = testSubject.Create(ruleInfo, /* todo */ null);
+            var flowDocument = testSubject.Create(ruleInfo, selectedIssueContext);
 
             var blockUiContainer = flowDocument.Blocks.Single().Should().BeOfType<BlockUIContainer>().Subject;
             var tabControl = blockUiContainer.Child.Should().BeOfType<TabControl>().Subject;
+            tabControl.SelectedIndex.Should().Be(0);    
             tabControl.Items.Should().HaveCount(3);
             for (var index = 0; index < tabControl.Items.Count; index++)
             {
