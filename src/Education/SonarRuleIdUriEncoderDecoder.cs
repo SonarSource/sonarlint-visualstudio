@@ -19,6 +19,8 @@
  */
 
 using System;
+using System.Diagnostics;
+using System.Runtime.Remoting.Messaging;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Education
@@ -35,6 +37,29 @@ namespace SonarLint.VisualStudio.Education
             var link = $"{prefix}://{compositeRuleId.RepoKey}/{compositeRuleId.RuleKey}";
 
             return new Uri(link);
+        }
+
+        public static bool TryDecodeToCompositeRuleId(Uri uri, out SonarCompositeRuleId compositeRuleId)
+        {
+            compositeRuleId = null;
+
+            // If the URI can be decoded it would be in the form of 'sonarlintrulecrossref://ruleRepo/ruleKey'
+            if (uri.Scheme != prefix)
+            {
+                return false;
+            }
+
+            // It is not required to use uri.Host here. It would have been fine to use any
+            // other property that had the information on the repository. 'host' is just the most simple.
+            var ruleRepo = uri.Host;
+
+            Debug.Assert(uri.AbsolutePath[0] == '/',
+                $"Incorrect URI.AbsolutePath format for decoding to SonarCompositeRuleId. URI: {uri.AbsolutePath}");
+            var ruleKey = uri.AbsolutePath.Substring(1);
+
+            compositeRuleId = new SonarCompositeRuleId(ruleRepo, ruleKey);
+
+            return true;
         }
     }
 }
