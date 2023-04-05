@@ -66,10 +66,10 @@ namespace SonarQube.Client.Tests
             // No calls to Connect
             // No need to setup request, the operation should fail
 
-            Action action = () => { _ = service.HasOrganizations(CancellationToken.None).Result; };
+            Func<Task<bool>> func = async () => await service.HasOrganizations(CancellationToken.None);
 
-            action.Should().ThrowExactly<InvalidOperationException>()
-                .WithMessage("This operation expects the service to be connected.");
+            func.Should().ThrowExactly<InvalidOperationException>().And
+                .Message.Should().Be("This operation expects the service to be connected.");
 
             logger.ErrorMessages.Should().Contain("The service is expected to be connected.");
         }
