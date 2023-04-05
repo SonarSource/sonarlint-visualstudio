@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Xml;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
 {
@@ -356,9 +357,35 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             // e.g. <li> some text ... </li>            -> <li> does not support inlines directly.
             EnsureCurrentOutputSupportsInlines();
 
-            // Note: we could explicitly wrap the text in a <Run>. However, that will happen implicitly
-            // when the XAML is parsed, and it won't make any difference to the rendered output.
-            writer.WriteString(text);
+            // Parse text to see if it contains any cross reference rules as they the need to be treated as links.
+            var textTokens = CustomTextMarkupParser.Parse(text);
+
+            foreach (var textToken in textTokens)
+            {
+                if (textToken is ISimpleText simpleText)
+                {
+                    // Note: we could explicitly wrap the text in a <Run>. However, that will happen implicitly
+                    // when the XAML is parsed, and it won't make any difference to the rendered output.
+                    writer.WriteString(simpleText.Text);
+                }
+                else if (textToken is IRuleCrossRef ruleCrossRef)
+                {
+                    HandleCrossReference(ruleCrossRef.CompositeRuleId);
+                }
+
+                Debug.Assert(textToken is IRuleCrossRef || textToken is ISimpleText,
+                             $"Unknown text token type. Type: {textToken.GetType().FullName}");
+            }
+        }
+
+        private void HandleCrossReference(SonarCompositeRuleId compositeRuleId)
+        {
+            var href = SonarRuleIdUriEncoderDecoder.EncodeToUri(compositeRuleId);
+
+            writer.WriteStartElement("Hyperlink");
+            writer.WriteAttributeString("NavigateUri", href.AbsoluteUri);
+            writer.WriteString($"{compositeRuleId.RepoKey}:{compositeRuleId.RuleKey}");
+            writer.WriteEndElement();
         }
 
         private void WriteInlineElementStart(string elementName)
