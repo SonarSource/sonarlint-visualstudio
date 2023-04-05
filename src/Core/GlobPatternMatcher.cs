@@ -64,7 +64,9 @@ namespace SonarLint.VisualStudio.Core
 
             private WildcardPattern(string pattern, string directorySeparator)
             {
-                this.pattern = new Regex(toRegexp(pattern, directorySeparator));
+                this.pattern = new Regex(toRegexp(pattern, directorySeparator),
+                                RegexOptions.Compiled,
+                                RegexConstants.DefaultTimeout);
             }
 
             private static string toRegexp(string antPattern, string directorySeparator)

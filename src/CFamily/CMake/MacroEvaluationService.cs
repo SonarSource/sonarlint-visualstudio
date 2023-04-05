@@ -50,7 +50,9 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                                      // The word chars are captured in a group called "prefix".
             "?" +                    // Match the previous group 0 or 1 times i.e. the prefix is optional.
             "(?<name>\\w+)" +        // Capture one or more word consecutive word chars in a group called "name".
-            "}");                    // Match the closing literal.
+            "}",                     // Match the closing literal.
+            RegexOptions.Compiled,
+            Core.RegexConstants.DefaultTimeout);
 
         public MacroEvaluationService(ILogger logger)
             :this(logger, new MacroEvaluator()) {}
