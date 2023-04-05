@@ -21,6 +21,7 @@
 using System.Windows.Controls;
 using System.Windows.Navigation;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Education.Commands
 {
@@ -28,17 +29,27 @@ namespace SonarLint.VisualStudio.Education.Commands
     {
         private readonly IBrowserService browserService;
         private readonly IEducation education;
+        private readonly ILogger logger;
 
-        internal RuleHelpUserControl(IBrowserService browserService, IEducation education)
+        internal RuleHelpUserControl(IBrowserService browserService, IEducation education, ILogger logger)
         {
             this.browserService = browserService;
             this.education = education;
+            this.logger = logger;
 
             InitializeComponent();
         }
 
         public void HandleRequestNavigate(object sender, RequestNavigateEventArgs e)
         {
+            if (!e.Uri.IsAbsoluteUri)
+            {
+                logger.LogVerbose($"[RuleHelpUserControl] Failed to navigate to Uri as it is a relative path: {e.Uri}");
+                logger.WriteLine($"[RuleHelpUserControl] Failed to open URI: {e.Uri}");
+
+                return;
+            }
+
             // If the incoming URI can be decoded it means that the incoming URI is a cross reference rule
             // in which case it needs to be handed over to the education service.
             if (SonarRuleIdUriEncoderDecoder.TryDecodeToCompositeRuleId(e.Uri, out SonarCompositeRuleId compositeRuleId))
