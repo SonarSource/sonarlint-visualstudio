@@ -190,7 +190,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
             logger.LogVerbose($"[eslint-bridge node output] [process id: {processId}] : {e.Data}");
 
-            var portMessage = Regex.Matches(e.Data, @"port\s+(\d+)");
+            var portMessage = Regex.Matches(e.Data, @"port\s+(\d+)", RegexOptions.None, RegexConstants.DefaultTimeout);
 
             if (portMessage.Count > 0)
             {

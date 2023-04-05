@@ -21,6 +21,7 @@
 using System;
 using System.Text.RegularExpressions;
 using EnvDTE;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration
@@ -54,11 +55,7 @@ namespace SonarLint.VisualStudio.Integration
 
             try
             {
-                Regex.IsMatch("", pattern);
-
-                // Should never realistically take more than 1 second to match against a project name
-                var timeout = TimeSpan.FromSeconds(1);
-                testRegex = new Regex(pattern, RegexOptions.IgnoreCase, timeout);
+                testRegex = new Regex(pattern, RegexOptions.IgnoreCase, RegexConstants.DefaultTimeout);
             }
             catch (ArgumentException)
             {

@@ -18,23 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Text.RegularExpressions;
 
 namespace SonarLint.VisualStudio.Rules
 {
     internal static class HtmlXmlCompatibilityHelper
     {
-
         // Regular expression that find empty "col"and "br" HTML elements
         // e.g. <br>, <br >, <col>, <col span="123">
         // This is valid HTML, but means we can't parse it as XML. So, we find
         // the empty elements and replace them with elements with closing tags
         // e.g. <br>  =>  <br/>
         // e.g. <col span="123">  =>  <col span="123"/>
-        private static readonly Regex CleanCol = new Regex("(?<element>(<col\\s*)|(col\\s+[^/^>]*))>", RegexOptions.Compiled);
+        private static readonly Regex CleanCol = new Regex("(?<element>(<col\\s*)|(col\\s+[^/^>]*))>",
+            RegexOptions.Compiled,
+            Core.RegexConstants.DefaultTimeout);
 
-        private static readonly Regex CleanBr = new Regex("(?<element>(<br\\s*)|(br\\s+[^/^>]*))>", RegexOptions.Compiled);
+        private static readonly Regex CleanBr = new Regex("(?<element>(<br\\s*)|(br\\s+[^/^>]*))>",
+            RegexOptions.Compiled,
+            Core.RegexConstants.DefaultTimeout);
 
         public static string EnsureHtmlIsXml(string pluginRuleDescription)
         {
