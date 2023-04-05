@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
 {
     internal interface IRuleInfoTranslator
     {
-        IEnumerable<IRichRuleDescriptionSection> GetRuleDescriptionSections(IRuleInfo ruleInfo);
+        IEnumerable<IRichRuleDescriptionSection> GetRuleDescriptionSections(IRuleInfo ruleInfo, string issueContext);
     }
 
     [Export(typeof(IRuleInfoTranslator))]
@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
             xamlTranslator = xamlTranslatorFactory.Create();
         }
 
-        public IEnumerable<IRichRuleDescriptionSection> GetRuleDescriptionSections(IRuleInfo ruleInfo)
+        public IEnumerable<IRichRuleDescriptionSection> GetRuleDescriptionSections(IRuleInfo ruleInfo, string issueContext)
         {
             var sectionsByKey = ruleInfo.DescriptionSections
                 .GroupBy(x => x.Key)
@@ -76,7 +76,8 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
                         .Select(x => new HowToFixItSectionContext(x.Context.Key,
                                 x.Context.DisplayName,
                                 GeneratePartialXaml(x.HtmlContent)))
-                        .ToList());
+                        .ToList(),
+                        issueContext);
                 }
             }
 

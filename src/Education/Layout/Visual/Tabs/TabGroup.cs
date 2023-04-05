@@ -29,10 +29,12 @@ namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
     internal class TabGroup : IAbstractVisualizationTreeNode
     {
         internal /* for testing */ readonly List<ITabItem> tabs;
+        internal /* for testing */ int selectedTabIndex;
 
-        public TabGroup(List<ITabItem> tabs)
+        public TabGroup(List<ITabItem> tabs, int selectedTabIndex)
         {
             this.tabs = tabs;
+            this.selectedTabIndex = selectedTabIndex;
         }
 
         public void ProduceXaml(XmlWriter writer)
@@ -40,6 +42,7 @@ namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
             writer.WriteStartElement("BlockUIContainer");
             writer.WriteStartElement("TabControl");
             writer.WriteAttributeString("TabStripPlacement", "Top");
+            writer.WriteAttributeString("SelectedIndex", selectedTabIndex.ToString());
             foreach (var tab in tabs)
             {
                 tab.ProduceXaml(writer);
