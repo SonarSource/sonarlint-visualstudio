@@ -27,15 +27,27 @@ namespace SonarLint.VisualStudio.Education.Commands
     public sealed partial class RuleHelpUserControl : UserControl
     {
         private readonly IBrowserService browserService;
+        private readonly IEducation education;
 
-        internal RuleHelpUserControl(IBrowserService browserService)
+        internal RuleHelpUserControl(IBrowserService browserService, IEducation education)
         {
             this.browserService = browserService;
+            this.education = education;
+
             InitializeComponent();
         }
 
         public void HandleRequestNavigate(object sender, RequestNavigateEventArgs e)
         {
+            // If the incoming URI can be decoded it means that the incoming URI is a cross reference rule
+            // in which case it needs to be handed over to the education service.
+            if (SonarRuleIdUriEncoderDecoder.TryDecodeToCompositeRuleId(e.Uri, out SonarCompositeRuleId compositeRuleId))
+            {
+                education.ShowRuleHelp(compositeRuleId);
+
+                return;
+            }
+
             browserService.Navigate(e.Uri.AbsoluteUri);
         }
     }

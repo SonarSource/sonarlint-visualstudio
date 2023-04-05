@@ -51,7 +51,9 @@ namespace SonarLint.VisualStudio.Education
             {
                 var componentModel = GetService(typeof(SComponentModel)) as IComponentModel;
                 var browserService = componentModel.GetService<IBrowserService>();
-                return new RuleHelpToolWindow(browserService);
+                var education = componentModel.GetService<IEducation>();
+
+                return new RuleHelpToolWindow(browserService, education);
             }
 
             return base.InstantiateToolWindow(toolWindowType);
