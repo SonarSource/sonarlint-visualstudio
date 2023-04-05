@@ -29,8 +29,18 @@ using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
 {
-    internal interface IRichRuleHelpXamlBuilder : IRuleHelpXamlBuilder
+    internal interface IRichRuleHelpXamlBuilder
     {
+        /// <summary>
+        /// Generates a XAML document containing the help information for the specified rule
+        /// </summary>
+        /// <remarks>Assumes that the <see cref="IRuleInfo.Description"/> and <see cref="IRuleInfo.DescriptionSections"/> are parseable as XML.
+        /// Also assumes that the containing control defines a list of Style resources, one for each
+        /// value in the enum <see cref="StyleResourceNames"/>.
+        /// The document will still render if a style is missing, but the styling won't be correct.</remarks>
+        /// <param name="ruleInfo">Rule description information</param>
+        /// <param name="issueContext">Key for the How to fix it Context acquired from a specific issue</param>
+        FlowDocument Create(IRuleInfo ruleInfo, string issueContext);
     }
 
     [Export(typeof(IRichRuleHelpXamlBuilder))]
@@ -53,12 +63,13 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
         public FlowDocument Create(IRuleInfo ruleInfo, string issueContext)
         {
-            var richRuleDescriptionSections = ruleInfoTranslator.GetRuleDescriptionSections(ruleInfo).ToList();
+            var richRuleDescriptionSections = ruleInfoTranslator.GetRuleDescriptionSections(ruleInfo, issueContext).ToList();
             var mainTabGroup = new TabGroup(richRuleDescriptionSections
                 .Select(richRuleDescriptionSection =>
                     new TabItem(richRuleDescriptionSection.Title,
                         richRuleDescriptionSection.GetVisualizationTreeNode(staticXamlStorage)))
-                .ToList<ITabItem>());
+                .ToList<ITabItem>(),
+                0);
 
             var sb = new StringBuilder();
             var writer = xamlWriterFactory.Create(sb);
