@@ -29,12 +29,13 @@ namespace SonarLint.VisualStudio.Core.Analysis
         private static readonly IReadOnlyList<IQuickFix> EmptyFixes = Array.Empty<IQuickFix>();
 
         public AnalysisIssue(
-            string ruleKey, 
-            AnalysisIssueSeverity severity, 
+            string ruleKey,
+            AnalysisIssueSeverity severity,
             AnalysisIssueType type,
             IAnalysisIssueLocation primaryLocation,
             IReadOnlyList<IAnalysisIssueFlow> flows,
-            IReadOnlyList<IQuickFix> fixes = null
+            IReadOnlyList<IQuickFix> fixes = null,
+            string context = null
             )
         {
             RuleKey = ruleKey;
@@ -43,6 +44,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
             Flows = flows ?? EmptyFlows;
             Fixes = fixes ?? EmptyFixes;
+            Context = context;
         }
 
         public string RuleKey { get; }
@@ -52,10 +54,12 @@ namespace SonarLint.VisualStudio.Core.Analysis
         public AnalysisIssueType Type { get; }
 
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
-        
+
         public IAnalysisIssueLocation PrimaryLocation { get; }
 
         public IReadOnlyList<IQuickFix> Fixes { get; }
+
+        public string Context { get; }
     }
 
     public class AnalysisIssueFlow : IAnalysisIssueFlow
