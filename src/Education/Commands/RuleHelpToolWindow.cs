@@ -38,10 +38,10 @@ namespace SonarLint.VisualStudio.Education.Commands
         public static readonly Guid ToolWindowId = new Guid(ToolWindowIdAsString);
         private readonly RuleHelpUserControl control;
 
-        public RuleHelpToolWindow(IBrowserService browserService)
+        public RuleHelpToolWindow(IBrowserService browserService, IEducation education)
         {
             Caption = Resources.RuleHelpToolWindowCaption;
-            control = new RuleHelpUserControl(browserService);
+            control = new RuleHelpUserControl(browserService, education);
             Content = control;
         }
 
