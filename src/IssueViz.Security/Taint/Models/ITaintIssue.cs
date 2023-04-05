@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
             DateTimeOffset creationTimestamp,
             DateTimeOffset lastUpdateTimestamp,
             IReadOnlyList<IAnalysisIssueFlow> flows,
-            string context = null)
+            string context)
         {
             IssueKey = issueKey;
             RuleKey = ruleKey;
