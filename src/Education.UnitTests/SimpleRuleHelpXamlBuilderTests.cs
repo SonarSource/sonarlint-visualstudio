@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
             var testSubject = new SimpleRuleHelpXamlBuilder(ruleHelpXamlTranslatorFactoryMock.Object, xamlGeneratorHelperFactoryMock.Object, xamlWriterFactoryMock.Object);
 
-            var flowDocument = testSubject.Create(ruleInfoMock.Object, /* todo */ null);
+            var flowDocument = testSubject.Create(ruleInfoMock.Object);
 
             flowDocument.Blocks.Single().Should().BeOfType<Paragraph>().Which.Inlines.Single().Should().BeOfType<Run>().Which.Text.Should().Be("Hi");
         }
@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
                 var data = ReadResource(fullResourceName);
                 var jsonRuleInfo = JsonConvert.DeserializeObject<RuleInfo>(data);
 
-                var doc = testSubject.Create(jsonRuleInfo, /* todo */ null);
+                var doc = testSubject.Create(jsonRuleInfo);
 
                 // Quick sanity check that something was produced
                 // Note: this is a quick way of getting the size of the document. Serializing the doc to a string
