@@ -51,10 +51,10 @@ namespace DownloadCFamilyPlugin
         //          package\package.json
 
         // The archive containing the eslintbridge
-        private const string SourceEsLintBridgeFilePattern = "eslint-bridge-*.tgz";
+        private const string SourceEsLintBridgeFilePattern = "sonarjs-*.tgz";
 
         // Sub-folder into which the tar file should be unzipped
-        public const string TargetEslintBridgeFolderName = "eslint-bridge";
+        public const string TargetEslintBridgeFolderName = "sonarjs";
 
         // List of patterns to match single files in the uncompressed output
         private readonly string[] SourceSingleFilePatterns = new string[]
@@ -103,7 +103,7 @@ namespace DownloadCFamilyPlugin
             var fileList = FindFiles(perVersionPluginFolder);
             FilesToEmbed = fileList.ToArray();
 
-            PackageDirectoryToEmbed =   Path.Combine(perVersionPluginFolder, SourceRelativePackageDirectory);
+            PackageDirectoryToEmbed = Path.Combine(perVersionPluginFolder, SourceRelativePackageDirectory);
 
             return !Log.HasLoggedErrors;
         }
