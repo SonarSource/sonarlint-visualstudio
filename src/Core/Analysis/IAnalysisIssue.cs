@@ -41,6 +41,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
         /// Should never be null
         /// </summary>
         IAnalysisIssueLocation PrimaryLocation { get; }
+
+        string Context { get; }
     }
 
     public interface IAnalysisIssueFlow

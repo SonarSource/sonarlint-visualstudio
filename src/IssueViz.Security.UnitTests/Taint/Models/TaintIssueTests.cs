@@ -48,13 +48,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Mod
             var lastUpdated = DateTimeOffset.UtcNow;
             var issue = new TaintIssue("issue key", "rule key",
                 new AnalysisIssueLocation("message", "local-path.cpp", new TextRange(1, 2, 3, 4, "hash")),
-                AnalysisIssueSeverity.Major, created, lastUpdated, null);
+                AnalysisIssueSeverity.Major, created, lastUpdated, null, "contextKey");
 
             issue.IssueKey.Should().Be("issue key");
             issue.RuleKey.Should().Be("rule key");
             issue.Severity.Should().Be(AnalysisIssueSeverity.Major);
             issue.CreationTimestamp.Should().Be(created);
             issue.LastUpdateTimestamp.Should().Be(lastUpdated);
+            issue.Context.Should().Be("contextKey");
 
             issue.PrimaryLocation.FilePath.Should().Be("local-path.cpp");
             issue.PrimaryLocation.Message.Should().Be("message");
