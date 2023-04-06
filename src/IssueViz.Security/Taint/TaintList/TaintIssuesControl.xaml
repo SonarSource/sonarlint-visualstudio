@@ -7,6 +7,7 @@
              xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:core="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
+             xmlns:commands="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;assembly=SonarLint.VisualStudio.IssueVisualization"
              DataContext="{Binding ViewModel, RelativeSource={RelativeSource Mode=Self}}">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -16,6 +17,7 @@
 
             <core:NullableSelectedItemConverter x:Key="NullableSelectedItemConverter" />
             <core:DateTimeConverter x:Key="DateTimeConverter" />
+            <commands:NavigateToRuleDescriptionCommandConverter x:Key="NavigateToRuleDescriptionCommandConverter" />
 
             <ContextMenu x:Key="RowMenu" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                 <MenuItem Header="{Binding DataContext.ServerType, Mode=OneWay, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}"
@@ -167,7 +169,13 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock>
-                                        <Hyperlink Style="{StaticResource RuleKeyLinkStyle}" CommandParameter="{Binding TaintIssueViz.Issue.RuleKey}" Command="{Binding DataContext.NavigateToRuleDescriptionCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}">
+                                        <Hyperlink Style="{StaticResource RuleKeyLinkStyle}" Command="{Binding DataContext.NavigateToRuleDescriptionCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}">
+                                            <Hyperlink.CommandParameter>
+                                                <MultiBinding Converter="{StaticResource NavigateToRuleDescriptionCommandConverter}">
+                                                    <Binding Path="TaintIssueViz.Issue.RuleKey" />
+                                                    <Binding Path="TaintIssueViz.Issue.Context" />
+                                                </MultiBinding>
+                                            </Hyperlink.CommandParameter>
                                             <TextBlock Text="{Binding TaintIssueViz.Issue.RuleKey}" Style="{StaticResource CellTextBlockStyle}" />
                                         </Hyperlink>
                                     </TextBlock>
