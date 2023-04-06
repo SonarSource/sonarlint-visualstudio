@@ -26,10 +26,10 @@ using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 using ITaintIssue = SonarQube.Client.Models.ServerSentEvents.ClientContract.ITaintIssue;
@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         public void Convert_FromSonarQubeIssue_ServerIssueHasNoTextRange_ArgumentNullException()
         {
             var serverIssue = CreateServerIssue(textRange: null);
-            
+
             var testSubject = CreateTestSubject();
 
             Action act = () => testSubject.Convert(serverIssue);
@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var serverLocation = CreateServerLocation(textRange: null);
             var serverFlow = CreateServerFlow(serverLocation);
             var sonarQubeIssue = CreateServerIssue(textRange: new IssueTextRange(1, 1, 1, 1), flows: serverFlow);
-            
+
             var testSubject = CreateTestSubject();
 
             Action act = () => testSubject.Convert(sonarQubeIssue);
@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         [TestMethod]
         public void Convert_FromSonarQubeIssue_IssueVizConverterCalledWithCorrectParameters_ReturnsConvertedIssueVizWithReversedLocations()
         {
-            var location1 = CreateServerLocation("path1", "message1", new IssueTextRange(1,2,3,4));
+            var location1 = CreateServerLocation("path1", "message1", new IssueTextRange(1, 2, 3, 4));
             var location2 = CreateServerLocation("path2", "message2", new IssueTextRange(5, 6, 7, 8));
             var flow1 = CreateServerFlow(location1, location2);
 
@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var lastUpdate = DateTimeOffset.Parse("2009-02-01T13:14:15+0200");
 
             var issue = CreateServerIssue("issue key", "path4", "hash", "message4", "rule", SonarQubeIssueSeverity.Major,
-                new IssueTextRange(13, 14, 15, 16), created, lastUpdate, flow1, flow2);
+                new IssueTextRange(13, 14, 15, 16), created, lastUpdate, "contextKey", flow1, flow2);
 
             var expectedConvertedIssueViz = CreateIssueViz();
             var issueVizConverter = new Mock<IAnalysisIssueVisualizationConverter>();
@@ -104,6 +104,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                         taintIssue.IssueKey == "issue key" &&
                         taintIssue.RuleKey == "rule" &&
                         taintIssue.Severity == AnalysisIssueSeverity.Major &&
+                        taintIssue.RuleDescriptionContextKey == "contextKey" &&
 
                         taintIssue.PrimaryLocation.FilePath == "path4" &&
                         taintIssue.PrimaryLocation.Message == "message4" &&
@@ -298,8 +299,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
         private static SonarQubeIssue CreateServerIssue(string issueKey = "issue key", string filePath = "test.cpp", string hash = "hash", string message = "message", string rule = "rule",
             SonarQubeIssueSeverity severity = SonarQubeIssueSeverity.Info, IssueTextRange textRange = null,
-            DateTimeOffset created = default, DateTimeOffset lastUpdate = default, params IssueFlow[] flows) => 
-            new(issueKey, filePath, hash, message, null, rule, true, severity, created, lastUpdate, textRange, flows.ToList());
+            DateTimeOffset created = default, DateTimeOffset lastUpdate = default, string context = null, params IssueFlow[] flows) =>
+            new(issueKey, filePath, hash, message, null, rule, true, severity, created, lastUpdate, textRange, flows.ToList(), context);
 
         private static IssueLocation CreateServerLocation(string filePath = "test.cpp", string message = "message",
             IssueTextRange textRange = null) => new(filePath, null, textRange, message);

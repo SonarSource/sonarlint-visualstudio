@@ -39,6 +39,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         public IReadOnlyList<IQuickFix> Fixes { get; } = Array.Empty<IQuickFix>();
 
-        public string Context { get; set; }
+        public string RuleDescriptionContextKey { get; set; }
     }
 }
