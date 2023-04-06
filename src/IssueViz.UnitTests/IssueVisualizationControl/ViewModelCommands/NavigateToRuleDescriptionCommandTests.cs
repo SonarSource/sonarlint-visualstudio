@@ -92,6 +92,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             actualRuleId.RuleKey.Should().Be(expectedId.RuleKey);
         }
 
+        [TestMethod]
+        public void Execute_WrongTypeParameter_DoesNotCrash()
+        {
+            var educationService = new Mock<IEducation>();
+            var testSubject = CreateTestSubject(educationService.Object);
+
+            testSubject.Execute("wrong param");
+
+            educationService.VerifyNoOtherCalls();
+        }
+
         private NavigateToRuleDescriptionCommand CreateTestSubject(IEducation educationService = null)
         {
             educationService ??= Mock.Of<IEducation>();
