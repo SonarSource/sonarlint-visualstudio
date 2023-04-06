@@ -18,9 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Windows.Controls;
 using System.Windows.Navigation;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
+using EducationResx = SonarLint.VisualStudio.Education.Resources;
 
 namespace SonarLint.VisualStudio.Education.Commands
 {
@@ -28,27 +31,44 @@ namespace SonarLint.VisualStudio.Education.Commands
     {
         private readonly IBrowserService browserService;
         private readonly IEducation education;
+        private readonly ILogger logger;
 
-        internal RuleHelpUserControl(IBrowserService browserService, IEducation education)
+        internal RuleHelpUserControl(IBrowserService browserService, IEducation education, ILogger logger)
         {
             this.browserService = browserService;
             this.education = education;
+            this.logger = logger;
 
             InitializeComponent();
         }
 
         public void HandleRequestNavigate(object sender, RequestNavigateEventArgs e)
         {
-            // If the incoming URI can be decoded it means that the incoming URI is a cross reference rule
-            // in which case it needs to be handed over to the education service.
-            if (SonarRuleIdUriEncoderDecoder.TryDecodeToCompositeRuleId(e.Uri, out SonarCompositeRuleId compositeRuleId))
+            try
             {
-                education.ShowRuleHelp(compositeRuleId);
+                if (!e.Uri.IsAbsoluteUri)
+                {
+                    logger.LogVerbose(EducationResx.RuleHelpUserControl_Verbose_RelativeURI, e.Uri);
+                    logger.WriteLine(EducationResx.RuleHelpUserControl_RelativeURI, e.Uri);
 
-                return;
+                    return;
+                }
+
+                // If the incoming URI can be decoded it means that the incoming URI is a cross reference rule
+                // in which case it needs to be handed over to the education service.
+                if (SonarRuleIdUriEncoderDecoder.TryDecodeToCompositeRuleId(e.Uri, out SonarCompositeRuleId compositeRuleId))
+                {
+                    education.ShowRuleHelp(compositeRuleId);
+
+                    return;
+                }
+
+                browserService.Navigate(e.Uri.AbsoluteUri);
             }
-
-            browserService.Navigate(e.Uri.AbsoluteUri);
+            catch (Exception ex) when (!Core.ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(string.Format(EducationResx.ERR_RuleHelpUserControl_Exception, ex));
+            }
         }
     }
 }
