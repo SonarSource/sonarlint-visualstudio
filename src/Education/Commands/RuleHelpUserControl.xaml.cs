@@ -18,10 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Windows.Controls;
 using System.Windows.Navigation;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
+using EducationResx = SonarLint.VisualStudio.Education.Resources;
 
 namespace SonarLint.VisualStudio.Education.Commands
 {
@@ -42,24 +44,31 @@ namespace SonarLint.VisualStudio.Education.Commands
 
         public void HandleRequestNavigate(object sender, RequestNavigateEventArgs e)
         {
-            if (!e.Uri.IsAbsoluteUri)
+            try
             {
-                logger.LogVerbose($"[RuleHelpUserControl] Failed to navigate to Uri as it is a relative path: {e.Uri}");
-                logger.WriteLine($"[RuleHelpUserControl] Failed to open URI: {e.Uri}");
+                if (!e.Uri.IsAbsoluteUri)
+                {
+                    logger.LogVerbose(EducationResx.RuleHelpUserControl_Verbose_RelativeURI, e.Uri);
+                    logger.WriteLine(EducationResx.RuleHelpUserControl_RelativeURI, e.Uri);
 
-                return;
+                    return;
+                }
+
+                // If the incoming URI can be decoded it means that the incoming URI is a cross reference rule
+                // in which case it needs to be handed over to the education service.
+                if (SonarRuleIdUriEncoderDecoder.TryDecodeToCompositeRuleId(e.Uri, out SonarCompositeRuleId compositeRuleId))
+                {
+                    education.ShowRuleHelp(compositeRuleId);
+
+                    return;
+                }
+
+                browserService.Navigate(e.Uri.AbsoluteUri);
             }
-
-            // If the incoming URI can be decoded it means that the incoming URI is a cross reference rule
-            // in which case it needs to be handed over to the education service.
-            if (SonarRuleIdUriEncoderDecoder.TryDecodeToCompositeRuleId(e.Uri, out SonarCompositeRuleId compositeRuleId))
+            catch (Exception ex) when (!Core.ErrorHandler.IsCriticalException(ex))
             {
-                education.ShowRuleHelp(compositeRuleId);
-
-                return;
+                logger.WriteLine(string.Format(EducationResx.ERR_RuleHelpUserControl_Exception, ex));
             }
-
-            browserService.Navigate(e.Uri.AbsoluteUri);
         }
     }
 }
