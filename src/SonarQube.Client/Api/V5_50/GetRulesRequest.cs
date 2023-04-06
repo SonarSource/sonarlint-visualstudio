@@ -45,7 +45,7 @@ namespace SonarQube.Client.Api.V5_50
         // in the response! For example 'internalKey' in the request corresponds to 'key'
         // in the response. The server error message (400) returns all supported fields.
         [JsonProperty("f")]
-        public string ResponseFields => "repo,internalKey,params,actives,htmlDesc,descriptionSections,educationPrinciples,tags,name,htmlNote";
+        public string ResponseFields => "repo,internalKey,params,actives,htmlDesc,tags,name,htmlNote";
 
         protected override SonarQubeRule[] ParseResponse(string response)
         {
