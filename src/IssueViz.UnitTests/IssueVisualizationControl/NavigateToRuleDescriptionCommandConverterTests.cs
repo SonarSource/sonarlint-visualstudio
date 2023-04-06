@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         [DataRow(3, "str")]
         [DataRow(3, 3)]
         [TestMethod]
-        public void Convert_WronTypes_ReturnsNull(object param1, object param2)
+        public void Convert_WrongTypes_ReturnsNull(object param1, object param2)
         {
             var values = new object[] { param1, param2 };
 

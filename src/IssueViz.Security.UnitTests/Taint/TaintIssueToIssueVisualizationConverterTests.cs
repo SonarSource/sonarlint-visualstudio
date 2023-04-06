@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                         taintIssue.IssueKey == "issue key" &&
                         taintIssue.RuleKey == "rule" &&
                         taintIssue.Severity == AnalysisIssueSeverity.Major &&
-                        taintIssue.Context == "contextKey" &&
+                        taintIssue.RuleDescriptionContextKey == "contextKey" &&
 
                         taintIssue.PrimaryLocation.FilePath == "path4" &&
                         taintIssue.PrimaryLocation.Message == "message4" &&

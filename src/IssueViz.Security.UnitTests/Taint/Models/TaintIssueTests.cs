@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Mod
             issue.Severity.Should().Be(AnalysisIssueSeverity.Major);
             issue.CreationTimestamp.Should().Be(created);
             issue.LastUpdateTimestamp.Should().Be(lastUpdated);
-            issue.Context.Should().Be("contextKey");
+            issue.RuleDescriptionContextKey.Should().Be("contextKey");
 
             issue.PrimaryLocation.FilePath.Should().Be("local-path.cpp");
             issue.PrimaryLocation.Message.Should().Be("message");

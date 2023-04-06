@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
             DateTimeOffset creationTimestamp,
             DateTimeOffset lastUpdateTimestamp,
             IReadOnlyList<IAnalysisIssueFlow> flows,
-            string context)
+            string ruleDescriptionContextKey)
         {
             IssueKey = issueKey;
             RuleKey = ruleKey;
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
             CreationTimestamp = creationTimestamp;
             LastUpdateTimestamp = lastUpdateTimestamp;
             Flows = flows ?? EmptyFlows;
-            Context = context;
+            RuleDescriptionContextKey = ruleDescriptionContextKey;
         }
 
         public string IssueKey { get; }
@@ -65,6 +65,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
         public DateTimeOffset LastUpdateTimestamp { get; }
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
         public IAnalysisIssueLocation PrimaryLocation { get; }
-        public string Context { get; }
+        public string RuleDescriptionContextKey { get; }
     }
 }
