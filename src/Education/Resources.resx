@@ -129,8 +129,17 @@
   <data name="ERR_RuleHelpToolWindow_Exception" xml:space="preserve">
     <value>[Education] Error displaying Rule Help Window: {0}</value>
   </data>
+  <data name="ERR_RuleHelpUserControl_Exception" xml:space="preserve">
+    <value>[Education] Error handling Uri: {0}</value>
+  </data>
   <data name="RuleHelpToolWindowCaption" xml:space="preserve">
     <value>Sonar Rule Help</value>
+  </data>
+  <data name="RuleHelpUserControl_RelativeURI" xml:space="preserve">
+    <value>[Education] Failed to open Uri: {0}</value>
+  </data>
+  <data name="RuleHelpUserControl_Verbose_RelativeURI" xml:space="preserve">
+    <value>[RuleHelpUserControl] Failed to navigate to Uri as it is a relative path: {0}</value>
   </data>
   <data name="XamlBuilder_UnexpectedNodeError" xml:space="preserve">
     <value>[Education] Error: rule description contains an unexpected node. Node type: {0}, name: {1}, value: {2}</value>

@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Education.Commands;
+using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Education
@@ -52,8 +53,9 @@ namespace SonarLint.VisualStudio.Education
                 var componentModel = GetService(typeof(SComponentModel)) as IComponentModel;
                 var browserService = componentModel.GetService<IBrowserService>();
                 var education = componentModel.GetService<IEducation>();
+                var logger = componentModel.GetService<ILogger>();
 
-                return new RuleHelpToolWindow(browserService, education);
+                return new RuleHelpToolWindow(browserService, education, logger);
             }
 
             return base.InstantiateToolWindow(toolWindowType);
