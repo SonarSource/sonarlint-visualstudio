@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
             Flows = flows ?? EmptyFlows;
             Fixes = fixes ?? EmptyFixes;
-            Context = context;
+            RuleDescriptionContextKey = context;
         }
 
         public string RuleKey { get; }
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
         public IReadOnlyList<IQuickFix> Fixes { get; }
 
-        public string Context { get; }
+        public string RuleDescriptionContextKey { get; }
     }
 
     public class AnalysisIssueFlow : IAnalysisIssueFlow

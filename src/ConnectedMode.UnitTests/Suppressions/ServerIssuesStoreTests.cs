@@ -275,7 +275,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
         private static SonarQubeIssue CreateIssue(string key, bool isResolved = false)
         {
-            var issue = new SonarQubeIssue(key, "", "", "", "", "", isResolved, SonarQubeIssueSeverity.Info, DateTimeOffset.MinValue, DateTimeOffset.MinValue, null, null);
+            var issue = new SonarQubeIssue(key, "", "", "", "", "", isResolved, SonarQubeIssueSeverity.Info, DateTimeOffset.MinValue, DateTimeOffset.MinValue, null, null, null);
 
             return issue;
         }

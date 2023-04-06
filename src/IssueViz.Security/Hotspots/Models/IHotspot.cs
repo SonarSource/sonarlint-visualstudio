@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
             CreationTimestamp = createTimestamp;
             LastUpdateTimestamp = lastUpdateTimestamp;
             Flows = flows ?? EmptyFlows;
-            Context = context;
+            RuleDescriptionContextKey = context;
         }
 
         public string HotspotKey { get; }
@@ -71,6 +71,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
         public string ServerFilePath { get; }
         public DateTimeOffset CreationTimestamp { get; }
         public DateTimeOffset LastUpdateTimestamp { get; }
-        public string Context { get; }
+        public string RuleDescriptionContextKey { get; }
     }
 }

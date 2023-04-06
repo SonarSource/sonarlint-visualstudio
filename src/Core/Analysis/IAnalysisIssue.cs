@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
         /// </summary>
         IAnalysisIssueLocation PrimaryLocation { get; }
 
-        string Context { get; }
+        string RuleDescriptionContextKey { get; }
     }
 
     public interface IAnalysisIssueFlow
