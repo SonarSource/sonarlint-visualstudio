@@ -19,10 +19,10 @@
  */
 
 using System;
-using SonarLint.VisualStudio.Core;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using SonarLint.VisualStudio.Core;
 
 /* Notes:
  *   
@@ -43,14 +43,19 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
     internal static class CustomTextMarkupParser
     {
         /// <summary>
+        /// Matches - ... text ... {rule:cpp:S123} ... text ... {rule:cpp:S999} ... text
+        /// </summary>
+        private static readonly Regex RuleCrossRefRegEx = new Regex("{rule:(?<repoKey>[A-Za-z]+):(?<ruleKey>[\\w]+)}",
+            RegexOptions.Compiled, RegexConstants.DefaultTimeout);
+
+        /// <summary>
         /// Parse a text string that might/might not contain rule cross-references
         /// </summary>
         public static IEnumerable<ITextToken> Parse(string text)
         {
             var textTokens = new List<ITextToken>();
 
-            // Matches -   ... text ... {rule:cpp:S123} ... text ... {rule:cpp:S999} ... text
-            var matches = Regex.Matches(text, "{rule:(?<repoKey>[A-Za-z]+):(?<ruleKey>[\\w]+)}");
+            var matches = RuleCrossRefRegEx.Matches(text);
 
             int endOfLastMatch = 0;
 
