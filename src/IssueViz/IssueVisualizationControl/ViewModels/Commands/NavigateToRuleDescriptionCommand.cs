@@ -41,10 +41,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         public NavigateToRuleDescriptionCommand(IEducation educationService)
             : base(parameter =>
                 {
-                    var paramObject = (NavigateToRuleDescriptionCommandParam)parameter;
-                    if (SonarCompositeRuleId.TryParse(paramObject.FullRuleKey, out var ruleId))
+                    var paramObject = parameter as NavigateToRuleDescriptionCommandParam;
+                    if (SonarCompositeRuleId.TryParse(paramObject?.FullRuleKey, out var ruleId))
                     {
-                        educationService.ShowRuleHelp(ruleId, paramObject.Context);
+                        educationService.ShowRuleHelp(ruleId, paramObject?.Context);
                     }
                 },
                 parameter => parameter is NavigateToRuleDescriptionCommandParam s &&
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            if (values.Length == 2 && values[0] is string && values[1] is string)
+            if (values.Length == 2 && values[0] is string && (values[1] is string || values[1] == null))
             {
                 return new NavigateToRuleDescriptionCommandParam { FullRuleKey = (string)values[0], Context = (string)values[1] };
             }

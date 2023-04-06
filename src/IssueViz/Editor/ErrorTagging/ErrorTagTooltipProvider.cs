@@ -51,7 +51,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
         private readonly ILogger logger;
 
         [ImportingConstructor]
-
         public ErrorTagTooltipProvider(IVsThemeColorProvider vsThemeColorProvider, INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand, ILogger logger)
         {
             this.vsThemeColorProvider = vsThemeColorProvider;
@@ -80,7 +79,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
                 NavigateUri = dummyUri // must set something, otherwise the RequestNavigate event won't fire.
             };
 
-            hyperLink.RequestNavigate += (sender, args) => navigateToRuleDescriptionCommand.Execute(analysisIssueBase.RuleKey);
+            hyperLink.RequestNavigate += (sender, args) => navigateToRuleDescriptionCommand.Execute(new NavigateToRuleDescriptionCommandParam { FullRuleKey = analysisIssueBase.RuleKey });
 
             ApplyHyperlinkStyle(hyperLink);
 
@@ -130,7 +129,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
         {
             var textColor = vsThemeColorProvider.GetVsThemedColor(resourceKey);
             var color = Color.FromArgb(textColor.A, textColor.R, textColor.G, textColor.B);
-            
+
             return new SolidColorBrush(color);
         }
     }
