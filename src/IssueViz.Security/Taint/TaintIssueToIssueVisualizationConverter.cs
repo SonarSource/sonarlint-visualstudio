@@ -35,6 +35,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
     interface ITaintIssueToIssueVisualizationConverter
     {
         IAnalysisIssueVisualization Convert(SonarQubeIssue sonarQubeIssue);
+
         IAnalysisIssueVisualization Convert(ITaintIssue sonarQubeTaintIssue);
     }
 
@@ -106,7 +107,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 Convert(sonarQubeIssue.Severity),
                 sonarQubeIssue.CreationTimestamp,
                 sonarQubeIssue.LastUpdateTimestamp,
-                Convert(sonarQubeIssue.Flows)
+                Convert(sonarQubeIssue.Flows),
+                sonarQubeIssue.Context
             );
         }
 
@@ -126,8 +128,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                         sonarQubeTaintIssue.MainLocation.TextRange.Hash)),
                 Convert(sonarQubeTaintIssue.Severity),
                 sonarQubeTaintIssue.CreationDate,
-                default, 
-                Convert(sonarQubeTaintIssue.Flows)
+                default,
+                Convert(sonarQubeTaintIssue.Flows),
+                sonarQubeTaintIssue.Context
             );
         }
 
@@ -182,12 +185,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             {
                 case SonarQubeIssueSeverity.Blocker:
                     return AnalysisIssueSeverity.Blocker;
+
                 case SonarQubeIssueSeverity.Critical:
                     return AnalysisIssueSeverity.Critical;
+
                 case SonarQubeIssueSeverity.Info:
                     return AnalysisIssueSeverity.Info;
+
                 case SonarQubeIssueSeverity.Major:
                     return AnalysisIssueSeverity.Major;
+
                 case SonarQubeIssueSeverity.Minor:
                     return AnalysisIssueSeverity.Minor;
 
