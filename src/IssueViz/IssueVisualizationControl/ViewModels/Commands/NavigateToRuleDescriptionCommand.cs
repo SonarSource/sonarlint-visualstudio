@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            if (values.Length == 2 && values[0] is string && values[1] is string)
+            if (values.Length == 2 && values[0] is string && (values[1] is string || values[1] == null))
             {
                 return new NavigateToRuleDescriptionCommandParam { FullRuleKey = (string)values[0], Context = (string)values[1] };
             }

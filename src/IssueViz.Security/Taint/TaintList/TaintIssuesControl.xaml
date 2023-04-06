@@ -173,7 +173,7 @@
                                             <Hyperlink.CommandParameter>
                                                 <MultiBinding Converter="{StaticResource NavigateToRuleDescriptionCommandConverter}">
                                                     <Binding Path="TaintIssueViz.Issue.RuleKey" />
-                                                    <Binding Path="TaintIssueViz.Issue.Context" />
+                                                    <Binding Path="TaintIssueViz.Issue.RuleDescriptionContextKey" />
                                                 </MultiBinding>
                                             </Hyperlink.CommandParameter>
                                             <TextBlock Text="{Binding TaintIssueViz.Issue.RuleKey}" Style="{StaticResource CellTextBlockStyle}" />
