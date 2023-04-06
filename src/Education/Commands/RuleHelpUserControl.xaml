@@ -17,10 +17,6 @@
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Defines the standard set of style used by the document elements -->
-            <Style TargetType="ScrollViewer" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ScrollViewerStyleKey}}" >
-                <Setter Property="Margin" Value="0, 0, 0, 0"/>
-                <Setter Property="Padding" Value="0, 0, 0, 0"/>
-            </Style>
             <Style TargetType="TabControl">
                 <Setter Property="Margin" Value="0, 0, 0, 0"/>
                 <Setter Property="Padding" Value="0, 0, 0, 0"/>
@@ -32,7 +28,7 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition />
                                 </Grid.RowDefinitions>
-                                <ScrollViewer HorizontalScrollBarVisibility="Auto"  VerticalScrollBarVisibility="Hidden" >
+                                <StackPanel>
                                     <TabPanel x:Name="HeaderPanel"
                                               Panel.ZIndex ="1" 
                                               KeyboardNavigation.TabIndex="1"
@@ -40,7 +36,7 @@
                                               Grid.Row="0"
                                               Margin="2,2,2,0"
                                               IsItemsHost="true"/>
-                                </ScrollViewer>
+                                </StackPanel>
                                 <ContentPresenter x:Name="PART_SelectedContentHost"
                                                   SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
                                                   Margin="-10,0,0,0"
