@@ -14,6 +14,12 @@
         "resolved": "5.9.0",
         "contentHash": "JZxb5DuspmuH4A5p9bfj060evQnwIUkxxfFMG9F/pa7gl1Ry2r2nuQbu5G4UWGQQTtpTxPpVowqNDdBkA0G2Mw=="
       },
+      "FluentAssertions.Analyzers": {
+        "type": "Direct",
+        "requested": "[0.11.4, )",
+        "resolved": "0.11.4",
+        "contentHash": "zSCkwOgc5OyfMfEeMr9x0K7WCDf8i6VdF2RtCLN/4m6iebTtJQdeoJ9IS4/RyYHuLUYjrm0sd+siWbaSvSzRYQ=="
+      },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
         "requested": "[16.6.1, )",
@@ -1274,7 +1280,10 @@
         "type": "Project",
         "dependencies": {
           "FluentAssertions": "[5.9.0, )",
+          "FluentAssertions.Analyzers": "[0.11.4, )",
+          "MSTest.TestAdapter": "[1.4.0, )",
           "MSTest.TestFramework": "[1.4.0, )",
+          "Microsoft.NET.Test.Sdk": "[16.6.1, )",
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
           "Moq": "[4.18.2, )",
           "NuGet.Core": "[2.12.0, )",
