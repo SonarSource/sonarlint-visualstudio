@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             hotspot.Rule.Should().BeSameAs(ValidRule);
             hotspot.CreationTimestamp.Should().Be(creationDate);
             hotspot.LastUpdateTimestamp.Should().Be(lastUpdated);
-            hotspot.Context.Should().Be("contextKey");
+            hotspot.RuleDescriptionContextKey.Should().Be("contextKey");
 
             hotspot.PrimaryLocation.FilePath.Should().Be("local-path.cpp");
             hotspot.PrimaryLocation.Message.Should().Be("message");

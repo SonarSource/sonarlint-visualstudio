@@ -31,14 +31,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
     {
         [TestMethod]
         [DataRow(null)]
-        [DataRow("")]
+        [DataRow("cpp:S111")]
         [DataRow(1)]
         [DataRow(true)]
-        [DataRow("rule key in invalid format")]
-        [DataRow(":xxx")]
-        [DataRow(":123:")]
-        [DataRow("xxx:123:asd")]
-        public void CanExecute_InvalidRuleKey_False(object parameter)
+        public void CanExecute_InvalidObjectType_False(object parameter)
         {
             var testSubject = CreateTestSubject();
 
@@ -48,19 +44,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         }
 
         [TestMethod]
-        [DataRow("c:S000")]
-        [DataRow("cpp:S111")]
-        [DataRow("csharpsquid:S222")]
-        [DataRow("vbnet:S333")]
-        [DataRow("javascript:S444")]
-        [DataRow("typescript:555")]
-        public void CanExecute_ValidRuleKey_True(string fullRuleKey)
+        [DataRow("c:S000", true)]
+        [DataRow("cpp:S111", true)]
+        [DataRow("csharpsquid:S222", true)]
+        [DataRow("vbnet:S333", true)]
+        [DataRow("javascript:S444", true)]
+        [DataRow("typescript:555", true)]
+        [DataRow("rule key in invalid format", false)]
+        [DataRow(":xxx", false)]
+        [DataRow(":123:", false)]
+        [DataRow("xxx:123:asd", false)]
+        [DataRow("", false)]
+        public void CanExecute_ValidObjectType_CheckRuleKey(string fullRuleKey, bool expectedResult)
         {
             var testSubject = CreateTestSubject();
 
-            var result = testSubject.CanExecute(fullRuleKey);
+            var executeParam = new NavigateToRuleDescriptionCommandParam { FullRuleKey = fullRuleKey };
 
-            result.Should().BeTrue();
+            var result = testSubject.CanExecute(executeParam);
+
+            result.Should().Be(expectedResult);
         }
 
         [TestMethod]
@@ -75,7 +78,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             var educationService = new Mock<IEducation>();
             var testSubject = CreateTestSubject(educationService.Object);
 
-            testSubject.Execute(fullRuleKey);
+            var executeParam = new NavigateToRuleDescriptionCommandParam { FullRuleKey = fullRuleKey };
+
+            testSubject.Execute(executeParam);
 
             educationService.Verify(x => x.ShowRuleHelp(It.IsAny<SonarCompositeRuleId>(), /* todo */ null), Times.Once);
             educationService.VerifyNoOtherCalls();

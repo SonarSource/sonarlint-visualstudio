@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Mod
         {
             Action act = () => new TaintIssue("issue key", "rule key",
                 null,
-                AnalysisIssueSeverity.Major, DateTimeOffset.MinValue, DateTimeOffset.MinValue, null);
+                AnalysisIssueSeverity.Major, DateTimeOffset.MinValue, DateTimeOffset.MinValue, null, null);
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("primaryLocation");
         }
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Mod
             issue.Severity.Should().Be(AnalysisIssueSeverity.Major);
             issue.CreationTimestamp.Should().Be(created);
             issue.LastUpdateTimestamp.Should().Be(lastUpdated);
-            issue.Context.Should().Be("contextKey");
+            issue.RuleDescriptionContextKey.Should().Be("contextKey");
 
             issue.PrimaryLocation.FilePath.Should().Be("local-path.cpp");
             issue.PrimaryLocation.Message.Should().Be("message");
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Mod
             IReadOnlyList<IAnalysisIssueFlow> flows = null;
             var issue = new TaintIssue("issue key", "rule key",
                 new AnalysisIssueLocation("message", "local-path.cpp", new TextRange(1, 2, 3, 4, "hash")),
-                AnalysisIssueSeverity.Major, DateTimeOffset.MinValue, DateTimeOffset.MaxValue, flows);
+                AnalysisIssueSeverity.Major, DateTimeOffset.MinValue, DateTimeOffset.MaxValue, flows, null);
 
             issue.Flows.Should().BeEmpty();
         }
@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Mod
             var flows = new[] { Mock.Of<IAnalysisIssueFlow>(), Mock.Of<IAnalysisIssueFlow>() };
             var issue = new TaintIssue("issue key", "rule key",
                 new AnalysisIssueLocation("message", "local-path.cpp", new TextRange(1, 2, 3, 4, "hash")),
-                AnalysisIssueSeverity.Major, DateTimeOffset.MinValue, DateTimeOffset.MaxValue, flows);
+                AnalysisIssueSeverity.Major, DateTimeOffset.MinValue, DateTimeOffset.MaxValue, flows, null);
 
             issue.Flows.Should().BeEquivalentTo(flows);
         }

@@ -69,7 +69,7 @@ namespace SonarQube.Client.Tests.Models
                 new IssueFlow(null), new IssueFlow(null)
             };
             var testSubject = new SonarQubeIssue("issueKey", "file", "hash", "message", "module", "rule", true, SonarQubeIssueSeverity.Info,
-                creationTimestamp, lastUpdateTimestamp, new IssueTextRange(123, 456, 7, 8), flows);
+                creationTimestamp, lastUpdateTimestamp, new IssueTextRange(123, 456, 7, 8), flows, "contextKey");
 
             testSubject.IssueKey.Should().Be("issueKey");
             testSubject.FilePath.Should().Be("file");
@@ -83,6 +83,7 @@ namespace SonarQube.Client.Tests.Models
             testSubject.LastUpdateTimestamp.Should().Be(lastUpdateTimestamp);
             testSubject.TextRange.Should().BeEquivalentTo(new IssueTextRange(123, 456, 7, 8));
             testSubject.Flows.Should().BeEquivalentTo(flows);
+            testSubject.Context.Should().Be("contextKey");
         }
     }
 }
