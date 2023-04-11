@@ -43,12 +43,6 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class SimpleRuleHelpXamlBuilder : ISimpleRuleHelpXamlBuilder
     {
-    }
-
-    [Export(typeof(ISimpleRuleHelpXamlBuilder))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class SimpleRuleHelpXamlBuilder : ISimpleRuleHelpXamlBuilder
-    {
         private readonly IXamlGeneratorHelperFactory xamlGeneratorHelperFactory;
         private readonly IRuleHelpXamlTranslator ruleHelpXamlTranslator;
         private readonly IXamlWriterFactory xamlWriterFactory;
