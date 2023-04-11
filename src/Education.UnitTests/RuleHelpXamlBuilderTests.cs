@@ -46,7 +46,7 @@ public class RuleHelpXamlBuilderTests
         var selectedIssueContext = "abrakadabra";
         var ruleInfoMock = new Mock<IRuleInfo>();
         ruleInfoMock.SetupGet(x => x.DescriptionSections).Returns(isExtendedRule
-            ? new List<IDescriptionSection> { new DescriptionSection(null, null) }
+            ? new List<IDescriptionSection> { new DescriptionSection(null, null), new DescriptionSection(null, null) }
             : null);
         var simpleRuleHelpXamlBuilderMock = new Mock<ISimpleRuleHelpXamlBuilder>();
         var richRuleHelpXamlBuilderMock = new Mock<IRichRuleHelpXamlBuilder>();
@@ -54,7 +54,7 @@ public class RuleHelpXamlBuilderTests
 
         testSubject.Create(ruleInfoMock.Object, selectedIssueContext);
 
-        simpleRuleHelpXamlBuilderMock.Verify(x => x.Create(ruleInfoMock.Object), isExtendedRule ? Times.Never: Times.Once);
-        richRuleHelpXamlBuilderMock.Verify(x => x.Create(ruleInfoMock.Object, selectedIssueContext), isExtendedRule ? Times.Once: Times.Never);
+        simpleRuleHelpXamlBuilderMock.Verify(x => x.Create(ruleInfoMock.Object), isExtendedRule ? Times.Never : Times.Once);
+        richRuleHelpXamlBuilderMock.Verify(x => x.Create(ruleInfoMock.Object, selectedIssueContext), isExtendedRule ? Times.Once : Times.Never);
     }
 }
