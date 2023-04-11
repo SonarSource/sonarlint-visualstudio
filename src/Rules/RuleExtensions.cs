@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Rules
     {
         public static bool IsRichRuleDescription(this IRuleInfo ruleInfo)
         {
-            return ruleInfo.DescriptionSections != null && ruleInfo.DescriptionSections.Count > 0;
+            return ruleInfo.DescriptionSections != null && ruleInfo.DescriptionSections.Count > 1;
         }
 
         internal static string GetCompositeKey(this SonarQubeRule sonarQubeRule) => $"{sonarQubeRule.RepositoryKey}:{sonarQubeRule.Key}";

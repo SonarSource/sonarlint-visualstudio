@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -48,10 +47,19 @@ public class RuleInfoExtensionsTests
     }
 
     [TestMethod]
-    public void IsRich_DescriptionSectionsNonEmpty_True()
+    public void IsRich_DescriptionSectionsHasOneMember_False()
     {
         var testSubject = new Mock<IRuleInfo>();
-        testSubject.SetupGet(x => x.DescriptionSections).Returns(new List<IDescriptionSection>{new DescriptionSection(null, null)});
+        testSubject.SetupGet(x => x.DescriptionSections).Returns(new List<IDescriptionSection> { new DescriptionSection(null, null) });
+
+        testSubject.Object.IsRichRuleDescription().Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void IsRich_DescriptionSectionsHasMoreThanOneMember_True()
+    {
+        var testSubject = new Mock<IRuleInfo>();
+        testSubject.SetupGet(x => x.DescriptionSections).Returns(new List<IDescriptionSection> { new DescriptionSection(null, null), new DescriptionSection(null, null) });
 
         testSubject.Object.IsRichRuleDescription().Should().BeTrue();
     }
