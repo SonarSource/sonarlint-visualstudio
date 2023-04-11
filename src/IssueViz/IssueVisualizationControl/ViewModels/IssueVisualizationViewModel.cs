@@ -39,6 +39,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         string FileName { get; }
         string Description { get; }
         string RuleKey { get; }
+        string RuleDescriptionContextKey { get; }
+
         AnalysisIssueSeverity Severity { get; }
         IAnalysisIssueVisualization CurrentIssue { get; }
         IAnalysisIssueFlowVisualization CurrentFlow { get; set; }
@@ -67,7 +69,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         private bool pausePropertyChangeNotifications;
 
-        public IssueVisualizationViewModel(IAnalysisIssueSelectionService selectionService, 
+        public IssueVisualizationViewModel(IAnalysisIssueSelectionService selectionService,
             ILocationNavigator locationNavigator,
             IFileNameLocationListItemCreator fileNameLocationListItemCreator,
             INavigateToCodeLocationCommand navigateToCodeLocationCommand,
@@ -84,8 +86,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
             selectionService.SelectionChanged += SelectionEvents_OnSelectionChanged;
 
-            UpdateState(SelectionChangeLevel.Issue, 
-                selectionService.SelectedIssue, 
+            UpdateState(SelectionChangeLevel.Issue,
+                selectionService.SelectedIssue,
                 selectionService.SelectedFlow,
                 selectionService.SelectedLocation);
         }
@@ -122,6 +124,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         public string RuleKey => CurrentIssue?.Issue?.RuleKey;
 
+        public string RuleDescriptionContextKey => CurrentIssue?.Issue?.RuleDescriptionContextKey;
 
         public AnalysisIssueSeverity Severity =>
             CurrentIssue?.Issue is IAnalysisIssue analysisIssue
@@ -182,6 +185,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                     NotifyPropertyChanged(nameof(LineNumber));
                     CalculateNonNavigableLocations();
                     break;
+
                 case nameof(IAnalysisIssueVisualization.CurrentFilePath):
                     NotifyPropertyChanged(nameof(FileName));
                     break;
@@ -249,8 +253,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             UpdateState(e.SelectionChangeLevel, e.SelectedIssue, e.SelectedFlow, e.SelectedLocation);
         }
 
-        private void UpdateState(SelectionChangeLevel selectionChangeLevel, 
-            IAnalysisIssueVisualization selectedIssue, 
+        private void UpdateState(SelectionChangeLevel selectionChangeLevel,
+            IAnalysisIssueVisualization selectedIssue,
             IAnalysisIssueFlowVisualization selectedFlow,
             IAnalysisIssueLocationVisualization selectedLocation)
         {
@@ -322,7 +326,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                         .TakeWhile(x => x.CurrentFilePath == location.CurrentFilePath)
                         .ToList();
 
-                    listItems.AddRange(sequentialLocations.Select(x => (ILocationListItem) new LocationListItem(x)));
+                    listItems.AddRange(sequentialLocations.Select(x => (ILocationListItem)new LocationListItem(x)));
 
                     i += sequentialLocations.Count - 1;
                 }
