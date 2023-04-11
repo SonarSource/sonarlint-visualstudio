@@ -147,13 +147,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         }
 
         private void NotifyIssuesChanged(
-            IReadOnlyCollection<IAnalysisIssueVisualization> removedIssues, 
+            IReadOnlyCollection<IAnalysisIssueVisualization> removedIssues,
             IReadOnlyCollection<IAnalysisIssueVisualization> addedIssues)
         {
-            if (removedIssues.Any() || addedIssues.Any())
-            {
-                IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(removedIssues, addedIssues));
-            }
+            // Hacky workaround for #4066 - always raise the event, even if
+            // the set of added/removed files is empty.
+            // See also #4070.
+            IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(removedIssues, addedIssues));
         }
 
         private sealed class TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer : IEqualityComparer<IAnalysisIssueVisualization>

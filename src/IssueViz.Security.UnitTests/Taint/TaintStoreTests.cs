@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         [TestMethod]
-        public void Set_NoPreviousItems_NoNewItems_CollectionChangedAndEventNotRaised()
+        public void Set_NoPreviousItems_NoNewItems_CollectionChangedAndEventRaised()
         {
             var testSubject = CreateTestSubject();
 
@@ -102,7 +102,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             testSubject.Set(Enumerable.Empty<IAnalysisIssueVisualization>(), null);
 
             testSubject.GetAll().Should().BeEmpty();
-            callCount.Should().Be(0);
+            callCount.Should().Be(1);
         }
 
         [TestMethod]
