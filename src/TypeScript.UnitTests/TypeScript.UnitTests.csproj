@@ -8,14 +8,6 @@
     <AssemblyName>SonarLint.VisualStudio.TypeScript.UnitTests</AssemblyName>
   </PropertyGroup>
 
-  <ItemGroup Label="Test framework">
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
-    <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
-    <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
-    <PackageReference Include="Moq" Version="4.18.2" />
-    <PackageReference Include="FluentAssertions" Version="5.9.0" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\TypeScript\TypeScript.csproj" />

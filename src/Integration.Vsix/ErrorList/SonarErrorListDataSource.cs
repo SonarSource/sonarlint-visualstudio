@@ -26,7 +26,6 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
-using SonarLint.VisualStudio.IssueVisualization;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -38,13 +37,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
 {
     [Export(typeof(ISonarErrorListDataSource))]
     [Export(typeof(IIssueLocationStore))]
-    [Export(typeof(IClientIssueStore))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class SonarErrorListDataSource :
         ITableDataSource,           // Allows us to provide entries to the Error List
         ISonarErrorListDataSource,  // Used by analyzers to push new analysis results to the data source
         IIssueLocationStore,        // Used by the taggers to get/update locations for specific files
-        IClientIssueStore,          // Used by Issue synchronizers to update issues.
         IDisposable
     {
         private readonly IFileRenamesEventSource fileRenamesEventSource;
@@ -192,15 +189,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
             }
 
             // Guard against factories changing while iterating
-            var currentFactories = factories.ToArray();
+            IIssuesSnapshotFactory[] currentFactories;
+
+            lock (sinks)
+            {
+                currentFactories = factories.ToArray();
+            }
 
             // There should be only one factory that has primary locations for the specified file path,
             // but any factory could have secondary locations
             var locVizs = new List<IAnalysisIssueLocationVisualization>();
+
             foreach (var factory in currentFactories)
             {
                 locVizs.AddRange(factory.CurrentSnapshot.GetLocationsVizsForFile(filePath));
             }
+
             return locVizs;
         }
 
@@ -288,9 +292,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
 
         #region IClientIssueStore implementation
 
-        public IEnumerable<IAnalysisIssueVisualization> Get()
+        public IEnumerable<IAnalysisIssueVisualization> GetIssues()
         {
-            var currentFactories = this.factories.ToArray();
+            IIssuesSnapshotFactory[] currentFactories;
+
+            lock (sinks)
+            {
+                currentFactories = factories.ToArray();
+            }
 
             foreach (var factory in currentFactories)
             {

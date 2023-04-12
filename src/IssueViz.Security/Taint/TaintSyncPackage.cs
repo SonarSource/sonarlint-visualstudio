@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEvents;
 using Task = System.Threading.Tasks.Task;
@@ -55,16 +56,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             var componentModel = await GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
             var logger = componentModel.GetService<ILogger>();
 
             logger.WriteLine(TaintResources.SyncPackage_Initializing);
 
             bindingMonitor = componentModel.GetService<ITaintIssuesBindingMonitor>();
-
-            await componentModel.GetService<ITaintIssuesSynchronizer>().SynchronizeWithServer();
-
             taintServerEventsListener = componentModel.GetService<ITaintServerEventsListener>();
+            var taintIssuesSynchronizer = componentModel.GetService<ITaintIssuesSynchronizer>();
+
+            await ThreadHandling.Instance.SwitchToBackgroundThread();
+
+            await taintIssuesSynchronizer.SynchronizeWithServer();
             taintServerEventsListener.ListenAsync().Forget();
 
             logger.WriteLine(TaintResources.SyncPackage_Initialized);

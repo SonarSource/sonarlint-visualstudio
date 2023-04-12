@@ -20,6 +20,7 @@
 
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions
 {
@@ -31,8 +32,9 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
     internal class SuppressionExecutionContext : ISuppressionExecutionContext
     {
         private const string Exp = @"\\.sonarlint\\(?<sonarkey>[^\\/]+)\\(CSharp|VB)\\SonarLint.xml$";
-        private static readonly Regex SonarLintFileRegEx = new Regex(Exp, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.CultureInvariant);
-
+        private static readonly Regex SonarLintFileRegEx = new Regex(Exp,
+            RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.CultureInvariant,
+            RegexConstants.DefaultTimeout);
 
         public SuppressionExecutionContext(AnalyzerOptions analyzerOptions)
         {

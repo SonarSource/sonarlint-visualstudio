@@ -36,6 +36,10 @@ namespace SonarQube.Client
     /// </summary>
     public class ChecksumCalculator : IChecksumCalculator
     {
+        private static readonly Regex StripWhitespaceRegEx = new Regex("\\s",
+            RegexOptions.Compiled, 
+            TimeSpan.FromMilliseconds(300));
+
         public static string Calculate(string text)
         {
             if (text == null)
@@ -43,7 +47,7 @@ namespace SonarQube.Client
                 throw new ArgumentNullException(nameof(text));
             }
 
-            var content = Regex.Replace(text, "\\s", ""); // strip whitespace
+            var content = StripWhitespaceRegEx.Replace(text, ""); // strip whitespace
             var data = Encoding.UTF8.GetBytes(content);
 
             var hash = new MD5Digest();

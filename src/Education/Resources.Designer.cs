@@ -79,6 +79,15 @@ namespace SonarLint.VisualStudio.Education {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Education] Error handling Uri: {0}.
+        /// </summary>
+        internal static string ERR_RuleHelpUserControl_Exception {
+            get {
+                return ResourceManager.GetString("ERR_RuleHelpUserControl_Exception", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [ErrorList] Event processor: Sonar rule detected: {0}.
         /// </summary>
         internal static string ErrorList_Processor_SonarRuleDetected {
@@ -102,6 +111,24 @@ namespace SonarLint.VisualStudio.Education {
         internal static string RuleHelpToolWindowCaption {
             get {
                 return ResourceManager.GetString("RuleHelpToolWindowCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Education] Failed to open Uri: {0}.
+        /// </summary>
+        internal static string RuleHelpUserControl_RelativeURI {
+            get {
+                return ResourceManager.GetString("RuleHelpUserControl_RelativeURI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [RuleHelpUserControl] Failed to navigate to Uri as it is a relative path: {0}.
+        /// </summary>
+        internal static string RuleHelpUserControl_Verbose_RelativeURI {
+            get {
+                return ResourceManager.GetString("RuleHelpUserControl_Verbose_RelativeURI", resourceCulture);
             }
         }
         

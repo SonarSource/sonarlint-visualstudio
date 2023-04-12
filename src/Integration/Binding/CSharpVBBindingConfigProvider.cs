@@ -109,11 +109,21 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             // Finally, fetch the remaining data needed to build the ruleset
             var inactiveRules = await FetchSupportedRulesAsync(false, qualityProfile.Key, cancellationToken);
+            var exclusions = await FetchInclusionsExclusionsAsync(bindingConfiguration.Project.ProjectKey, cancellationToken);
 
             var ruleset = GetRulesetFile(qualityProfile, language, bindingConfiguration, activeRules, inactiveRules, sonarProperties);
-            var additionalFile = GetAdditionalFile(language, bindingConfiguration, activeRules, sonarProperties);
+            var additionalFile = GetAdditionalFile(language, bindingConfiguration, activeRules, sonarProperties, exclusions);
 
             return new CSharpVBBindingConfig(ruleset, additionalFile);
+        }
+
+        private async Task<ServerExclusions> FetchInclusionsExclusionsAsync(string projectKey,
+            CancellationToken cancellationToken)
+        {
+            var exclusions = await WebServiceHelper.SafeServiceCallAsync(
+                () => sonarQubeService.GetServerExclusions(projectKey, cancellationToken), logger);
+
+            return exclusions;
         }
 
         private FilePathAndContent<RuleSet> GetRulesetFile(SonarQubeQualityProfile qualityProfile, Language language, BindingConfiguration bindingConfiguration, IEnumerable<SonarQubeRule> activeRules, IEnumerable<SonarQubeRule> inactiveRules, Dictionary<string, string> sonarProperties)
@@ -125,10 +135,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return new FilePathAndContent<RuleSet>(ruleSetFilePath, RuleSet);
         }
 
-        private FilePathAndContent<SonarLintConfiguration> GetAdditionalFile(Language language, BindingConfiguration bindingConfiguration, IEnumerable<SonarQubeRule> activeRules, Dictionary<string, string> sonarProperties)
+        private FilePathAndContent<SonarLintConfiguration> GetAdditionalFile(Language language,
+            BindingConfiguration bindingConfiguration, 
+            IEnumerable<SonarQubeRule> activeRules,
+            IDictionary<string, string> sonarProperties,
+            ServerExclusions serverExclusions)
         {
             var additionalFilePath = GetSolutionAdditionalFilePath(language, bindingConfiguration);
-            var additionalFileContent = sonarLintConfigGenerator.Generate(activeRules, sonarProperties, language);
+            var additionalFileContent = sonarLintConfigGenerator.Generate(activeRules, sonarProperties, serverExclusions, language);
 
             var additionalFile = new FilePathAndContent<SonarLintConfiguration>(additionalFilePath, additionalFileContent);
 

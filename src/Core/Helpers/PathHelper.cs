@@ -146,12 +146,60 @@ namespace SonarLint.VisualStudio.Core.Helpers
         public static bool IsMatchingPath(string path1, string path2) =>
             Path.GetFullPath(path1).Equals(Path.GetFullPath(path2), StringComparison.OrdinalIgnoreCase);
 
+        /// <summary>
+        /// Returns true if a local file path and a server file path should be considered to be equivalent, otherwise false
+        /// </summary>
+        /// <param name="absoluteLocalFilePath">The normalized local absolute file path. Can be null/empty.</param>
+        /// <param name="relativeServerFilePath">The normalized relative path from the server.  Can be null/empty.</param>
+        /// <remarks>
+        /// <paramref name="relativeServerFilePath"/> is expected to have been normalized by <see cref="SonarQube.Client.Helpers.FilePathNormalizer"/>.
+        /// Either parameter can be null/empty, in which case they are treated as a module (project) level issue. In that case
+        /// there will only be match if the other parameter is also a module level issue.
+        /// <para>
+        /// Implementation: the server path is tail-matched against the local path
+        /// e.g. the server path "aaa\foo.txt" will match ALL of the following absolute paths:
+        /// * C:\aaa\foo.txt
+        /// * C:\bbb\aaa\foo.txt
+        /// * D:\bbb\foo.txt
+        /// It will not match e.g. C:\XXXaaa\foo.txt
+        /// </para>
+        /// </remarks>
+        public static bool IsServerFileMatch(string absoluteLocalFilePath, string relativeServerFilePath)
+        {
+            var localPath = absoluteLocalFilePath ?? string.Empty;
+            var serverPath = relativeServerFilePath ?? string.Empty;
+
+            // A null/empty path means it's a module (project) level issue, and can only match
+            // another module-level issue.
+            if (localPath == string.Empty || serverPath == string.Empty)
+            {
+                return localPath == serverPath;
+            }
+
+            Debug.Assert(Path.IsPathRooted(localPath) && !localPath.Contains("/") && !localPath.Contains("..") && !localPath.Contains("\\.\\"),
+                $"Expecting the client-side file path to be a normalized absolute path with only back-slashes delimiters. Actual: {absoluteLocalFilePath}");
+
+            // NB all server file paths should have been normalized. See SonarQube.Client.Helpers.FilePathNormalizer.
+            Debug.Assert(!Path.IsPathRooted(serverPath) && !serverPath.Contains("/"),
+                $"Expecting the server-side file path to be relative and not to contain forward-slashes. Actual: {relativeServerFilePath}");
+
+            Debug.Assert(!serverPath.StartsWith("\\"), "Not expecting server file path to start with a back-slash");
+            if (localPath.EndsWith(serverPath, StringComparison.OrdinalIgnoreCase))
+            {
+                // Check the preceding local path character is a backslash  - we want to make sure a server path
+                // of `aaa\foo.txt` matches `c:\aaa\foo.txt` but not `c:`bbbaaa\foo.txt`
+                return localPath.Length > serverPath.Length &&
+                    localPath[localPath.Length - serverPath.Length - 1] == '\\';
+            }
+
+            return false;
+        }
+
         private static string ToFilePathString(Uri uri)
         {
             string escapedPath = uri.OriginalString.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
             return Uri.UnescapeDataString(escapedPath);
         }
-
 
         /// <summary>
         /// Gets Temp Directory under SLVS folder under %Temp%

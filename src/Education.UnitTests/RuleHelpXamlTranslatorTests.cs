@@ -22,7 +22,6 @@ using System.Text;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Education.Layout.Logical;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -112,6 +111,20 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var htmlText = $"<h{headerSize}>Text</h{headerSize}>";
 
             var expectedText = $"<Paragraph Style=\"{{DynamicResource Heading{headerSize}_Paragraph}}\">Text</Paragraph>";
+
+            var result = testSubject.TranslateHtmlToXaml(htmlText);
+
+            result.Should().Be(expectedText);
+        }
+
+        [TestMethod]
+        public void TranslateHtmlToXaml_CrossReferenceRule_AddsHyperLink()
+        {
+            var testSubject = new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()).Create();
+
+            var htmlText = "Texty text {rule:cpp:S1564} blabla";
+
+            var expectedText = "<Paragraph>Texty text <Hyperlink NavigateUri=\"sonarlintrulecrossref://cpp/S1564\">cpp:S1564</Hyperlink> blabla</Paragraph>";
 
             var result = testSubject.TranslateHtmlToXaml(htmlText);
 

@@ -404,6 +404,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     .Setup(x => x.GetAllPropertiesAsync(ExpectedProjectKey, It.IsAny<CancellationToken>()))
                     .ReturnsAsync(PropertiesResponse);
 
+                var serverExclusionsResponse = new ServerExclusions(
+                    exclusions: new[] { "path1" },
+                    globalExclusions: new[] { "path2" },
+                    inclusions: new[] { "path3" });
+
+                sonarQubeServiceMock
+                    .Setup(x => x.GetServerExclusions(ExpectedProjectKey, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(serverExclusionsResponse);
+
                 ruleGenMock = new Mock<Core.CSharpVB.IRuleSetGenerator>();
                 ruleGenMock.Setup(x => x.Generate(language.ServerLanguage.Key, It.IsAny<IEnumerable<SonarQubeRule>>(), It.IsAny<IDictionary<string, string>>()))
                     .Returns(RuleSetGeneratorResponse)
@@ -426,7 +435,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 var sonarProperties = PropertiesResponse.ToDictionary(x => x.Key, y => y.Value);
                 sonarLintConfigGeneratorMock
-                    .Setup(x => x.Generate(It.IsAny<IEnumerable<SonarQubeRule>>(), sonarProperties, language))
+                    .Setup(x => x.Generate(It.IsAny<IEnumerable<SonarQubeRule>>(), sonarProperties, serverExclusionsResponse, language))
                     .Returns(SonarLintConfigurationResponse);
 
                 return new CSharpVBBindingConfigProvider(sonarQubeServiceMock.Object, nugetBindingMock.Object, Logger,

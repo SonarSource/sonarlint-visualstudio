@@ -28,6 +28,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 {
     internal class CmdBuilder
     {
+        private static readonly Regex DoubleSeparatorRegEx = new Regex(@"\\+",
+            RegexOptions.Compiled,
+            Core.RegexConstants.DefaultTimeout);
+
+        // To avoid paths with spaces
+        private static readonly Regex DoubleQuotedRegEx = new Regex("\"[^\\\"]*(\\.[^\\\"]*)*\"",
+            RegexOptions.Compiled,
+            Core.RegexConstants.DefaultTimeout);
+
         StringBuilder Cmd { get; set; } = new StringBuilder();
         bool IsHeader { get; set; }
         public string HeaderFileLang { get; set; } = "";
@@ -63,9 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
         internal /* for testing */ static string AddQuote(string s)
         {
-            // To avoid paths with spaces
-            Regex doubleQuoted = new Regex("\"[^\\\"]*(\\.[^\\\"]*)*\"");
-            if (!doubleQuoted.IsMatch(s))
+            if (!DoubleQuotedRegEx.IsMatch(s))
             {
                 string quote = "\"";
                 return quote + s + quote;
@@ -78,8 +85,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             // path cannot be empty
             path = path.Replace("/", @"\");
 
-            Regex doubleSeparator = new Regex(@"\\+");
-            path = doubleSeparator.Replace(path, @"\");
+            path = DoubleSeparatorRegEx.Replace(path, @"\");
 
             if (path[path.Length - 1] == '\\')
             {

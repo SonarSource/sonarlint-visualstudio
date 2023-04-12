@@ -23,6 +23,7 @@ using System.ComponentModel.Composition;
 using System.IO;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Rules
@@ -69,7 +70,7 @@ namespace SonarLint.VisualStudio.Rules
                         using (var reader = new StreamReader(stream))
                         {
                             var data = reader.ReadToEnd();
-                            return JsonConvert.DeserializeObject<RuleInfo>(data);
+                            return RuleInfoJsonDeserializer.Deserialize(data);
                         }
                     }
                 }
@@ -86,5 +87,28 @@ namespace SonarLint.VisualStudio.Rules
         // e.g. SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S303.json
         private static string CalcFullResourceName(SonarCompositeRuleId ruleId)
             => $"SonarLint.VisualStudio.Rules.Embedded.{ruleId.RepoKey}.{ruleId.RuleKey}.json";
+
+
+        /// <summary>
+        /// Custom deserializer for rule info JSON
+        /// </summary>
+        /// <remark>
+        /// RuleInfo has properties that are typed as interfaces, so NewtonSoft.Json needs more info
+        /// about which concrete types to use when deserializing
+        /// </remark>
+        public static class RuleInfoJsonDeserializer
+        {
+            private static readonly JsonSerializerSettings settings = new JsonSerializerSettings
+            {
+                Converters = {
+                    new InterfaceToConcreteTypeConverter<IRuleInfo, RuleInfo>(),
+                    new InterfaceToConcreteTypeConverter<IDescriptionSection, DescriptionSection>(),
+                    new InterfaceToConcreteTypeConverter<IContext, Context>()
+                }
+            };
+
+            public static IRuleInfo Deserialize(string json)
+                => JsonConvert.DeserializeObject<RuleInfo>(json, settings);
+        }
     }
 }

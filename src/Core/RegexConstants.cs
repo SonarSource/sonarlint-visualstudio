@@ -18,16 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using SonarLint.VisualStudio.IssueVisualization.Models;
+using System;
 
-namespace SonarLint.VisualStudio.IssueVisualization
+namespace SonarLint.VisualStudio.Core
 {
-    public interface IClientIssueStore
+    public static class RegexConstants
     {
         /// <summary>
-        /// Returns all issues that have been detected locally.
+        /// Standard timeout to use for regular expressions
         /// </summary>
-        IEnumerable<IAnalysisIssueVisualization> Get();
+        /// <remarks>
+        /// Security hotspot S6444 requires a timeout for regular expressions to mitigate denial of service attacks.
+        /// See https://rules.sonarsource.com/csharp/RSPEC-6444
+        /// The risk and impact for SLVS are both we - in general, we control the input to the regular expression, and
+        /// the IDE isn't a public service.
+        /// However, avoiding the issue is straightforward by adding a (fairly arbitrary) timeout.
+        /// </remarks>
+        public static readonly TimeSpan DefaultTimeout = TimeSpan.FromMilliseconds(300);
     }
 }

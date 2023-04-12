@@ -20,7 +20,8 @@
 
 using System;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
-using SonarLint.VisualStudio.Core.Suppression;
+using SonarLint.VisualStudio.Core.Suppressions;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
@@ -39,10 +40,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         }
 
         [TestMethod]
-        public void Ctor_NullProvider_Throws()
+        public void MefCtor_CheckIsExported()
         {
-            Action act = () => new SuppressedIssueMatcher(null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverIssuesStore");
+            MefTestHelpers.CheckTypeCanBeImported<SuppressedIssueMatcher, ISuppressedIssueMatcher>(
+                MefTestHelpers.CreateExport<IServerIssuesStore>());
         }
 
         [TestMethod]
@@ -129,18 +130,53 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             testSubject.SuppressionExists(issueToMatch).Should().Be(expectedResult);
         }
 
-        private IFilterableIssue CreateIssueToMatch(string ruleId, int? startLine, string lineHash)
+        [TestMethod]
+        // Module-level issues i.e. no file
+        [DataRow(null, null, true)]
+        [DataRow(null, "", true)]
+        [DataRow("", null, true)]
+        [DataRow("", "", true)]
+
+        // Module-level issues should not match non-module-level issues
+        [DataRow(@"any.txt", "", false)]
+        [DataRow(@"any.txt", null, false)]
+        [DataRow("", @"c:\any.txt", false)]
+        [DataRow(null, @"c:\any.txt", false)]
+        
+        // File issues
+        [DataRow(@"same.txt", @"c:\same.txt", true)]
+        [DataRow(@"SAME.TXT", @"c:\same.txt", true)]
+        [DataRow(@"same.TXT", @"c:\XXXsame.txt", false)]  // partial file name -> should not match
+        [DataRow(@"differentExt.123", @"a:\differentExt.999", false)] // different extension -> should not match
+        [DataRow(@"aaa\partial\file.cs", @"d:\partial\file.cs", false)]
+        // Only matching the local path tail, so the same server path can match multiple local files
+        [DataRow(@"partial\file.cs", @"c:\aaa\partial\file.cs", true)]
+        [DataRow(@"partial\file.cs", @"c:\aaa\bbb\partial\file.cs", true)]
+        [DataRow(@"partial\file.cs", @"c:\aaa\bbb\ccc\partial\file.cs", true)]
+        public void SuppressionExists_CheckFileComparisons(string serverFilePath, string localFilePath, bool expected)
+        {
+            var issueToMatch = CreateIssueToMatch("111", 0, "hash", filePath: localFilePath);
+
+            ConfigureServerIssues(CreateServerIssue("111", 0, "hash", true, filePath: serverFilePath));
+
+            // Act and assert
+            testSubject.SuppressionExists(issueToMatch).Should().Be(expected);
+        }
+
+        private IFilterableIssue CreateIssueToMatch(string ruleId, int? startLine, string lineHash,
+            string filePath = null)
             => new TestFilterableIssue
             {
                 RuleId = ruleId,
                 StartLine = startLine,
                 LineHash = lineHash,
-                FilePath = "well known file path"
+                FilePath = filePath
             };
 
-        private SonarQubeIssue CreateServerIssue(string ruleId, int? startLine, string lineHash, bool isSuppressed)
+        private SonarQubeIssue CreateServerIssue(string ruleId, int? startLine, string lineHash, bool isSuppressed,
+            string filePath = null)
         {
-            var sonarQubeIssue = new SonarQubeIssue(null, null, lineHash, null, null, ruleId, false, SonarQubeIssueSeverity.Info,
+            var sonarQubeIssue = new SonarQubeIssue(null, filePath, lineHash, null, null, ruleId, false, SonarQubeIssueSeverity.Info,
                  DateTimeOffset.MinValue, DateTimeOffset.MinValue,
                  startLine.HasValue
                      ? new IssueTextRange(startLine.Value, 1, 1, 1)

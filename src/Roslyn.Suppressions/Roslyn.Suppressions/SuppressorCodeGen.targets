@@ -6,7 +6,8 @@
   <!-- We are using T4 to generate a list of SupportedSuppressions, one suppression for each Sonar C#/VB.NET rules. -->
 
   <Import Project="$(MSBuildThisFileDirectory)..\..\EmbeddedSonarAnalyzer.props" />
-
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v17.0\TextTemplating\Microsoft.TextTemplating.targets" />
+  
   <ItemGroup Label="Roslyn / analyzer packages">
     <!-- NOTE: We need to reference at least Roslyn v3.3.1, which is when the DiagnosticSuppressor class was introduced.
                However, the Sonar analyzers currently reference an older version of Roslyn, so we need to explicitly
@@ -17,6 +18,10 @@
     <!-- Reference the Sonar analyzers we want to import, but don't include them as analyzers for this project -->
     <PackageReference Include="SonarAnalyzer.CSharp" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="SonarAnalyzer.VisualBasic" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
+
+    <!-- NuGet packages required during the T4 transformation -->
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="3.3.1" PrivateAssets="all" IncludeAssets="none" GeneratePathProperty="true" />
+    <PackageReference Include="System.Composition.AttributedModel" Version="1.0.31" PrivateAssets="all" IncludeAssets="none" GeneratePathProperty="true" />
   </ItemGroup>
   
   <PropertyGroup>
@@ -25,8 +30,42 @@
     <SonarVBDllPath>$(PkgSonarAnalyzer_VisualBasic)\analyzers\SonarAnalyzer.VisualBasic.dll</SonarVBDllPath>
     <!-- ... and for the other NuGet dependencies used by the .tts -->
     <MSCodeAnalysisCommonDllPath>$(PkgMicrosoft_CodeAnalysis_Common)\lib\netstandard2.0\Microsoft.CodeAnalysis.dll</MSCodeAnalysisCommonDllPath>
+    <MSCodeAnalysisWorkspacesDllPath>$(PkgMicrosoft_CodeAnalysis_Workspaces_Common)\lib\netstandard2.0\Microsoft.CodeAnalysis.Workspaces.dll</MSCodeAnalysisWorkspacesDllPath>
+    <SystemCompositionAttributedModelDllPath>$(PkgSystem_Composition_AttributedModel)\lib\netstandard1.0\System.Composition.AttributedModel.dll</SystemCompositionAttributedModelDllPath>
+
+    <!-- Tell T4 to run the .tt code generator on build
+         See https://learn.microsoft.com/en-us/visualstudio/modeling/code-generation-in-a-build-process?view=vs-2022&tabs=csharp
+    -->
+    <TransformOnBuild>true</TransformOnBuild>
+    <TransformOutOfDateOnly>true</TransformOutOfDateOnly>
   </PropertyGroup>
 
+  <ItemGroup Label="Build variables used in the T4 template">
+    <!-- We don't need to pass these when the transformation is being done in memory by VS.
+         However, we do need to explicitly pass them when the transformation is being done as part
+         of a build, whether inside VS or on a CI machine. -->
+    <T4ParameterValues Include="SonarCSharpDllPath">
+      <Value>$(SonarCSharpDllPath)</Value>
+      <Visible>false</Visible>
+    </T4ParameterValues>
+    <T4ParameterValues Include="SonarVBDllPath">
+      <Value>$(SonarVBDllPath)</Value>
+      <Visible>false</Visible>
+    </T4ParameterValues>
+    <T4ParameterValues Include="MSCodeAnalysisCommonDllPath">
+      <Value>$(MSCodeAnalysisCommonDllPath)</Value>
+      <Visible>false</Visible>
+    </T4ParameterValues>
+    <T4ParameterValues Include="MSCodeAnalysisWorkspacesDllPath">
+      <Value>$(MSCodeAnalysisWorkspacesDllPath)</Value>
+      <Visible>false</Visible>
+    </T4ParameterValues>
+    <T4ParameterValues Include="SystemCompositionAttributedModelDllPath">
+      <Value>$(SystemCompositionAttributedModelDllPath)</Value>
+      <Visible>false</Visible>
+    </T4ParameterValues>
+  </ItemGroup>
+  
   <ItemGroup>
     <None Update="SupportedSuppressionBuilder.tt">
       <Generator>TextTemplatingFileGenerator</Generator>

@@ -385,6 +385,34 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
             Guid.TryParse(actualPath.Split('\\').Last(), out _).Should().BeTrue();
         }
 
+        [TestMethod]
+        // Module-level issues i.e. no file
+        [DataRow(null, null, true)]
+        [DataRow(null, "", true)]
+        [DataRow("", null, true)]
+        [DataRow("", "", true)]
+
+        // Module-level issues should not match non-module-level issues
+        [DataRow(@"any.txt", "", false)]
+        [DataRow(@"any.txt", null, false)]
+        [DataRow("", @"c:\any.txt", false)]
+        [DataRow(null, @"c:\any.txt", false)]
+
+        // File issues
+        [DataRow(@"same.txt", @"c:\same.txt", true)]
+        [DataRow(@"SAME.TXT", @"c:\same.txt", true)]
+        [DataRow(@"same.TXT", @"c:\XXXsame.txt", false)]  // partial file name -> should not match
+        [DataRow(@"differentExt.123", @"a:\differentExt.999", false)] // different extension -> should not match
+        [DataRow(@"aaa\partial\file.cs", @"d:\partial\file.cs", false)]
+        // Only matching the local path tail, so the same server path can match multiple local files
+        [DataRow(@"partial\file.cs", @"c:\aaa\partial\file.cs", true)]
+        [DataRow(@"partial\file.cs", @"c:\aaa\bbb\partial\file.cs", true)]
+        [DataRow(@"partial\file.cs", @"c:\aaa\bbb\ccc\partial\file.cs", true)]
+        public void IsFileMatch_ReturnsExpectedResult(string serverFilePath, string localFilePath, bool expected)
+        {
+            // Act and assert
+            PathHelper.IsServerFileMatch(localFilePath, serverFilePath).Should().Be(expected);
+        }
 
         #region Helpers
 

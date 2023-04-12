@@ -17,14 +17,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-using System.Diagnostics;
 using System.ComponentModel.Composition;
 using System.Linq;
-using SonarLint.VisualStudio.Core.Suppression;
-using SonarLint.VisualStudio.IssueVisualization;
+using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using System.Collections.Generic;
 using System;
+using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
@@ -32,34 +31,30 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ClientSuppressionSynchronizer : IClientSuppressionSynchronizer
     {
-        private readonly IClientIssueStore clientIssueStore;
-        private readonly IIssuesFilter issueFilter;
-        
+        private readonly IIssueLocationStoreAggregator issuesStore;
+        private readonly ISuppressedIssueMatcher suppressedIssueMatcher;
+
         public event EventHandler<LocalSuppressionsChangedEventArgs> LocalSuppressionsChanged;
 
         [ImportingConstructor]
-        public ClientSuppressionSynchronizer(IClientIssueStore clientSideIssueStore, IIssuesFilter issueFilter)
+        public ClientSuppressionSynchronizer(IIssueLocationStoreAggregator issuesStore, ISuppressedIssueMatcher suppressedIssueMatcher)
         {
-            this.clientIssueStore = clientSideIssueStore;
-            this.issueFilter = issueFilter;
+            this.issuesStore = issuesStore;
+            this.suppressedIssueMatcher = suppressedIssueMatcher;
         }
 
         public void SynchronizeSuppressedIssues()
         {
             var changedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            var filterableIssues = clientIssueStore.Get().OfType<IFilterableIssue>().ToArray();
-
-            var matches = issueFilter.GetMatches(filterableIssues);
-
-            Debug.Assert(matches.All(x => x is IAnalysisIssueVisualization), "Not expecting the issue filter to change the list item type");
+            var filterableIssues = issuesStore.GetIssues().OfType<IFilterableIssue>().ToArray();
 
             foreach (var issue in filterableIssues)
             {
                 var issueViz = issue as IAnalysisIssueVisualization;
 
                 // If the object was matched then it is suppressed on the server
-                var newIsSuppressedValue = matches.Contains(issueViz);
+                var newIsSuppressedValue = suppressedIssueMatcher.SuppressionExists(issueViz);
 
                 if (issueViz.IsSuppressed != newIsSuppressedValue)
                 {

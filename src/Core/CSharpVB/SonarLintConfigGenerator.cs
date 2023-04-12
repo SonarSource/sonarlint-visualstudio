@@ -34,26 +34,41 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
         private const string VBRepoKey = "vbnet";
         private const string SecuredPropertySuffix = ".secured";
 
-        public SonarLintConfiguration Generate(IEnumerable<SonarQubeRule> rules, IDictionary<string, string> sonarProperties,
+        public SonarLintConfiguration Generate(IEnumerable<SonarQubeRule> rules,
+            IDictionary<string, string> sonarProperties,
+            ServerExclusions serverExclusions,
             Language language)
         {
             if (rules == null) { throw new ArgumentNullException(nameof(rules)); }
             if (sonarProperties == null) { throw new ArgumentNullException(nameof(sonarProperties)); }
+            if (serverExclusions == null) { throw new ArgumentNullException(nameof(serverExclusions)); }
             if (language == null) { throw new ArgumentNullException(nameof(language)); }
 
             var slvsSettings = GetSettingsForLanguage(language, sonarProperties);
+            slvsSettings.AddRange(GetInclusionsExclusions(serverExclusions));
 
             // We don't expect third-party rules to look for their settings in SonarLint.xml so we
             // only fetch parameters for SonarC#/VB rules.
             var sonarRepoKey = GetSonarRepoKey(language);
             var slvsRules = GetRulesForRepo(sonarRepoKey, rules);
 
-            return new SonarLintConfiguration()
+            return new SonarLintConfiguration
             {
                 Settings = slvsSettings,
                 Rules = slvsRules
             };
         }
+
+        private static IEnumerable<SonarLintKeyValuePair> GetInclusionsExclusions(ServerExclusions exclusions) =>
+            exclusions
+                .ToDictionary()
+                .Where(x => !string.IsNullOrEmpty(x.Value))
+                .Select(x =>
+                    new SonarLintKeyValuePair
+                    {
+                        Key = x.Key,
+                        Value = x.Value
+                    });
 
         private static string GetSonarRepoKey(Language language)
         {

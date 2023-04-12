@@ -11,7 +11,17 @@
     <SonarQubeTestProject>true</SonarQubeTestProject>
 
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)TestProjects.ruleset</CodeAnalysisRuleSet>
-
   </PropertyGroup>
+
+  <ItemGroup Label="Test framework">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
+    <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
+    <PackageReference Include="Moq" Version="4.18.2" />
+    
+    <!-- ??? Needs to use the same version as the MS.VS.SDK.TestFramework ???-->
+    <PackageReference Include="FluentAssertions" Version="5.9.0" />
+    <PackageReference Include="FluentAssertions.Analyzers" Version="0.11.4" />
+  </ItemGroup>
   
 </Project>
