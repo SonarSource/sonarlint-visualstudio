@@ -25,7 +25,7 @@
     <!-- .net6 exe used to extract rule descriptions from the json file.
           The exe is not checked in; it is built from source.
     -->
-    <RuleDescExtractorExe>$(MSBuildThisFileDirectory)..\tools\ExtractRuleDescFromJson\bin\net6.0\ExtractRuleDescFromJson.exe</RuleDescExtractorExe>
+    <RuleDescExtractorExe>$(MSBuildThisFileDirectory)..\tools\ExtractRuleDescFromJson\bin\net7.0\ExtractRuleDescFromJson.exe</RuleDescExtractorExe>
 
     <!-- Base location to which the rule desc files should be written -->
     <BaseRuleDescFileTargetDirectory>$(MSBuildThisFileDirectory)..\..\src\Rules\Embedded\</BaseRuleDescFileTargetDirectory>
