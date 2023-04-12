@@ -18,14 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.Globalization;
+using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands
 {
-    internal interface INavigateToRuleDescriptionCommand : ICommand
+    public interface INavigateToRuleDescriptionCommand : ICommand
     {
     }
 
@@ -37,16 +41,40 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         public NavigateToRuleDescriptionCommand(IEducation educationService)
             : base(parameter =>
                 {
-                    var fullRuleKey = (string) parameter;
-                    if (SonarCompositeRuleId.TryParse(fullRuleKey, out var ruleId))
+                    var paramObject = parameter as NavigateToRuleDescriptionCommandParam;
+                    if (SonarCompositeRuleId.TryParse(paramObject?.FullRuleKey, out var ruleId))
                     {
-                        educationService.ShowRuleHelp(ruleId);
+                        educationService.ShowRuleHelp(ruleId, paramObject?.Context);
                     }
                 },
-                parameter => parameter is string s &&
-                    !string.IsNullOrEmpty(s) && 
-                SonarCompositeRuleId.TryParse(s, out var _))
+                parameter => parameter is NavigateToRuleDescriptionCommandParam s &&
+                    !string.IsNullOrEmpty(s.FullRuleKey) &&
+                SonarCompositeRuleId.TryParse(s.FullRuleKey, out var _))
         {
+        }
+    }
+
+    internal class NavigateToRuleDescriptionCommandParam
+    {
+        public string FullRuleKey { get; set; }
+        public string Context { get; set; }
+    }
+
+    public class NavigateToRuleDescriptionCommandConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values.Length == 2 && values[0] is string && (values[1] is string || values[1] == null))
+            {
+                return new NavigateToRuleDescriptionCommandParam { FullRuleKey = (string)values[0], Context = (string)values[1] };
+            }
+            return null;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            Debug.Fail("We should not hit here");
+            return null;
         }
     }
 }

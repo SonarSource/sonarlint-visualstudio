@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
 using System.Threading;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
@@ -33,6 +34,8 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         string ResourcesHeader { get; }
     }
 
+    [Export(typeof(IStaticXamlStorage))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class StaticXamlStorage : IStaticXamlStorage
     {
         private readonly Lazy<string> educationPrinciplesHeader;
@@ -42,8 +45,10 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         private readonly Lazy<string> howToFixItHeader;
         private readonly Lazy<string> resourcesHeader;
 
-        public StaticXamlStorage(IRuleHelpXamlTranslator ruleHelpXamlTranslator)
+        [ImportingConstructor]
+        public StaticXamlStorage(IRuleHelpXamlTranslatorFactory ruleHelpXamlTranslatorFactory)
         {
+            var ruleHelpXamlTranslator = ruleHelpXamlTranslatorFactory.Create();
             educationPrinciplesHeader = new Lazy<string>(() => ruleHelpXamlTranslator.TranslateHtmlToXaml(StaticHtmlSnippets.EducationPrinciplesHeader), LazyThreadSafetyMode.None);
             educationPrinciplesDefenseInDepth = new Lazy<string>(() => ruleHelpXamlTranslator.TranslateHtmlToXaml(StaticHtmlSnippets.EducationPrinciplesDefenseInDepth), LazyThreadSafetyMode.None);
             educationPrinciplesNeverTrustUserInput = new Lazy<string>(() => ruleHelpXamlTranslator.TranslateHtmlToXaml(StaticHtmlSnippets.EducationPrinciplesNeverTrustUserInput), LazyThreadSafetyMode.None);

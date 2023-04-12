@@ -23,12 +23,12 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarQube.Client.Models.ServerSentEvents;
-using SonarQube.Client.Models.ServerSentEvents.ClientContract;
-using SonarQube.Client.Models.ServerSentEvents.ServerContract;
 using Newtonsoft.Json;
 using SonarQube.Client.Logging;
 using SonarQube.Client.Models;
+using SonarQube.Client.Models.ServerSentEvents;
+using SonarQube.Client.Models.ServerSentEvents.ClientContract;
+using SonarQube.Client.Models.ServerSentEvents.ServerContract;
 using SonarQube.Client.Tests.Infra;
 
 namespace SonarQube.Client.Tests.Models.ServerSentEvents
@@ -54,7 +54,7 @@ namespace SonarQube.Client.Tests.Models.ServerSentEvents
         [TestMethod]
         public async Task ReadAsync_Null_NullReturned()
         {
-            var sqSSEStreamReader = CreateSqStreamReader((ISqServerEvent) null);
+            var sqSSEStreamReader = CreateSqStreamReader((ISqServerEvent)null);
 
             var testSubject = CreateTestSubject(sqSSEStreamReader);
 
@@ -188,7 +188,8 @@ namespace SonarQube.Client.Tests.Models.ServerSentEvents
 				}
 			]
 		}
-	]
+	],
+    ""ruleDescriptionContextKey"": ""ContextKey""
 }";
             var sqSSEStreamReader = CreateSqStreamReader(new SqServerEvent("TaintVulnerabilityRaised", serializedTaintVulnerabilityRaisedEvent));
 
@@ -218,7 +219,8 @@ namespace SonarQube.Client.Tests.Models.ServerSentEvents
                         {
                             new Location(filePath: "functions/taint.js", message: "sink", textRange: null)
                         })
-                    }));
+                    },
+                    ruleDescriptionContextKey: "ContextKey"));
         }
 
         private ISqSSEStreamReader CreateSqStreamReader(params ISqServerEvent[] events)

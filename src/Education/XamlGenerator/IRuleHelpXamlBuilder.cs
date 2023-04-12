@@ -32,6 +32,8 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         /// Also assumes that the containing control defines a list of Style resources, one for each
         /// value in the enum <see cref="StyleResourceNames"/>.
         /// The document will still render if a style is missing, but the styling won't be correct.</remarks>
-        FlowDocument Create(IRuleInfo ruleInfo);
+        /// <param name="ruleInfo">Rule description information</param>
+        /// <param name="issueContext">Key for the How to fix it Context acquired from a specific issue</param>
+        FlowDocument Create(IRuleInfo ruleInfo, string issueContext);
     }
 }

@@ -50,8 +50,9 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
             SonarQubeIssueSeverity severity,
             SonarQubeIssueType type,
             Location mainLocation,
-            Flow[] flows)
-            : this(projectKey, key, branch, new TaintIssue(key, ruleKey, creationDate, severity, type, mainLocation, flows))
+            Flow[] flows,
+            string ruleDescriptionContextKey)
+            : this(projectKey, key, branch, new TaintIssue(key, ruleKey, creationDate, severity, type, mainLocation, flows, ruleDescriptionContextKey))
         {
         }
 

@@ -46,8 +46,13 @@ namespace SonarLint.VisualStudio.Education
         private IRuleHelpToolWindow ruleHelpToolWindow;
 
         [ImportingConstructor]
-        public Education(IToolWindowService toolWindowService, IRuleMetaDataProvider ruleMetadataProvider, IShowRuleInBrowser showRuleInBrowser, ILogger logger)
-            : this(toolWindowService, ruleMetadataProvider, showRuleInBrowser, logger, new SimpleRuleHelpXamlBuilder(new RuleHelpXamlTranslator(), new XamlGeneratorHelperFactory(new RuleHelpXamlTranslator())), ThreadHandling.Instance) { }
+        public Education(IToolWindowService toolWindowService, IRuleMetaDataProvider ruleMetadataProvider, IShowRuleInBrowser showRuleInBrowser, ILogger logger, IRuleHelpXamlBuilder ruleHelpXamlBuilder)
+            : this(toolWindowService,
+                ruleMetadataProvider,
+                showRuleInBrowser,
+                logger,
+                ruleHelpXamlBuilder,
+                ThreadHandling.Instance) { }
 
         internal /* for testing */ Education(IToolWindowService toolWindowService,
             IRuleMetaDataProvider ruleMetadataProvider,
@@ -64,12 +69,12 @@ namespace SonarLint.VisualStudio.Education
             this.threadHandling = threadHandling;
         }
 
-        public void ShowRuleHelp(SonarCompositeRuleId ruleId)
+        public void ShowRuleHelp(SonarCompositeRuleId ruleId, string issueContext)
         {
-            ShowRuleHelpAsync(ruleId, CancellationToken.None).Forget();
+            ShowRuleHelpAsync(ruleId, issueContext, CancellationToken.None).Forget();
         }
 
-        private async Task ShowRuleHelpAsync(SonarCompositeRuleId ruleId, CancellationToken token)
+        private async Task ShowRuleHelpAsync(SonarCompositeRuleId ruleId, string issueContext, CancellationToken token)
         {
             await threadHandling.SwitchToBackgroundThread();
 
@@ -83,12 +88,12 @@ namespace SonarLint.VisualStudio.Education
                 }
                 else
                 {
-                    ShowRuleInIde(ruleInfo, ruleId);
+                    ShowRuleInIde(ruleInfo, ruleId, issueContext);
                 }
             });
         }
 
-        private void ShowRuleInIde(IRuleInfo ruleInfo, SonarCompositeRuleId ruleId)
+        private void ShowRuleInIde(IRuleInfo ruleInfo, SonarCompositeRuleId ruleId, string issueContext)
         {
             threadHandling.ThrowIfNotOnUIThread();
 
@@ -100,7 +105,7 @@ namespace SonarLint.VisualStudio.Education
 
             try
             {
-                var flowDocument = ruleHelpXamlBuilder.Create(ruleInfo);
+                var flowDocument = ruleHelpXamlBuilder.Create(ruleInfo, issueContext);
 
                 ruleHelpToolWindow.UpdateContent(flowDocument);
 

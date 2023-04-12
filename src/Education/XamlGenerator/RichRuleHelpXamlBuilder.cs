@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Text;
 using System.Windows.Documents;
@@ -28,30 +29,50 @@ using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
 {
-    internal class RichRuleHelpXamlBuilder : IRuleHelpXamlBuilder
+    internal interface IRichRuleHelpXamlBuilder
+    {
+        /// <summary>
+        /// Generates a XAML document containing the help information for the specified rule
+        /// </summary>
+        /// <remarks>Assumes that the <see cref="IRuleInfo.Description"/> and <see cref="IRuleInfo.DescriptionSections"/> are parseable as XML.
+        /// Also assumes that the containing control defines a list of Style resources, one for each
+        /// value in the enum <see cref="StyleResourceNames"/>.
+        /// The document will still render if a style is missing, but the styling won't be correct.</remarks>
+        /// <param name="ruleInfo">Rule description information</param>
+        /// <param name="issueContext">Key for the How to fix it Context acquired from a specific issue</param>
+        FlowDocument Create(IRuleInfo ruleInfo, string issueContext);
+    }
+
+    [Export(typeof(IRichRuleHelpXamlBuilder))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class RichRuleHelpXamlBuilder : IRichRuleHelpXamlBuilder
     {
         private readonly IRuleInfoTranslator ruleInfoTranslator;
         private readonly IXamlGeneratorHelperFactory xamlGeneratorHelperFactory;
         private readonly IStaticXamlStorage staticXamlStorage;
+        private readonly IXamlWriterFactory xamlWriterFactory;
 
-        public RichRuleHelpXamlBuilder(IRuleInfoTranslator ruleInfoTranslator, IXamlGeneratorHelperFactory xamlGeneratorHelperFactory, IStaticXamlStorage staticXamlStorage)
+        [ImportingConstructor]
+        public RichRuleHelpXamlBuilder(IRuleInfoTranslator ruleInfoTranslator, IXamlGeneratorHelperFactory xamlGeneratorHelperFactory, IStaticXamlStorage staticXamlStorage, IXamlWriterFactory xamlWriterFactory)
         {
             this.ruleInfoTranslator = ruleInfoTranslator;
             this.xamlGeneratorHelperFactory = xamlGeneratorHelperFactory;
             this.staticXamlStorage = staticXamlStorage;
+            this.xamlWriterFactory = xamlWriterFactory;
         }
 
-        public FlowDocument Create(IRuleInfo ruleInfo)
+        public FlowDocument Create(IRuleInfo ruleInfo, string issueContext)
         {
-            var richRuleDescriptionSections = ruleInfoTranslator.GetRuleDescriptionSections(ruleInfo).ToList();
+            var richRuleDescriptionSections = ruleInfoTranslator.GetRuleDescriptionSections(ruleInfo, issueContext).ToList();
             var mainTabGroup = new TabGroup(richRuleDescriptionSections
                 .Select(richRuleDescriptionSection =>
                     new TabItem(richRuleDescriptionSection.Title,
                         richRuleDescriptionSection.GetVisualizationTreeNode(staticXamlStorage)))
-                .ToList<ITabItem>());
+                .ToList<ITabItem>(),
+                0);
 
             var sb = new StringBuilder();
-            var writer = RuleHelpXamlTranslator.CreateXmlWriter(sb);
+            var writer = xamlWriterFactory.Create(sb);
             var helper = xamlGeneratorHelperFactory.Create(writer);
 
             helper.WriteDocumentHeader(ruleInfo);

@@ -31,13 +31,11 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Visual
     [TestClass]
     public class TabGroupTests
     {
-        [DataTestMethod]
-        [DataRow(false)]
-        [DataRow(true)]
-        public void CreateVisualization_GeneratesCorrectStructure(bool isScrollable)
+        [TestMethod]
+        public void CreateVisualization_GeneratesCorrectStructure()
         {
             var sb = new StringBuilder();
-            var xmlWriter = RuleHelpXamlTranslator.CreateXmlWriter(sb);
+            var xmlWriter = new XamlWriterFactory().Create(sb);
             var order = new MockSequence();
             var tabItems = new Mock<ITabItem>[]
             {
@@ -56,12 +54,12 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Visual
 
             }
 
-            var testSubject = new TabGroup(tabItems.Select(x => x.Object).ToList());
+            var testSubject = new TabGroup(tabItems.Select(x => x.Object).ToList(), 1);
 
             testSubject.ProduceXaml(xmlWriter);
             xmlWriter.Close();
 
-            sb.ToString().Should().BeEquivalentTo("<BlockUIContainer>\r\n  <TabControl><TabItem>Tab 0 placeholder</TabItem><TabItem>Tab 1 placeholder</TabItem><TabItem>Tab 2 placeholder</TabItem></TabControl>\r\n</BlockUIContainer>");
+            sb.ToString().Should().BeEquivalentTo("<BlockUIContainer>\r\n  <TabControl TabStripPlacement=\"Top\" SelectedIndex=\"1\"><TabItem>Tab 0 placeholder</TabItem><TabItem>Tab 1 placeholder</TabItem><TabItem>Tab 2 placeholder</TabItem></TabControl>\r\n</BlockUIContainer>");
             foreach (var tabItem in tabItems)
             {
                 tabItem.Verify(x => x.ProduceXaml(xmlWriter), Times.Once);
