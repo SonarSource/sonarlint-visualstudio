@@ -36,6 +36,6 @@ namespace SonarLint.VisualStudio.Core.Helpers
             => serializer.Deserialize<TConcrete>(reader);
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-            => serializer.Serialize(writer, value);
+            => throw new NotImplementedException();
     }
 }
