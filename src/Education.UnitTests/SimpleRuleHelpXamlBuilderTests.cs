@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             try
             {
                 var data = ReadResource(fullResourceName);
-                var jsonRuleInfo = JsonConvert.DeserializeObject<RuleInfo>(data);
+                var jsonRuleInfo = LocalRuleMetadataProvider.RuleInfoJsonDeserializer.Deserialize(data);
 
                 var doc = testSubject.Create(jsonRuleInfo);
 
