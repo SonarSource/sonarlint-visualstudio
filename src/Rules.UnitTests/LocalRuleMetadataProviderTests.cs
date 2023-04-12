@@ -23,7 +23,6 @@ using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -118,7 +117,7 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         {
             using var reader = new StreamReader(typeof(LocalRuleMetadataProvider).Assembly.GetManifestResourceStream(fullResourceName));
             var data = reader.ReadToEnd();
-            return JsonConvert.DeserializeObject<RuleInfo>(data).Description;
+            return LocalRuleMetadataProvider.RuleInfoJsonDeserializer.Deserialize(data).Description;
         }
     }
 }
