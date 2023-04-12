@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using System.Text;
 using System.Windows.Documents;
 using System.Windows.Markup;
@@ -25,15 +26,33 @@ using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
 {
-    internal class SimpleRuleHelpXamlBuilder : IRuleHelpXamlBuilder
+    internal interface ISimpleRuleHelpXamlBuilder
+    {
+        /// <summary>
+        /// Generates a XAML document containing the help information for the specified rule
+        /// </summary>
+        /// <remarks>Assumes that the <see cref="IRuleInfo.Description"/> and <see cref="IRuleInfo.DescriptionSections"/> are parseable as XML.
+        /// Also assumes that the containing control defines a list of Style resources, one for each
+        /// value in the enum <see cref="StyleResourceNames"/>.
+        /// The document will still render if a style is missing, but the styling won't be correct.</remarks>
+        /// <param name="ruleInfo">Rule description information</param>
+        FlowDocument Create(IRuleInfo ruleInfo);
+    }
+
+    [Export(typeof(ISimpleRuleHelpXamlBuilder))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class SimpleRuleHelpXamlBuilder : ISimpleRuleHelpXamlBuilder
     {
         private readonly IXamlGeneratorHelperFactory xamlGeneratorHelperFactory;
         private readonly IRuleHelpXamlTranslator ruleHelpXamlTranslator;
+        private readonly IXamlWriterFactory xamlWriterFactory;
 
-        public SimpleRuleHelpXamlBuilder(IRuleHelpXamlTranslator ruleHelpXamlTranslator, IXamlGeneratorHelperFactory xamlGeneratorHelperFactory)
+        [ImportingConstructor]
+        public SimpleRuleHelpXamlBuilder(IRuleHelpXamlTranslatorFactory ruleHelpXamlTranslatorFactory, IXamlGeneratorHelperFactory xamlGeneratorHelperFactory, IXamlWriterFactory xamlWriterFactory)
         {
             this.xamlGeneratorHelperFactory = xamlGeneratorHelperFactory;
-            this.ruleHelpXamlTranslator = ruleHelpXamlTranslator;
+            this.xamlWriterFactory = xamlWriterFactory;
+            ruleHelpXamlTranslator = ruleHelpXamlTranslatorFactory.Create();
         }
 
         public FlowDocument Create(IRuleInfo ruleInfo)
@@ -47,7 +66,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         private string CreateXamlString(IRuleInfo ruleInfo)
         {
             var sb = new StringBuilder();
-            var writer = RuleHelpXamlTranslator.CreateXmlWriter(sb);
+            var writer = xamlWriterFactory.Create(sb);
             var helper = xamlGeneratorHelperFactory.Create(writer);
 
             helper.WriteDocumentHeader(ruleInfo);

@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using System.Xml;
 using SonarLint.VisualStudio.Rules;
 
@@ -34,18 +35,21 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         IXamlGeneratorHelper Create(XmlWriter writer);
     }
 
+    [Export(typeof(IXamlGeneratorHelperFactory))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class XamlGeneratorHelperFactory : IXamlGeneratorHelperFactory
     {
-        private readonly IRuleHelpXamlTranslator ruleHelpXamlTranslator;
+        private readonly IRuleHelpXamlTranslatorFactory ruleHelpXamlTranslatorFactory;
 
-        public XamlGeneratorHelperFactory(IRuleHelpXamlTranslator ruleHelpXamlTranslator)
+        [ImportingConstructor]
+        public XamlGeneratorHelperFactory(IRuleHelpXamlTranslatorFactory ruleHelpXamlTranslatorFactory)
         {
-            this.ruleHelpXamlTranslator = ruleHelpXamlTranslator;
+            this.ruleHelpXamlTranslatorFactory = ruleHelpXamlTranslatorFactory;
         }
 
         public IXamlGeneratorHelper Create(XmlWriter writer)
         {
-            return new XamlGeneratorHelper(writer, ruleHelpXamlTranslator);
+            return new XamlGeneratorHelper(writer, ruleHelpXamlTranslatorFactory.Create());
         }
 
         private sealed class XamlGeneratorHelper : IXamlGeneratorHelper

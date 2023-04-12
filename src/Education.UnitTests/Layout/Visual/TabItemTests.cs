@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Visual
         public void CreateVisualization_ReturnsSectionWithCorrectNameAndContent()
         {
             var sb = new StringBuilder();
-            var xmlWriter = RuleHelpXamlTranslator.CreateXmlWriter(sb);
+            var xmlWriter = new XamlWriterFactory().Create(sb);
             var tabContentMock = new Mock<IAbstractVisualizationTreeNode>();
             tabContentMock.Setup(x => x.ProduceXaml(xmlWriter)).Callback(() => xmlWriter.WriteRaw("<Paragraph>Hi</Paragraph>"));
             const string tabName = "Tab Display Name";

@@ -135,7 +135,12 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             var c = Language.GetLanguageFromRepositoryKey("c");
             var js = Language.GetLanguageFromRepositoryKey("javascript");
             var ts = Language.GetLanguageFromRepositoryKey("typescript");
+            var secrets = Language.GetLanguageFromRepositoryKey("secrets");
             var unknown = Language.GetLanguageFromRepositoryKey("unknown");
+
+            var csSecurity = Language.GetLanguageFromRepositoryKey("roslyn.sonaranalyzer.security.cs");
+            var jsSecurity = Language.GetLanguageFromRepositoryKey("jssecurity");
+            var tsSecurity = Language.GetLanguageFromRepositoryKey("tssecurity");
 
             cs.Should().Be(Language.CSharp);
             vbnet.Should().Be(Language.VBNET);
@@ -143,7 +148,12 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             c.Should().Be(Language.C);
             js.Should().Be(Language.Js);
             ts.Should().Be(Language.Ts);
+            secrets.Should().Be(Language.Secrets);
             unknown.Should().Be(null);
+
+            csSecurity.Should().Be(Language.CSharp);
+            jsSecurity.Should().Be(Language.Js);
+            tsSecurity.Should().Be(Language.Ts);
         }
 
         [TestMethod]
@@ -160,6 +170,23 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 
             var language = new Language("xxx", "dummy language", "x", new SonarQubeLanguage("xxx", "LanguageX"));
             Language.GetSonarRepoKeyFromLanguage(language).Should().BeNull();
+        }
+
+        [TestMethod]
+        public void SanityCheck_RoundTripFromLanguageToRepoKey_AndBack()
+        {
+            // Sanity check that we've remembered to define the necessary mappings
+            // for all known languages.
+            // Regression test to avoid bugs like #3973.
+
+            foreach(var item in Language.KnownLanguages)
+            {
+                var actualRepoKey = Language.GetSonarRepoKeyFromLanguage(item);
+                actualRepoKey.Should().NotBeNull();
+
+                var actualLanguage = Language.GetLanguageFromRepositoryKey(actualRepoKey);
+                actualLanguage.Should().BeSameAs(item);
+            }
         }
     }
 }

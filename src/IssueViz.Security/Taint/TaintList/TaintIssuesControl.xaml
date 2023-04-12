@@ -7,16 +7,17 @@
              xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:core="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
-             DataContext="{Binding ViewModel, RelativeSource={RelativeSource Mode=Self}}"
-             >
+             xmlns:commands="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;assembly=SonarLint.VisualStudio.IssueVisualization"
+             DataContext="{Binding ViewModel, RelativeSource={RelativeSource Mode=Self}}">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="../../SharedUI/SharedResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <core:NullableSelectedItemConverter x:Key="NullableSelectedItemConverter"/>
-            <core:DateTimeConverter x:Key="DateTimeConverter"/>
+            <core:NullableSelectedItemConverter x:Key="NullableSelectedItemConverter" />
+            <core:DateTimeConverter x:Key="DateTimeConverter" />
+            <commands:NavigateToRuleDescriptionCommandConverter x:Key="NavigateToRuleDescriptionCommandConverter" />
 
             <ContextMenu x:Key="RowMenu" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                 <MenuItem Header="{Binding DataContext.ServerType, Mode=OneWay, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}"
@@ -24,15 +25,15 @@
                           CommandParameter="{Binding}"
                           Command="{Binding DataContext.ShowInBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}">
                     <MenuItem.Icon>
-                        <vsImaging:CrispImage Moniker="{x:Static vsCatalog:KnownMonikers.BrowserLink}"/>
+                        <vsImaging:CrispImage Moniker="{x:Static vsCatalog:KnownMonikers.BrowserLink}" />
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="Show SonarLint Issue Visualization"
                           CommandParameter="{Binding}"
                           Command="{Binding DataContext.ShowVisualizationPaneCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}">
                     <MenuItem.Icon>
-                        <vsImaging:CrispImage Source="/SonarLint.VisualStudio.IssueVisualization.Security;component/Taint/TaintList/sonarlint.png"/>                        
-                    </MenuItem.Icon>                    
+                        <vsImaging:CrispImage Source="/SonarLint.VisualStudio.IssueVisualization.Security;component/Taint/TaintList/sonarlint.png" />
+                    </MenuItem.Icon>
                 </MenuItem>
             </ContextMenu>
 
@@ -40,24 +41,24 @@
             <Style BasedOn="{StaticResource BaseDataGridRow}"
                        TargetType="DataGridRow">
                 <Setter Property="ContextMenu" Value="{StaticResource RowMenu}" />
-                <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.BackgroundBrushKey}}"/>
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.BackgroundBrushKey}}" />
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding TaintIssueViz.Span, Converter={StaticResource SpanToNavigabilityConverter}}" Value="False">
-                        <Setter Property="FontStyle" Value="Italic"/>
-                        <Setter Property="ToolTip" Value="Cannot navigate to location. The source code is different from the analyzed version."/>
-                        <Setter Property="ToolTipService.IsEnabled" Value="true"/>
+                        <Setter Property="FontStyle" Value="Italic" />
+                        <Setter Property="ToolTip" Value="Cannot navigate to location. The source code is different from the analyzed version." />
+                        <Setter Property="ToolTipService.IsEnabled" Value="true" />
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
 
             <Style x:Key="OverlayTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource CellTextBlockStyle}">
-                <Setter Property="TextAlignment" Value="Center"/>
-                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="TextAlignment" Value="Center" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.InactiveCaptionTextKey}}" />
             </Style>
 
             <Style x:Key="OverlayTitleTextStyle" TargetType="TextBlock" BasedOn="{StaticResource OverlayTextBlockStyle}">
-                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="FontWeight" Value="Bold" />
             </Style>
 
             <Style x:Key="OverlayGridStyle" TargetType="Grid">
@@ -65,23 +66,31 @@
                 <Setter Property="Visibility" Value="Collapsed" />
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding HasServerIssues}" Value="False">
-                        <Setter Property="Grid.Visibility" Value="Visible"/>
+                        <Setter Property="Grid.Visibility" Value="Visible" />
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
 
             <Style x:Key="DisclaimerBorderStyle" TargetType="Border">
-                <Setter Property="Padding" Value="6,3,3,3"/>
-                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.TitleBarActiveGradientBeginKey}}"/>
-                <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                <Setter Property="Padding" Value="6,3,3,3" />
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.TitleBarActiveGradientBeginKey}}" />
+                <Setter Property="BorderThickness" Value="0,0,0,1" />
             </Style>
 
             <Style x:Key="DisclaimerTextBlockStyle" TargetType="TextBlock">
-                <Setter Property="TextAlignment" Value="Left"/>
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}"/>
+                <Setter Property="TextAlignment" Value="Left" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
+            </Style>
+
+            <Style x:Key="RuleKeyLinkStyle" TargetType="Hyperlink">
+                <Setter Property="TextDecorations" Value="None" />
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="TextDecorations" Value="Underline" />
+                    </Trigger>
+                </Style.Triggers>
             </Style>
         </ResourceDictionary>
-
     </UserControl.Resources>
     <Grid UseLayoutRounding="True">
 
@@ -89,14 +98,14 @@
             <StackPanel VerticalAlignment="Center">
                 <TextBlock Style="{StaticResource OverlayTitleTextStyle}">
                     <Run>No Taint Vulnerabilities were found.</Run>
-                    <LineBreak/>
+                    <LineBreak />
                 </TextBlock>
                 <TextBlock Style="{StaticResource OverlayTextBlockStyle}">
                     <Run>Please ensure that your solution is bound to a Sonar project that contains taint vulnerabilities.</Run>
                 </TextBlock>
                 <TextBlock Style="{StaticResource OverlayTextBlockStyle}">
                     <Hyperlink Command="{Binding ShowDocumentationCommand}">
-                        <LineBreak/>
+                        <LineBreak />
                         <Run Text="Click here to go online and find out more about this and other SonarLint features." />
                     </Hyperlink>
                 </TextBlock>
@@ -104,8 +113,8 @@
         </Grid>
         <Grid x:Name="Content">
             <Grid.RowDefinitions>
-                <RowDefinition Name="Disclaimer" Height="Auto"/>
-                <RowDefinition Name="List" Height="*"/>
+                <RowDefinition Name="Disclaimer" Height="Auto" />
+                <RowDefinition Name="List" Height="*" />
             </Grid.RowDefinitions>
             <Border Grid.Row="0" Style="{StaticResource DisclaimerBorderStyle}">
                 <TextBlock Style="{StaticResource DisclaimerTextBlockStyle}">
@@ -119,20 +128,20 @@
             </Border>
             <Grid x:Name="TaintList" Grid.Row="1">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Name="Table" Width="*"/>
+                    <ColumnDefinition Name="Table" Width="*" />
                 </Grid.ColumnDefinitions>
-                <DataGrid Grid.Column="0" 
+                <DataGrid Grid.Column="0"
                   SelectedItem="{Binding SelectedIssue, Mode=TwoWay, Converter={StaticResource NullableSelectedItemConverter}}"
                   ItemsSource="{Binding IssuesView}">
                     <DataGrid.InputBindings>
                         <MouseBinding
                     MouseAction="LeftDoubleClick"
                     Command="{Binding NavigateCommand}"
-                    CommandParameter="{Binding IssuesView.CurrentItem}"/>
+                    CommandParameter="{Binding IssuesView.CurrentItem}" />
                         <KeyBinding
                     Key="Enter"
                     Command="{Binding NavigateCommand}"
-                    CommandParameter="{Binding IssuesView.CurrentItem}"/>
+                    CommandParameter="{Binding IssuesView.CurrentItem}" />
                     </DataGrid.InputBindings>
                     <DataGrid.Columns>
                         <DataGridTemplateColumn CanUserSort="False" CanUserResize="False" Width="30">
@@ -145,13 +154,13 @@
                                 <DataTemplate>
                                     <Grid>
                                         <vsImaging:CrispImage Height="16" Width="16"
-                                                      Moniker="{x:Static vsCatalog:KnownMonikers.DocumentWarning}" 
-                                                      Visibility="{Binding TaintIssueViz.Span, Converter={StaticResource SpanToInvertedVisibilityConverter}, Mode=OneWay}"/>
+                                                      Moniker="{x:Static vsCatalog:KnownMonikers.DocumentWarning}"
+                                                      Visibility="{Binding TaintIssueViz.Span, Converter={StaticResource SpanToInvertedVisibilityConverter}, Mode=OneWay}" />
                                         <vsImaging:CrispImage Height="16" Width="16"
                                                       Margin="-5,0,0,0"
                                                       ToolTipService.ToolTip="Location is navigable. Use double-click or Enter to open the document."
-                                                      Moniker="{x:Static vsCatalog:KnownMonikers.DocumentSource}" 
-                                                      Visibility="{Binding TaintIssueViz.Span, Converter={StaticResource SpanToVisibilityConverter}, Mode=OneWay}"/>
+                                                      Moniker="{x:Static vsCatalog:KnownMonikers.DocumentSource}"
+                                                      Visibility="{Binding TaintIssueViz.Span, Converter={StaticResource SpanToVisibilityConverter}, Mode=OneWay}" />
                                     </Grid>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -159,39 +168,48 @@
                         <DataGridTemplateColumn CanUserSort="True" SortMemberPath="TaintIssueViz.Issue.RuleKey" Header="Code" Width="130" MinWidth="54">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding TaintIssueViz.Issue.RuleKey}" 
-                                       Style="{StaticResource CellTextBlockStyle}" />
+                                    <TextBlock>
+                                        <Hyperlink Style="{StaticResource RuleKeyLinkStyle}" Command="{Binding DataContext.NavigateToRuleDescriptionCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}">
+                                            <Hyperlink.CommandParameter>
+                                                <MultiBinding Converter="{StaticResource NavigateToRuleDescriptionCommandConverter}">
+                                                    <Binding Path="TaintIssueViz.Issue.RuleKey" />
+                                                    <Binding Path="TaintIssueViz.Issue.RuleDescriptionContextKey" />
+                                                </MultiBinding>
+                                            </Hyperlink.CommandParameter>
+                                            <TextBlock Text="{Binding TaintIssueViz.Issue.RuleKey}" Style="{StaticResource CellTextBlockStyle}" />
+                                        </Hyperlink>
+                                    </TextBlock>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                         <DataGridTemplateColumn CanUserSort="True" SortMemberPath="TaintIssueViz.Issue.Severity" Header="Severity" Width="68"  MinWidth="68">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding TaintIssueViz.Issue.Severity}" 
-                                       Style="{StaticResource CellTextBlockStyle}"/>
+                                    <TextBlock Text="{Binding TaintIssueViz.Issue.Severity}"
+                                       Style="{StaticResource CellTextBlockStyle}" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                         <DataGridTemplateColumn CanUserSort="True" SortMemberPath="TaintIssueViz.Issue.PrimaryLocation.Message" Header="Description" Width="*" MinWidth="150">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding TaintIssueViz.Issue.PrimaryLocation.Message}" 
-                                       Style="{StaticResource CellTextBlockStyle}"/>
+                                    <TextBlock Text="{Binding TaintIssueViz.Issue.PrimaryLocation.Message}"
+                                       Style="{StaticResource CellTextBlockStyle}" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                         <DataGridTemplateColumn CanUserSort="True" SortMemberPath="DisplayPath" Header="File" Width="180"  MinWidth="80">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding DisplayPath}" 
-                                       Style="{StaticResource CellTextBlockStyle}"/>
+                                    <TextBlock Text="{Binding DisplayPath}"
+                                       Style="{StaticResource CellTextBlockStyle}" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                         <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Line" Header="Line" Width="48"  MinWidth="48">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Line}" 
+                                    <TextBlock Text="{Binding Line}"
                                        Style="{StaticResource CellTextBlockStyle}" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -199,7 +217,7 @@
                         <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Column" Header="Col" Width="44"  MinWidth="44">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Column}" 
+                                    <TextBlock Text="{Binding Column}"
                                        Style="{StaticResource CellTextBlockStyle}" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -207,7 +225,7 @@
                         <DataGridTemplateColumn CanUserSort="True" SortMemberPath="TaintIssueViz.Issue.CreationTimestamp" Header="Created" Width="138"  MinWidth="100">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding TaintIssueViz.Issue.CreationTimestamp, Converter={StaticResource DateTimeConverter}}" 
+                                    <TextBlock Text="{Binding TaintIssueViz.Issue.CreationTimestamp, Converter={StaticResource DateTimeConverter}}"
                                        Style="{StaticResource CellTextBlockStyle}" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>

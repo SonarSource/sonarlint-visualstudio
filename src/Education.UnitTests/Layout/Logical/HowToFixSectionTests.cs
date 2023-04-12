@@ -61,8 +61,8 @@ public class HowToFixSectionTests
             new HowToFixItSectionContext("aspnetmvc", "asp net mvc", "<Paragraph>rewrite to asp net core</Paragraph>"),
             new HowToFixItSectionContext("aspnetcore","asp net core", "<Paragraph>nothing to worry about, unless...</Paragraph>"),
         };
-        var testSubject = new HowToFixItSection(contexts);
-        var staticXamlStorage = new StaticXamlStorage(new RuleHelpXamlTranslator());
+        var testSubject = new HowToFixItSection(contexts, null);
+        var staticXamlStorage = new StaticXamlStorage(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()));
         
         var visualizationTreeNode = testSubject.GetVisualizationTreeNode(staticXamlStorage);
         
@@ -74,12 +74,40 @@ public class HowToFixSectionTests
         
         var tabGroup = multiBlockSection.blocks[1].Should().BeOfType<TabGroup>().Subject;
         tabGroup.tabs.Should().HaveCount(contexts.Count + 1);
-        
+
+        tabGroup.selectedTabIndex.Should().Be(0);
+
+
         for (var i = 0; i < contexts.Count; i++)
         {
             ((TabItem)tabGroup.tabs[i]).content.Should().BeOfType<ContentSection>().Which.xamlContent.Should().Be(contexts[i].PartialXamlContent);
         }
 
         ((TabItem)tabGroup.tabs.Last()).content.Should().BeOfType<ContentSection>().Which.xamlContent.Should().Be(staticXamlStorage.HowToFixItFallbackContext);
+    }
+
+    [DataTestMethod]
+    [DataRow("notinthelist", 2)] // 2 - the fallback tab
+    [DataRow(null, 0)]
+    [DataRow("aspnetmvc", 0)]
+    [DataRow("aspnetcore", 1)]
+    public void GetVisualizationTreeNode_ContextAware_SelectsCorrectContext(string selectedContext, int expectedSelectedTabIndex)
+    {
+        var contexts = new List<HowToFixItSectionContext>
+        {
+            new HowToFixItSectionContext("aspnetmvc", "asp net mvc", "<Paragraph>rewrite to asp net core</Paragraph>"),
+            new HowToFixItSectionContext("aspnetcore","asp net core", "<Paragraph>nothing to worry about, unless...</Paragraph>"),
+        };
+        var testSubject = new HowToFixItSection(contexts, selectedContext);
+        var staticXamlStorage = new StaticXamlStorage(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()));
+
+         var visualizationTreeNode = testSubject.GetVisualizationTreeNode(staticXamlStorage);
+
+        visualizationTreeNode
+            .Should().BeOfType<MultiBlockSection>()
+            .Which.blocks.Last()
+            .Should().BeOfType<TabGroup>()
+            .Which.selectedTabIndex
+            .Should().Be(expectedSelectedTabIndex);
     }
 }

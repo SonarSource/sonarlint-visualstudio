@@ -55,7 +55,11 @@ namespace SonarQube.Client.Api
                 .RegisterRequest<IGetHotspotRequest, V8_6.GetHotspotRequest>("8.6")
                 .RegisterRequest<IGetTaintVulnerabilitiesRequest, V8_6.GetTaintVulnerabilitiesRequest>("8.6")
                 .RegisterRequest<IGetExclusionsRequest, V7_20.GetExclusionsRequest>("7.2")
-                .RegisterRequest<IGetSonarLintEventStream, V9_4.GetSonarLintEventStream>("9.4");
+                .RegisterRequest<IGetSonarLintEventStream, V9_4.GetSonarLintEventStream>("9.4")
+                .RegisterRequest<IGetRulesRequest, V9_5.GetRulesWithDescriptionSectionsRequest>("9.5")
+                .RegisterRequest<IGetRulesRequest, V9_6.GetRulesWithEducationPrinciplesRequest>("9.6")
+                .RegisterRequest<IGetTaintVulnerabilitiesRequest, V9_6.GetTaintVulnerabilitiesWithContextRequest>("9.6");
+
             return requestFactory;
         }
 
@@ -67,7 +71,7 @@ namespace SonarQube.Client.Api
                 .RegisterRequest<IGetSourceCodeRequest, V5_00.GetSourceCodeRequest>()
                 .RegisterRequest<IGetLanguagesRequest, V5_10.GetLanguagesRequest>()
                 .RegisterRequest<IGetModulesRequest, V5_40.GetModulesRequest>()
-                .RegisterRequest<IGetRulesRequest, V5_50.GetRulesRequest>()
+                .RegisterRequest<IGetRulesRequest, V9_6.GetRulesWithEducationPrinciplesRequest>()
                 .RegisterRequest<IDownloadStaticFile, V5_50.DownloadStaticFile>()
                 .RegisterRequest<IGetProjectsRequest, V6_20.GetProjectsRequest>()
                 .RegisterRequest<IGetPluginsRequest, V6_30.GetPluginsRequest>()
@@ -80,7 +84,7 @@ namespace SonarQube.Client.Api
                 .RegisterRequest<IGetOrganizationsRequest, V7_00.GetOrganizationsRequest>()
                 .RegisterRequest<IGetIssuesRequest, V7_20.GetIssuesRequestWrapper>()
                 .RegisterRequest<IGetHotspotRequest, V8_6.GetHotspotRequest>()
-                .RegisterRequest<IGetTaintVulnerabilitiesRequest, V8_6.GetTaintVulnerabilitiesRequest>()
+                .RegisterRequest<IGetTaintVulnerabilitiesRequest, V9_6.GetTaintVulnerabilitiesWithContextRequest>()
                 .RegisterRequest<IGetExclusionsRequest, V7_20.GetExclusionsRequest>();
 
             return requestFactory;

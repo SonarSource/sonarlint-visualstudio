@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Visual
             var sb = new StringBuilder();
             const string xamlContent = "<Paragraph>Hi</Paragraph>";
             var testSubject = new ContentSection(xamlContent);
-            var xmlWriter = RuleHelpXamlTranslator.CreateXmlWriter(sb);
+            var xmlWriter = new XamlWriterFactory().Create(sb);
 
             testSubject.ProduceXaml(xmlWriter);
             xmlWriter.Close();

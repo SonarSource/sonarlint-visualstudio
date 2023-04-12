@@ -31,6 +31,7 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
         SonarQubeIssueType Type { get; }
         ILocation MainLocation { get; }
         IFlow[] Flows { get; }
+        string Context { get; }
     }
 
     public interface IFlow
@@ -63,7 +64,8 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
             SonarQubeIssueSeverity severity,
             SonarQubeIssueType type,
             Location mainLocation,
-            Flow[] flows)
+            Flow[] flows,
+            string context)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
             RuleKey = ruleKey ?? throw new ArgumentNullException(nameof(ruleKey));
@@ -72,6 +74,7 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
             Type = type;
             MainLocation = mainLocation ?? throw new ArgumentNullException(nameof(mainLocation));
             Flows = flows ?? throw new ArgumentNullException(nameof(flows));
+            Context = context;
         }
 
         public string Key { get; }
@@ -81,6 +84,7 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
         public SonarQubeIssueType Type { get; }
         public ILocation MainLocation { get; }
         public IFlow[] Flows { get; }
+        public string Context { get; }
     }
 
     internal class Flow : IFlow
