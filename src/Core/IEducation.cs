@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Core
         /// <remarks>If the metadata for the rule is available locally, the rule help will
         /// be displayed in the IDE. Otherwise, the rule help will be displayed in the
         /// browser i.e. at rules.sonarsource.com</remarks>
-        /// <param name="issueContext">Key for the How to fix it Context acquired from a specific issue</param>
+        /// <param name="issueContext">Key for the How to fix it Context acquired from a specific issue. Can be null.</param>
         void ShowRuleHelp(SonarCompositeRuleId ruleId, string issueContext);
     }
 }

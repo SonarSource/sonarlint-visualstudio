@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Education.Commands
                 // in which case it needs to be handed over to the education service.
                 if (SonarRuleIdUriEncoderDecoder.TryDecodeToCompositeRuleId(e.Uri, out SonarCompositeRuleId compositeRuleId))
                 {
-                    education.ShowRuleHelp(compositeRuleId);
+                    education.ShowRuleHelp(compositeRuleId, null);
 
                     return;
                 }

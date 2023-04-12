@@ -22,7 +22,6 @@ using System.Text;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Education.Layout.Logical;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -121,7 +120,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void TranslateHtmlToXaml_CrossReferenceRule_AddsHyperLink()
         {
-            var testSubject = new RuleHelpXamlTranslator();
+            var testSubject = new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()).Create();
 
             var htmlText = "Texty text {rule:cpp:S1564} blabla";
 

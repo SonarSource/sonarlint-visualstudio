@@ -658,8 +658,8 @@ namespace SonarQube.Client.Tests
         public async Task GetTaintVulnerabilitiesWithContextAsync_Response_From_SonarQube()
         {
             await ConnectToSonarQube("9.6.0.0");
-
-            SetupRequest("api/issues/search?additionalFields=ruleDescriptionContextKey&projects=shared&statuses=OPEN%2CCONFIRMED%2CREOPENED&types=VULNERABILITY&p=1&ps=500", @"
+            
+            SetupRequest("api/issues/search?additionalFields=ruleDescriptionContextKey&projects=shared&statuses=OPEN%2CCONFIRMED%2CREOPENED%2CRESOLVED&types=VULNERABILITY&p=1&ps=500", @"
 {
 	""total"": 4,
 	""p"": 1,
