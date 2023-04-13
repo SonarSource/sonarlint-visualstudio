@@ -56,6 +56,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis.UnitTests
 
             testSubject.IsAnalysisSupported(new[] { AnalysisLanguage.CFamily }).Should().BeTrue();
             testSubject.IsAnalysisSupported(new[] { AnalysisLanguage.Javascript }).Should().BeFalse();
+            testSubject.IsAnalysisSupported(new[] { AnalysisLanguage.CascadingStyleSheets }).Should().BeFalse();
             testSubject.IsAnalysisSupported(new[] { AnalysisLanguage.Javascript, AnalysisLanguage.CFamily }).Should().BeTrue();
         }
 
