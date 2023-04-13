@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         {
             var testSubject = CreateTestSubject();
 
-            var languages = new[] { AnalysisLanguage.CFamily, AnalysisLanguage.RoslynFamily };
+            var languages = new[] { AnalysisLanguage.CFamily, AnalysisLanguage.RoslynFamily, AnalysisLanguage.CascadingStyleSheets };
             var result = testSubject.IsAnalysisSupported(languages);
 
             result.Should().BeFalse();
