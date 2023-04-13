@@ -23,7 +23,6 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 
@@ -60,7 +59,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         public async Task NewTsConfig(CancellationToken cancellationToken)
         {
-            var responseString = await MakeCall("new-tsconfig", null, cancellationToken);
+            var responseString = await EslintBridgeHttpHelper.MakeCallAsync(eslintBridgeProcess, httpWrapper, "new-tsconfig", null, cancellationToken);
 
             if (!responseString.Equals("OK!", StringComparison.OrdinalIgnoreCase))
             {
@@ -71,7 +70,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         public async Task<TSConfigResponse> TsConfigFiles(string tsConfigFilePath, CancellationToken cancellationToken)
         {
             var request = new TsConfigRequest { TsConfig = tsConfigFilePath };
-            var responseString = await MakeCall("tsconfig-files", request, cancellationToken);
+            var responseString = await EslintBridgeHttpHelper.MakeCallAsync(eslintBridgeProcess, httpWrapper, "tsconfig-files", request, cancellationToken);
 
             if (string.IsNullOrEmpty(responseString))
             {
