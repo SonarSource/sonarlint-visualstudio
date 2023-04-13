@@ -56,8 +56,8 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
     internal class EslintBridgeClient : IEslintBridgeClient
     {
         private readonly string analyzeEndpoint;
-        private readonly IEslintBridgeProcess eslintBridgeProcess;
-        private readonly IEslintBridgeHttpWrapper httpWrapper;
+        protected readonly IEslintBridgeProcess eslintBridgeProcess;
+        protected readonly IEslintBridgeHttpWrapper httpWrapper;
         private readonly IAnalysisConfiguration analysisConfiguration;
         private readonly IEslintBridgeKeepAlive keepAlive;
         private bool isDisposed;
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 Environments = analysisConfiguration.GetEnvironments()
             };
 
-            var responseString = await MakeCall("init-linter", initLinterRequest, cancellationToken);
+            var responseString = await EslintBridgeHttpHelper.MakeCallAsync(eslintBridgeProcess, httpWrapper, "init-linter", initLinterRequest, cancellationToken);
 
             if (!"OK!".Equals(responseString))
             {
@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 FileType = "MAIN"
             };
 
-            var responseString = await MakeCall(analyzeEndpoint, analysisRequest, cancellationToken);
+            var responseString = await EslintBridgeHttpHelper.MakeCallAsync(eslintBridgeProcess, httpWrapper, analyzeEndpoint, analysisRequest, cancellationToken);
 
             if (string.IsNullOrEmpty(responseString))
             {
@@ -119,14 +119,14 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
             return JsonConvert.DeserializeObject<AnalysisResponse>(responseString);
         }
-         
+
         public async Task Close()
         {
             try
             {
                 if (eslintBridgeProcess.IsRunning)
                 {
-                    await MakeCall("close", null, CancellationToken.None);
+                    await EslintBridgeHttpHelper.MakeCallAsync(eslintBridgeProcess, httpWrapper, "close", null, CancellationToken.None);
                 }
             }
             catch
@@ -168,16 +168,5 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         }
 
         #endregion
-
-        protected async Task<string> MakeCall(string endpoint, object request, CancellationToken cancellationToken)
-        {
-            var port = await eslintBridgeProcess.Start();
-            var fullServerUrl = BuildServerUri(port, endpoint);
-            var response = await httpWrapper.PostAsync(fullServerUrl, request, cancellationToken);
-
-            return response;
-        }
-
-        private Uri BuildServerUri(int port, string endpoint) => new Uri($"http://localhost:{port}/{endpoint}");
     }
 }
