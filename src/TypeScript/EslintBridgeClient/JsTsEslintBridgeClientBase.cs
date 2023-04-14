@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             }
         }
 
-        public async Task<AnalysisResponse> Analyze(string filePath, string tsConfigFilePath, CancellationToken cancellationToken)
+        public async Task<JsTsAnalysisResponse> Analyze(string filePath, string tsConfigFilePath, CancellationToken cancellationToken)
         {
             var tsConfigFilePaths = tsConfigFilePath == null ? Array.Empty<string>() : new[] { tsConfigFilePath };
 
@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 throw new InvalidOperationException(string.Format(Resources.ERR_InvalidResponse, responseString));
             }
 
-            return JsonConvert.DeserializeObject<AnalysisResponse>(responseString);
+            return JsonConvert.DeserializeObject<JsTsAnalysisResponse>(responseString);
         }
     }
 }

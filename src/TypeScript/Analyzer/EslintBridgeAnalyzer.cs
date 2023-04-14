@@ -115,7 +115,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             return issues;
         }
 
-        private static bool LinterNotInitializedResponse(AnalysisResponse analysisResponse)
+        private static bool LinterNotInitializedResponse(JsTsAnalysisResponse analysisResponse)
         {
             return analysisResponse.ParsingError != null && 
                    analysisResponse.ParsingError.Code == ParsingErrorCode.LINTER_INITIALIZATION;

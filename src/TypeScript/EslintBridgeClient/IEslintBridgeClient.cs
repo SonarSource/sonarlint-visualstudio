@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         /// <summary>
         /// Analyzes the specified file and returns the detected issues.
         /// </summary>
-        Task<AnalysisResponse> Analyze(string filePath, string tsConfigFilePath, CancellationToken cancellationToken);
+        Task<JsTsAnalysisResponse> Analyze(string filePath, string tsConfigFilePath, CancellationToken cancellationToken);
 
         /// <summary>
         /// Closes running eslint-bridge server.
