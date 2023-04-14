@@ -18,46 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract
 {
-    internal class AnalysisResponse
-    {
-        // Other fields omitted
-        // i.e. Highlight[], HighlightedSymbol[], Metrics, CpdToken[]
-
-        [JsonProperty("issues")]
-        public IEnumerable<Issue> Issues { get; set; }
-
-        [JsonProperty("parsingError")]
-        public ParsingError ParsingError { get; set; }
-    }
-
-    internal class ParsingError
-    {
-        [JsonProperty("line")]
-        public int Line { get; set; }
-
-        [JsonProperty("message")]
-        public string Message { get; set; }
-
-        [JsonProperty("code")]
-        public ParsingErrorCode Code { get; set; }
-    }
-
-    internal enum ParsingErrorCode
-    {
-        PARSING,
-        MISSING_TYPESCRIPT,
-        UNSUPPORTED_TYPESCRIPT,
-        FAILING_TYPESCRIPT,
-        GENERAL_ERROR,
-        LINTER_INITIALIZATION
-    }
-
     internal class Issue
     {
         [JsonProperty("line")]
