@@ -44,6 +44,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
         private const string TypeScriptTypeName = "TypeScript";
         private const string CSharpTypeName = "CSharp";
         private const string BasicTypeName = "Basic";
+        private const string CSSTypeName = "css";
+        private const string SCSSTypeName = "SCSS";
+        private const string LESSTypeName = "LESS";
 
         private readonly IContentTypeRegistryService contentTypeRegistryService;
         private readonly IFileExtensionRegistryService fileExtensionRegistryService;
@@ -57,7 +60,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
 
         public IEnumerable<AnalysisLanguage> Detect(string filePath, IContentType bufferContentType)
         {
-            var fileExtension = Path.GetExtension(filePath).Replace(".", "");
+            var fileExtension = Path.GetExtension(filePath).TrimStart('.');
             var contentTypes = GetExtensionContentTypes(fileExtension, bufferContentType);
 
             // Languages are for now mainly exclusive but it should possible for the same file to be analyzed by multiple
@@ -81,6 +84,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
             if (IsRoslynFamilyDocument(contentTypes))
             {
                 detectedLanguages.Add(AnalysisLanguage.RoslynFamily);
+            }
+
+            if (IsCssDocument(contentTypes))
+            {
+                detectedLanguages.Add(AnalysisLanguage.CascadingStyleSheets);
             }
 
             return detectedLanguages;
@@ -120,6 +128,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
             return contentTypes.Any(type => type.IsOfType("TypeScript"));
         }
 
+        private static bool IsCssDocument(IEnumerable<IContentType> contentTypes) =>
+            contentTypes.Any(type => type.IsOfType(CSSTypeName) || type.IsOfType(SCSSTypeName) || type.IsOfType(LESSTypeName));
+
         public AnalysisLanguage? GetAnalysisLanguageFromExtension(string fileName)
         {
             if(IsFileNameInvalid(fileName))
@@ -142,6 +153,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
                 case CSharpTypeName:
                 case BasicTypeName:
                     return AnalysisLanguage.RoslynFamily;
+                case CSSTypeName:
+                case SCSSTypeName:
+                case LESSTypeName:
+                    return AnalysisLanguage.CascadingStyleSheets;
                 default:
                     return null;                   
             }
