@@ -33,16 +33,4 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract
         [JsonProperty("globals")]
         public string[] Globals { get; set; }
     }
-
-    internal class Rule
-    {
-        [JsonProperty("key")]
-        public string Key { get; set; }
-
-        [JsonProperty("configurations")]
-        public object[] Configurations { get; set; }
-
-        [JsonProperty("fileTypeTarget")]
-        public string[] FileTypeTarget { get; set; }
-    }
 }
