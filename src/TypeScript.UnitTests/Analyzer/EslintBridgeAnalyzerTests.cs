@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         {
             var activeRules = new[] { new Rule { Key = "rule1" }, new Rule { Key = "rule2" } };
             var activeRulesProvider = SetupActiveRulesProvider(activeRules);
-            var client = SetupEslintBridgeClient(new AnalysisResponse { Issues = Enumerable.Empty<Issue>() });
+            var client = SetupEslintBridgeClient(new JsTsAnalysisResponse { Issues = Enumerable.Empty<Issue>() });
 
             var testSubject = CreateTestSubject(client.Object, activeRulesProvider.Object);
 
@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         [TestMethod]
         public async Task Analyze_EslintBridgeClientNotInitializedResponse_CallsInitLinter()
         {
-            var validResponse = new AnalysisResponse { Issues = new List<Issue>() };
+            var validResponse = new JsTsAnalysisResponse { Issues = new List<Issue>() };
             var linterNotInitializedResponse = CreateLinterNotInitializedResponse();
             var client = new Mock<IEslintBridgeClient>();
 
@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         {
             var logger = new TestLogger();
             var linterNotInitializedResponse = CreateLinterNotInitializedResponse();
-            var parsingErrorResponse = new AnalysisResponse
+            var parsingErrorResponse = new JsTsAnalysisResponse
             {
                 ParsingError = new ParsingError
                 {
@@ -189,7 +189,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         public async Task Analyze_EslintBridgeClientNotInitializedResponse_FollowedByValidResponse_ConvertedIssuesReturnedAndParsingErrorNotLogged()
         {
             var linterNotInitializedResponse = CreateLinterNotInitializedResponse();
-            var validResponse = new AnalysisResponse {Issues = new List<Issue> {new Issue()}};
+            var validResponse = new JsTsAnalysisResponse {Issues = new List<Issue> {new Issue()}};
             var logger = new TestLogger();
             var client = new Mock<IEslintBridgeClient>();
 
@@ -233,7 +233,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         {
             var activeRules = new[] { new Rule { Key = "rule1" }, new Rule { Key = "rule2" } };
             var activeRulesProvider = SetupActiveRulesProvider(activeRules);
-            var eslintBridgeClient = SetupEslintBridgeClient(response: new AnalysisResponse());
+            var eslintBridgeClient = SetupEslintBridgeClient(response: new JsTsAnalysisResponse());
 
             var testSubject = CreateTestSubject(eslintBridgeClient.Object, activeRulesProvider.Object);
 
@@ -277,7 +277,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         public async Task OnSolutionChanged_NextAnalysisCallsInitLinter_OnlyIfSolutionClosed(bool isSolutionClosed)
         {
             var activeSolutionTracker = SetupActiveSolutionTracker();
-            var client = SetupEslintBridgeClient(new AnalysisResponse { Issues = Enumerable.Empty<Issue>() });
+            var client = SetupEslintBridgeClient(new JsTsAnalysisResponse { Issues = Enumerable.Empty<Issue>() });
 
             var testSubject = CreateTestSubject(client.Object, activeSolutionTracker: activeSolutionTracker.Object);
 
@@ -299,7 +299,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         public void OnSolutionChanged_EslintBridgeClientStopped_OnlyIfSolutionClosed(bool isSolutionClosed)
         {
             var activeSolutionTracker = SetupActiveSolutionTracker();
-            var client = SetupEslintBridgeClient(new AnalysisResponse { Issues = Enumerable.Empty<Issue>() });
+            var client = SetupEslintBridgeClient(new JsTsAnalysisResponse { Issues = Enumerable.Empty<Issue>() });
 
             CreateTestSubject(client.Object, activeSolutionTracker: activeSolutionTracker.Object);
 
@@ -339,7 +339,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         public async Task OnConfigChanged_NextAnalysisCallsInitLinter()
         {
             var analysisConfigMonitor = SetupAnalysisConfigMonitor();
-            var client = SetupEslintBridgeClient(new AnalysisResponse { Issues = Enumerable.Empty<Issue>() });
+            var client = SetupEslintBridgeClient(new JsTsAnalysisResponse { Issues = Enumerable.Empty<Issue>() });
 
             var testSubject = CreateTestSubject(client.Object, analysisConfigMonitor: analysisConfigMonitor.Object);
 
@@ -359,7 +359,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         public void OnConfigChanged_DoesNotStopEslintBridgeClient()
         {
             var analysisConfigMonitor = SetupAnalysisConfigMonitor();
-            var client = SetupEslintBridgeClient(new AnalysisResponse { Issues = Enumerable.Empty<Issue>() });
+            var client = SetupEslintBridgeClient(new JsTsAnalysisResponse { Issues = Enumerable.Empty<Issue>() });
 
             CreateTestSubject(client.Object, analysisConfigMonitor: analysisConfigMonitor.Object);
 
@@ -428,7 +428,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         [TestMethod]
         public async Task Analyze_ResponseWithParsingError_IssuesIgnoredAndEmptyListReturned()
         {
-            var response = new AnalysisResponse
+            var response = new JsTsAnalysisResponse
             {
                 ParsingError = new ParsingError
                 {
@@ -456,7 +456,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         [TestMethod]
         public async Task Analyze_ResponseWithNoIssues_ReturnsEmptyList()
         {
-            var response = new AnalysisResponse { Issues = null };
+            var response = new JsTsAnalysisResponse { Issues = null };
             var eslintBridgeClient = SetupEslintBridgeClient(response: response);
             var issueConverter = new Mock<IEslintBridgeIssueConverter>();
 
@@ -470,7 +470,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         [TestMethod]
         public async Task Analyze_ResponseWithIssues_ReturnsConvertedIssues()
         {
-            var response = new AnalysisResponse
+            var response = new JsTsAnalysisResponse
             {
                 Issues = new List<Issue>
                 {
@@ -492,8 +492,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             result.Should().BeEquivalentTo(convertedIssues);
         }
 
-        private static AnalysisResponse CreateLinterNotInitializedResponse() => 
-            new AnalysisResponse { ParsingError = new ParsingError { Code = ParsingErrorCode.LINTER_INITIALIZATION } };
+        private static JsTsAnalysisResponse CreateLinterNotInitializedResponse() => 
+            new JsTsAnalysisResponse { ParsingError = new ParsingError { Code = ParsingErrorCode.LINTER_INITIALIZATION } };
 
         private static void SetupConvertedIssue(Mock<IEslintBridgeIssueConverter> issueConverter,
             string filePath,
@@ -507,13 +507,13 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 
         private async Task SetupAnalysisWithParsingError(ParsingError parsingError, ILogger logger)
         {
-            var response = new AnalysisResponse { ParsingError = parsingError };
+            var response = new JsTsAnalysisResponse { ParsingError = parsingError };
             var eslintBridgeClient = SetupEslintBridgeClient(response: response);
             var testSubject = CreateTestSubject(eslintBridgeClient.Object, logger: logger);
             await testSubject.Analyze("some path", "some config", CancellationToken.None);
         }
 
-        private Mock<IEslintBridgeClient> SetupEslintBridgeClient(AnalysisResponse response = null, Exception exceptionToThrow = null)
+        private Mock<IEslintBridgeClient> SetupEslintBridgeClient(JsTsAnalysisResponse response = null, Exception exceptionToThrow = null)
         {
             var eslintBridgeClient = new Mock<IEslintBridgeClient>();
             var setup = eslintBridgeClient.Setup(x => x.Analyze(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()));
