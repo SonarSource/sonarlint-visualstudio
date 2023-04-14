@@ -31,7 +31,7 @@ using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
 {
     [TestClass]
-    public class EslintBridgeClientTests
+    public class JsTsEslintBridgeClientBaseTests
     {
         private const int ServerPort = 1234;
         private const string AnalyzeEndpoint = "dummy-analyze";
@@ -280,7 +280,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             eslintBridgeProcess.Verify(x => x.Dispose(), Times.Never);
         }
 
-        private static TypeScript.EslintBridgeClient.EslintBridgeClient CreateTestSubject(IEslintBridgeHttpWrapper httpWrapper = null,
+        private static JsTsEslintBridgeClientBase CreateTestSubject(IEslintBridgeHttpWrapper httpWrapper = null,
             IAnalysisConfiguration analysisConfiguration = null,
             IEslintBridgeProcess eslintBridgeProcess = null,
             IEslintBridgeKeepAlive keepAlive = null)
@@ -290,7 +290,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             httpWrapper ??= Mock.Of<IEslintBridgeHttpWrapper>();
             keepAlive ??= new Mock<IEslintBridgeKeepAlive>().Object;
 
-            return new TypeScript.EslintBridgeClient.EslintBridgeClient(AnalyzeEndpoint, eslintBridgeProcess, httpWrapper, analysisConfiguration,
+            return new JsTsEslintBridgeClientBase(AnalyzeEndpoint, eslintBridgeProcess, httpWrapper, analysisConfiguration,
                 keepAlive);
         }
 

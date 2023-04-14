@@ -18,22 +18,31 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.Integration;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 
 namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 {
-    internal interface IJavaScriptEslintBridgeClient : IEslintBridgeClient
-    { }
-
-    [Export(typeof(IJavaScriptEslintBridgeClient))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class JavaScriptEslintBridgeClient : JsTsEslintBridgeClientBase, IJavaScriptEslintBridgeClient
+    internal interface IEslintBridgeClient : IDisposable
     {
-        [ImportingConstructor]
-        public JavaScriptEslintBridgeClient(IEslintBridgeProcessFactory eslintBridgeProcessFactory, ILogger logger) 
-            : base("analyze-js", eslintBridgeProcessFactory.Create(), logger)
-        {
-        }
+        /// <summary>
+        /// Configures the linter with the set of rules to execute
+        /// </summary>
+        /// <remarks>This method should be called whenever the set of active rules or
+        /// their configuration changes.</remarks>
+        Task InitLinter(IEnumerable<Rule> rules, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Analyzes the specified file and returns the detected issues.
+        /// </summary>
+        Task<AnalysisResponse> Analyze(string filePath, string tsConfigFilePath, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Closes running eslint-bridge server.
+        /// </summary>
+        Task Close();
     }
 }

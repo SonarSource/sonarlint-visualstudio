@@ -29,56 +29,28 @@ using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 
 namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 {
-    internal interface IEslintBridgeClient : IDisposable
-    {
-        /// <summary>
-        /// Configures the linter with the set of rules to execute
-        /// </summary>
-        /// <remarks>This method should be called whenever the set of active rules or
-        /// their configuration changes.</remarks>
-        Task InitLinter(IEnumerable<Rule> rules, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Analyzes the specified file and returns the detected issues.
-        /// </summary>
-        Task<AnalysisResponse> Analyze(string filePath, string tsConfigFilePath, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Closes running eslint-bridge server.
-        /// </summary>
-        Task Close();
-    }
-
     /// <summary>
     /// Matching Java implementation: https://github.com/SonarSource/SonarJS/blob/0dda9105bab520569708e230f4d2dffdca3cec74/sonar-javascript-plugin/src/main/java/org/sonar/plugins/javascript/eslint/JavaScriptEslintBasedSensor.java#L51
     /// Eslint-bridge methods: https://github.com/SonarSource/SonarJS/blob/0dda9105bab520569708e230f4d2dffdca3cec74/eslint-bridge/src/server.ts
     /// </summary>
-    internal class EslintBridgeClient : IEslintBridgeClient
+    internal class JsTsEslintBridgeClientBase : EslintBridgeClientBase, IEslintBridgeClient
     {
-        private readonly string analyzeEndpoint;
-        protected readonly IEslintBridgeProcess eslintBridgeProcess;
-        protected readonly IEslintBridgeHttpWrapper httpWrapper;
         private readonly IAnalysisConfiguration analysisConfiguration;
-        private readonly IEslintBridgeKeepAlive keepAlive;
-        private bool isDisposed;
 
-        public EslintBridgeClient(string analyzeEndpoint, IEslintBridgeProcess eslintBridgeProcess, ILogger logger)
+        public JsTsEslintBridgeClientBase(string analyzeEndpoint, IEslintBridgeProcess eslintBridgeProcess, ILogger logger)
             : this(analyzeEndpoint, eslintBridgeProcess, new EslintBridgeHttpWrapper(logger), new AnalysisConfiguration(),
                   new EslintBridgeKeepAlive(eslintBridgeProcess, logger))
         {
         }
 
-        internal EslintBridgeClient(string analyzeEndpoint,
+        internal JsTsEslintBridgeClientBase(string analyzeEndpoint,
             IEslintBridgeProcess eslintBridgeProcess,
             IEslintBridgeHttpWrapper httpWrapper,
             IAnalysisConfiguration analysisConfiguration,
             IEslintBridgeKeepAlive keepAlive)
+            : base(analyzeEndpoint, eslintBridgeProcess, httpWrapper, keepAlive)
         {
-            this.analyzeEndpoint = analyzeEndpoint;
-            this.eslintBridgeProcess = eslintBridgeProcess;
-            this.httpWrapper = httpWrapper;
             this.analysisConfiguration = analysisConfiguration;
-            this.keepAlive = keepAlive;
         }
 
         public async Task InitLinter(IEnumerable<Rule> rules, CancellationToken cancellationToken)
@@ -119,54 +91,5 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
             return JsonConvert.DeserializeObject<AnalysisResponse>(responseString);
         }
-
-        public async Task Close()
-        {
-            try
-            {
-                if (eslintBridgeProcess.IsRunning)
-                {
-                    await EslintBridgeHttpHelper.MakeCallAsync(eslintBridgeProcess, httpWrapper, "close", null, CancellationToken.None);
-                }
-            }
-            catch
-            {
-                // nothing to do if the call failed
-            }
-            finally
-            {
-                eslintBridgeProcess.Stop();
-            }
-        }
-
-        #region IDisposable
-
-        public async void Dispose()
-        {
-            await Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual async Task Dispose(bool disposing)
-        {
-            if (disposing && !isDisposed)
-            {
-                try
-                {
-                    await Close();
-                }
-                catch
-                {
-                    // nothing to do if the call failed
-                }
-
-                eslintBridgeProcess.Dispose();
-                httpWrapper.Dispose();
-                keepAlive.Dispose();
-                isDisposed = true;
-            }
-        }
-
-        #endregion
     }
 }
