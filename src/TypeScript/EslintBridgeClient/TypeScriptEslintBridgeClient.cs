@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
     [Export(typeof(ITypeScriptEslintBridgeClient))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class TypeScriptEslintBridgeClient : EslintBridgeClient, ITypeScriptEslintBridgeClient
+    internal class TypeScriptEslintBridgeClient : JsTsEslintBridgeClientBase, ITypeScriptEslintBridgeClient
     {
         [ImportingConstructor]
         public TypeScriptEslintBridgeClient(IEslintBridgeProcessFactory eslintBridgeProcessFactory, ILogger logger)
