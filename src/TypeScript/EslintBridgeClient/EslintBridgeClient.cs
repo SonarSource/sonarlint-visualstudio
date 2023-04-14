@@ -102,7 +102,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         {
             var tsConfigFilePaths = tsConfigFilePath == null ? Array.Empty<string>() : new[] { tsConfigFilePath };
 
-            var analysisRequest = new AnalysisRequest
+            var analysisRequest = new JsTsAnalysisRequest
             {
                 FilePath = filePath,
                 IgnoreHeaderComments = true,

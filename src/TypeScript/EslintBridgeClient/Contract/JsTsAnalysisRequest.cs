@@ -22,13 +22,15 @@ using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract
 {
-    // Note: corresponding TS class is called "AnalysisInput"
-    internal abstract class AnalysisRequest
+    internal class JsTsAnalysisRequest : AnalysisRequest
     {
-        [JsonProperty("filePath")]
-        public string FilePath { get; set; }
+        [JsonProperty("ignoreHeaderComments")]
+        public bool IgnoreHeaderComments { get; set; }
 
-        [JsonProperty("fileContent")]
-        public string FileContent { get; set; }
+        [JsonProperty("tsConfigs")]
+        public string[] TSConfigFilePaths { get; set; }
+
+        [JsonProperty("fileType")]
+        public string FileType { get; set; }
     }
 }

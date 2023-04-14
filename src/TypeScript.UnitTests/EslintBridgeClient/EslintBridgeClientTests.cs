@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         {
             var httpWrapper = SetupHttpWrapper(AnalyzeEndpoint, JsonConvert.SerializeObject(new AnalysisResponse()), assertReceivedRequest: receivedRequest =>
             {
-                var analysisRequest = receivedRequest as AnalysisRequest;
+                var analysisRequest = receivedRequest as JsTsAnalysisRequest;
                 analysisRequest.Should().NotBeNull();
                 analysisRequest.IgnoreHeaderComments.Should().BeTrue();
                 analysisRequest.FilePath.Should().Be("some path");
@@ -242,9 +242,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         {
             var eslintBridgeProcess = SetupServerProcess(isRunning: false);
             var httpWrapper = SetupHttpWrapper("close");
-            
+
             var testSubject = CreateTestSubject(httpWrapper.Object, eslintBridgeProcess: eslintBridgeProcess.Object);
-            
+
             await testSubject.Close();
 
             httpWrapper.Invocations.Count.Should().Be(0);
