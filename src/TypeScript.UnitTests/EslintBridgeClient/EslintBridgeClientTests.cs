@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         public async Task Analyze_HttpWrapperCalledWithCorrectArguments()
         {
-            var httpWrapper = SetupHttpWrapper(AnalyzeEndpoint, JsonConvert.SerializeObject(new AnalysisResponse()), assertReceivedRequest: receivedRequest =>
+            var httpWrapper = SetupHttpWrapper(AnalyzeEndpoint, JsonConvert.SerializeObject(new JsTsAnalysisResponse()), assertReceivedRequest: receivedRequest =>
             {
                 var analysisRequest = receivedRequest as JsTsAnalysisRequest;
                 analysisRequest.Should().NotBeNull();
@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         public async Task Analyze_HasResponse_DeserializedResponse()
         {
-            var analysisResponse = new AnalysisResponse { Issues = new[] { new Issue { Column = 1, EndColumn = 2 } } };
+            var analysisResponse = new JsTsAnalysisResponse { Issues = new[] { new Issue { Column = 1, EndColumn = 2 } } };
             var httpWrapper = SetupHttpWrapper(AnalyzeEndpoint, JsonConvert.SerializeObject(analysisResponse));
             var testSubject = CreateTestSubject(httpWrapper.Object);
             var result = await testSubject.Analyze("some path", "some config", CancellationToken.None);
