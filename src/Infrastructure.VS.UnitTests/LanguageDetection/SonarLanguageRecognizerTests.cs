@@ -44,8 +44,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
         private Mock<IContentType> CSharpType = new Mock<IContentType>();
         private Mock<IContentType> BasicType = new Mock<IContentType>();
         private Mock<IContentType> UnknownType = new Mock<IContentType>();
+        private Mock<IContentType> CSSType = new Mock<IContentType>();
+        private Mock<IContentType> SCSSType = new Mock<IContentType>();
+        private Mock<IContentType> LESSType = new Mock<IContentType>();
 
-       [TestInitialize]
+        [TestInitialize]
         public void TestInitialize()
         {
             contentTypeServiceMock = new Mock<IContentTypeRegistryService>();
@@ -116,6 +119,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
         [DataRow("C/C++", AnalysisLanguage.CFamily)]
         [DataRow("Roslyn Languages", AnalysisLanguage.RoslynFamily)]
         [DataRow("TypeScript", AnalysisLanguage.TypeScript)]
+        [DataRow("css", AnalysisLanguage.CascadingStyleSheets)]
+        [DataRow("SCSS", AnalysisLanguage.CascadingStyleSheets)]
+        [DataRow("LESS", AnalysisLanguage.CascadingStyleSheets)]
         public void Detect_WhenExtensionNotRegistered_ReturnsLanguageFromBufferContentType(string bufferContentType, AnalysisLanguage expectedLanguage)
         {
             // Arrange
@@ -136,6 +142,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
         [DataRow("C/C++", AnalysisLanguage.CFamily)]
         [DataRow("Roslyn Languages", AnalysisLanguage.RoslynFamily)]
         [DataRow("TypeScript", AnalysisLanguage.TypeScript)]
+        [DataRow("css", AnalysisLanguage.CascadingStyleSheets)]
+        [DataRow("SCSS", AnalysisLanguage.CascadingStyleSheets)]
+        [DataRow("LESS", AnalysisLanguage.CascadingStyleSheets)]
         public void Detect_WhenExtensionIsRegistered_ReturnsLanguageFromExtension(string bufferContentType, AnalysisLanguage expectedLanguage)
         {
             // Arrange
@@ -197,6 +206,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
         [DataRow("File.js", AnalysisLanguage.Javascript)]
         [DataRow("File.ts", AnalysisLanguage.TypeScript)]
         [DataRow("File.cpp", AnalysisLanguage.CFamily)]
+        [DataRow("File.css", AnalysisLanguage.CascadingStyleSheets)]
+        [DataRow("File.scss", AnalysisLanguage.CascadingStyleSheets)]
+        [DataRow("File.less", AnalysisLanguage.CascadingStyleSheets)]
         [TestMethod]
         public void GetAnalysisLanguageFromExtension_ReturnsAnalysisLangFromExtension(string fileName, AnalysisLanguage expectedLanguage)
         {
@@ -232,6 +244,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
             fileExtensionServiceMock.Setup(f => f.GetContentTypeForExtension("cs")).Returns(CSharpType.Object);
             fileExtensionServiceMock.Setup(f => f.GetContentTypeForExtension("vb")).Returns(BasicType.Object);
             fileExtensionServiceMock.Setup(f => f.GetContentTypeForExtension("cpp")).Returns(CFamilyType.Object);
+            fileExtensionServiceMock.Setup(f => f.GetContentTypeForExtension("css")).Returns(CSSType.Object);
+            fileExtensionServiceMock.Setup(f => f.GetContentTypeForExtension("scss")).Returns(SCSSType.Object);
+            fileExtensionServiceMock.Setup(f => f.GetContentTypeForExtension("less")).Returns(LESSType.Object);
         }
 
         private void ContentTypesSetup()
@@ -241,6 +256,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
             CSharpType.SetupGet(ct => ct.TypeName).Returns("CSharp");
             BasicType.SetupGet(ct => ct.TypeName).Returns("Basic");
             UnknownType.SetupGet(ct => ct.TypeName).Returns("UNKNOWN");
+            CSSType.SetupGet(ct => ct.TypeName).Returns("css");
+            SCSSType.SetupGet(ct => ct.TypeName).Returns("SCSS");
+            LESSType.SetupGet(ct => ct.TypeName).Returns("LESS");
         }
     }
 }
