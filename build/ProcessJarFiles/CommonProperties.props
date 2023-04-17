@@ -31,7 +31,6 @@
     <BaseRuleDescFileTargetDirectory>$(MSBuildThisFileDirectory)..\..\src\Rules\Embedded\</BaseRuleDescFileTargetDirectory>
   </PropertyGroup>
 
-
   <!-- ************************************************************** -->
   <!-- Information about the individual language plugins we need to download -->
   <!-- ************************************************************** -->
@@ -65,6 +64,13 @@
       <RepoKey>javascript</RepoKey>
     </PluginJars>
 
+    <PluginJars Include="CSS">
+      <JarName>sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</JarName>
+      <URL>https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/%(JarName)</URL>
+      <LanguageKey>css</LanguageKey>
+      <RepoKey>css</RepoKey>
+    </PluginJars>
+
     <PluginJars Include="C#">
       <JarName>sonar-csharp-plugin-$(EmbeddedSonarAnalyzerVersion).jar</JarName>
       <URL>https://binaries.sonarsource.com/Distribution/sonar-csharp-plugin/%(JarName)</URL>
@@ -85,7 +91,5 @@
       <LanguageKey>secrets</LanguageKey>
       <RepoKey>secrets</RepoKey>
     </PluginJars>
-
   </ItemGroup>
-
 </Project>
