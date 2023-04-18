@@ -23,7 +23,7 @@ using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract
 {
-    internal class CssAnalysisResponse
+    internal class AnalysisResponse
     {
         [JsonProperty("issues")]
         public IEnumerable<Issue> Issues { get; set; }

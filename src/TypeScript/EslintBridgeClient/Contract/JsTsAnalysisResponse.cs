@@ -23,13 +23,10 @@ using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract
 {
-    internal class JsTsAnalysisResponse
+    internal class JsTsAnalysisResponse : AnalysisResponse
     {
         // Other fields omitted
         // i.e. Highlight[], HighlightedSymbol[], Metrics, CpdToken[]
-
-        [JsonProperty("issues")]
-        public IEnumerable<Issue> Issues { get; set; }
 
         [JsonProperty("parsingError")]
         public ParsingError ParsingError { get; set; }
