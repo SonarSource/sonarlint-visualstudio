@@ -85,12 +85,16 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             analysisConfigMonitor.ConfigChanged += AnalysisConfigMonitor_ConfigChanged;
         }
 
-        public async Task<IReadOnlyCollection<IAnalysisIssue>> Analyze(string filePath, string tsConfig, CancellationToken cancellationToken)
+        public async Task<IReadOnlyCollection<IAnalysisIssue>> Analyze(string filePath,
+            string tsConfig,
+            CancellationToken cancellationToken)
         {
             await EnsureEslintBridgeClientIsInitialized(cancellationToken);
             var analysisResponse = await eslintBridgeClient.Analyze(filePath, tsConfig, cancellationToken);
 
-            if (LinterNotInitializedResponse(analysisResponse))
+
+            if (analysisResponse is JsTsAnalysisResponse jsTsAnalysisResponse &&
+                LinterNotInitializedResponse(jsTsAnalysisResponse))
             {
                 // The call to `EnsureEslintBridgeClientIsInitialized` above doesn't guarantee the client is correctly initialized (e.g. the external process might have crashed).
                 // So we still need to handle the "not initialised" case here.
@@ -99,9 +103,8 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                 analysisResponse = await eslintBridgeClient.Analyze(filePath, tsConfig, cancellationToken);
             }
 
-            if (analysisResponse.ParsingError != null)
+            if (IsJsTsParsingError(filePath, analysisResponse))
             {
-                LogParsingError(filePath, analysisResponse.ParsingError);
                 return Array.Empty<IAnalysisIssue>();
             }
 
@@ -115,9 +118,20 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             return issues;
         }
 
+        private bool IsJsTsParsingError(string filePath, AnalysisResponse analysisResponse)
+        {
+            if (analysisResponse is JsTsAnalysisResponse jsTsAnalysisResponse && jsTsAnalysisResponse.ParsingError != null)
+            {
+                LogParsingError(filePath, jsTsAnalysisResponse.ParsingError);
+                return true;
+            }
+
+            return false;
+        }
+
         private static bool LinterNotInitializedResponse(JsTsAnalysisResponse analysisResponse)
         {
-            return analysisResponse.ParsingError != null && 
+            return analysisResponse.ParsingError != null &&
                    analysisResponse.ParsingError.Code == ParsingErrorCode.LINTER_INITIALIZATION;
         }
 

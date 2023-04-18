@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             }
         }
 
-        public async Task<JsTsAnalysisResponse> Analyze(string filePath, string tsConfigFilePath, CancellationToken cancellationToken)
+        public async Task<AnalysisResponse> Analyze(string filePath, string tsConfigFilePath, CancellationToken cancellationToken)
         {
             var tsConfigFilePaths = tsConfigFilePath == null ? Array.Empty<string>() : new[] { tsConfigFilePath };
 
