@@ -37,12 +37,9 @@ using SonarLint.VisualStudio.TypeScript.TsConfig;
 namespace SonarLint.VisualStudio.TypeScript.Analyzer
 {
     [Export(typeof(IAnalyzer))]
-    internal sealed class TypeScriptAnalyzer : IAnalyzer, IDisposable
+    internal sealed class TypeScriptAnalyzer : AnalyzerBase, IAnalyzer, IDisposable
     {
         private readonly ITsConfigProvider tsConfigProvider;
-        private readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
-        private readonly ITelemetryManager telemetryManager;
-        private readonly IEslintBridgeAnalyzer eslintBridgeAnalyzer;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
 
@@ -54,16 +51,11 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             IEslintBridgeAnalyzerFactory eslintBridgeAnalyzerFactory,
             ITelemetryManager telemetryManager,
             ILogger logger,
-            IThreadHandling threadHandling)
+            IThreadHandling threadHandling) : base(telemetryManager, analysisStatusNotifierFactory, eslintBridgeAnalyzerFactory, rulesProviderFactory, eslintBridgeClient, "typescript", Language.Ts)
         {
             this.tsConfigProvider = tsConfigProvider;
-            this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
-            this.telemetryManager = telemetryManager;
             this.logger = logger;
             this.threadHandling = threadHandling;
-
-            var rulesProvider = rulesProviderFactory.Create("typescript", Language.Ts);
-            eslintBridgeAnalyzer = eslintBridgeAnalyzerFactory.Create(rulesProvider, eslintBridgeClient);
         }
 
         public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
@@ -80,10 +72,10 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
-            ExecuteAnalysis(path, consumer, cancellationToken).Forget(); // fire and forget
+            ExecuteAnalysisAsync(path, consumer, cancellationToken).Forget(); // fire and forget
         }
 
-        internal async Task ExecuteAnalysis(string filePath, IIssueConsumer consumer, CancellationToken cancellationToken)
+        internal async Task ExecuteAnalysisAsync(string filePath, IIssueConsumer consumer, CancellationToken cancellationToken)
         {
             telemetryManager.LanguageAnalyzed("ts");
             var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(TypeScriptAnalyzer), filePath);
@@ -105,15 +97,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                 }
 
                 logger.WriteLine("[TypescriptAnalyzer] time to find ts config: " + stopwatch.ElapsedMilliseconds);
-
-                stopwatch.Restart();
-                var issues = await eslintBridgeAnalyzer.Analyze(filePath, tsConfig, cancellationToken);
-                analysisStatusNotifier.AnalysisFinished(issues.Count, stopwatch.Elapsed);
-
-                if (issues.Any())
-                {
-                    consumer.Accept(filePath, issues);
-                }
+                stopwatch.Stop();
             }
             catch (TaskCanceledException)
             {
@@ -127,11 +111,8 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             {
                 analysisStatusNotifier.AnalysisFailed(ex);
             }
-        }
 
-        public void Dispose()
-        {
-            eslintBridgeAnalyzer.Dispose();
+            await ExecuteAsync(analysisStatusNotifier, filePath, consumer, cancellationToken);
         }
     }
 }

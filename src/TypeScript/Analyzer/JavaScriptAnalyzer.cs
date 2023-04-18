@@ -35,11 +35,8 @@ using SonarLint.VisualStudio.TypeScript.Rules;
 namespace SonarLint.VisualStudio.TypeScript.Analyzer
 {
     [Export(typeof(IAnalyzer))]
-    internal sealed class JavaScriptAnalyzer : IAnalyzer, IDisposable
+    internal sealed class JavaScriptAnalyzer : AnalyzerBase, IAnalyzer
     {
-        private readonly ITelemetryManager telemetryManager;
-        private readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
-        private readonly IEslintBridgeAnalyzer eslintBridgeAnalyzer;
         private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
@@ -48,14 +45,9 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             ITelemetryManager telemetryManager,
             IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
             IEslintBridgeAnalyzerFactory eslintBridgeAnalyzerFactory,
-            IThreadHandling threadHandling)
+            IThreadHandling threadHandling) : base(telemetryManager, analysisStatusNotifierFactory, eslintBridgeAnalyzerFactory, rulesProviderFactory, eslintBridgeClient, "javascript", Language.Js)
         {
-            this.telemetryManager = telemetryManager;
-            this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
             this.threadHandling = threadHandling;
-
-            var rulesProvider = rulesProviderFactory.Create("javascript", Language.Js);
-            eslintBridgeAnalyzer = eslintBridgeAnalyzerFactory.Create(rulesProvider, eslintBridgeClient);
         }
 
         public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
@@ -72,47 +64,18 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
-            ExecuteAnalysis(path, consumer, cancellationToken).Forget(); // fire and forget
+            ExecuteAnalysisAsync(path, consumer, cancellationToken).Forget(); // fire and forget
         }
 
-        internal async Task ExecuteAnalysis(string filePath, IIssueConsumer consumer, CancellationToken cancellationToken)
+        internal async Task ExecuteAnalysisAsync(string filePath, IIssueConsumer consumer, CancellationToken cancellationToken)
         {
             telemetryManager.LanguageAnalyzed("js");
             var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(JavaScriptAnalyzer), filePath);
 
-            // Switch to a background thread
             await threadHandling.SwitchToBackgroundThread();
-
             analysisStatusNotifier.AnalysisStarted();
 
-            try
-            {
-                var stopwatch = Stopwatch.StartNew();
-                var issues = await eslintBridgeAnalyzer.Analyze(filePath, null, cancellationToken);
-                analysisStatusNotifier.AnalysisFinished(issues.Count, stopwatch.Elapsed);
-
-                if (issues.Any())
-                {
-                    consumer.Accept(filePath, issues);
-                }
-            }
-            catch (TaskCanceledException)
-            {
-                analysisStatusNotifier.AnalysisCancelled();
-            }
-            catch (EslintBridgeProcessLaunchException ex)
-            {
-                analysisStatusNotifier.AnalysisFailed(ex.Message);
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                analysisStatusNotifier.AnalysisFailed(ex);
-            }
-        }
-
-        public void Dispose()
-        {
-            eslintBridgeAnalyzer.Dispose();
+            await ExecuteAsync(analysisStatusNotifier, filePath, consumer, cancellationToken);
         }
     }
 }
