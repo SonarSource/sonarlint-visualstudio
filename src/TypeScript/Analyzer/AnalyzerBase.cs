@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
             try
             {
-                var tsConfigResult = await GetTsConfig(filePath, cancellationToken);
+                var tsConfigResult = await GetTsConfigAsync(filePath, cancellationToken);
 
                 if (tsConfigResult.hasError) { return; }
 
