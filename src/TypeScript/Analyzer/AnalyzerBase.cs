@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             eslintBridgeAnalyzer = eslintBridgeAnalyzerFactory.Create(rulesProvider, eslintBridgeClient);
         }
 
-        protected async virtual Task<(bool hasError, string tsConfig)> GetTsConfig(string sourceFilePath, CancellationToken cancellationToken)
+        protected async virtual Task<(bool hasError, string tsConfig)> GetTsConfigAsync(string sourceFilePath, CancellationToken cancellationToken)
         {
             return (false, null);
         }

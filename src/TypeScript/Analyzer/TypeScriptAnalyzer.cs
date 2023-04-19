@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             ExecuteAsync("ts", nameof(TypeScriptAnalyzer), path, consumer, cancellationToken).Forget(); // fire and forget
         }
 
-        protected async override Task<(bool, string)> GetTsConfig(string sourceFilePath, CancellationToken cancellationToken)
+        protected async override Task<(bool, string)> GetTsConfigAsync(string sourceFilePath, CancellationToken cancellationToken)
         {
             var stopwatch = Stopwatch.StartNew();
             var tsConfig = await tsConfigProvider.GetConfigForFile(sourceFilePath, cancellationToken);
