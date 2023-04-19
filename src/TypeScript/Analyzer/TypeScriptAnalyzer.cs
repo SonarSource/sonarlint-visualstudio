@@ -37,14 +37,10 @@ using SonarLint.VisualStudio.TypeScript.TsConfig;
 namespace SonarLint.VisualStudio.TypeScript.Analyzer
 {
     [Export(typeof(IAnalyzer))]
-    internal sealed class TypeScriptAnalyzer : IAnalyzer, IDisposable
+    internal sealed class TypeScriptAnalyzer : AnalyzerBase, IAnalyzer
     {
         private readonly ITsConfigProvider tsConfigProvider;
-        private readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
-        private readonly ITelemetryManager telemetryManager;
-        private readonly IEslintBridgeAnalyzer eslintBridgeAnalyzer;
         private readonly ILogger logger;
-        private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
         public TypeScriptAnalyzer(ITypeScriptEslintBridgeClient eslintBridgeClient,
@@ -54,16 +50,10 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             IEslintBridgeAnalyzerFactory eslintBridgeAnalyzerFactory,
             ITelemetryManager telemetryManager,
             ILogger logger,
-            IThreadHandling threadHandling)
+            IThreadHandling threadHandling) : base(telemetryManager, analysisStatusNotifierFactory, eslintBridgeAnalyzerFactory, rulesProviderFactory, eslintBridgeClient, threadHandling, "typescript", Language.Ts)
         {
             this.tsConfigProvider = tsConfigProvider;
-            this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
-            this.telemetryManager = telemetryManager;
             this.logger = logger;
-            this.threadHandling = threadHandling;
-
-            var rulesProvider = rulesProviderFactory.Create("typescript", Language.Ts);
-            eslintBridgeAnalyzer = eslintBridgeAnalyzerFactory.Create(rulesProvider, eslintBridgeClient);
         }
 
         public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
@@ -80,58 +70,24 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
-            ExecuteAnalysis(path, consumer, cancellationToken).Forget(); // fire and forget
+            ExecuteAsync("ts", nameof(TypeScriptAnalyzer), path, consumer, cancellationToken).Forget(); // fire and forget
         }
 
-        internal async Task ExecuteAnalysis(string filePath, IIssueConsumer consumer, CancellationToken cancellationToken)
+        protected async override Task<(bool, string)> GetTsConfigAsync(string sourceFilePath, CancellationToken cancellationToken)
         {
-            telemetryManager.LanguageAnalyzed("ts");
-            var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(TypeScriptAnalyzer), filePath);
+            var stopwatch = Stopwatch.StartNew();
+            var tsConfig = await tsConfigProvider.GetConfigForFile(sourceFilePath, cancellationToken);
 
-            // Switch to a background thread
-            await threadHandling.SwitchToBackgroundThread();
-
-            analysisStatusNotifier.AnalysisStarted();
-
-            try
+            if (string.IsNullOrEmpty(tsConfig))
             {
-                var stopwatch = Stopwatch.StartNew();
-                var tsConfig = await tsConfigProvider.GetConfigForFile(filePath, cancellationToken);
-
-                if (string.IsNullOrEmpty(tsConfig))
-                {
-                    analysisStatusNotifier.AnalysisFailed(Resources.ERR_NoTsConfig);
-                    return;
-                }
-
-                logger.WriteLine("[TypescriptAnalyzer] time to find ts config: " + stopwatch.ElapsedMilliseconds);
-
-                stopwatch.Restart();
-                var issues = await eslintBridgeAnalyzer.Analyze(filePath, tsConfig, cancellationToken);
-                analysisStatusNotifier.AnalysisFinished(issues.Count, stopwatch.Elapsed);
-
-                if (issues.Any())
-                {
-                    consumer.Accept(filePath, issues);
-                }
+                analysisStatusNotifier.AnalysisFailed(Resources.ERR_NoTsConfig);
+                return (true, null);
             }
-            catch (TaskCanceledException)
-            {
-                analysisStatusNotifier.AnalysisCancelled();
-            }
-            catch (EslintBridgeProcessLaunchException ex)
-            {
-                analysisStatusNotifier.AnalysisFailed(ex.Message);
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                analysisStatusNotifier.AnalysisFailed(ex);
-            }
-        }
 
-        public void Dispose()
-        {
-            eslintBridgeAnalyzer.Dispose();
+            logger.WriteLine($"[{nameof(TypeScriptAnalyzer)}] time to find ts config: {stopwatch.ElapsedMilliseconds}");
+            stopwatch.Stop();
+
+            return (false, tsConfig);
         }
     }
 }
