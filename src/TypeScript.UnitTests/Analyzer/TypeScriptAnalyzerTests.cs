@@ -42,6 +42,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
     public class TypeScriptAnalyzerTests
     {
         private const string ValidFilePath = "some path";
+        private const string TelemetryLanguageName = "ts";
+        private const string AnalyzerName = nameof(TypeScriptAnalyzer);
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
@@ -94,41 +96,41 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
-        public async Task ExecuteAnalysis_AlwaysCollectsTelemetry()
+        public async Task ExecuteAnalysisAsync_AlwaysCollectsTelemetry()
         {
             var telemetryManager = new Mock<ITelemetryManager>();
             var client = SetupEslintBridgeAnalyzer(null);
 
             var testSubject = CreateTestSubject(client.Object, telemetryManager: telemetryManager.Object);
-            await testSubject.ExecuteAnalysis(ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
+            await testSubject.ExecuteAsync(TelemetryLanguageName, AnalyzerName, ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
 
-            telemetryManager.Verify(x => x.LanguageAnalyzed("ts"), Times.Once);
+            telemetryManager.Verify(x => x.LanguageAnalyzed(TelemetryLanguageName), Times.Once);
             telemetryManager.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public async Task ExecuteAnalysis_NoTsConfig_ConsumerNotCalled()
+        public async Task ExecuteAnalysisAsync_NoTsConfig_ConsumerNotCalled()
         {
             var tsConfigProvider = SetupTsConfigProvider(result: null);
             var eslintBridgeAnalyzer = SetupEslintBridgeAnalyzer();
             var consumer = new Mock<IIssueConsumer>();
 
             var testSubject = CreateTestSubject(eslintBridgeAnalyzer.Object, tsConfigProvider);
-            await testSubject.ExecuteAnalysis(ValidFilePath, consumer.Object, CancellationToken.None);
+            await testSubject.ExecuteAsync(TelemetryLanguageName, AnalyzerName, ValidFilePath, consumer.Object, CancellationToken.None);
 
             consumer.VerifyNoOtherCalls();
             eslintBridgeAnalyzer.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public async Task ExecuteAnalysis_NoTsConfig_NotifiesThatAnalysisFailed()
+        public async Task ExecuteAnalysisAsync_NoTsConfig_NotifiesThatAnalysisFailed()
         {
             var tsConfigProvider = SetupTsConfigProvider(result: null);
             var statusNotifier = new Mock<IAnalysisStatusNotifier>();
             var eslintBridgeAnalyzer = SetupEslintBridgeAnalyzer();
 
             var testSubject = CreateTestSubject(eslintBridgeAnalyzer.Object, tsConfigProvider, statusNotifier: statusNotifier.Object);
-            await testSubject.ExecuteAnalysis(ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
+            await testSubject.ExecuteAsync(TelemetryLanguageName, AnalyzerName, ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
 
             statusNotifier.Verify(x => x.AnalysisStarted(), Times.Once);
             statusNotifier.Verify(x => x.AnalysisFailed(Resources.ERR_NoTsConfig), Times.Once);
@@ -136,27 +138,27 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
-        public async Task ExecuteAnalysis_ResponseWithNoIssues_ConsumerNotCalled()
+        public async Task ExecuteAnalysisAsync_ResponseWithNoIssues_ConsumerNotCalled()
         {
             var issues = Array.Empty<IAnalysisIssue>();
             var eslintBridgeAnalyzer = SetupEslintBridgeAnalyzer(issues);
             var consumer = new Mock<IIssueConsumer>();
 
             var testSubject = CreateTestSubject(eslintBridgeAnalyzer.Object);
-            await testSubject.ExecuteAnalysis(ValidFilePath, consumer.Object, CancellationToken.None);
+            await testSubject.ExecuteAsync(TelemetryLanguageName, AnalyzerName, ValidFilePath, consumer.Object, CancellationToken.None);
 
             consumer.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public async Task ExecuteAnalysis_ResponseWithIssues_ConsumerCalled()
+        public async Task ExecuteAnalysisAsync_ResponseWithIssues_ConsumerCalled()
         {
             var issues = new[] { Mock.Of<IAnalysisIssue>(), Mock.Of<IAnalysisIssue>() };
             var eslintBridgeAnalyzer = SetupEslintBridgeAnalyzer(issues);
             var consumer = new Mock<IIssueConsumer>();
 
             var testSubject = CreateTestSubject(eslintBridgeAnalyzer.Object);
-            await testSubject.ExecuteAnalysis(ValidFilePath, consumer.Object, CancellationToken.None);
+            await testSubject.ExecuteAsync(TelemetryLanguageName, AnalyzerName, ValidFilePath, consumer.Object, CancellationToken.None);
 
             consumer.Verify(x => x.Accept(ValidFilePath, issues));
         }
@@ -168,7 +170,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 
             var testSubject = CreateTestSubject(eslintBridgeAnalyzer.Object);
 
-            Func<Task> act = async () => await testSubject.ExecuteAnalysis(ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
+            Func<Task> act = async () => await testSubject.ExecuteAsync(TelemetryLanguageName, AnalyzerName, ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
             act.Should().ThrowExactly<StackOverflowException>();
         }
 
@@ -186,14 +188,14 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod, Description("Regression test for #2452")]
-        public async Task ExecuteAnalysis_EslintBridgeProcessLaunchException_NotifiesThatAnalysisFailedWithoutStackTrace()
+        public async Task ExecuteAnalysisAsync_EslintBridgeProcessLaunchException_NotifiesThatAnalysisFailedWithoutStackTrace()
         {
             var statusNotifier = new Mock<IAnalysisStatusNotifier>();
             var exception = new EslintBridgeProcessLaunchException("this is a test");
             var eslintBridgeAnalyzer = SetupEslintBridgeAnalyzer(exceptionToThrow: exception);
 
             var testSubject = CreateTestSubject(eslintBridgeAnalyzer.Object, statusNotifier: statusNotifier.Object);
-            await testSubject.ExecuteAnalysis(ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
+            await testSubject.ExecuteAsync(TelemetryLanguageName, AnalyzerName, ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
 
             statusNotifier.Verify(x => x.AnalysisStarted(), Times.Once);
             statusNotifier.Verify(x => x.AnalysisFailed("this is a test"), Times.Once);
@@ -201,14 +203,14 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
-        public async Task ExecuteAnalysis_AnalysisFailed_NotifiesThatAnalysisFailed()
+        public async Task ExecuteAnalysisAsync_AnalysisFailed_NotifiesThatAnalysisFailed()
         {
             var statusNotifier = new Mock<IAnalysisStatusNotifier>();
             var exception = new NotImplementedException("this is a test");
             var eslintBridgeAnalyzer = SetupEslintBridgeAnalyzer(exceptionToThrow: exception);
 
             var testSubject = CreateTestSubject(eslintBridgeAnalyzer.Object, statusNotifier: statusNotifier.Object);
-            await testSubject.ExecuteAnalysis(ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
+            await testSubject.ExecuteAsync(TelemetryLanguageName, AnalyzerName, ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
 
             statusNotifier.Verify(x => x.AnalysisStarted(), Times.Once);
             statusNotifier.Verify(x => x.AnalysisFailed(exception), Times.Once);
@@ -216,13 +218,13 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
-        public async Task ExecuteAnalysis_TaskCancelled_NotifiesThatAnalysisWasCancelled()
+        public async Task ExecuteAnalysisAsync_TaskCancelled_NotifiesThatAnalysisWasCancelled()
         {
             var statusNotifier = new Mock<IAnalysisStatusNotifier>();
             var eslintBridgeAnalyzer = SetupEslintBridgeAnalyzer(exceptionToThrow: new TaskCanceledException());
 
             var testSubject = CreateTestSubject(eslintBridgeAnalyzer.Object, statusNotifier: statusNotifier.Object);
-            await testSubject.ExecuteAnalysis(ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
+            await testSubject.ExecuteAsync(TelemetryLanguageName, AnalyzerName, ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
 
             statusNotifier.Verify(x => x.AnalysisStarted(), Times.Once);
             statusNotifier.Verify(x => x.AnalysisCancelled(), Times.Once);
@@ -230,14 +232,14 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
-        public async Task ExecuteAnalysis_AnalysisFinished_NotifiesThatAnalysisFinished()
+        public async Task ExecuteAnalysisAsync_AnalysisFinished_NotifiesThatAnalysisFinished()
         {
             var statusNotifier = new Mock<IAnalysisStatusNotifier>();
             var issues = new[] { Mock.Of<IAnalysisIssue>(), Mock.Of<IAnalysisIssue>() };
             var eslintBridgeAnalyzer = SetupEslintBridgeAnalyzer(issues);
 
             var testSubject = CreateTestSubject(eslintBridgeAnalyzer.Object, statusNotifier: statusNotifier.Object);
-            await testSubject.ExecuteAnalysis(ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
+            await testSubject.ExecuteAsync(TelemetryLanguageName, AnalyzerName, ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
 
             statusNotifier.Verify(x => x.AnalysisStarted(), Times.Once);
             statusNotifier.Verify(x => x.AnalysisFinished(2, It.IsAny<TimeSpan>()), Times.Once);
@@ -245,7 +247,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
-        public async Task ExecuteAnalysis_SwitchesToBackgroundThreadBeforeProcessing()
+        public async Task ExecuteAnalysisAsync_SwitchesToBackgroundThreadBeforeProcessing()
         {
             var callOrder = new List<string>();
 
@@ -258,15 +260,27 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             statusNotifier.Setup(x => x.AnalysisStarted()).Callback(() => callOrder.Add("AnalysisStarted"));
 
             var testSubject = CreateTestSubject(statusNotifier: statusNotifier.Object, threadHandling: threadHandling.Object);
-            await testSubject.ExecuteAnalysis(ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
+            await testSubject.ExecuteAsync(TelemetryLanguageName, AnalyzerName, ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
 
             callOrder.Should().Equal("SwitchToBackgroundThread", "AnalysisStarted");
         }
 
+        [TestMethod]
+        public async Task ExecuteAnalysisAsync_TsConfigExists_PassedToClient()
+        {
+            var eslintBridgeAnalyzer = SetupEslintBridgeAnalyzer();
+
+            var testSubject = CreateTestSubject(eslintBridgeAnalyzer: eslintBridgeAnalyzer.Object);
+
+            await testSubject.ExecuteAsync(TelemetryLanguageName, AnalyzerName, ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
+
+            eslintBridgeAnalyzer.Verify(a => a.Analyze(ValidFilePath, "some config", CancellationToken.None));
+        }
+
         private Mock<IEslintBridgeAnalyzer> SetupEslintBridgeAnalyzer(IReadOnlyCollection<IAnalysisIssue> issues = null, Exception exceptionToThrow = null)
         {
-            var eslintBridgeClient = new Mock<IEslintBridgeAnalyzer>();
-            var setup = eslintBridgeClient.Setup(x => x.Analyze(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()));
+            var eslintBridgeAnalyzer = new Mock<IEslintBridgeAnalyzer>();
+            var setup = eslintBridgeAnalyzer.Setup(x => x.Analyze(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()));
 
             if (exceptionToThrow == null)
             {
@@ -277,7 +291,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 setup.ThrowsAsync(exceptionToThrow);
             }
 
-            return eslintBridgeClient;
+            return eslintBridgeAnalyzer;
         }
 
         private ITsConfigProvider SetupTsConfigProvider(string result = "some config")
@@ -329,7 +343,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         private IAnalysisStatusNotifierFactory SetupStatusNotifierFactory(IAnalysisStatusNotifier statusNotifier)
         {
             var statusNotifierFactory = new Mock<IAnalysisStatusNotifierFactory>();
-            statusNotifierFactory.Setup(x => x.Create(nameof(TypeScriptAnalyzer), ValidFilePath)).Returns(statusNotifier);
+            statusNotifierFactory.Setup(x => x.Create(AnalyzerName, ValidFilePath)).Returns(statusNotifier);
 
             return statusNotifierFactory.Object;
         }
