@@ -24,7 +24,6 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -37,17 +36,14 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
     [Export(typeof(IAnalyzer))]
     internal sealed class JavaScriptAnalyzer : AnalyzerBase, IAnalyzer
     {
-        private readonly IThreadHandling threadHandling;
-
         [ImportingConstructor]
         public JavaScriptAnalyzer(IJavaScriptEslintBridgeClient eslintBridgeClient,
             IRulesProviderFactory rulesProviderFactory,
             ITelemetryManager telemetryManager,
             IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
             IEslintBridgeAnalyzerFactory eslintBridgeAnalyzerFactory,
-            IThreadHandling threadHandling) : base(telemetryManager, analysisStatusNotifierFactory, eslintBridgeAnalyzerFactory, rulesProviderFactory, eslintBridgeClient, "javascript", Language.Js)
+            IThreadHandling threadHandling) : base(telemetryManager, analysisStatusNotifierFactory, eslintBridgeAnalyzerFactory, rulesProviderFactory, eslintBridgeClient, threadHandling, "javascript", Language.Js)
         {
-            this.threadHandling = threadHandling;
         }
 
         public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
@@ -64,18 +60,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
-            ExecuteAnalysisAsync(path, consumer, cancellationToken).Forget(); // fire and forget
-        }
-
-        internal async Task ExecuteAnalysisAsync(string filePath, IIssueConsumer consumer, CancellationToken cancellationToken)
-        {
-            telemetryManager.LanguageAnalyzed("js");
-            var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(JavaScriptAnalyzer), filePath);
-
-            await threadHandling.SwitchToBackgroundThread();
-            analysisStatusNotifier.AnalysisStarted();
-
-            await ExecuteAsync(analysisStatusNotifier, filePath, consumer, cancellationToken);
+            ExecuteAsync("js", nameof(JavaScriptAnalyzer), path, consumer, cancellationToken).Forget(); // fire and forget
         }
     }
 }

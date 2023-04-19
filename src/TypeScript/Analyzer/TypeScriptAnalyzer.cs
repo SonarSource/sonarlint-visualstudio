@@ -51,11 +51,10 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             IEslintBridgeAnalyzerFactory eslintBridgeAnalyzerFactory,
             ITelemetryManager telemetryManager,
             ILogger logger,
-            IThreadHandling threadHandling) : base(telemetryManager, analysisStatusNotifierFactory, eslintBridgeAnalyzerFactory, rulesProviderFactory, eslintBridgeClient, "typescript", Language.Ts)
+            IThreadHandling threadHandling) : base(telemetryManager, analysisStatusNotifierFactory, eslintBridgeAnalyzerFactory, rulesProviderFactory, eslintBridgeClient, threadHandling, "typescript", Language.Ts)
         {
             this.tsConfigProvider = tsConfigProvider;
             this.logger = logger;
-            this.threadHandling = threadHandling;
         }
 
         public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
@@ -72,47 +71,24 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
-            ExecuteAnalysisAsync(path, consumer, cancellationToken).Forget(); // fire and forget
+            ExecuteAsync("ts", nameof(TypeScriptAnalyzer), path, consumer, cancellationToken).Forget(); // fire and forget
         }
 
-        internal async Task ExecuteAnalysisAsync(string filePath, IIssueConsumer consumer, CancellationToken cancellationToken)
+        protected async override Task<string> GetTsConfig(string sourceFilePath, CancellationToken cancellationToken)
         {
-            telemetryManager.LanguageAnalyzed("ts");
-            var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(TypeScriptAnalyzer), filePath);
+            var stopwatch = Stopwatch.StartNew();
+            var tsConfig = await tsConfigProvider.GetConfigForFile(sourceFilePath, cancellationToken);
 
-            // Switch to a background thread
-            await threadHandling.SwitchToBackgroundThread();
-
-            analysisStatusNotifier.AnalysisStarted();
-
-            try
+            if (string.IsNullOrEmpty(tsConfig))
             {
-                var stopwatch = Stopwatch.StartNew();
-                var tsConfig = await tsConfigProvider.GetConfigForFile(filePath, cancellationToken);
-
-                if (string.IsNullOrEmpty(tsConfig))
-                {
-                    analysisStatusNotifier.AnalysisFailed(Resources.ERR_NoTsConfig);
-                    return;
-                }
-
-                logger.WriteLine("[TypescriptAnalyzer] time to find ts config: " + stopwatch.ElapsedMilliseconds);
-                stopwatch.Stop();
-            }
-            catch (TaskCanceledException)
-            {
-                analysisStatusNotifier.AnalysisCancelled();
-            }
-            catch (EslintBridgeProcessLaunchException ex)
-            {
-                analysisStatusNotifier.AnalysisFailed(ex.Message);
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                analysisStatusNotifier.AnalysisFailed(ex);
+                analysisStatusNotifier.AnalysisFailed(Resources.ERR_NoTsConfig);
+                return null;
             }
 
-            await ExecuteAsync(analysisStatusNotifier, filePath, consumer, cancellationToken);
+            logger.WriteLine("[TypescriptAnalyzer] time to find ts config: " + stopwatch.ElapsedMilliseconds);
+            stopwatch.Stop();
+
+            return tsConfig;
         }
     }
 }

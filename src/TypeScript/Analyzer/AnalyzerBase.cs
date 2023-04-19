@@ -33,18 +33,24 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 {
     internal abstract class AnalyzerBase : IDisposable
     {
+        private readonly IThreadHandling threadHandling;
+
         protected readonly ITelemetryManager telemetryManager;
         protected readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
         protected readonly IEslintBridgeAnalyzer eslintBridgeAnalyzer;
+        protected IAnalysisStatusNotifier analysisStatusNotifier;
 
         protected AnalyzerBase(ITelemetryManager telemetryManager,
             IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
             IEslintBridgeAnalyzerFactory eslintBridgeAnalyzerFactory,
             IRulesProviderFactory rulesProviderFactory,
             IEslintBridgeClient eslintBridgeClient,
+            IThreadHandling threadHandling,
             string repoKey,
             Language language)
         {
+            this.threadHandling = threadHandling;
+
             this.telemetryManager = telemetryManager;
             this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
 
@@ -52,12 +58,28 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             eslintBridgeAnalyzer = eslintBridgeAnalyzerFactory.Create(rulesProvider, eslintBridgeClient);
         }
 
-        protected async Task ExecuteAsync(IAnalysisStatusNotifier analysisStatusNotifier, string filePath, IIssueConsumer consumer, CancellationToken cancellationToken)
+        protected async virtual Task<string> GetTsConfig(string sourceFilePath, CancellationToken cancellationToken)
         {
+            return null;
+        }
+
+        internal async Task ExecuteAsync(string languageKey, string analyzerName, string filePath, IIssueConsumer consumer, CancellationToken cancellationToken)
+        {
+            telemetryManager.LanguageAnalyzed(languageKey);
+            analysisStatusNotifier = analysisStatusNotifierFactory.Create(analyzerName, filePath);
+
+            await threadHandling.SwitchToBackgroundThread();
+            analysisStatusNotifier.AnalysisStarted();
+
             try
             {
+                var tsConfig = await GetTsConfig(filePath, cancellationToken);
+
+                if (tsConfig == null && languageKey == "ts") { return; }
+
                 var stopwatch = Stopwatch.StartNew();
-                var issues = await eslintBridgeAnalyzer.Analyze(filePath, null, cancellationToken);
+
+                var issues = await eslintBridgeAnalyzer.Analyze(filePath, tsConfig, cancellationToken);
                 analysisStatusNotifier.AnalysisFinished(issues.Count, stopwatch.Elapsed);
 
                 if (issues.Any())
