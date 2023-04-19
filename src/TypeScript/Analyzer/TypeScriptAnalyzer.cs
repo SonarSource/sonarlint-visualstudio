@@ -37,11 +37,10 @@ using SonarLint.VisualStudio.TypeScript.TsConfig;
 namespace SonarLint.VisualStudio.TypeScript.Analyzer
 {
     [Export(typeof(IAnalyzer))]
-    internal sealed class TypeScriptAnalyzer : AnalyzerBase, IAnalyzer, IDisposable
+    internal sealed class TypeScriptAnalyzer : AnalyzerBase, IAnalyzer
     {
         private readonly ITsConfigProvider tsConfigProvider;
         private readonly ILogger logger;
-        private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
         public TypeScriptAnalyzer(ITypeScriptEslintBridgeClient eslintBridgeClient,
@@ -74,7 +73,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             ExecuteAsync("ts", nameof(TypeScriptAnalyzer), path, consumer, cancellationToken).Forget(); // fire and forget
         }
 
-        protected async override Task<string> GetTsConfig(string sourceFilePath, CancellationToken cancellationToken)
+        protected async override Task<(bool, string)> GetTsConfig(string sourceFilePath, CancellationToken cancellationToken)
         {
             var stopwatch = Stopwatch.StartNew();
             var tsConfig = await tsConfigProvider.GetConfigForFile(sourceFilePath, cancellationToken);
@@ -82,13 +81,13 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             if (string.IsNullOrEmpty(tsConfig))
             {
                 analysisStatusNotifier.AnalysisFailed(Resources.ERR_NoTsConfig);
-                return null;
+                return (true, null);
             }
 
-            logger.WriteLine("[TypescriptAnalyzer] time to find ts config: " + stopwatch.ElapsedMilliseconds);
+            logger.WriteLine($"[{nameof(TypeScriptAnalyzer)}] time to find ts config: {stopwatch.ElapsedMilliseconds}");
             stopwatch.Stop();
 
-            return tsConfig;
+            return (false, tsConfig);
         }
     }
 }

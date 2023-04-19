@@ -35,6 +35,8 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
     {
         private readonly IThreadHandling threadHandling;
 
+        private bool disposed;
+
         protected readonly ITelemetryManager telemetryManager;
         protected readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
         protected readonly IEslintBridgeAnalyzer eslintBridgeAnalyzer;
@@ -58,14 +60,14 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             eslintBridgeAnalyzer = eslintBridgeAnalyzerFactory.Create(rulesProvider, eslintBridgeClient);
         }
 
-        protected async virtual Task<string> GetTsConfig(string sourceFilePath, CancellationToken cancellationToken)
+        protected async virtual Task<(bool hasError, string tsConfig)> GetTsConfig(string sourceFilePath, CancellationToken cancellationToken)
         {
-            return null;
+            return (false, null);
         }
 
-        internal async Task ExecuteAsync(string languageKey, string analyzerName, string filePath, IIssueConsumer consumer, CancellationToken cancellationToken)
+        internal async Task ExecuteAsync(string telemetryLanguageKey, string analyzerName, string filePath, IIssueConsumer consumer, CancellationToken cancellationToken)
         {
-            telemetryManager.LanguageAnalyzed(languageKey);
+            telemetryManager.LanguageAnalyzed(telemetryLanguageKey);
             analysisStatusNotifier = analysisStatusNotifierFactory.Create(analyzerName, filePath);
 
             await threadHandling.SwitchToBackgroundThread();
@@ -73,13 +75,13 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
             try
             {
-                var tsConfig = await GetTsConfig(filePath, cancellationToken);
+                var tsConfigResult = await GetTsConfig(filePath, cancellationToken);
 
-                if (tsConfig == null && languageKey == "ts") { return; }
+                if (tsConfigResult.hasError) { return; }
 
                 var stopwatch = Stopwatch.StartNew();
 
-                var issues = await eslintBridgeAnalyzer.Analyze(filePath, tsConfig, cancellationToken);
+                var issues = await eslintBridgeAnalyzer.Analyze(filePath, tsConfigResult.tsConfig, cancellationToken);
                 analysisStatusNotifier.AnalysisFinished(issues.Count, stopwatch.Elapsed);
 
                 if (issues.Any())
@@ -103,7 +105,20 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         public void Dispose()
         {
-            eslintBridgeAnalyzer.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    eslintBridgeAnalyzer.Dispose();
+                }
+                disposed = true;
+            }
         }
     }
 }
