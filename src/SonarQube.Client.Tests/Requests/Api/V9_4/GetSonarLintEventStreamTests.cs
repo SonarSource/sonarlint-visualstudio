@@ -46,7 +46,7 @@ namespace SonarQube.Client.Tests.Requests.Api.V9_4
 
             MocksHelper.SetupHttpRequest(
                 messageHandler,
-                requestRelativePath: "api/push/sonarlint_events?languages=cs%2Cvbnet%2Ccpp%2Cc%2Cjs%2Cts%2Csecrets&projectKeys=someproj",
+                requestRelativePath: "api/push/sonarlint_events?languages=cs%2Cvbnet%2Ccpp%2Cc%2Cjs%2Cts%2Ccss%2Csecrets&projectKeys=someproj",
                 responseMessage: new HttpResponseMessage {Content = new StreamContent(testedStream) },
                 headers: MediaTypeHeaderValue.Parse("text/event-stream"));
 
