@@ -28,6 +28,7 @@ namespace SonarQube.Client.Models
         public static readonly SonarQubeLanguage C = new SonarQubeLanguage("c", "C", "SonarCFamily");
         public static readonly SonarQubeLanguage Js = new SonarQubeLanguage("js", "JavaScript", "javascript");
         public static readonly SonarQubeLanguage Ts = new SonarQubeLanguage("ts", "TypeScript", "typescript");
+        public static readonly SonarQubeLanguage Css = new SonarQubeLanguage("css", "CSS", "css");
         public static readonly SonarQubeLanguage Secrets = new SonarQubeLanguage("secrets", "Secrets", "SonarSecrets");
 
         public static readonly SonarQubeLanguage[] AllLanguages =
