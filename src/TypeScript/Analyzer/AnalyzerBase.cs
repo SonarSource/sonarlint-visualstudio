@@ -34,6 +34,8 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
     internal abstract class AnalyzerBase : IDisposable
     {
         private readonly IThreadHandling threadHandling;
+        private readonly string telemetryLanguageKey;
+        private readonly string concreteAnalyzerName;
 
         private bool disposed;
 
@@ -49,9 +51,13 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             IEslintBridgeClient eslintBridgeClient,
             IThreadHandling threadHandling,
             string repoKey,
-            Language language)
+            Language language,
+            string telemetryLanguageKey,
+            string concreteAnalyzerName)
         {
             this.threadHandling = threadHandling;
+            this.telemetryLanguageKey = telemetryLanguageKey;
+            this.concreteAnalyzerName = concreteAnalyzerName;
 
             this.telemetryManager = telemetryManager;
             this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
@@ -65,10 +71,10 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             return (false, null);
         }
 
-        internal async Task ExecuteAsync(string telemetryLanguageKey, string analyzerName, string filePath, IIssueConsumer consumer, CancellationToken cancellationToken)
+        internal async Task ExecuteAsync(string filePath, IIssueConsumer consumer, CancellationToken cancellationToken)
         {
             telemetryManager.LanguageAnalyzed(telemetryLanguageKey);
-            analysisStatusNotifier = analysisStatusNotifierFactory.Create(analyzerName, filePath);
+            analysisStatusNotifier = analysisStatusNotifierFactory.Create(concreteAnalyzerName, filePath);
 
             await threadHandling.SwitchToBackgroundThread();
             analysisStatusNotifier.AnalysisStarted();

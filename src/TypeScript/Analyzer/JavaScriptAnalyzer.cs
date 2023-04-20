@@ -42,7 +42,17 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             ITelemetryManager telemetryManager,
             IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
             IEslintBridgeAnalyzerFactory eslintBridgeAnalyzerFactory,
-            IThreadHandling threadHandling) : base(telemetryManager, analysisStatusNotifierFactory, eslintBridgeAnalyzerFactory, rulesProviderFactory, eslintBridgeClient, threadHandling, "javascript", Language.Js)
+            IThreadHandling threadHandling) : 
+            base(telemetryManager,
+                analysisStatusNotifierFactory,
+                eslintBridgeAnalyzerFactory,
+                rulesProviderFactory,
+                eslintBridgeClient,
+                threadHandling,
+                "javascript",
+                Language.Js,
+                "js",
+                nameof(JavaScriptAnalyzer))
         {
         }
 
@@ -60,7 +70,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
-            ExecuteAsync("js", nameof(JavaScriptAnalyzer), path, consumer, cancellationToken).Forget(); // fire and forget
+            ExecuteAsync(path, consumer, cancellationToken).Forget(); // fire and forget
         }
     }
 }
