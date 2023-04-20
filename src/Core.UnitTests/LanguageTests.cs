@@ -89,6 +89,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             Language.C.ServerLanguage.Key.Should().Be(SonarLanguageKeys.C);
             Language.Js.ServerLanguage.Key.Should().Be(SonarLanguageKeys.JavaScript);
             Language.Ts.ServerLanguage.Key.Should().Be(SonarLanguageKeys.TypeScript);
+            Language.Ts.ServerLanguage.Key.Should().Be(SonarLanguageKeys.Css);
             Language.Secrets.ServerLanguage.Key.Should().Be(SonarLanguageKeys.Secrets);
             Language.Unknown.ServerLanguage.Should().BeNull();
         }
@@ -115,6 +116,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             var c = Language.GetLanguageFromLanguageKey("c");
             var js = Language.GetLanguageFromLanguageKey("js");
             var ts = Language.GetLanguageFromLanguageKey("ts");
+            var css = Language.GetLanguageFromLanguageKey("css");
             var unknown = Language.GetLanguageFromLanguageKey("unknown");
 
             cs.Should().Be(Language.CSharp);
@@ -123,6 +125,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             c.Should().Be(Language.C);
             js.Should().Be(Language.Js);
             ts.Should().Be(Language.Ts);
+            css.Should().Be(Language.Css);
             unknown.Should().Be(null);
         }
 

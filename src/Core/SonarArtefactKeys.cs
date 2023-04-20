@@ -49,6 +49,7 @@ namespace SonarLint.VisualStudio.Core
         public const string VBNet = "vbnet";
         public const string JavaScript = "js";
         public const string TypeScript = "ts";
+        public const string Css = "css";
         public const string C = "c";
         public const string CPlusPlus = "cpp";
         public const string Secrets = "secrets";
@@ -67,6 +68,7 @@ namespace SonarLint.VisualStudio.Core
     {
         public const string JavaScript = "javascript";
         public const string TypeScript = "typescript";
+        public const string Css = "css";
         public const string C = "c";
         public const string Cpp = "cpp";
 
