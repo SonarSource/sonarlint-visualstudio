@@ -36,13 +36,13 @@ namespace SonarLint.VisualStudio.Integration.Connection
         // similar to those reported on the server.
         public static readonly MinimumSupportedSonarQubePlugin CFamily = new MinimumSupportedSonarQubePlugin(SonarPluginKeys.SonarCFamily, "SonarCFamily", "6.0", Language.Cpp, Language.C);
 
-        public static readonly MinimumSupportedSonarQubePlugin JsTs = new MinimumSupportedSonarQubePlugin(SonarPluginKeys.SonarJs, "SonarJS", "8.6", Language.Js, Language.Ts);
+        public static readonly MinimumSupportedSonarQubePlugin JsTsCss = new MinimumSupportedSonarQubePlugin(SonarPluginKeys.SonarJs, "SonarJS", "8.6", Language.Js, Language.Ts, Language.Css);
 
         // No specific technical reason for the choice of minimum version.
         // It was simply the lowest version supported by both SonarQube v9.9 and SonarCloud at the time.
         public static readonly MinimumSupportedSonarQubePlugin Secrets = new MinimumSupportedSonarQubePlugin(SonarPluginKeys.SonarSecrets, "SonarSecrets", "2.0.1", Language.Secrets);
 
-        public static readonly IEnumerable<MinimumSupportedSonarQubePlugin> All = new[] { CSharp, VbNet, CFamily, JsTs, Secrets };
+        public static readonly IEnumerable<MinimumSupportedSonarQubePlugin> All = new[] { CSharp, VbNet, CFamily, JsTsCss, Secrets };
 
         private MinimumSupportedSonarQubePlugin(string key, string pluginName, string minimumVersion, params Language[] languages)
         {

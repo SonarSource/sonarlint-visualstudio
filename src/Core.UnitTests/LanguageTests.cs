@@ -69,6 +69,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             Language.C.IsSupported.Should().BeTrue();
             Language.Js.IsSupported.Should().BeTrue();
             Language.Ts.IsSupported.Should().BeTrue();
+            Language.Css.IsSupported.Should().BeTrue();
             Language.Secrets.IsSupported.Should().BeTrue();
         }
 
@@ -89,6 +90,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             Language.C.ServerLanguage.Key.Should().Be(SonarLanguageKeys.C);
             Language.Js.ServerLanguage.Key.Should().Be(SonarLanguageKeys.JavaScript);
             Language.Ts.ServerLanguage.Key.Should().Be(SonarLanguageKeys.TypeScript);
+            Language.Css.ServerLanguage.Key.Should().Be(SonarLanguageKeys.Css);
             Language.Secrets.ServerLanguage.Key.Should().Be(SonarLanguageKeys.Secrets);
             Language.Unknown.ServerLanguage.Should().BeNull();
         }
@@ -115,6 +117,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             var c = Language.GetLanguageFromLanguageKey("c");
             var js = Language.GetLanguageFromLanguageKey("js");
             var ts = Language.GetLanguageFromLanguageKey("ts");
+            var css = Language.GetLanguageFromLanguageKey("css");
             var unknown = Language.GetLanguageFromLanguageKey("unknown");
 
             cs.Should().Be(Language.CSharp);
@@ -123,6 +126,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             c.Should().Be(Language.C);
             js.Should().Be(Language.Js);
             ts.Should().Be(Language.Ts);
+            css.Should().Be(Language.Css);
             unknown.Should().Be(null);
         }
 
@@ -135,6 +139,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             var c = Language.GetLanguageFromRepositoryKey("c");
             var js = Language.GetLanguageFromRepositoryKey("javascript");
             var ts = Language.GetLanguageFromRepositoryKey("typescript");
+            var css = Language.GetLanguageFromRepositoryKey("css");
             var secrets = Language.GetLanguageFromRepositoryKey("secrets");
             var unknown = Language.GetLanguageFromRepositoryKey("unknown");
 
@@ -148,6 +153,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             c.Should().Be(Language.C);
             js.Should().Be(Language.Js);
             ts.Should().Be(Language.Ts);
+            css.Should().Be(Language.Css);
             secrets.Should().Be(Language.Secrets);
             unknown.Should().Be(null);
 
@@ -165,6 +171,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             Language.GetSonarRepoKeyFromLanguage(Language.Cpp).Should().Be("cpp");
             Language.GetSonarRepoKeyFromLanguage(Language.Js).Should().Be("javascript");
             Language.GetSonarRepoKeyFromLanguage(Language.Ts).Should().Be("typescript");
+            Language.GetSonarRepoKeyFromLanguage(Language.Css).Should().Be("css");
 
             Language.GetSonarRepoKeyFromLanguage(Language.Unknown).Should().BeNull();
 
