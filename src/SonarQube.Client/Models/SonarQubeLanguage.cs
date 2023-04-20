@@ -33,7 +33,7 @@ namespace SonarQube.Client.Models
 
         public static readonly SonarQubeLanguage[] AllLanguages =
         {
-            CSharp, VbNet, Cpp, C, Js, Ts, Css, Secrets
+            CSharp, VbNet, Cpp, C, Js, Ts, Secrets
         };
 
         public string Key { get; }
