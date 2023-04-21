@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
             var settings = ruleSettingsProvider.Get();
 
             return ruleDefinitions
-                .Where(x=> IncludeRule(settings, x))
+                .Where(x => IncludeRule(settings, x))
                 .Select(Convert)
                 .ToArray();
         }
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
         private bool IncludeRule(RulesSettings settings, RuleDefinition ruleDefinition)
         {
             return ruleDefinition.Type != RuleType.SECURITY_HOTSPOT &&
-                ruleDefinition.EslintKey != null && // should only apply to S2260
+                (ruleDefinition.EslintKey != null || ruleDefinition.StylelintKey != null) && // should only apply to S2260
                 IsRuleActive(settings, ruleDefinition);
         }
 
@@ -86,12 +86,12 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
             Debug.Assert(ruleDefinition.DefaultParams != null, $"JavaScript rule default params should not be null: {ruleDefinition.RuleKey}");
             return new Rule
             {
-                Key = ruleDefinition.EslintKey,
+                Key = ruleDefinition.EslintKey ?? ruleDefinition.StylelintKey,
 
                 // TODO: handle parameterised rules #2284
                 Configurations = ruleDefinition.DefaultParams,
 
-                FileTypeTarget = new []{"MAIN"}
+                FileTypeTarget = new[] { "MAIN" }
             };
         }
     }
