@@ -181,6 +181,23 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             result.Length.Should().Be(0);
         }
 
+        [TestMethod]
+        public void Get_HasStylelintKey_EslintKeyNull_ReturnsRule()
+        {
+            var ruleDefns = new RuleDefinitionsBuilder()
+                .AddRule(ruleKey: "javascript:S001", eslintKey: "eslintKey", stylelintKey: null)
+                .AddRule(ruleKey: "javascript:S002", eslintKey: null, stylelintKey: null)
+                .AddRule(ruleKey: "css:S001", eslintKey: null, stylelintKey: "stylelintKey");
+
+            var testSubject = CreateTestSubject(ruleDefns, EmptyRuleSettingsProvider);
+
+            var result = testSubject.Calculate().ToList();
+
+            result.Count.Should().Be(2);
+            result[0].Key.Should().Be("eslintKey");
+            result[1].Key.Should().Be("stylelintKey");
+        }
+
         private static void CheckExpectedRuleKeys(IEnumerable<Rule> result, params string[] expected) =>
             result.Select(x => x.Key).Should().BeEquivalentTo(expected);
 
@@ -197,7 +214,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             public IEnumerable<RuleDefinition> GetDefinitions() => definitions;
 
             public RuleDefinitionsBuilder AddRule(string eslintKey = "any", bool activeByDefault = true, RuleType ruleType = RuleType.BUG,
-                object[] configurations = null, string ruleKey = "any")
+                object[] configurations = null, string ruleKey = "any", string stylelintKey = null)
             {
                 configurations ??= Array.Empty<object>();
                 var newDefn = new RuleDefinition
@@ -206,7 +223,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
                     EslintKey = eslintKey,
                     ActivatedByDefault = activeByDefault,
                     Type = ruleType,
-                    DefaultParams = configurations
+                    DefaultParams = configurations,
+                    StylelintKey = stylelintKey
                 };
 
                 definitions.Add(newDefn);
