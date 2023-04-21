@@ -193,7 +193,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
 
             var result = testSubject.Calculate().ToList();
 
-            result.Count.Should().Be(2);
+            result.Should().HaveCount(2);
             result[0].Key.Should().Be("eslintKey");
             result[1].Key.Should().Be("stylelintKey");
         }
