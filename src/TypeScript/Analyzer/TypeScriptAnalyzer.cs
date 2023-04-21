@@ -50,7 +50,17 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             IEslintBridgeAnalyzerFactory eslintBridgeAnalyzerFactory,
             ITelemetryManager telemetryManager,
             ILogger logger,
-            IThreadHandling threadHandling) : base(telemetryManager, analysisStatusNotifierFactory, eslintBridgeAnalyzerFactory, rulesProviderFactory, eslintBridgeClient, threadHandling, "typescript", Language.Ts)
+            IThreadHandling threadHandling) 
+            : base(telemetryManager,
+                analysisStatusNotifierFactory,
+                eslintBridgeAnalyzerFactory,
+                rulesProviderFactory,
+                eslintBridgeClient,
+                threadHandling,
+                "typescript",
+                Language.Ts,
+                "ts",
+                nameof(TypeScriptAnalyzer))
         {
             this.tsConfigProvider = tsConfigProvider;
             this.logger = logger;
@@ -70,10 +80,10 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
-            ExecuteAsync("ts", nameof(TypeScriptAnalyzer), path, consumer, cancellationToken).Forget(); // fire and forget
+            ExecuteAsync(path, consumer, cancellationToken).Forget(); // fire and forget
         }
 
-        protected async override Task<(bool, string)> GetTsConfigAsync(string sourceFilePath, CancellationToken cancellationToken)
+        protected override async Task<(bool hasError, string tsConfig)> GetTsConfigAsync(string sourceFilePath, CancellationToken cancellationToken)
         {
             var stopwatch = Stopwatch.StartNew();
             var tsConfig = await tsConfigProvider.GetConfigForFile(sourceFilePath, cancellationToken);

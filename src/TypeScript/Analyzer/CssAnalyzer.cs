@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -34,39 +33,36 @@ using SonarLint.VisualStudio.TypeScript.Rules;
 namespace SonarLint.VisualStudio.TypeScript.Analyzer
 {
     [Export(typeof(IAnalyzer))]
-    internal sealed class JavaScriptAnalyzer : AnalyzerBase, IAnalyzer
+    internal class CssAnalyzer : AnalyzerBase, IAnalyzer
     {
         [ImportingConstructor]
-        public JavaScriptAnalyzer(IJavaScriptEslintBridgeClient eslintBridgeClient,
+        public CssAnalyzer(
+            ICssEslintBridgeClient eslintBridgeClient,
             IRulesProviderFactory rulesProviderFactory,
             ITelemetryManager telemetryManager,
             IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
             IEslintBridgeAnalyzerFactory eslintBridgeAnalyzerFactory,
-            IThreadHandling threadHandling) : 
-            base(telemetryManager,
+            IThreadHandling threadHandling) 
+            : base(telemetryManager,
                 analysisStatusNotifierFactory,
                 eslintBridgeAnalyzerFactory,
                 rulesProviderFactory,
                 eslintBridgeClient,
                 threadHandling,
-                "javascript",
-                Language.Js,
-                "js",
-                nameof(JavaScriptAnalyzer))
+                "css",
+                Language.Css,
+                "css",
+                nameof(CssAnalyzer))
         {
         }
 
         public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
         {
-            return languages.Contains(AnalysisLanguage.Javascript);
+            return languages.Any(language => language == AnalysisLanguage.CascadingStyleSheets);
         }
 
-        public void ExecuteAnalysis(string path,
-            string charset,
-            IEnumerable<AnalysisLanguage> detectedLanguages,
-            IIssueConsumer consumer,
-            IAnalyzerOptions analyzerOptions,
-            CancellationToken cancellationToken)
+        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer,
+            IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
