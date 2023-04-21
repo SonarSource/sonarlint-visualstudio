@@ -58,6 +58,9 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
         [JsonProperty("eslintKey")]
         public string EslintKey { get; set; }
 
+        [JsonProperty("stylelintKey")]
+        public string StylelintKey { get; set; }
+
         [JsonProperty("activatedByDefault")]
         public bool ActivatedByDefault { get; set; }
     }
