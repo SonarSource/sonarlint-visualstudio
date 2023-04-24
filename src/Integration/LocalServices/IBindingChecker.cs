@@ -24,6 +24,8 @@ using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration
 {
+    // TODO - CM cleanup - do we still need IBindingChecker and IUnboundSolutionChecker?
+
     internal interface IBindingChecker
     {
         /// <summary>

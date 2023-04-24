@@ -772,7 +772,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void GetProjectsForRulesetBinding_FirstBinding_AllProjectsBound()
+        public void GetProjectsForRulesetBinding_ReturnsEmptyList()
         {
             // Arrange
             var allProjects = new Project[]
@@ -788,82 +788,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var result = BindingProcessImpl.GetProjectsForRulesetBinding(true, allProjects, logger, new NoOpThreadHandler());
 
             // Assert
-            result.Should().BeEquivalentTo(allProjects);
-            logger.AssertOutputStringExists(Strings.Bind_Ruleset_InitialBinding);
-        }
-
-        [TestMethod]
-        public void GetProjectsForRulesetBinding_NoProjectsUpToDate()
-        {
-            // Arrange
-            var allProjects = new Project[]
-            {
-                Mock.Of<Project>(),
-                Mock.Of<Project>(),
-                Mock.Of<Project>()
-            };
-
-            var logger = new TestLogger();
-
-            // Act
-            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, logger, new NoOpThreadHandler());
-
-            // Assert
-            result.Should().BeEquivalentTo(allProjects);
-            logger.AssertOutputStringExists(Strings.Bind_Ruleset_AllProjectsNeedToBeUpdated);
-        }
-
-        [TestMethod]
-        public void InitializeSolutionBinding_Update_NotAllUpToDate_SomeProjectsUpdated()
-        {
-            // Arrange
-            var allProjects = new Project[]
-            {
-                CreateProject("one"),
-                CreateProject("two"),
-                CreateProject("three"),
-                CreateProject("four")
-            };
-
-            var unboundProjects = new Project[]
-            {
-                Mock.Of<Project>(),
-                allProjects[1],
-                allProjects[3]
-            };
-
-            var logger = new TestLogger();
-
-            // Act
-            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, logger, new NoOpThreadHandler());
-
-            // Assert
-            result.Should().BeEquivalentTo(allProjects[1], allProjects[3]);
-            logger.AssertOutputStringExists(Strings.Bind_Ruleset_SomeProjectsDoNotNeedToBeUpdated);
-            logger.AssertPartialOutputStringExists("one", "three");
-        }
-
-        [TestMethod]
-        public void InitializeSolutionBinding_Update_AllUpToDate_NoProjectsUpdated()
-        {
-            // Arrange
-            var allProjects = new Project[]
-            {
-                CreateProject("one"),
-                CreateProject("two"),
-                CreateProject("three"),
-                CreateProject("four")
-            };
-
-            var logger = new TestLogger();
-
-            // Act
-            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, logger, new NoOpThreadHandler());
-
-            // Assert
-            result.Should().BeEmpty();
-            logger.AssertOutputStringExists(Strings.Bind_Ruleset_SomeProjectsDoNotNeedToBeUpdated);
-            logger.AssertPartialOutputStringExists("one", "two", "three", "four");
+            result.Should().HaveCount(0);
         }
 
         #endregion Tests
