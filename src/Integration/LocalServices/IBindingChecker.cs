@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -36,15 +35,12 @@ namespace SonarLint.VisualStudio.Integration
     internal class BindingChecker : IBindingChecker
     {
         private readonly IUnboundSolutionChecker unboundSolutionChecker;
-        private readonly IUnboundProjectFinder unboundProjectFinder;
         private readonly ILogger logger;
 
         public BindingChecker(IUnboundSolutionChecker unboundSolutionChecker, 
-            IUnboundProjectFinder unboundProjectFinder, 
             ILogger logger)
         {
             this.unboundSolutionChecker = unboundSolutionChecker;
-            this.unboundProjectFinder = unboundProjectFinder;
             this.logger = logger;
         }
 
@@ -58,15 +54,7 @@ namespace SonarLint.VisualStudio.Integration
                 return true;
             }
 
-            var unboundProjects = unboundProjectFinder.GetUnboundProjects().ToArray();
-            var hasUnboundProjects = unboundProjects.Length > 0;
-
-            if (hasUnboundProjects)
-            {
-                logger.WriteLine(Strings.SonarLintFoundUnboundProjects, unboundProjects.Length, string.Join(", ", unboundProjects.Select(p => p.UniqueName)));
-            }
-
-            return hasUnboundProjects;
+            return false;
         }
     }
 }

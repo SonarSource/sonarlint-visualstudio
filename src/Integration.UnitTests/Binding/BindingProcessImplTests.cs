@@ -103,36 +103,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var bindingArgs = CreateBindCommandArgs(connection: new ConnectionInformation(new Uri("http://server")));
             var slnBindOp = new Mock<ISolutionBindingOperation>().Object;
             var nuGetOp = new Mock<INuGetBindingOperation>().Object;
-            var finder = new ConfigurableUnboundProjectFinder();
             var bindingConfigProvider = new Mock<IBindingConfigProvider>().Object;
             var exclusionSettingsStorage = Mock.Of<IExclusionSettingsStorage>();
 
             // 1. Null host
-            Action act = () => new BindingProcessImpl(null, bindingArgs, slnBindOp, nuGetOp, finder, bindingConfigProvider, SonarLintMode.Connected, exclusionSettingsStorage);
+            Action act = () => new BindingProcessImpl(null, bindingArgs, slnBindOp, nuGetOp, bindingConfigProvider, SonarLintMode.Connected, exclusionSettingsStorage);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
 
             // 2. Null binding args
-            act = () => new BindingProcessImpl(validHost, null, slnBindOp, nuGetOp, finder, bindingConfigProvider, SonarLintMode.Connected, exclusionSettingsStorage);
+            act = () => new BindingProcessImpl(validHost, null, slnBindOp, nuGetOp, bindingConfigProvider, SonarLintMode.Connected, exclusionSettingsStorage);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingArgs");
 
             // 3. Null solution binding operation
-            act = () => new BindingProcessImpl(validHost, bindingArgs, null, nuGetOp, finder, bindingConfigProvider, SonarLintMode.Connected, exclusionSettingsStorage);
+            act = () => new BindingProcessImpl(validHost, bindingArgs, null, nuGetOp, bindingConfigProvider, SonarLintMode.Connected, exclusionSettingsStorage);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingOperation");
 
             // 4. Null NuGet operation
-            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, null, finder, bindingConfigProvider, SonarLintMode.Connected, exclusionSettingsStorage);
+            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, null, bindingConfigProvider, SonarLintMode.Connected, exclusionSettingsStorage);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("nugetBindingOperation");
 
-            // 5. Null binding info provider
-            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, nuGetOp, null, bindingConfigProvider, SonarLintMode.Connected, exclusionSettingsStorage);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("unboundProjectFinder");
-
-            // 6. Null rules configuration provider
-            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, nuGetOp, finder, null, SonarLintMode.Connected, exclusionSettingsStorage);
+            // 5. Null rules configuration provider
+            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, nuGetOp, null, SonarLintMode.Connected, exclusionSettingsStorage);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingConfigProvider");
 
             // 6. Null exclusion settings storage
-            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, nuGetOp, finder, bindingConfigProvider, SonarLintMode.Connected, null);
+            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, nuGetOp, bindingConfigProvider, SonarLintMode.Connected, null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("exclusionSettingsStorage");
         }
 
@@ -493,11 +488,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             nugetMock.Setup(x => x.InstallPackages(It.IsAny<ISet<Project>>(),
                 It.IsAny<IProgress<FixedStepsProgress>>(),
                 It.IsAny<CancellationToken>())).Returns(true);
-            var finder = new ConfigurableUnboundProjectFinder();
             var configProvider = new Mock<IBindingConfigProvider>();
             var exclusionSettingsStorage = Mock.Of<IExclusionSettingsStorage>();
 
-            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, finder, configProvider.Object, SonarLintMode.Connected, exclusionSettingsStorage);
+            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, configProvider.Object, SonarLintMode.Connected, exclusionSettingsStorage);
 
             var project = Mock.Of<Project>();
             testSubject.InternalState.BindingProjects.Clear();
@@ -527,11 +521,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             nugetMock.Setup(x => x.InstallPackages(It.IsAny<ISet<Project>>(),
                 It.IsAny<IProgress<FixedStepsProgress>>(),
                 It.IsAny<CancellationToken>())).Returns(false);
-            var finder = new ConfigurableUnboundProjectFinder();
             var configProvider = new Mock<IBindingConfigProvider>();
             var exclusionSettingsStorage = Mock.Of<IExclusionSettingsStorage>();
 
-            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, finder, configProvider.Object, SonarLintMode.Connected, exclusionSettingsStorage);
+            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, configProvider.Object, SonarLintMode.Connected, exclusionSettingsStorage);
 
             var project = Mock.Of<Project>();
             testSubject.InternalState.BindingProjects.Clear();
@@ -790,13 +783,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             var logger = new TestLogger();
-            var finder = new ConfigurableUnboundProjectFinder
-            {
-                UnboundProjects = allProjects
-            };
 
             // Act
-            var result = BindingProcessImpl.GetProjectsForRulesetBinding(true, allProjects, finder, logger, new NoOpThreadHandler());
+            var result = BindingProcessImpl.GetProjectsForRulesetBinding(true, allProjects, logger, new NoOpThreadHandler());
 
             // Assert
             result.Should().BeEquivalentTo(allProjects);
@@ -815,13 +804,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             var logger = new TestLogger();
-            var finder = new ConfigurableUnboundProjectFinder
-            {
-                UnboundProjects = allProjects
-            };
 
             // Act
-            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, finder, logger, new NoOpThreadHandler());
+            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, logger, new NoOpThreadHandler());
 
             // Assert
             result.Should().BeEquivalentTo(allProjects);
@@ -848,13 +833,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             var logger = new TestLogger();
-            var finder = new ConfigurableUnboundProjectFinder
-            {
-                UnboundProjects = unboundProjects
-            };
 
             // Act
-            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, finder, logger, new NoOpThreadHandler());
+            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, logger, new NoOpThreadHandler());
 
             // Assert
             result.Should().BeEquivalentTo(allProjects[1], allProjects[3]);
@@ -875,13 +856,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             var logger = new TestLogger();
-            var finder = new ConfigurableUnboundProjectFinder
-            {
-                UnboundProjects = null
-            };
 
             // Act
-            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, finder, logger, new NoOpThreadHandler());
+            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, logger, new NoOpThreadHandler());
 
             // Assert
             result.Should().BeEmpty();
@@ -908,9 +885,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.host.SonarQubeService = sonarQubeService ?? this.sonarQubeServiceMock.Object;
 
             var slnBindOperation = new SolutionBindingOperation(this.host, SonarLintMode.LegacyConnected, this.host.Logger);
-            var finder = new ConfigurableUnboundProjectFinder();
 
-            return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, nuGetBindingOperation, finder, configProvider, mode, exclusionSettingsStorage);
+            return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, nuGetBindingOperation, configProvider, mode, exclusionSettingsStorage);
         }
 
         private BindCommandArgs CreateBindCommandArgs(string projectKey = "key", string projectName = "name", ConnectionInformation connection = null)
