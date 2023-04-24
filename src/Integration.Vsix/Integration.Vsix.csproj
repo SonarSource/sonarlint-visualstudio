@@ -144,9 +144,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NuGet.Core" Version="2.12.0" />
-    <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
-
     <!-- The VSIX signing package is only required for signed builds, but the use of package.lock.json
          files means it's simpler to always include it so the contents of the lock file don't change for
          signed builds. -->

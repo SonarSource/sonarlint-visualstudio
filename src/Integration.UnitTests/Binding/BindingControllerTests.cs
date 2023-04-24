@@ -414,7 +414,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Assert
             actual.Should().BeOfType<BindingProcessImpl>();
             var bindingProcessImpl = (BindingProcessImpl)actual;
-            bindingProcessImpl.NuGetBindingOperation.Should().BeOfType<NoOpNuGetBindingOperation>();
             logger.AssertOutputStrings(Strings.Bind_FirstTimeBinding);
             bindingProcessImpl.InternalState.IsFirstBinding.Should().BeTrue();
         }
@@ -432,7 +431,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Assert
             actual.Should().BeOfType<BindingProcessImpl>();
             var bindingProcessImpl = (BindingProcessImpl)actual;
-            bindingProcessImpl.NuGetBindingOperation.Should().BeOfType<NoOpNuGetBindingOperation>();
             bindingProcessImpl.InternalState.IsFirstBinding.Should().BeFalse();
             logger.AssertOutputStrings(Strings.Bind_UpdatingNewStyleBinding);
         }
