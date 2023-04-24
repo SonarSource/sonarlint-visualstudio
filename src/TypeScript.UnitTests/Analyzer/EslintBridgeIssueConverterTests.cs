@@ -27,9 +27,9 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.TypeScript.Analyzer;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 using SonarLint.VisualStudio.TypeScript.Rules;
-using TextRange = SonarLint.VisualStudio.Core.Analysis.TextRange;
-using QuickFix = SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract.QuickFix;
 using Edit = SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract.Edit;
+using QuickFix = SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract.QuickFix;
+using TextRange = SonarLint.VisualStudio.Core.Analysis.TextRange;
 
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 {
@@ -66,9 +66,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         {
             var quickFix = CreateQuickFix();
 
-            var eslintBridgeIssue = CreateIssue("eslint rule id", new[] {quickFix});
+            var eslintBridgeIssue = CreateIssue("eslint rule id", new[] { quickFix });
             var ruleDefinitions = CreateRuleDefinition("eslint rule id", "sonar rule key");
-            
+
             var testSubject = CreateTestSubject(ruleDefinitions);
             var convertedIssue = testSubject.Convert("some file", eslintBridgeIssue);
 
@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var edit1 = CreateEdit("edit 1", CreateTextRange(1, 2, 3, 4));
             var edit2 = CreateEdit("edit 2", CreateTextRange(5, 6, 7, 8));
 
-            var quickFix = CreateQuickFix("Quick Fix", new[] {edit1, edit2});
+            var quickFix = CreateQuickFix("Quick Fix", new[] { edit1, edit2 });
 
             var eslintBridgeIssue = CreateIssue("eslint rule id", new[] { quickFix });
             var ruleDefinitions = CreateRuleDefinition("eslint rule id", "sonar rule key");
@@ -129,7 +129,6 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             convertedIssue.Fixes[0].Edits[1].RangeToReplace.StartLineOffset.Should().Be(quickFix.Edits[1].TextRange.Column);
             convertedIssue.Fixes[0].Edits[1].RangeToReplace.EndLineOffset.Should().Be(quickFix.Edits[1].TextRange.EndColumn);
         }
-
 
         [TestMethod]
         public void Convert_IssueFileLevel_Converted()
@@ -160,14 +159,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         {
             var eslintBridgeIssue = new Issue { RuleId = keyInIssue };
 
-            var ruleDefinitions = new[]
-            {
-                new RuleDefinition
-                {
-                    EslintKey = keyInDefinition,
-                    RuleKey = "sonar rule key"
-                }
-            };
+            var ruleDefinitions = CreateRuleDefinition(keyInDefinition, "sonar rule key");
 
             var testSubject = CreateTestSubject(ruleDefinitions);
             var convertedIssue = testSubject.Convert("some file", eslintBridgeIssue);
@@ -285,6 +277,23 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
+        [DataRow("aaa", "aaa")]
+        [DataRow("aaa", "AAA")]
+        [DataRow("AAA", "aaa")]
+        [DataRow("AAA", "AAA")]
+        public void Convert_HasNoEsLintKey_UsesStylelintKey(string keyInIssue, string keyInDefinition)
+        {
+            var eslintBridgeIssue = new Issue { RuleId = keyInIssue };
+
+            var ruleDefinitions = CreateRuleDefinition(null, "sonar rule key", keyInDefinition);
+
+            var testSubject = CreateTestSubject(ruleDefinitions);
+            var convertedIssue = testSubject.Convert("some file", eslintBridgeIssue);
+
+            convertedIssue.RuleKey.Should().Be("sonar rule key");
+        }
+
+        [TestMethod]
         [DataRow(RuleSeverity.BLOCKER, AnalysisIssueSeverity.Blocker)]
         [DataRow(RuleSeverity.CRITICAL, AnalysisIssueSeverity.Critical)]
         [DataRow(RuleSeverity.INFO, AnalysisIssueSeverity.Info)]
@@ -308,7 +317,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         [DataRow(RuleType.VULNERABILITY, AnalysisIssueType.Vulnerability)]
         public void ConvertFromRuleType(int eslintRuleType, AnalysisIssueType analysisIssueType)
         {
-            EslintBridgeIssueConverter.Convert((RuleType) eslintRuleType).Should().Be(analysisIssueType);
+            EslintBridgeIssueConverter.Convert((RuleType)eslintRuleType).Should().Be(analysisIssueType);
         }
 
         [TestMethod]
@@ -334,16 +343,17 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             return new EslintBridgeIssueConverter(rulesProvider.Object);
         }
 
-        private static RuleDefinition[] CreateRuleDefinition(string ruleId, string ruleKey)
+        private static RuleDefinition[] CreateRuleDefinition(string eslintKey, string ruleKey, string stylelintKey = null)
         {
             return new[]
             {
                 new RuleDefinition
                 {
-                    EslintKey = ruleId,
+                    EslintKey = eslintKey,
                     RuleKey = ruleKey,
                     Type = RuleType.CODE_SMELL,
-                    Severity = RuleSeverity.MAJOR
+                    Severity = RuleSeverity.MAJOR,
+                    StylelintKey = stylelintKey
                 }
             };
         }
@@ -364,11 +374,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 
         private static QuickFix CreateQuickFix(string message = "QuickFix", Edit[] edits = null)
         {
-            
             return new QuickFix
             {
                 Message = message,
-                Edits = edits ?? new[] {CreateEdit()}
+                Edits = edits ?? new[] { CreateEdit() }
             };
         }
 
@@ -377,7 +386,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             return new Edit
             {
                 Text = text,
-                TextRange = textRange ?? CreateTextRange(1,2,3,4)
+                TextRange = textRange ?? CreateTextRange(1, 2, 3, 4)
             };
         }
 
