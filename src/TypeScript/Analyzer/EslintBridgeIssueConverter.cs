@@ -46,11 +46,11 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         public IAnalysisIssue Convert(string filePath, Issue issue)
         {
             var ruleDefinitions = rulesProvider.GetDefinitions();
-            var ruleDefinition = ruleDefinitions.Single(x => x.EslintKey != null && x.EslintKey.Equals(issue.RuleId, StringComparison.OrdinalIgnoreCase));
+            var ruleDefinition = ruleDefinitions.Single(x => (x.EslintKey != null && x.EslintKey.Equals(issue.RuleId, StringComparison.OrdinalIgnoreCase)) || (x.StylelintKey != null && x.StylelintKey.Equals(issue.RuleId, StringComparison.OrdinalIgnoreCase)));
             var sonarRuleKey = ruleDefinition.RuleKey;
             ITextRange textRange = null;
 
-            if(issue.Line != 0) // if the line is 0 than it means a file level issue.  
+            if (issue.Line != 0) // if the line is 0 than it means a file level issue.
             {
                 textRange = new TextRange(
                         issue.Line,
@@ -93,12 +93,16 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             {
                 case RuleSeverity.BLOCKER:
                     return AnalysisIssueSeverity.Blocker;
+
                 case RuleSeverity.CRITICAL:
                     return AnalysisIssueSeverity.Critical;
+
                 case RuleSeverity.INFO:
                     return AnalysisIssueSeverity.Info;
+
                 case RuleSeverity.MAJOR:
                     return AnalysisIssueSeverity.Major;
+
                 case RuleSeverity.MINOR:
                     return AnalysisIssueSeverity.Minor;
 
@@ -113,8 +117,10 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             {
                 case RuleType.BUG:
                     return AnalysisIssueType.Bug;
+
                 case RuleType.CODE_SMELL:
                     return AnalysisIssueType.CodeSmell;
+
                 case RuleType.VULNERABILITY:
                     return AnalysisIssueType.Vulnerability;
 
@@ -129,7 +135,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
             return locations == null || !locations.Any()
                 ? Array.Empty<IAnalysisIssueFlow>()
-                : new[] {new AnalysisIssueFlow(locations.ToArray())};
+                : new[] { new AnalysisIssueFlow(locations.ToArray()) };
         }
 
         private IAnalysisIssueLocation Convert(string filePath, IssueLocation issueLocation) =>
