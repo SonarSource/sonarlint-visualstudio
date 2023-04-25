@@ -51,12 +51,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IExclusionSettingsStorage exclusionSettingsStorage;
         private readonly IFolderWorkspaceService folderWorkspaceService;
 
-        internal /*for testing*/ INuGetBindingOperation NuGetBindingOperation { get; }
-
         public BindingProcessImpl(IHost host,
             BindCommandArgs bindingArgs,
             ISolutionBindingOperation solutionBindingOperation,
-            INuGetBindingOperation nugetBindingOperation,
             IBindingConfigProvider bindingConfigProvider,
             SonarLintMode bindingMode,
             IExclusionSettingsStorage exclusionSettingsStorage,
@@ -67,7 +64,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.host = host ?? throw new ArgumentNullException(nameof(host));
             this.bindingArgs = bindingArgs ?? throw new ArgumentNullException(nameof(bindingArgs));
             this.solutionBindingOperation = solutionBindingOperation ?? throw new ArgumentNullException(nameof(solutionBindingOperation));
-            this.NuGetBindingOperation = nugetBindingOperation ?? throw new ArgumentNullException(nameof(nugetBindingOperation));
             this.bindingConfigProvider = bindingConfigProvider ?? throw new ArgumentNullException(nameof(bindingConfigProvider));
             this.exclusionSettingsStorage = exclusionSettingsStorage ?? throw new ArgumentNullException(nameof(exclusionSettingsStorage));
             this.bindingMode = bindingMode;
@@ -203,7 +199,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public void PrepareToInstallPackages()
         {
-            this.NuGetBindingOperation.PrepareOnUIThread();
+            // TODO - CM cleanup
+            // no-op
         }
 
         public async Task<bool> SaveServerExclusionsAsync(CancellationToken cancellationToken)
@@ -223,7 +220,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public void InstallPackages(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)
         {
-            this.InternalState.BindingOperationSucceeded = this.NuGetBindingOperation.InstallPackages(this.InternalState.BindingProjects, progress, cancellationToken);
+            // TODO - CM cleanup
+            this.InternalState.BindingOperationSucceeded = true;
         }
 
         public void InitializeSolutionBindingOnBackgroundThread()
