@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 using SonarLint.VisualStudio.TypeScript.Rules;
 using QuickFix = SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract.QuickFix;
@@ -37,14 +38,24 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
     internal class EslintBridgeIssueConverter : IEslintBridgeIssueConverter
     {
         private readonly IRulesProvider rulesProvider;
+        private readonly ILogger logger;
 
-        public EslintBridgeIssueConverter(IRulesProvider rulesProvider)
+        private const string CssSyntaxErrorString = "CssSyntaxError";
+
+        public EslintBridgeIssueConverter(IRulesProvider rulesProvider, ILogger logger)
         {
             this.rulesProvider = rulesProvider;
+            this.logger = logger;
         }
 
         public IAnalysisIssue Convert(string filePath, Issue issue)
         {
+            if (issue.RuleId.Equals(CssSyntaxErrorString, StringComparison.OrdinalIgnoreCase))
+            {
+                logger.WriteLine(Resources.ERR_CssSyntaxError, filePath, issue.Line, issue.Message);
+                return null;
+            }
+
             var ruleDefinitions = rulesProvider.GetDefinitions();
             var ruleDefinition = ruleDefinitions.Single(x => (x.EslintKey != null && x.EslintKey.Equals(issue.RuleId, StringComparison.OrdinalIgnoreCase)) || (x.StylelintKey != null && x.StylelintKey.Equals(issue.RuleId, StringComparison.OrdinalIgnoreCase)));
             var sonarRuleKey = ruleDefinition.RuleKey;

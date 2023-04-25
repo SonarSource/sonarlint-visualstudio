@@ -19,7 +19,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -57,6 +57,15 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CssAnalyzer] Failed to parse css file &apos;{0}&apos; at line {1}: {2}.
+        /// </summary>
+        internal static string ERR_CssSyntaxError {
+            get {
+                return ResourceManager.GetString("ERR_CssSyntaxError", resourceCulture);
             }
         }
         
