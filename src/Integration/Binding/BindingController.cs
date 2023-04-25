@@ -141,7 +141,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var currentConfiguration = configProvider.GetConfiguration();
 
             SonarLintMode modeToBind;
-            INuGetBindingOperation nugetBindingOp;
 
             // If we are currently in standalone then the project is being bound for the first time.
             // Otherwise, we are updating an existing binding
@@ -151,7 +150,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 host.Logger.WriteLine(Strings.Bind_UpdatingLegacyBinding);
                 modeToBind = SonarLintMode.LegacyConnected;
-                nugetBindingOp = new NuGetBindingOperation(host, host.Logger);
             }
             else
             {
@@ -161,7 +159,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                         Strings.Bind_UpdatingNewStyleBinding);
 
                 modeToBind = SonarLintMode.Connected;
-                nugetBindingOp = new NoOpNuGetBindingOperation(host.Logger);
             }
 
             var solutionBindingOp = new SolutionBindingOperation(
@@ -169,7 +166,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 modeToBind,
                 host.Logger);
 
-            var cSharpVBBindingConfigProvider = new CSharpVBBindingConfigProvider(host.SonarQubeService, nugetBindingOp, host.Logger);
+            var cSharpVBBindingConfigProvider = new CSharpVBBindingConfigProvider(host.SonarQubeService, host.Logger);
             var nonRoslynBindingConfigProvider = new NonRoslynBindingConfigProvider(
                 new[]
                 {
@@ -185,7 +182,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             var exclusionSettingsStorage = new ExclusionSettingsStorage(configProvider, host.Logger);
 
-            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, ruleConfigProvider, modeToBind, exclusionSettingsStorage, isFirstBinding);
+            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, ruleConfigProvider, modeToBind, exclusionSettingsStorage, isFirstBinding);
 
             return bindingProcess;
         }

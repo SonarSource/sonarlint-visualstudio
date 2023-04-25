@@ -35,7 +35,6 @@ using SonarQube.Client;
 using SonarQube.Client.Models;
 using CoreRuleSet = SonarLint.VisualStudio.Core.CSharpVB.RuleSet;
 using Language = SonarLint.VisualStudio.Core.Language;
-using NuGetPackageInfo = SonarLint.VisualStudio.Core.CSharpVB.NuGetPackageInfo;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -48,7 +47,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private IList<SonarQubeRule> validRules;
         private IList<SonarQubeProperty> anyProperties;
         private SonarQubeQualityProfile validQualityProfile;
-        private IList<NuGetPackageInfo> validNugetPackages;
         private CoreRuleSet validRuleSet;
 
         private static readonly SonarQubeRule ActiveRuleWithUnsupportedSeverity = new SonarQubeRule("activeHotspot", "any1",
@@ -76,8 +74,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             anyProperties = Array.Empty<SonarQubeProperty>();
 
             validQualityProfile = new SonarQubeQualityProfile("qpkey1", "qp name", "any", false, DateTime.UtcNow);
-
-            validNugetPackages = new List<NuGetPackageInfo> { new NuGetPackageInfo("package.id", "1.2") };
 
             validRuleSet = new CoreRuleSet
             {
@@ -149,8 +145,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             builder.Logger.AssertOutputStrings(expectedOutput);
 
             builder.AssertRuleSetGeneratorNotCalled();
-            builder.AssertNuGetGeneratorNotCalled();
-            builder.AssertNuGetBindingWasNotCalled();
         }
 
         [TestMethod]
@@ -161,7 +155,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ActiveRulesResponse = validRules,
                 InactiveRulesResponse = emptyRules,
                 PropertiesResponse = anyProperties,
-                NuGetBindingOperationResponse = true,
                 RuleSetGeneratorResponse = validRuleSet,
             };
             var testSubject = builder.CreateTestSubject();
@@ -199,7 +192,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ActiveRulesResponse = validRules,
                 InactiveRulesResponse = emptyRules,
                 PropertiesResponse = anyProperties,
-                NuGetBindingOperationResponse = true,
                 RuleSetGeneratorResponse = validRuleSet,
                 SonarLintConfigurationResponse = expectedConfiguration
             };
@@ -210,31 +202,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
             (response as ICSharpVBBindingConfig).AdditionalFile.Path.Should().Be(expectedAdditionalFilePath);
             (response as ICSharpVBBindingConfig).AdditionalFile.Content.Should().Be(expectedConfiguration);
-        }
-
-        [TestMethod]
-        public async Task GetConfig_NuGetBindingOperationFails_ReturnsNull()
-        {
-            var builder = new TestEnvironmentBuilder(validQualityProfile, Language.VBNET)
-            {
-                ActiveRulesResponse = validRules,
-                InactiveRulesResponse = validRules,
-                PropertiesResponse = anyProperties,
-                NuGetGeneratorResponse = validNugetPackages,
-                NuGetBindingOperationResponse = false
-            };
-
-            var testSubject = builder.CreateTestSubject();
-
-            var result = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None)
-                .ConfigureAwait(false);
-
-            result.Should().BeNull();
-
-            builder.AssertNuGetGeneratorWasCalled();
-            builder.AssertNuGetBindingOpWasCalled();
-
-            builder.AssertRuleSetGeneratorNotCalled();
         }
 
         [TestMethod]
@@ -268,7 +235,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ActiveRulesResponse = activeRules,
                 InactiveRulesResponse = inactiveRules,
                 PropertiesResponse = properties,
-                NuGetBindingOperationResponse = true,
                 RuleSetGeneratorResponse = validRuleSet
             };
 
@@ -310,7 +276,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             capturedRules[1].Key.Should().Be("inactiveRuleKey");
             capturedRules[1].RepositoryKey.Should().Be("repoKey2");
 
-            builder.AssertNuGetBindingOpWasCalled();
             builder.Logger.AssertOutputStrings(0); // not expecting anything in the case of success
         }
 
@@ -349,8 +314,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             private readonly Mock<ISonarLintConfigGenerator> sonarLintConfigGeneratorMock = new Mock<ISonarLintConfigGenerator>();
             private Mock<ISonarQubeService> sonarQubeServiceMock;
             private Mock<Core.CSharpVB.IRuleSetGenerator> ruleGenMock;
-            private Mock<Core.CSharpVB.INuGetPackageInfoGenerator> nugetGenMock;
-            private Mock<INuGetBindingOperation> nugetBindingMock;
 
             private readonly SonarQubeQualityProfile profile;
             private readonly Language language;
@@ -377,8 +340,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             public IList<SonarQubeRule> ActiveRulesResponse { get; set; }
             public IList<SonarQubeRule> InactiveRulesResponse { get; set; }
             public IList<SonarQubeProperty> PropertiesResponse { get; set; }
-            public IList<NuGetPackageInfo> NuGetGeneratorResponse { get; set; }
-            public bool NuGetBindingOperationResponse { get; set; }
             public CoreRuleSet RuleSetGeneratorResponse { get; set; }
             public TestLogger Logger { get; private set; }
             public IEnumerable<SonarQubeRule> CapturedRulesPassedToRuleSetGenerator { get; private set; }
@@ -422,14 +383,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                         CapturedPropertiesPassedToRuleSetGenerator = properties;
                     });
 
-                nugetGenMock = new Mock<Core.CSharpVB.INuGetPackageInfoGenerator>();
-                nugetGenMock.Setup(x => x.GetNuGetPackageInfos(It.IsAny<IList<SonarQubeRule>>(), It.IsAny<IDictionary<string, string>>()))
-                    .Returns(NuGetGeneratorResponse);
-
-                nugetBindingMock = new Mock<INuGetBindingOperation>();
-                nugetBindingMock.Setup(x => x.ProcessExport(language, NuGetGeneratorResponse))
-                    .Returns(NuGetBindingOperationResponse);
-
                 BindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri(serverUrl), ExpectedProjectKey, projectName),
                     SonarLintMode.Connected, "c:\\test\\");
 
@@ -438,10 +391,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     .Setup(x => x.Generate(It.IsAny<IEnumerable<SonarQubeRule>>(), sonarProperties, serverExclusionsResponse, language))
                     .Returns(SonarLintConfigurationResponse);
 
-                return new CSharpVBBindingConfigProvider(sonarQubeServiceMock.Object, nugetBindingMock.Object, Logger,
+                return new CSharpVBBindingConfigProvider(sonarQubeServiceMock.Object, Logger,
                     // inject the generator mocks
                     ruleGenMock.Object,
-                    nugetGenMock.Object,
                     sonarLintConfigGeneratorMock.Object);
             }
 
@@ -449,30 +401,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 ruleGenMock.Verify(x => x.Generate(It.IsAny<string>(), It.IsAny<IEnumerable<SonarQubeRule>>(), It.IsAny<IDictionary<string, string>>()),
                     Times.Never);
-            }
-
-            public void AssertNuGetGeneratorNotCalled()
-            {
-                nugetGenMock.Verify(x => x.GetNuGetPackageInfos(It.IsAny<IEnumerable<SonarQubeRule>>(), It.IsAny<IDictionary<string, string>>()),
-                    Times.Never);
-            }
-
-            public void AssertNuGetGeneratorWasCalled()
-            {
-                nugetGenMock.Verify(x => x.GetNuGetPackageInfos(It.IsAny<IEnumerable<SonarQubeRule>>(), It.IsAny<IDictionary<string, string>>()),
-                    Times.Once);
-            }
-
-            public void AssertNuGetBindingWasNotCalled()
-            {
-                nugetBindingMock.Verify(x => x.ProcessExport(It.IsAny<Language>(), It.IsAny<IEnumerable<NuGetPackageInfo>>()),
-                    Times.Never);
-            }
-
-            public void AssertNuGetBindingOpWasCalled()
-            {
-                nugetBindingMock.Verify(x => x.ProcessExport(It.IsAny<Language>(), It.IsAny<IEnumerable<NuGetPackageInfo>>()),
-                    Times.Once);
             }
         }
     }

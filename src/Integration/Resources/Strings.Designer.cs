@@ -179,15 +179,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Language for project &apos;{0}&apos; is not matching any of the available quality profile&apos;s languages.
-        /// </summary>
-        public static string BindingProjectLanguageNotMatchingAnyQualityProfileLanguage {
-            get {
-                return ResourceManager.GetString("BindingProjectLanguageNotMatchingAnyQualityProfileLanguage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Binding projects.
         /// </summary>
         public static string BindingProjectsDisplayMessage {
@@ -468,15 +459,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Installing NuGet package &apos;{0}&apos; for project &apos;{1}&apos;.
-        /// </summary>
-        public static string EnsuringNugetPackagesProgressMessage {
-            get {
-                return ResourceManager.GetString("EnsuringNugetPackagesProgressMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Insecure schemes must be a subset of supported schemes.
         /// </summary>
         public static string ExceptionInsecureSchemesIsNotSubset {
@@ -681,15 +663,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string MoreInfoLinkText {
             get {
                 return ResourceManager.GetString("MoreInfoLinkText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to There is a problem with Sonar{0}, information about the associated NuGet package was not returned.
-        /// </summary>
-        public static string NoNuGetPackageForQualityProfile {
-            get {
-                return ResourceManager.GetString("NoNuGetPackageForQualityProfile", resourceCulture);
             }
         }
         
@@ -1204,15 +1177,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string SubTextPaddingFormat {
             get {
                 return ResourceManager.GetString("SubTextPaddingFormat", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Successfully installed NuGet package &apos;{0}&apos; for project &apos;{1}&apos;.
-        /// </summary>
-        public static string SuccessfullyInstalledNugetPackageForProject {
-            get {
-                return ResourceManager.GetString("SuccessfullyInstalledNugetPackageForProject", resourceCulture);
             }
         }
         
