@@ -514,8 +514,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var testSubject = CreateTestSubject(eslintBridgeClient.Object, issueConverter: issueConverter.Object);
             var result = await testSubject.Analyze("some path", "some config", CancellationToken.None);
 
-            result.Count.Should().Be(1);
-            result.ElementAt(0).Should().Be(analysisIssue);
+            result.Should().HaveCount(1);
+            result.Should().HaveElementAt(0, analysisIssue);
         }
 
         private static JsTsAnalysisResponse CreateLinterNotInitializedResponse() =>
