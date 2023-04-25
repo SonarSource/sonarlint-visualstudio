@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public EslintBridgeAnalyzerFactory(IActiveSolutionTracker activeSolutionTracker, 
+        public EslintBridgeAnalyzerFactory(IActiveSolutionTracker activeSolutionTracker,
             IAnalysisConfigMonitor analysisConfigMonitor,
             ILogger logger)
         {
@@ -52,11 +52,11 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         public IEslintBridgeAnalyzer Create(IRulesProvider rulesProvider, IEslintBridgeClient eslintBridgeClient)
         {
-            return new EslintBridgeAnalyzer(rulesProvider, 
+            return new EslintBridgeAnalyzer(rulesProvider,
                 eslintBridgeClient,
-                activeSolutionTracker, 
+                activeSolutionTracker,
                 analysisConfigMonitor,
-                new EslintBridgeIssueConverter(rulesProvider), 
+                new EslintBridgeIssueConverter(rulesProvider, logger),
                 logger);
         }
     }
