@@ -468,35 +468,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void InstallPackages_Succeeds_SuccessPropertyIsTrue()
-        {
-            // Arrange
-            var bindingArgs = CreateBindCommandArgs("projectKey", "projectName", new ConnectionInformation(new Uri("http://connected")));
-
-            var slnBindOpMock = new Mock<ISolutionBindingOperation>();
-            var configProvider = new Mock<IBindingConfigProvider>();
-            var exclusionSettingsStorage = Mock.Of<IExclusionSettingsStorage>();
-
-            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, configProvider.Object, SonarLintMode.Connected, exclusionSettingsStorage);
-
-            var project = Mock.Of<Project>();
-            testSubject.InternalState.BindingProjects.Clear();
-            testSubject.InternalState.BindingProjects.Add(project);
-
-            var progressEvents = new ConfigurableProgressStepExecutionEvents();
-            var progressAdapter = new FixedStepsProgressAdapter(progressEvents);
-            var cts = new CancellationTokenSource();
-
-            testSubject.InternalState.BindingOperationSucceeded = false;
-
-            // Act
-            testSubject.InstallPackages(progressAdapter, cts.Token);
-
-            // Assert
-            testSubject.InternalState.BindingOperationSucceeded.Should().BeTrue();
-        }
-
-        [TestMethod]
         public void EmitBindingCompleteMessage()
         {
             // Arrange

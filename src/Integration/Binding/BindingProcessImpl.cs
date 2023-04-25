@@ -197,12 +197,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return configurationPersister.Persist(bound, bindingMode);
         }
 
-        public void PrepareToInstallPackages()
-        {
-            // TODO - CM cleanup
-            // no-op
-        }
-
         public async Task<bool> SaveServerExclusionsAsync(CancellationToken cancellationToken)
         {
             try
@@ -216,12 +210,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 return false;
             }
             return true;
-        }
-
-        public void InstallPackages(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)
-        {
-            // TODO - CM cleanup
-            this.InternalState.BindingOperationSucceeded = true;
         }
 
         public void InitializeSolutionBindingOnBackgroundThread()
