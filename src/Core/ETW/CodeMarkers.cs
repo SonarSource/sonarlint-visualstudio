@@ -46,13 +46,6 @@ namespace SonarLint.VisualStudio.Core.ETW
         private const int ErrorListControllerProcessStartId = 1000;
         private const int ErrorListControllerProcessStopId = 1001;
 
-        private const int UnboundProjectsFinderStartId = 1002;
-        private const int UnboundProjectsFinderStopId = 1003;
-        private const int UnboundProjectsFinderBeforeIsBindingRequired = 1004;
-
-        private const int CheckProjectBindingStartId = 1005;
-        private const int CheckProjectBindingStopId = 1006;
-
         private const int CSharpVBIsBindingRequiredStartId = 1007;
         private const int CSharpVBIsBindingRequiredStopId = 1008;
 
@@ -70,21 +63,6 @@ namespace SonarLint.VisualStudio.Core.ETW
 
         [Event(ErrorListControllerProcessStopId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
         public void ErrorListControllerProcessStop() => Write(ErrorListControllerProcessStopId);
-
-        [Event(UnboundProjectsFinderStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
-        public void UnboundProjectFinderStart() => Write(UnboundProjectsFinderStartId);
-
-        [Event(UnboundProjectsFinderStopId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
-        public void UnboundProjectFinderStop() => Write(UnboundProjectsFinderStopId);
-
-        [Event(UnboundProjectsFinderBeforeIsBindingRequired, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
-        public void UnboundProjectFinderBeforeIsBindingRequired() => Write(UnboundProjectsFinderBeforeIsBindingRequired);
-
-        [Event(CheckProjectBindingStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
-        public void CheckProjectBindingStart(string projectName) => Write(CheckProjectBindingStartId, projectName);
-
-        [Event(CheckProjectBindingStopId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
-        public void CheckProjectBindingStop() => Write(CheckProjectBindingStopId);
 
         [Event(CSharpVBIsBindingRequiredStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
         public void CSharpVBProjectIsBindingRequiredStart(string projectName) => Write(CSharpVBIsBindingRequiredStartId, projectName);
