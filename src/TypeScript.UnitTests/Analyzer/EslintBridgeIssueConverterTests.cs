@@ -24,6 +24,8 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.TypeScript.Analyzer;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 using SonarLint.VisualStudio.TypeScript.Rules;
@@ -294,6 +296,24 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
+        [DataRow("CssSyntaxError")]
+        [DataRow("csssyntaxerror")]
+        [DataRow("CSSSYNTAXERROR")]
+        public void Convert_HasCssSyntaxError_ReturnsNull(string ruleID)
+        {
+            var eslintBridgeIssue = new Issue { RuleId = ruleID };
+
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(logger: logger);
+
+            var result = testSubject.Convert("some file", eslintBridgeIssue);
+
+            result.Should().BeNull();
+            logger.AssertPartialOutputStringExists("Failed to parse css file 'some file'");
+        }
+
+        [TestMethod]
         [DataRow(RuleSeverity.BLOCKER, AnalysisIssueSeverity.Blocker)]
         [DataRow(RuleSeverity.CRITICAL, AnalysisIssueSeverity.Critical)]
         [DataRow(RuleSeverity.INFO, AnalysisIssueSeverity.Info)]
@@ -327,7 +347,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("ruleType");
         }
 
-        private EslintBridgeIssueConverter CreateTestSubject(IEnumerable<RuleDefinition> ruleDefinitions = null)
+        private EslintBridgeIssueConverter CreateTestSubject(IEnumerable<RuleDefinition> ruleDefinitions = null, ILogger logger = null)
         {
             ruleDefinitions ??= new[]
             {
@@ -340,7 +360,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var rulesProvider = new Mock<IRulesProvider>();
             rulesProvider.Setup(x => x.GetDefinitions()).Returns(ruleDefinitions);
 
-            return new EslintBridgeIssueConverter(rulesProvider.Object);
+            logger = logger ?? Mock.Of<ILogger>();
+
+            return new EslintBridgeIssueConverter(rulesProvider.Object, logger);
         }
 
         private static RuleDefinition[] CreateRuleDefinition(string eslintKey, string ruleKey, string stylelintKey = null)

@@ -92,7 +92,6 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             await EnsureEslintBridgeClientIsInitialized(cancellationToken);
             var analysisResponse = await eslintBridgeClient.Analyze(filePath, tsConfig, cancellationToken);
 
-
             if (analysisResponse is JsTsAnalysisResponse jsTsAnalysisResponse &&
                 LinterNotInitializedResponse(jsTsAnalysisResponse))
             {
@@ -213,6 +212,6 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         }
 
         private IReadOnlyCollection<IAnalysisIssue> ConvertIssues(string filePath, IEnumerable<Issue> analysisResponseIssues) =>
-            analysisResponseIssues.Select(x => issueConverter.Convert(filePath, x)).ToList();
+            analysisResponseIssues.Select(x => issueConverter.Convert(filePath, x)).Where(x => x != null).ToList();
     }
 }

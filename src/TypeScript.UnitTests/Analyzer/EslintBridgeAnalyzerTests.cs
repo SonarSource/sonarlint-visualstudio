@@ -154,7 +154,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             await testSubject.Analyze("some path", "some config", CancellationToken.None);
             client.Verify(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
 
-            activeRulesProvider.Verify(x=> x.GetActiveRulesConfiguration(), Times.Exactly(2));
+            activeRulesProvider.Verify(x => x.GetActiveRulesConfiguration(), Times.Exactly(2));
         }
 
         [TestMethod]
@@ -189,7 +189,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         public async Task Analyze_EslintBridgeClientNotInitializedResponse_FollowedByValidResponse_ConvertedIssuesReturnedAndParsingErrorNotLogged()
         {
             var linterNotInitializedResponse = CreateLinterNotInitializedResponse();
-            var validResponse = new JsTsAnalysisResponse {Issues = new List<Issue> {new Issue()}};
+            var validResponse = new JsTsAnalysisResponse { Issues = new List<Issue> { new Issue() } };
             var logger = new TestLogger();
             var client = new Mock<IEslintBridgeClient>();
 
@@ -492,7 +492,33 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             result.Should().BeEquivalentTo(convertedIssues);
         }
 
-        private static JsTsAnalysisResponse CreateLinterNotInitializedResponse() => 
+        [TestMethod]
+        public async Task Analyze_HasCssSyntaxError_IgnoresNull()
+        {
+            var response = new JsTsAnalysisResponse
+            {
+                Issues = new List<Issue>
+                {
+                    new Issue {Message = "issue1"},
+                    new Issue {Message = "issue2"}
+                }
+            };
+            var analysisIssue = Mock.Of<IAnalysisIssue>();
+            var convertedIssues = new[] { analysisIssue, null };
+
+            var issueConverter = new Mock<IEslintBridgeIssueConverter>();
+            SetupConvertedIssue(issueConverter, "some path", response.Issues.First(), convertedIssues[0]);
+            SetupConvertedIssue(issueConverter, "some path", response.Issues.Last(), convertedIssues[1]);
+
+            var eslintBridgeClient = SetupEslintBridgeClient(response: response);
+            var testSubject = CreateTestSubject(eslintBridgeClient.Object, issueConverter: issueConverter.Object);
+            var result = await testSubject.Analyze("some path", "some config", CancellationToken.None);
+
+            result.Count.Should().Be(1);
+            result.ElementAt(0).Should().Be(analysisIssue);
+        }
+
+        private static JsTsAnalysisResponse CreateLinterNotInitializedResponse() =>
             new JsTsAnalysisResponse { ParsingError = new ParsingError { Code = ParsingErrorCode.LINTER_INITIALIZATION } };
 
         private static void SetupConvertedIssue(Mock<IEslintBridgeIssueConverter> issueConverter,
