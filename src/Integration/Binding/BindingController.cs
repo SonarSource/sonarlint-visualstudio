@@ -169,8 +169,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 modeToBind,
                 host.Logger);
 
-            var unboundProjectFinder = new UnboundProjectFinder(host, host.Logger);
-
             var cSharpVBBindingConfigProvider = new CSharpVBBindingConfigProvider(host.SonarQubeService, nugetBindingOp, host.Logger);
             var nonRoslynBindingConfigProvider = new NonRoslynBindingConfigProvider(
                 new[]
@@ -186,7 +184,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             var exclusionSettingsStorage = new ExclusionSettingsStorage(configProvider, host.Logger);
 
-            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, unboundProjectFinder, ruleConfigProvider, modeToBind, exclusionSettingsStorage, isFirstBinding);
+            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, ruleConfigProvider, modeToBind, exclusionSettingsStorage, isFirstBinding);
 
             return bindingProcess;
         }

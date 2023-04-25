@@ -337,7 +337,7 @@ namespace SonarLint.VisualStudio.Integration
                             this.GetService<IConfigurationProviderService>(),
                             SonarQubeService,
                             Logger),
-                        new UnboundProjectFinder(this, Logger), Logger),
+                        Logger),
                     Logger)));
 
             // Use Lazy<object> to avoid creating instances needlessly, since the interfaces are serviced by the same instance

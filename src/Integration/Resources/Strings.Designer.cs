@@ -143,33 +143,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ruleset binding: all projects need to be updated reference the generated ruleset..
-        /// </summary>
-        public static string Bind_Ruleset_AllProjectsNeedToBeUpdated {
-            get {
-                return ResourceManager.GetString("Bind_Ruleset_AllProjectsNeedToBeUpdated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Ruleset binding: initial binding. All projects need to be updated to reference the generated ruleset..
-        /// </summary>
-        public static string Bind_Ruleset_InitialBinding {
-            get {
-                return ResourceManager.GetString("Bind_Ruleset_InitialBinding", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Ruleset binding: the following projects already reference the generated ruleset:.
-        /// </summary>
-        public static string Bind_Ruleset_SomeProjectsDoNotNeedToBeUpdated {
-            get {
-                return ResourceManager.GetString("Bind_Ruleset_SomeProjectsDoNotNeedToBeUpdated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Saving configuration....
         /// </summary>
         public static string Bind_SavingBindingConfiguration {
@@ -1132,15 +1105,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string SonarLintFailedToAttachInfoBarToErrorList {
             get {
                 return ResourceManager.GetString("SonarLintFailedToAttachInfoBarToErrorList", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {0} unbound projects were found ({1})..
-        /// </summary>
-        public static string SonarLintFoundUnboundProjects {
-            get {
-                return ResourceManager.GetString("SonarLintFoundUnboundProjects", resourceCulture);
             }
         }
         
