@@ -1,6 +1,7 @@
 ---
 ################################
 # Assembly references report
+# Report date/time: 2023-04-24T16:00:30.3059365Z
 # Report date/time: 2023-05-16T15:56:45.2894305Z
 ################################
 #
@@ -19,7 +20,7 @@
 #
 ################################
 
-# Base directory: D:\a\1\s\src\Integration.Vsix\bin\Release\VS2022\net472
+# Base directory: D:\repos\sq\slvs\src\Integration.Vsix\bin\Debug\VS2022\net472
 Include patterns:
 - 'Sonar*'
 Exclude patterns:
@@ -252,7 +253,6 @@ Referenced assemblies:
 - 'Microsoft.VisualStudio.Utilities, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
 - 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed'
-- 'NuGet.VisualStudio, Version=3.3.0.167, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
 - 'PresentationCore, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
 - 'PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
 - 'SonarLint.VisualStudio.CloudSecrets, Version=6.17.0.0, Culture=neutral, PublicKeyToken=null'
@@ -270,7 +270,7 @@ Referenced assemblies:
 - 'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Xml.Linq, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'WindowsBase, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
-# Number of references: 31
+# Number of references: 30
 
 ---
 Assembly: 'SonarLint.VisualStudio.Integration.TeamExplorer, Version=6.17.0.0, Culture=neutral, PublicKeyToken=null'

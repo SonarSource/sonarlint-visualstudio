@@ -118,21 +118,6 @@
         "resolved": "13.0.1",
         "contentHash": "ppPFpBcvxdsfUonNcvITKqLl3bqxWbDCZIzDWHzjpdAHRFfZe0Dw9HmA0+za13IdyrgJwpkDTDA9fHaxOrt20A=="
       },
-      "NuGet.Core": {
-        "type": "Direct",
-        "requested": "[2.12.0, )",
-        "resolved": "2.12.0",
-        "contentHash": "kSDD1VFIq7BBrimjMRk9HeeQlZteyknbHgz3AT4AUVUCZ8BZaCSzO1A5UTVPLLbSHryjozPcEmNYSds/IDAIjw==",
-        "dependencies": {
-          "Microsoft.Web.Xdt": "2.1.0"
-        }
-      },
-      "NuGet.VisualStudio": {
-        "type": "Direct",
-        "requested": "[3.3.0, )",
-        "resolved": "3.3.0",
-        "contentHash": "ZVBJ43/IxaAl5iX+OuuDLQ9tSNJaRlP85SUMAdiGoqEbyK/ZPfQmPfqSMZMFpucRlf8HgsEK/hR73DwpCmqcLA=="
-      },
       "SonarAnalyzer.CSharp": {
         "type": "Direct",
         "requested": "[9.0.0.68202, )",
@@ -1051,6 +1036,19 @@
           "System.Net.WebSockets": "4.3.0",
           "System.Runtime.CompilerServices.Unsafe": "4.7.1"
         }
+      },
+      "NuGet.Core": {
+        "type": "Transitive",
+        "resolved": "2.12.0",
+        "contentHash": "kSDD1VFIq7BBrimjMRk9HeeQlZteyknbHgz3AT4AUVUCZ8BZaCSzO1A5UTVPLLbSHryjozPcEmNYSds/IDAIjw==",
+        "dependencies": {
+          "Microsoft.Web.Xdt": "2.1.0"
+        }
+      },
+      "NuGet.VisualStudio": {
+        "type": "Transitive",
+        "resolved": "3.3.0",
+        "contentHash": "ZVBJ43/IxaAl5iX+OuuDLQ9tSNJaRlP85SUMAdiGoqEbyK/ZPfQmPfqSMZMFpucRlf8HgsEK/hR73DwpCmqcLA=="
       },
       "Owin": {
         "type": "Transitive",
