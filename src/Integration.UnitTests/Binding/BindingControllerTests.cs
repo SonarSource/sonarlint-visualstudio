@@ -32,7 +32,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
-using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -54,7 +53,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private SolutionMock solutionMock;
         private Mock<IKnownUIContexts> knownUIContexts;
         private DTEMock dteMock;
-        private ConfigurableRuleSetConflictsController conflictsController;
         private ConfigurableConfigurationProvider configProvider;
         private ConfigurableSolutionRuleSetsInformationProvider ruleSetsInformationProvider;
         private Mock<IFolderWorkspaceService> folderWorkspaceServiceMock;
@@ -74,12 +72,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             solutionMock = new SolutionMock();
             knownUIContexts = new Mock<IKnownUIContexts>();
             projectSystemHelper = new ConfigurableVsProjectSystemHelper(serviceProvider);
-            conflictsController = new ConfigurableRuleSetConflictsController();
             configProvider = new ConfigurableConfigurationProvider();
 
             ruleSetsInformationProvider = new ConfigurableSolutionRuleSetsInformationProvider();
             serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper);
-            serviceProvider.RegisterService(typeof(IRuleSetConflictsController), conflictsController);
             serviceProvider.RegisterService(typeof(IConfigurationProviderService), configProvider);
             serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), ruleSetsInformationProvider);
             serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem(new MockFileSystem()));
@@ -325,26 +321,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 dteMock.ToolWindows.SolutionExplorer.Window.Active.Should().BeFalse();
             }
 
-            // Case 2: Has conflicts (should navigate to team explorer page)
-            conflictsController.HasConflicts = true;
+            // Case 2: Successful binding (should navigate to solution explorer)
 
             // Act
             testSubject.SetBindingInProgress(progressEvents, bindingArgs);
             progressEvents.SimulateFinished(ProgressControllerResult.Succeeded);
 
             // Assert
-            teController.ShowConnectionsPageCallsCount.Should().Be(1);
-            dteMock.ToolWindows.SolutionExplorer.Window.Active.Should().BeFalse();
-
-            // Case 3: Has no conflicts (should navigate to solution explorer)
-            conflictsController.HasConflicts = false;
-
-            // Act
-            testSubject.SetBindingInProgress(progressEvents, bindingArgs);
-            progressEvents.SimulateFinished(ProgressControllerResult.Succeeded);
-
-            // Assert
-            teController.ShowConnectionsPageCallsCount.Should().Be(1);
+            teController.ShowConnectionsPageCallsCount.Should().Be(0);
             dteMock.ToolWindows.SolutionExplorer.Window.Active.Should().BeTrue();
         }
 
