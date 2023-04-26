@@ -216,10 +216,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             this.solutionBindingOperation.RegisterKnownConfigFiles(this.InternalState.BindingConfigs);
 
-            var projectsToUpdate = GetProjectsForRulesetBinding(this.InternalState.IsFirstBinding, this.InternalState.BindingProjects.ToArray(),
-                this.host.Logger, this.threadHandling);
-
-            this.solutionBindingOperation.Initialize(projectsToUpdate);
+            this.solutionBindingOperation.Initialize();
         }
 
         public void PrepareSolutionBinding(CancellationToken cancellationToken)
@@ -287,6 +284,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.host.Logger.WriteLine(output.ToString());
         }
 
+        // TODO - CM cleanup - can just return all supported languages going forwards
         internal /* for testing */ IEnumerable<Language> GetBindingLanguages()
         {
             if (folderWorkspaceService.IsFolderWorkspace())
@@ -300,17 +298,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                                        .ToList();
 
             return languageList;
-        }
-
-        internal /* for testing purposes */ static Project[] GetProjectsForRulesetBinding(bool isFirstBinding,
-            Project[] allSupportedProjects,
-            ILogger logger,
-            IThreadHandling threadHandling)
-        {
-            threadHandling.ThrowIfOnUIThread();
-
-            // We no longer use rulesets => no projects need ruleset binding
-            return Array.Empty<Project>();
         }
 
         #endregion

@@ -695,26 +695,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             logger.AssertOutputStrings(expectedOutput.ToString());
         }
 
-        [TestMethod]
-        public void GetProjectsForRulesetBinding_ReturnsEmptyList()
-        {
-            // Arrange
-            var allProjects = new Project[]
-            {
-                Mock.Of<Project>(),
-                Mock.Of<Project>(),
-                Mock.Of<Project>()
-            };
-
-            var logger = new TestLogger();
-
-            // Act
-            var result = BindingProcessImpl.GetProjectsForRulesetBinding(true, allProjects, logger, new NoOpThreadHandler());
-
-            // Assert
-            result.Should().HaveCount(0);
-        }
-
         #endregion Tests
 
         #region Helpers
@@ -731,7 +711,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             this.host.SonarQubeService = sonarQubeService ?? this.sonarQubeServiceMock.Object;
 
-            var slnBindOperation = new SolutionBindingOperation(this.host, SonarLintMode.LegacyConnected, this.host.Logger);
+            var slnBindOperation = new SolutionBindingOperation(this.host, SonarLintMode.LegacyConnected);
 
             return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, configProvider, mode, exclusionSettingsStorage);
         }
