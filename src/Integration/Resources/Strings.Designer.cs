@@ -396,33 +396,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to * {0}.
-        /// </summary>
-        public static string DiscoveredIncludedOrExcludedProjectFormat {
-            get {
-                return ResourceManager.GetString("DiscoveredIncludedOrExcludedProjectFormat", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Excluded projects:.
-        /// </summary>
-        public static string DiscoveringSolutionExcludedProjectsHeader {
-            get {
-                return ResourceManager.GetString("DiscoveringSolutionExcludedProjectsHeader", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Included projects:.
-        /// </summary>
-        public static string DiscoveringSolutionIncludedProjectsHeader {
-            get {
-                return ResourceManager.GetString("DiscoveringSolutionIncludedProjectsHeader", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Discovering solution projects.
         /// </summary>
         public static string DiscoveringSolutionProjectsProgressMessage {
@@ -546,24 +519,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string FailedToUnpackAdditionalFiles {
             get {
                 return ResourceManager.GetString("FailedToUnpackAdditionalFiles", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to You can change the exclusion options via the SonarLint project-level context menu i.e. Solution Explorer -&gt; Select project(s).
-        /// </summary>
-        public static string FilteredOutProjectFromBindingEnding {
-            get {
-                return ResourceManager.GetString("FilteredOutProjectFromBindingEnding", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The following projects are either not currently supported, excluded according to server specifications, or have been explicitly marked as excluded:.
-        /// </summary>
-        public static string FilteredOutProjectFromBindingHeader {
-            get {
-                return ResourceManager.GetString("FilteredOutProjectFromBindingHeader", resourceCulture);
             }
         }
         
