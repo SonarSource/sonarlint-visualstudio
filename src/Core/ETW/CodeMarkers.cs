@@ -46,9 +46,6 @@ namespace SonarLint.VisualStudio.Core.ETW
         private const int ErrorListControllerProcessStartId = 1000;
         private const int ErrorListControllerProcessStopId = 1001;
 
-        private const int CSharpVBIsBindingRequiredStartId = 1007;
-        private const int CSharpVBIsBindingRequiredStopId = 1008;
-
         private const int GetProjectRuleSetsDeclarationsStartId = 1009;
         private const int GetProjectRuleSetsDeclarationsStopId = 1010;
 
@@ -63,12 +60,6 @@ namespace SonarLint.VisualStudio.Core.ETW
 
         [Event(ErrorListControllerProcessStopId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
         public void ErrorListControllerProcessStop() => Write(ErrorListControllerProcessStopId);
-
-        [Event(CSharpVBIsBindingRequiredStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
-        public void CSharpVBProjectIsBindingRequiredStart(string projectName) => Write(CSharpVBIsBindingRequiredStartId, projectName);
-
-        [Event(CSharpVBIsBindingRequiredStopId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
-        public void CSharpVBIsBindingRequiredStop() => Write(CSharpVBIsBindingRequiredStopId);
 
         [Event(GetProjectRuleSetsDeclarationsStartId, Level = EventLevel.Informational, Keywords = Keywords.Binding)]
         public void GetProjectRuleSetsDeclarationsStart(string projectName) => Write(GetProjectRuleSetsDeclarationsStartId, projectName);
