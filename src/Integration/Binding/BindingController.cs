@@ -163,8 +163,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             var solutionBindingOp = new SolutionBindingOperation(
                 host,
-                modeToBind,
-                host.Logger);
+                modeToBind);
 
             var cSharpVBBindingConfigProvider = new CSharpVBBindingConfigProvider(host.SonarQubeService, host.Logger);
             var nonRoslynBindingConfigProvider = new NonRoslynBindingConfigProvider(
