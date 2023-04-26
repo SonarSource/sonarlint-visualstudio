@@ -24,15 +24,14 @@ using System.IO;
 using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using System.Threading;
+using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.Secrets;
-using SonarLint.VisualStudio.Core.JsTs;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -60,7 +59,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private ConfigurableRuleSetSerializer ruleFS;
 
         private ConfigurableSolutionRuleSetsInformationProvider ruleSetInfo;
-        private Mock<IProjectBinderFactory> projectBinderFactoryMock;
 
         private const string SolutionRoot = @"c:\solution";
 
@@ -90,8 +88,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), Mock.Of<IJsTsProjectTypeIndicator>(), Mock.Of<IConnectedModeSecrets>());
             var mefHost = ConfigurableComponentModel.CreateWithExports(MefTestHelpers.CreateExport<IProjectToLanguageMapper>(projectToLanguageMapper));
             serviceProvider.RegisterService(typeof(SComponentModel), mefHost);
-
-            projectBinderFactoryMock = new Mock<IProjectBinderFactory>();
         }
 
         #region Tests
@@ -160,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ruleSetMap[Language.VBNET] = CreateMockConfigFile("c:\\vb.txt").Object;
 
             testSubject.RegisterKnownConfigFiles(ruleSetMap);
-            testSubject.Initialize(new ProjectMock[0]);
+            testSubject.Initialize();
             testSubject.Prepare(CancellationToken.None);
 
             // Act
@@ -177,30 +173,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             SolutionBindingOperation testSubject = this.CreateTestSubject();
 
             // Act + Assert
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.Initialize(null));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.Initialize());
         }
 
         [TestMethod]
         public void SolutionBindingOperation_Initialization()
         {
             // Arrange
-            var cs1Project = this.solutionMock.AddOrGetProject("CS1.csproj");
-            cs1Project.SetCSProjectKind();
-            var cs2Project = this.solutionMock.AddOrGetProject("CS2.csproj");
-            cs2Project.SetCSProjectKind();
-            var vbProject = this.solutionMock.AddOrGetProject("VB.vbproj");
-            vbProject.SetVBProjectKind();
-            var otherProjectType = this.solutionMock.AddOrGetProject("xxx.proj");
-            otherProjectType.ProjectKind = "{" + Guid.NewGuid().ToString() + "}";
-
             var testSubject = CreateTestSubject();
-            var projects = new[] { cs1Project, vbProject, cs2Project, otherProjectType };
-
-            // Sanity
-            testSubject.Binders.Should().BeEmpty("Not expecting any project binders");
 
             // Act
-            testSubject.Initialize(projects);
+            testSubject.Initialize();
 
             // Assert
             testSubject.SolutionFullPath.Should().Be(Path.Combine(SolutionRoot, "xxx.sln"));
@@ -209,35 +192,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void SolutionBindingOperation_Prepare_ProjectBindersAreCalled()
         {
+            // TODO - CM cleanup - duncanp 
+
             // Arrange
             var csProject = solutionMock.AddOrGetProject("CS.csproj");
             csProject.SetCSProjectKind();
             var csConfigFile = CreateMockConfigFile("c:\\csharp.txt");
-            var csBinder = new Mock<IProjectBinder>();
-            var csCommitAction = new Mock<BindProject>();
 
             var vbProject = this.solutionMock.AddOrGetProject("VB.vbproj");
             vbProject.SetVBProjectKind();
             var vbConfigFile = CreateMockConfigFile("c:\\vb.txt");
-            var vbBinder = new Mock<IProjectBinder>();
-            var vbCommitAction = new Mock<BindProject>();
 
             // Regression test for #3129
             // https://github.com/SonarSource/sonarlint-visualstudio/issues/3129
             var nodeProject = this.solutionMock.AddOrGetProject("Node.njsproj");
             nodeProject.SetNodeProjectKind();
-
-            projectBinderFactoryMock.Setup(x => x.Get(csProject)).Returns(csBinder.Object);
-            projectBinderFactoryMock.Setup(x => x.Get(vbProject)).Returns(vbBinder.Object);
-            // Node projects don't have a project-level binder.
-            projectBinderFactoryMock.Setup(x => x.Get(nodeProject)).Returns<IProjectBinder>(null);
-
-            csBinder
-                .Setup(x => x.GetBindAction(csConfigFile.Object, csProject, CancellationToken.None))
-                .Returns(csCommitAction.Object);
-
-            vbBinder.Setup(x => x.GetBindAction(vbConfigFile.Object, vbProject, CancellationToken.None))
-                .Returns(vbCommitAction.Object);
 
             var projects = new[] { csProject, vbProject, nodeProject };
 
@@ -250,7 +219,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             };
 
             testSubject.RegisterKnownConfigFiles(ruleSetMap);
-            testSubject.Initialize(projects);
+            testSubject.Initialize();
             var sonarQubeRulesDirectory = Path.Combine(SolutionRoot, ConfigurableSolutionRuleSetsInformationProvider.DummyLegacyModeFolderName);
 
             // Sanity
@@ -260,129 +229,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Act
             testSubject.Prepare(CancellationToken.None);
-
-            // Assert
-            testSubject.Binders.Should().HaveCount(2, "Should be one per managed project");
-
-            csBinder.Verify(x=> x.GetBindAction(csConfigFile.Object, csProject, CancellationToken.None), Times.Once);
-            vbBinder.Verify(x=> x.GetBindAction(vbConfigFile.Object, vbProject, CancellationToken.None), Times.Once);
-
-            csCommitAction.VerifyNoOtherCalls();
-            vbCommitAction.VerifyNoOtherCalls();
-
-            testSubject.Binders.First().Should().BeSameAs(csCommitAction.Object);
-            testSubject.Binders.Last().Should().BeSameAs(vbCommitAction.Object);
-
-            CheckSaveWasNotCalled(csConfigFile);
-            CheckSaveWasNotCalled(vbConfigFile);
-
             // Act (write pending)
             sccFileSystem.WritePendingNoErrorsExpected();
 
             // Assert
             CheckRuleSetFileWasSaved(csConfigFile);
             CheckRuleSetFileWasSaved(vbConfigFile);
-        }
-
-        [TestMethod]
-        public void SolutionBindingOperation_Prepare_Cancellation_BeforeBindersPrepare_AllProjectBindersAreNotCalled()
-        {
-            // Arrange
-            var csProject = solutionMock.AddOrGetProject("CS.csproj");
-            csProject.SetCSProjectKind();
-            var csConfigFile = CreateMockConfigFile("c:\\csharp.txt");
-            var csBinder = new Mock<IProjectBinder>();
-
-            var vbProject = this.solutionMock.AddOrGetProject("VB.vbproj");
-            csProject.SetVBProjectKind();
-            var vbConfigFile = CreateMockConfigFile("c:\\vb.txt");
-            var vbBinder = new Mock<IProjectBinder>();
-
-            projectBinderFactoryMock.Setup(x => x.Get(csProject)).Returns(csBinder.Object);
-            projectBinderFactoryMock.Setup(x => x.Get(vbProject)).Returns(vbBinder.Object);
-
-            var projects = new[] { csProject, vbProject };
-
-            var testSubject = CreateTestSubject();
-
-            var languageToFileMap = new Dictionary<Language, IBindingConfig>();
-            languageToFileMap[Language.CSharp] = csConfigFile.Object;
-            languageToFileMap[Language.VBNET] = vbConfigFile.Object;
-
-            testSubject.RegisterKnownConfigFiles(languageToFileMap);
-            testSubject.Initialize(projects);
-
-            using (CancellationTokenSource src = new CancellationTokenSource())
-            {
-                src.Cancel();
-                // Act
-                testSubject.Prepare(src.Token);
-            }
-
-            // Assert
-            testSubject.Binders.Count.Should().Be(0);
-            csBinder.VerifyNoOtherCalls();
-            vbBinder.VerifyNoOtherCalls();
-
-            testSubject.RuleSetsInformationMap[Language.CSharp].Should().Be(csConfigFile.Object);
-            testSubject.RuleSetsInformationMap[Language.VBNET].Should().Be(vbConfigFile.Object);
-
-            CheckSaveWasNotCalled(csConfigFile);
-            CheckSaveWasNotCalled(vbConfigFile);
-        }
-
-        [TestMethod]
-        public void SolutionBindingOperation_Prepare_Cancellation_DuringBindersPrepare_SomeProjectBindersAreNotCalled()
-        {
-            // Arrange
-            var csProject = solutionMock.AddOrGetProject("CS.csproj");
-            csProject.SetCSProjectKind();
-            var csConfigFile = CreateMockConfigFile("c:\\csharp.txt");
-            var csBinder = new Mock<IProjectBinder>();
-
-            var vbProject = this.solutionMock.AddOrGetProject("VB.vbproj");
-            vbProject.SetVBProjectKind();
-            var vbConfigFile = CreateMockConfigFile("c:\\vb.txt");
-            var vbBinder = new Mock<IProjectBinder>();
-
-            projectBinderFactoryMock.Setup(x => x.Get(csProject)).Returns(csBinder.Object);
-            projectBinderFactoryMock.Setup(x => x.Get(vbProject)).Returns(vbBinder.Object);
-
-            var projects = new[] { csProject, vbProject };
-
-            var testSubject = CreateTestSubject();
-
-            var languageToFileMap = new Dictionary<Language, IBindingConfig>();
-            languageToFileMap[Language.CSharp] = csConfigFile.Object;
-            languageToFileMap[Language.VBNET] = vbConfigFile.Object;
-
-            testSubject.RegisterKnownConfigFiles(languageToFileMap);
-            testSubject.Initialize(projects);
-
-            using (CancellationTokenSource src = new CancellationTokenSource())
-            {
-                var csBindAction = new Mock<BindProject>();
-
-                csBinder
-                    .Setup(x => x.GetBindAction(csConfigFile.Object, csProject, src.Token))
-                    .Callback(() => src.Cancel())
-                    .Returns(csBindAction.Object);
-
-                // Act
-                testSubject.Prepare(src.Token);
-
-                // Assert
-                testSubject.Binders.Count.Should().Be(1);
-                testSubject.Binders.First().Should().Be(csBindAction.Object);
-                csBinder.Verify(x => x.GetBindAction(csConfigFile.Object, csProject, src.Token), Times.Once);
-                vbBinder.VerifyNoOtherCalls();
-            }
-
-            testSubject.RuleSetsInformationMap[Language.CSharp].Should().Be(csConfigFile.Object);
-            testSubject.RuleSetsInformationMap[Language.VBNET].Should().Be(vbConfigFile.Object);
-
-            CheckSaveWasNotCalled(csConfigFile);
-            CheckSaveWasNotCalled(vbConfigFile);
         }
 
         [TestMethod]
@@ -410,21 +262,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private void ExecuteCommitSolutionBindingTest(SonarLintMode bindingMode, string expectedFilePath)
         {
             // Arrange
-            var csProject = solutionMock.AddOrGetProject("CS.csproj");
-            csProject.SetCSProjectKind();
             var csConfigFile = CreateMockConfigFile(expectedFilePath);
-            var csBinder = new Mock<IProjectBinder>();
-            var csBinderCommitAction = new Mock<BindProject>();
 
-            projectBinderFactoryMock.Setup(x => x.Get(csProject)).Returns(csBinder.Object);
-
-            csBinder
-                .Setup(x => x.GetBindAction(csConfigFile.Object, csProject, CancellationToken.None))
-                .Returns(csBinderCommitAction.Object);
-
-            var projects = new[] { csProject };
-
-            var connectionInformation = new ConnectionInformation(new Uri("http://xyz"));
             SolutionBindingOperation testSubject = this.CreateTestSubject(bindingMode);
 
             var languageToFileMap = new Dictionary<Language, IBindingConfig>()
@@ -434,8 +273,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             testSubject.RegisterKnownConfigFiles(languageToFileMap);
 
-            DateTime expectedTimeStamp = DateTime.Now;
-            testSubject.Initialize(projects);
+            testSubject.Initialize();
             testSubject.Prepare(CancellationToken.None);
 
             // Act
@@ -443,7 +281,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Assert
             commitResult.Should().BeTrue();
-            csBinderCommitAction.Verify(x=> x(), Times.Once);
         }
 
         #endregion Tests
@@ -454,7 +291,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             return new SolutionBindingOperation(serviceProvider,
                 bindingMode,
-                projectBinderFactoryMock.Object,
                 new LegacyConfigFolderItemAdder(serviceProvider, fileSystem),
                 fileSystem);
         }
