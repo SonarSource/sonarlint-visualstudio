@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         {
             string pathToDirectory = GetPathToImportBefore();
             string pathToFile = Path.Combine(pathToDirectory, "SonarLint.targets");
-            string expectedResult = ReadResource();
+            string fileContent = GetTargetFileContent();
 
             var fileSystem = new Mock<IFileSystem>();
             fileSystem.Setup(x => x.Directory.Exists(pathToDirectory)).Returns(true);
@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 
             CreateTestSubject(fileSystem: fileSystem.Object);
 
-            fileSystem.Verify(x => x.File.WriteAllText(pathToFile, expectedResult), Times.Once);
+            fileSystem.Verify(x => x.File.WriteAllText(pathToFile, fileContent), Times.Once);
         }
 
         [TestMethod]
@@ -73,8 +73,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             fileSystem.Setup(x => x.Directory.Exists(pathToDirectory)).Returns(true);
             fileSystem.Setup(x => x.File.Exists(pathToFile)).Returns(true);
 
-            string expectedResult = ReadResource();
-            fileSystem.Setup(x => x.File.ReadAllText(pathToFile)).Returns(expectedResult);
+            string fileContent = GetTargetFileContent();
+            fileSystem.Setup(x => x.File.ReadAllText(pathToFile)).Returns(fileContent);
 
             CreateTestSubject(fileSystem: fileSystem.Object);
 
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 
             CreateTestSubject(logger: logger, fileSystem: fileSystem.Object);
 
-            logger.AssertPartialOutputStringExists(Resources.ImportBeforeFileGenerator_FailedToWriteFile);
+            logger.AssertPartialOutputStringExists("[ConnectedMode] Failed to write file to disk: this is a test");
         }
 
         [TestMethod]
@@ -123,10 +123,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         [TestMethod]
         public void ConvertResourceToXml_DoesNotThrow()
         {
-            var resourceContent = ReadResource();
+            var fileContent = GetTargetFileContent();
 
             var xmlDoc = new XmlDocument();
-            var act = () => xmlDoc.LoadXml(resourceContent);
+            var act = () => xmlDoc.LoadXml(fileContent);
 
             act.Should().NotThrow<XmlException>();
         }
@@ -139,9 +139,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             return pathToImportsBefore;
         }
 
-        private static string ReadResource()
+        private static string GetTargetFileContent()
         {
-            var resourcePath = "SonarLint.VisualStudio.ConnectedMode.Embedded.SonarLintTargets.txt";
+            var resourcePath = "SonarLint.VisualStudio.ConnectedMode.Embedded.SonarLintTargets.xml";
             using var stream = new StreamReader(typeof(ImportBeforeFileGenerator).Assembly.GetManifestResourceStream(resourcePath));
 
             return stream.ReadToEnd();

@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         private readonly ILogger logger;
 
         private const string targetsFileName = "SonarLint.targets";
-
+        private const string resourcePath = "SonarLint.VisualStudio.ConnectedMode.Embedded.SonarLintTargets.xml";
         public ImportBeforeFileGenerator(ILogger logger) : this(logger, new FileSystem()) { }
 
         public ImportBeforeFileGenerator(ILogger logger, IFileSystem fileSystem)
@@ -45,11 +45,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
         private void WriteTargetsFileToDiskIfNotExists()
         {
-            logger.LogVerbose(Resources.ImportBeforeFileGenerator_CheckingIfFileExists);
-
-            var resource = ReadResourceFile();
+            var fileContent = GetTargetFileContent();
             var pathToImportBefore = GetPathToImportBefore();
             var fullPath = Path.Combine(pathToImportBefore, targetsFileName);
+
+            logger.LogVerbose(Resources.ImportBeforeFileGenerator_CheckingIfFileExists, fullPath);
 
             try
             {
@@ -59,28 +59,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
                     fileSystem.Directory.CreateDirectory(pathToImportBefore);
                 }
 
-                if (fileSystem.File.Exists(fullPath) && fileSystem.File.ReadAllText(fullPath) == resource)
+                if (fileSystem.File.Exists(fullPath) && fileSystem.File.ReadAllText(fullPath) == fileContent)
                 {
                     logger.LogVerbose(Resources.ImportBeforeFileGenerator_FileAlreadyExists);
                     return;
                 }
 
                 logger.LogVerbose(Resources.ImportBeforeFileGenerator_WritingTargetFileToDisk);
-                fileSystem.File.WriteAllText(fullPath, resource);
+                fileSystem.File.WriteAllText(fullPath, fileContent);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Resources.ImportBeforeFileGenerator_FailedToWriteFile);
-                logger.LogVerbose(Resources.ImportBeforeFileGenerator_FailedToWriteFile_Verbose, ex.Message);
+                logger.WriteLine(Resources.ImportBeforeFileGenerator_FailedToWriteFile, ex.Message);
+                logger.LogVerbose(Resources.ImportBeforeFileGenerator_FailedToWriteFile_Verbose, ex.ToString());
             }
         }
 
-        private string ReadResourceFile()
+        private string GetTargetFileContent()
         {
-            logger.LogVerbose(Resources.ImportBeforeFileGenerator_LoadingResourceFile);
-
-            var resourcePath = "SonarLint.VisualStudio.ConnectedMode.Embedded.SonarLintTargets.txt";
-
             using (var stream = GetType().Assembly.GetManifestResourceStream(resourcePath))
             {
                 if (stream != null)

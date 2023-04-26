@@ -27,11 +27,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Embedded\SonarLintTargets.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Embedded\SonarLintTargets.txt" />
+    <None Remove="Embedded\SonarLintTargets.xml" />
+    <EmbeddedResource Include="Embedded\SonarLintTargets.xml" />
   </ItemGroup>
 
   <ItemGroup>

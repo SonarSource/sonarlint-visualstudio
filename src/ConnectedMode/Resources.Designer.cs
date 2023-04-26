@@ -205,7 +205,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [ConnectedMode/ImportsBeforeFileGenerator] Checking if file SonarLint before imports targets file exists.
+        ///   Looks up a localized string similar to [ConnectedMode/ImportsBeforeFileGenerator] Checking if file SonarLint before imports targets file exists. File: {0}.
         /// </summary>
         internal static string ImportBeforeFileGenerator_CheckingIfFileExists {
             get {
@@ -223,7 +223,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [ConnectedMode] Failed to write file to disk..
+        ///   Looks up a localized string similar to [ConnectedMode] Failed to write file to disk: {0}.
         /// </summary>
         internal static string ImportBeforeFileGenerator_FailedToWriteFile {
             get {
@@ -232,7 +232,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [ConnectedMode/ImportsBeforeFileGenerator] Failed to write file to disk with exception:.
+        ///   Looks up a localized string similar to [ConnectedMode/ImportsBeforeFileGenerator] Failed to write file to disk with exception: {0}.
         /// </summary>
         internal static string ImportBeforeFileGenerator_FailedToWriteFile_Verbose {
             get {
@@ -241,7 +241,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [ConnectedMode/ImportsBeforeFileGenerator] Cancelled file writing as identical file was found..
+        ///   Looks up a localized string similar to [ConnectedMode/ImportsBeforeFileGenerator] Skipped file writing as identical file was found..
         /// </summary>
         internal static string ImportBeforeFileGenerator_FileAlreadyExists {
             get {
