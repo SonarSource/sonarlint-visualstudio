@@ -24,9 +24,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
-using System.Linq;
 using System.Threading;
-using EnvDTE;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Persistence;
 using IFileSystem = System.IO.Abstractions.IFileSystem;
@@ -39,31 +37,24 @@ namespace SonarLint.VisualStudio.Integration.Binding
     // * co-ordinates writing project-level changes
 
     /// <summary>
-    /// Solution level binding by delegating some of the work to <see cref="IProjectBinder"/>
+    /// Handles writing solution-level files
     /// </summary>
     internal class SolutionBindingOperation : ISolutionBindingOperation
     {
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly IProjectSystemHelper projectSystem;
-        private readonly List<BindProject> projectBinders = new List<BindProject>();
         private readonly IDictionary<Language, IBindingConfig> bindingConfigInformationMap = new Dictionary<Language, IBindingConfig>();
         private readonly SonarLintMode bindingMode;
-        private readonly IProjectBinderFactory projectBinderFactory;
         private readonly ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder;
         private readonly IFileSystem fileSystem;
-        private readonly IProjectToLanguageMapper projectToLanguageMapper;
-        private IEnumerable<Project> projects;
-
         public SolutionBindingOperation(IServiceProvider serviceProvider,
-            SonarLintMode bindingMode,
-            ILogger logger)
-            : this(serviceProvider, bindingMode,  new ProjectBinderFactory(serviceProvider, logger), new LegacyConfigFolderItemAdder(serviceProvider), new FileSystem())
+            SonarLintMode bindingMode)
+            : this(serviceProvider, bindingMode,  new LegacyConfigFolderItemAdder(serviceProvider), new FileSystem())
         {
         }
 
         internal SolutionBindingOperation(IServiceProvider serviceProvider,
             SonarLintMode bindingMode,
-            IProjectBinderFactory projectBinderFactory,
             ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder,
             IFileSystem fileSystem)
         {
@@ -72,7 +63,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.legacyConfigFolderItemAdder = legacyConfigFolderItemAdder ?? throw new ArgumentNullException(nameof(legacyConfigFolderItemAdder));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
-            this.projectBinderFactory = projectBinderFactory ?? throw new ArgumentNullException(nameof(projectBinderFactory));
 
             this.bindingMode = bindingMode;
 
@@ -81,12 +71,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.sourceControlledFileSystem = serviceProvider.GetService<ISourceControlledFileSystem>();
             this.sourceControlledFileSystem.AssertLocalServiceIsNotNull();
-
-            projectToLanguageMapper = serviceProvider.GetMefService<IProjectToLanguageMapper>();
         }
 
         #region State
-        internal /*for testing purposes*/ IList<BindProject> Binders => projectBinders;
 
         internal /*for testing purposes*/ string SolutionFullPath
         {
@@ -129,10 +116,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #endregion
 
         #region Public API
-        public void Initialize(IEnumerable<Project> projects)
+
+        public void Initialize()
         {
             this.SolutionFullPath = this.projectSystem.GetCurrentActiveSolution().FullName;
-            this.projects = projects ?? throw new ArgumentNullException(nameof(projects));
         }
 
         public void Prepare(CancellationToken token)
@@ -163,34 +150,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 Debug.Assert(sourceControlledFileSystem.FilesExistOrQueuedToBeWritten(info.SolutionLevelFilePaths), "Expected solution items to be queued for writing");
             }
-
-            foreach (var project in projects)
-            {
-                if (token.IsCancellationRequested)
-                {
-                    return;
-                }
-
-                var projectBinder = projectBinderFactory.Get(project);
-
-                // Not every language requires project-level binding
-                if (projectBinder != null)
-                {
-                    var languageForProject = projectToLanguageMapper.GetAllBindingLanguagesForProject(project).First();
-                    var bindingConfigFile = GetBindingConfig(languageForProject);
-                    var bindAction = projectBinder.GetBindAction(bindingConfigFile, project, token);
-                    projectBinders.Add(bindAction);
-                }
-            }
         }
 
         public bool CommitSolutionBinding()
         {
             if (this.sourceControlledFileSystem.WriteQueuedFiles())
             {
-                // No reason to modify VS state if could not write files
-                this.projectBinders.ForEach(b => b());
-
+                // TODO - CM cleanup - get rid of LegacyConnected mode code
                 /* only show the files in the Solution Explorer in legacy mode */
                 if (this.bindingMode == SonarLintMode.LegacyConnected)
                 {
