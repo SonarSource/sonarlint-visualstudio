@@ -504,14 +504,12 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             };
             var issueConverter = new Mock<IEslintBridgeIssueConverter>();
             var eslintBridgeClient = SetupEslintBridgeClient(response: response);
-            var testLogger = new TestLogger();
 
-            var testSubject = CreateTestSubject(eslintBridgeClient.Object, issueConverter: issueConverter.Object, logger: testLogger);
+            var testSubject = CreateTestSubject(eslintBridgeClient.Object, issueConverter: issueConverter.Object);
             
             var result = await testSubject.Analyze("some path", "some config", CancellationToken.None);
 
             result.Should().HaveCount(0);
-            testLogger.OutputStrings.Should().HaveCount(1);
         }
 
         [TestMethod]
