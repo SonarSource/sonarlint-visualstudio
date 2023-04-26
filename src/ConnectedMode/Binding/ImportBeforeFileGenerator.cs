@@ -33,6 +33,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
         private const string targetsFileName = "SonarLint.targets";
         private const string resourcePath = "SonarLint.VisualStudio.ConnectedMode.Embedded.SonarLintTargets.xml";
+
         public ImportBeforeFileGenerator(ILogger logger) : this(logger, new FileSystem()) { }
 
         public ImportBeforeFileGenerator(ILogger logger, IFileSystem fileSystem)
