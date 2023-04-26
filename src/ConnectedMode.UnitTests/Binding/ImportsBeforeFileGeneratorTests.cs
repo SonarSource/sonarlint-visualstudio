@@ -21,7 +21,10 @@
 using System;
 using System.IO;
 using System.IO.Abstractions;
+using System.Xml;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 {
@@ -29,17 +32,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
     public class ImportsBeforeFileGeneratorTests
     {
         [TestMethod]
-        public void FileDoesNotExist_CreatesFile()
+        public void FileDoesNotExist_CreatesFileWithWritesCorrectContent()
         {
             string pathToDirectory = GetPathToImportBefore();
             string pathToFile = Path.Combine(pathToDirectory, "SonarLint.targets");
-            string expectedResult = "<Project xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">\r\n  <ItemGroup />\r\n</Project>";
+            string expectedResult = ReadResource();
 
             var fileSystem = new Mock<IFileSystem>();
             fileSystem.Setup(x => x.Directory.Exists(pathToDirectory)).Returns(true);
             fileSystem.Setup(x => x.File.Exists(pathToFile)).Returns(false);
 
-            _ = new ImportBeforeFileGenerator(fileSystem.Object);
+            CreateTestSubject(fileSystem: fileSystem.Object);
 
             fileSystem.Verify(x => x.File.WriteAllText(pathToFile, expectedResult), Times.Once);
         }
@@ -49,15 +52,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         {
             string pathToDirectory = GetPathToImportBefore();
             string pathToFile = Path.Combine(pathToDirectory, "SonarLint.targets");
-            string expectedResult = "<Project xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">\r\n  <ItemGroup />\r\n</Project>";
+
             var fileSystem = new Mock<IFileSystem>();
             fileSystem.Setup(x => x.Directory.Exists(pathToDirectory)).Returns(true);
             fileSystem.Setup(x => x.File.Exists(pathToFile)).Returns(true);
             fileSystem.Setup(x => x.File.ReadAllText(pathToFile)).Returns("wrong text");
 
-            _ = new ImportBeforeFileGenerator(fileSystem.Object);
+            CreateTestSubject(fileSystem: fileSystem.Object);
 
-            fileSystem.Verify(x => x.File.WriteAllText(pathToFile, expectedResult), Times.Once);
+            fileSystem.Verify(x => x.File.WriteAllText(pathToFile, It.IsAny<String>()), Times.Once);
         }
 
         [TestMethod]
@@ -65,16 +68,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         {
             string pathToDirectory = GetPathToImportBefore();
             string pathToFile = Path.Combine(pathToDirectory, "SonarLint.targets");
-            string expectedResult = "<Project xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">\r\n  <ItemGroup />\r\n</Project>";
 
             var fileSystem = new Mock<IFileSystem>();
             fileSystem.Setup(x => x.Directory.Exists(pathToDirectory)).Returns(true);
             fileSystem.Setup(x => x.File.Exists(pathToFile)).Returns(true);
+
+            string expectedResult = ReadResource();
             fileSystem.Setup(x => x.File.ReadAllText(pathToFile)).Returns(expectedResult);
 
-            _ = new ImportBeforeFileGenerator(fileSystem.Object);
+            CreateTestSubject(fileSystem: fileSystem.Object);
 
-            fileSystem.Verify(x => x.File.WriteAllText(pathToFile, expectedResult), Times.Never);
+            fileSystem.Verify(x => x.File.WriteAllText(pathToFile, It.IsAny<String>()), Times.Never);
         }
 
         [TestMethod]
@@ -87,9 +91,44 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             fileSystem.Setup(x => x.Directory.Exists(pathToDirectory)).Returns(false);
             fileSystem.Setup(x => x.File.Exists(pathToFile)).Returns(false);
 
-            _ = new ImportBeforeFileGenerator(fileSystem.Object);
+            CreateTestSubject(fileSystem: fileSystem.Object);
 
             fileSystem.Verify(x => x.Directory.CreateDirectory(pathToDirectory), Times.Once);
+        }
+
+        [TestMethod]
+        public void ThrowsNonCriticalException_Catches()
+        {
+            var fileSystem = new Mock<IFileSystem>();
+            fileSystem.Setup(x => x.Directory.Exists(It.IsAny<String>())).Throws(new NotImplementedException("this is a test"));
+
+            var logger = new TestLogger();
+
+            CreateTestSubject(logger: logger, fileSystem: fileSystem.Object);
+
+            logger.AssertPartialOutputStringExists(Resources.ImportBeforeFileGenerator_FailedToWriteFile);
+        }
+
+        [TestMethod]
+        public void ThrowsCriticalException_ThrowsException()
+        {
+            var fileSystem = new Mock<IFileSystem>();
+            fileSystem.Setup(x => x.Directory.Exists(It.IsAny<String>())).Throws(new StackOverflowException());
+
+            var act = () => CreateTestSubject(fileSystem: fileSystem.Object);
+
+            act.Should().Throw<StackOverflowException>();
+        }
+
+        [TestMethod]
+        public void ConvertResourceToXml_DoesNotThrow()
+        {
+            var resourceContent = ReadResource();
+
+            var xmlDoc = new XmlDocument();
+            var act = () => xmlDoc.LoadXml(resourceContent);
+
+            act.Should().NotThrow<XmlException>();
         }
 
         private string GetPathToImportBefore()
@@ -98,6 +137,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             var pathToImportsBefore = Path.Combine(localAppData, "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore");
 
             return pathToImportsBefore;
+        }
+
+        private static string ReadResource()
+        {
+            var resourcePath = "SonarLint.VisualStudio.ConnectedMode.Embedded.SonarLintTargets.txt";
+            using var stream = new StreamReader(typeof(ImportBeforeFileGenerator).Assembly.GetManifestResourceStream(resourcePath));
+
+            return stream.ReadToEnd();
+        }
+
+        private void CreateTestSubject(ILogger logger = null, IFileSystem fileSystem = null)
+        {
+            logger ??= Mock.Of<ILogger>();
+            fileSystem ??= Mock.Of<IFileSystem>();
+
+            _ = new ImportBeforeFileGenerator(logger, fileSystem);
         }
     }
 }

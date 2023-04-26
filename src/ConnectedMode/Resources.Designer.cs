@@ -205,6 +205,69 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode/ImportsBeforeFileGenerator] Checking if file SonarLint before imports targets file exists.
+        /// </summary>
+        internal static string ImportBeforeFileGenerator_CheckingIfFileExists {
+            get {
+                return ResourceManager.GetString("ImportBeforeFileGenerator_CheckingIfFileExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode/ImportsBeforeFileGenerator] Creating directory {0}.
+        /// </summary>
+        internal static string ImportBeforeFileGenerator_CreatingDirectory {
+            get {
+                return ResourceManager.GetString("ImportBeforeFileGenerator_CreatingDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode] Failed to write file to disk..
+        /// </summary>
+        internal static string ImportBeforeFileGenerator_FailedToWriteFile {
+            get {
+                return ResourceManager.GetString("ImportBeforeFileGenerator_FailedToWriteFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode/ImportsBeforeFileGenerator] Failed to write file to disk with exception:.
+        /// </summary>
+        internal static string ImportBeforeFileGenerator_FailedToWriteFile_Verbose {
+            get {
+                return ResourceManager.GetString("ImportBeforeFileGenerator_FailedToWriteFile_Verbose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode/ImportsBeforeFileGenerator] Cancelled file writing as identical file was found..
+        /// </summary>
+        internal static string ImportBeforeFileGenerator_FileAlreadyExists {
+            get {
+                return ResourceManager.GetString("ImportBeforeFileGenerator_FileAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode/ImportsBeforeFileGenerator] Loading embedded resource file.
+        /// </summary>
+        internal static string ImportBeforeFileGenerator_LoadingResourceFile {
+            get {
+                return ResourceManager.GetString("ImportBeforeFileGenerator_LoadingResourceFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode/ImportsBeforeFileGenerator] Writing file to imports before directory.
+        /// </summary>
+        internal static string ImportBeforeFileGenerator_WritingTargetFileToDisk {
+            get {
+                return ResourceManager.GetString("ImportBeforeFileGenerator_WritingTargetFileToDisk", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {null}.
         /// </summary>
         internal static string NullBranchName {

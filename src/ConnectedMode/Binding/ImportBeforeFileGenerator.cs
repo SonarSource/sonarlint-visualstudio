@@ -21,77 +21,79 @@
 using System;
 using System.IO;
 using System.IO.Abstractions;
-using System.Text;
-using System.Xml;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     internal class ImportBeforeFileGenerator
     {
         private readonly IFileSystem fileSystem;
+        private readonly ILogger logger;
 
         private const string targetsFileName = "SonarLint.targets";
 
-        public ImportBeforeFileGenerator() : this(new FileSystem()) { }
+        public ImportBeforeFileGenerator(ILogger logger) : this(logger, new FileSystem()) { }
 
-        public ImportBeforeFileGenerator(IFileSystem fileSystem)
+        public ImportBeforeFileGenerator(ILogger logger, IFileSystem fileSystem)
         {
+            this.logger = logger;
             this.fileSystem = fileSystem;
 
-            CreateTargetsFileIfNotExists();
+            WriteTargetsFileToDiskIfNotExists();
         }
 
-        private void CreateTargetsFileIfNotExists()
+        private void WriteTargetsFileToDiskIfNotExists()
         {
-            var sb = new StringBuilder();
-            var xmlWriter = Create(sb);
+            logger.LogVerbose(Resources.ImportBeforeFileGenerator_CheckingIfFileExists);
 
-            xmlWriter.WriteStartElement("Project", "http://schemas.microsoft.com/developer/msbuild/2003");
-            xmlWriter.WriteAttributeString("xmlns", "http://schemas.microsoft.com/developer/msbuild/2003");
-
-            xmlWriter.WriteStartElement("ItemGroup");
-
-            xmlWriter.WriteEndElement();
-            xmlWriter.WriteEndElement();
-
-            xmlWriter.Close();
-            WriteFile(sb.ToString());
-        }
-
-        private void WriteFile(string xml)
-        {
+            var resource = ReadResourceFile();
             var pathToImportBefore = GetPathToImportBefore();
-
-            if (!fileSystem.Directory.Exists(pathToImportBefore))
-            {
-                fileSystem.Directory.CreateDirectory(pathToImportBefore);
-            }
-
             var fullPath = Path.Combine(pathToImportBefore, targetsFileName);
 
-            if (fileSystem.File.Exists(fullPath) && fileSystem.File.ReadAllText(fullPath) == xml)
+            try
             {
-                return;
-            }
+                if (!fileSystem.Directory.Exists(pathToImportBefore))
+                {
+                    logger.LogVerbose(Resources.ImportBeforeFileGenerator_CreatingDirectory, pathToImportBefore);
+                    fileSystem.Directory.CreateDirectory(pathToImportBefore);
+                }
 
-            fileSystem.File.WriteAllText(fullPath, xml);
+                if (fileSystem.File.Exists(fullPath) && fileSystem.File.ReadAllText(fullPath) == resource)
+                {
+                    logger.LogVerbose(Resources.ImportBeforeFileGenerator_FileAlreadyExists);
+                    return;
+                }
+
+                logger.LogVerbose(Resources.ImportBeforeFileGenerator_WritingTargetFileToDisk);
+                fileSystem.File.WriteAllText(fullPath, resource);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(Resources.ImportBeforeFileGenerator_FailedToWriteFile);
+                logger.LogVerbose(Resources.ImportBeforeFileGenerator_FailedToWriteFile_Verbose, ex.Message);
+            }
         }
 
-        private XmlWriter Create(StringBuilder sb)
+        private string ReadResourceFile()
         {
-            var stringWriter = new StringWriter(sb);
+            logger.LogVerbose(Resources.ImportBeforeFileGenerator_LoadingResourceFile);
 
-            var settings = new XmlWriterSettings
+            var resourcePath = "SonarLint.VisualStudio.ConnectedMode.Embedded.SonarLintTargets.txt";
+
+            using (var stream = GetType().Assembly.GetManifestResourceStream(resourcePath))
             {
-                ConformanceLevel = ConformanceLevel.Fragment,
-                Encoding = Encoding.UTF8,
-                OmitXmlDeclaration = true,
-                Indent = true,
-                CloseOutput = true,
-                WriteEndDocumentOnClose = true
-            };
+                if (stream != null)
+                {
+                    using (var reader = new StreamReader(stream))
+                    {
+                        var data = reader.ReadToEnd();
+                        return data;
+                    }
+                }
+            }
 
-            return XmlWriter.Create(stringWriter, settings);
+            return "";
         }
 
         private string GetPathToImportBefore()
