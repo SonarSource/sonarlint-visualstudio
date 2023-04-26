@@ -31,7 +31,6 @@ using SonarLint.VisualStudio.Integration.Exclusions;
 using SonarLint.VisualStudio.Integration.LocalServices.TestProjectIndicators;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
-using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -50,8 +49,6 @@ namespace SonarLint.VisualStudio.Integration
                 typeof(IRuleSetSerializer),
                 typeof(IProjectSystemHelper),
                 typeof(ISourceControlledFileSystem),
-                typeof(IRuleSetInspector),
-                typeof(IRuleSetConflictsController),
                 typeof(IProjectSystemFilter),
                 typeof(IErrorListInfoBarController),
                 typeof(IConfigurationProviderService),
@@ -312,8 +309,6 @@ namespace SonarLint.VisualStudio.Integration
             this.localServices.Add(typeof(ITestProjectRegexSetter), projectNameTestProjectIndicator);
 
             this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this, projectToLanguageMapper)));
-            this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));
-            this.localServices.Add(typeof(IRuleSetConflictsController), new Lazy<ILocalService>(() => new RuleSetConflictsController(this, new ConflictsManager(this, Logger), Logger)));
             this.localServices.Add(typeof(IProjectSystemFilter), new Lazy<ILocalService>(() =>
             {
                 var testProjectIndicators = new List<ITestProjectIndicator>
@@ -337,7 +332,7 @@ namespace SonarLint.VisualStudio.Integration
                             this.GetService<IConfigurationProviderService>(),
                             SonarQubeService,
                             Logger),
-                        new UnboundProjectFinder(this, Logger), Logger),
+                        Logger),
                     Logger)));
 
             // Use Lazy<object> to avoid creating instances needlessly, since the interfaces are serviced by the same instance

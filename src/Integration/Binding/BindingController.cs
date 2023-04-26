@@ -24,10 +24,8 @@ using System.Linq;
 using Microsoft.VisualStudio.OLE.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Exclusions;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
-using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -141,7 +139,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var currentConfiguration = configProvider.GetConfiguration();
 
             SonarLintMode modeToBind;
-            INuGetBindingOperation nugetBindingOp;
 
             // If we are currently in standalone then the project is being bound for the first time.
             // Otherwise, we are updating an existing binding
@@ -151,7 +148,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 host.Logger.WriteLine(Strings.Bind_UpdatingLegacyBinding);
                 modeToBind = SonarLintMode.LegacyConnected;
-                nugetBindingOp = new NuGetBindingOperation(host, host.Logger);
             }
             else
             {
@@ -161,7 +157,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                         Strings.Bind_UpdatingNewStyleBinding);
 
                 modeToBind = SonarLintMode.Connected;
-                nugetBindingOp = new NoOpNuGetBindingOperation(host.Logger);
             }
 
             var solutionBindingOp = new SolutionBindingOperation(
@@ -169,9 +164,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 modeToBind,
                 host.Logger);
 
-            var unboundProjectFinder = new UnboundProjectFinder(host, host.Logger);
-
-            var cSharpVBBindingConfigProvider = new CSharpVBBindingConfigProvider(host.SonarQubeService, nugetBindingOp, host.Logger);
+            var cSharpVBBindingConfigProvider = new CSharpVBBindingConfigProvider(host.SonarQubeService, host.Logger);
             var nonRoslynBindingConfigProvider = new NonRoslynBindingConfigProvider(
                 new[]
                 {
@@ -186,7 +179,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             var exclusionSettingsStorage = new ExclusionSettingsStorage(configProvider, host.Logger);
 
-            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, unboundProjectFinder, ruleConfigProvider, modeToBind, exclusionSettingsStorage, isFirstBinding);
+            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, ruleConfigProvider, modeToBind, exclusionSettingsStorage, isFirstBinding);
 
             return bindingProcess;
         }
@@ -221,22 +214,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 this.host.VisualStateManager.SetBoundProject(bindingArgs.Connection.ServerUri, bindingArgs.Connection.Organization?.Key, bindingArgs.ProjectKey);
 
-                // The conflicts controller is only applicable in legacy connected mode
-                // However, it is safe to call it regardless - in new connected mode it will
-                // not return any conflicts.
-                var conflictsController = this.host.GetService<IRuleSetConflictsController>();
-                conflictsController.AssertLocalServiceIsNotNull();
-
-                if (conflictsController.CheckForConflicts())
-                {
-                    // In some cases we will end up navigating to the solution explorer, this will make sure that
-                    // we're back in team explorer to view the conflicts
-                    this.host.GetMefService<ITeamExplorerController>()?.ShowSonarQubePage();
-                }
-                else
-                {
-                    VsShellUtils.ActivateSolutionExplorer(this.host);
-                }
+                VsShellUtils.ActivateSolutionExplorer(this.host);
             }
             else
             {

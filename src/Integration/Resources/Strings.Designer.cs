@@ -143,33 +143,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ruleset binding: all projects need to be updated reference the generated ruleset..
-        /// </summary>
-        public static string Bind_Ruleset_AllProjectsNeedToBeUpdated {
-            get {
-                return ResourceManager.GetString("Bind_Ruleset_AllProjectsNeedToBeUpdated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Ruleset binding: initial binding. All projects need to be updated to reference the generated ruleset..
-        /// </summary>
-        public static string Bind_Ruleset_InitialBinding {
-            get {
-                return ResourceManager.GetString("Bind_Ruleset_InitialBinding", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Ruleset binding: the following projects already reference the generated ruleset:.
-        /// </summary>
-        public static string Bind_Ruleset_SomeProjectsDoNotNeedToBeUpdated {
-            get {
-                return ResourceManager.GetString("Bind_Ruleset_SomeProjectsDoNotNeedToBeUpdated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Saving configuration....
         /// </summary>
         public static string Bind_SavingBindingConfiguration {
@@ -202,15 +175,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string BindButtonText {
             get {
                 return ResourceManager.GetString("BindButtonText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Language for project &apos;{0}&apos; is not matching any of the available quality profile&apos;s languages.
-        /// </summary>
-        public static string BindingProjectLanguageNotMatchingAnyQualityProfileLanguage {
-            get {
-                return ResourceManager.GetString("BindingProjectLanguageNotMatchingAnyQualityProfileLanguage", resourceCulture);
             }
         }
         
@@ -301,96 +265,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string CannotDownloadQualityProfileForLanguage {
             get {
                 return ResourceManager.GetString("CannotDownloadQualityProfileForLanguage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Missing rules (or Action set to None): .
-        /// </summary>
-        public static string ConflictDetailMissingRules {
-            get {
-                return ResourceManager.GetString("ConflictDetailMissingRules", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to RuleSet &apos;{0}&apos; has:.
-        /// </summary>
-        public static string ConflictDetailRuleSetInfo {
-            get {
-                return ResourceManager.GetString("ConflictDetailRuleSetInfo", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Rule &apos;{0}&apos; action is {1}, instead of {2}..
-        /// </summary>
-        public static string ConflictDetailWeakenedRulesDetail {
-            get {
-                return ResourceManager.GetString("ConflictDetailWeakenedRulesDetail", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Weakened rules:.
-        /// </summary>
-        public static string ConflictDetailWeakenedRulesTitle {
-            get {
-                return ResourceManager.GetString("ConflictDetailWeakenedRulesTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to RuleSet conflicts resolution summary for project &apos;{0}&apos;, configuration(s): {1}.
-        /// </summary>
-        public static string ConflictFixHeader {
-            get {
-                return ResourceManager.GetString("ConflictFixHeader", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to RuleSet imports were reset for: &apos;{0}&apos;..
-        /// </summary>
-        public static string ConflictFixResetInclude {
-            get {
-                return ResourceManager.GetString("ConflictFixResetInclude", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Conflicting rules were removed from &apos;{0}&apos;:.
-        /// </summary>
-        public static string ConflictFixRulesDeleted {
-            get {
-                return ResourceManager.GetString("ConflictFixRulesDeleted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to RuleSet &apos;{0}&apos; cannot be analyzed against &apos;{1}&apos; due to error: {2}. .
-        /// </summary>
-        public static string ConflictsManagerFailedInFindConflicts {
-            get {
-                return ResourceManager.GetString("ConflictsManagerFailedInFindConflicts", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SonarLint conflicts manager warning: {0}.
-        /// </summary>
-        public static string ConflictsManagerWarningMessage {
-            get {
-                return ResourceManager.GetString("ConflictsManagerWarningMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to RuleSet conflicts detected for project &apos;{0}&apos;, configuration(s): {1}.
-        /// </summary>
-        public static string ConflictsSummaryHeader {
-            get {
-                return ResourceManager.GetString("ConflictsSummaryHeader", resourceCulture);
             }
         }
         
@@ -585,15 +459,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Installing NuGet package &apos;{0}&apos; for project &apos;{1}&apos;.
-        /// </summary>
-        public static string EnsuringNugetPackagesProgressMessage {
-            get {
-                return ResourceManager.GetString("EnsuringNugetPackagesProgressMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Insecure schemes must be a subset of supported schemes.
         /// </summary>
         public static string ExceptionInsecureSchemesIsNotSubset {
@@ -626,15 +491,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string ExpectedAbsoluteUris {
             get {
                 return ResourceManager.GetString("ExpectedAbsoluteUris", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The expected RuleSet file &apos;{0}&apos; could not be resolved or the file does not exist. Cannot search conflicts for one or more project configuration of project &apos;{1}&apos;. Please rebind to the relevant SonarQube project from TeamExplorer window..
-        /// </summary>
-        public static string ExpectedRuleSetNotFound {
-            get {
-                return ResourceManager.GetString("ExpectedRuleSetNotFound", resourceCulture);
             }
         }
         
@@ -748,15 +604,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Different CodeAnalysisRuleSetDirectories value &apos;{0}&apos; for RuleSet &apos;{1}&apos;. Using value &apos;{2}&apos;..
-        /// </summary>
-        public static string InconsistentRuleSetDirectoriesWarning {
-            get {
-                return ResourceManager.GetString("InconsistentRuleSetDirectoriesWarning", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The URL you entered is not secure. Use HTTPS connections to protect sensitive information..
         /// </summary>
         public static string InsecureProtocolWarning {
@@ -816,15 +663,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string MoreInfoLinkText {
             get {
                 return ResourceManager.GetString("MoreInfoLinkText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to There is a problem with Sonar{0}, information about the associated NuGet package was not returned.
-        /// </summary>
-        public static string NoNuGetPackageForQualityProfile {
-            get {
-                return ResourceManager.GetString("NoNuGetPackageForQualityProfile", resourceCulture);
             }
         }
         
@@ -970,15 +808,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string RefreshCommandTooltip {
             get {
                 return ResourceManager.GetString("RefreshCommandTooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The applied ruleset is weakening the SonarQube quality profile in one or more projects. See output window (SonarLint) for more details. [Click here]() to fix automatically..
-        /// </summary>
-        public static string RuleSetConflictsDetected {
-            get {
-                return ResourceManager.GetString("RuleSetConflictsDetected", resourceCulture);
             }
         }
         
@@ -1132,15 +961,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string SonarLintFailedToAttachInfoBarToErrorList {
             get {
                 return ResourceManager.GetString("SonarLintFailedToAttachInfoBarToErrorList", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {0} unbound projects were found ({1})..
-        /// </summary>
-        public static string SonarLintFoundUnboundProjects {
-            get {
-                return ResourceManager.GetString("SonarLintFoundUnboundProjects", resourceCulture);
             }
         }
         
@@ -1357,15 +1177,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string SubTextPaddingFormat {
             get {
                 return ResourceManager.GetString("SubTextPaddingFormat", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Successfully installed NuGet package &apos;{0}&apos; for project &apos;{1}&apos;.
-        /// </summary>
-        public static string SuccessfullyInstalledNugetPackageForProject {
-            get {
-                return ResourceManager.GetString("SuccessfullyInstalledNugetPackageForProject", resourceCulture);
             }
         }
         

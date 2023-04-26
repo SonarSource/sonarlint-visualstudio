@@ -44,7 +44,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly BindCommandArgs bindingArgs;
         private readonly IProjectSystemHelper projectSystem;
         private readonly ISolutionBindingOperation solutionBindingOperation;
-        private readonly IUnboundProjectFinder unboundProjectFinder;
         private readonly IBindingConfigProvider bindingConfigProvider;
         private readonly SonarLintMode bindingMode;
         private readonly IProjectToLanguageMapper projectToLanguageMapper;
@@ -52,13 +51,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IExclusionSettingsStorage exclusionSettingsStorage;
         private readonly IFolderWorkspaceService folderWorkspaceService;
 
-        internal /*for testing*/ INuGetBindingOperation NuGetBindingOperation { get; }
-
         public BindingProcessImpl(IHost host,
             BindCommandArgs bindingArgs,
             ISolutionBindingOperation solutionBindingOperation,
-            INuGetBindingOperation nugetBindingOperation,
-            IUnboundProjectFinder unboundProjectFinder,
             IBindingConfigProvider bindingConfigProvider,
             SonarLintMode bindingMode,
             IExclusionSettingsStorage exclusionSettingsStorage,
@@ -69,8 +64,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.host = host ?? throw new ArgumentNullException(nameof(host));
             this.bindingArgs = bindingArgs ?? throw new ArgumentNullException(nameof(bindingArgs));
             this.solutionBindingOperation = solutionBindingOperation ?? throw new ArgumentNullException(nameof(solutionBindingOperation));
-            this.NuGetBindingOperation = nugetBindingOperation ?? throw new ArgumentNullException(nameof(nugetBindingOperation));
-            this.unboundProjectFinder = unboundProjectFinder ?? throw new ArgumentNullException(nameof(unboundProjectFinder));
             this.bindingConfigProvider = bindingConfigProvider ?? throw new ArgumentNullException(nameof(bindingConfigProvider));
             this.exclusionSettingsStorage = exclusionSettingsStorage ?? throw new ArgumentNullException(nameof(exclusionSettingsStorage));
             this.bindingMode = bindingMode;
@@ -206,7 +199,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public void PrepareToInstallPackages()
         {
-            this.NuGetBindingOperation.PrepareOnUIThread();
+            // TODO - CM cleanup
+            // no-op
         }
 
         public async Task<bool> SaveServerExclusionsAsync(CancellationToken cancellationToken)
@@ -226,7 +220,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public void InstallPackages(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)
         {
-            this.InternalState.BindingOperationSucceeded = this.NuGetBindingOperation.InstallPackages(this.InternalState.BindingProjects, progress, cancellationToken);
+            // TODO - CM cleanup
+            this.InternalState.BindingOperationSucceeded = true;
         }
 
         public void InitializeSolutionBindingOnBackgroundThread()
@@ -234,7 +229,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.solutionBindingOperation.RegisterKnownConfigFiles(this.InternalState.BindingConfigs);
 
             var projectsToUpdate = GetProjectsForRulesetBinding(this.InternalState.IsFirstBinding, this.InternalState.BindingProjects.ToArray(),
-                this.unboundProjectFinder, this.host.Logger, this.threadHandling);
+                this.host.Logger, this.threadHandling);
 
             this.solutionBindingOperation.Initialize(projectsToUpdate);
         }
@@ -321,37 +316,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /* for testing purposes */ static Project[] GetProjectsForRulesetBinding(bool isFirstBinding,
             Project[] allSupportedProjects,
-            IUnboundProjectFinder unboundProjectFinder,
             ILogger logger,
             IThreadHandling threadHandling)
         {
             threadHandling.ThrowIfOnUIThread();
 
-            // If we are already bound we don't need to update/create rulesets in projects
-            // that already have the ruleset information configured
-            var projectsToUpdate = allSupportedProjects;
-
-            if (isFirstBinding)
-            {
-                logger.WriteLine(Strings.Bind_Ruleset_InitialBinding);
-            }
-            else
-            {
-                var unboundProjects = unboundProjectFinder.GetUnboundProjects()?.ToArray() ?? new Project[] { };
-                projectsToUpdate = projectsToUpdate.Intersect(unboundProjects).ToArray();
-                var upToDateProjects = allSupportedProjects.Except(unboundProjects);
-                if (upToDateProjects.Any())
-                {
-                    logger.WriteLine(Strings.Bind_Ruleset_SomeProjectsDoNotNeedToBeUpdated);
-                    var projectList = string.Join(", ", upToDateProjects.Select(p => p.Name));
-                    logger.WriteLine($"  {projectList}");
-                }
-                else
-                {
-                    logger.WriteLine(Strings.Bind_Ruleset_AllProjectsNeedToBeUpdated);
-                }
-            }
-            return projectsToUpdate;
+            // We no longer use rulesets => no projects need ruleset binding
+            return Array.Empty<Project>();
         }
 
         #endregion
