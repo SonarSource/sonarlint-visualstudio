@@ -55,11 +55,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
                 throw new ArgumentNullException(nameof(buffer));
             }
 
-            if (buffer is IProjectionBuffer)
-            {
-                return null;
-            }
-
             if (!taggableBufferIndicator.IsTaggable(buffer))
             {
                 return null;

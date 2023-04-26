@@ -493,29 +493,45 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
-        public async Task Analyze_HasCssSyntaxError_IgnoresNull()
+        public async Task Analyze_HasCssSyntaxError_ReturnsEmptyList()
         {
-            var response = new JsTsAnalysisResponse
+            var response = new CssAnalysisResponse()
             {
                 Issues = new List<Issue>
                 {
-                    new Issue {Message = "issue1"},
-                    new Issue {Message = "issue2"}
+                    new Issue {Message = "issue1", RuleId = "CssSyntaxError"},
                 }
             };
-            var analysisIssue = Mock.Of<IAnalysisIssue>();
-            var convertedIssues = new[] { analysisIssue, null };
-
             var issueConverter = new Mock<IEslintBridgeIssueConverter>();
-            SetupConvertedIssue(issueConverter, "some path", response.Issues.First(), convertedIssues[0]);
-            SetupConvertedIssue(issueConverter, "some path", response.Issues.Last(), convertedIssues[1]);
-
             var eslintBridgeClient = SetupEslintBridgeClient(response: response);
-            var testSubject = CreateTestSubject(eslintBridgeClient.Object, issueConverter: issueConverter.Object);
+            var testLogger = new TestLogger();
+
+            var testSubject = CreateTestSubject(eslintBridgeClient.Object, issueConverter: issueConverter.Object, logger: testLogger);
+            
             var result = await testSubject.Analyze("some path", "some config", CancellationToken.None);
 
-            result.Should().ContainSingle();
-            result.Should().HaveElementAt(0, analysisIssue);
+            result.Should().HaveCount(0);
+            testLogger.OutputStrings.Should().HaveCount(1);
+        }
+
+        [TestMethod]
+        public async Task Analyze_HasCssAnalysisError_ReturnsEmptyList()
+        {
+            var response = new CssAnalysisResponse()
+            {
+                Error = "errorrr"
+            };
+            var issueConverter = new Mock<IEslintBridgeIssueConverter>();
+            var eslintBridgeClient = SetupEslintBridgeClient(response: response);
+            var testLogger = new TestLogger();
+            
+            var testSubject = CreateTestSubject(eslintBridgeClient.Object, issueConverter: issueConverter.Object, logger: testLogger);
+
+            var result = await testSubject.Analyze("some path", "some config", CancellationToken.None);
+
+            result.Should().HaveCount(0);
+            testLogger.OutputStrings.Should().HaveCount(1);
+            testLogger.OutputStrings.First().Should().Contain("Failed to analyze CSS in some path");
         }
 
         private static JsTsAnalysisResponse CreateLinterNotInitializedResponse() =>
@@ -539,7 +555,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             await testSubject.Analyze("some path", "some config", CancellationToken.None);
         }
 
-        private Mock<IEslintBridgeClient> SetupEslintBridgeClient(JsTsAnalysisResponse response = null, Exception exceptionToThrow = null)
+        private Mock<IEslintBridgeClient> SetupEslintBridgeClient(AnalysisResponse response = null, Exception exceptionToThrow = null)
         {
             var eslintBridgeClient = new Mock<IEslintBridgeClient>();
             var setup = eslintBridgeClient.Setup(x => x.Analyze(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()));

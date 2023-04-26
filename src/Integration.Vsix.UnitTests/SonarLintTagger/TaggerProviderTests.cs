@@ -29,6 +29,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
@@ -155,6 +156,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             mockTaggableBufferIndicator.Verify(x=> x.IsTaggable(doc.TextBuffer), Times.Once);
             mockTaggableBufferIndicator.Verify(x=> x.IsTaggable(It.IsAny<ITextBuffer>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void CreateTagger_should_return_null_when_buffer_is_projection()
+        {
+            var projectionBufferMock = new Mock<IProjectionBuffer>();
+
+            var tagger = provider.CreateTagger<IErrorTag>(projectionBufferMock.Object);
+
+            tagger.Should().BeNull();
         }
 
         [TestMethod]

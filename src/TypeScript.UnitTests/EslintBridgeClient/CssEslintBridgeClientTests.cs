@@ -98,8 +98,20 @@ public class CssEslintBridgeClientTests
     [TestMethod]
     public async Task Analyze_HasResponse_DeserializedResponse()
     {
-        var analysisResponse = new AnalysisResponse { Issues = new[] { new Issue { Column = 1, EndColumn = 2 } } };
+        var analysisResponse = new CssAnalysisResponse() { Issues = new[] { new Issue { Column = 1, EndColumn = 2 } } };
         var httpWrapper = SetupHttpWrapper(response:JsonConvert.SerializeObject(analysisResponse));
+        var testSubject = CreateTestSubject(httpWrapper.Object);
+
+        var result = await testSubject.Analyze("some path", "some config", CancellationToken.None);
+
+        result.Should().BeEquivalentTo(analysisResponse);
+    }
+
+    [TestMethod]
+    public async Task Analyze_HasErrorResponse_DeserializedResponse()
+    {
+        var analysisResponse = new CssAnalysisResponse() { Error = "error"};
+        var httpWrapper = SetupHttpWrapper(response: JsonConvert.SerializeObject(analysisResponse));
         var testSubject = CreateTestSubject(httpWrapper.Object);
 
         var result = await testSubject.Analyze("some path", "some config", CancellationToken.None);
