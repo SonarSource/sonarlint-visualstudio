@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void MicrosoftVisualStudioCodeAnalysis_EnsureCorrectVersion()
         {
             var codeAnalysisAssemblyVersion = AssemblyHelper.GetVersionOfReferencedAssembly(
-                    typeof(SonarLint.VisualStudio.Integration.Binding.INuGetBindingOperation), "Microsoft.VisualStudio.CodeAnalysis");
+                    typeof(SonarLint.VisualStudio.Integration.Binding.BindingController), "Microsoft.VisualStudio.CodeAnalysis");
 
             AssertIsCorrectMajorVersion(codeAnalysisAssemblyVersion.Major);
         }

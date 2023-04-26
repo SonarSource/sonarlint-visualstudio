@@ -40,28 +40,24 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private const string TaintAnalyisRepoPrefix = "roslyn.sonaranalyzer.security.";
 
         private readonly ISonarQubeService sonarQubeService;
-        private readonly INuGetBindingOperation nuGetBindingOperation;
         private readonly ILogger logger;
         private readonly IRuleSetGenerator ruleSetGenerator;
-        private readonly INuGetPackageInfoGenerator nuGetPackageInfoGenerator;
         private readonly ISonarLintConfigGenerator sonarLintConfigGenerator;
 
-        public CSharpVBBindingConfigProvider(ISonarQubeService sonarQubeService, INuGetBindingOperation nuGetBindingOperation, ILogger logger)
-            : this(sonarQubeService, nuGetBindingOperation, logger,
-                  new RuleSetGenerator(), new NuGetPackageInfoGenerator(), new SonarLintConfigGenerator())
+        public CSharpVBBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger)
+            : this(sonarQubeService, logger,
+                  new RuleSetGenerator(), new SonarLintConfigGenerator())
         {
         }
 
         internal /* for testing */ CSharpVBBindingConfigProvider(ISonarQubeService sonarQubeService,
-            INuGetBindingOperation nuGetBindingOperation, ILogger logger,
-            IRuleSetGenerator ruleSetGenerator, INuGetPackageInfoGenerator nuGetPackageInfoGenerator,
+            ILogger logger,
+            IRuleSetGenerator ruleSetGenerator,
             ISonarLintConfigGenerator sonarLintConfigGenerator)
         {
             this.sonarQubeService = sonarQubeService;
-            this.nuGetBindingOperation = nuGetBindingOperation;
             this.logger = logger;
             this.ruleSetGenerator = ruleSetGenerator;
-            this.nuGetPackageInfoGenerator = nuGetPackageInfoGenerator;
             this.sonarLintConfigGenerator = sonarLintConfigGenerator;
         }
 
@@ -99,13 +95,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             // Now fetch the data required for the NuGet configuration
             var sonarProperties = await FetchPropertiesAsync(bindingConfiguration.Project.ProjectKey, cancellationToken);
-
-            // Get the NuGet package info and process it if appropriate (only in legacy connected mode, and only C#/VB)
-            var nugetInfo = nuGetPackageInfoGenerator.GetNuGetPackageInfos(activeRules, sonarProperties);
-            if (!nuGetBindingOperation.ProcessExport(language, nugetInfo))
-            {
-                return null;
-            }
 
             // Finally, fetch the remaining data needed to build the ruleset
             var inactiveRules = await FetchSupportedRulesAsync(false, qualityProfile.Key, cancellationToken);

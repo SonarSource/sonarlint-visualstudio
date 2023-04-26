@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -44,24 +43,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public async Task IsBindingUpdateRequired_SolutionIsUnbound_ProjectBindingIsNotChecked()
+        public async Task IsBindingUpdateRequired_SolutionIsBound_False()
         {
-            var projectBinder = new Mock<IUnboundProjectFinder>();
-            var unboundSolutionChecker = CreateUnboundSolutionChecker(isSolutionBound: false);
-            var testSubject = CreateTestSubject(unboundSolutionChecker.Object, projectBinder.Object);
-
-            await testSubject.IsBindingUpdateRequired(CancellationToken.None);
-
-            projectBinder.Invocations.Should().BeEmpty();
-            unboundSolutionChecker.VerifyAll();
-        }
-
-        [TestMethod]
-        public async Task IsBindingUpdateRequired_SolutionIsBound_NoUnboundProjects_False()
-        {
-            var unboundProjects = Array.Empty<EnvDTE.Project>();
-
-            var testSubject = CreateTestSubject(unboundProjects);
+            var testSubject = CreateTestSubject();
 
             var result = await testSubject.IsBindingUpdateRequired(CancellationToken.None);
 
@@ -69,42 +53,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public async Task IsBindingUpdateRequired_SolutionIsBound_NoUnboundProjects_NoLogs()
+        public async Task IsBindingUpdateRequired_SolutionIsBound_NoLogs()
         {
-            var unboundProjects = Array.Empty<EnvDTE.Project>();
             var logger = new TestLogger();
 
-            var testSubject = CreateTestSubject(unboundProjects, logger);
+            var testSubject = CreateTestSubject(logger);
 
             await testSubject.IsBindingUpdateRequired(CancellationToken.None);
 
             logger.OutputStrings.Should().BeEmpty();
-        }
-
-        [TestMethod]
-        public async Task IsBindingUpdateRequired_SolutionIsBound_HasUnboundProjects_True()
-        {
-            var unboundProjects = new[] { new ProjectMock("unbound.csproj") };
-
-            var testSubject = CreateTestSubject(unboundProjects);
-
-            var result = await testSubject.IsBindingUpdateRequired(CancellationToken.None);
-
-            result.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public async Task IsBindingUpdateRequired_SolutionIsBound_HasUnboundProjects_UnboundProjectsWrittenToLog()
-        {
-            var unboundProjects = new[] { new ProjectMock("unbound.csproj") };
-            var logger = new TestLogger();
-
-            var testSubject = CreateTestSubject(unboundProjects, logger);
-
-            await testSubject.IsBindingUpdateRequired(CancellationToken.None);
-
-            logger.AssertOutputStrings(1);
-            logger.AssertPartialOutputStringExists("unbound.csproj");
         }
 
         private Mock<IUnboundSolutionChecker> CreateUnboundSolutionChecker(bool isSolutionBound)
@@ -115,21 +72,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             return unboundSolutionChecker;
         }
 
-        private BindingChecker CreateTestSubject(IUnboundSolutionChecker unboundSolutionChecker, IUnboundProjectFinder unboundProjectFinder = null, ILogger logger = null)
+        private BindingChecker CreateTestSubject(IUnboundSolutionChecker unboundSolutionChecker, ILogger logger = null)
         {
             logger ??= new TestLogger();
 
-            return new BindingChecker(unboundSolutionChecker, unboundProjectFinder, logger);
+            return new BindingChecker(unboundSolutionChecker, logger);
         }
 
-        private BindingChecker CreateTestSubject(EnvDTE.Project[] unboundProjects, ILogger logger = null)
+        private BindingChecker CreateTestSubject(ILogger logger = null)
         {
-            var unboundProjectFinder = new Mock<IUnboundProjectFinder>();
-            unboundProjectFinder.Setup(x => x.GetUnboundProjects()).Returns(unboundProjects);
-
             var unboundSolutionChecker = CreateUnboundSolutionChecker(isSolutionBound:true);
 
-            return CreateTestSubject(unboundSolutionChecker.Object, unboundProjectFinder.Object, logger);
+            return CreateTestSubject(unboundSolutionChecker.Object, logger);
         }
     }
 }
