@@ -42,10 +42,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         Task<bool> SaveServerExclusionsAsync(CancellationToken cancellationToken);
 
-        void PrepareToInstallPackages();
-
-        void InstallPackages(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken);
-
         void InitializeSolutionBindingOnBackgroundThread();
 
         void PrepareSolutionBinding(CancellationToken cancellationToken);
