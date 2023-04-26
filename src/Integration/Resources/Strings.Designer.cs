@@ -396,15 +396,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Discovering solution projects.
-        /// </summary>
-        public static string DiscoveringSolutionProjectsProgressMessage {
-            get {
-                return ResourceManager.GetString("DiscoveringSolutionProjectsProgressMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Download quality profile(s):.
         /// </summary>
         public static string DownloadingQualityProfileProgressMessage {
