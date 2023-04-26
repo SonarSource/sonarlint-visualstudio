@@ -53,7 +53,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableServiceProvider serviceProvider;
         private Mock<ISonarQubeService> sonarQubeServiceMock;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
-        private ConfigurableSolutionRuleSetsInformationProvider ruleSetsInformationProvider;
         private ConfigurableHost host;
         private Mock<IFolderWorkspaceService> folderWorkspaceService;
         private Mock<IProjectToLanguageMapper> projectToLanguageMapper;
@@ -72,13 +71,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var mockFileSystem = new MockFileSystem();
             var sccFileSystem = new ConfigurableSourceControlledFileSystem(mockFileSystem);
-            var ruleSerializer = new ConfigurableRuleSetSerializer(mockFileSystem);
-            this.ruleSetsInformationProvider = new ConfigurableSolutionRuleSetsInformationProvider();
 
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), sccFileSystem);
-            this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), ruleSerializer);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
-            this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.ruleSetsInformationProvider);
 
             projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
             folderWorkspaceService = new Mock<IFolderWorkspaceService>();

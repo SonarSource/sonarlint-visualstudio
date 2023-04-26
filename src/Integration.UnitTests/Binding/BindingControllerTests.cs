@@ -54,7 +54,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private Mock<IKnownUIContexts> knownUIContexts;
         private DTEMock dteMock;
         private ConfigurableConfigurationProvider configProvider;
-        private ConfigurableSolutionRuleSetsInformationProvider ruleSetsInformationProvider;
         private Mock<IFolderWorkspaceService> folderWorkspaceServiceMock;
         private TestLogger logger;
 
@@ -74,10 +73,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             projectSystemHelper = new ConfigurableVsProjectSystemHelper(serviceProvider);
             configProvider = new ConfigurableConfigurationProvider();
 
-            ruleSetsInformationProvider = new ConfigurableSolutionRuleSetsInformationProvider();
             serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper);
             serviceProvider.RegisterService(typeof(IConfigurationProviderService), configProvider);
-            serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), ruleSetsInformationProvider);
             serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem(new MockFileSystem()));
 
             logger = new TestLogger();
