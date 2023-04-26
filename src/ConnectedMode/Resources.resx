@@ -242,4 +242,25 @@
   <data name="Suppression_IssueChangedEvent" xml:space="preserve">
     <value>[Suppressions] Handling IssueChangedEvent, isResolved: {0}, issue keys for current branch: {1}</value>
   </data>
+  <data name="ImportBeforeFileGenerator_CheckingIfFileExists" xml:space="preserve">
+    <value>[ConnectedMode/ImportsBeforeFileGenerator] Checking if file SonarLint before imports targets file exists. File: {0}</value>
+  </data>
+  <data name="ImportBeforeFileGenerator_CreatingDirectory" xml:space="preserve">
+    <value>[ConnectedMode/ImportsBeforeFileGenerator] Creating directory {0}</value>
+  </data>
+  <data name="ImportBeforeFileGenerator_FailedToWriteFile" xml:space="preserve">
+    <value>[ConnectedMode] Failed to write file to disk: {0}</value>
+  </data>
+  <data name="ImportBeforeFileGenerator_FailedToWriteFile_Verbose" xml:space="preserve">
+    <value>[ConnectedMode/ImportsBeforeFileGenerator] Failed to write file to disk with exception: {0}</value>
+  </data>
+  <data name="ImportBeforeFileGenerator_FileAlreadyExists" xml:space="preserve">
+    <value>[ConnectedMode/ImportsBeforeFileGenerator] Skipped file writing as identical file was found.</value>
+  </data>
+  <data name="ImportBeforeFileGenerator_LoadingResourceFile" xml:space="preserve">
+    <value>[ConnectedMode/ImportsBeforeFileGenerator] Loading embedded resource file</value>
+  </data>
+  <data name="ImportBeforeFileGenerator_WritingTargetFileToDisk" xml:space="preserve">
+    <value>[ConnectedMode/ImportsBeforeFileGenerator] Writing file to imports before directory</value>
+  </data>
 </root>

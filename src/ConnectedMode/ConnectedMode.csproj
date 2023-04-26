@@ -27,6 +27,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Embedded\SonarLintTargets.xml" />
+    <EmbeddedResource Include="Embedded\SonarLintTargets.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\IssueViz\IssueViz.csproj" />
   </ItemGroup>

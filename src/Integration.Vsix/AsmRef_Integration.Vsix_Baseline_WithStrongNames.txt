@@ -166,7 +166,8 @@ Referenced assemblies:
 - 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-# Number of references: 13
+- 'System.IO.Abstractions, Version=9.0.0.0, Culture=neutral, PublicKeyToken=96bf224d23c43e59'
+# Number of references: 14
 
 ---
 Assembly: 'SonarLint.VisualStudio.Core, Version=6.17.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
