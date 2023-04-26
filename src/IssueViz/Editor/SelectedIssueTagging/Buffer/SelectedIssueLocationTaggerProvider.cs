@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
@@ -52,6 +53,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
             if (buffer == null)
             {
                 throw new ArgumentNullException(nameof(buffer));
+            }
+
+            if (buffer is IProjectionBuffer)
+            {
+                return null;
             }
 
             if (!taggableBufferIndicator.IsTaggable(buffer))
