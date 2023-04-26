@@ -146,20 +146,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void BindingWorkflow_InstallPackages_NoError()
-        {
-            // Arrange
-            var progressEvents = new ConfigurableProgressStepExecutionEvents();
-            var cts = new CancellationTokenSource();
-
-            // Act
-            testSubject.InstallPackages(progressEvents, cts.Token);
-
-            // Assert
-            mockBindingProcess.Verify(x => x.InstallPackages(It.IsAny<IProgress<FixedStepsProgress>>(), cts.Token), Times.Once);
-        }
-
-        [TestMethod]
         public void BindingWorkflow_InitializeSolutionBindingOnBackgroundThread_NoError()
         {
             // Arrange
@@ -218,17 +204,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             mockBindingProcess.Verify(x => x.FinishSolutionBindingOnUIThread(), Times.Once);
             controller.NumberOfAbortRequests.Should().Be(1);
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_PrepareToInstallPackages_Passthrough()
-        {
-            // Arrange
-            // Act
-            testSubject.PrepareToInstallPackages();
-
-            // Assert
-            mockBindingProcess.Verify(x => x.PrepareToInstallPackages(), Times.Once);
         }
 
         [TestMethod]

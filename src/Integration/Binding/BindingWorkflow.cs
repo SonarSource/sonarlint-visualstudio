@@ -108,17 +108,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                         (token, notifications) => this.DownloadQualityProfileAsync(controller, notifications, token).GetAwaiter().GetResult()),
 
                 //*****************************************************************
-                // NuGet package handling
-                //*****************************************************************
-                // Initialize the VS NuGet installer service
-                new ProgressStepDefinition(null, HiddenIndeterminateNonImpactingNonCancellableUIStep,
-                        (token, notifications) => { this.PrepareToInstallPackages(); }),
-
-                // Install the appropriate package for each project
-                new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
-                        (token, notifications) => this.InstallPackages(notifications, token)),
-
-                //*****************************************************************
                 // Solution update phase
                 //*****************************************************************
                 // * copy shared ruleset to shared location
@@ -224,17 +213,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 AbortWorkflow(controller, token);
             }
-        }
-
-        internal /*for testing purposes*/ void PrepareToInstallPackages()
-        {
-            bindingProcess.PrepareToInstallPackages();
-        }
-
-        internal /*for testing purposes*/ void InstallPackages(IProgressStepExecutionEvents notificationEvents, CancellationToken token)
-        {
-            var progressAdapter = new FixedStepsProgressAdapter(notificationEvents);
-            bindingProcess.InstallPackages(progressAdapter, token);
         }
 
         internal /*for testing purposes*/ void SilentSaveSolutionIfDirty()
