@@ -48,8 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder;
         private readonly IFileSystem fileSystem;
         public SolutionBindingOperation(IServiceProvider serviceProvider,
-            SonarLintMode bindingMode,
-            ILogger logger)
+            SonarLintMode bindingMode)
             : this(serviceProvider, bindingMode,  new LegacyConfigFolderItemAdder(serviceProvider), new FileSystem())
         {
         }

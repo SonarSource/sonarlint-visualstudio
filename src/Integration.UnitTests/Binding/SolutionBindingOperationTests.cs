@@ -96,10 +96,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void SolutionBindingOperation_ArgChecks()
         {
             var logger = new TestLogger();
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(null, SonarLintMode.LegacyConnected, logger));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, SonarLintMode.LegacyConnected, null));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(null, SonarLintMode.LegacyConnected));
 
-            var testSubject = new SolutionBindingOperation(serviceProvider, SonarLintMode.LegacyConnected, logger);
+            var testSubject = new SolutionBindingOperation(serviceProvider, SonarLintMode.LegacyConnected);
             testSubject.Should().NotBeNull("Avoid 'testSubject' not used analysis warning");
         }
 
@@ -164,16 +163,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Assert
             config.Should().Be(testSubject.RuleSetsInformationMap[Language.CSharp]);
-        }
-
-        [TestMethod]
-        public void SolutionBindingOperation_Initialization_ArgChecks()
-        {
-            // Arrange
-            SolutionBindingOperation testSubject = this.CreateTestSubject();
-
-            // Act + Assert
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.Initialize());
         }
 
         [TestMethod]

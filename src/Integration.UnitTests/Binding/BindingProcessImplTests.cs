@@ -711,7 +711,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             this.host.SonarQubeService = sonarQubeService ?? this.sonarQubeServiceMock.Object;
 
-            var slnBindOperation = new SolutionBindingOperation(this.host, SonarLintMode.LegacyConnected, this.host.Logger);
+            var slnBindOperation = new SolutionBindingOperation(this.host, SonarLintMode.LegacyConnected);
 
             return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, configProvider, mode, exclusionSettingsStorage);
         }
