@@ -21,6 +21,7 @@
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using SonarLint.VisualStudio.Integration;
@@ -89,6 +90,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             manager1.Should().NotBeNull();
             manager2.Should().NotBeNull();
             manager1.Should().NotBeSameAs(manager2);
+        }
+
+        [TestMethod]
+        public void CreateTagger_should_return_null_when_buffer_is_projection()
+        {
+            var projectionBufferMock = new Mock<IProjectionBuffer>();
+            var testSubject = CreateTestSubject(CreateTaggableBufferIndicator());
+
+            var tagger = testSubject.CreateTagger<ITag>(projectionBufferMock.Object);
+
+            tagger.Should().BeNull();
         }
 
         private static SingletonDisposableTaggerManager<IIssueLocationTag> GetSingletonManager(ITextBuffer buffer)
