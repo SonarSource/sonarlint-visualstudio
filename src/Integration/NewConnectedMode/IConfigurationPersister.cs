@@ -34,27 +34,17 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
     internal class ConfigurationPersister : IConfigurationPersister
     {
-        private readonly ISolutionBindingPathProvider legacyPathProvider;
         private readonly ISolutionBindingPathProvider connectedModePathProvider;
         private readonly ISolutionBindingDataWriter solutionBindingDataWriter;
-        private readonly ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder;
 
-        public ConfigurationPersister(ISolutionBindingPathProvider legacyPathProvider,
-            ISolutionBindingPathProvider connectedModePathProvider,
-            ISolutionBindingDataWriter solutionBindingDataWriter,
-            ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder)
+        public ConfigurationPersister(ISolutionBindingPathProvider connectedModePathProvider,
+            ISolutionBindingDataWriter solutionBindingDataWriter)
         {
-            this.legacyPathProvider = legacyPathProvider ??
-                                      throw new ArgumentNullException(nameof(legacyPathProvider));
-
             this.connectedModePathProvider = connectedModePathProvider ??
                                              throw new ArgumentNullException(nameof(connectedModePathProvider));
 
             this.solutionBindingDataWriter = solutionBindingDataWriter ??
                                              throw new ArgumentNullException(nameof(solutionBindingDataWriter));
-
-            this.legacyConfigFolderItemAdder = legacyConfigFolderItemAdder ??
-                                               throw new ArgumentNullException(nameof(legacyConfigFolderItemAdder));
         }
 
         public BindingConfiguration Persist(BoundSonarQubeProject project, SonarLintMode bindingMode)
@@ -85,11 +75,10 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
             switch (bindingMode)
             {
+                // TODO - CM cleanup - going forwards we'll only support saving in the new-new format.
                 case SonarLintMode.LegacyConnected:
                 {
-                    writeSettings.ConfigPath = legacyPathProvider.Get();
-                    writeSettings.OnSuccessfulFileWrite = legacyConfigFolderItemAdder.AddToFolder;
-                    break;
+                    return null;  // effect is that settings won't be saved
                 }
                 case SonarLintMode.Connected:
                 {

@@ -32,7 +32,6 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.Secrets;
 using SonarLint.VisualStudio.Integration.Binding;
-using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.TestInfrastructure;
 using Language = SonarLint.VisualStudio.Core.Language;
 
@@ -202,15 +201,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             CheckRuleSetFileWasSaved(vbConfigFile);
         }
 
+        // TODO - CM cleanup - do we still need this test?
         [TestMethod]
-        public void SolutionBindingOperation_CommitSolutionBinding_LegacyConnectedMode()
+        public void SolutionBindingOperation_CommitSolutionBinding_LegacyConnectedMode_NoFilesSaved()
         {
             // Act & Assert
             var expectedFilePath = $"c:\\{Guid.NewGuid()}.txt"; 
             ExecuteCommitSolutionBindingTest(SonarLintMode.LegacyConnected, expectedFilePath);
 
-            this.solutionItemsProject.Files.ContainsKey(expectedFilePath).Should().BeTrue("Ruleset was expected to be added to solution items when in legacy mode");
-            fileSystem.GetFile(expectedFilePath).Should().NotBe(null); // check the file was saved
+            this.solutionItemsProject.Files.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -256,7 +255,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             return new SolutionBindingOperation(serviceProvider,
                 bindingMode,
-                new LegacyConfigFolderItemAdder(serviceProvider, fileSystem),
                 fileSystem);
         }
 
@@ -280,11 +278,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             mock.Verify(x => x.Save(), Times.Once);
         }
-
-        private static void CheckSaveWasNotCalled(Mock<IBindingConfig> mock)
-            => mock.Verify(x => x.Save(), Times.Never);
-
-
 
         #endregion Helpers
     }

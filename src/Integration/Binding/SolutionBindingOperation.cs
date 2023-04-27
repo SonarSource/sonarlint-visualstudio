@@ -26,7 +26,6 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Threading;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.Persistence;
 using IFileSystem = System.IO.Abstractions.IFileSystem;
 using Language = SonarLint.VisualStudio.Core.Language;
 
@@ -45,23 +44,21 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IProjectSystemHelper projectSystem;
         private readonly IDictionary<Language, IBindingConfig> bindingConfigInformationMap = new Dictionary<Language, IBindingConfig>();
         private readonly SonarLintMode bindingMode;
-        private readonly ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder;
         private readonly IFileSystem fileSystem;
+
         public SolutionBindingOperation(IServiceProvider serviceProvider,
             SonarLintMode bindingMode)
-            : this(serviceProvider, bindingMode,  new LegacyConfigFolderItemAdder(serviceProvider), new FileSystem())
+            : this(serviceProvider, bindingMode, new FileSystem())
         {
         }
 
         internal SolutionBindingOperation(IServiceProvider serviceProvider,
             SonarLintMode bindingMode,
-            ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder,
             IFileSystem fileSystem)
         {
             bindingMode.ThrowIfNotConnected();
 
             serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            this.legacyConfigFolderItemAdder = legacyConfigFolderItemAdder ?? throw new ArgumentNullException(nameof(legacyConfigFolderItemAdder));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 
             this.bindingMode = bindingMode;
@@ -153,38 +150,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         }
 
         public bool CommitSolutionBinding()
-        {
-            if (this.sourceControlledFileSystem.WriteQueuedFiles())
-            {
-                // TODO - CM cleanup - get rid of LegacyConnected mode code
-                /* only show the files in the Solution Explorer in legacy mode */
-                if (this.bindingMode == SonarLintMode.LegacyConnected)
-                {
-                    UpdateSolutionFile();
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
-        #endregion
-
-        #region Helpers
-
-        private void UpdateSolutionFile()
-        {
-            foreach (var info in bindingConfigInformationMap.Values)
-            {
-                foreach (var solutionItem in info.SolutionLevelFilePaths)
-                {
-                    Debug.Assert(fileSystem.File.Exists(solutionItem), "File not written " + solutionItem);
-                    legacyConfigFolderItemAdder.AddToFolder(solutionItem);
-                }
-            }
-        }
-
+            => this.sourceControlledFileSystem.WriteQueuedFiles();
+            
         #endregion
     }
 }

@@ -342,8 +342,6 @@ namespace SonarLint.VisualStudio.Integration
         private ILocalService GetConfigurationPersister()
         {
             var connectedModeConfigPathProvider = new ConnectedModeSolutionBindingPathProvider(this);
-            var legacyConfigPathProvider = new LegacySolutionBindingPathProvider(this);
-            var legacyConfigFolderItemAdder = new LegacyConfigFolderItemAdder(this);
 
             var credentialsLoader = new SolutionBindingCredentialsLoader(credentialStoreService);
             var bindingFileLoader = new SolutionBindingFileLoader(Logger);
@@ -352,7 +350,7 @@ namespace SonarLint.VisualStudio.Integration
 
             var solutionBindingDataWriter = new SolutionBindingDataWriter(sccFileSystem, bindingFileLoader, credentialsLoader);
 
-            return new ConfigurationPersister(legacyConfigPathProvider, connectedModeConfigPathProvider, solutionBindingDataWriter, legacyConfigFolderItemAdder);
+            return new ConfigurationPersister(connectedModeConfigPathProvider, solutionBindingDataWriter);
         }
 
         public object GetService(Type serviceType)
