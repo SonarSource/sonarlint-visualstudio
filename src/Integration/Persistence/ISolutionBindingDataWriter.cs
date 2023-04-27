@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         /// Writes the binding information
         /// </summary>
         /// <returns>Has file been saved</returns>
-        bool Write(string configFilePath, BoundSonarQubeProject binding, Action<string> onSuccessfulFileWrite);
+        bool Write(string configFilePath, BoundSonarQubeProject binding);
     }
 
     internal class SolutionBindingDataWriter : ISolutionBindingDataWriter
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         /// This is to allow multiple other files to be written using the 
         /// same instance of the SCC wrapper (e.g. ruleset files).
         /// </remarks>
-        public bool Write(string configFilePath, BoundSonarQubeProject binding, Action<string> onSuccessfulFileWrite)
+        public bool Write(string configFilePath, BoundSonarQubeProject binding)
         {
             if (binding == null)
             {
@@ -76,8 +76,6 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                 }
 
                 credentialsLoader.Save(binding.Credentials, binding.ServerUri);
-                onSuccessfulFileWrite?.Invoke(configFilePath);
-
                 return true;
             });
 
