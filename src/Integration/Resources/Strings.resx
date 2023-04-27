@@ -402,10 +402,6 @@ This is the general format to use when writing errors to output window or when t
     <value>None (for selected SonarQube project's quality profile)</value>
     <comment>Output window message indicating the current solution does not contain any projects that are applicable to the currently selected SonarQube project's quality profile.</comment>
   </data>
-  <data name="DiscoveringSolutionProjectsProgressMessage" xml:space="preserve">
-    <value>Discovering solution projects</value>
-    <comment>Progress step message indicating projects are being discovered in the current solution</comment>
-  </data>
   <data name="InvalidTestProjectRegexPattern" xml:space="preserve">
     <value>Test project regular expression pattern '{0}' is invalid. The default will be used instead. Please check your server settings.</value>
     <comment>Warning output message indicating that the test project name regex was invalid. {0} invalid regex pattern</comment>

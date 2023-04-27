@@ -85,14 +85,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return result;
         }
 
-        public bool DiscoverBindableProjects()
-        {
-            // TODO - CM cleanup - remove this method from the interface and workflow.
-
-            // See #4142. We now bind regardless of the project types in the solution
-            return true;
-        }
-
         public async Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)
         {
             var languageList = this.GetBindingLanguages();
