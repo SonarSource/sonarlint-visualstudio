@@ -22,18 +22,15 @@ using System;
 using System.Collections.Generic;
 using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
-using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using NuGet;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
@@ -54,8 +51,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private Mock<ISonarQubeService> sonarQubeServiceMock;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private ConfigurableHost host;
-        private Mock<IFolderWorkspaceService> folderWorkspaceService;
-        private Mock<IProjectToLanguageMapper> projectToLanguageMapper;
         private TestLogger logger;
 
         [TestInitialize]
@@ -74,16 +69,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), sccFileSystem);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
-
-            projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
-            folderWorkspaceService = new Mock<IFolderWorkspaceService>();
-
-            var mefProjectToLanguageMapper =
-                ConfigurableComponentModel.CreateWithExports(
-                    MefTestHelpers.CreateExport<IProjectToLanguageMapper>(projectToLanguageMapper.Object),
-                    MefTestHelpers.CreateExport<IFolderWorkspaceService>(folderWorkspaceService.Object));
-
-            serviceProvider.RegisterService(typeof(SComponentModel), mefProjectToLanguageMapper);
 
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             host.Logger = logger;
@@ -225,11 +210,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = this.CreateTestSubject(bindingArgs, configProviderMock.Object);
 
             host.SupportedPluginLanguages.Add(language);
-            var project = Mock.Of<Project>();
-            testSubject.InternalState.BindingProjects.Add(project);
 
             List<Language> supportedLanguages = new List<Language>() { language };
-            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(project)).Returns(supportedLanguages);
 
             // Act
             var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
@@ -277,11 +259,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = this.CreateTestSubject(bindingArgs, configProviderMock.Object);
 
             host.SupportedPluginLanguages.Add(language);
-            var project = Mock.Of<Project>();
-            testSubject.InternalState.BindingProjects.Add(project);
-
-            List<Language> supportedLanguages = new List<Language>() { language };
-            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(project)).Returns(supportedLanguages);
 
             // Act
             await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
@@ -305,16 +282,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var notifications = new ConfigurableProgressStepExecutionEvents();
             var progressAdapter = new FixedStepsProgressAdapter(notifications);
 
+            // CSharp is a supported language, but only the VB.NET QP is available
             var language = Language.CSharp;
             host.SupportedPluginLanguages.Add(language);
-            var project = Mock.Of<Project>();
-            testSubject.InternalState.BindingProjects.Add(project);
 
             this.ConfigureQualityProfile(Language.VBNET, "");
 
-            List<Language> supportedLanguages = new List<Language>() { language };
-            projectToLanguageMapper.Setup(x =>
-                x.GetAllBindingLanguagesForProject(project)).Returns(supportedLanguages);
             // Act
             var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
 
@@ -353,11 +326,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = this.CreateTestSubject(bindingArgs, configProviderMock.Object);
 
             host.SupportedPluginLanguages.Add(language);
-            var project = Mock.Of<Project>();
-            testSubject.InternalState.BindingProjects.Add(project);
-
-            List<Language> supportedLanguages = new List<Language>() { language };
-            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(project)).Returns(supportedLanguages);
 
             // Act
             var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
@@ -376,84 +344,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void GetBindingLanguages_ReturnsDistinctLanguagesForProjects()
+        public void GetBindingLanguages_ReturnsExpectedLanguagese()
         {
             // Arrange
             var testSubject = this.CreateTestSubject();
-
-            var csProject1 = Mock.Of<Project>();
-            var csProject2 = Mock.Of<Project>();
-            var csProject3 = Mock.Of<Project>();
-            var vbNetProject1 = Mock.Of<Project>();
-            var vbNetProject2 = Mock.Of<Project>();
-
-            var projects = new[]
-            {
-                csProject1,
-                csProject2,
-                vbNetProject1,
-                csProject3,
-                vbNetProject2
-            };
-            testSubject.InternalState.BindingProjects.AddRange(projects);
 
             var expectedLanguages = new[] { Language.CSharp, Language.VBNET };
             this.host.SupportedPluginLanguages.UnionWith(expectedLanguages);
-
-            projectToLanguageMapper.Setup(x =>
-                x.GetAllBindingLanguagesForProject(csProject1)).Returns(new List<Language>() { Language.CSharp });
-            projectToLanguageMapper.Setup(x =>
-                x.GetAllBindingLanguagesForProject(csProject2)).Returns(new List<Language>() { Language.CSharp });
-            projectToLanguageMapper.Setup(x =>
-                x.GetAllBindingLanguagesForProject(csProject3)).Returns(new List<Language>() { Language.CSharp });
-            projectToLanguageMapper.Setup(x =>
-                x.GetAllBindingLanguagesForProject(vbNetProject1)).Returns(new List<Language>() { Language.VBNET });
-            projectToLanguageMapper.Setup(x =>
-                x.GetAllBindingLanguagesForProject(vbNetProject2)).Returns(new List<Language>() { Language.VBNET });
-
-            // Act
-            var actualLanguages = testSubject.GetBindingLanguages();
-
-            // Assert
-            CollectionAssert.AreEquivalent(expectedLanguages, actualLanguages.ToArray(), "Unexpected languages for binding projects");
-        }
-
-        [TestMethod]
-        public void GetBindingLanguages_FiltersProjectsWithUnsupportedPluginLanguage()
-        {
-            // Arrange
-            var testSubject = this.CreateTestSubject();
-
-            var csProject1 = Mock.Of<Project>();
-            var csProject2 = Mock.Of<Project>();
-            var csProject3 = Mock.Of<Project>();
-            var vbNetProject1 = Mock.Of<Project>();
-            var vbNetProject2 = Mock.Of<Project>();
-
-            var projects = new[]
-            {
-                csProject1,
-                csProject2,
-                vbNetProject1,
-                csProject3,
-                vbNetProject2
-            };
-
-            testSubject.InternalState.BindingProjects.AddRange(projects);
-
-            var expectedLanguages = new[] { Language.VBNET };
-            this.host.SupportedPluginLanguages.UnionWith(expectedLanguages);
-
-            projectToLanguageMapper.Setup(x =>
-                x.GetAllBindingLanguagesForProject(csProject1)).Returns(new List<Language>() { Language.CSharp });
-            projectToLanguageMapper.Setup(x =>
-                x.GetAllBindingLanguagesForProject(csProject2)).Returns(new List<Language>() { Language.CSharp });
-            projectToLanguageMapper.Setup(x =>
-                x.GetAllBindingLanguagesForProject(csProject3)).Returns(new List<Language>() { Language.CSharp });
-            projectToLanguageMapper.Setup(x =>
-                x.GetAllBindingLanguagesForProject(vbNetProject1)).Returns(new List<Language>() { Language.VBNET });
-            projectToLanguageMapper.Setup(x =>
-                x.GetAllBindingLanguagesForProject(vbNetProject2)).Returns(new List<Language>() { Language.VBNET });
 
             // Act
             var actualLanguages = testSubject.GetBindingLanguages();
@@ -513,183 +410,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             logger.AssertOutputStrings(0);
         }
 
-        [TestMethod]
-        public void DiscoverBindableProjects_AddsMatchingProjectsToBinding()
-        {
-            // Arrange
-            ThreadHelper.SetCurrentThreadAsUIThread();
-
-            var csProject1 = Mock.Of<Project>();
-            var csProject2 = Mock.Of<Project>();
-
-            var matchingProjects = new[] { csProject1, csProject2 };
-            this.projectSystemHelper.FilteredProjects = matchingProjects;
-
-            List<Language> supportedLanguages = new List<Language>() { Language.CSharp };
-            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(csProject1)).Returns(supportedLanguages);
-            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(csProject2)).Returns(supportedLanguages);
-
-            var testSubject = this.CreateTestSubject();
-            this.host.SupportedPluginLanguages.UnionWith(new[] { Language.CSharp });
-
-            // Act
-            var result = testSubject.DiscoverBindableProjects();
-
-            // Assert
-            result.Should().BeTrue();
-            CollectionAssert.AreEqual(matchingProjects, testSubject.InternalState.BindingProjects.ToArray(), "Unexpected projects selected for binding");
-        }
-
-        private void DiscoverBindableProjects_GenericPart(int numberOfProjectsToCreate, int numberOfProjectsToInclude, bool expectedResult)
-        {
-            // Arrange
-            List<Language> supportedLanguages = new List<Language>() { Language.CSharp };
-            List<Project> projects = new List<Project>();
-
-            for (int i = 0; i < numberOfProjectsToCreate; i++)
-            {
-                var project = Mock.Of<Project>();
-                projects.Add(project);
-                projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(project)).Returns(supportedLanguages);
-            }
-
-            this.projectSystemHelper.FilteredProjects = projects.Take(numberOfProjectsToInclude);
-            this.projectSystemHelper.Projects = projects;
-
-            var testSubject = this.CreateTestSubject();
-            this.host.SupportedPluginLanguages.UnionWith(new[] { Language.CSharp });
-
-            // Act
-            var result = testSubject.DiscoverBindableProjects();
-
-            // Assert
-            result.Should().Be(expectedResult);
-            testSubject.InternalState.BindingProjects.Should().HaveCount(numberOfProjectsToInclude, "Expected " + numberOfProjectsToInclude + " project(s) selected for binding");
-            logger.AssertOutputStrings(1);
-
-            // Returns expected output message
-            var expectedOutput = new StringBuilder();
-            expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, Strings.DiscoveringSolutionIncludedProjectsHeader).AppendLine();
-            if (numberOfProjectsToInclude > 0)
-            {
-                this.projectSystemHelper.FilteredProjects.ToList().ForEach(p => expectedOutput.AppendFormat("   * {0}\r\n", p.Name));
-            }
-            else
-            {
-                var msg = string.Format(Strings.DiscoveredIncludedOrExcludedProjectFormat, Strings.NoProjectsExcludedFromBinding);
-                expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, msg).AppendLine();
-            }
-            expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, Strings.DiscoveringSolutionExcludedProjectsHeader).AppendLine();
-            if (numberOfProjectsToCreate - numberOfProjectsToInclude > 0)
-            {
-                this.projectSystemHelper.Projects.Except(this.projectSystemHelper.FilteredProjects)
-                                                 .ToList()
-                                                 .ForEach(p => expectedOutput.AppendFormat("   * {0}\r\n", p.Name));
-            }
-            else
-            {
-                var msg = string.Format(Strings.DiscoveredIncludedOrExcludedProjectFormat, Strings.NoProjectsExcludedFromBinding);
-                expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, msg).AppendLine();
-            }
-            expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, Strings.FilteredOutProjectFromBindingEnding);
-
-            logger.AssertOutputStrings(expectedOutput.ToString());
-        }
-
-        [TestMethod]
-        public void DiscoverBindableProjects_OutputsIncludedProjects()
-        {
-            // Arrange
-            ThreadHelper.SetCurrentThreadAsUIThread();
-
-            // Act & Common Assert
-            DiscoverBindableProjects_GenericPart(2, 2, true);
-        }
-
-        [TestMethod]
-        public void DiscoverBindableProjects_OutputsExcludedProjects()
-        {
-            // Arrange
-            ThreadHelper.SetCurrentThreadAsUIThread();
-
-            // Act & Common Assert
-            DiscoverBindableProjects_GenericPart(2, 0, false);
-        }
-
-        [TestMethod]
-        public void DiscoverBindableProjects_OutputsIncludedAndExcludedProjects()
-        {
-            // Arrange
-            ThreadHelper.SetCurrentThreadAsUIThread();
-
-            // Act & Common Assert
-            DiscoverBindableProjects_GenericPart(4, 2, true);
-        }
-
-        [TestMethod]
-        public void DiscoverBindableProjects_NoMatchingProjects_AbortsWorkflow()
-        {
-            // Arrange
-            ThreadHelper.SetCurrentThreadAsUIThread();
-
-            // Act & Common Assert
-            DiscoverBindableProjects_GenericPart(0, 0, false);
-        }
-
-        [TestMethod]
-        public void DiscoverBindableProjects_FolderWorkspace_HasSupportedLanguages_True()
-        {
-            folderWorkspaceService.Setup(x => x.IsFolderWorkspace()).Returns(true);
-
-            List<Language> supportedLanguages = new List<Language>() { Language.Js, Language.Ts };
-            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesInSolution()).Returns(supportedLanguages);
-
-            var testSubject = this.CreateTestSubject();
-
-            // Act
-            var result = testSubject.DiscoverBindableProjects();
-
-            // Assert
-            result.Should().Be(true);
-            testSubject.InternalState.BindingProjects.Should().BeEmpty();
-            logger.AssertOutputStrings(0);
-        }
-
-        [TestMethod]
-        public void DiscoverBindableProjects_FolderWorkspace_NoSupportedLanguages_False()
-        {
-            folderWorkspaceService.Setup(x => x.IsFolderWorkspace()).Returns(true);
-            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesInSolution()).Returns(new List<Language>());
-
-            var testSubject = this.CreateTestSubject();
-
-            // Act
-            var result = testSubject.DiscoverBindableProjects();
-
-            // Assert
-            result.Should().Be(false);
-            testSubject.InternalState.BindingProjects.Should().BeEmpty();
-            logger.AssertOutputStrings(1);
-
-            // Returns expected output message
-            var expectedOutput = new StringBuilder();
-            expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, Strings.DiscoveringSolutionIncludedProjectsHeader)
-                .AppendLine();
-
-            var msg = string.Format(Strings.DiscoveredIncludedOrExcludedProjectFormat,
-                Strings.NoProjectsExcludedFromBinding);
-            expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, msg).AppendLine();
-            expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, Strings.DiscoveringSolutionExcludedProjectsHeader)
-                .AppendLine();
-
-            msg = string.Format(Strings.DiscoveredIncludedOrExcludedProjectFormat,
-                Strings.NoProjectsExcludedFromBinding);
-            expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, msg).AppendLine();
-            expectedOutput.AppendFormat(Strings.SubTextPaddingFormat, Strings.FilteredOutProjectFromBindingEnding);
-
-            logger.AssertOutputStrings(expectedOutput.ToString());
-        }
-
         #endregion Tests
 
         #region Helpers
@@ -715,14 +435,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             connection = connection ?? new ConnectionInformation(new Uri("http://connected"));
             return new BindCommandArgs(projectKey, projectName, connection);
-        }
-
-        private Project CreateProject(string name = null)
-        {
-            var project = new Mock<Project>();
-            project.Setup(x => x.Name).Returns(name);
-
-            return project.Object;
         }
 
         private SonarQubeQualityProfile ConfigureQualityProfile(Language language, string profileName)

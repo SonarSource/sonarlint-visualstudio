@@ -22,14 +22,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using EnvDTE;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -46,10 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly ISolutionBindingOperation solutionBindingOperation;
         private readonly IBindingConfigProvider bindingConfigProvider;
         private readonly SonarLintMode bindingMode;
-        private readonly IProjectToLanguageMapper projectToLanguageMapper;
-        private readonly IThreadHandling threadHandling;
         private readonly IExclusionSettingsStorage exclusionSettingsStorage;
-        private readonly IFolderWorkspaceService folderWorkspaceService;
 
         public BindingProcessImpl(IHost host,
             BindCommandArgs bindingArgs,
@@ -57,9 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             IBindingConfigProvider bindingConfigProvider,
             SonarLintMode bindingMode,
             IExclusionSettingsStorage exclusionSettingsStorage,
-            bool isFirstBinding = false,
-            IThreadHandling threadHandling = null /* overrideable for testing */            
-            )
+            bool isFirstBinding = false)
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
             this.bindingArgs = bindingArgs ?? throw new ArgumentNullException(nameof(bindingArgs));
@@ -67,10 +59,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.bindingConfigProvider = bindingConfigProvider ?? throw new ArgumentNullException(nameof(bindingConfigProvider));
             this.exclusionSettingsStorage = exclusionSettingsStorage ?? throw new ArgumentNullException(nameof(exclusionSettingsStorage));
             this.bindingMode = bindingMode;
-            projectToLanguageMapper = host.GetMefService<IProjectToLanguageMapper>();
-            folderWorkspaceService = host.GetMefService<IFolderWorkspaceService>();
-
-            this.threadHandling = threadHandling ?? ThreadHandling.Instance;
 
             Debug.Assert(bindingArgs.ProjectKey != null);
             Debug.Assert(bindingArgs.ProjectName != null);
@@ -99,20 +87,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public bool DiscoverBindableProjects()
         {
-            if (folderWorkspaceService.IsFolderWorkspace() && GetBindingLanguages().Any())
-            {
-                return true;
-            }
+            // TODO - CM cleanup - remove this method from the interface and workflow.
 
-            var patternFilteredProjects = this.projectSystem.GetFilteredSolutionProjects();
-            var pluginAndPatternFilteredProjects =
-                patternFilteredProjects.Where(p => this.host.SupportedPluginLanguages
-                    .Any(l => projectToLanguageMapper.GetAllBindingLanguagesForProject(p).Contains(l)));
-
-            this.InternalState.BindingProjects.UnionWith(pluginAndPatternFilteredProjects);
-            this.InformAboutFilteredOutProjects();
-
-            return this.InternalState.BindingProjects.Any();
+            // See #4142. We now bind regardless of the project types in the solution
+            return true;
         }
 
         public async Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)
@@ -241,64 +219,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #region Private methods
 
-        private void InformAboutFilteredOutProjects()
-        {
-            var includedProjects = this.InternalState.BindingProjects.ToList();
-            var excludedProjects = this.projectSystem.GetSolutionProjects().Except(this.InternalState.BindingProjects).ToList();
-
-            var output = new StringBuilder();
-
-            output.AppendFormat(Strings.SubTextPaddingFormat, Strings.DiscoveringSolutionIncludedProjectsHeader).AppendLine();
-            if (includedProjects.Count == 0)
-            {
-                var message = string.Format(Strings.DiscoveredIncludedOrExcludedProjectFormat, Strings.NoProjectsApplicableForBinding);
-                output.AppendFormat(Strings.SubTextPaddingFormat, message).AppendLine();
-            }
-            else
-            {
-                includedProjects.ForEach(
-                    p =>
-                    {
-                        var message = string.Format(Strings.DiscoveredIncludedOrExcludedProjectFormat, p.UniqueName);
-                        output.AppendFormat(Strings.SubTextPaddingFormat, message).AppendLine();
-                    });
-            }
-
-            output.AppendFormat(Strings.SubTextPaddingFormat, Strings.DiscoveringSolutionExcludedProjectsHeader).AppendLine();
-            if (excludedProjects.Count == 0)
-            {
-                var message = string.Format(Strings.DiscoveredIncludedOrExcludedProjectFormat, Strings.NoProjectsExcludedFromBinding);
-                output.AppendFormat(Strings.SubTextPaddingFormat, message).AppendLine();
-            }
-            else
-            {
-                excludedProjects.ForEach(
-                    p =>
-                    {
-                        var message = string.Format(Strings.DiscoveredIncludedOrExcludedProjectFormat, p.UniqueName);
-                        output.AppendFormat(Strings.SubTextPaddingFormat, message).AppendLine();
-                    });
-            }
-            output.AppendFormat(Strings.SubTextPaddingFormat, Strings.FilteredOutProjectFromBindingEnding);
-
-            this.host.Logger.WriteLine(output.ToString());
-        }
-
-        // TODO - CM cleanup - can just return all supported languages going forwards
         internal /* for testing */ IEnumerable<Language> GetBindingLanguages()
-        {
-            if (folderWorkspaceService.IsFolderWorkspace())
-            {
-                return projectToLanguageMapper.GetAllBindingLanguagesInSolution().Where(x=> x.IsSupported);
-            }
-
-            var languageList = this.InternalState.BindingProjects.SelectMany(projectToLanguageMapper.GetAllBindingLanguagesForProject)
-                                       .Distinct()
-                                       .Where(this.host.SupportedPluginLanguages.Contains)
-                                       .ToList();
-
-            return languageList;
-        }
+            => host.SupportedPluginLanguages;
 
         #endregion
 
@@ -312,11 +234,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             public bool IsFirstBinding { get; }
-
-            public ISet<Project> BindingProjects
-            {
-                get;
-            } = new HashSet<Project>();
 
             public Dictionary<Language, IBindingConfig> BindingConfigs
             {
