@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             newPathProvider.Setup(x => x.Get()).Returns("c:\\new.txt");
 
             solutionBindingDataWriter
-                .Setup(x => x.Write("c:\\new.txt", projectToWrite, null))
+                .Setup(x => x.Write("c:\\new.txt", projectToWrite))
                 .Returns(true);
 
             // Act
@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actual.Should().NotBe(null);
 
             solutionBindingDataWriter.Verify(x =>
-                    x.Write("c:\\new.txt", projectToWrite, null),
+                    x.Write("c:\\new.txt", projectToWrite),
                 Times.Once);
         }
     }

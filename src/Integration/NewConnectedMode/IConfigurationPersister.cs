@@ -54,12 +54,12 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                 throw new ArgumentNullException(nameof(project));
             }
 
-            var writeSettings = GetWriteSettings(bindingMode);
+            var targetDirectory = GetTargetDirectory(bindingMode);
 
-            var success = writeSettings.HasValue &&
-                          solutionBindingDataWriter.Write(writeSettings.Value.ConfigPath, project, writeSettings?.OnSuccessfulFileWrite);
+            var success = targetDirectory != null &&
+                          solutionBindingDataWriter.Write(targetDirectory, project);
 
-            return success ? CreateBindingConfiguration(writeSettings.Value.ConfigPath, project, bindingMode) : null;
+            return success ? CreateBindingConfiguration(targetDirectory, project, bindingMode) : null;
         }
 
         private BindingConfiguration CreateBindingConfiguration(string bindingPath, BoundSonarQubeProject boundProject, SonarLintMode sonarLintMode)
@@ -69,10 +69,8 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             return BindingConfiguration.CreateBoundConfiguration(boundProject, sonarLintMode, bindingConfigDirectory);
         }
 
-        private WriteSettings? GetWriteSettings(SonarLintMode bindingMode)
+        private string GetTargetDirectory(SonarLintMode bindingMode)
         {
-            var writeSettings = new WriteSettings();
-
             switch (bindingMode)
             {
                 // TODO - CM cleanup - going forwards we'll only support saving in the new-new format.
@@ -82,8 +80,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                 }
                 case SonarLintMode.Connected:
                 {
-                    writeSettings.ConfigPath = connectedModePathProvider.Get();
-                    break;
+                    return connectedModePathProvider.Get();
                 }
                 case SonarLintMode.Standalone:
                 {
@@ -95,14 +92,6 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                     return null;
                 }
             }
-
-            return writeSettings;
-        }
-
-        private struct WriteSettings
-        {
-            public Action<string> OnSuccessfulFileWrite { get; set; }
-            public string ConfigPath { get; set; }
         }
     }
 }

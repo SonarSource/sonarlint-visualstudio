@@ -43,7 +43,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly IProjectSystemHelper projectSystem;
         private readonly IDictionary<Language, IBindingConfig> bindingConfigInformationMap = new Dictionary<Language, IBindingConfig>();
-        private readonly SonarLintMode bindingMode;
         private readonly IFileSystem fileSystem;
 
         public SolutionBindingOperation(IServiceProvider serviceProvider,
@@ -60,8 +59,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
-
-            this.bindingMode = bindingMode;
 
             this.projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
