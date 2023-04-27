@@ -45,8 +45,6 @@ namespace SonarLint.VisualStudio.Integration
     internal sealed class VsSessionHost : IHost, IProgressStepRunnerWrapper, IDisposable
     {
         internal /*for testing purposes*/ static readonly Type[] SupportedLocalServices = {
-                typeof(ISolutionRuleSetsInformationProvider),
-                typeof(IRuleSetSerializer),
                 typeof(IProjectSystemHelper),
                 typeof(ISourceControlledFileSystem),
                 typeof(IProjectSystemFilter),
@@ -298,8 +296,6 @@ namespace SonarLint.VisualStudio.Integration
 
         private void RegisterLocalServices()
         {
-            this.localServices.Add(typeof(ISolutionRuleSetsInformationProvider), new Lazy<ILocalService>(() => new SolutionRuleSetsInformationProvider(this, Logger)));
-            this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer(Logger)));
             this.localServices.Add(typeof(ICredentialStoreService), new Lazy<ILocalService>(() => credentialStoreService));
 
             this.localServices.Add(typeof(IConfigurationProviderService), new Lazy<ILocalService>(() => new ConfigurationProvider(this, credentialStoreService, Logger)));
