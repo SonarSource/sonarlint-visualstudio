@@ -102,6 +102,11 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                 analysisResponse = await eslintBridgeClient.Analyze(filePath, tsConfig, cancellationToken);
             }
 
+            if (IsCssError(filePath, analysisResponse))
+            {
+                return Array.Empty<IAnalysisIssue>();
+            }
+
             if (IsJsTsParsingError(filePath, analysisResponse))
             {
                 return Array.Empty<IAnalysisIssue>();
@@ -115,6 +120,18 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             var issues = ConvertIssues(filePath, analysisResponse.Issues);
 
             return issues;
+        }
+
+        private bool IsCssError(string filePath, AnalysisResponse analysisResponse)
+        {
+            if (analysisResponse is CssAnalysisResponse cssAnalysisResponse && cssAnalysisResponse.Error != null)
+            {
+                logger.WriteLine("Failed to analyze CSS in {0}", filePath);
+                logger.LogVerbose("Reason for failed css analysis: {0}", cssAnalysisResponse.Error);
+                return true;
+            }
+
+            return false;
         }
 
         private bool IsJsTsParsingError(string filePath, AnalysisResponse analysisResponse)

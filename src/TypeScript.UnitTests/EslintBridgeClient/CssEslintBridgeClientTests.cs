@@ -108,6 +108,18 @@ public class CssEslintBridgeClientTests
     }
 
     [TestMethod]
+    public async Task Analyze_HasErrorResponse_DeserializedResponse()
+    {
+        var analysisResponse = new CssAnalysisResponse() { Error = "error" };
+        var httpWrapper = SetupHttpWrapper(response: JsonConvert.SerializeObject(analysisResponse));
+        var testSubject = CreateTestSubject(httpWrapper.Object);
+
+        var result = await testSubject.Analyze("some path", "some config", CancellationToken.None);
+
+        result.Should().BeEquivalentTo(analysisResponse);
+    }
+
+    [TestMethod]
     public void Analyze_FailsToDeserializedResponse_ExceptionThrown()
     {
         var serverUri = BuildServerUri();
