@@ -99,10 +99,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 //*****************************************************************
                 // Preparation
                 //*****************************************************************
-                // Check for eligible projects in the solution
-                new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.Indeterminate,
-                        (token, notifications) => this.DiscoverProjects(controller, notifications)),
-
                 // Fetch data from Sonar server and write shared ruleset file(s) to temporary location on disk
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
                         (token, notifications) => this.DownloadQualityProfileAsync(controller, notifications, token).GetAwaiter().GetResult()),
@@ -148,18 +144,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             if (!bindingProcess.PromptSaveSolutionIfDirty())
             {
                 this.AbortWorkflow(controller, token);
-            }
-        }
-
-        internal /*for testing purposes*/ void DiscoverProjects(IProgressController controller, IProgressStepExecutionEvents notifications)
-        {
-            Debug.Assert(ThreadHelper.CheckAccess(), "Expected step to be run on the UI thread");
-
-            notifications.ProgressChanged(Strings.DiscoveringSolutionProjectsProgressMessage);
-
-            if (!bindingProcess.DiscoverBindableProjects())
-            {
-                AbortWorkflow(controller, CancellationToken.None);
             }
         }
 

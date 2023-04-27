@@ -265,42 +265,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockBindingProcess.Verify(x => x.SilentSaveSolutionIfDirty(), Times.Once);
         }
 
-        [TestMethod]
-        public void BindingWorkflow_DiscoverProjects_Succeed_WorkflowNotAborted()
-        {
-            // Arrange
-            ThreadHelper.SetCurrentThreadAsUIThread();
-            var controller = new ConfigurableProgressController();
-            var progressEvents = new ConfigurableProgressStepExecutionEvents();
-
-            mockBindingProcess.Setup(x => x.DiscoverBindableProjects()).Returns(true);
-
-            // Act
-            testSubject.DiscoverProjects(controller, progressEvents);
-
-            // Assert
-            controller.NumberOfAbortRequests.Should().Be(0);
-            progressEvents.AssertProgressMessages(Strings.DiscoveringSolutionProjectsProgressMessage);
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_DiscoverProjects_Fails_WorkflowAborted()
-        {
-            // Arrange
-            ThreadHelper.SetCurrentThreadAsUIThread();
-            var controller = new ConfigurableProgressController();
-            var progressEvents = new ConfigurableProgressStepExecutionEvents();
-
-            mockBindingProcess.Setup(x => x.DiscoverBindableProjects()).Returns(false);
-
-            // Act
-            testSubject.DiscoverProjects(controller, progressEvents);
-
-            // Assert
-            controller.NumberOfAbortRequests.Should().Be(1);
-            progressEvents.AssertProgressMessages(Strings.DiscoveringSolutionProjectsProgressMessage);
-        }
-
         #endregion Tests
     }
 }
