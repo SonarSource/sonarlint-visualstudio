@@ -56,8 +56,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         // then the tests can be simplified.
         private ConfigurableRuleSetSerializer ruleFS;
 
-        private ConfigurableSolutionRuleSetsInformationProvider ruleSetInfo;
-
         private const string SolutionRoot = @"c:\solution";
 
         [TestInitialize]
@@ -73,15 +71,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.fileSystem = new MockFileSystem();
             this.sccFileSystem = new ConfigurableSourceControlledFileSystem(fileSystem);
             this.ruleFS = new ConfigurableRuleSetSerializer(fileSystem);
-            this.ruleSetInfo = new ConfigurableSolutionRuleSetsInformationProvider
-            {
-                SolutionRootFolder = SolutionRoot
-            };
 
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), this.sccFileSystem);
             this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), this.ruleFS);
-            this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.ruleSetInfo);
 
             var projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), Mock.Of<IProjectLanguageIndicator>(), Mock.Of<IConnectedModeSecrets>());
             var mefHost = ConfigurableComponentModel.CreateWithExports(MefTestHelpers.CreateExport<IProjectToLanguageMapper>(projectToLanguageMapper));
@@ -177,25 +170,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void SolutionBindingOperation_Prepare_ProjectBindersAreCalled()
+        public void SolutionBindingOperation_Prepare_SolutionLevelFilesAreSaved()
         {
-            // TODO - CM cleanup - duncanp 
-
             // Arrange
-            var csProject = solutionMock.AddOrGetProject("CS.csproj");
-            csProject.SetCSProjectKind();
             var csConfigFile = CreateMockConfigFile("c:\\csharp.txt");
 
-            var vbProject = this.solutionMock.AddOrGetProject("VB.vbproj");
-            vbProject.SetVBProjectKind();
             var vbConfigFile = CreateMockConfigFile("c:\\vb.txt");
-
-            // Regression test for #3129
-            // https://github.com/SonarSource/sonarlint-visualstudio/issues/3129
-            var nodeProject = this.solutionMock.AddOrGetProject("Node.njsproj");
-            nodeProject.SetNodeProjectKind();
-
-            var projects = new[] { csProject, vbProject, nodeProject };
 
             var testSubject = CreateTestSubject();
 
@@ -207,10 +187,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             testSubject.RegisterKnownConfigFiles(ruleSetMap);
             testSubject.Initialize();
-            var sonarQubeRulesDirectory = Path.Combine(SolutionRoot, ConfigurableSolutionRuleSetsInformationProvider.DummyLegacyModeFolderName);
 
             // Sanity
-            fileSystem.AllDirectories.Should().NotContain(sonarQubeRulesDirectory);
             testSubject.RuleSetsInformationMap[Language.CSharp].Should().Be(csConfigFile.Object);
             testSubject.RuleSetsInformationMap[Language.VBNET].Should().Be(vbConfigFile.Object);
 
