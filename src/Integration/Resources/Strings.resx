@@ -433,19 +433,6 @@ This is the general format to use when writing errors to output window or when t
   <data name="SolutionIsClosed" xml:space="preserve">
     <value>The operation requires an open solution.</value>
   </data>
-  <data name="DiscoveredIncludedOrExcludedProjectFormat" xml:space="preserve">
-    <value>* {0}</value>
-    <comment>Output window message
-{0} Unique project name</comment>
-  </data>
-  <data name="FilteredOutProjectFromBindingHeader" xml:space="preserve">
-    <value>The following projects are either not currently supported, excluded according to server specifications, or have been explicitly marked as excluded:</value>
-    <comment>Output window message</comment>
-  </data>
-  <data name="FilteredOutProjectFromBindingEnding" xml:space="preserve">
-    <value>You can change the exclusion options via the SonarLint project-level context menu i.e. Solution Explorer -&gt; Select project(s)</value>
-    <comment>Output window message</comment>
-  </data>
   <data name="SonarLintInfoBarUpdateCommandIsBusyRetry" xml:space="preserve">
     <value>Could not update the binding because the command is not currently available. Please try again and ensure that the solution is not building or currently being debugged.</value>
     <comment>Output window message</comment>
@@ -523,14 +510,6 @@ This is the general format to use when writing errors to output window or when t
   <data name="NoProjectsExcludedFromBinding" xml:space="preserve">
     <value>None (for selected SonarQube project's quality profile)</value>
     <comment>Output window message indicating the current solution does not contain any projects filtered out from the currently selected SonarQube project's quality profile.</comment>
-  </data>
-  <data name="DiscoveringSolutionExcludedProjectsHeader" xml:space="preserve">
-    <value>Excluded projects:</value>
-    <comment>Output window message displayed before listing all excluded projects.</comment>
-  </data>
-  <data name="DiscoveringSolutionIncludedProjectsHeader" xml:space="preserve">
-    <value>Included projects:</value>
-    <comment>Output window message displayed before listing all discovered projects.</comment>
   </data>
   <data name="SubTextPaddingFormat" xml:space="preserve">
     <value>   {0}</value>
