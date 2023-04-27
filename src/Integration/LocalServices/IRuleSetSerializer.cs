@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Integration
     /// <summary>
     /// Abstraction for reading and writing of <see cref="RuleSet"/> instances.
     /// </summary>
-    internal interface IRuleSetSerializer : ILocalService
+    internal interface IRuleSetSerializer // : ILocalService  TODO CM cleanup - no longer provided as a service
     {
         /// <summary>
         /// Will write the specified <paramref name="ruleSet"/> into specified path.

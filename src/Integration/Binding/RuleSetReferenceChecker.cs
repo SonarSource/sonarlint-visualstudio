@@ -23,12 +23,21 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using EnvDTE;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
+    // TODO - CM cleanup - this class might be useful when cleaning up "old" Connected Mode settings.
+    // 
+    // The following classes are inter-related:
+    // * RuleSetReferenceChecker
+    // * SolutionRuleSetsInformationProvider
+    // * RuleSetSerializer
+    // They are not referenced from any other product code. If they are not needed for settings mode
+    // cleanup then they can deleted as a group.
+
     internal class RuleSetReferenceChecker : IRuleSetReferenceChecker
     {
         private readonly ILogger logger;
@@ -44,11 +53,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
+
+            // NOTE: if we do still want to use this class, we'll need to change how we instantiate
+            // it since ISolutionRuleSetsInformationProvider and IRuleSetSerializer are not longer
+            // provided as services.
             ruleSetInfoProvider = serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
-            ruleSetInfoProvider.AssertLocalServiceIsNotNull();
+            //ruleSetInfoProvider.AssertLocalServiceIsNotNull();
 
             ruleSetSerializer = serviceProvider.GetService<IRuleSetSerializer>();
-            ruleSetSerializer.AssertLocalServiceIsNotNull();
+            //ruleSetSerializer.AssertLocalServiceIsNotNull();
         }
 
         public bool IsReferencedByAllDeclarations(Project project, string targetRuleSetFilePath)
