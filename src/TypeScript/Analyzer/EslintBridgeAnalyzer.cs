@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         {
             if (analysisResponse is CssAnalysisResponse cssAnalysisResponse && cssAnalysisResponse.Error != null)
             {
-                logger.WriteLine("Failed to analyze CSS in {0}", filePath);
+                logger.WriteLine(Resources.ERR_FailedToAnalyzeCss, filePath);
                 logger.LogVerbose("Reason for failed css analysis: {0}", cssAnalysisResponse.Error);
                 return true;
             }
