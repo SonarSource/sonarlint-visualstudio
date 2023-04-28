@@ -36,10 +36,10 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
     [TestClass]
-    public class JsTsProjectTypeIndicatorTests
+    public class ProjectLanguageIndicatorTests
     {
         [TestMethod]
-        public void IsJsTs_NonCriticalExceptionInAccessingProjectProperties_False()
+        public void HasOnOfTargetLanguages_JsTs_NonCriticalExceptionInAccessingProjectProperties_False()
         {
             var folderWorkspaceService = CreateFolderWorkSpaceService(isFolderWorkspace: false);
             var logger = new TestLogger();
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var testSubject = CreateTestSubject(folderWorkspaceService.Object, logger: logger);
 
             var project = CreateProject(projectItems: null, projectName: "some project");
-            var result = testSubject.IsJsTs(project);
+            var result = testSubject.HasOneOfTargetLanguages(project, AnalysisLanguage.Javascript, AnalysisLanguage.TypeScript);
 
             result.Should().BeFalse();
 
@@ -55,14 +55,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void IsJsTs_CriticalExceptionInAccessingProjectProperties_ExceptionNotCaught()
+        public void HasOnOfTargetLanguages_JsTs_CriticalExceptionInAccessingProjectProperties_ExceptionNotCaught()
         {
             var folderWorkspaceService = CreateFolderWorkSpaceService(isFolderWorkspace: false);
 
             var testSubject = CreateTestSubject(folderWorkspaceService.Object);
 
             var project = CreateProject(exToThrow: new StackOverflowException("this is a test"));
-            Action act = () => testSubject.IsJsTs(project);
+            Action act = () => testSubject.HasOneOfTargetLanguages(project, AnalysisLanguage.Javascript, AnalysisLanguage.TypeScript);
 
             act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("this is a test");
         }
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [DataRow("Folder", false)]
         [DataRow("js", false)]
         [TestMethod]
-        public void IsJsTs_dteProjectWithNoHierarchy_ReturnsCorrectly(string fileName, bool expectedResult)
+        public void HasOnOfTargetLanguages_JsTs_dteProjectWithNoHierarchy_ReturnsCorrectly(string fileName, bool expectedResult)
         {
             var folderWorkspaceService = CreateFolderWorkSpaceService();
             var directory = CreateDirectory();
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var items = CreateProjectItems(item);
             var project = CreateProject(items);
 
-            var actualResult = testSubject.IsJsTs(project);
+            var actualResult = testSubject.HasOneOfTargetLanguages(project, AnalysisLanguage.Javascript, AnalysisLanguage.TypeScript);
 
             //Sanity Check to make sure no disk search is done
             folderWorkspaceService.Verify(f => f.FindRootDirectory(), Times.Never);
@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void IsJsTs_dteProjectMultipleFiles_ReturnsWhenFindJS()
+        public void HasOnOfTargetLanguages_JsTs_dteProjectMultipleFiles_ReturnsWhenFindJS()
         {
             var folderWorkspaceService = CreateFolderWorkSpaceService();
             var directory = CreateDirectory();
@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var items = CreateProjectItems(item1, item2, item3);
             var project = CreateProject(items);
 
-            var result = testSubject.IsJsTs(project);
+            var result = testSubject.HasOneOfTargetLanguages(project, AnalysisLanguage.Javascript, AnalysisLanguage.TypeScript);
 
             //Sanity Check to make sure no disk search is done
             folderWorkspaceService.Verify(f => f.FindRootDirectory(), Times.Never);
@@ -121,8 +121,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             result.Should().BeTrue();
         }
 
-        [TestMethod]
-        public void IsJsTs_dteProjectHasHierarchyHasJS_ReturnsTrue()
+        [DataTestMethod]
+        [DataRow(AnalysisLanguage.Javascript, true, 4)]
+        [DataRow(AnalysisLanguage.CascadingStyleSheets, true, 7)]
+        [DataRow(AnalysisLanguage.CFamily, false, 8)]
+        public void HasOnOfTargetLanguages_dteProjectHasHierarchyHasMultipleLanguages_Returns(AnalysisLanguage languageToSearch, bool expectedResult, int filesChecked)
         {
             var sonarLanguageRecognizer = CreateSonarLanguageRecognizer();
 
@@ -130,69 +133,82 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             /*
              --root
-              |-- TopFile.cs
-              |-- Folder1
-                  |--File1.cs
-                  |--Script.js
-              |-- Folder2
-                  |--Folder3
-                     |--File2.cs
+              |-- TopFile.cs 1
+              |-- Folder1 2
+                  |--File1.cs 3
+                  |--Script.js 4
+              |-- Folder2 5
+                  |--Folder3 6
+                     |--File.css 7
+                     |--File2.cs 8
              */
 
             var topFile = CreateItem("TopFile.cs");
             var file1 = CreateItem("File1.cs");
-            var file2 = CreateItem("Script.js");
-            var folder1 = CreateItem("Folder1", file1, file2);
-            var script = CreateItem("File2.cs");
-            var folder3 = CreateItem("Folder3", script);
-            var folder2 = CreateItem("Folder2", folder3);
-            var items = CreateProjectItems(topFile, folder1, folder2);
-            var project = CreateProject(items);
-
-            var result = testSubject.IsJsTs(project);
-
-            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(4));
-
-            result.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void IsJsTs_dteProjectHasHierarchyHasNoJS_ReturnsFalse()
-        {
-            var sonarLanguageRecognizer = CreateSonarLanguageRecognizer();
-
-            var testSubject = CreateTestSubject(sonarLanguageRecognizer: sonarLanguageRecognizer.Object);
-
-            /*
-             --root
-              |-- TopFile.cs
-              |-- Folder1
-                  |--File1.cs
-                  |--File2.js
-              |-- Folder2
-                  |--Folder3
-                     |--File3.cs
-             */
-
-            var topFile = CreateItem("TopFile.cs");
-            var file1 = CreateItem("File1.cs");
+            var script = CreateItem("Script.js");
+            var folder1 = CreateItem("Folder1", file1, script);
             var file2 = CreateItem("File2.cs");
-            var folder1 = CreateItem("Folder1", file1, file2);
-            var script = CreateItem("File3.cs");
-            var folder3 = CreateItem("Folder3", script);
+            var cssFile = CreateItem("File.css");
+            var folder3 = CreateItem("Folder3", cssFile, file2);
             var folder2 = CreateItem("Folder2", folder3);
             var items = CreateProjectItems(topFile, folder1, folder2);
             var project = CreateProject(items);
 
-            var result = testSubject.IsJsTs(project);
+            var result = testSubject.HasOneOfTargetLanguages(project, languageToSearch);
 
-            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(7));
+            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(filesChecked));
 
-            result.Should().BeFalse();
+            result.Should().Be(expectedResult);
         }
 
+        [DataTestMethod]
+        [DataRow(AnalysisLanguage.Javascript, AnalysisLanguage.TypeScript, true, 7)]
+        [DataRow(AnalysisLanguage.Javascript, AnalysisLanguage.CascadingStyleSheets, true, 4)]
+        [DataRow(AnalysisLanguage.CFamily, AnalysisLanguage.RoslynFamily, false, 8)]
+        public void
+            HasOnOfTargetLanguages_dteProjectHasHierarchyHasMultipleLanguages_RequiresAtLeastOneLanguageToBeFound(
+                AnalysisLanguage languageToSearch1,
+                AnalysisLanguage languageToSearch2,
+                bool expectedResult,
+                int filesChecked)
+        {
+            var sonarLanguageRecognizer = CreateSonarLanguageRecognizer();
+
+            var testSubject = CreateTestSubject(sonarLanguageRecognizer: sonarLanguageRecognizer.Object);
+
+            /*
+             --root
+              |-- TopFile.esproj 1
+              |-- Folder1 2
+                  |--File1.json 3
+                  |--File2.css 4
+              |-- Folder2 5
+                  |--Folder3 6
+                     |--File3.js 7
+                     |--File4.css 8
+             */
+
+            var topFile = CreateItem("TopFile.esproj");
+            var file1 = CreateItem("File1.json");
+            var file2 = CreateItem("File2.css");
+            var folder1 = CreateItem("Folder1", file1, file2);
+            var file3 = CreateItem("File3.js");
+            var file4 = CreateItem("File4.css");
+            var folder3 = CreateItem("Folder3", file3, file4);
+            var folder2 = CreateItem("Folder2", folder3);
+            var items = CreateProjectItems(topFile, folder1, folder2);
+            var project = CreateProject(items);
+
+            var result = testSubject.HasOneOfTargetLanguages(project, languageToSearch1, languageToSearch2);
+
+            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(filesChecked));
+
+            result.Should().Be(expectedResult);
+        }
+
+
         [TestMethod]
-        public void IsJsTs_dteProject_OpenAsFolder_DoesFileSearch()
+        public void HasOnOfTargetLanguages_JsTs_dteProject_OpenAsFolder_DoesFileSearch()
         {
             string fileName = "Script.js";
 
@@ -206,7 +222,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var items = CreateProjectItems(item);
             var project = CreateProject(items);
 
-            var actualResult = testSubject.IsJsTs(project);
+            var actualResult = testSubject.HasOneOfTargetLanguages(project, AnalysisLanguage.Javascript, AnalysisLanguage.TypeScript);
 
             folderWorkspaceService.Verify(f => f.IsFolderWorkspace(), Times.Once);
             folderWorkspaceService.Verify(f => f.FindRootDirectory(), Times.Once);
@@ -222,7 +238,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [DataRow("Folder", false)]
         [DataRow("js", false)]
         [TestMethod]
-        public void IsJsTs_OpenAsFolder_ReturnsCorrectly(string fileName, bool expectedResult)
+        public void HasOnOfTargetLanguages_JsTs_OpenAsFolder_ReturnsCorrectly(string fileName, bool expectedResult)
         {
             var folderWorkspaceService = CreateFolderWorkSpaceService(true);
             var directory = CreateDirectory(fileName);
@@ -230,7 +246,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             var testSubject = CreateTestSubject(folderWorkspaceService.Object, directory.Object, sonarLanguageRecognizer.Object);
 
-            var actualResult = testSubject.IsJsTs(null);
+            var actualResult = testSubject.HasOneOfTargetLanguages(null, AnalysisLanguage.Javascript, AnalysisLanguage.TypeScript);
 
             folderWorkspaceService.Verify(f => f.IsFolderWorkspace(), Times.Once);
             folderWorkspaceService.Verify(f => f.FindRootDirectory(), Times.Once);
@@ -240,45 +256,48 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             actualResult.Should().Be(expectedResult);
         }
 
-        [TestMethod]
-        public void IsJsTs_OpenAsFolderHasJS_ReturnsTrue()
+        [DataTestMethod]
+        [DataRow(AnalysisLanguage.Javascript, true, 3)]
+        [DataRow(AnalysisLanguage.CascadingStyleSheets, true, 4)]
+        [DataRow(AnalysisLanguage.CFamily, false, 5)]
+        public void HasOnOfTargetLanguages_OpenAsFolder_Returns(AnalysisLanguage languageToSearch, bool expectedResult, int filesChecked)
         {
             var folderWorkspaceService = CreateFolderWorkSpaceService(true);
-            var directory = CreateDirectory("Class.cs", "Settings.json", "script.js", "script2.js");
+            var directory = CreateDirectory("Class.cs", "Settings.json", "script.js", "style.css", "script2.js");
             var sonarLanguageRecognizer = CreateSonarLanguageRecognizer();
 
             var testSubject = CreateTestSubject(folderWorkspaceService.Object, directory.Object, sonarLanguageRecognizer.Object);
 
-            var actualResult = testSubject.IsJsTs(null);
+            var actualResult = testSubject.HasOneOfTargetLanguages(null, languageToSearch);
 
             folderWorkspaceService.Verify(f => f.IsFolderWorkspace(), Times.Once);
             folderWorkspaceService.Verify(f => f.FindRootDirectory(), Times.Once);
             directory.Verify(d => d.EnumerateFiles("Root", "*", SearchOption.AllDirectories), Times.Once);
-            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(3));
-            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension("script.js"), Times.Once);
+            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(filesChecked));
 
-            actualResult.Should().Be(true);
+            actualResult.Should().Be(expectedResult);
         }
 
-        [TestMethod]
-        public void IsJsTs_OpenAsFolderHasNoJS_ReturnsFalse()
+        [DataTestMethod]
+        [DataRow(AnalysisLanguage.Javascript, AnalysisLanguage.TypeScript, true, 3)]
+        [DataRow(AnalysisLanguage.Javascript, AnalysisLanguage.CascadingStyleSheets, true, 2)]
+        [DataRow(AnalysisLanguage.CFamily, AnalysisLanguage.RoslynFamily, false, 3)]
+        public void HasOnOfTargetLanguages_OpenAsFolder_RequiresAtLeastOneLanguageToBeFound(AnalysisLanguage languageToSearch1, AnalysisLanguage languageToSearch2, bool expectedResult, int filesChecked)
         {
             var folderWorkspaceService = CreateFolderWorkSpaceService(true);
-            var directory = CreateDirectory("Class.cs", "Settings.json", "Class1.cs", "Class2.cs");
+            var directory = CreateDirectory("script.json", "style.css", "script2.js");
             var sonarLanguageRecognizer = CreateSonarLanguageRecognizer();
 
             var testSubject = CreateTestSubject(folderWorkspaceService.Object, directory.Object, sonarLanguageRecognizer.Object);
 
-            var actualResult = testSubject.IsJsTs(null);
+            var actualResult = testSubject.HasOneOfTargetLanguages(null, languageToSearch1, languageToSearch2);
 
             folderWorkspaceService.Verify(f => f.IsFolderWorkspace(), Times.Once);
             folderWorkspaceService.Verify(f => f.FindRootDirectory(), Times.Once);
             directory.Verify(d => d.EnumerateFiles("Root", "*", SearchOption.AllDirectories), Times.Once);
-            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(4));
-            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsRegex("^.*\\.(js|JS)$")), Times.Never);
-            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsRegex("^.*\\.(ts|TS)$")), Times.Never);
+            sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(filesChecked));
 
-            actualResult.Should().Be(false);
+            actualResult.Should().Be(expectedResult);
         }
 
         private static Mock<IFolderWorkspaceService> CreateFolderWorkSpaceService(bool isFolderWorkspace = false)
@@ -314,7 +333,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             return fileSystem.Object;
         }
 
-        private JsTsProjectTypeIndicator CreateTestSubject(IFolderWorkspaceService folderWorkspaceService = null,
+        private IProjectLanguageIndicator CreateTestSubject(IFolderWorkspaceService folderWorkspaceService = null,
             IDirectory directory = null,
             ISonarLanguageRecognizer sonarLanguageRecognizer = null,
             ILogger logger = null)
@@ -326,7 +345,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             var fileSystem = CreateFileSystem(directory); 
 
-            return new JsTsProjectTypeIndicator(sonarLanguageRecognizer, folderWorkspaceService, logger, fileSystem);
+            return new ProjectLanguageIndicator(sonarLanguageRecognizer, folderWorkspaceService, logger, fileSystem);
         }
 
         private ProjectItem CreateItem(string itemName, params ProjectItem[] childItems)
@@ -376,6 +395,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             sonarLanguageRecognizer.Setup(x => x.GetAnalysisLanguageFromExtension(It.IsRegex("^.*\\.(cs|CS)$"))).Returns(AnalysisLanguage.RoslynFamily);
             sonarLanguageRecognizer.Setup(x => x.GetAnalysisLanguageFromExtension(It.IsRegex("^.*\\.(js|JS)$"))).Returns(AnalysisLanguage.Javascript);
             sonarLanguageRecognizer.Setup(x => x.GetAnalysisLanguageFromExtension(It.IsRegex("^.*\\.(ts|TS)$"))).Returns(AnalysisLanguage.TypeScript);
+            sonarLanguageRecognizer.Setup(x => x.GetAnalysisLanguageFromExtension(It.IsRegex("^.*\\.(css|CSS)$"))).Returns(AnalysisLanguage.CascadingStyleSheets);
 
             return sonarLanguageRecognizer;
         }

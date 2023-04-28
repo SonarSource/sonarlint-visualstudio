@@ -19,21 +19,24 @@
  */
 
 using EnvDTE;
+using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    public interface IJsTsProjectTypeIndicator
+    public interface IProjectLanguageIndicator
     {
         /// <summary>
         /// Opened As Folder: Searches all the files under the folder and it's subfolders
         /// Opened As Solution: Searches all items for given dte project
         /// </summary>
+        /// <param name="dteProject">Project</param>
+        /// <param name="targetLanguages">List of languages to search in the <see cref="dteProject"/></param>
         /// <remarks>
         /// If given dte project is opened as Folder. A folder search is done
         /// </remarks>
         /// <returns>
-        /// True if a js/ts file is found, false otherwise
+        /// True if a file that contains any of the <see cref="targetLanguages"/> is found, false otherwise
         /// </returns>
-        bool IsJsTs(Project dteProject);
+        bool HasOneOfTargetLanguages(Project dteProject, params AnalysisLanguage[] targetLanguages);
     }
 }

@@ -26,14 +26,15 @@ using System.IO.Abstractions;
 using System.Linq;
 using EnvDTE;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    [Export(typeof(IJsTsProjectTypeIndicator))]
+    [Export(typeof(IProjectLanguageIndicator))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class JsTsProjectTypeIndicator : IJsTsProjectTypeIndicator
+    public class ProjectLanguageIndicator : IProjectLanguageIndicator
     {
         private readonly ISonarLanguageRecognizer sonarLanguageRecognizer;
         private readonly IFolderWorkspaceService folderWorkspaceService;
@@ -41,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IFileSystem fileSystem;
 
         [ImportingConstructor]
-        public JsTsProjectTypeIndicator(ISonarLanguageRecognizer sonarLanguageRecognizer, 
+        public ProjectLanguageIndicator(ISonarLanguageRecognizer sonarLanguageRecognizer, 
             IFolderWorkspaceService folderWorkspaceService,
             ILogger logger)
             : this(sonarLanguageRecognizer, folderWorkspaceService, logger, new FileSystem())
@@ -49,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         }
 
-        internal JsTsProjectTypeIndicator(ISonarLanguageRecognizer sonarLanguageRecognizer,
+        internal ProjectLanguageIndicator(ISonarLanguageRecognizer sonarLanguageRecognizer,
             IFolderWorkspaceService folderWorkspaceService,
             ILogger logger, 
             IFileSystem fileSystem)
@@ -60,59 +61,59 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.fileSystem = fileSystem;
         }
         
-        public bool IsJsTs(Project dteProject)
+        public bool HasOneOfTargetLanguages(Project dteProject, params AnalysisLanguage[] targetLanguages)
         {
             //When opened as folder there can be a dteProject if a file is open
             //If there is a dteProject and it's opened as a folder
             //Folder search takes precedence for consistency
             if (folderWorkspaceService.IsFolderWorkspace())
             {
-                return HasJsTsFileOnDisk();
+                return HasFileOnDisk(targetLanguages);
             }
 
             Debug.Assert(dteProject != null, "When it's not folder workspace we expect dteProject not to be null");
 
             try
             {
-                var hasJsTsFile = HasJsTsFileInProject(dteProject.ProjectItems);
+                var hasAnyOfLanguages = HasFileInProject(dteProject.ProjectItems, targetLanguages);
 
-                return hasJsTsFile;
+                return hasAnyOfLanguages;
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(BindingStrings.FailedToIdentifyJsTs, dteProject.Name, ex);
+                logger.WriteLine(BindingStrings.FailedToIdentifyLanguage, string.Join(",", targetLanguages), dteProject.Name, ex);
 
                 return false;
             }
         }
 
-        private bool HasJsTsFileOnDisk()
+        private bool HasFileOnDisk(AnalysisLanguage[] analysisLanguages)
         {
             var root = folderWorkspaceService.FindRootDirectory();
 
             var fileList = fileSystem.Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories).Where(x => !x.Contains("\\node_modules\\"));
 
-            return fileList.Any(IsFileJsTs);
+            return fileList.Any(fileName => IsTargetLanguage(fileName, analysisLanguages));
         }
 
-        private bool IsFileJsTs(string fileName)
+        private bool IsTargetLanguage(string fileName, AnalysisLanguage[] targetLanguages)
         {
             var analysisLanguage = sonarLanguageRecognizer.GetAnalysisLanguageFromExtension(fileName);
-            return analysisLanguage == Core.Analysis.AnalysisLanguage.Javascript || analysisLanguage == Core.Analysis.AnalysisLanguage.TypeScript;
+            return analysisLanguage.HasValue && targetLanguages.Contains(analysisLanguage.Value);
         }
 
-        private bool HasJsTsFileInProject(ProjectItems projectItems)
+        private bool HasFileInProject(ProjectItems projectItems, AnalysisLanguage[] analysisLanguages)
         {
             foreach (ProjectItem item in projectItems)
             {
-                if (IsFileJsTs(item.Name))
+                if (IsTargetLanguage(item.Name, analysisLanguages))
                 {
                     return true;
                 }
 
                 if (item.ProjectItems?.Count > 0)
                 {
-                    if (HasJsTsFileInProject(item.ProjectItems))
+                    if (HasFileInProject(item.ProjectItems, analysisLanguages))
                     {
                         return true;
                     }

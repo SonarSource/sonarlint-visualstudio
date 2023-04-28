@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using EnvDTE;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.Secrets;
 using SonarLint.VisualStudio.Integration.Binding;
@@ -51,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration
     public class ProjectToLanguageMapper : IProjectToLanguageMapper
     {
         private readonly ICMakeProjectTypeIndicator cmakeProjectTypeIndicator;
-        private readonly IJsTsProjectTypeIndicator jsTsProjectTypeIndicator;
+        private readonly IProjectLanguageIndicator projectLanguageIndicator;
         private readonly IConnectedModeSecrets connectedModeSecrets;
 
         internal static readonly IDictionary<Guid, Language> KnownProjectTypes = new Dictionary<Guid, Language>()
@@ -64,11 +65,11 @@ namespace SonarLint.VisualStudio.Integration
 
         [ImportingConstructor]
         public ProjectToLanguageMapper(ICMakeProjectTypeIndicator cmakeProjectTypeIndicator,
-            IJsTsProjectTypeIndicator jsTsProjectTypeIndicator,
+            IProjectLanguageIndicator projectLanguageIndicator,
             IConnectedModeSecrets connectedModeSecrets)
         {
             this.cmakeProjectTypeIndicator = cmakeProjectTypeIndicator;
-            this.jsTsProjectTypeIndicator = jsTsProjectTypeIndicator;
+            this.projectLanguageIndicator = projectLanguageIndicator;
             this.connectedModeSecrets = connectedModeSecrets;
         }
 
@@ -108,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration
                 languages.Add(Language.C);
             }
 
-            if (jsTsProjectTypeIndicator.IsJsTs(dteProject))
+            if (projectLanguageIndicator.HasOneOfTargetLanguages(dteProject, AnalysisLanguage.Javascript, AnalysisLanguage.TypeScript))
             {
                 languages.Add(Language.Js);
                 languages.Add(Language.Ts);

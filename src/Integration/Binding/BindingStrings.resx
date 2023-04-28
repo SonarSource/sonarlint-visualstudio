@@ -132,8 +132,8 @@ Error: {2}</value>
 1 = additional files item type name
 2 = inner error message</comment>
   </data>
-  <data name="FailedToIdentifyJsTs" xml:space="preserve">
-    <value>[JsTsProjectTypeIndicator] Failed to identify JS/TS files in project '{0}': {1}</value>
+  <data name="FailedToIdentifyLanguage" xml:space="preserve">
+    <value>[ProjectLanguageIndicator] Failed to identify any of [{0}] languages files in project '{1}': {2}</value>
   </data>
   <data name="FoundConflictingAdditionalFile" xml:space="preserve">
     <value>Failed to bind project '{0}'.
