@@ -70,6 +70,15 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [CssAnalyzer] Failed to analyze CSS in {0}.
+        /// </summary>
+        internal static string ERR_FailedToAnalyzeCss {
+            get {
+                return ResourceManager.GetString("ERR_FailedToAnalyzeCss", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not find tsconfig.
         /// </summary>
         internal static string ERR_NoTsConfig {

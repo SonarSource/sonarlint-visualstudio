@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 throw new InvalidOperationException(string.Format(Resources.ERR_InvalidResponse, responseString));
             }
 
-            return JsonConvert.DeserializeObject<AnalysisResponse>(responseString);
+            return JsonConvert.DeserializeObject<CssAnalysisResponse>(responseString);
         }
     }
 }
