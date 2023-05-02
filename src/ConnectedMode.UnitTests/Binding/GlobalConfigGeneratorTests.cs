@@ -57,10 +57,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             var sb = new StringBuilder();
             sb.AppendLine("is_global=true");
             sb.AppendLine("global_level=500000");
-            sb.AppendLine(GetRuleString("2", "Info"));
-            sb.AppendLine(GetRuleString("3", "Info"));
-            sb.AppendLine(GetRuleString("5", "Info"));
-            sb.AppendLine(GetRuleString("8", "Info"));
+            sb.AppendLine(GetRuleString("2", "suggestion"));
+            sb.AppendLine(GetRuleString("3", "suggestion"));
+            sb.AppendLine(GetRuleString("5", "suggestion"));
+            sb.AppendLine(GetRuleString("8", "suggestion"));
 
             result.Should().Be(sb.ToString());
         }
@@ -81,11 +81,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         }
 
         [TestMethod]
-        [DataRow(RuleAction.Info, "Info")]
-        [DataRow(RuleAction.Warning, "Warning")]
-        [DataRow(RuleAction.None, "None")]
-        [DataRow(RuleAction.Error, "Error")]
-        [DataRow(RuleAction.Hidden, "Hidden")]
+        [DataRow(RuleAction.Info, "suggestion")]
+        [DataRow(RuleAction.Warning, "warning")]
+        [DataRow(RuleAction.None, "none")]
+        [DataRow(RuleAction.Error, "error")]
+        [DataRow(RuleAction.Hidden, "silent")]
         public void GetActionText_Valid(RuleAction action, string expected)
         {
             GlobalConfigGenerator.GetActionText(action).Should().Be(expected);
