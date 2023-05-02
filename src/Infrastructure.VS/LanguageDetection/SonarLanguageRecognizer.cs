@@ -70,10 +70,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
             if (IsJavascriptDocument(fileExtension, contentTypes))
             {
                 detectedLanguages.Add(AnalysisLanguage.Javascript);
+                detectedLanguages.Add(AnalysisLanguage.CascadingStyleSheets);
             }
             else if (IsTypeScriptDocument(contentTypes))
             {
                 detectedLanguages.Add(AnalysisLanguage.TypeScript);
+                detectedLanguages.Add(AnalysisLanguage.CascadingStyleSheets);
             }
 
             if (IsCFamilyDocument(contentTypes))
