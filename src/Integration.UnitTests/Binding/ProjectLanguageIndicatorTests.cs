@@ -26,6 +26,7 @@ using System.Linq;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -38,6 +39,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
     [TestClass]
     public class ProjectLanguageIndicatorTests
     {
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<ProjectLanguageIndicator, IProjectLanguageIndicator>(
+                MefTestHelpers.CreateExport<ISonarLanguageRecognizer>(),
+                MefTestHelpers.CreateExport<IFolderWorkspaceService>(),
+                MefTestHelpers.CreateExport<ILogger>());
+        }
+
         [TestMethod]
         public void HasTargetLanguage_NonCriticalExceptionInAccessingProjectProperties_False()
         {
