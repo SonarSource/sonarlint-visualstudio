@@ -46,11 +46,11 @@ namespace SonarQube.Client.Tests.Requests.Api.V9_4
 
             MocksHelper.SetupHttpRequest(
                 messageHandler,
-                requestRelativePath: "api/push/sonarlint_events?languages=cs%2Cvbnet%2Ccpp%2Cc%2Cjs%2Cts%2Csecrets&projectKeys=someproj",
-                responseMessage: new HttpResponseMessage {Content = new StreamContent(testedStream) },
+                requestRelativePath: "api/push/sonarlint_events?languages=cs%2Cvbnet%2Ccpp%2Cc%2Cjs%2Cts%2Csecrets%2Ccss&projectKeys=someproj",
+                responseMessage: new HttpResponseMessage { Content = new StreamContent(testedStream) },
                 headers: MediaTypeHeaderValue.Parse("text/event-stream"));
 
-            var testSubject = new GetSonarLintEventStream {ProjectKey = "someproj", Logger = Mock.Of<ILogger>()};
+            var testSubject = new GetSonarLintEventStream { ProjectKey = "someproj", Logger = Mock.Of<ILogger>() };
 
             using var response = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
             response.Should().NotBeNull();
