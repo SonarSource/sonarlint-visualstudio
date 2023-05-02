@@ -32,7 +32,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
     {
         IEnumerable<AnalysisLanguage> Detect(string filePath, IContentType bufferContentType);
 
-        AnalysisLanguage? GetAnalysisLanguageFromExtension(string fileName);
+        /// <summary>
+        /// Returns Language associated with the extension
+        /// </summary>
+        /// <param name="fileExtension">file extension in lower case without "."</param>
+        /// <returns>AnalysisLanguage or null if not recognized</returns>
+        AnalysisLanguage? GetAnalysisLanguageFromExtension(string fileExtension);
     }
 
     [Export(typeof(ISonarLanguageRecognizer))]
@@ -133,19 +138,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
         private static bool IsCssDocument(IEnumerable<IContentType> contentTypes) =>
             contentTypes.Any(type => type.IsOfType(CSSTypeName) || type.IsOfType(SCSSTypeName) || type.IsOfType(LESSTypeName));
 
-        public AnalysisLanguage? GetAnalysisLanguageFromExtension(string fileName)
+        public AnalysisLanguage? GetAnalysisLanguageFromExtension(string fileExtension)
         {
-            if(IsFileNameInvalid(fileName))
+            if (string.IsNullOrEmpty(fileExtension))
             {
                 return null;
             }
 
-            var extension = GetNormalizedExtention(fileName);
-            
             // ContentType for "js" is typescript we do manual check to be consistent with Detect method
-            if (JavascriptSupportedExtensions.Contains(extension)) { return AnalysisLanguage.Javascript; }
+            if (JavascriptSupportedExtensions.Contains(fileExtension)) { return AnalysisLanguage.Javascript; }
 
-            var contentTypeName = fileExtensionRegistryService.GetContentTypeForExtension(extension).TypeName;
+            var contentTypeName = fileExtensionRegistryService.GetContentTypeForExtension(fileExtension).TypeName;
             switch (contentTypeName)
             {
                 case TypeScriptTypeName:
@@ -163,20 +166,5 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
                     return null;                   
             }
         }
-
-        private string GetNormalizedExtention(string fileName)
-        {
-            var extension = Path.GetExtension(fileName);
-
-            if (extension.Length > 0 && extension[0] == '.')
-            {
-                //remove the leading . on extension
-                extension = extension.Substring(1);
-            }
-            return extension.ToLowerInvariant();
-        }
-        
-        private bool IsFileNameInvalid(string fileName) 
-            => Path.GetInvalidFileNameChars().Any(x => fileName.Contains(x));
     }  
 }
