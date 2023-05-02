@@ -45,7 +45,7 @@ namespace SonarQube.Client.Tests
 
             await ConnectToSonarQube("9.4.0.0");
 
-            SetupRequest("api/push/sonarlint_events?languages=cs%2Cvbnet%2Ccpp%2Cc%2Cjs%2Cts%2Csecrets&projectKeys=myProject",
+            SetupRequest("api/push/sonarlint_events?languages=cs%2Cvbnet%2Ccpp%2Cc%2Cjs%2Cts%2Csecrets%2Ccss&projectKeys=myProject",
                 new HttpResponseMessage
                 {
                     Content = new StreamContent(Stream.Null)
