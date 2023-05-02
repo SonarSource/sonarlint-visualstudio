@@ -19,16 +19,14 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition.Primitives;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDetection
 {
@@ -86,18 +84,31 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
         }
 
         [TestMethod]
-        public void Detect_WhenFileExtensionIsJavascriptRelated_ReturnsJavascript()
+        public void Detect_WhenFileExtensionIsJavascript_ReturnsJavascript()
         {
-            foreach (var expectedExtension in new[] { "js", "jsx", "vue" })
+            foreach (var expectedExtension in new[] { "js", "jsx" })
             {
                 // Act
                 var result = testSubject.Detect($"foo.{expectedExtension}", null);
 
                 // Assert
-                result.Should().HaveCount(2);
+                result.Should().HaveCount(1);
                 result.First().Should().Be(AnalysisLanguage.Javascript);
-                result.Last().Should().Be(AnalysisLanguage.CascadingStyleSheets);
             }
+        }
+
+        [TestMethod]
+        public void Detect_WhenFileExtensionIsvue_ReturnsJavascriptAndCss()
+        {
+            var extension = "vue";
+
+            // Act
+            var result = testSubject.Detect($"foo.{extension}", null);
+
+            // Assert
+            result.Should().HaveCount(2);
+            result.First().Should().Be(AnalysisLanguage.Javascript);
+            result.Last().Should().Be(AnalysisLanguage.CascadingStyleSheets);
         }
 
         [TestMethod]
@@ -115,11 +126,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
         }
 
         [TestMethod]
-        [DataRow("JavaScript", AnalysisLanguage.Javascript, AnalysisLanguage.CascadingStyleSheets)]
+        [DataRow("JavaScript", AnalysisLanguage.Javascript, null)]
         [DataRow("Vue", AnalysisLanguage.Javascript, AnalysisLanguage.CascadingStyleSheets)]
         [DataRow("C/C++", AnalysisLanguage.CFamily, null)]
         [DataRow("Roslyn Languages", AnalysisLanguage.RoslynFamily, null)]
-        [DataRow("TypeScript", AnalysisLanguage.TypeScript, AnalysisLanguage.CascadingStyleSheets)]
+        [DataRow("TypeScript", AnalysisLanguage.TypeScript, null)]
         [DataRow("css", AnalysisLanguage.CascadingStyleSheets, null)]
         [DataRow("SCSS", AnalysisLanguage.CascadingStyleSheets, null)]
         [DataRow("LESS", AnalysisLanguage.CascadingStyleSheets, null)]
@@ -147,11 +158,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
         }
 
         [TestMethod]
-        [DataRow("JavaScript", AnalysisLanguage.Javascript, AnalysisLanguage.CascadingStyleSheets)]
+        [DataRow("JavaScript", AnalysisLanguage.Javascript, null)]
         [DataRow("Vue", AnalysisLanguage.Javascript, AnalysisLanguage.CascadingStyleSheets)]
         [DataRow("C/C++", AnalysisLanguage.CFamily, null)]
         [DataRow("Roslyn Languages", AnalysisLanguage.RoslynFamily, null)]
-        [DataRow("TypeScript", AnalysisLanguage.TypeScript, AnalysisLanguage.CascadingStyleSheets)]
+        [DataRow("TypeScript", AnalysisLanguage.TypeScript, null)]
         [DataRow("css", AnalysisLanguage.CascadingStyleSheets, null)]
         [DataRow("SCSS", AnalysisLanguage.CascadingStyleSheets, null)]
         [DataRow("LESS", AnalysisLanguage.CascadingStyleSheets, null)]
@@ -204,7 +215,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
         }
 
         [TestMethod]
-        public void Detect_WhenContentTypeIsTypeScriptButFileExtensionIsJavaScript_ReturnsJavaScriptAndCss()
+        public void Detect_WhenContentTypeIsTypeScriptButFileExtensionIsJavaScript_ReturnsJavaScript()
         {
             var jsFileExtension = "js";
             var contentType = new Mock<IContentType>();
@@ -215,9 +226,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
 
             var result = testSubject.Detect($"foo.{jsFileExtension}", null);
 
-            result.Should().HaveCount(2);
+            result.Should().HaveCount(1);
             result.First().Should().Be(AnalysisLanguage.Javascript);
-            result.Last().Should().Be(AnalysisLanguage.CascadingStyleSheets);
         }
 
         [DataRow("cs", AnalysisLanguage.RoslynFamily)]
@@ -246,7 +256,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
 
             actualLanguage.Should().BeNull();
         }
-
 
         private void FileExtensionServiceSetup()
         {
