@@ -115,6 +115,11 @@ namespace SonarLint.VisualStudio.Integration
                 languages.Add(Language.Ts);
             }
 
+            if (projectLanguageIndicator.HasTargetLanguage(dteProject, CssTargetLanguagePredicate.Instance))
+            {
+                languages.Add(Language.Css);
+            }
+
             if (connectedModeSecrets.AreSecretsAvailable())
             {
                 languages.Add(Language.Secrets);

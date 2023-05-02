@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void GetAllBindingLanguagesForProject_JsTsProject_JsTsLanguages()
         {
-            var jsTsProjectTypeIndicator = SetupJsTsProject(true);
+            var jsTsProjectTypeIndicator = SetupIProjectLanguageIndicator(true, false);
 
             var project = new ProjectMock("any.xxx") { ProjectKind = Guid.NewGuid().ToString() };
 
@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void GetAllBindingLanguagesForProject_CSharpAndJsTsProject_JsTsLanguages()
         {
-            var jsTsProjectTypeIndicator = SetupJsTsProject(true);
+            var jsTsProjectTypeIndicator = SetupIProjectLanguageIndicator(true, false);
 
             var project = new ProjectMock("any.xxx") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
 
@@ -133,6 +133,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var actualLanguage = testSubject.GetAllBindingLanguagesForProject(project);
 
             actualLanguage.Should().BeEquivalentTo(Language.Js, Language.Ts, Language.CSharp);
+        }
+
+        [TestMethod]
+        public void GetAllBindingLanguagesForProject_JsTsProject_CssLanguage()
+        {
+            var jsTsProjectTypeIndicator = SetupIProjectLanguageIndicator(true, true);
+
+            var project = new ProjectMock("any.xxx") { ProjectKind = Guid.NewGuid().ToString() };
+
+            var testSubject = CreateTestSubject(multiLanguageProjectTypeIndicator: jsTsProjectTypeIndicator.Object);
+
+            var actualLanguage = testSubject.GetAllBindingLanguagesForProject(project);
+
+            actualLanguage.Should().BeEquivalentTo(Language.Js, Language.Ts, Language.Css);
+        }
+
+        [TestMethod]
+        public void GetAllBindingLanguagesForProject_CSharpAndCssProject_CssLanguage()
+        {
+            var jsTsProjectTypeIndicator = SetupIProjectLanguageIndicator(false, true);
+
+            var project = new ProjectMock("any.xxx") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
+
+            var testSubject = CreateTestSubject(multiLanguageProjectTypeIndicator: jsTsProjectTypeIndicator.Object);
+
+            var actualLanguage = testSubject.GetAllBindingLanguagesForProject(project);
+
+            actualLanguage.Should().BeEquivalentTo(Language.Css, Language.CSharp);
         }
 
         [TestMethod]
@@ -297,16 +325,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return cmakeProjectTypeIndicator;
         }
 
-        private static Mock<IProjectLanguageIndicator> SetupJsTsProject(bool isJsTs)
+        private static Mock<IProjectLanguageIndicator> SetupIProjectLanguageIndicator(bool isJsTs, bool isCss)
         {
-            var jsTsProjectTypeIndicator = new Mock<IProjectLanguageIndicator>();
+            var projectLanguageIndicator = new Mock<IProjectLanguageIndicator>();
 
-            jsTsProjectTypeIndicator
+            projectLanguageIndicator
                 .Setup(x => x.HasTargetLanguage(It.IsAny<Project>(),
                     JsTsTargetLanguagePredicate.Instance))
                 .Returns(isJsTs);
 
-            return jsTsProjectTypeIndicator;
+            projectLanguageIndicator
+                .Setup(x => x.HasTargetLanguage(It.IsAny<Project>(),
+                    CssTargetLanguagePredicate.Instance))
+                .Returns(isCss);
+
+            return projectLanguageIndicator;
         }
     }
 }
