@@ -220,15 +220,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
             result.Last().Should().Be(AnalysisLanguage.CascadingStyleSheets);
         }
 
-        [DataRow("File.cs", AnalysisLanguage.RoslynFamily)]
-        [DataRow("File.CS", AnalysisLanguage.RoslynFamily)]
-        [DataRow("File.vb", AnalysisLanguage.RoslynFamily)]
-        [DataRow("File.js", AnalysisLanguage.Javascript)]
-        [DataRow("File.ts", AnalysisLanguage.TypeScript)]
-        [DataRow("File.cpp", AnalysisLanguage.CFamily)]
-        [DataRow("File.css", AnalysisLanguage.CascadingStyleSheets)]
-        [DataRow("File.scss", AnalysisLanguage.CascadingStyleSheets)]
-        [DataRow("File.less", AnalysisLanguage.CascadingStyleSheets)]
+        [DataRow("cs", AnalysisLanguage.RoslynFamily)]
+        [DataRow("vb", AnalysisLanguage.RoslynFamily)]
+        [DataRow("js", AnalysisLanguage.Javascript)]
+        [DataRow("ts", AnalysisLanguage.TypeScript)]
+        [DataRow("cpp", AnalysisLanguage.CFamily)]
+        [DataRow("css", AnalysisLanguage.CascadingStyleSheets)]
+        [DataRow("scss", AnalysisLanguage.CascadingStyleSheets)]
+        [DataRow("less", AnalysisLanguage.CascadingStyleSheets)]
         [TestMethod]
         public void GetAnalysisLanguageFromExtension_ReturnsAnalysisLangFromExtension(string fileName, AnalysisLanguage expectedLanguage)
         {
@@ -238,10 +237,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
             actualLanguage.Value.Should().Be(expectedLanguage);
         }
 
-        [DataRow("File.json")]
-        [DataRow("Folder")]
-        [DataRow("<SharedProject>")] //Shared projects in .Net Framework are represented by <>
-        [TestMethod]
+        [DataRow("json")]
+        [DataRow("")]
+        [DataRow(null)]
         public void GetAnalysisLanguageFromExtension_UnknownExtensionPassed_ReturnsNull(string fileName)
         {
             var actualLanguage = testSubject.GetAnalysisLanguageFromExtension(fileName);

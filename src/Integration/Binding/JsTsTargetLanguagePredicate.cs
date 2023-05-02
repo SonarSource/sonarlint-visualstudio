@@ -18,22 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using EnvDTE;
+using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    public interface IJsTsProjectTypeIndicator
+    public class JsTsTargetLanguagePredicate : ITargetLanguagePredicate
     {
-        /// <summary>
-        /// Opened As Folder: Searches all the files under the folder and it's subfolders
-        /// Opened As Solution: Searches all items for given dte project
-        /// </summary>
-        /// <remarks>
-        /// If given dte project is opened as Folder. A folder search is done
-        /// </remarks>
-        /// <returns>
-        /// True if a js/ts file is found, false otherwise
-        /// </returns>
-        bool IsJsTs(Project dteProject);
+        public static readonly JsTsTargetLanguagePredicate Instance = new JsTsTargetLanguagePredicate();
+        private JsTsTargetLanguagePredicate(){}
+        public bool IsTargetLanguage(AnalysisLanguage detectedLanguage, string fileExtension)
+        {
+            return detectedLanguage == AnalysisLanguage.Javascript || detectedLanguage == AnalysisLanguage.TypeScript;
+        }
     }
 }
