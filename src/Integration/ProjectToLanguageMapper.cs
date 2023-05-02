@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration
                 languages.Add(Language.C);
             }
 
-            if (projectLanguageIndicator.HasOneOfTargetLanguages(dteProject, AnalysisLanguage.Javascript, AnalysisLanguage.TypeScript))
+            if (projectLanguageIndicator.HasTargetLanguage(dteProject, JsTsTargetLanguagePredicate.Instance))
             {
                 languages.Add(Language.Js);
                 languages.Add(Language.Ts);

@@ -18,24 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using EnvDTE;
+using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    public interface IProjectLanguageIndicator
+    public class JsTsTargetLanguagePredicate : ITargetLanguagePredicate
     {
-        /// <summary>
-        /// Opened As Folder: Searches all the files under the folder and it's subfolders
-        /// Opened As Solution: Searches all items for given dte project
-        /// </summary>
-        /// <param name="dteProject">Project</param>
-        /// <param name="targetLanguagePredicate">Predicated that indicates whether target has been found</param>
-        /// <remarks>
-        /// If given dte project is opened as Folder. A folder search is done
-        /// </remarks>
-        /// <returns>
-        /// True as soon as <see cref="targetLanguagePredicate"/> returns true, false if predicate never returned true
-        /// </returns>
-        bool HasTargetLanguage(Project dteProject, ITargetLanguagePredicate targetLanguagePredicate);
+        public static readonly JsTsTargetLanguagePredicate Instance = new JsTsTargetLanguagePredicate();
+        private JsTsTargetLanguagePredicate(){}
+        public bool IsTargetLanguage(AnalysisLanguage detectedLanguage, string fileExtension)
+        {
+            return detectedLanguage == AnalysisLanguage.Javascript || detectedLanguage == AnalysisLanguage.TypeScript;
+        }
     }
 }

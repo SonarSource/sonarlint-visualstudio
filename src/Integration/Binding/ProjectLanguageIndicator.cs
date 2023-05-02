@@ -26,12 +26,14 @@ using System.IO.Abstractions;
 using System.Linq;
 using EnvDTE;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
+
+
     [Export(typeof(IProjectLanguageIndicator))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class ProjectLanguageIndicator : IProjectLanguageIndicator
@@ -61,59 +63,66 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.fileSystem = fileSystem;
         }
         
-        public bool HasOneOfTargetLanguages(Project dteProject, params AnalysisLanguage[] targetLanguages)
+        public bool HasTargetLanguage(Project dteProject, ITargetLanguagePredicate targetLanguagePredicate)
         {
             //When opened as folder there can be a dteProject if a file is open
             //If there is a dteProject and it's opened as a folder
             //Folder search takes precedence for consistency
             if (folderWorkspaceService.IsFolderWorkspace())
             {
-                return HasFileOnDisk(targetLanguages);
+                return HasFileOnDisk(targetLanguagePredicate);
             }
 
             Debug.Assert(dteProject != null, "When it's not folder workspace we expect dteProject not to be null");
 
             try
             {
-                var hasAnyOfLanguages = HasFileInProject(dteProject.ProjectItems, targetLanguages);
+                var hasAnyOfLanguages = HasFileInProject(dteProject.ProjectItems, targetLanguagePredicate);
 
                 return hasAnyOfLanguages;
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(BindingStrings.FailedToIdentifyLanguage, string.Join(",", targetLanguages), dteProject.Name, ex);
+                logger.WriteLine(BindingStrings.FailedToIdentifyLanguage, dteProject.Name, ex);
 
                 return false;
             }
         }
 
-        private bool HasFileOnDisk(AnalysisLanguage[] analysisLanguages)
+        private bool HasFileOnDisk(ITargetLanguagePredicate targetLanguagePredicate)
         {
             var root = folderWorkspaceService.FindRootDirectory();
 
             var fileList = fileSystem.Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories).Where(x => !x.Contains("\\node_modules\\"));
 
-            return fileList.Any(fileName => IsTargetLanguage(fileName, analysisLanguages));
+            return fileList.Any(fileName => IsTargetLanguage(fileName, targetLanguagePredicate));
         }
 
-        private bool IsTargetLanguage(string fileName, AnalysisLanguage[] targetLanguages)
+        private bool IsTargetLanguage(string fileName, ITargetLanguagePredicate targetLanguagePredicate)
         {
-            var analysisLanguage = sonarLanguageRecognizer.GetAnalysisLanguageFromExtension(fileName);
-            return analysisLanguage.HasValue && targetLanguages.Contains(analysisLanguage.Value);
+            var normalizedExtension = FileExtensionExtractor.GetNormalizedExtension(fileName);
+
+            if (string.IsNullOrEmpty(normalizedExtension))
+            {
+                return false;
+            }
+
+            var analysisLanguage = sonarLanguageRecognizer.GetAnalysisLanguageFromExtension(normalizedExtension);
+            return analysisLanguage.HasValue && targetLanguagePredicate.IsTargetLanguage(analysisLanguage.Value, normalizedExtension);
         }
 
-        private bool HasFileInProject(ProjectItems projectItems, AnalysisLanguage[] analysisLanguages)
+        private bool HasFileInProject(ProjectItems projectItems, ITargetLanguagePredicate analysisTargetLanguages)
         {
             foreach (ProjectItem item in projectItems)
             {
-                if (IsTargetLanguage(item.Name, analysisLanguages))
+                if (IsTargetLanguage(item.Name, analysisTargetLanguages))
                 {
                     return true;
                 }
 
                 if (item.ProjectItems?.Count > 0)
                 {
-                    if (HasFileInProject(item.ProjectItems, analysisLanguages))
+                    if (HasFileInProject(item.ProjectItems, analysisTargetLanguages))
                     {
                         return true;
                     }

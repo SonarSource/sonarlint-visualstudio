@@ -302,9 +302,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var jsTsProjectTypeIndicator = new Mock<IProjectLanguageIndicator>();
 
             jsTsProjectTypeIndicator
-                .Setup(x => x.HasOneOfTargetLanguages(It.IsAny<Project>(),
-                    It.Is<AnalysisLanguage[]>(x =>
-                        x.SequenceEqual(new[] { AnalysisLanguage.Javascript, AnalysisLanguage.TypeScript }))))
+                .Setup(x => x.HasTargetLanguage(It.IsAny<Project>(),
+                    JsTsTargetLanguagePredicate.Instance))
                 .Returns(isJsTs);
 
             return jsTsProjectTypeIndicator;

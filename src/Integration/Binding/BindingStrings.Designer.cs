@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Binding {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [ProjectLanguageIndicator] Failed to identify any of [{0}] languages files in project &apos;{1}&apos;: {2}.
+        ///   Looks up a localized string similar to [ProjectLanguageIndicator] Failed to identify languages files in project &apos;{0}&apos;: {1}.
         /// </summary>
         internal static string FailedToIdentifyLanguage {
             get {
