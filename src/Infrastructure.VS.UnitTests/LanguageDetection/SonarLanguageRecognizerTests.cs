@@ -239,8 +239,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
 
         [DataRow("json")]
         [DataRow("")]
-        [DataRow(null)] //Shared projects in .Net Framework are represented by <>
-        [TestMethod]
+        [DataRow(null)]
         public void GetAnalysisLanguageFromExtension_UnknownExtensionPassed_ReturnsNull(string fileName)
         {
             var actualLanguage = testSubject.GetAnalysisLanguageFromExtension(fileName);

@@ -32,8 +32,6 @@ using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-
-
     [Export(typeof(IProjectLanguageIndicator))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class ProjectLanguageIndicator : IProjectLanguageIndicator
