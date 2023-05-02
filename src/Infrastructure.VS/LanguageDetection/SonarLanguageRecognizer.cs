@@ -32,6 +32,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
     {
         IEnumerable<AnalysisLanguage> Detect(string filePath, IContentType bufferContentType);
 
+        /// <summary>
+        /// Returns Language associated with the extension
+        /// </summary>
+        /// <param name="fileExtension">file extension in lower case without "."</param>
+        /// <returns>AnalysisLanguage or null if not recognized</returns>
         AnalysisLanguage? GetAnalysisLanguageFromExtension(string fileExtension);
     }
 
@@ -135,6 +140,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
 
         public AnalysisLanguage? GetAnalysisLanguageFromExtension(string fileExtension)
         {
+            if (string.IsNullOrEmpty(fileExtension))
+            {
+                return null;
+            }
+
             // ContentType for "js" is typescript we do manual check to be consistent with Detect method
             if (JavascriptSupportedExtensions.Contains(fileExtension)) { return AnalysisLanguage.Javascript; }
 
