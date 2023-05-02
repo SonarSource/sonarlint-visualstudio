@@ -46,7 +46,6 @@ namespace SonarLint.VisualStudio.Integration
     {
         internal /*for testing purposes*/ static readonly Type[] SupportedLocalServices = {
                 typeof(IProjectSystemHelper),
-                typeof(ISourceControlledFileSystem),
                 typeof(IProjectSystemFilter),
                 typeof(IErrorListInfoBarController),
                 typeof(IConfigurationProviderService),
@@ -331,10 +330,6 @@ namespace SonarLint.VisualStudio.Integration
                         Logger),
                     Logger)));
 
-            // Use Lazy<object> to avoid creating instances needlessly, since the interfaces are serviced by the same instance
-            var sccFs = new Lazy<ILocalService>(() => new SourceControlledFileSystem(this, Logger));
-            this.localServices.Add(typeof(ISourceControlledFileSystem), sccFs);
-
             Debug.Assert(SupportedLocalServices.Length == this.localServices.Count, "Unexpected number of local services");
             Debug.Assert(SupportedLocalServices.All(t => this.localServices.ContainsKey(t)), "Not all the LocalServices are registered");
         }
@@ -346,9 +341,7 @@ namespace SonarLint.VisualStudio.Integration
             var credentialsLoader = new SolutionBindingCredentialsLoader(credentialStoreService);
             var bindingFileLoader = new SolutionBindingFileLoader(Logger);
 
-            var sccFileSystem = this.GetService<ISourceControlledFileSystem>();
-
-            var solutionBindingDataWriter = new SolutionBindingDataWriter(sccFileSystem, bindingFileLoader, credentialsLoader);
+            var solutionBindingDataWriter = new SolutionBindingDataWriter(bindingFileLoader, credentialsLoader);
 
             return new ConfigurationPersister(connectedModeConfigPathProvider, solutionBindingDataWriter);
         }

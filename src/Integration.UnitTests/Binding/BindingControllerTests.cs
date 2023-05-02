@@ -75,7 +75,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper);
             serviceProvider.RegisterService(typeof(IConfigurationProviderService), configProvider);
-            serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem(new MockFileSystem()));
 
             logger = new TestLogger();
             serviceProvider.RegisterService(typeof(ILogger), logger);

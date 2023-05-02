@@ -21,6 +21,10 @@
 using System;
 using System.Collections.Generic;
 
+// TODO - CM cleanup - this interface is no longer used by the binding product code.
+// However, it might be useful as part of the old-settings-cleanup-code (it handles
+// making file edits to source controlled file systems other than git using VS APIs).
+
 namespace SonarLint.VisualStudio.Integration
 {
     /// <summary>

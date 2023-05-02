@@ -20,18 +20,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
@@ -64,10 +61,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
 
-            var mockFileSystem = new MockFileSystem();
-            var sccFileSystem = new ConfigurableSourceControlledFileSystem(mockFileSystem);
 
-            this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), sccFileSystem);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
 
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);

@@ -31,16 +31,11 @@ using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    // Legacy connected mode:
-    // * writes the binding info files to disk and adds them as solution items.
-    // * co-ordinates writing project-level changes
-
     /// <summary>
     /// Handles writing solution-level files
     /// </summary>
     internal class SolutionBindingOperation : ISolutionBindingOperation
     {
-        private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly IProjectSystemHelper projectSystem;
         private readonly IDictionary<Language, IBindingConfig> bindingConfigInformationMap = new Dictionary<Language, IBindingConfig>();
         private readonly IFileSystem fileSystem;
@@ -62,9 +57,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
-
-            this.sourceControlledFileSystem = serviceProvider.GetService<ISourceControlledFileSystem>();
-            this.sourceControlledFileSystem.AssertLocalServiceIsNotNull();
         }
 
         #region State
@@ -75,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             private set;
         }
 
-        internal /*for testing purposes*/ IReadOnlyDictionary<Language, IBindingConfig> RuleSetsInformationMap => 
+        internal /*for testing purposes*/ IReadOnlyDictionary<Language, IBindingConfig> RuleSetsInformationMap =>
             new ReadOnlyDictionary<Language, IBindingConfig>(bindingConfigInformationMap);
 
         #endregion
@@ -129,25 +121,18 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 var info = keyValue.Value;
 
-                sourceControlledFileSystem.QueueFileWrites(info.SolutionLevelFilePaths, () =>
+                foreach (var solutionItem in info.SolutionLevelFilePaths)
                 {
-                    foreach (var solutionItem in info.SolutionLevelFilePaths)
-                    {
-                        var ruleSetDirectoryPath = Path.GetDirectoryName(solutionItem);
-                        fileSystem.Directory.CreateDirectory(ruleSetDirectoryPath); // will no-op if exists
-                    }
+                    var ruleSetDirectoryPath = Path.GetDirectoryName(solutionItem);
+                    fileSystem.Directory.CreateDirectory(ruleSetDirectoryPath); // will no-op if exists
+                }
 
-                    info.Save();
-
-                    return true;
-                });
-
-                Debug.Assert(sourceControlledFileSystem.FilesExistOrQueuedToBeWritten(info.SolutionLevelFilePaths), "Expected solution items to be queued for writing");
+                info.Save();
             }
         }
 
-        public bool CommitSolutionBinding()
-            => this.sourceControlledFileSystem.WriteQueuedFiles();
+        // TODO - CM cleanup - remove
+        public bool CommitSolutionBinding() => true; // no-op
             
         #endregion
     }

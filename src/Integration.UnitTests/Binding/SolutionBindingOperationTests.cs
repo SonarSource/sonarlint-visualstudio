@@ -45,7 +45,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private ProjectMock solutionItemsProject;
         private SolutionMock solutionMock;
-        private ConfigurableSourceControlledFileSystem sccFileSystem;
         private MockFileSystem fileSystem;
 
         // Note: currently the project binding saves files using the IRuleSetSerializer.
@@ -68,11 +67,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.projectSystemHelper.SolutionItemsProject = this.solutionItemsProject;
             this.projectSystemHelper.CurrentActiveSolution = this.solutionMock;
             this.fileSystem = new MockFileSystem();
-            this.sccFileSystem = new ConfigurableSourceControlledFileSystem(fileSystem);
             this.ruleFS = new ConfigurableRuleSetSerializer(fileSystem);
 
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
-            this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), this.sccFileSystem);
             this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), this.ruleFS);
 
             var projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), Mock.Of<IJsTsProjectTypeIndicator>(), Mock.Of<IConnectedModeSecrets>());
@@ -193,8 +190,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Act
             testSubject.Prepare(CancellationToken.None);
-            // Act (write pending)
-            sccFileSystem.WritePendingNoErrorsExpected();
 
             // Assert
             CheckRuleSetFileWasSaved(csConfigFile);
@@ -263,8 +258,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var configFile = new Mock<IBindingConfig>();
             configFile.SetupGet(x => x.SolutionLevelFilePaths).Returns(new List<string> {expectedFilePath});
 
-            // Simulate an update to the scc file system on Save (prevents an assertion
-            // in the product code).
+            // Simulate the update to the file system
             configFile.Setup(x => x.Save())
                 .Callback(() =>
                 {

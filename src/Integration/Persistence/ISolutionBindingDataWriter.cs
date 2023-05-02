@@ -34,28 +34,20 @@ namespace SonarLint.VisualStudio.Integration.Persistence
 
     internal class SolutionBindingDataWriter : ISolutionBindingDataWriter
     {
-        private readonly ISourceControlledFileSystem sccFileSystem;
         private readonly ISolutionBindingFileLoader solutionBindingFileLoader;
         private readonly ISolutionBindingCredentialsLoader credentialsLoader;
 
-        public SolutionBindingDataWriter(ISourceControlledFileSystem sccFileSystem,
+        public SolutionBindingDataWriter(
             ISolutionBindingFileLoader solutionBindingFileLoader,
             ISolutionBindingCredentialsLoader credentialsLoader)
         {
-            this.sccFileSystem = sccFileSystem ?? throw new ArgumentNullException(nameof(sccFileSystem));
             this.solutionBindingFileLoader = solutionBindingFileLoader ?? throw new ArgumentNullException(nameof(solutionBindingFileLoader));
             this.credentialsLoader = credentialsLoader ?? throw new ArgumentNullException(nameof(credentialsLoader));
         }
 
         /// <summary>
-        /// Writes the binding configuration file to the source controlled file system
+        /// Writes the binding configuration file to disk
         /// </summary>
-        /// <remarks>
-        /// The file will be enqueued but not actually written.
-        /// It is the responsibility of the caller to flush the queue.
-        /// This is to allow multiple other files to be written using the 
-        /// same instance of the SCC wrapper (e.g. ruleset files).
-        /// </remarks>
         public bool Write(string configFilePath, BoundSonarQubeProject binding)
         {
             if (binding == null)
@@ -68,17 +60,12 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                 return false;
             }
 
-            sccFileSystem.QueueFileWrite(configFilePath, () =>
+            if (!solutionBindingFileLoader.Save(configFilePath, binding))
             {
-                if (!solutionBindingFileLoader.Save(configFilePath, binding))
-                {
-                    return false;
-                }
+                return false;
+            }
 
-                credentialsLoader.Save(binding.Credentials, binding.ServerUri);
-                return true;
-            });
-
+            credentialsLoader.Save(binding.Credentials, binding.ServerUri);
             return true;
         }
     }
