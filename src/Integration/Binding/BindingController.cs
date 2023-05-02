@@ -24,7 +24,6 @@ using System.Linq;
 using Microsoft.VisualStudio.OLE.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Exclusions;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
@@ -72,6 +71,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         }
 
         #region Commands
+
         public RelayCommand<BindCommandArgs> BindCommand { get; }
 
         internal /*for testing purposes*/ bool IsBindingInProgress
@@ -179,9 +179,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     Language.Cpp,
                     Language.Js,
                     Language.Ts,
-                    Language.Secrets
+                    Language.Secrets,
+                    Language.Css
                 }, host.SonarQubeService, host.Logger);
-           
+
             var ruleConfigProvider = new CompositeBindingConfigProvider(cSharpVBBindingConfigProvider, nonRoslynBindingConfigProvider);
 
             var exclusionSettingsStorage = new ExclusionSettingsStorage(configProvider, host.Logger);
@@ -190,7 +191,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             return bindingProcess;
         }
-        
+
         internal /*for testing purposes*/ void SetBindingInProgress(IProgressEvents progressEvents, BindCommandArgs bindingArgs)
         {
             this.OnBindingStarted();
@@ -251,6 +252,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 }
             }
         }
+
         #endregion
     }
 }
