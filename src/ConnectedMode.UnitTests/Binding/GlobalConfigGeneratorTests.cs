@@ -137,7 +137,5 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 
         private string GetRuleString(string expectedKey, string expectedSeverity) =>
             $"dotnet_diagnostic.{expectedKey}.severity = {expectedSeverity}";
-
-        private string GetStartOfGlobalConfig() => $"is_global = true\nglobal_level=500000";
     }
 }

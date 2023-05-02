@@ -89,25 +89,25 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
                     throw new NotSupportedException($"Unsupported SonarQube issue severity: {sqSeverity}");
             }
         }
-
+        // See https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/configuration-options#severity-level
         internal /* for testing */ static string GetActionText(RuleAction ruleAction)
         {
             switch (ruleAction)
             {
                 case RuleAction.None:
-                    return "None";
+                    return "none";
 
                 case RuleAction.Info:
-                    return "Info";
+                    return "suggestion";
 
                 case RuleAction.Warning:
-                    return "Warning";
+                    return "warning";
 
                 case RuleAction.Error:
-                    return "Error";
+                    return "error";
 
                 case RuleAction.Hidden:
-                    return "Hidden";
+                    return "silent";
 
                 default:
                     throw new NotSupportedException($"{ruleAction} is not a supported RuleAction.");
