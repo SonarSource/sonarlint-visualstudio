@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
             var sb = new StringBuilder();
 
-            sb.AppendLine("is_global = true");
+            sb.AppendLine("is_global=true");
             sb.AppendLine("global_level=500000");
 
             var sortedRules = rules.OrderBy(r => r.Key);
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             return sb.ToString();
         }
 
-        internal RuleAction GetVsSeverity(SonarQubeIssueSeverity sqSeverity)
+        internal /* for testing */ RuleAction GetVsSeverity(SonarQubeIssueSeverity sqSeverity)
         {
             switch (sqSeverity)
             {
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             }
         }
 
-        internal static string GetActionText(RuleAction ruleAction)
+        internal /* for testing */ static string GetActionText(RuleAction ruleAction)
         {
             switch (ruleAction)
             {
