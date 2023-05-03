@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
@@ -26,7 +27,14 @@ using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
-    internal class ImportBeforeFileGenerator
+    public interface IImportBeforeFileGenerator
+    {
+        void WriteTargetsFileToDiskIfNotExists();
+    }
+
+    [Export(typeof(IImportBeforeFileGenerator))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    public class ImportBeforeFileGenerator : IImportBeforeFileGenerator
     {
         private readonly IFileSystem fileSystem;
         private readonly ILogger logger;
@@ -34,17 +42,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         private const string targetsFileName = "SonarLint.targets";
         private const string resourcePath = "SonarLint.VisualStudio.ConnectedMode.Embedded.SonarLintTargets.xml";
 
+        [ImportingConstructor]
         public ImportBeforeFileGenerator(ILogger logger) : this(logger, new FileSystem()) { }
 
-        public ImportBeforeFileGenerator(ILogger logger, IFileSystem fileSystem)
+        public /* for testing */ ImportBeforeFileGenerator(ILogger logger, IFileSystem fileSystem)
         {
             this.logger = logger;
             this.fileSystem = fileSystem;
-
-            WriteTargetsFileToDiskIfNotExists();
         }
 
-        private void WriteTargetsFileToDiskIfNotExists()
+        public void WriteTargetsFileToDiskIfNotExists()
         {
             var fileContent = GetTargetFileContent();
             var pathToImportBefore = GetPathToImportBefore();
