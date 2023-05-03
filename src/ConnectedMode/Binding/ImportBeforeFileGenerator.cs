@@ -27,14 +27,18 @@ using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
-    public interface IImportBeforeFileGenerator
+    /// <summary>
+    /// Creates a .targets file in the ImportBefore directory with the contents
+    /// of the SonarLintTargets.xml file.
+    /// </summary>
+    internal interface IImportBeforeFileGenerator
     {
         void WriteTargetsFileToDiskIfNotExists();
     }
 
     [Export(typeof(IImportBeforeFileGenerator))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class ImportBeforeFileGenerator : IImportBeforeFileGenerator
+    internal class ImportBeforeFileGenerator : IImportBeforeFileGenerator
     {
         private readonly IFileSystem fileSystem;
         private readonly ILogger logger;
