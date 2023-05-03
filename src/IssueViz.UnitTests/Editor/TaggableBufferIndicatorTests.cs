@@ -34,7 +34,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
     [TestClass]
     public class TaggableBufferIndicatorTests
     {
-
         [TestMethod]
         public void IsTaggable_ProjectionBuffer_False()
         {
