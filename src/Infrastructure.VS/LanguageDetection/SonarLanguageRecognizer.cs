@@ -43,7 +43,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
     [Export(typeof(ISonarLanguageRecognizer))]
     internal class SonarLanguageRecognizer : ISonarLanguageRecognizer
     {
-        private static readonly ISet<string> JavascriptSupportedExtensions = new HashSet<string> { "js", "jsx", "vue" };
+        private const string VueExtension = "vue";
+        private static readonly ISet<string> JavascriptSupportedExtensions = new HashSet<string> { "js", "jsx", VueExtension };
 
         private const string CFamilyTypeName = "C/C++";
         private const string TypeScriptTypeName = "TypeScript";
@@ -75,12 +76,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
             if (IsJavascriptDocument(fileExtension, contentTypes))
             {
                 detectedLanguages.Add(AnalysisLanguage.Javascript);
-                detectedLanguages.Add(AnalysisLanguage.CascadingStyleSheets);
             }
             else if (IsTypeScriptDocument(contentTypes))
             {
                 detectedLanguages.Add(AnalysisLanguage.TypeScript);
-                detectedLanguages.Add(AnalysisLanguage.CascadingStyleSheets);
             }
 
             if (IsCFamilyDocument(contentTypes))
@@ -93,7 +92,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
                 detectedLanguages.Add(AnalysisLanguage.RoslynFamily);
             }
 
-            if (IsCssDocument(contentTypes))
+            if (CanDocumentHaveCss(fileExtension, contentTypes))
             {
                 detectedLanguages.Add(AnalysisLanguage.CascadingStyleSheets);
             }
@@ -118,6 +117,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
 
             return contentTypes;
         }
+
+        private static bool CanDocumentHaveCss(string fileExtension, IEnumerable<IContentType> contentTypes) =>
+            fileExtension == VueExtension || contentTypes.Any(type => type.IsOfType("Vue")) || IsCssDocument(contentTypes);
 
         private static bool IsJavascriptDocument(string fileExtension, IEnumerable<IContentType> contentTypes) =>
             JavascriptSupportedExtensions.Contains(fileExtension) ||
@@ -153,18 +155,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
             {
                 case TypeScriptTypeName:
                     return AnalysisLanguage.TypeScript;
+
                 case CFamilyTypeName:
                     return AnalysisLanguage.CFamily;
+
                 case CSharpTypeName:
                 case BasicTypeName:
                     return AnalysisLanguage.RoslynFamily;
+
                 case CSSTypeName:
                 case SCSSTypeName:
                 case LESSTypeName:
                     return AnalysisLanguage.CascadingStyleSheets;
+
                 default:
-                    return null;                   
+                    return null;
             }
         }
-    }  
+    }
 }
