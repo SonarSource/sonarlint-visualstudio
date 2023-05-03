@@ -21,7 +21,6 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Integration;
