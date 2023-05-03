@@ -159,16 +159,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void CreateTagger_should_return_null_when_buffer_is_projection()
-        {
-            var projectionBufferMock = new Mock<IProjectionBuffer>();
-
-            var tagger = provider.CreateTagger<IErrorTag>(projectionBufferMock.Object);
-
-            tagger.Should().BeNull();
-        }
-
-        [TestMethod]
         public void CreateTagger_SameDocument_ShouldUseSameSingletonManager()
         {
             var doc1 = CreateMockedDocument("doc1.js");

@@ -153,11 +153,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// </summary>
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            if (buffer is IProjectionBuffer)
-            {
-                return null;
-            }
-
             // Only attempt to track the view's edit buffer.
             if (typeof(T) != typeof(IErrorTag))
             {

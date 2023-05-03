@@ -92,17 +92,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             manager1.Should().NotBeSameAs(manager2);
         }
 
-        [TestMethod]
-        public void CreateTagger_should_return_null_when_buffer_is_projection()
-        {
-            var projectionBufferMock = new Mock<IProjectionBuffer>();
-            var testSubject = CreateTestSubject(CreateTaggableBufferIndicator());
-
-            var tagger = testSubject.CreateTagger<ITag>(projectionBufferMock.Object);
-
-            tagger.Should().BeNull();
-        }
-
         private static SingletonDisposableTaggerManager<IIssueLocationTag> GetSingletonManager(ITextBuffer buffer)
         {
             buffer.Properties.TryGetProperty<SingletonDisposableTaggerManager<IIssueLocationTag>>(

@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Projection;
 using SonarLint.VisualStudio.Core.Helpers;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor
@@ -49,6 +50,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 
         public bool IsTaggable(ITextBuffer buffer)
         {
+            if (buffer is IProjectionBuffer)
+            {
+                return false;
+            }
+
             var filePath = buffer.GetFilePath();
 
             if (string.IsNullOrEmpty(filePath))
