@@ -42,7 +42,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             fileSystem.Setup(x => x.Directory.Exists(pathToDirectory)).Returns(true);
             fileSystem.Setup(x => x.File.Exists(pathToFile)).Returns(false);
 
-            CreateTestSubject(fileSystem: fileSystem.Object);
+            var testSubject = CreateTestSubject(fileSystem: fileSystem.Object);
+            testSubject.WriteTargetsFileToDiskIfNotExists();
 
             fileSystem.Verify(x => x.File.WriteAllText(pathToFile, fileContent), Times.Once);
         }
@@ -58,7 +59,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             fileSystem.Setup(x => x.File.Exists(pathToFile)).Returns(true);
             fileSystem.Setup(x => x.File.ReadAllText(pathToFile)).Returns("wrong text");
 
-            CreateTestSubject(fileSystem: fileSystem.Object);
+            var testSubject = CreateTestSubject(fileSystem: fileSystem.Object);
+            testSubject.WriteTargetsFileToDiskIfNotExists();
 
             fileSystem.Verify(x => x.File.WriteAllText(pathToFile, It.IsAny<String>()), Times.Once);
         }
@@ -76,7 +78,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             string fileContent = GetTargetFileContent();
             fileSystem.Setup(x => x.File.ReadAllText(pathToFile)).Returns(fileContent);
 
-            CreateTestSubject(fileSystem: fileSystem.Object);
+            var testSubject = CreateTestSubject(fileSystem: fileSystem.Object);
+            testSubject.WriteTargetsFileToDiskIfNotExists();
 
             fileSystem.Verify(x => x.File.WriteAllText(pathToFile, It.IsAny<String>()), Times.Never);
         }
@@ -91,7 +94,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             fileSystem.Setup(x => x.Directory.Exists(pathToDirectory)).Returns(false);
             fileSystem.Setup(x => x.File.Exists(pathToFile)).Returns(false);
 
-            CreateTestSubject(fileSystem: fileSystem.Object);
+            var testSubject = CreateTestSubject(fileSystem: fileSystem.Object);
+            testSubject.WriteTargetsFileToDiskIfNotExists();
 
             fileSystem.Verify(x => x.Directory.CreateDirectory(pathToDirectory), Times.Once);
         }
@@ -104,7 +108,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 
             var logger = new TestLogger();
 
-            CreateTestSubject(logger: logger, fileSystem: fileSystem.Object);
+            var testSubject = CreateTestSubject(logger: logger, fileSystem: fileSystem.Object);
+            testSubject.WriteTargetsFileToDiskIfNotExists();
 
             logger.AssertPartialOutputStringExists("[ConnectedMode] Failed to write file to disk: this is a test");
         }
@@ -115,7 +120,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             var fileSystem = new Mock<IFileSystem>();
             fileSystem.Setup(x => x.Directory.Exists(It.IsAny<String>())).Throws(new StackOverflowException());
 
-            var act = () => CreateTestSubject(fileSystem: fileSystem.Object);
+            var testSubject = CreateTestSubject(fileSystem: fileSystem.Object);
+            var act = () => testSubject.WriteTargetsFileToDiskIfNotExists();
 
             act.Should().Throw<StackOverflowException>();
         }
@@ -147,12 +153,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             return stream.ReadToEnd();
         }
 
-        private void CreateTestSubject(ILogger logger = null, IFileSystem fileSystem = null)
+        private ImportBeforeFileGenerator CreateTestSubject(ILogger logger = null, IFileSystem fileSystem = null)
         {
             logger ??= Mock.Of<ILogger>();
             fileSystem ??= Mock.Of<IFileSystem>();
 
-            _ = new ImportBeforeFileGenerator(logger, fileSystem);
+            return new ImportBeforeFileGenerator(logger, fileSystem);
         }
     }
 }
