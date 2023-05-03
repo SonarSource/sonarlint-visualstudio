@@ -61,8 +61,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<SolutionBindingDataReader, ISolutionBindingDataReader>(
-                MefTestHelpers.CreateExport<ISolutionBindingFileLoader>(),
-                MefTestHelpers.CreateExport<ISolutionBindingCredentialsLoader>());
+                MefTestHelpers.CreateExport<ICredentialStoreService>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]
