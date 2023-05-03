@@ -27,31 +27,40 @@ using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
-    internal interface IConfigurationProviderService : IConfigurationProvider, ILocalService
+    /// <summary>
+    /// Service to return the configuration for "old" Connected Mode settings i.e. pre-unintrusive Connected Mode
+    /// </summary>
+    /// <remarks>This service is only used by the settings migration and cleanup components to help users migrate
+    /// to the new Connected Mode settings format and locations. It and all of the implementing classes can be
+    /// dropped at some point in the future i.e. once we think users have had enough opportunity to move to the
+    /// new format.
+    /// See https://github.com/SonarSource/sonarlint-visualstudio/issues/4171
+    /// </remarks>
+    internal interface IObsoleteConfigurationProviderService : IConfigurationProvider, ILocalService
     {
     }
 
     [Export(typeof(IConfigurationProvider))]
     [PartCreationPolicy(CreationPolicy.Any)]
-    internal class ConfigurationProvider : IConfigurationProviderService
+    internal class ObsoleteConfigurationProvider : IObsoleteConfigurationProviderService
     {
         private readonly ISolutionBindingPathProvider legacyPathProvider;
         private readonly ISolutionBindingPathProvider connectedModePathProvider;
         private readonly ISolutionBindingDataReader solutionBindingDataReader;
 
         [ImportingConstructor]
-        public ConfigurationProvider(
+        public ObsoleteConfigurationProvider(
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             ICredentialStoreService credentialStoreService,
             ILogger logger)
             : this(
                 new LegacySolutionBindingPathProvider(serviceProvider),
-                new ConnectedModeSolutionBindingPathProvider(serviceProvider),
+                new ObsoleteConnectedModeSolutionBindingPathProvider(serviceProvider),
                 new SolutionBindingDataReader(new SolutionBindingFileLoader(logger), new SolutionBindingCredentialsLoader(credentialStoreService)))
         {
         }
 
-        internal ConfigurationProvider(ISolutionBindingPathProvider legacyPathProvider,
+        internal ObsoleteConfigurationProvider(ISolutionBindingPathProvider legacyPathProvider,
             ISolutionBindingPathProvider connectedModePathProvider,
             ISolutionBindingDataReader solutionBindingDataReader)
         {
