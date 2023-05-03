@@ -29,11 +29,11 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
     /// Return the path of solution's binding configuration file when in connected mode.
     /// The legacy binding is calculated using <see cref="LegacySolutionBindingPathProvider"/>.
     /// </summary>
-    internal class ConnectedModeSolutionBindingPathProvider : ISolutionBindingPathProvider
+    internal class ObsoleteConnectedModeSolutionBindingPathProvider : ISolutionBindingPathProvider
     {
         private readonly IVsSolution solution;
 
-        public ConnectedModeSolutionBindingPathProvider(IServiceProvider serviceProvider)
+        public ObsoleteConnectedModeSolutionBindingPathProvider(IServiceProvider serviceProvider)
         {
             if (serviceProvider == null)
             {
