@@ -19,11 +19,8 @@
  */
 
 using System;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
@@ -34,12 +31,12 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class ConfigurationProviderTests
+    public class ObsoleteConfigurationProviderTests
     {
         private Mock<ISolutionBindingPathProvider> legacyPathProvider;
         private Mock<ISolutionBindingPathProvider> newPathProvider;
         private Mock<ISolutionBindingDataReader> solutionBindingDataReader;
-        private ConfigurationProvider testSubject;
+        private ObsoleteConfigurationProvider testSubject;
 
         [TestInitialize]
         public void TestInitialize()
@@ -48,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             newPathProvider = new Mock<ISolutionBindingPathProvider>();
             solutionBindingDataReader = new Mock<ISolutionBindingDataReader>();
 
-            testSubject = new ConfigurationProvider(legacyPathProvider.Object,
+            testSubject = new ObsoleteConfigurationProvider(legacyPathProvider.Object,
                 newPathProvider.Object,
                 solutionBindingDataReader.Object);
         }
@@ -56,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<ConfigurationProvider, IConfigurationProvider>(
+            MefTestHelpers.CheckTypeCanBeImported<ObsoleteConfigurationProvider, IConfigurationProvider>(
                 MefTestHelpers.CreateExport<ILogger>(),
                 MefTestHelpers.CreateExport<ICredentialStoreService>(),
                 MefTestHelpers.CreateExport<SVsServiceProvider>());
@@ -66,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Ctor_InvalidArgs_NullLegacySerializer_Throws()
         {
             // Arrange
-            Action act = () => new ConfigurationProvider(null, newPathProvider.Object, null);
+            Action act = () => new ObsoleteConfigurationProvider(null, newPathProvider.Object, null);
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyPathProvider");
@@ -76,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Ctor_InvalidArgs_NullConnectedModeSerializer_Throws()
         {
             // Arrange
-            Action act = () => new ConfigurationProvider(legacyPathProvider.Object, null, null);
+            Action act = () => new ObsoleteConfigurationProvider(legacyPathProvider.Object, null, null);
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("connectedModePathProvider");
@@ -86,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Ctor_InvalidArgs_NullSolutionBindingSerializer_Throws()
         {
             // Arrange
-            Action act = () => new ConfigurationProvider(legacyPathProvider.Object, newPathProvider.Object, null);
+            Action act = () => new ObsoleteConfigurationProvider(legacyPathProvider.Object, newPathProvider.Object, null);
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingDataReader");
