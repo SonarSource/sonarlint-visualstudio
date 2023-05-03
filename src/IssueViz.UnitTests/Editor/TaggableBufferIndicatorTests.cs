@@ -22,6 +22,8 @@ using System.IO;
 using System.IO.Abstractions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Text.Projection;
+using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
@@ -32,6 +34,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
     [TestClass]
     public class TaggableBufferIndicatorTests
     {
+        [TestMethod]
+        public void IsTaggable_ProjectionBuffer_False()
+        {
+            var projectionBufferMock = new Mock<IProjectionBuffer>();
+            var testSubject = CreateTestSubject("a", true);
+
+            testSubject.IsTaggable(projectionBufferMock.Object).Should().BeFalse();
+        }
+
         [TestMethod]
         public void IsTaggable_NoFilePath_False()
         {
