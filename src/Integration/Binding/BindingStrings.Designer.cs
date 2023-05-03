@@ -83,11 +83,11 @@ namespace SonarLint.VisualStudio.Integration.Binding {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [JsTsProjectTypeIndicator] Failed to identify JS/TS files in project &apos;{0}&apos;: {1}.
+        ///   Looks up a localized string similar to [ProjectLanguageIndicator] Failed to identify languages files in project &apos;{0}&apos;: {1}.
         /// </summary>
-        internal static string FailedToIdentifyJsTs {
+        internal static string FailedToIdentifyLanguage {
             get {
-                return ResourceManager.GetString("FailedToIdentifyJsTs", resourceCulture);
+                return ResourceManager.GetString("FailedToIdentifyLanguage", resourceCulture);
             }
         }
         

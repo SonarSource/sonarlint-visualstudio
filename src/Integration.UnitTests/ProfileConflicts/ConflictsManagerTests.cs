@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             logger = new TestLogger();
             serviceProvider.RegisterService(typeof(ILogger), logger);
 
-            projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), Mock.Of<IJsTsProjectTypeIndicator>(), Mock.Of<IConnectedModeSecrets>());
+            projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), Mock.Of<IProjectLanguageIndicator>(), Mock.Of<IConnectedModeSecrets>());
 
             var mefHost = ConfigurableComponentModel.CreateWithExports(
                 MefTestHelpers.CreateExport<IProjectToLanguageMapper>(projectToLanguageMapper));
