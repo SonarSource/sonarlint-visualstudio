@@ -50,6 +50,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 
         public bool IsTaggable(ITextBuffer buffer)
         {
+            // projection buffers are ignored because they contain partial contents of a file and that can't be used for mapping IAnalysisIssueVisualization Locations
             if (buffer is IProjectionBuffer)
             {
                 return false;
