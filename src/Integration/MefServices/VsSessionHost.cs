@@ -52,6 +52,7 @@ namespace SonarLint.VisualStudio.Integration
                 typeof(IProjectSystemFilter),
                 typeof(IErrorListInfoBarController),
                 typeof(IConfigurationProviderService),
+                typeof(IObsoleteConfigurationProviderService),
                 typeof(IConfigurationPersister),
                 typeof(ICredentialStoreService),
                 typeof(ITestProjectRegexSetter)
@@ -300,7 +301,8 @@ namespace SonarLint.VisualStudio.Integration
         {
             this.localServices.Add(typeof(ICredentialStoreService), new Lazy<ILocalService>(() => credentialStoreService));
 
-            this.localServices.Add(typeof(IConfigurationProviderService), new Lazy<ILocalService>(() => new ConfigurationProvider(this, credentialStoreService, Logger)));
+            this.localServices.Add(typeof(IObsoleteConfigurationProviderService), new Lazy<ILocalService>(() => new ObsoleteConfigurationProvider(this, credentialStoreService, Logger)));
+            this.localServices.Add(typeof(IConfigurationProviderService), new Lazy<ILocalService>(() => new UnintrusiveConfigurationProvider()));
             this.localServices.Add(typeof(IConfigurationPersister), new Lazy<ILocalService>(GetConfigurationPersister));
 
             var projectNameTestProjectIndicator = new Lazy<ILocalService>(() => new ProjectNameTestProjectIndicator(Logger));
@@ -344,7 +346,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private ILocalService GetConfigurationPersister()
         {
-            var connectedModeConfigPathProvider = new ConnectedModeSolutionBindingPathProvider(this);
+            var connectedModeConfigPathProvider = new ObsoleteConnectedModeSolutionBindingPathProvider(this);
 
             var credentialsLoader = new SolutionBindingCredentialsLoader(credentialStoreService);
             var bindingFileLoader = new SolutionBindingFileLoader(Logger);

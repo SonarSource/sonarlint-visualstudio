@@ -18,13 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Binding
+using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core.Binding;
+
+namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
-    public interface IConfigurationProvider
+    internal interface IConfigurationProviderService : IConfigurationProvider, ILocalService
     {
-        /// <summary>
-        /// Returns the binding configuration for the current solution
-        /// </summary>
-        BindingConfiguration GetConfiguration();
+    }
+
+    [Export(typeof(IConfigurationProvider))]
+    [PartCreationPolicy(CreationPolicy.Any)]
+    internal class UnintrusiveConfigurationProvider : IConfigurationProviderService
+    {
+        // TODO - fetch settings from new location #4170
+        public BindingConfiguration GetConfiguration() => BindingConfiguration.Standalone;
     }
 }

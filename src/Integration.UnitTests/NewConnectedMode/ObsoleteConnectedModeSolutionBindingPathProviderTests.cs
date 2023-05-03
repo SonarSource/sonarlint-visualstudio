@@ -28,10 +28,10 @@ using SonarLint.VisualStudio.Integration.NewConnectedMode;
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class ConnectedModeSolutionBindingPathProviderTests
+    public class ObsoleteConnectedModeSolutionBindingPathProviderTests
     {
         private Mock<IVsSolution> solution;
-        private ConnectedModeSolutionBindingPathProvider testSubject;
+        private ObsoleteConnectedModeSolutionBindingPathProvider testSubject;
 
         [TestInitialize]
         public void TestInitialize()
@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(x => x.GetService(typeof(SVsSolution))).Returns(solution.Object);
 
-            testSubject = new ConnectedModeSolutionBindingPathProvider(serviceProvider.Object);
+            testSubject = new ObsoleteConnectedModeSolutionBindingPathProvider(serviceProvider.Object);
 
         }
 
@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Ctor_InvalidArgs_Throws()
         {
             // Arrange
-            Action act = () => new ConnectedModeSolutionBindingPathProvider(null);
+            Action act = () => new ObsoleteConnectedModeSolutionBindingPathProvider(null);
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Get_NullPath_ReturnsNull()
         {
             // Arrange & Act & Assert
-            ConnectedModeSolutionBindingPathProvider.GetConnectionFilePath(null).Should().BeNull();
+            ObsoleteConnectedModeSolutionBindingPathProvider.GetConnectionFilePath(null).Should().BeNull();
         }
 
         [TestMethod]
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var fullSolutionFilePath = @"c:\aaa\bbbb\C C\mysolutionName.sln";
 
             // Act
-            string actual = ConnectedModeSolutionBindingPathProvider.GetConnectionFilePath(fullSolutionFilePath);
+            string actual = ObsoleteConnectedModeSolutionBindingPathProvider.GetConnectionFilePath(fullSolutionFilePath);
 
             // Assert
             actual.Should().Be(@"c:\aaa\bbbb\C C\.sonarlint\mysolutionName.slconfig");
@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var fullSolutionFilePath = @"c:\aaa\bbbb\C C\mysolutionName.foo.xxx";
 
             // Act
-            string actual = ConnectedModeSolutionBindingPathProvider.GetConnectionFilePath(fullSolutionFilePath);
+            string actual = ObsoleteConnectedModeSolutionBindingPathProvider.GetConnectionFilePath(fullSolutionFilePath);
 
             // Assert
             actual.Should().Be(@"c:\aaa\bbbb\C C\.sonarlint\mysolutionName.foo.slconfig");
