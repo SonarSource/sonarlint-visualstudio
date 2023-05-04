@@ -46,7 +46,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private IList<SonarQubeRule> validRules;
         private IList<SonarQubeProperty> anyProperties;
         private SonarQubeQualityProfile validQualityProfile;
-        private string globalConfig;
 
         private static readonly SonarQubeRule ActiveRuleWithUnsupportedSeverity = new SonarQubeRule("activeHotspot", "any1",
             true, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.SecurityHotspot, null, null, null, null, null, null);
@@ -73,8 +72,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             anyProperties = Array.Empty<SonarQubeProperty>();
 
             validQualityProfile = new SonarQubeQualityProfile("qpkey1", "qp name", "any", false, DateTime.UtcNow);
-
-            globalConfig = "globalConfig";
         }
 
         [TestMethod]
@@ -143,7 +140,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ActiveRulesResponse = validRules,
                 InactiveRulesResponse = emptyRules,
                 PropertiesResponse = anyProperties,
-                GlobalConfigGeneratorResponse = globalConfig,
+                GlobalConfigGeneratorResponse = "globalConfig"
             };
             var testSubject = builder.CreateTestSubject();
 
@@ -155,6 +152,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var actualGlobalConfig = ((ICSharpVBBindingConfig)response).GlobalConfig;
             actualGlobalConfig.Path.Should().Be(expectedGlobalConfigFilePath);
+            actualGlobalConfig.Content.Should().Be("globalConfig");
         }
 
         [TestMethod]
@@ -177,7 +175,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ActiveRulesResponse = validRules,
                 InactiveRulesResponse = emptyRules,
                 PropertiesResponse = anyProperties,
-                GlobalConfigGeneratorResponse = globalConfig,
+                GlobalConfigGeneratorResponse = "globalConfig",
                 SonarLintConfigurationResponse = expectedConfiguration
             };
             var testSubject = builder.CreateTestSubject();
@@ -220,7 +218,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ActiveRulesResponse = activeRules,
                 InactiveRulesResponse = inactiveRules,
                 PropertiesResponse = properties,
-                GlobalConfigGeneratorResponse = globalConfig
+                GlobalConfigGeneratorResponse = "globalConfig"
             };
 
             var testSubject = builder.CreateTestSubject();
