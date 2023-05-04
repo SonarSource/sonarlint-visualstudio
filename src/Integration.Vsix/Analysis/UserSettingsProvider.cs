@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         // Note: the data is stored in the roaming profile so it will be sync across machines
         // for domain-joined users.
         public static readonly string UserSettingsFilePath = Path.GetFullPath(
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SonarLint for Visual Studio", "settings.json"));
+            Path.Combine(EnvironmentVariableProvider.Instance.GetSLVSAppDataRootPath(), "settings.json"));
 
         private readonly ISingleFileMonitor settingsFileMonitor;
 
