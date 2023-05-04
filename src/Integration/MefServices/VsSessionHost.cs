@@ -350,14 +350,11 @@ namespace SonarLint.VisualStudio.Integration
         private ILocalService GetConfigurationPersister()
         {
             var connectedModeConfigPathProvider = new ObsoleteConnectedModeSolutionBindingPathProvider(this);
-
-            var credentialsLoader = new SolutionBindingCredentialsLoader(credentialStoreService);
-            var bindingFileLoader = new SolutionBindingFileLoader(Logger);
-
             var sccFileSystem = this.GetService<ISourceControlledFileSystem>();
 
-            var solutionBindingDataWriter = new SolutionBindingDataWriter(sccFileSystem, bindingFileLoader, credentialsLoader);
+            var solutionBindingDataWriter = new SolutionBindingDataWriter(sccFileSystem, credentialStoreService, Logger);
 
+            // TODO: CM cleanup - this will need to use the new Connected Mode path provider. See #4170.
             return new ConfigurationPersister(connectedModeConfigPathProvider, solutionBindingDataWriter);
         }
 
