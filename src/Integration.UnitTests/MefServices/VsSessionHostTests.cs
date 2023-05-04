@@ -32,6 +32,7 @@ using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 using SonarQube.Client;
+using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {
@@ -339,7 +340,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             // Arrange
             var testSubject = new VsSessionHost(this.serviceProvider, this.sonarQubeServiceMock.Object,
-                new ConfigurableActiveSolutionTracker(), Mock.Of<ICredentialStoreService>(), Mock.Of<IProjectToLanguageMapper>(), Mock.Of<ILogger>());
+            new ConfigurableActiveSolutionTracker(),
+                Mock.Of<ICredentialStoreService>(), Mock.Of<IProjectToLanguageMapper>(), Mock.Of<ISolutionBindingDataReader>(), 
+                Mock.Of<ILogger>());
             ConfigurableVsShell shell = new ConfigurableVsShell();
             shell.RegisterPropertyGetter((int)__VSSPROPID2.VSSPROPID_InstallRootDir, () => this.TestContext.TestRunDirectory);
             this.serviceProvider.RegisterService(typeof(SVsShell), shell);
@@ -378,6 +381,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 tracker ?? new ConfigurableActiveSolutionTracker(),
                 Mock.Of<ICredentialStoreService>(),
                 Mock.Of<IProjectToLanguageMapper>(),
+                Mock.Of<ISolutionBindingDataReader>(),
                 Mock.Of<ILogger>(),
                 Dispatcher.CurrentDispatcher);
 

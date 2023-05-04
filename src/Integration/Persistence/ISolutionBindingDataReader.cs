@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using SonarLint.VisualStudio.Core.Binding;
 
@@ -33,12 +34,19 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         BoundSonarQubeProject Read(string configFilePath);
     }
 
+    [Export(typeof(ISolutionBindingDataReader))]
     internal class SolutionBindingDataReader : ISolutionBindingDataReader
     {
         private readonly ISolutionBindingFileLoader solutionBindingFileLoader;
         private readonly ISolutionBindingCredentialsLoader credentialsLoader;
 
-        public SolutionBindingDataReader(ISolutionBindingFileLoader solutionBindingFileLoader, ISolutionBindingCredentialsLoader credentialsLoader)
+        [ImportingConstructor]
+        public SolutionBindingDataReader(ICredentialStoreService credentialStoreService, ILogger logger)
+            : this(new SolutionBindingFileLoader(logger), new SolutionBindingCredentialsLoader(credentialStoreService))
+        {
+        }
+
+        internal /* for testing */ SolutionBindingDataReader(ISolutionBindingFileLoader solutionBindingFileLoader, ISolutionBindingCredentialsLoader credentialsLoader)
         {
             this.solutionBindingFileLoader = solutionBindingFileLoader ?? throw new ArgumentNullException(nameof(solutionBindingFileLoader));
             this.credentialsLoader = credentialsLoader ?? throw new ArgumentNullException(nameof(credentialsLoader));
