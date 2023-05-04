@@ -43,6 +43,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
     {
         private readonly IVsVersionProvider vsVersionProvider;
         private readonly IFileSystem fileSystem;
+        private readonly IEnvironmentVariableProvider environmentVars;
         private readonly ILogger logger;
 
         private string FilePath => GetFilePath();
@@ -51,14 +52,18 @@ namespace SonarLint.VisualStudio.Core.Notifications
         private readonly object lockObject = new object();
 
         [ImportingConstructor]
-        public DisabledNotificationsStorage(IVsVersionProvider vsVersionProvider, ILogger logger) : this(vsVersionProvider, logger, new FileSystem())
+        public DisabledNotificationsStorage(IVsVersionProvider vsVersionProvider, ILogger logger)
+            : this(vsVersionProvider, logger, new FileSystem(), EnvironmentVariableProvider.Instance)
         {
         }
 
-        internal /*for testing*/ DisabledNotificationsStorage(IVsVersionProvider vsVersionProvider, ILogger logger, IFileSystem fileSystem)
+        internal /*for testing*/ DisabledNotificationsStorage(IVsVersionProvider vsVersionProvider, ILogger logger,
+            IFileSystem fileSystem,
+            IEnvironmentVariableProvider environmentVars)
         {
             this.vsVersionProvider = vsVersionProvider;
             this.fileSystem = fileSystem;
+            this.environmentVars = environmentVars;
             this.logger = logger;
         }
 
@@ -140,8 +145,8 @@ namespace SonarLint.VisualStudio.Core.Notifications
         
         private string GetFilePath()
         {
-            string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            string fullPath = Path.Combine(appData, "SonarLint for Visual Studio", vsVersionProvider.Version.MajorInstallationVersion, "internal.notifications.json");
+            string slvsRootPath = environmentVars.GetSLVSAppDataRootPath();
+            string fullPath = Path.Combine(slvsRootPath, vsVersionProvider.Version.MajorInstallationVersion, "internal.notifications.json");
 
             return fullPath;
         }

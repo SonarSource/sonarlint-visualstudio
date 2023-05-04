@@ -36,7 +36,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
     [TestClass]
     public class DisabledNotificationsStorageTests
     {
-        private string ExpectedDisabledNotificationsFilePath => GetExpectedDisabledNotificationsFilePath();
+        private const string DefaultRootPath = "c:\\users\\someuser";
+        private const string HardCodedVSVersion = "17";
+
+        private string ExpectedDefaultDisabledNotificationsFilePath => GetExpectedDisabledNotificationsFilePath();
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
@@ -61,7 +64,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             var result = testSubject.IsNotificationDisabled(notificationId);
 
             result.Should().Be(expectedResult);
-            file.Verify(f => f.ReadAllText(ExpectedDisabledNotificationsFilePath), Times.Once);
+            file.Verify(f => f.ReadAllText(ExpectedDefaultDisabledNotificationsFilePath), Times.Once);
 
             //To make sure we do not go to disk on consecutive calls 
             _ = testSubject.IsNotificationDisabled(notificationId);
@@ -78,8 +81,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             var result = testSubject.IsNotificationDisabled("1");
 
             result.Should().BeFalse();
-            file.Verify(f => f.Exists(ExpectedDisabledNotificationsFilePath), Times.Once);
-            file.Verify(f => f.ReadAllText(ExpectedDisabledNotificationsFilePath), Times.Never);
+            file.Verify(f => f.Exists(ExpectedDefaultDisabledNotificationsFilePath), Times.Once);
+            file.Verify(f => f.ReadAllText(ExpectedDefaultDisabledNotificationsFilePath), Times.Never);
         }
 
         [TestMethod]
@@ -125,7 +128,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             var result = testSubject.IsNotificationDisabled("4");
 
             result.Should().BeTrue();
-            file.Verify(f => f.WriteAllText(ExpectedDisabledNotificationsFilePath, It.IsAny<string>()), Times.Once);
+            file.Verify(f => f.WriteAllText(ExpectedDefaultDisabledNotificationsFilePath, It.IsAny<string>()), Times.Once);
 
             var disabledNotificationsJson = (string)file.Invocations[2].Arguments[1];
             var disabledNotificationsResult = JsonConvert.DeserializeObject<NotificationSettings>(disabledNotificationsJson);
@@ -166,8 +169,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             var result = testSubject.IsNotificationDisabled("1");
 
             result.Should().BeTrue();
-            file.Verify(f => f.WriteAllText(ExpectedDisabledNotificationsFilePath, It.IsAny<string>()), Times.Once);
-            directory.Verify(d => d.CreateDirectory(Path.GetDirectoryName(ExpectedDisabledNotificationsFilePath)), Times.Once);
+            file.Verify(f => f.WriteAllText(ExpectedDefaultDisabledNotificationsFilePath, It.IsAny<string>()), Times.Once);
+            directory.Verify(d => d.CreateDirectory(Path.GetDirectoryName(ExpectedDefaultDisabledNotificationsFilePath)), Times.Once);
 
             var disabledNotificationsJson = (string)file.Invocations[1].Arguments[1];
             var disabledNotificationsResult = JsonConvert.DeserializeObject<NotificationSettings>(disabledNotificationsJson);
@@ -188,7 +191,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             var result = testSubject.IsNotificationDisabled("1");
 
             result.Should().BeTrue();
-            file.Verify(f => f.WriteAllText(ExpectedDisabledNotificationsFilePath, It.IsAny<string>()), Times.Once);
+            file.Verify(f => f.WriteAllText(ExpectedDefaultDisabledNotificationsFilePath, It.IsAny<string>()), Times.Once);
 
             var disabledNotificationsJson = (string)file.Invocations[2].Arguments[1];
             var disabledNotificationsResult = JsonConvert.DeserializeObject<NotificationSettings>(disabledNotificationsJson);
@@ -201,7 +204,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         public void DisableNotification_ReadError_LogsError()
         {
             var file = CreateFileMock();
-            file.Setup(f => f.ReadAllText(ExpectedDisabledNotificationsFilePath)).Throws(new Exception("this is a test"));
+            file.Setup(f => f.ReadAllText(ExpectedDefaultDisabledNotificationsFilePath)).Throws(new Exception("this is a test"));
             var logger = new TestLogger();
 
             var testSubject = CreateTestSubject(file.Object, logger);
@@ -242,14 +245,16 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             act.Should().Throw<StackOverflowException>().WithMessage("this is a critical error");
         }
 
-        private IDisabledNotificationsStorage CreateTestSubject(IFile file, ILogger logger = null, IDirectory directory = null)
+        private IDisabledNotificationsStorage CreateTestSubject(IFile file, ILogger logger = null, IDirectory directory = null,
+            IEnvironmentVariableProvider environmentVars = null)
         {
             logger = logger ?? Mock.Of<ILogger>();
 
             var fileSystem = CreateFileSystem(file, directory);
             var versionProvider = CreateVsVersionProvider();
+            environmentVars ??= CreateEnvironmentVars(DefaultRootPath);
 
-            var testSubject = new DisabledNotificationsStorage(versionProvider, logger, fileSystem);
+            var testSubject = new DisabledNotificationsStorage(versionProvider, logger, fileSystem, environmentVars);
 
             return testSubject;
         }
@@ -268,10 +273,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         private Mock<IFile> CreateFileMock(NotificationSettings disabledNotifications = null, bool fileExists = true)
         {
             var file = new Mock<IFile>();
-            file.Setup(f => f.Exists(ExpectedDisabledNotificationsFilePath)).Returns(fileExists);
+            file.Setup(f => f.Exists(ExpectedDefaultDisabledNotificationsFilePath)).Returns(fileExists);
             if (disabledNotifications != null)
             {
-                file.Setup(f => f.ReadAllText(ExpectedDisabledNotificationsFilePath)).Returns(JsonConvert.SerializeObject(disabledNotifications));
+                file.Setup(f => f.ReadAllText(ExpectedDefaultDisabledNotificationsFilePath)).Returns(JsonConvert.SerializeObject(disabledNotifications));
             }
             return file;
         }
@@ -279,7 +284,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         private IVsVersionProvider CreateVsVersionProvider()
         {
             var version = new Mock<IVsVersion>();
-            version.SetupGet(v => v.MajorInstallationVersion).Returns("17");
+            version.SetupGet(v => v.MajorInstallationVersion).Returns(HardCodedVSVersion);
 
             var versionProvider = new Mock<IVsVersionProvider>();
             versionProvider.SetupGet(vp => vp.Version).Returns(version.Object);
@@ -287,13 +292,15 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             return versionProvider.Object;
         }
 
-        private string GetExpectedDisabledNotificationsFilePath()
+        private static IEnvironmentVariableProvider CreateEnvironmentVars(string rootPath = null)
         {
-            string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            string fullPath = Path.Combine(appData, "SonarLint for Visual Studio", "17", "internal.notifications.json");
-
-            return fullPath;
+            var envVars = new Mock<IEnvironmentVariableProvider>();
+            envVars.Setup(x => x.GetFolderPath(Environment.SpecialFolder.ApplicationData)).Returns(rootPath ?? DefaultRootPath);
+            return envVars.Object;
         }
+
+        private string GetExpectedDisabledNotificationsFilePath()
+            => Path.Combine(DefaultRootPath, "SonarLint for Visual Studio", HardCodedVSVersion, "internal.notifications.json");
 
         private NotificationSettings CreateDisabledNotifications(params string[] ids)
         {

@@ -19,19 +19,36 @@
  */
 
 using System;
+using System.Diagnostics;
+using System.IO;
 
 namespace SonarLint.VisualStudio.Core
 {
+    /// <summary>
+    /// Wrapper around <see cref="System.Environment"/> for testing
+    /// </summary>
     public interface IEnvironmentVariableProvider
     {
         /// <summary>
         /// Returns the value of the given variable, or null if the variable does not exist.
         /// </summary>
         string TryGet(string variableName);
+
+        /// <summary>
+        /// Gets the path to the system special folder that is identified by the specified enumeration.
+        /// </summary>
+        string GetFolderPath(Environment.SpecialFolder folder);
     }
 
     public class EnvironmentVariableProvider : IEnvironmentVariableProvider
     {
+        public static EnvironmentVariableProvider Instance { get; } = new EnvironmentVariableProvider();
+
+        private EnvironmentVariableProvider()
+        {
+            // no-op
+        }
+
         public string TryGet(string variableName)
         {
             if (string.IsNullOrEmpty(variableName))
@@ -40,6 +57,25 @@ namespace SonarLint.VisualStudio.Core
             }
 
             return Environment.GetEnvironmentVariable(variableName);
+        }
+
+        public string GetFolderPath(Environment.SpecialFolder folder) => Environment.GetFolderPath(folder);
+    }
+
+    /// <summary>
+    /// Extension methods to return common SLVS-specific values based on environment variables
+    /// </summary>
+    public static class EnvironmentVariableProviderExtensions
+    {
+        /// <summary>
+        /// Returns the root path under {User}\{AppData} to use for SLVS-specific settings
+        /// </summary>
+        public static string GetSLVSAppDataRootPath(this IEnvironmentVariableProvider provider)
+        {
+            var root = provider.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            Debug.Assert(root != null, "Environment.SpecialFolder.ApplicationData should not return null");
+
+            return Path.Combine(root, "SonarLint for Visual Studio");
         }
     }
 }
