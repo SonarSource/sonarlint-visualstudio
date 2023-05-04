@@ -68,15 +68,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Ctor_NullSourceControlledFileSystem_Exception()
         {
-            Action act = () => new SolutionBindingDataWriter(null, null, null);
+            Action act = () => new SolutionBindingDataWriter(null, (ISolutionBindingFileLoader)null, null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sccFileSystem");
         }
 
         [TestMethod]
-        public void Ctor_NullSerializer_Exception()
+        public void Ctor_NullFileLoader_Exception()
         {
-            Action act = () => new SolutionBindingDataWriter(sourceControlledFileSystem.Object, null, null);
+            Action act = () => new SolutionBindingDataWriter(sourceControlledFileSystem.Object, (ISolutionBindingFileLoader)null, null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingFileLoader");
         }

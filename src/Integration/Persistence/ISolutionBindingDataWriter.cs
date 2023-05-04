@@ -39,6 +39,13 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         private readonly ISolutionBindingCredentialsLoader credentialsLoader;
 
         public SolutionBindingDataWriter(ISourceControlledFileSystem sccFileSystem,
+            ICredentialStoreService credentialStoreService,
+            ILogger logger)
+            : this (sccFileSystem, new SolutionBindingFileLoader(logger), new SolutionBindingCredentialsLoader(credentialStoreService))
+        {
+        }
+
+        internal /* for testing */ SolutionBindingDataWriter(ISourceControlledFileSystem sccFileSystem,
             ISolutionBindingFileLoader solutionBindingFileLoader,
             ISolutionBindingCredentialsLoader credentialsLoader)
         {
