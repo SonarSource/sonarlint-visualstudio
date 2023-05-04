@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         string Generate(IEnumerable<SonarQubeRule> rules);
     }
 
-    internal class GlobalConfigGenerator : IGlobalConfigGenerator
+    public class GlobalConfigGenerator : IGlobalConfigGenerator
     {
         private readonly IEnvironmentSettings environmentSettings;
 
