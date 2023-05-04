@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
     {
     }
 
-    [Export(typeof(IConfigurationProvider))]
+    [Export(typeof(IObsoleteConfigurationProviderService))]
     [PartCreationPolicy(CreationPolicy.Any)]
     internal class ObsoleteConfigurationProvider : IObsoleteConfigurationProviderService
     {
