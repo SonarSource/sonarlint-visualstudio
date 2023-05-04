@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         private readonly IEnvironmentVariableProvider environmentVariableProvider;
 
         public MacroEvaluator()
-            : this(new EnvironmentVariableProvider())
+            : this(EnvironmentVariableProvider.Instance)
         {
         }
 

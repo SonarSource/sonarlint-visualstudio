@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [DataRow("")]
         public void TryGet_NoVariableName_ArgumentNullException(string variableName)
         {
-            var testSubject = new EnvironmentVariableProvider();
+            var testSubject = EnvironmentVariableProvider.Instance;
 
             Action act = () => testSubject.TryGet(variableName);
 
@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [TestMethod]
         public void TryGet_VariableDoesNotExist_Null()
         {
-            var testSubject = new EnvironmentVariableProvider();
+            var testSubject = EnvironmentVariableProvider.Instance;
 
             var result = testSubject.TryGet(Guid.NewGuid().ToString());
 
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             using var scope = new EnvironmentVariableScope();
             scope.SetVariable("test", "");
 
-            var testSubject = new EnvironmentVariableProvider();
+            var testSubject = EnvironmentVariableProvider.Instance;
 
             var result = testSubject.TryGet("test");
 
@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             using var scope = new EnvironmentVariableScope();
             scope.SetVariable("test", " ");
 
-            var testSubject = new EnvironmentVariableProvider();
+            var testSubject = EnvironmentVariableProvider.Instance;
 
             var result = testSubject.TryGet("test");
 
@@ -82,11 +82,23 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             using var scope = new EnvironmentVariableScope();
             scope.SetVariable("test name", "some value");
 
-            var testSubject = new EnvironmentVariableProvider();
+            var testSubject = EnvironmentVariableProvider.Instance;
 
             var result = testSubject.TryGet("TEST NAME"); // should be case insensitive
 
             result.Should().Be("some value");
+        }
+
+        [TestMethod]
+        [DataRow(Environment.SpecialFolder.ApplicationData)]
+        [DataRow(Environment.SpecialFolder.LocalApplicationData)]
+        public void GetFolderPath_ReturnsValue(Environment.SpecialFolder folder)
+        {
+            var testSubject = EnvironmentVariableProvider.Instance;
+
+            var actual = testSubject.GetFolderPath(folder);
+
+            actual.Should().Be(Environment.GetFolderPath(folder));
         }
     }
 }

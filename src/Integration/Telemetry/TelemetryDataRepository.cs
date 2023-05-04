@@ -24,13 +24,14 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Text;
 using System.Xml.Serialization;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration
 {
     [Export(typeof(ITelemetryDataRepository)), PartCreationPolicy(CreationPolicy.Shared)]
     public sealed class TelemetryDataRepository : ITelemetryDataRepository, IDisposable
     {
-        private static readonly string StorageFilePath = GetStorageFilePath();
+        private readonly string StorageFilePath;
 
         private readonly IFileSystemWatcher fileWatcher;
         private readonly XmlSerializer telemetrySerializer = new XmlSerializer(typeof(TelemetryData));
@@ -41,13 +42,17 @@ namespace SonarLint.VisualStudio.Integration
         public TelemetryData Data { get; private set; } = new TelemetryData { IsAnonymousDataShared = true };
 
         public TelemetryDataRepository()
-            : this(new FileSystem(), new FileSystemWatcherFactory())
+            : this(new FileSystem(), new FileSystemWatcherFactory(), EnvironmentVariableProvider.Instance)
         {
         }
 
-        public TelemetryDataRepository(IFileSystem fileSystem, IFileSystemWatcherFactory fileSystemWatcherFactory)
+        internal /* for testing */ TelemetryDataRepository(IFileSystem fileSystem,
+            IFileSystemWatcherFactory fileSystemWatcherFactory,
+            IEnvironmentVariableProvider environmentVariables)
         {
             this.fileSystem = fileSystem;
+
+            StorageFilePath = GetStorageFilePath(environmentVariables);
 
             EnsureFileExists(StorageFilePath);
             ReadFromXmlFile();
@@ -60,12 +65,12 @@ namespace SonarLint.VisualStudio.Integration
             fileWatcher.Changed += OnStorageFileChanged;
         }
 
-        internal static string GetStorageFilePath()
+        internal static string GetStorageFilePath(IEnvironmentVariableProvider environmentVariables)
         {
             // Note: the data is stored in the roaming profile so it will be sync across machines
             // for domain-joined users.
-            var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var filePath = Path.Combine(appDataFolder, "SonarLint for Visual Studio", "telemetry.xml");
+            var appDataFolder = environmentVariables.GetSLVSAppDataRootPath();
+            var filePath = Path.Combine(appDataFolder, "telemetry.xml");
             return Path.GetFullPath(filePath); // get rid of the .. in file path
         }
 
