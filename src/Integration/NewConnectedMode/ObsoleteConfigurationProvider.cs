@@ -51,12 +51,11 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
         [ImportingConstructor]
         public ObsoleteConfigurationProvider(
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            ICredentialStoreService credentialStoreService,
-            ILogger logger)
+            ISolutionBindingDataReader solutionBindingDataReader)
             : this(
                 new LegacySolutionBindingPathProvider(serviceProvider),
                 new ObsoleteConnectedModeSolutionBindingPathProvider(serviceProvider),
-                new SolutionBindingDataReader(new SolutionBindingFileLoader(logger), new SolutionBindingCredentialsLoader(credentialStoreService)))
+                solutionBindingDataReader)
         {
         }
 

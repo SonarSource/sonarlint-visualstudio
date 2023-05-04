@@ -60,6 +60,8 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly ICredentialStoreService credentialStoreService;
         private readonly IProjectToLanguageMapper projectToLanguageMapper;
+        private readonly ISolutionBindingDataReader solutionBindingDataReader;
+
         private readonly IProgressStepRunnerWrapper progressStepRunner;
         private readonly Dictionary<Type, Lazy<ILocalService>> localServices = new Dictionary<Type, Lazy<ILocalService>>();
 
@@ -72,6 +74,7 @@ namespace SonarLint.VisualStudio.Integration
             IActiveSolutionTracker solutionTacker, 
             ICredentialStoreService credentialStoreService,
             IProjectToLanguageMapper projectToLanguageMapper,
+            ISolutionBindingDataReader solutionBindingDataReader,
             ILogger logger)
             : this(serviceProvider,
                 null,
@@ -80,6 +83,7 @@ namespace SonarLint.VisualStudio.Integration
                 solutionTacker, 
                 credentialStoreService,
                 projectToLanguageMapper,
+                solutionBindingDataReader,
                 logger,
                 Dispatcher.CurrentDispatcher)
         {
@@ -93,6 +97,7 @@ namespace SonarLint.VisualStudio.Integration
                                     IActiveSolutionTracker solutionTacker,
                                     ICredentialStoreService credentialStoreService,
                                     IProjectToLanguageMapper projectToLanguageMapper,
+                                    ISolutionBindingDataReader solutionBindingDataReader,
                                     ILogger logger,
                                     Dispatcher uiDispatcher)
         {
@@ -104,6 +109,7 @@ namespace SonarLint.VisualStudio.Integration
             this.solutionTracker = solutionTacker ?? throw new ArgumentNullException(nameof(solutionTacker));
             this.credentialStoreService = credentialStoreService ?? throw new ArgumentNullException(nameof(credentialStoreService));
             this.projectToLanguageMapper = projectToLanguageMapper ?? throw new ArgumentNullException(nameof(projectToLanguageMapper));
+            this.solutionBindingDataReader = solutionBindingDataReader ?? throw new ArgumentNullException(nameof(solutionBindingDataReader));
             this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
             this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -299,7 +305,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             this.localServices.Add(typeof(ICredentialStoreService), new Lazy<ILocalService>(() => credentialStoreService));
 
-            this.localServices.Add(typeof(IObsoleteConfigurationProviderService), new Lazy<ILocalService>(() => new ObsoleteConfigurationProvider(this, credentialStoreService, Logger)));
+            this.localServices.Add(typeof(IObsoleteConfigurationProviderService), new Lazy<ILocalService>(() => new ObsoleteConfigurationProvider(this, solutionBindingDataReader)));
             this.localServices.Add(typeof(IConfigurationProviderService), new Lazy<ILocalService>(() => new UnintrusiveConfigurationProvider()));
             this.localServices.Add(typeof(IConfigurationPersister), new Lazy<ILocalService>(GetConfigurationPersister));
 
