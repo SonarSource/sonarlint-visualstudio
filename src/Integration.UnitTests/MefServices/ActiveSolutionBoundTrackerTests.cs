@@ -33,7 +33,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
@@ -65,21 +64,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             serviceProvider = new ConfigurableServiceProvider(false);
             
             host = new ConfigurableHost(serviceProvider, Dispatcher.CurrentDispatcher);
-            var mefExport1 = MefTestHelpers.CreateExport<IHost>(host);
+            var mefHost = MefTestHelpers.CreateExport<IHost>(host);
 
             activeSolutionTracker = new ConfigurableActiveSolutionTracker();
-            var mefExport2 = MefTestHelpers.CreateExport<IActiveSolutionTracker>(activeSolutionTracker);
+            var mefAST = MefTestHelpers.CreateExport<IActiveSolutionTracker>(activeSolutionTracker);
 
-            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExport1, mefExport2);
+            var mefModel = ConfigurableComponentModel.CreateWithExports(mefHost, mefAST);
             serviceProvider.RegisterService(typeof(SComponentModel), mefModel, replaceExisting: true);
 
             solutionMock = new SolutionMock();
             serviceProvider.RegisterService(typeof(SVsSolution), solutionMock);
 
             configProvider = new ConfigurableConfigurationProvider();
-            serviceProvider.RegisterService(typeof(IConfigurationProviderService), configProvider);
-
+            
             loggerMock = new Mock<ILogger>();
+
 
             vsMonitorMock = new Mock<IVsMonitorSelection>();
             vsMonitorMock
@@ -96,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             host.VisualStateManager.ClearBoundProject();
 
             // Act
-            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, loggerMock.Object))
+            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
             {
                 // Assert
                 testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone, "Unbound solution should report false activation");
@@ -110,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ConfigureSolutionBinding(new BoundSonarQubeProject());
 
             // Act
-            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, loggerMock.Object))
+            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
             {
                 // Assert
                 testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected, "Bound solution should report true activation");
@@ -124,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var sonarQubeServiceMock = new Mock<ISonarQubeService>();
             this.host.SonarQubeService = sonarQubeServiceMock.Object;
 
-            using (var activeSolutionBoundTracker = CreateTestSubject(this.host, this.activeSolutionTracker, this.loggerMock.Object))
+            using (var activeSolutionBoundTracker = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, this.loggerMock.Object))
             {
                 // We want to directly jump to Connect
                 sonarQubeServiceMock.SetupGet(x => x.IsConnected).Returns(false);
@@ -163,7 +162,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ConfigureService(isConnected: false);
             ConfigureSolutionBinding(boundProject);
 
-            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, loggerMock.Object))
+            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
             {
                 var eventCounter = new EventCounter(testSubject);
 
@@ -285,7 +284,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Set the current configuration used by the tracker
             ConfigureSolutionBinding(initialProject);
-            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, loggerMock.Object))
+            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
             {
                 var eventCounter = new EventCounter(testSubject);
 
@@ -318,7 +317,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void UpdateConnection_WasDisconnected_NewSolutionIsUnbound_NoConnectOrDisconnectCalls()
         {
             // Arrange
-            using (CreateTestSubject(this.host, this.activeSolutionTracker, loggerMock.Object))
+            using (CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
             {
                 ConfigureService(isConnected: false);
                 ConfigureSolutionBinding(null);
@@ -337,7 +336,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void UpdateConnection_WasDisconnected_NewSolutionIsBound_ConnectCalled()
         {
             // Arrange
-            using (CreateTestSubject(this.host, this.activeSolutionTracker, loggerMock.Object))
+            using (CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
             {
                 ConfigureService(isConnected: false);
                 ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://foo"), "projectKey", "projectName"));
@@ -356,7 +355,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void UpdateConnection_WasConnected_NewSolutionIsUnbound_DisconnectedCalled()
         {
             // Arrange
-            using (CreateTestSubject(this.host, this.activeSolutionTracker, loggerMock.Object))
+            using (CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
             {
                 ConfigureService(isConnected: true);
                 ConfigureSolutionBinding(null);
@@ -380,7 +379,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // just in case.
 
             // Arrange
-            using (CreateTestSubject(this.host, this.activeSolutionTracker, loggerMock.Object))
+            using (CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
             {
                 ConfigureService(isConnected: true);
                 ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://foo"), "projectKey", "projectName"));
@@ -403,7 +402,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Here, the command exists but is not executable.
 
             // Arrange
-            using (CreateTestSubject(this.host, this.activeSolutionTracker, loggerMock.Object))
+            using (CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
             {
 
                 int commandCallCount = 0;
@@ -434,7 +433,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Wpf command is available and can be executed -> should be called instead of service.Disconnect()
 
             // Arrange
-            using (CreateTestSubject(this.host, this.activeSolutionTracker, loggerMock.Object))
+            using (CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
             {
                 int commandCallCount = 0;
                 int commandCanExecuteCallCount = 0;
@@ -462,7 +461,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionBindingUpdated_WhenClearBoundProject_NotRaised()
         {
             // Arrange
-            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, loggerMock.Object))
+            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
             {
                 var eventCounter = new EventCounter(testSubject);
 
@@ -481,7 +480,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionBindingUpdated_WhenSetBoundProject_EventsRaisedInExpectedOrder()
         {
             // Arrange
-            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, loggerMock.Object))
+            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
             {
                 var eventCounter = new EventCounter(testSubject);
 
@@ -506,7 +505,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var gitEventsMonitor = new Mock<IBoundSolutionGitMonitor>();
 
             // Arrange
-            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, loggerMock.Object, gitEventsMonitor.Object))
+            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object, gitEventsMonitor.Object))
             {
                 var eventCounter = new EventCounter(testSubject);
 
@@ -532,7 +531,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var gitEventsMonitor = new Mock<IBoundSolutionGitMonitor>();
 
             // Arrange
-            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, loggerMock.Object, gitEventsMonitor.Object))
+            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object, gitEventsMonitor.Object))
             {
                 var eventCounter = new EventCounter(testSubject);
 
@@ -551,7 +550,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var gitEventsMonitor = new Mock<IBoundSolutionGitMonitor>();
 
             // Arrange
-            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, loggerMock.Object, gitEventsMonitor.Object))
+            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object, gitEventsMonitor.Object))
             {
                 var eventCounter = new EventCounter(testSubject);
 
@@ -565,11 +564,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        private static ActiveSolutionBoundTracker CreateTestSubject(IHost host, IActiveSolutionTracker solutionTracker, ILogger logger = null, IBoundSolutionGitMonitor gitEvents = null)
+        private static ActiveSolutionBoundTracker CreateTestSubject(IHost host,
+            IActiveSolutionTracker solutionTracker,
+            IConfigurationProvider configurationProvider,
+            ILogger logger = null,
+            IBoundSolutionGitMonitor gitEvents = null)
         {
             logger ??= new TestLogger(logToConsole: true);
             gitEvents ??= Mock.Of<IBoundSolutionGitMonitor>();
-            return new ActiveSolutionBoundTracker(host, solutionTracker, logger, gitEvents);
+            return new ActiveSolutionBoundTracker(host, solutionTracker, logger, gitEvents, configurationProvider);
         }
 
         private void ConfigureService(bool isConnected)

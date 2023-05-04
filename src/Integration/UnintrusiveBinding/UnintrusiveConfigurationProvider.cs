@@ -23,13 +23,9 @@ using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
-    internal interface IConfigurationProviderService : IConfigurationProvider, ILocalService
-    {
-    }
-
     [Export(typeof(IConfigurationProvider))]
-    [PartCreationPolicy(CreationPolicy.Any)]
-    internal class UnintrusiveConfigurationProvider : IConfigurationProviderService
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class UnintrusiveConfigurationProvider : IConfigurationProvider
     {
         // TODO - fetch settings from new location #4170
         public BindingConfiguration GetConfiguration() => BindingConfiguration.Standalone;
