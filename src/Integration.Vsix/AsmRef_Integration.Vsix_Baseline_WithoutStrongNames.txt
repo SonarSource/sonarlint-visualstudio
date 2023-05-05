@@ -256,11 +256,13 @@ Referenced assemblies:
 - 'PresentationCore, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
 - 'PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
 - 'SonarLint.VisualStudio.CloudSecrets, Version=6.17.0.0, Culture=neutral, PublicKeyToken=null'
+- 'SonarLint.VisualStudio.ConnectedMode, Version=6.17.0.0, Culture=neutral, PublicKeyToken=null'
 - 'SonarLint.VisualStudio.Core, Version=6.17.0.0, Culture=neutral, PublicKeyToken=null'
 - 'SonarLint.VisualStudio.Infrastructure.VS, Version=6.17.0.0, Culture=neutral, PublicKeyToken=null'
 - 'SonarLint.VisualStudio.Progress, Version=6.17.0.0, Culture=neutral, PublicKeyToken=null'
 - 'SonarLint.VisualStudio.ProgressVS, Version=6.17.0.0, Culture=neutral, PublicKeyToken=null'
 - 'SonarQube.Client, Version=6.17.0.0, Culture=neutral, PublicKeyToken=null'
+- 'SonarLint.VisualStudio.CloudSecrets, Version=6.16.0.0, Culture=neutral, PublicKeyToken=null'
 - 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
@@ -270,7 +272,7 @@ Referenced assemblies:
 - 'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Xml.Linq, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'WindowsBase, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
-# Number of references: 30
+# Number of references: 31
 
 ---
 Assembly: 'SonarLint.VisualStudio.Integration.TeamExplorer, Version=6.17.0.0, Culture=neutral, PublicKeyToken=null'

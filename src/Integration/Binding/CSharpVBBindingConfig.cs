@@ -32,26 +32,25 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public FilePathAndContent<SonarLintConfiguration> AdditionalFile { get; }
 
-        public FilePathAndContent<RuleSet> RuleSet { get; }
+        public FilePathAndContent<string> GlobalConfig { get; }
 
-        public IEnumerable<string> SolutionLevelFilePaths => new List<string> { RuleSet.Path, AdditionalFile.Path };
+        public IEnumerable<string> SolutionLevelFilePaths => new List<string> { GlobalConfig.Path, AdditionalFile.Path };
 
-        public CSharpVBBindingConfig(FilePathAndContent<RuleSet> ruleset, FilePathAndContent<SonarLintConfiguration> additionalFile)
-            : this(ruleset, additionalFile, new FileSystem())
+        public CSharpVBBindingConfig(FilePathAndContent<string> globalConfig, FilePathAndContent<SonarLintConfiguration> additionalFile)
+            : this(globalConfig, additionalFile, new FileSystem())
         {
         }
 
-        internal CSharpVBBindingConfig(FilePathAndContent<RuleSet> ruleset, FilePathAndContent<SonarLintConfiguration> additionalFile, IFileSystem fileSystem)
+        internal CSharpVBBindingConfig(FilePathAndContent<string> globalConfig, FilePathAndContent<SonarLintConfiguration> additionalFile, IFileSystem fileSystem)
         {
-            RuleSet = ruleset ?? throw new ArgumentNullException(nameof(ruleset));
+            GlobalConfig = globalConfig ?? throw new ArgumentNullException(nameof(globalConfig));
             AdditionalFile = additionalFile ?? throw new ArgumentNullException(nameof(additionalFile));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 
         public void Save()
         {
-            var serializedRuleSet = RuleSet.Content.ToXml();
-            fileSystem.File.WriteAllText(RuleSet.Path, serializedRuleSet);
+            fileSystem.File.WriteAllText(GlobalConfig.Path, GlobalConfig.Content);
 
             var serializedAdditionalFile = Serializer.ToString(AdditionalFile.Content);
             fileSystem.File.WriteAllText(AdditionalFile.Path, serializedAdditionalFile);
