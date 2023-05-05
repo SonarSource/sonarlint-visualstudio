@@ -43,8 +43,8 @@ namespace SonarLint.VisualStudio.Core
     public sealed class Language : IEquatable<Language>
     {
         public readonly static Language Unknown = new Language();
-        public readonly static Language CSharp = new Language("CSharp", CoreStrings.CSharpLanguageName, "csharp.ruleset", SonarQubeLanguage.CSharp);
-        public readonly static Language VBNET = new Language("VB", CoreStrings.VBNetLanguageName, "vb.ruleset", SonarQubeLanguage.VbNet);
+        public readonly static Language CSharp = new Language("CSharp", CoreStrings.CSharpLanguageName, "csharp.globalconfig", SonarQubeLanguage.CSharp);
+        public readonly static Language VBNET = new Language("VB", CoreStrings.VBNetLanguageName, "vb.globalconfig", SonarQubeLanguage.VbNet);
         public readonly static Language Cpp = new Language("C++", CoreStrings.CppLanguageName, "_cpp_settings.json", SonarQubeLanguage.Cpp);
         public readonly static Language C = new Language("C", "C", "_c_settings.json", SonarQubeLanguage.C);
         public readonly static Language Js = new Language("Js", "JavaScript", "_js_settings.json", SonarQubeLanguage.Js);

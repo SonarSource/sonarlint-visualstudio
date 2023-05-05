@@ -37,6 +37,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         FilePathAndContent<SonarLintConfiguration> AdditionalFile { get; }
 
-        FilePathAndContent<RuleSet> RuleSet { get; }
+        FilePathAndContent<string> GlobalConfig { get; }
     }
 }
