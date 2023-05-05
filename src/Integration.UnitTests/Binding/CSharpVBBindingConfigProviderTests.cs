@@ -36,6 +36,7 @@ using SonarQube.Client;
 using SonarQube.Client.Models;
 
 using Language = SonarLint.VisualStudio.Core.Language;
+using System.IO;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -137,6 +138,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var builder = new TestEnvironmentBuilder(validQualityProfile, Language.VBNET)
             {
+
                 ActiveRulesResponse = validRules,
                 InactiveRulesResponse = emptyRules,
                 PropertiesResponse = anyProperties,
@@ -144,7 +146,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
             var testSubject = builder.CreateTestSubject();
 
-            var expectedGlobalConfigFilePath = builder.BindingConfiguration.BuildPathUnderConfigDirectory(Language.VBNET.FileSuffixAndExtension);
+            var expectedGlobalConfigFilePath = Path.Combine(builder.BindingConfiguration.BindingConfigDirectory, Language.VBNET.FileSuffixAndExtension);
 
             var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
 
@@ -180,7 +182,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
             var testSubject = builder.CreateTestSubject();
 
-            var expectedAdditionalFilePath = builder.BindingConfiguration.BuildPathUnderConfigDirectory() + "\\VB\\SonarLint.xml";
+            var expectedAdditionalFilePath = builder.BindingConfiguration.BindingConfigDirectory + "\\VB\\SonarLint.xml";
 
             var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
             (response as ICSharpVBBindingConfig).AdditionalFile.Path.Should().Be(expectedAdditionalFilePath);
@@ -349,7 +351,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     });
 
                 BindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri(serverUrl), ExpectedProjectKey, projectName),
-                    SonarLintMode.Connected, "c:\\test\\");
+                    SonarLintMode.Connected, "c:\\users\\test\\Bindings");
 
                 var sonarProperties = PropertiesResponse.ToDictionary(x => x.Key, y => y.Value);
                 sonarLintConfigGeneratorMock

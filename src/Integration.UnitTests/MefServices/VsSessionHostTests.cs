@@ -29,6 +29,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarLint.VisualStudio.Integration.UnintrusiveBinding;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
@@ -395,6 +396,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 Mock.Of<IProjectToLanguageMapper>(),
                 Mock.Of<ISolutionBindingDataReader>(),
                 this.configProvider,
+                Mock.Of<IUnintrusiveBindingPathProvider>(),
                 Mock.Of<ILogger>(),
                 Dispatcher.CurrentDispatcher);
 

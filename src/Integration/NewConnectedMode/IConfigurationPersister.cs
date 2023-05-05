@@ -24,6 +24,7 @@ using System.IO;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.Integration.UnintrusiveBinding;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
@@ -34,14 +35,15 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
     internal class ConfigurationPersister : IConfigurationPersister
     {
-        private readonly ISolutionBindingPathProvider connectedModePathProvider;
+        private readonly IUnintrusiveBindingPathProvider pathProvider;
         private readonly ISolutionBindingDataWriter solutionBindingDataWriter;
 
-        public ConfigurationPersister(ISolutionBindingPathProvider connectedModePathProvider,
+        public ConfigurationPersister(
+            IUnintrusiveBindingPathProvider pathProvider,
             ISolutionBindingDataWriter solutionBindingDataWriter)
         {
-            this.connectedModePathProvider = connectedModePathProvider ??
-                                             throw new ArgumentNullException(nameof(connectedModePathProvider));
+            this.pathProvider = pathProvider ??
+                                             throw new ArgumentNullException(nameof(ConfigurationPersister.pathProvider));
 
             this.solutionBindingDataWriter = solutionBindingDataWriter ??
                                              throw new ArgumentNullException(nameof(solutionBindingDataWriter));
@@ -64,6 +66,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
         private BindingConfiguration CreateBindingConfiguration(string bindingPath, BoundSonarQubeProject boundProject, SonarLintMode sonarLintMode)
         {
+            //
             var bindingConfigDirectory = Path.GetDirectoryName(bindingPath);
 
             return BindingConfiguration.CreateBoundConfiguration(boundProject, sonarLintMode, bindingConfigDirectory);
@@ -71,16 +74,12 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
         private string GetTargetDirectory(SonarLintMode bindingMode)
         {
+            Debug.Assert(bindingMode == SonarLintMode.Connected, "Should only be saving settings in Connected Mode");
             switch (bindingMode)
             {
-                // TODO - CM cleanup - going forwards we'll only support saving in the new-new format.
-                case SonarLintMode.LegacyConnected:
-                {
-                    return null;  // effect is that settings won't be saved
-                }
                 case SonarLintMode.Connected:
                 {
-                    return connectedModePathProvider.Get();
+                    return pathProvider.Get();
                 }
                 case SonarLintMode.Standalone:
                 {

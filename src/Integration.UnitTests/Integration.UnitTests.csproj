@@ -41,4 +41,8 @@
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="UnintrusiveBinding\" />
+  </ItemGroup>
+
 </Project>

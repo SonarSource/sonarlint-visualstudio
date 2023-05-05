@@ -33,6 +33,7 @@ using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarLint.VisualStudio.Integration.UnintrusiveBinding;
 using SonarQube.Client;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 using Language = SonarLint.VisualStudio.Core.Language;
@@ -59,6 +60,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IProjectToLanguageMapper projectToLanguageMapper;
         private readonly ISolutionBindingDataReader solutionBindingDataReader;
         private readonly IConfigurationProvider configurationProvider;
+        private readonly IUnintrusiveBindingPathProvider bindingPathProvider;
 
         private readonly IProgressStepRunnerWrapper progressStepRunner;
         private readonly Dictionary<Type, Lazy<ILocalService>> localServices = new Dictionary<Type, Lazy<ILocalService>>();
@@ -68,12 +70,13 @@ namespace SonarLint.VisualStudio.Integration
 
         [ImportingConstructor]
         public VsSessionHost([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            ISonarQubeService sonarQubeService, 
-            IActiveSolutionTracker solutionTacker, 
+            ISonarQubeService sonarQubeService,
+            IActiveSolutionTracker solutionTacker,
             ICredentialStoreService credentialStoreService,
             IProjectToLanguageMapper projectToLanguageMapper,
             ISolutionBindingDataReader solutionBindingDataReader,
             IConfigurationProvider configurationProvider,
+            IUnintrusiveBindingPathProvider bindingPathProvider,
             ILogger logger)
             : this(serviceProvider,
                 null,
@@ -84,6 +87,7 @@ namespace SonarLint.VisualStudio.Integration
                 projectToLanguageMapper,
                 solutionBindingDataReader,
                 configurationProvider,
+                bindingPathProvider,
                 logger,
                 Dispatcher.CurrentDispatcher)
         {
@@ -99,6 +103,7 @@ namespace SonarLint.VisualStudio.Integration
                                     IProjectToLanguageMapper projectToLanguageMapper,
                                     ISolutionBindingDataReader solutionBindingDataReader,
                                     IConfigurationProvider configurationProvider,
+                                    IUnintrusiveBindingPathProvider bindingPathProvider,
                                     ILogger logger,
                                     Dispatcher uiDispatcher)
         {
@@ -112,6 +117,7 @@ namespace SonarLint.VisualStudio.Integration
             this.projectToLanguageMapper = projectToLanguageMapper ?? throw new ArgumentNullException(nameof(projectToLanguageMapper));
             this.solutionBindingDataReader = solutionBindingDataReader ?? throw new ArgumentNullException(nameof(solutionBindingDataReader));
             this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
+            this.bindingPathProvider = bindingPathProvider;
             this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
             this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -337,13 +343,10 @@ namespace SonarLint.VisualStudio.Integration
 
         private ILocalService GetConfigurationPersister()
         {
-            var connectedModeConfigPathProvider = new ObsoleteConnectedModeSolutionBindingPathProvider(this);
             var sccFileSystem = this.GetService<ISourceControlledFileSystem>();
-
             var solutionBindingDataWriter = new SolutionBindingDataWriter(sccFileSystem, credentialStoreService, Logger);
 
-            // TODO: CM cleanup - this will need to use the new Connected Mode path provider. See #4170.
-            return new ConfigurationPersister(connectedModeConfigPathProvider, solutionBindingDataWriter);
+            return new ConfigurationPersister(bindingPathProvider, solutionBindingDataWriter);
         }
 
         public object GetService(Type serviceType)

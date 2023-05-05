@@ -20,9 +20,9 @@
   
   <PropertyGroup Condition="$(BuildingInsideVisualStudio) == 'true'">
     <!-- C#/VB.NET settings need to be in different folders -->
-    <_SLVSRootFolder>$(LOCALAPPDATA)\SonarLint\VS\$(SolutionName)_$(SolutionDir.GetHashCode())\$(Language)</_SLVSRootFolder>
+    <_SLVSRootFolder>$(APPDATA)\SonarLint for Visual Studio\\Bindings\\$(SolutionName)_$(SolutionDir.GetHashCode())\$(Language)</_SLVSRootFolder>
     
-    <_SLVSGeneratedRoslynConfigFile>$(_SLVSRootFolder)\slvs_generated.globalconfig</_SLVSGeneratedRoslynConfigFile>
+    <_SLVSGeneratedRoslynConfigFile>$(_SLVSRootFolder)\$(Language).globalconfig</_SLVSGeneratedRoslynConfigFile>
     <_SLVSGeneratedAdditionalFile>$(_SLVSRootFolder)\SonarLint.xml</_SLVSGeneratedAdditionalFile>
    </PropertyGroup>
 

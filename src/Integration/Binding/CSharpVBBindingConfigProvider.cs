@@ -172,15 +172,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             issueType == SonarQubeIssueType.Vulnerability;
 
         internal static string GetSolutionRuleSetFilePath(Language language, BindingConfiguration bindingConfiguration)
-        {
-            return bindingConfiguration.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
-        }
+            => Path.Combine(bindingConfiguration.BindingConfigDirectory, language.Id, language.FileSuffixAndExtension);
 
         internal static string GetSolutionAdditionalFilePath(Language language, BindingConfiguration bindingConfiguration)
-        {
-            var additionalFilePathDirectory = bindingConfiguration.BuildPathUnderConfigDirectory();
-
-            return Path.Combine(additionalFilePathDirectory, language.Id, "SonarLint.xml");
-        }
+            => Path.Combine(bindingConfiguration.BindingConfigDirectory, language.Id, "SonarLint.xml");
     }
 }

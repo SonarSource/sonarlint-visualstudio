@@ -25,24 +25,25 @@ using Moq;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
+using SonarLint.VisualStudio.Integration.UnintrusiveBinding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
     public class ConfigurationPersisterTests
     {
-        private Mock<ISolutionBindingPathProvider> newPathProvider;
+        private Mock<IUnintrusiveBindingPathProvider> pathProvider;
         private Mock<ISolutionBindingDataWriter> solutionBindingDataWriter;
         private ConfigurationPersister testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            newPathProvider = new Mock<ISolutionBindingPathProvider>();
+            pathProvider = new Mock<IUnintrusiveBindingPathProvider>();
             solutionBindingDataWriter = new Mock<ISolutionBindingDataWriter>();
 
             testSubject = new ConfigurationPersister(
-                newPathProvider.Object,
+                pathProvider.Object,
                 solutionBindingDataWriter.Object);
         }
 
@@ -60,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Ctor_InvalidArgs_NullSolutionBindingSerializer_Throws()
         {
             // Arrange
-            Action act = () => new ConfigurationPersister(newPathProvider.Object, null);
+            Action act = () => new ConfigurationPersister(pathProvider.Object, null);
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingDataWriter");
@@ -106,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Persist_NewConnectedModeConfig_SaveNewConfig()
         {
             var projectToWrite = new BoundSonarQubeProject();
-            newPathProvider.Setup(x => x.Get()).Returns("c:\\new.txt");
+            pathProvider.Setup(x => x.Get()).Returns("c:\\new.txt");
 
             solutionBindingDataWriter
                 .Setup(x => x.Write("c:\\new.txt", projectToWrite))
