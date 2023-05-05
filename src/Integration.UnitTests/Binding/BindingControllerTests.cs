@@ -74,7 +74,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             configProvider = new ConfigurableConfigurationProvider();
 
             serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper);
-            serviceProvider.RegisterService(typeof(IConfigurationProviderService), configProvider);
             serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem(new MockFileSystem()));
 
             logger = new TestLogger();
@@ -82,7 +81,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             folderWorkspaceServiceMock = new Mock<IFolderWorkspaceService>();
             var mefHost = ConfigurableComponentModel.CreateWithExports(
-                MefTestHelpers.CreateExport<IFolderWorkspaceService>(folderWorkspaceServiceMock.Object));
+                MefTestHelpers.CreateExport<IFolderWorkspaceService>(folderWorkspaceServiceMock.Object),
+                MefTestHelpers.CreateExport<IConfigurationProvider>(configProvider));
+
             serviceProvider.RegisterService(typeof(SComponentModel), mefHost);
 
             host = new ConfigurableHost(serviceProvider, Dispatcher.CurrentDispatcher)

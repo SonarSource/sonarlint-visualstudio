@@ -27,7 +27,6 @@ using System.Windows.Threading;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.Exclusions;
 using SonarLint.VisualStudio.Integration.LocalServices.TestProjectIndicators;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
@@ -48,7 +47,6 @@ namespace SonarLint.VisualStudio.Integration
                 typeof(IProjectSystemHelper),
                 typeof(ISourceControlledFileSystem),
                 typeof(IProjectSystemFilter),
-                typeof(IConfigurationProviderService),
                 typeof(IObsoleteConfigurationProviderService),
                 typeof(IConfigurationPersister),
                 typeof(ICredentialStoreService),
@@ -60,6 +58,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly ICredentialStoreService credentialStoreService;
         private readonly IProjectToLanguageMapper projectToLanguageMapper;
         private readonly ISolutionBindingDataReader solutionBindingDataReader;
+        private readonly IConfigurationProvider configurationProvider;
 
         private readonly IProgressStepRunnerWrapper progressStepRunner;
         private readonly Dictionary<Type, Lazy<ILocalService>> localServices = new Dictionary<Type, Lazy<ILocalService>>();
@@ -74,6 +73,7 @@ namespace SonarLint.VisualStudio.Integration
             ICredentialStoreService credentialStoreService,
             IProjectToLanguageMapper projectToLanguageMapper,
             ISolutionBindingDataReader solutionBindingDataReader,
+            IConfigurationProvider configurationProvider,
             ILogger logger)
             : this(serviceProvider,
                 null,
@@ -83,6 +83,7 @@ namespace SonarLint.VisualStudio.Integration
                 credentialStoreService,
                 projectToLanguageMapper,
                 solutionBindingDataReader,
+                configurationProvider,
                 logger,
                 Dispatcher.CurrentDispatcher)
         {
@@ -97,6 +98,7 @@ namespace SonarLint.VisualStudio.Integration
                                     ICredentialStoreService credentialStoreService,
                                     IProjectToLanguageMapper projectToLanguageMapper,
                                     ISolutionBindingDataReader solutionBindingDataReader,
+                                    IConfigurationProvider configurationProvider,
                                     ILogger logger,
                                     Dispatcher uiDispatcher)
         {
@@ -109,6 +111,7 @@ namespace SonarLint.VisualStudio.Integration
             this.credentialStoreService = credentialStoreService ?? throw new ArgumentNullException(nameof(credentialStoreService));
             this.projectToLanguageMapper = projectToLanguageMapper ?? throw new ArgumentNullException(nameof(projectToLanguageMapper));
             this.solutionBindingDataReader = solutionBindingDataReader ?? throw new ArgumentNullException(nameof(solutionBindingDataReader));
+            this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
             this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
             this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -276,13 +279,10 @@ namespace SonarLint.VisualStudio.Integration
 
         private BindingConfiguration SafeGetBindingConfig()
         {
-            var configProvider = this.GetService<IConfigurationProviderService>();
-            configProvider.AssertLocalServiceIsNotNull();
-
             BindingConfiguration bindingConfig = null;
             try
             {
-                bindingConfig = configProvider.GetConfiguration();
+                bindingConfig = configurationProvider.GetConfiguration();
             }
             catch (Exception ex)
             {
@@ -305,7 +305,6 @@ namespace SonarLint.VisualStudio.Integration
             this.localServices.Add(typeof(ICredentialStoreService), new Lazy<ILocalService>(() => credentialStoreService));
 
             this.localServices.Add(typeof(IObsoleteConfigurationProviderService), new Lazy<ILocalService>(() => new ObsoleteConfigurationProvider(this, solutionBindingDataReader)));
-            this.localServices.Add(typeof(IConfigurationProviderService), new Lazy<ILocalService>(() => new UnintrusiveConfigurationProvider()));
             this.localServices.Add(typeof(IConfigurationPersister), new Lazy<ILocalService>(GetConfigurationPersister));
 
             var projectNameTestProjectIndicator = new Lazy<ILocalService>(() => new ProjectNameTestProjectIndicator(Logger));

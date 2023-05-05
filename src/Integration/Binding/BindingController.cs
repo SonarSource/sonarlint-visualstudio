@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.OLE.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Exclusions;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -133,8 +132,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         internal static /* for testing purposes */ IBindingProcess CreateBindingProcess(IHost host, BindCommandArgs bindingArgs)
         {
             // Choose the type of binding
-            var configProvider = host.GetService<IConfigurationProviderService>();
-            configProvider.AssertLocalServiceIsNotNull();
+            var configProvider = host.GetMefService<IConfigurationProvider>();
+            Debug.Assert(configProvider != null, "Failed to fetch IConfigurationProvider");
 
             var currentConfiguration = configProvider.GetConfiguration();
 
