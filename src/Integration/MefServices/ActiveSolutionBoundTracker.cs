@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration
     {
         private readonly IHost extensionHost;
         private readonly IActiveSolutionTracker solutionTracker;
-        private readonly IConfigurationProviderService configurationProvider;
+        private readonly IConfigurationProvider configurationProvider;
         private readonly IVsMonitorSelection vsMonitorSelection;
         private readonly IBoundSolutionGitMonitor gitEventsMonitor;
         private readonly ILogger logger;
@@ -60,7 +60,11 @@ namespace SonarLint.VisualStudio.Integration
         public BindingConfiguration CurrentConfiguration { get; private set; }
 
         [ImportingConstructor]
-        public ActiveSolutionBoundTracker(IHost host, IActiveSolutionTracker activeSolutionTracker, ILogger logger, IBoundSolutionGitMonitor gitEventsMonitor)
+        public ActiveSolutionBoundTracker(IHost host,
+            IActiveSolutionTracker activeSolutionTracker,
+            ILogger logger,
+            IBoundSolutionGitMonitor gitEventsMonitor,
+            IConfigurationProvider configurationProvider)
         {
             extensionHost = host;
             solutionTracker = activeSolutionTracker;
@@ -70,8 +74,7 @@ namespace SonarLint.VisualStudio.Integration
             vsMonitorSelection = host.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
             vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
 
-            configurationProvider = extensionHost.GetService<IConfigurationProviderService>();
-            configurationProvider.AssertLocalServiceIsNotNull();
+            this.configurationProvider = configurationProvider;
 
             // The user changed the binding through the Team Explorer
             extensionHost.VisualStateManager.BindingStateChanged += OnBindingStateChanged;
