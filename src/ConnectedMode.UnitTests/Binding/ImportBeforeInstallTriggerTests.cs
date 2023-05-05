@@ -129,7 +129,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 
             var testSubject = CreateTestSubject(activeSolutionTracker.Object, Mock.Of<IImportBeforeFileGenerator>());
 
-            testSubject.Dispose();
+            ((IDisposable)testSubject).Dispose();
 
             activeSolutionTracker.VerifyRemove(x => x.PreSolutionBindingChanged -= It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>(), Times.Once);
             activeSolutionTracker.VerifyRemove(x => x.PreSolutionBindingUpdated -= It.IsAny<EventHandler>(), Times.Once);

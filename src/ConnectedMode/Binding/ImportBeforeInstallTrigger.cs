@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     [Export(typeof(ImportBeforeInstallTrigger))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ImportBeforeInstallTrigger
+    internal sealed class ImportBeforeInstallTrigger : IDisposable
     {
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly IImportBeforeFileGenerator importBeforeFileGenerator;
@@ -50,17 +50,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             // Trigger an initial update of importBeforeFileGenerator (we might have missed the solution binding
             // event from the ActiveSolutionBoundTracker)
             // See https://github.com/SonarSource/sonarlint-visualstudio/issues/3886
-            TriggerUpdate().Forget();
+            TriggerUpdateAsync().Forget();
         }
 
         private void OnPreSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
         {
-            TriggerUpdate().Forget();
+            TriggerUpdateAsync().Forget();
         }
 
-        private void OnPreSolutionBindingUpdated(object sender, EventArgs e) => TriggerUpdate().Forget();
+        private void OnPreSolutionBindingUpdated(object sender, EventArgs e) => TriggerUpdateAsync().Forget();
 
-        private async Task TriggerUpdate()
+        private async Task TriggerUpdateAsync()
         {
             var config = activeSolutionBoundTracker.CurrentConfiguration;
 
@@ -69,6 +69,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
                 await threadHandling.SwitchToBackgroundThread();
 
                 importBeforeFileGenerator.WriteTargetsFileToDiskIfNotExists();
+
+                Dispose();
             }
         }
 
