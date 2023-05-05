@@ -75,6 +75,7 @@ namespace SonarLint.VisualStudio.Integration
             vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
 
             this.configurationProvider = configurationProvider;
+
             // The user changed the binding through the Team Explorer
             extensionHost.VisualStateManager.BindingStateChanged += OnBindingStateChanged;
 

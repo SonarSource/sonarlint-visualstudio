@@ -267,6 +267,7 @@ Referenced assemblies:
 - 'PresentationCore, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
 - 'PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
 - 'SonarLint.VisualStudio.CloudSecrets, Version=6.16.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
+- 'SonarLint.VisualStudio.ConnectedMode, Version=6.16.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'SonarLint.VisualStudio.Core, Version=6.16.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'SonarLint.VisualStudio.Infrastructure.VS, Version=6.16.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'SonarLint.VisualStudio.Progress, Version=6.16.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
