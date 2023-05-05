@@ -28,6 +28,7 @@ using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CSharpVB;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client;
 using SonarQube.Client.Models;
@@ -41,23 +42,23 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private readonly ISonarQubeService sonarQubeService;
         private readonly ILogger logger;
-        private readonly IRuleSetGenerator ruleSetGenerator;
+        private readonly IGlobalConfigGenerator globalConfigGenerator;
         private readonly ISonarLintConfigGenerator sonarLintConfigGenerator;
 
         public CSharpVBBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger)
             : this(sonarQubeService, logger,
-                  new RuleSetGenerator(), new SonarLintConfigGenerator())
+                  new GlobalConfigGenerator(), new SonarLintConfigGenerator())
         {
         }
 
         internal /* for testing */ CSharpVBBindingConfigProvider(ISonarQubeService sonarQubeService,
             ILogger logger,
-            IRuleSetGenerator ruleSetGenerator,
+            IGlobalConfigGenerator globalConfigGenerator,
             ISonarLintConfigGenerator sonarLintConfigGenerator)
         {
             this.sonarQubeService = sonarQubeService;
             this.logger = logger;
-            this.ruleSetGenerator = ruleSetGenerator;
+            this.globalConfigGenerator = globalConfigGenerator;
             this.sonarLintConfigGenerator = sonarLintConfigGenerator;
         }
 
@@ -100,10 +101,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var inactiveRules = await FetchSupportedRulesAsync(false, qualityProfile.Key, cancellationToken);
             var exclusions = await FetchInclusionsExclusionsAsync(bindingConfiguration.Project.ProjectKey, cancellationToken);
 
-            var ruleset = GetRulesetFile(qualityProfile, language, bindingConfiguration, activeRules, inactiveRules, sonarProperties);
+            var globalConfig = GetGlobalConfig(language, bindingConfiguration, activeRules, inactiveRules);
             var additionalFile = GetAdditionalFile(language, bindingConfiguration, activeRules, sonarProperties, exclusions);
 
-            return new CSharpVBBindingConfig(ruleset, additionalFile);
+            return new CSharpVBBindingConfig(globalConfig, additionalFile);
         }
 
         private async Task<ServerExclusions> FetchInclusionsExclusionsAsync(string projectKey,
@@ -115,13 +116,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return exclusions;
         }
 
-        private FilePathAndContent<RuleSet> GetRulesetFile(SonarQubeQualityProfile qualityProfile, Language language, BindingConfiguration bindingConfiguration, IEnumerable<SonarQubeRule> activeRules, IEnumerable<SonarQubeRule> inactiveRules, Dictionary<string, string> sonarProperties)
+        private FilePathAndContent<string> GetGlobalConfig(Language language, BindingConfiguration bindingConfiguration, IEnumerable<SonarQubeRule> activeRules, IEnumerable<SonarQubeRule> inactiveRules)
         {
-            var RuleSet = CreateRuleset(qualityProfile, language, bindingConfiguration, activeRules.Union(inactiveRules), sonarProperties);
+            var globalConfig = globalConfigGenerator.Generate(activeRules.Union(inactiveRules));
 
-            var ruleSetFilePath = GetSolutionRuleSetFilePath(language, bindingConfiguration);
+            var globalConfigFilePath = GetSolutionRuleSetFilePath(language, bindingConfiguration);
 
-            return new FilePathAndContent<RuleSet>(ruleSetFilePath, RuleSet);
+            return new FilePathAndContent<string>(globalConfigFilePath, globalConfig);
         }
 
         private FilePathAndContent<SonarLintConfiguration> GetAdditionalFile(Language language,
@@ -151,17 +152,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 () => sonarQubeService.GetAllPropertiesAsync(projectKey, cancellationToken), logger);
 
             return serverProperties.ToDictionary(x => x.Key, x => x.Value);
-        }
-
-        private RuleSet CreateRuleset(SonarQubeQualityProfile qualityProfile, Language language, BindingConfiguration bindingConfiguration, IEnumerable<SonarQubeRule> rules, Dictionary<string, string> sonarProperties)
-        {
-            var coreRuleset = ruleSetGenerator.Generate(language.ServerLanguage.Key, rules, sonarProperties);
-
-            // Set the name and description
-            coreRuleset.Name = string.Format(Strings.SonarQubeRuleSetNameFormat, bindingConfiguration.Project.ProjectName, qualityProfile.Name);
-            var descriptionSuffix = string.Format(Strings.SonarQubeQualityProfilePageUrlFormat, bindingConfiguration.Project.ServerUri, qualityProfile.Key);
-            coreRuleset.Description = $"{coreRuleset.Description} {descriptionSuffix}";
-            return coreRuleset;
         }
 
         internal static  /* for testing */ bool IsSupportedRule(SonarQubeRule rule)
