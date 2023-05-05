@@ -111,8 +111,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var bindingArgs = CreateBindCommandArgs(projectKey: "projectKey");
 
-            CreateConfigurationProviderService("C:\\SolutionPath");
-
             ServerExclusions settings = CreateSettings();
 
             var sonarQubeService = new Mock<ISonarQubeService>();
@@ -133,8 +131,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var bindingArgs = CreateBindCommandArgs(projectKey: "projectKey");
 
-            CreateConfigurationProviderService("C:\\SolutionPath");
-
             var sonarQubeService = new Mock<ISonarQubeService>();
             sonarQubeService.Setup(s => s.GetServerExclusions("projectKey", It.IsAny<CancellationToken>())).Throws(new Exception("Expected Error"));
 
@@ -151,8 +147,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SaveServerExclusionsAsync_HasCriticalError_Throws()
         {
             var bindingArgs = CreateBindCommandArgs(projectKey: "projectKey");
-
-            CreateConfigurationProviderService("C:\\SolutionPath");
 
             var sonarQubeService = new Mock<ISonarQubeService>();
             sonarQubeService.Setup(s => s.GetServerExclusions("projectKey", It.IsAny<CancellationToken>())).Throws(new StackOverflowException("Critical Error"));
@@ -173,15 +167,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Exclusions = new string[] { "exclusion" },
                 GlobalExclusions = new string[] { "globalExclusion" }
             };
-        }
-
-        private void CreateConfigurationProviderService(string folderPathToReturn)
-        {
-            var configurationProviderService = new ConfigurableConfigurationProvider();
-            configurationProviderService.ModeToReturn = SonarLintMode.Connected;
-            configurationProviderService.FolderPathToReturn = folderPathToReturn;
-
-            this.serviceProvider.RegisterService(typeof(IConfigurationProviderService), configurationProviderService);
         }
 
         [TestMethod]
