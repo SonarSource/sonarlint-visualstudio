@@ -25,24 +25,25 @@ using Moq;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
+using SonarLint.VisualStudio.Integration.UnintrusiveBinding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
     public class ConfigurationPersisterTests
     {
-        private Mock<ISolutionBindingPathProvider> newPathProvider;
+        private Mock<IUnintrusiveBindingPathProvider> configFilePathProvider;
         private Mock<ISolutionBindingDataWriter> solutionBindingDataWriter;
         private ConfigurationPersister testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            newPathProvider = new Mock<ISolutionBindingPathProvider>();
+            configFilePathProvider = new Mock<IUnintrusiveBindingPathProvider>();
             solutionBindingDataWriter = new Mock<ISolutionBindingDataWriter>();
 
             testSubject = new ConfigurationPersister(
-                newPathProvider.Object,
+                configFilePathProvider.Object,
                 solutionBindingDataWriter.Object);
         }
 
@@ -53,14 +54,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new ConfigurationPersister(null, null);
 
             // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("connectedModePathProvider");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("configFilePathProvider");
         }
 
         [TestMethod]
         public void Ctor_InvalidArgs_NullSolutionBindingSerializer_Throws()
         {
             // Arrange
-            Action act = () => new ConfigurationPersister(newPathProvider.Object, null);
+            Action act = () => new ConfigurationPersister(configFilePathProvider.Object, null);
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingDataWriter");
@@ -86,27 +87,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             act.Should().ThrowExactly<InvalidOperationException>();
         }
 
-        // TODO - CM cleanup - do we still need this test?
         [TestMethod]
-        public void Persist_LegacyConfig_Noop()
+        [DataRow(SonarLintMode.Standalone)]
+        [DataRow(SonarLintMode.LegacyConnected)]
+        public void Persist_InvalidMode_Throws(SonarLintMode invalidMode)
         {
             // Arrange
             var project = new BoundSonarQubeProject();
 
             // Act
-            var actual = testSubject.Persist(project, SonarLintMode.LegacyConnected);
+            Action act = () => testSubject.Persist(project, invalidMode);
 
             // Assert
-            actual.Should().BeNull();
-
+            act.Should().ThrowExactly<InvalidOperationException>().And.Message.Should().Contain(invalidMode.ToString());
             solutionBindingDataWriter.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
-        public void Persist_NewConnectedModeConfig_SaveNewConfig()
+        public void Persist_ConnectedModeConfig_SaveNewConfig()
         {
             var projectToWrite = new BoundSonarQubeProject();
-            newPathProvider.Setup(x => x.Get()).Returns("c:\\new.txt");
+            configFilePathProvider.Setup(x => x.Get()).Returns("c:\\new.txt");
 
             solutionBindingDataWriter
                 .Setup(x => x.Write("c:\\new.txt", projectToWrite))
