@@ -19,7 +19,10 @@
  */
 
 using System.ComponentModel.Composition;
+using System.IO;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration.Persistence;
+using SonarLint.VisualStudio.Integration.UnintrusiveBinding;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
@@ -27,7 +30,43 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class UnintrusiveConfigurationProvider : IConfigurationProvider
     {
-        // TODO - fetch settings from new location #4170
-        public BindingConfiguration GetConfiguration() => BindingConfiguration.Standalone;
+        private readonly IUnintrusiveBindingPathProvider pathProvider;
+        private readonly ISolutionBindingDataReader solutionBindingDataReader;
+
+        [ImportingConstructor]
+        public UnintrusiveConfigurationProvider(
+            IUnintrusiveBindingPathProvider pathProvider,
+            ISolutionBindingDataReader solutionBindingDataReader)
+        {
+            this.pathProvider = pathProvider;
+            this.solutionBindingDataReader = solutionBindingDataReader;
+        }
+
+        public BindingConfiguration GetConfiguration()
+        {
+            var bindingConfiguration = TryGetBindingConfiguration(pathProvider.Get());
+
+            return bindingConfiguration ?? BindingConfiguration.Standalone;
+        }
+
+        private BindingConfiguration TryGetBindingConfiguration(string bindingPath)
+        {
+            if (bindingPath == null)
+            {
+                return null;
+            }
+
+            var boundProject = solutionBindingDataReader.Read(bindingPath);
+
+            if (boundProject == null)
+            {
+                return null;
+            }
+
+            var bindingConfigDirectory = Path.GetDirectoryName(bindingPath);
+
+            return BindingConfiguration.CreateBoundConfiguration(boundProject, SonarLintMode.Connected, bindingConfigDirectory);
+        }
     }
+
 }
