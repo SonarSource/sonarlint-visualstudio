@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.CFamily.IntegrationTests
         [DataRow("CLangAnalyzerTestFile_OneIssue_HasSecondaryLocations")]
         public void CallAnalyzer_IntegrationTest(string testCaseFileName)
         {
-            var testedFile = Path.Combine(testsDataDirectory, testCaseFileName + ".txt");
+            var testedFile = Path.Combine(testsDataDirectory, testCaseFileName + ".txt").Replace('/', '\\');
 
             // Sanity checks to help with debugging on the CI machine
             CheckFileExists(testedFile);
