@@ -144,6 +144,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // Otherwise, we are updating an existing binding
             var isFirstBinding = currentConfiguration.Mode == SonarLintMode.Standalone;
 
+            // TODO: CM cleanup - will never be saving in legacy format
             if (currentConfiguration.Mode == SonarLintMode.LegacyConnected)
             {
                 host.Logger.WriteLine(Strings.Bind_UpdatingLegacyBinding);

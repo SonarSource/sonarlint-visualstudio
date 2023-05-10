@@ -557,8 +557,8 @@ This is the general format to use when writing errors to output window or when t
   <data name="ConnectionStepValidatinCredentials" xml:space="preserve">
     <value>Validating credentials</value>
   </data>
-  <data name="Bind_CannotSaveStandaloneConfiguration" xml:space="preserve">
-    <value>Cannot save configuration when in Standalone mode</value>
+  <data name="Bind_CannotSaveConfig_InvalidMode" xml:space="preserve">
+    <value>Can save configuration only in Connected Mode. Current mode: {0}</value>
   </data>
   <data name="Bind_SavingBindingConfiguration" xml:space="preserve">
     <value>Saving configuration...</value>
