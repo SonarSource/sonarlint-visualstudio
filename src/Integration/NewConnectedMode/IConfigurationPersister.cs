@@ -19,11 +19,11 @@
  */
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.Integration.UnintrusiveBinding;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
@@ -34,14 +34,15 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
     internal class ConfigurationPersister : IConfigurationPersister
     {
-        private readonly ISolutionBindingPathProvider connectedModePathProvider;
+        private readonly IUnintrusiveBindingPathProvider configFilePathProvider;
         private readonly ISolutionBindingDataWriter solutionBindingDataWriter;
 
-        public ConfigurationPersister(ISolutionBindingPathProvider connectedModePathProvider,
+        public ConfigurationPersister(
+            IUnintrusiveBindingPathProvider configFilePathProvider,
             ISolutionBindingDataWriter solutionBindingDataWriter)
         {
-            this.connectedModePathProvider = connectedModePathProvider ??
-                                             throw new ArgumentNullException(nameof(connectedModePathProvider));
+            this.configFilePathProvider = configFilePathProvider ??
+                                             throw new ArgumentNullException(nameof(ConfigurationPersister.configFilePathProvider));
 
             this.solutionBindingDataWriter = solutionBindingDataWriter ??
                                              throw new ArgumentNullException(nameof(solutionBindingDataWriter));
@@ -54,44 +55,26 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                 throw new ArgumentNullException(nameof(project));
             }
 
-            var targetDirectory = GetTargetDirectory(bindingMode);
+            var configFilePath = GetConfigFilePath(bindingMode);
 
-            var success = targetDirectory != null &&
-                          solutionBindingDataWriter.Write(targetDirectory, project);
+            var success = configFilePath != null &&
+                          solutionBindingDataWriter.Write(configFilePath, project);
 
-            return success ? CreateBindingConfiguration(targetDirectory, project, bindingMode) : null;
+            // The binding directory is the folder containing the binding config file
+            var bindingConfigDirectory = Path.GetDirectoryName(configFilePath);
+            return success ?
+                BindingConfiguration.CreateBoundConfiguration(project, bindingMode, bindingConfigDirectory) : null;
         }
 
-        private BindingConfiguration CreateBindingConfiguration(string bindingPath, BoundSonarQubeProject boundProject, SonarLintMode sonarLintMode)
+        private string GetConfigFilePath(SonarLintMode bindingMode)
         {
-            var bindingConfigDirectory = Path.GetDirectoryName(bindingPath);
-
-            return BindingConfiguration.CreateBoundConfiguration(boundProject, sonarLintMode, bindingConfigDirectory);
-        }
-
-        private string GetTargetDirectory(SonarLintMode bindingMode)
-        {
-            switch (bindingMode)
+            if (bindingMode != SonarLintMode.Connected)
             {
-                // TODO - CM cleanup - going forwards we'll only support saving in the new-new format.
-                case SonarLintMode.LegacyConnected:
-                {
-                    return null;  // effect is that settings won't be saved
-                }
-                case SonarLintMode.Connected:
-                {
-                    return connectedModePathProvider.Get();
-                }
-                case SonarLintMode.Standalone:
-                {
-                    throw new InvalidOperationException(Strings.Bind_CannotSaveStandaloneConfiguration);
-                }
-                default:
-                {
-                    Debug.Fail("Unrecognized write mode " + bindingMode);
-                    return null;
-                }
+                var message = string.Format(Strings.Bind_CannotSaveConfig_InvalidMode, bindingMode);
+                throw new InvalidOperationException(message);
             }
+
+            return configFilePathProvider.Get();
         }
     }
 }
