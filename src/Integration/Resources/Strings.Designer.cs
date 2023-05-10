@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot only save configuration in Connected Mode. Current mode: {0}.
+        ///   Looks up a localized string similar to Can save configuration only in Connected Mode. Current mode: {0}.
         /// </summary>
         public static string Bind_CannotSaveConfig_InvalidMode {
             get {
