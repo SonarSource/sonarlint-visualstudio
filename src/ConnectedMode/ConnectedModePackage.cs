@@ -69,7 +69,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
             localSuppressionsChangedHandler = componentModel.GetService<LocalSuppressionsChangedHandler>();
             
             importBeforeInstallTrigger = componentModel.GetService<ImportBeforeInstallTrigger>();
-            importBeforeInstallTrigger.TriggerUpdate().Forget();
 
             // Trigger an initial update of suppressions (we might have missed the solution binding
             // event from the ActiveSolutionBoundTracker)
@@ -90,6 +89,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 boundSolutionUpdateHandler?.Dispose();
                 timedUpdateHandler?.Dispose();
                 localSuppressionsChangedHandler?.Dispose();
+                importBeforeInstallTrigger?.Dispose();
             }
 
             base.Dispose(disposing);
