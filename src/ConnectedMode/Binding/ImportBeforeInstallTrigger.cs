@@ -18,8 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
@@ -27,29 +29,58 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     [Export(typeof(ImportBeforeInstallTrigger))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ImportBeforeInstallTrigger
+    internal sealed class ImportBeforeInstallTrigger : IDisposable
     {
-        private readonly IConfigurationProvider configurationProvider;
+        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly IImportBeforeFileGenerator importBeforeFileGenerator;
         private readonly IThreadHandling threadHandling;
 
+        private bool disposed;
+
         [ImportingConstructor]
-        public ImportBeforeInstallTrigger(IConfigurationProvider configurationProvider, IImportBeforeFileGenerator importBeforeFileGenerator, IThreadHandling threadHandling)
+        public ImportBeforeInstallTrigger(IActiveSolutionBoundTracker activeSolutionBoundTracker, IImportBeforeFileGenerator importBeforeFileGenerator, IThreadHandling threadHandling)
         {
-            this.configurationProvider = configurationProvider;
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.importBeforeFileGenerator = importBeforeFileGenerator;
             this.threadHandling = threadHandling;
+
+            this.activeSolutionBoundTracker.PreSolutionBindingChanged += OnPreSolutionBindingChanged;
+            this.activeSolutionBoundTracker.PreSolutionBindingUpdated += OnPreSolutionBindingUpdated;
+
+            // Trigger an initial update of importBeforeFileGenerator (we might have missed the solution binding
+            // event from the ActiveSolutionBoundTracker)
+            // See https://github.com/SonarSource/sonarlint-visualstudio/issues/3886
+            TriggerUpdateAsync().Forget();
         }
 
-        public async Task TriggerUpdate()
+        private void OnPreSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
         {
-            var config = configurationProvider.GetConfiguration();
+            TriggerUpdateAsync().Forget();
+        }
+
+        private void OnPreSolutionBindingUpdated(object sender, EventArgs e) => TriggerUpdateAsync().Forget();
+
+        private async Task TriggerUpdateAsync()
+        {
+            var config = activeSolutionBoundTracker.CurrentConfiguration;
 
             if (config.Mode != SonarLintMode.Standalone)
             {
                 await threadHandling.SwitchToBackgroundThread();
 
                 importBeforeFileGenerator.WriteTargetsFileToDiskIfNotExists();
+
+                Dispose();
+            }
+        }
+
+        public void Dispose()
+        {
+            if (!disposed)
+            {
+                this.activeSolutionBoundTracker.PreSolutionBindingChanged -= OnPreSolutionBindingChanged;
+                this.activeSolutionBoundTracker.PreSolutionBindingUpdated -= OnPreSolutionBindingUpdated;
+                disposed = true;
             }
         }
     }
