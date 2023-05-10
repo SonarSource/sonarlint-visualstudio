@@ -232,12 +232,14 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                         PushOutputElementInfo("h4", true);
                         break;
+
                     case "h5":
                         WriteBlockElementStart("Paragraph");
                         writer.ApplyStyleToElement(StyleResourceNames.Heading5_Paragraph);
 
                         PushOutputElementInfo("h5", true);
                         break;
+
                     case "h6":
                         WriteBlockElementStart("Paragraph");
                         writer.ApplyStyleToElement(StyleResourceNames.Heading6_Paragraph);
@@ -307,6 +309,11 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                         break;
 
+                    case "span":
+                        WriteInlineElementStart("Span");
+
+                        break;
+
                     case "thead":
                         writer.WriteStartElement("TableRowGroup");
                         writer.ApplyStyleToElement(StyleResourceNames.TableHeaderRowGroup);
@@ -368,8 +375,6 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 return XmlReader.Create(stream, settings);
             }
 
-            
-
             private void WriteText(string text)
             {
                 // If we are writing an inline element, we need a parent element that supports text directly.
@@ -405,7 +410,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 writer.WriteAttributeString("NavigateUri", href.AbsoluteUri);
                 writer.WriteString($"{compositeRuleId.RepoKey}:{compositeRuleId.RuleKey}");
                 writer.WriteEndElement();
-                }
+            }
 
             private void WriteInlineElementStart(string elementName)
             {
