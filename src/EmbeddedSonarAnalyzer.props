@@ -6,7 +6,7 @@
     <!-- Note: Guide on how to update the analyzers is on the xtranet! -->
     <EmbeddedSonarAnalyzerVersion>9.0.0.68202</EmbeddedSonarAnalyzerVersion>
     <EmbeddedSonarCFamilyAnalyzerVersion>6.44.0.61773</EmbeddedSonarCFamilyAnalyzerVersion>
-    <EmbeddedSonarJSAnalyzerVersion>10.1.0.21143</EmbeddedSonarJSAnalyzerVersion>
+    <EmbeddedSonarJSAnalyzerVersion>10.2.0.21568</EmbeddedSonarJSAnalyzerVersion>
 
   <!-- Secrets
 	     Secrets are special case: we get the analyzer binaries from a NuGet package, and the
