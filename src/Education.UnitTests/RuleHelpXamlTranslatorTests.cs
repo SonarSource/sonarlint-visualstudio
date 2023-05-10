@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void TranslateHtmlToXaml_InlineContent_AddsParagraph()
         {
-            var testSubject = new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()).Create();
+            var testSubject = CreateTestSubject();
 
             var htmlText = "inline Text";
 
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void TranslateHtmlToXaml_BlockContent_Translates()
         {
-            var testSubject = new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()).Create();
+            var testSubject = CreateTestSubject();
 
             var htmlText = @"<ul><li>some list item</li></ul>";
 
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [DataRow(6)]
         public void TranslateHtmlToXaml_HTagsAreHandled(int headerSize)
         {
-            var testSubject = new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()).Create();
+            var testSubject = CreateTestSubject();
 
             var htmlText = $"<h{headerSize}>Text</h{headerSize}>";
 
@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void TranslateHtmlToXaml_CrossReferenceRule_AddsHyperLink()
         {
-            var testSubject = new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()).Create();
+            var testSubject = CreateTestSubject();
 
             var htmlText = "Texty text {rule:cpp:S1564} blabla";
 
@@ -129,6 +129,29 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var result = testSubject.TranslateHtmlToXaml(htmlText);
 
             result.Should().Be(expectedText);
+        }
+
+        [TestMethod]
+        public void TranslateHtmlToXaml_Span_AddsSpan()
+        {
+            IRuleHelpXamlTranslator testSubject = CreateTestSubject();
+
+            var htmlText = "<span>Some text</span>";
+
+            var expectedText = @"<Paragraph>
+  <Span>Some text</Span>
+</Paragraph>";
+
+            var result = testSubject.TranslateHtmlToXaml(htmlText);
+
+            result.Should().Be(expectedText);
+        }
+
+        private static IRuleHelpXamlTranslator CreateTestSubject(IXamlWriterFactory xamlWriterFactory = null)
+        {
+            xamlWriterFactory ??= new XamlWriterFactory();
+
+            return new RuleHelpXamlTranslatorFactory(xamlWriterFactory).Create();
         }
     }
 }
