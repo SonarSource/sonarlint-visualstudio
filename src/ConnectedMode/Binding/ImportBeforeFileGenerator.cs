@@ -46,6 +46,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         private const string targetsFileName = "SonarLint.targets";
         private const string resourcePath = "SonarLint.VisualStudio.ConnectedMode.Embedded.SonarLintTargets.xml";
 
+        private static readonly Object locker = new Object();
+
         [ImportingConstructor]
         public ImportBeforeFileGenerator(ILogger logger) : this(logger, new FileSystem()) { }
 
@@ -57,33 +59,36 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
         public void WriteTargetsFileToDiskIfNotExists()
         {
-            var fileContent = GetTargetFileContent();
-            var pathToImportBefore = GetPathToImportBefore();
-            var fullPath = Path.Combine(pathToImportBefore, targetsFileName);
-
-            logger.LogVerbose(Resources.ImportBeforeFileGenerator_CheckingIfFileExists, fullPath);
-
-            try
+            lock (locker)
             {
-                if (!fileSystem.Directory.Exists(pathToImportBefore))
-                {
-                    logger.LogVerbose(Resources.ImportBeforeFileGenerator_CreatingDirectory, pathToImportBefore);
-                    fileSystem.Directory.CreateDirectory(pathToImportBefore);
-                }
+                var fileContent = GetTargetFileContent();
+                var pathToImportBefore = GetPathToImportBefore();
+                var fullPath = Path.Combine(pathToImportBefore, targetsFileName);
 
-                if (fileSystem.File.Exists(fullPath) && fileSystem.File.ReadAllText(fullPath) == fileContent)
-                {
-                    logger.LogVerbose(Resources.ImportBeforeFileGenerator_FileAlreadyExists);
-                    return;
-                }
+                logger.LogVerbose(Resources.ImportBeforeFileGenerator_CheckingIfFileExists, fullPath);
 
-                logger.LogVerbose(Resources.ImportBeforeFileGenerator_WritingTargetFileToDisk);
-                fileSystem.File.WriteAllText(fullPath, fileContent);
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(Resources.ImportBeforeFileGenerator_FailedToWriteFile, ex.Message);
-                logger.LogVerbose(Resources.ImportBeforeFileGenerator_FailedToWriteFile_Verbose, ex.ToString());
+                try
+                {
+                    if (!fileSystem.Directory.Exists(pathToImportBefore))
+                    {
+                        logger.LogVerbose(Resources.ImportBeforeFileGenerator_CreatingDirectory, pathToImportBefore);
+                        fileSystem.Directory.CreateDirectory(pathToImportBefore);
+                    }
+
+                    if (fileSystem.File.Exists(fullPath) && fileSystem.File.ReadAllText(fullPath) == fileContent)
+                    {
+                        logger.LogVerbose(Resources.ImportBeforeFileGenerator_FileAlreadyExists);
+                        return;
+                    }
+
+                    logger.LogVerbose(Resources.ImportBeforeFileGenerator_WritingTargetFileToDisk);
+                    fileSystem.File.WriteAllText(fullPath, fileContent);
+                }
+                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+                {
+                    logger.WriteLine(Resources.ImportBeforeFileGenerator_FailedToWriteFile, ex.Message);
+                    logger.LogVerbose(Resources.ImportBeforeFileGenerator_FailedToWriteFile_Verbose, ex.ToString());
+                }
             }
         }
 

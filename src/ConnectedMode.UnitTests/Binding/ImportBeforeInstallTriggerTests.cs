@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         [DataRow(SonarLintMode.Connected, true)]
         [DataRow(SonarLintMode.LegacyConnected, true)]
         [DataRow(SonarLintMode.Standalone, false)]
-        public void Ctor__TriggersImportBeforeFileDependingOnMode(SonarLintMode mode, bool shouldTrigger)
+        public void Ctor_TriggersImportBeforeFileDependingOnMode(SonarLintMode mode, bool shouldTrigger)
         {
             var activeSolutionTracker = CreateActiveSolutionBoundTrackerWihtBindingConfig(mode);
             var importBeforeFileGenerator = new Mock<IImportBeforeFileGenerator>();
