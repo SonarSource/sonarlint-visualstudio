@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 
             var sb = new StringBuilder();
             sb.AppendLine("is_global=true");
-            sb.AppendLine("global_level=500000");
+            sb.AppendLine("global_level=1999999999");
             sb.AppendLine(GetRuleString("2", "suggestion"));
             sb.AppendLine(GetRuleString("3", "suggestion"));
             sb.AppendLine(GetRuleString("5", "suggestion"));
@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 
             var sb = new StringBuilder();
             sb.AppendLine("is_global=true");
-            sb.AppendLine("global_level=500000");
+            sb.AppendLine("global_level=1999999999");
 
             result.Should().Be(sb.ToString());
         }

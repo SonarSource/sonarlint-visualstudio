@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             var sb = new StringBuilder();
 
             sb.AppendLine("is_global=true");
-            sb.AppendLine("global_level=500000");
+            sb.AppendLine("global_level=1999999999");
 
             var sortedRules = rules.OrderBy(r => r.Key);
 
