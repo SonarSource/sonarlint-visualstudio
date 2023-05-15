@@ -1,5 +1,5 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-<!-- TODO 
+    <!-- TODO 
 
 * decide the final root directory location
 * remove the debug Target
@@ -7,7 +7,7 @@
 
 -->
 
-  <!-- 
+    <!-- 
       This targets file was added by SonarLint for Visual Studio.
       If you are no longer using SonarLint for Visual Studio then you can safely delete it.
       
@@ -17,43 +17,42 @@
       when a solution is in Connected Mode i.e. when it is bound to a SonarQube or SonarCloud project.
       
   -->
-  
-  <PropertyGroup Condition="$(BuildingInsideVisualStudio) == 'true'">
-    <!-- C#/VB.NET settings need to be in different folders -->
-    <_SLVSRootFolder>$(LOCALAPPDATA)\SonarLint\VS\$(SolutionName)_$(SolutionDir.GetHashCode())\$(Language)</_SLVSRootFolder>
-    
-    <_SLVSGeneratedRoslynConfigFile>$(_SLVSRootFolder)\slvs_generated.globalconfig</_SLVSGeneratedRoslynConfigFile>
-    <_SLVSGeneratedAdditionalFile>$(_SLVSRootFolder)\SonarLint.xml</_SLVSGeneratedAdditionalFile>
-   </PropertyGroup>
 
-  <ItemGroup Condition="$(BuildingInsideVisualStudio) == 'true' AND Exists($(_SLVSGeneratedRoslynConfigFile))">
-    <EditorConfigFiles Condition="Exists($(_SLVSGeneratedRoslynConfigFile))" Include="$(_SLVSGeneratedRoslynConfigFile)" />
-    <AdditionalFiles Condition="Exists($(_SLVSGeneratedAdditionalFile))" Include="$(_SLVSGeneratedAdditionalFile)" />
-  </ItemGroup>
+    <PropertyGroup Condition="$(BuildingInsideVisualStudio) == 'true'">
+        <SolutionDirAsInVs>$([System.IO.Path]::GetDirectoryName($(SolutionDir)))</SolutionDirAsInVs>
+        <!-- C#/VB.NET settings need to be in different folders -->
+        <_SLVSRootFolder>$(APPDATA)\SonarLint for Visual Studio\Bindings\$(SolutionName)_$(SolutionDirAsInVs.GetHashCode())\$(Language)</_SLVSRootFolder>
 
-  
-  
-  
-  
- 
-  <Target Name="SLVS_DebugOutput_TODO_Remove" BeforeTargets="CoreCompile" >
-
-    <PropertyGroup>
-      <_SLVSGeneratedRoslynConfigFileExists>false</_SLVSGeneratedRoslynConfigFileExists>
-      <_SLVSGeneratedAdditionalFileExists>false</_SLVSGeneratedAdditionalFileExists>
-
-      <_SLVSGeneratedRoslynConfigFileExists Condition=" Exists($(_SLVSGeneratedRoslynConfigFile)) ">true</_SLVSGeneratedRoslynConfigFileExists>
-      <_SLVSGeneratedAdditionalFileExists Condition=" Exists($(_SLVSGeneratedAdditionalFile)) ">true</_SLVSGeneratedAdditionalFileExists>
+        <_SLVSGeneratedRoslynConfigFile>$(_SLVSRootFolder)\slvs_generated.globalconfig</_SLVSGeneratedRoslynConfigFile>
+        <_SLVSGeneratedAdditionalFile>$(_SLVSRootFolder)\SonarLint.xml</_SLVSGeneratedAdditionalFile>
     </PropertyGroup>
-    
-    <Message Importance="high" Text="XXX: Building inside VS: $(BuildingInsideVisualStudio)" />
-    <Message Importance="high" Text="XXX: $(SolutionDir)" />
-    <Message Importance="high" Text="XXX: $(SolutionDir.GetHashCode())" />
-    <Message Importance="high" Text="XXX: this file: $(MSBuildThisFileFullPath)" />
-    <Message Importance="high" Text="XXX: Config file: $(_SLVSGeneratedRoslynConfigFile)" />
-    <Message Importance="high" Text="XXX: Config exists: $(_SLVSGeneratedRoslynConfigFileExists)" />
-    <Message Importance="high" Text="XXX: Additional file: $(_SLVSGeneratedAdditionalFile)" />
-    <Message Importance="high" Text="XXX: Additional exists: $(_SLVSGeneratedAdditionalFileExists)" />
-  </Target>
+
+    <ItemGroup Condition="$(BuildingInsideVisualStudio) == 'true' AND Exists($(_SLVSGeneratedRoslynConfigFile))">
+        <EditorConfigFiles Condition="Exists($(_SLVSGeneratedRoslynConfigFile))" Include="$(_SLVSGeneratedRoslynConfigFile)" />
+        <AdditionalFiles Condition="Exists($(_SLVSGeneratedAdditionalFile))" Include="$(_SLVSGeneratedAdditionalFile)" />
+    </ItemGroup>
+
+
+    <Target Name="SLVS_DebugOutput_TODO_Remove" BeforeTargets="CoreCompile" >
+
+        <PropertyGroup>
+            <_SLVSGeneratedRoslynConfigFileExists>false</_SLVSGeneratedRoslynConfigFileExists>
+            <_SLVSGeneratedAdditionalFileExists>false</_SLVSGeneratedAdditionalFileExists>
+
+            <_SLVSGeneratedRoslynConfigFileExists Condition=" Exists($(_SLVSGeneratedRoslynConfigFile)) ">true</_SLVSGeneratedRoslynConfigFileExists>
+            <_SLVSGeneratedAdditionalFileExists Condition=" Exists($(_SLVSGeneratedAdditionalFile)) ">true</_SLVSGeneratedAdditionalFileExists>
+        </PropertyGroup>
+
+        <Message Importance="high" Text="XXX: Building inside VS: $(BuildingInsideVisualStudio)" />
+        <Message Importance="high" Text="XXX: Language: $(Language)" />
+        <Message Importance="high" Text="XXX: SolutionDirAsInVs: $(SolutionDirAsInVs)" />
+        <Message Importance="high" Text="XXX: SolutionDirAsInVs.GetHashCode: $(SolutionDirAsInVs.GetHashCode())" />
+        <Message Importance="high" Text="XXX: SLVSRootFolder: $(_SLVSRootFolder)" />
+        <Message Importance="high" Text="XXX: This file: $(MSBuildThisFileFullPath)" />
+        <Message Importance="high" Text="XXX: Config file: $(_SLVSGeneratedRoslynConfigFile)" />
+        <Message Importance="high" Text="XXX: Config exists: $(_SLVSGeneratedRoslynConfigFileExists)" />
+        <Message Importance="high" Text="XXX: Additional file: $(_SLVSGeneratedAdditionalFile)" />
+        <Message Importance="high" Text="XXX: Additional exists: $(_SLVSGeneratedAdditionalFileExists)" />
+    </Target>
 
 </Project>
