@@ -180,7 +180,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
             var testSubject = builder.CreateTestSubject();
 
-            var expectedAdditionalFilePath = builder.BindingConfiguration.BuildPathUnderConfigDirectory() + "\\VB\\SonarLint.xml";
+            var expectedAdditionalFilePath = builder.BindingConfiguration.BuildPathUnderConfigDirectory() + "VB\\SonarLint.xml";
 
             var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
             (response as ICSharpVBBindingConfig).AdditionalFile.Path.Should().Be(expectedAdditionalFilePath);
