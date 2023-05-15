@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // Now fetch the data required for the NuGet configuration
             var sonarProperties = await FetchPropertiesAsync(bindingConfiguration.Project.ProjectKey, cancellationToken);
 
-            // Finally, fetch the remaining data needed to build the ruleset
+            // Finally, fetch the remaining data needed to build the globalconfig
             var inactiveRules = await FetchSupportedRulesAsync(false, qualityProfile.Key, cancellationToken);
             var exclusions = await FetchInclusionsExclusionsAsync(bindingConfiguration.Project.ProjectKey, cancellationToken);
 
@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             var globalConfig = globalConfigGenerator.Generate(activeRules.Union(inactiveRules));
 
-            var globalConfigFilePath = GetSolutionRuleSetFilePath(language, bindingConfiguration);
+            var globalConfigFilePath = GetSolutionGlobalConfigFilePath(language, bindingConfiguration);
 
             return new FilePathAndContent<string>(globalConfigFilePath, globalConfig);
         }
@@ -171,7 +171,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             issueType == SonarQubeIssueType.Bug ||
             issueType == SonarQubeIssueType.Vulnerability;
 
-        internal static string GetSolutionRuleSetFilePath(Language language, BindingConfiguration bindingConfiguration)
+        internal static string GetSolutionGlobalConfigFilePath(Language language, BindingConfiguration bindingConfiguration)
         {
             return bindingConfiguration.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
         }
