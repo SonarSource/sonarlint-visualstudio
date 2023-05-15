@@ -45,12 +45,12 @@ namespace SonarLint.VisualStudio.Core
         public readonly static Language Unknown = new Language();
         public readonly static Language CSharp = new Language("CSharp", CoreStrings.CSharpLanguageName, "csharp.globalconfig", SonarQubeLanguage.CSharp);
         public readonly static Language VBNET = new Language("VB", CoreStrings.VBNetLanguageName, "vb.globalconfig", SonarQubeLanguage.VbNet);
-        public readonly static Language Cpp = new Language("C++", CoreStrings.CppLanguageName, "_cpp_settings.json", SonarQubeLanguage.Cpp);
-        public readonly static Language C = new Language("C", "C", "_c_settings.json", SonarQubeLanguage.C);
-        public readonly static Language Js = new Language("Js", "JavaScript", "_js_settings.json", SonarQubeLanguage.Js);
-        public readonly static Language Ts = new Language("Ts", "TypeScript", "_ts_settings.json", SonarQubeLanguage.Ts);
-        public readonly static Language Css = new Language("Css", "CSS", "_css_settings.json", SonarQubeLanguage.Css);
-        public readonly static Language Secrets = new Language("Secrets", "Secrets", "_secrets_settings.json", SonarQubeLanguage.Secrets);
+        public readonly static Language Cpp = new Language("C++", CoreStrings.CppLanguageName, "cpp_settings.json", SonarQubeLanguage.Cpp);
+        public readonly static Language C = new Language("C", "C", "c_settings.json", SonarQubeLanguage.C);
+        public readonly static Language Js = new Language("Js", "JavaScript", "js_settings.json", SonarQubeLanguage.Js);
+        public readonly static Language Ts = new Language("Ts", "TypeScript", "ts_settings.json", SonarQubeLanguage.Ts);
+        public readonly static Language Css = new Language("Css", "CSS", "css_settings.json", SonarQubeLanguage.Css);
+        public readonly static Language Secrets = new Language("Secrets", "Secrets", "secrets_settings.json", SonarQubeLanguage.Secrets);
 
         /// <summary>
         /// Returns the language for the specified language key, or null if it does not match a known language
