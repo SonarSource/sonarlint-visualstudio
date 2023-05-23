@@ -50,7 +50,6 @@ namespace SonarLint.VisualStudio.Integration
                 typeof(ISourceControlledFileSystem),
                 typeof(IRuleSetInspector),
                 typeof(IProjectSystemFilter),
-                typeof(IObsoleteConfigurationProviderService),
                 typeof(IConfigurationPersister),
                 typeof(ICredentialStoreService),
                 typeof(ITestProjectRegexSetter)
@@ -312,7 +311,6 @@ namespace SonarLint.VisualStudio.Integration
         {
             this.localServices.Add(typeof(ICredentialStoreService), new Lazy<ILocalService>(() => credentialStoreService));
 
-            this.localServices.Add(typeof(IObsoleteConfigurationProviderService), new Lazy<ILocalService>(() => new ObsoleteConfigurationProvider(this, solutionBindingDataReader)));
             this.localServices.Add(typeof(IConfigurationPersister), new Lazy<ILocalService>(GetConfigurationPersister));
 
             var projectNameTestProjectIndicator = new Lazy<ILocalService>(() => new ProjectNameTestProjectIndicator(Logger));

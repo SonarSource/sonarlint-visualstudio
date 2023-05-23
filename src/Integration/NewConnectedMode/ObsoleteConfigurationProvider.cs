@@ -24,25 +24,13 @@ using System.IO;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Persistence;
+using SonarLint.VisualStudio.ConnectedMode.Migration;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
-    /// <summary>
-    /// Service to return the configuration for "old" Connected Mode settings i.e. pre-unintrusive Connected Mode
-    /// </summary>
-    /// <remarks>This service is only used by the settings migration and cleanup components to help users migrate
-    /// to the new Connected Mode settings format and locations. It and all of the implementing classes can be
-    /// dropped at some point in the future i.e. once we think users have had enough opportunity to move to the
-    /// new format.
-    /// See https://github.com/SonarSource/sonarlint-visualstudio/issues/4171
-    /// </remarks>
-    internal interface IObsoleteConfigurationProviderService : IConfigurationProvider, ILocalService
-    {
-    }
-
-    [Export(typeof(IObsoleteConfigurationProviderService))]
+    [Export(typeof(IObsoleteConfigurationProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ObsoleteConfigurationProvider : IObsoleteConfigurationProviderService
+    internal class ObsoleteConfigurationProvider : IObsoleteConfigurationProvider
     {
         private readonly ISolutionBindingPathProvider legacyPathProvider;
         private readonly ISolutionBindingPathProvider connectedModePathProvider;
