@@ -59,7 +59,6 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly ICredentialStoreService credentialStoreService;
         private readonly IProjectToLanguageMapper projectToLanguageMapper;
-        private readonly ISolutionBindingDataReader solutionBindingDataReader;
         private readonly IConfigurationProvider configurationProvider;
         private readonly IUnintrusiveBindingPathProvider configFilePathProvider;
 
@@ -75,7 +74,6 @@ namespace SonarLint.VisualStudio.Integration
             IActiveSolutionTracker solutionTacker,
             ICredentialStoreService credentialStoreService,
             IProjectToLanguageMapper projectToLanguageMapper,
-            ISolutionBindingDataReader solutionBindingDataReader,
             IConfigurationProvider configurationProvider,
             IUnintrusiveBindingPathProvider configFilePathProvider,
             ILogger logger)
@@ -86,13 +84,11 @@ namespace SonarLint.VisualStudio.Integration
                 solutionTacker,
                 credentialStoreService,
                 projectToLanguageMapper,
-                solutionBindingDataReader,
                 configurationProvider,
                 configFilePathProvider,
                 logger,
                 Dispatcher.CurrentDispatcher)
         {
-            Debug.Assert(ThreadHelper.CheckAccess(), "Expected to be created on the UI thread");
         }
 
         internal /*for test purposes*/ VsSessionHost(IServiceProvider serviceProvider,
@@ -102,7 +98,6 @@ namespace SonarLint.VisualStudio.Integration
                                     IActiveSolutionTracker solutionTacker,
                                     ICredentialStoreService credentialStoreService,
                                     IProjectToLanguageMapper projectToLanguageMapper,
-                                    ISolutionBindingDataReader solutionBindingDataReader,
                                     IConfigurationProvider configurationProvider,
                                     IUnintrusiveBindingPathProvider configFilePathProvider,
                                     ILogger logger,
@@ -116,7 +111,6 @@ namespace SonarLint.VisualStudio.Integration
             this.solutionTracker = solutionTacker ?? throw new ArgumentNullException(nameof(solutionTacker));
             this.credentialStoreService = credentialStoreService ?? throw new ArgumentNullException(nameof(credentialStoreService));
             this.projectToLanguageMapper = projectToLanguageMapper ?? throw new ArgumentNullException(nameof(projectToLanguageMapper));
-            this.solutionBindingDataReader = solutionBindingDataReader ?? throw new ArgumentNullException(nameof(solutionBindingDataReader));
             this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
             this.configFilePathProvider = configFilePathProvider;
             this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
