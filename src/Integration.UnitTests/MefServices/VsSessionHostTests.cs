@@ -81,7 +81,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
                 MefTestHelpers.CreateExport<ICredentialStoreService>(),
                 MefTestHelpers.CreateExport<IProjectToLanguageMapper>(),
-                MefTestHelpers.CreateExport<ISolutionBindingDataReader>(),
                 MefTestHelpers.CreateExport<IConfigurationProvider>(),
                 MefTestHelpers.CreateExport<IUnintrusiveBindingPathProvider>(),
                 MefTestHelpers.CreateExport<ILogger>());
@@ -355,7 +354,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         public void VsSessionHost_IServiceProvider_GetService()
         {
             // Arrange
-            ConfigurableVsShell shell = new ConfigurableVsShell();
+            var shell = new ConfigurableVsShell();
             shell.RegisterPropertyGetter((int)__VSSPROPID2.VSSPROPID_InstallRootDir, () => this.TestContext.TestRunDirectory);
             this.serviceProvider.RegisterService(typeof(SVsShell), shell);
             this.serviceProvider.RegisterService(typeof(SVsSolution), new Mock<IVsSolution>().Object);
@@ -395,7 +394,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 tracker ?? new ConfigurableActiveSolutionTracker(),
                 Mock.Of<ICredentialStoreService>(),
                 Mock.Of<IProjectToLanguageMapper>(),
-                Mock.Of<ISolutionBindingDataReader>(),
                 this.configProvider,
                 Mock.Of<IUnintrusiveBindingPathProvider>(),
                 Mock.Of<ILogger>(),
