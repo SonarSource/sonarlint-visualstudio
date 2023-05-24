@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Core.Binding
 
         public string BuildPathUnderConfigDirectory(string fileSuffix = "")
         {
-            var escapedFileName = Helpers.PathHelper.EscapeFileName(Project.ProjectKey + fileSuffix).ToLowerInvariant(); // Must be lower case - see https://github.com/SonarSource/sonarlint-visualstudio/issues/1068;
+            var escapedFileName = Helpers.PathHelper.EscapeFileName(fileSuffix).ToLowerInvariant(); // Must be lower case - see https://github.com/SonarSource/sonarlint-visualstudio/issues/1068;
             
             return Path.Combine(BindingConfigDirectory, escapedFileName);
         }
