@@ -1,11 +1,10 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <!-- TODO 
 
-* decide the final root directory location
-* remove the debug Target
-* decide whether to include $(DesignTimeBuild) in the Conditions.
-
--->
+        * decide the final root directory location
+        * remove the debug Target
+        * decide whether to include $(DesignTimeBuild) in the Conditions.
+     -->
 
     <!-- 
       This targets file was added by SonarLint for Visual Studio.
@@ -19,15 +18,15 @@
   -->
 
     <PropertyGroup Condition="$(BuildingInsideVisualStudio) == 'true'">
-        <SolutionDirAsInVs>$([System.IO.Path]::GetDirectoryName($(SolutionDir)))</SolutionDirAsInVs>
-        <SonarLanguage>$(Language)</SonarLanguage>
-        <SonarLanguage Condition=" $(Language) == 'C#' OR $(Language) == 'c#'">csharp</SonarLanguage>
-        <SonarLanguage Condition=" $(Language) == 'VISUALBASIC'">vb</SonarLanguage>
+        <_SolutionDirAsInVs>$([System.IO.Path]::GetDirectoryName($(SolutionDir)))</_SolutionDirAsInVs>
+        <_SonarLanguage>$(Language.ToLowerInvariant)</_SonarLanguage>
+        <_SonarLanguage Condition=" $(Language) == 'c#'">csharp</_SonarLanguage>
+        <_SonarLanguage Condition=" $(Language) == 'visualbasic'">vb</_SonarLanguage>
         <!-- C#/VB.NET settings need to be in different folders -->
-        <_SLVSRootFolder>$(APPDATA)\SonarLint for Visual Studio\Bindings\$(SolutionName)_$(SolutionDirAsInVs.GetHashCode())</_SLVSRootFolder>
+        <_SLVSRootFolder>$(APPDATA)\SonarLint for Visual Studio\Bindings\$(SolutionName)_$(_SolutionDirAsInVs.GetHashCode())</_SLVSRootFolder>
 
-        <_SLVSGeneratedRoslynConfigFile>$(_SLVSRootFolder)\$(SonarLanguage).globalconfig</_SLVSGeneratedRoslynConfigFile>
-        <_SLVSGeneratedAdditionalFile>$(_SLVSRootFolder)\$(SonarLanguage)\SonarLint.xml</_SLVSGeneratedAdditionalFile>
+        <_SLVSGeneratedRoslynConfigFile>$(_SLVSRootFolder)\$(_SonarLanguage).globalconfig</_SLVSGeneratedRoslynConfigFile>
+        <_SLVSGeneratedAdditionalFile>$(_SLVSRootFolder)\$(_SonarLanguage)\SonarLint.xml</_SLVSGeneratedAdditionalFile>
     </PropertyGroup>
 
     <ItemGroup Condition="$(BuildingInsideVisualStudio) == 'true' AND Exists($(_SLVSGeneratedRoslynConfigFile))">
@@ -47,10 +46,10 @@
         </PropertyGroup>
 
         <Message Importance="high" Text="XXX: Building inside VS: $(BuildingInsideVisualStudio)" />
-        <Message Importance="high" Text="XXX: SonarLanguage: $(SonarLanguage)" />
-        <Message Importance="high" Text="XXX: SolutionDirAsInVs: $(SolutionDirAsInVs)" />
-        <Message Importance="high" Text="XXX: SolutionDirAsInVs.GetHashCode: $(SolutionDirAsInVs.GetHashCode())" />
-        <Message Importance="high" Text="XXX: SLVSRootFolder: $(_SLVSRootFolder)" />
+        <Message Importance="high" Text="XXX: _SonarLanguage: $(_SonarLanguage)" />
+        <Message Importance="high" Text="XXX: _SolutionDirAsInVs: $(_SolutionDirAsInVs)" />
+        <Message Importance="high" Text="XXX: _SolutionDirAsInVs.GetHashCode: $(_SolutionDirAsInVs.GetHashCode())" />
+        <Message Importance="high" Text="XXX: _SLVSRootFolder: $(_SLVSRootFolder)" />
         <Message Importance="high" Text="XXX: This file: $(MSBuildThisFileFullPath)" />
         <Message Importance="high" Text="XXX: Config file: $(_SLVSGeneratedRoslynConfigFile)" />
         <Message Importance="high" Text="XXX: Config exists: $(_SLVSGeneratedRoslynConfigFileExists)" />
