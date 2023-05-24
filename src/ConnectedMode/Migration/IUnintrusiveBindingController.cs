@@ -19,18 +19,19 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
     internal interface IUnintrusiveBindingController
     {
-        void Bind();
+        void Bind(BoundSonarQubeProject project);
     }
 
     [Export(typeof(IUnintrusiveBindingController))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class UnintrusiveBindingController : IUnintrusiveBindingController
     {
-        public void Bind() { }
+        public void Bind(BoundSonarQubeProject project) { }
     }
 }

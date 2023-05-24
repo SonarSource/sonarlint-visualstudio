@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             if (obsoleteConfiguration.Mode != SonarLintMode.Standalone
                 && configurationProvider.GetConfiguration().Mode == SonarLintMode.Standalone)
             {
-                bindingController.Bind();
+                bindingController.Bind(obsoleteConfiguration.Project);
             }
         }
     }

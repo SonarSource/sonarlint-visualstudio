@@ -48,7 +48,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var bindingController = new Mock<IUnintrusiveBindingController>();
 
             var obsoleteConfigurationProvider = new Mock<IObsoleteConfigurationProvider>();
-            obsoleteConfigurationProvider.Setup(x => x.GetConfiguration()).Returns(CreateBindingConfiguration(obsoleteMode));
+            var obsoleteBindingConfiguration = CreateBindingConfiguration(obsoleteMode);
+            obsoleteConfigurationProvider.Setup(x => x.GetConfiguration()).Returns(obsoleteBindingConfiguration);
 
             var configurationProvider = new Mock<IConfigurationProvider>();
             configurationProvider.Setup(x => x.GetConfiguration()).Returns(CreateBindingConfiguration(mode));
@@ -56,7 +57,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = new AutoMigrationHandler(bindingController.Object, configurationProvider.Object, obsoleteConfigurationProvider.Object);
             testSubject.Migrate();
 
-            bindingController.Verify(x => x.Bind(), expectBindingToBeCalled ? Times.Once : Times.Never);
+            bindingController.Verify(x => x.Bind(obsoleteBindingConfiguration.Project), expectBindingToBeCalled ? Times.Once : Times.Never);
         }
 
         private BindingConfiguration CreateBindingConfiguration(SonarLintMode mode)
