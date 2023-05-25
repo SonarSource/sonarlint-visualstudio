@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
     [TestClass]
     public class RulesProviderTests
     {
-        private static readonly ActiveRulesCalculator ValidActiveRulesCalculator = new ActiveRulesCalculator(null, null);
+        private static readonly ActiveRulesCalculator ValidActiveRulesCalculator = new ActiveRulesCalculator(null, null, null);
 
         [TestMethod]
         public void Ctor_InvalidArg_Throws()
