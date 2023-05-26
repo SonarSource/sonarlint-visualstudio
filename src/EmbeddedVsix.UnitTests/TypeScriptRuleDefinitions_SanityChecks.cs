@@ -26,6 +26,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Hotspots;
 using SonarLint.VisualStudio.TypeScript.Rules;
 
 namespace SonarLint.VisualStudio.AdditionalFiles.UnitTests
@@ -49,8 +50,11 @@ namespace SonarLint.VisualStudio.AdditionalFiles.UnitTests
             var settingsProvider = new Mock<IRuleSettingsProviderFactory>();
             settingsProvider.Setup(x => x.Get(Language.Unknown)).Returns(Mock.Of<IRuleSettingsProvider>());
 
+            var hotspotsAnalysisConfiguration = new Mock<IHotspotAnalysisConfiguration>();
+            hotspotsAnalysisConfiguration.Setup(x => x.IsEnabled()).Returns(true);
+
             // Sanity check that the json file is loadable and has rules
-            var factory = new RulesProviderFactory(filePath, settingsProvider.Object);
+            var factory = new RulesProviderFactory(filePath, settingsProvider.Object, hotspotsAnalysisConfiguration.Object);
 
             var jsRules = factory.Create("javascript", Language.Unknown).GetDefinitions();
             CheckRules("JavaScript", jsRules);

@@ -23,7 +23,9 @@ using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Hotspots;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 using SonarLint.VisualStudio.TypeScript.Rules;
 
@@ -198,14 +200,51 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             result[1].Key.Should().Be("stylelintKey");
         }
 
+        [DataRow(true, 2)]
+        [DataRow(false, 0)]
+        [DataTestMethod]
+        public void Get_RespectsHotspotAnalysisConfiguration(bool hotspotsEnabled, int expectedCount)
+        {
+            var hotspotConfigurationMock = new Mock<IHotspotAnalysisConfiguration>();
+            hotspotConfigurationMock.Setup(x => x.IsEnabled()).Returns(hotspotsEnabled);
+            var ruleDefns = new RuleDefinitionsBuilder()
+                .AddRule(ruleKey: "javascript:hotspot1", eslintKey: "hotspot1", ruleType: RuleType.SECURITY_HOTSPOT)
+                .AddRule(ruleKey: "javascript:hotspot2", eslintKey: "hotspot2", ruleType: RuleType.SECURITY_HOTSPOT);
+
+            var testSubject = CreateTestSubject(ruleDefns, EmptyRuleSettingsProvider, hotspotConfigurationMock.Object);
+
+            var result = testSubject.Calculate().ToList();
+
+            result.Should().HaveCount(expectedCount);
+        }
+        
+        [TestMethod]
+        public void Get_HotspotsEnabled_OverridesApplied()
+        {
+            var hotspotConfigurationMock = new Mock<IHotspotAnalysisConfiguration>();
+            hotspotConfigurationMock.Setup(x => x.IsEnabled()).Returns(true);
+            var ruleDefns = new RuleDefinitionsBuilder()
+                .AddRule(ruleKey: "javascript:hotspot1", activeByDefault: false, eslintKey: "hotspot1",
+                    ruleType: RuleType.SECURITY_HOTSPOT);
+
+            var ruleSettings = new RuleSettingsBuilder()
+                .Add("javascript:hotspot1", RuleLevel.On);
+
+            var testSubject = CreateTestSubject(ruleDefns, ruleSettings, hotspotConfigurationMock.Object);
+
+            var result = testSubject.Calculate().ToList();
+
+            result.Should().HaveCount(1);
+        }
+
         private static void CheckExpectedRuleKeys(IEnumerable<Rule> result, params string[] expected) =>
             result.Select(x => x.Key).Should().BeEquivalentTo(expected);
 
         private static void CheckConfigurationsAreEmpty(IEnumerable<Rule> result) =>
             result.All(x => x.Configurations.Length == 0).Should().BeTrue();
 
-        private static ActiveRulesCalculator CreateTestSubject(RuleDefinitionsBuilder ruleDefinitionsBuilder, IRuleSettingsProvider ruleSettingsProvider) =>
-            new(ruleDefinitionsBuilder.GetDefinitions(), ruleSettingsProvider);
+        private static ActiveRulesCalculator CreateTestSubject(RuleDefinitionsBuilder ruleDefinitionsBuilder, IRuleSettingsProvider ruleSettingsProvider, IHotspotAnalysisConfiguration hotspotAnalysisConfiguration = null) =>
+            new(ruleDefinitionsBuilder.GetDefinitions(), ruleSettingsProvider, hotspotAnalysisConfiguration ?? new Mock<IHotspotAnalysisConfiguration>().Object);
 
         private class RuleDefinitionsBuilder
         {
