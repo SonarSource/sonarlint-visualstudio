@@ -200,22 +200,22 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             result[1].Key.Should().Be("stylelintKey");
         }
 
-        [DataRow(true)]
-        [DataRow(false)]
+        [DataRow(true, 2)]
+        [DataRow(false, 0)]
         [DataTestMethod]
-        public void Get_RespectsHotspotAnalysisConfiguration(bool hotspotsEnabled)
+        public void Get_RespectsHotspotAnalysisConfiguration(bool hotspotsEnabled, int expectedCount)
         {
             var hotspotConfigurationMock = new Mock<IHotspotAnalysisConfiguration>();
             hotspotConfigurationMock.Setup(x => x.IsEnabled()).Returns(hotspotsEnabled);
             var ruleDefns = new RuleDefinitionsBuilder()
-                .AddRule(ruleKey: "javascript:hotspot1", eslintKey: "hotspot1",
-                    ruleType: RuleType.SECURITY_HOTSPOT);
+                .AddRule(ruleKey: "javascript:hotspot1", eslintKey: "hotspot1", ruleType: RuleType.SECURITY_HOTSPOT)
+                .AddRule(ruleKey: "javascript:hotspot2", eslintKey: "hotspot2", ruleType: RuleType.SECURITY_HOTSPOT);
 
             var testSubject = CreateTestSubject(ruleDefns, EmptyRuleSettingsProvider, hotspotConfigurationMock.Object);
 
             var result = testSubject.Calculate().ToList();
 
-            result.Should().HaveCount(hotspotsEnabled ? 1 : 0);
+            result.Should().HaveCount(expectedCount);
         }
         
         [TestMethod]
