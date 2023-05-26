@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Hotspots;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 
 namespace SonarLint.VisualStudio.TypeScript.Rules
@@ -40,34 +41,40 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
     {
         private readonly IEnumerable<RuleDefinition> ruleDefinitions;
         private readonly IRuleSettingsProvider ruleSettingsProvider;
+        private readonly IHotspotAnalysisConfiguration hotspotAnalysisConfiguration;
 
         /// <summary>
         /// Ctor
         /// </summary>
         /// <param name="rulesDefinitions">The set of applicable rule definitions</param>
         /// <param name="ruleSettingsProvider">Rule configurations specified in connected mode or by the user</param>
+        /// <param name="hotspotAnalysisConfiguration">Hotspots analysis configuration that includes/excludes hotspots from analysis</param>
         public ActiveRulesCalculator(IEnumerable<RuleDefinition> rulesDefinitions,
-            IRuleSettingsProvider ruleSettingsProvider)
+            IRuleSettingsProvider ruleSettingsProvider,
+            IHotspotAnalysisConfiguration hotspotAnalysisConfiguration)
         {
             this.ruleSettingsProvider = ruleSettingsProvider;
+            this.hotspotAnalysisConfiguration = hotspotAnalysisConfiguration;
             this.ruleDefinitions = rulesDefinitions?.ToArray() ?? Array.Empty<RuleDefinition>();
         }
 
         public IEnumerable<Rule> Calculate()
         {
+            var hotspotsEnabled = hotspotAnalysisConfiguration.IsEnabled();
+
             var settings = ruleSettingsProvider.Get();
 
             return ruleDefinitions
-                .Where(x => IncludeRule(settings, x))
+                .Where(x => IncludeRule(settings, x, hotspotsEnabled))
                 .Select(Convert)
                 .ToArray();
         }
 
-        private bool IncludeRule(RulesSettings settings, RuleDefinition ruleDefinition)
+        private bool IncludeRule(RulesSettings settings, RuleDefinition ruleDefinition, bool hotspotsEnabled)
         {
-            return ruleDefinition.Type != RuleType.SECURITY_HOTSPOT &&
-                (ruleDefinition.EslintKey != null || ruleDefinition.StylelintKey != null) && // should only apply to S2260
-                IsRuleActive(settings, ruleDefinition);
+            return (hotspotsEnabled || ruleDefinition.Type != RuleType.SECURITY_HOTSPOT) 
+                   && (ruleDefinition.EslintKey != null || ruleDefinition.StylelintKey != null) // should only apply to S2260
+                   && IsRuleActive(settings, ruleDefinition);
         }
 
         private bool IsRuleActive(RulesSettings settings, RuleDefinition ruleDefinition)

@@ -25,6 +25,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Hotspots;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.TypeScript.Rules;
 
@@ -35,6 +36,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
     {
         private static readonly Language ValidLanguage = Language.C;
         private static readonly IRuleSettingsProviderFactory ValidRuleSettingsProviderFactory = Mock.Of<IRuleSettingsProviderFactory>();
+        private static readonly IHotspotAnalysisConfiguration HotspotAnalysisConfigurationMock = Mock.Of<IHotspotAnalysisConfiguration>();
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
@@ -43,7 +45,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
 
             MefTestHelpers.CheckTypeCanBeImported<RulesProviderFactory, IRulesProviderFactory>(
                 MefTestHelpers.CreateExport<string>(jsonFilePath, RulesProviderFactory.RuleDefinitionsFilePathContractName),
-                MefTestHelpers.CreateExport<IRuleSettingsProviderFactory>());
+                MefTestHelpers.CreateExport<IRuleSettingsProviderFactory>(),
+                MefTestHelpers.CreateExport<IHotspotAnalysisConfiguration>());
         }
 
         [TestMethod]
@@ -53,7 +56,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         {
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_Valid.json");
 
-            var testSubject = new RulesProviderFactory(jsonFilePath, ValidRuleSettingsProviderFactory);
+            var testSubject = new RulesProviderFactory(jsonFilePath, ValidRuleSettingsProviderFactory, HotspotAnalysisConfigurationMock);
 
             Action act = () => testSubject.Create(prefix, ValidLanguage);
 
@@ -65,7 +68,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         {
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_CheckLanguageFiltering.json");
 
-            var testSubject = new RulesProviderFactory(jsonFilePath, ValidRuleSettingsProviderFactory);
+            var testSubject = new RulesProviderFactory(jsonFilePath, ValidRuleSettingsProviderFactory, HotspotAnalysisConfigurationMock);
 
             // 1. TypeScript
             var tsRuleKeys = testSubject.Create("typescript", ValidLanguage).GetDefinitions()
@@ -89,7 +92,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         {
             // Checking the detailed definition properties for a single language
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_CheckDetailedProperties.json");
-            var testSubject = new RulesProviderFactory(jsonFilePath, ValidRuleSettingsProviderFactory);
+            var testSubject = new RulesProviderFactory(jsonFilePath, ValidRuleSettingsProviderFactory, HotspotAnalysisConfigurationMock);
 
             var result = testSubject.Create("typescript", ValidLanguage)
                 .GetDefinitions().ToArray();
@@ -133,7 +136,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             // so this test just does a quick sanity check that the expected number of
             // configs are being fetched.
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_CheckDefaultParams.json");
-            var testSubject = new RulesProviderFactory(jsonFilePath, ValidRuleSettingsProviderFactory);
+            var testSubject = new RulesProviderFactory(jsonFilePath, ValidRuleSettingsProviderFactory, HotspotAnalysisConfigurationMock);
 
             var result = testSubject.Create("javascript", ValidLanguage)
                 .GetDefinitions().ToArray();
@@ -158,7 +161,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             var ruleSettingsProviderFactory = new Mock<IRuleSettingsProviderFactory>();
             ruleSettingsProviderFactory.Setup(x => x.Get(ValidLanguage)).Returns(ruleSettingsProvider.Object);
 
-            var testSubject = new RulesProviderFactory(jsonFilePath, ruleSettingsProviderFactory.Object);
+            var testSubject = new RulesProviderFactory(jsonFilePath, ruleSettingsProviderFactory.Object, HotspotAnalysisConfigurationMock);
 
             var result = testSubject.Create("typescript", ValidLanguage)
                 .GetActiveRulesConfiguration().ToArray();
