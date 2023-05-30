@@ -75,8 +75,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private ProgressStepDefinition[] CreateWorkflowSteps(IProgressController controller)
         {
             const StepAttributes IndeterminateNonCancellableBackgroundStep = StepAttributes.Indeterminate | StepAttributes.NonCancellable | StepAttributes.BackgroundThread;
-            const StepAttributes IndeterminateNonCancellableUIStep = StepAttributes.Indeterminate | StepAttributes.NonCancellable;
-            const StepAttributes HiddenIndeterminateNonImpactingNonCancellableUIStep = IndeterminateNonCancellableUIStep | StepAttributes.Hidden | StepAttributes.NoProgressImpact;
             const StepAttributes HiddenNonImpactingBackgroundStep = StepAttributes.BackgroundThread | StepAttributes.Hidden | StepAttributes.NoProgressImpact;
 
             return new ProgressStepDefinition[]
