@@ -33,19 +33,6 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
     [TestClass]
     public class RulesConfigFixupTests
     {
-        private static readonly IHotspotAnalysisConfiguration HotspotsEnabled;
-        private static readonly IHotspotAnalysisConfiguration HotspotsDisabled;
-        
-        static RulesConfigFixupTests()
-        {
-            var hotspotsEnabledMock = new Mock<IHotspotAnalysisConfiguration>();
-            hotspotsEnabledMock.Setup(x => x.IsEnabled()).Returns(true);
-            HotspotsEnabled = hotspotsEnabledMock.Object;
-            var hotspotsDisabledMock = new Mock<IHotspotAnalysisConfiguration>();
-            hotspotsDisabledMock.Setup(x => x.IsEnabled()).Returns(false);
-            HotspotsDisabled = hotspotsDisabledMock.Object;
-        }
-        
         [TestMethod]
         public void Sanity_NoOverlapBetweenExludedAndLegacyRuleKeys()
         {
@@ -83,7 +70,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             var logger = new TestLogger();
             var testSubject = CreateTestSubject(logger);
 
-            var result = testSubject.Apply(originalSettings, HotspotsDisabled);
+            var result = testSubject.Apply(originalSettings, CreateHotspotAnalysisConfig());
 
             result.Rules["any"].Should().BeSameAs(config1);
             result.Rules["cpp:S123"].Should().BeSameAs(config3);
@@ -119,7 +106,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
 
             var testSubject = CreateTestSubject(logger);
 
-            var result = testSubject.Apply(originalSettings, HotspotsDisabled);
+            var result = testSubject.Apply(originalSettings, CreateHotspotAnalysisConfig());
 
             result.Rules[newKey].Should().BeSameAs(newKeyConfig);
             result.Rules.TryGetValue(legacyKey, out var _).Should().BeFalse();
@@ -137,7 +124,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             var emptySettings = new RulesSettings();
             var testSubject = CreateTestSubject(logger);
 
-            var result = testSubject.Apply(emptySettings, hotspotsEnabled ? HotspotsEnabled : HotspotsDisabled);
+            var result = testSubject.Apply(emptySettings, CreateHotspotAnalysisConfig(hotspotsEnabled));
 
             CheckInstanceIsDifferent(emptySettings, result);
             emptySettings.Rules.Count.Should().Be(0); // original settings should not have changed
@@ -182,7 +169,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             var testSubject = CreateTestSubject(logger);
 
             // Act
-            var result = testSubject.Apply(custom, hotspotsEnabled ? HotspotsEnabled : HotspotsDisabled);
+            var result = testSubject.Apply(custom, CreateHotspotAnalysisConfig(hotspotsEnabled));
 
             // Assert
             CheckInstanceIsDifferent(custom, result);
@@ -207,6 +194,13 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             result.Rules[excludedKey1].Level.Should().Be(RuleLevel.Off);
             result.Rules[excludedKey2].Level.Should().Be(RuleLevel.Off);
             result.Rules[excludedKey3].Level.Should().Be(RuleLevel.Off);
+        }
+
+        private static IHotspotAnalysisConfiguration CreateHotspotAnalysisConfig(bool isEnabled = false)
+        {
+            var mock = new Mock<IHotspotAnalysisConfiguration>();
+            mock.Setup(x => x.IsEnabled()).Returns(isEnabled);
+            return mock.Object;
         }
 
         private static RulesConfigFixup CreateTestSubject(ILogger logger = null)

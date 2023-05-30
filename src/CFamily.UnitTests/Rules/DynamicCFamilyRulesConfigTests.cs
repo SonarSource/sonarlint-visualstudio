@@ -345,10 +345,8 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             IHotspotAnalysisConfiguration hotspotAnalysisConfiguration = null)
         {
             fixup ??= new NoOpRulesConfigFixup();
-            var analysisConfiguration = new Mock<IHotspotAnalysisConfiguration>();
-            analysisConfiguration.Setup(x => x.IsEnabled()).Returns(true);
             return new DynamicCFamilyRulesConfig(defaultConfig, customSettings,
-                hotspotAnalysisConfiguration ?? analysisConfiguration.Object, new TestLogger(), fixup);
+                hotspotAnalysisConfiguration ?? Mock.Of<IHotspotAnalysisConfiguration>(), new TestLogger(), fixup);
         }
 
         private class NoOpRulesConfigFixup : IRulesConfigFixup
