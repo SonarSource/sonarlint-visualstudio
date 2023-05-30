@@ -875,15 +875,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot bind or sync if there are unsaved changes. Operation canceled..
-        /// </summary>
-        public static string SolutionSaveCancelledBindAborted {
-            get {
-                return ResourceManager.GetString("SolutionSaveCancelledBindAborted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Checking for unbound projects..
         /// </summary>
         public static string SonarLintCheckingForUnboundProjects {
