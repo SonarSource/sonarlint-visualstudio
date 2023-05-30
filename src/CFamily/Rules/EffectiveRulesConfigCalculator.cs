@@ -22,6 +22,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Hotspots;
 using SonarLint.VisualStudio.Integration;
 
 /* The calculator implements simple cache to reduce the number of times the effective settings
@@ -56,11 +57,14 @@ namespace SonarLint.VisualStudio.CFamily.Rules
     /// the effective settings (and the associated object allocations).</remarks>
     internal class EffectiveRulesConfigCalculator
     {
+        private readonly IHotspotAnalysisConfiguration hotspotAnalysisConfiguration;
         private readonly ILogger logger;
         private readonly RulesConfigCache configCache;
 
-        public EffectiveRulesConfigCalculator(ILogger logger)
+        public EffectiveRulesConfigCalculator(IHotspotAnalysisConfiguration hotspotAnalysisConfiguration,
+            ILogger logger)
         {
+            this.hotspotAnalysisConfiguration = hotspotAnalysisConfiguration;
             this.logger = logger ?? throw new ArgumentOutOfRangeException(nameof(logger));
 
             configCache = new RulesConfigCache();
@@ -98,7 +102,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules
 
             logger.WriteLine(Resources.EffectiveRules_CacheMiss);
 
-            effectiveConfig = new DynamicCFamilyRulesConfig(defaultRulesConfig, customSettings, logger);
+            effectiveConfig = new DynamicCFamilyRulesConfig(defaultRulesConfig, customSettings, hotspotAnalysisConfiguration, logger);
 
             configCache.Add(languageKey, defaultRulesConfig, customSettings, effectiveConfig);
 

@@ -21,6 +21,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Hotspots;
 using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.CFamily.Rules
@@ -48,7 +49,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules
     /// </remarks>
     internal interface IRulesConfigFixup
     {
-        RulesSettings Apply(RulesSettings input);
+        RulesSettings Apply(RulesSettings input, IHotspotAnalysisConfiguration hotspotAnalysisConfiguration);
     }
 
     internal class RulesConfigFixup : IRulesConfigFixup
@@ -58,6 +59,10 @@ namespace SonarLint.VisualStudio.CFamily.Rules
             "cpp:S5536", "c:S5536",
             "cpp:S4830", "c:S4830",
             "cpp:S5527", "c:S5527",
+        };
+
+        internal static readonly string[] HotspotRulesKeys = new[]
+        {
             // Security hotspots:
             "cpp:S5801", "c:S5801",
             "cpp:S5814", "c:S5814",
@@ -175,7 +180,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules
         /// <summary>
         /// Translates any legacy rule keys in the input to new Sxxx rule keys
         /// </summary>
-        public RulesSettings Apply(RulesSettings input)
+        public RulesSettings Apply(RulesSettings input, IHotspotAnalysisConfiguration hotspotAnalysisConfiguration)
         {
             /*
 
@@ -205,7 +210,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules
             };
 
             TranslateLegacyRuleKeys(modifiedSettings);
-            DisableExcludedRules(modifiedSettings);
+            DisableExcludedRules(modifiedSettings, hotspotAnalysisConfiguration.IsEnabled());
 
             return modifiedSettings;
         }
@@ -236,11 +241,18 @@ namespace SonarLint.VisualStudio.CFamily.Rules
         /// <summary>
         /// Marks all excluded rules as disabled, adding them to the settings if necessary
         /// </summary>
-        private void DisableExcludedRules(RulesSettings settings)
+        private void DisableExcludedRules(RulesSettings settings, bool hotspotsEnabled)
         {
-            logger.WriteLine(Resources.RulesUnavailableInSonarLint, string.Join(", ", ExcludedRulesKeys));
+            ICollection<string> disabledRules = ExcludedRulesKeys;
 
-            foreach (var key in ExcludedRulesKeys)
+            if (!hotspotsEnabled)
+            {
+                disabledRules = disabledRules.Concat(HotspotRulesKeys).ToList();
+            }
+            
+            logger.WriteLine(Resources.RulesUnavailableInSonarLint, string.Join(", ", disabledRules));
+
+            foreach (var key in disabledRules)
             {
                 settings.Rules[key] = new RuleConfig { Level = RuleLevel.Off };
             }
