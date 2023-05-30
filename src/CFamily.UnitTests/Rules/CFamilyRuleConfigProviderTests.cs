@@ -25,13 +25,24 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Hotspots;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
 {
     [TestClass]
     public class CFamilyRuleConfigProviderTests
     {
+        [TestMethod]
+        public void MefCtor_CheckExports()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<CFamilyRuleConfigProvider, ICFamilyRulesConfigProvider>(
+                MefTestHelpers.CreateExport<IRuleSettingsProviderFactory>(),
+                MefTestHelpers.CreateExport<IHotspotAnalysisConfiguration>(),
+                MefTestHelpers.CreateExport<ILogger>());
+        }
+        
         [TestMethod]
         public void Get_NullLanguage_ArgumentNullException()
         {
@@ -52,9 +63,13 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("language");
         }
 
-        [TestMethod]
-        public void Get_EffectiveRulesAreCalculated()
+        [DataRow(true)]
+        [DataRow(false)]
+        [DataTestMethod]
+        public void Get_EffectiveRulesAreCalculatedDependingOnHotspotConfiguration(bool hotspotsEnabled)
         {
+            var fullHotspotRuleKey = RulesConfigFixup.HotspotRulesKeys[0];
+            var hotspotRuleKey = fullHotspotRuleKey.Split(':')[1];
             var standaloneModeSettings = new RulesSettings
             {
                 Rules = new Dictionary<string, RuleConfig>
@@ -62,7 +77,8 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
                     {"cpp:rule1", new RuleConfig {Level = RuleLevel.On}},
                     {"cpp:rule2", new RuleConfig {Level = RuleLevel.Off}},
                     {"cpp:rule4", new RuleConfig {Level = RuleLevel.On}},
-                    {"XXX:rule3", new RuleConfig {Level = RuleLevel.On}}
+                    {"XXX:rule3", new RuleConfig {Level = RuleLevel.On}},
+                    {fullHotspotRuleKey, new RuleConfig {Level = RuleLevel.On}},
                 }
             };
 
@@ -70,19 +86,27 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
                 .AddRule("rule1", IssueSeverity.Info, isActive: false)
                 .AddRule("rule2", IssueSeverity.Major, isActive: false)
                 .AddRule("rule3", IssueSeverity.Minor, isActive: true)
-                .AddRule("rule4", IssueSeverity.Blocker, isActive: false);
+                .AddRule("rule4", IssueSeverity.Blocker, isActive: false)
+                .AddRule(hotspotRuleKey, IssueSeverity.Blocker, isActive: true);
 
-            var testSubject = CreateTestSubject(standaloneModeSettings, sonarWayConfig);
+            var testSubject = CreateTestSubject(standaloneModeSettings, sonarWayConfig, hotspotsEnabled);
 
             // Act
             var result = testSubject.GetRulesConfiguration("cpp");
 
             // Assert
-            result.ActivePartialRuleKeys.Should().BeEquivalentTo("rule1", "rule3", "rule4");
-            result.AllPartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2", "rule3", "rule4");
+            var activeKeys = new List<string> { "rule1", "rule3", "rule4" };
+            
+            if (hotspotsEnabled)
+            {
+                activeKeys.Add(hotspotRuleKey);
+            }
+            
+            result.ActivePartialRuleKeys.Should().BeEquivalentTo(activeKeys);
+            result.AllPartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2", "rule3", "rule4", hotspotRuleKey);
         }
 
-        private CFamilyRuleConfigProvider CreateTestSubject(RulesSettings ruleSettings, DummyCFamilyRulesConfig sonarWayConfig)
+        private CFamilyRuleConfigProvider CreateTestSubject(RulesSettings ruleSettings, DummyCFamilyRulesConfig sonarWayConfig, bool enableHotspots = false)
         {
             var ruleSettingsProvider = new Mock<IRuleSettingsProvider>();
             ruleSettingsProvider.Setup(x => x.Get()).Returns(ruleSettings);
@@ -95,7 +119,13 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             sonarWayProviderMock.Setup(x => x.GetRulesConfiguration(It.IsAny<string>()))
                 .Returns(sonarWayConfig);
 
-            var testSubject = new CFamilyRuleConfigProvider(ruleSettingsProviderFactory.Object, sonarWayProviderMock.Object, Mock.Of<ILogger>());
+            var hotspotAnalysisConfigurationMock = new Mock<IHotspotAnalysisConfiguration>();
+            hotspotAnalysisConfigurationMock.Setup(x => x.IsEnabled()).Returns(enableHotspots);
+
+            var testSubject = new CFamilyRuleConfigProvider(ruleSettingsProviderFactory.Object,
+                sonarWayProviderMock.Object,
+                hotspotAnalysisConfigurationMock.Object,
+                Mock.Of<ILogger>());
 
             return testSubject;
         }

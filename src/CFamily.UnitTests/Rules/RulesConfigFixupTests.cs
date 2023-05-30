@@ -18,10 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Hotspots;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -67,7 +70,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             var logger = new TestLogger();
             var testSubject = CreateTestSubject(logger);
 
-            var result = testSubject.Apply(originalSettings);
+            var result = testSubject.Apply(originalSettings, CreateHotspotAnalysisConfig());
 
             result.Rules["any"].Should().BeSameAs(config1);
             result.Rules["cpp:S123"].Should().BeSameAs(config3);
@@ -103,7 +106,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
 
             var testSubject = CreateTestSubject(logger);
 
-            var result = testSubject.Apply(originalSettings);
+            var result = testSubject.Apply(originalSettings, CreateHotspotAnalysisConfig());
 
             result.Rules[newKey].Should().BeSameAs(newKeyConfig);
             result.Rules.TryGetValue(legacyKey, out var _).Should().BeFalse();
@@ -112,31 +115,42 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             CheckInstanceIsDifferent(originalSettings, result);
         }
         
-        [TestMethod]
-        public void Apply_NoCustomRules_ExcludedRulesAreDisabled()
+        [DataRow(true)]
+        [DataRow(false)]
+        [DataTestMethod]
+        public void Apply_NoCustomRules_ExcludedRulesAreDisabled(bool hotspotsEnabled)
         {
             var logger = new TestLogger();
             var emptySettings = new RulesSettings();
             var testSubject = CreateTestSubject(logger);
 
-            var result = testSubject.Apply(emptySettings);
+            var result = testSubject.Apply(emptySettings, CreateHotspotAnalysisConfig(hotspotsEnabled));
 
             CheckInstanceIsDifferent(emptySettings, result);
             emptySettings.Rules.Count.Should().Be(0); // original settings should not have changed
 
-            result.Rules.Keys.Should().BeEquivalentTo(RulesConfigFixup.ExcludedRulesKeys);
+            var excludedKeys = RulesConfigFixup.ExcludedRulesKeys;
+            
+            if (!hotspotsEnabled)
+            {
+                excludedKeys = excludedKeys.Concat(RulesConfigFixup.HotspotRulesKeys).ToArray();
+            }
+            
+            result.Rules.Keys.Should().BeEquivalentTo(excludedKeys);
             result.Rules.Values.Select(x => x.Level)
                 .All(x => x == RuleLevel.Off)
                 .Should().BeTrue();
 
-            foreach(string excludedKey in RulesConfigFixup.ExcludedRulesKeys)
+            foreach(string excludedKey in excludedKeys)
             {
                 logger.AssertPartialOutputStringExists(excludedKey);
             }
         }
 
-        [TestMethod]
-        public void Apply_CustomRulesAndExcludedRulesExist_CustomRulesAreUnchangedExcludedRulesAreDisabled()
+        [DataRow(true)]
+        [DataRow(false)]
+        [DataTestMethod]
+        public void Apply_CustomRulesAndExcludedRulesExist_CustomRulesAreUnchangedExcludedRulesAreDisabled(bool hotspotsEnabled)
         {
             // Arrange
             var logger = new TestLogger();
@@ -155,13 +169,20 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             var testSubject = CreateTestSubject(logger);
 
             // Act
-            var result = testSubject.Apply(custom);
+            var result = testSubject.Apply(custom, CreateHotspotAnalysisConfig(hotspotsEnabled));
 
             // Assert
             CheckInstanceIsDifferent(custom, result);
             custom.Rules.Count.Should().Be(5);
 
-            var expectedKeys = RulesConfigFixup.ExcludedRulesKeys.Union(new string[]  { "xxx", "yyy"});
+            IEnumerable<string> expectedKeys = RulesConfigFixup.ExcludedRulesKeys;
+            
+            if (!hotspotsEnabled)
+            {
+                expectedKeys = expectedKeys.Concat(RulesConfigFixup.HotspotRulesKeys);   
+            }
+            
+            expectedKeys = expectedKeys.Union(new string[]  { "xxx", "yyy"});
 
             result.Rules.Keys.Should().BeEquivalentTo(expectedKeys);
 
@@ -173,6 +194,13 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             result.Rules[excludedKey1].Level.Should().Be(RuleLevel.Off);
             result.Rules[excludedKey2].Level.Should().Be(RuleLevel.Off);
             result.Rules[excludedKey3].Level.Should().Be(RuleLevel.Off);
+        }
+
+        private static IHotspotAnalysisConfiguration CreateHotspotAnalysisConfig(bool isEnabled = false)
+        {
+            var mock = new Mock<IHotspotAnalysisConfiguration>();
+            mock.Setup(x => x.IsEnabled()).Returns(isEnabled);
+            return mock.Object;
         }
 
         private static RulesConfigFixup CreateTestSubject(ILogger logger = null)
