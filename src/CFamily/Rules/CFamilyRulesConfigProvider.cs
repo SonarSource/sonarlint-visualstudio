@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Hotspots;
 using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.CFamily.Rules
@@ -37,18 +38,24 @@ namespace SonarLint.VisualStudio.CFamily.Rules
 
 
         [ImportingConstructor]
-        public CFamilyRuleConfigProvider(IRuleSettingsProviderFactory ruleSettingsProviderFactory, ILogger logger)
+        public CFamilyRuleConfigProvider(IRuleSettingsProviderFactory ruleSettingsProviderFactory,
+            IHotspotAnalysisConfiguration hotspotAnalysisConfiguration,
+            ILogger logger)
             : this(ruleSettingsProviderFactory,
                  new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory),
+                 hotspotAnalysisConfiguration,
                  logger)
         {
         }
 
-        public CFamilyRuleConfigProvider(IRuleSettingsProviderFactory ruleSettingsProviderFactory, ICFamilyRulesConfigProvider sonarWayProvider, ILogger logger)
+        public CFamilyRuleConfigProvider(IRuleSettingsProviderFactory ruleSettingsProviderFactory,
+            ICFamilyRulesConfigProvider sonarWayProvider,
+            IHotspotAnalysisConfiguration hotspotAnalysisConfiguration,
+            ILogger logger)
         {
             this.ruleSettingsProviderFactory = ruleSettingsProviderFactory;
             this.sonarWayProvider = sonarWayProvider;
-            this.effectiveConfigCalculator = new EffectiveRulesConfigCalculator(logger);
+            this.effectiveConfigCalculator = new EffectiveRulesConfigCalculator(hotspotAnalysisConfiguration, logger);
         }
 
         #region IRulesConfigurationProvider implementation

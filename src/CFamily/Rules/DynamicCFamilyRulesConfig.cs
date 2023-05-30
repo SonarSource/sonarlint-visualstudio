@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Hotspots;
 using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.CFamily.Rules
@@ -36,21 +37,32 @@ namespace SonarLint.VisualStudio.CFamily.Rules
     {
         private readonly ICFamilyRulesConfig defaultRulesConfig;
 
-        public DynamicCFamilyRulesConfig(ICFamilyRulesConfig defaultRulesConfig, RulesSettings customRulesSettings, ILogger logger)
-            :this(defaultRulesConfig, customRulesSettings, logger, new RulesConfigFixup(logger))
+        public DynamicCFamilyRulesConfig(ICFamilyRulesConfig defaultRulesConfig,
+            RulesSettings customRulesSettings,
+            IHotspotAnalysisConfiguration hotspotAnalysisConfiguration,
+            ILogger logger)
+            :this(defaultRulesConfig, customRulesSettings, hotspotAnalysisConfiguration, logger, new RulesConfigFixup(logger))
         {
         }
 
         internal /* for testing */ DynamicCFamilyRulesConfig(ICFamilyRulesConfig defaultRulesConfig,
             RulesSettings customRulesSettings,
+            IHotspotAnalysisConfiguration hotspotAnalysisConfiguration,
             ILogger logger,
             IRulesConfigFixup fixup)
         {
             this.defaultRulesConfig = defaultRulesConfig ?? throw new ArgumentNullException(nameof(defaultRulesConfig));
+            
             if (customRulesSettings == null)
             {
                 throw new ArgumentNullException(nameof(customRulesSettings));
             }
+
+            if (hotspotAnalysisConfiguration == null)
+            {
+                throw new ArgumentNullException(nameof(hotspotAnalysisConfiguration));
+            }
+
             if (logger == null)
             {
                 throw new ArgumentNullException(nameof(logger));
@@ -61,7 +73,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules
                 logger.WriteLine(Resources.NoCustomRulesSettings);
             }
 
-            var modifiedCustomRules = fixup.Apply(customRulesSettings);
+            var modifiedCustomRules = fixup.Apply(customRulesSettings, hotspotAnalysisConfiguration);
 
             ActivePartialRuleKeys = CalculateActiveRules(defaultRulesConfig, modifiedCustomRules);
             RulesMetadata = new Dictionary<string, RuleMetadata>();

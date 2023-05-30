@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Hotspots;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
@@ -38,16 +39,32 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             var settings = new RulesSettings();
 
             // 1. Default rules config
-            Action act = () => new DynamicCFamilyRulesConfig(null, settings, new TestLogger());
+            Action act = () => new DynamicCFamilyRulesConfig(null,
+                settings,
+                Mock.Of<IHotspotAnalysisConfiguration>(),
+                new TestLogger());
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("defaultRulesConfig");
 
             // 2. Custom settings
-            act = () => new DynamicCFamilyRulesConfig(new DummyCFamilyRulesConfig("anyLanguage"), null, new TestLogger());
+            act = () => new DynamicCFamilyRulesConfig(new DummyCFamilyRulesConfig("anyLanguage"),
+                null,
+                Mock.Of<IHotspotAnalysisConfiguration>(),
+                new TestLogger());
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("customRulesSettings");
 
             // 3. Logger
-            act = () => new DynamicCFamilyRulesConfig(new DummyCFamilyRulesConfig("anyLanguage"), settings, null);
+            act = () => new DynamicCFamilyRulesConfig(new DummyCFamilyRulesConfig("anyLanguage"),
+                settings,
+                Mock.Of<IHotspotAnalysisConfiguration>(),
+                null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            
+            // 4. Hotspot config
+            act = () => new DynamicCFamilyRulesConfig(new DummyCFamilyRulesConfig("anyLanguage"),
+                settings,
+                null,
+                new TestLogger());
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("hotspotAnalysisConfiguration");
         }
 
         [TestMethod]
@@ -92,17 +109,23 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
 
             var inputSettings = new RulesSettings();
 
+            var hotspotAnalysisConfigurationMock = Mock.Of<IHotspotAnalysisConfiguration>();
+
             // Fixup that should disable rule1
             var fixedUpSettings = new RulesSettings
             {
                 Rules = { { "123:rule1", new RuleConfig { Level = RuleLevel.Off } } }
             };
             var fixup = new Mock<IRulesConfigFixup>();
-            fixup.Setup(x => x.Apply(inputSettings)).Returns(fixedUpSettings);
+            fixup
+                .Setup(x => x.Apply(inputSettings, hotspotAnalysisConfigurationMock))
+                .Returns(fixedUpSettings);
 
             // Act
-            var testSubject = CreateTestSubject(defaultConfig, inputSettings,
-                fixup: fixup.Object);
+            var testSubject = CreateTestSubject(defaultConfig,
+                inputSettings,
+                fixup.Object,
+                hotspotAnalysisConfigurationMock);
 
             // Assert
             fixup.VerifyAll();
@@ -318,15 +341,18 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
 
         private static DynamicCFamilyRulesConfig CreateTestSubject(ICFamilyRulesConfig defaultConfig,
             RulesSettings customSettings,
-            IRulesConfigFixup fixup = null)
+            IRulesConfigFixup fixup = null,
+            IHotspotAnalysisConfiguration hotspotAnalysisConfiguration = null)
         {
             fixup ??= new NoOpRulesConfigFixup();
-            return new DynamicCFamilyRulesConfig(defaultConfig, customSettings, new TestLogger(), fixup);
+            return new DynamicCFamilyRulesConfig(defaultConfig, customSettings,
+                hotspotAnalysisConfiguration ?? Mock.Of<IHotspotAnalysisConfiguration>(), new TestLogger(), fixup);
         }
 
         private class NoOpRulesConfigFixup : IRulesConfigFixup
         {
-            public RulesSettings Apply(RulesSettings input) => input;
+            public RulesSettings Apply(RulesSettings input,
+                IHotspotAnalysisConfiguration hotspotAnalysisConfiguration) => input;
         }
 
     }

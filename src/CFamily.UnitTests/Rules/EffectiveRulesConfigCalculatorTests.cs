@@ -22,8 +22,10 @@ using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Hotspots;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
@@ -38,7 +40,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
         public void TestInitialize()
         {
             testLogger = new TestLogger();
-            testSubject = new EffectiveRulesConfigCalculator(testLogger);
+            testSubject = new EffectiveRulesConfigCalculator(Mock.Of<IHotspotAnalysisConfiguration>(), testLogger);
         }
 
         [TestMethod]
@@ -77,6 +79,32 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             testLogger.AssertOutputStringExists(Resources.NoCustomRulesSettings);
         }
 
+        [DataRow(true, 2)]
+        [DataRow(false, 1)]
+        [DataTestMethod]
+        public void GetConfig_NoCustomSettings_RespectsHotspotConfig(bool analyzeHotspots, int expectedActiveCount)
+        {
+            // Arrange
+            var defaultRulesConfig = new DummyCFamilyRulesConfig("cpp")
+                .AddRule(RulesConfigFixup.HotspotRulesKeys[0].Split(':')[1], true)
+                .AddRule("12345678", true);
+            var sourcesSettings = new RulesSettings();
+            var hotspotAnalysisConfigurationMock = new Mock<IHotspotAnalysisConfiguration>();
+            hotspotAnalysisConfigurationMock.Setup(x => x.IsEnabled()).Returns(analyzeHotspots);
+
+            var testSubject1 =
+                new EffectiveRulesConfigCalculator(hotspotAnalysisConfigurationMock.Object, testLogger);
+
+            // Act
+            var result = testSubject1.GetEffectiveRulesConfig("cpp", defaultRulesConfig, sourcesSettings);
+
+            // Assert
+            result.LanguageKey.Should().Be("cpp");
+            result.ActivePartialRuleKeys.Should().HaveCount(expectedActiveCount);
+
+            testLogger.AssertOutputStringExists(Resources.NoCustomRulesSettings);
+        }
+        
         [TestMethod]
         public void GetConfig_RulesInCustomSettings_MergedConfigReturned()
         {
