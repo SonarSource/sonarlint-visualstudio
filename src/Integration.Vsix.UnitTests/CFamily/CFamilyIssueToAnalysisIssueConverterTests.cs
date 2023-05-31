@@ -510,6 +510,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [DataRow(IssueType.Bug, AnalysisIssueType.Bug)]
         [DataRow(IssueType.CodeSmell, AnalysisIssueType.CodeSmell)]
         [DataRow(IssueType.Vulnerability, AnalysisIssueType.Vulnerability)]
+        [DataRow(IssueType.SecurityHotspot, AnalysisIssueType.SecurityHotspot)]
         public void ConvertFromIssueType(IssueType cfamilyIssueType, AnalysisIssueType analysisIssueType)
         {
             CFamilyIssueToAnalysisIssueConverter.Convert(cfamilyIssueType).Should().Be(analysisIssueType);

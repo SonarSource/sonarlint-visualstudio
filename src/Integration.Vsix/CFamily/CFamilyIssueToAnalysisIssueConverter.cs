@@ -278,7 +278,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     return AnalysisIssueType.CodeSmell;
                 case IssueType.Vulnerability:
                     return AnalysisIssueType.Vulnerability;
-
+                case IssueType.SecurityHotspot:
+                    return AnalysisIssueType.SecurityHotspot;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(issueType));
             }
