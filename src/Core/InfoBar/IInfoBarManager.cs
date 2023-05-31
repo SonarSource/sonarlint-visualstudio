@@ -55,33 +55,13 @@ namespace SonarLint.VisualStudio.Core.InfoBar
         IInfoBar AttachInfoBarWithButtons(Guid toolWindowGuid, string message, IEnumerable<string> buttonTexts, SonarLintImageMoniker imageMoniker);
 
         /// <summary>
-        /// Attach an info bar with just a message to the main window
-        /// </summary>
-        /// <param name="toolWindowGuid">Tool window Guid</param>
-        /// <param name="message">Message to show on the info bar</param>
-        /// <param name="imageMoniker">Image</param>
-        /// <returns><see cref="IInfoBar"/></returns>
-        IInfoBar AttachInfoBarMainWindow(string message, SonarLintImageMoniker imageMoniker);
-
-        /// <summary>
-        /// Attach an info bar with a message and a button to the main window
-        /// </summary>
-        /// <remarks>
-        /// The created info bar will have one button with a "button" style
-        /// </remarks>
-        /// <param name="toolWindowGuid">Tool window Guid</param>
-        /// <param name="message">Message to show on the info bar</param>
-        /// <param name="buttonText">The button text</param>
-        /// <param name="imageMoniker">Image</param>
-        IInfoBar AttachInfoBarWithButtonMainWindow(string message, string buttonText, SonarLintImageMoniker imageMoniker);
-
-        /// <summary>
         /// Attach an info bar with a message and multiple buttons to the main window
         /// </summary>
         /// <remarks>
-        /// The created info bar will have multiple buttons with a "hyperlink" style
+        /// If there is one buttonText it will be rendered as a button on the info bar.
+        /// If there are multiple buttonTexts they will all be rendered as hyperlinks.
         /// </remarks>
-        IInfoBar AttachInfoBarWithButtonsMainWindow(string message, IEnumerable<string> buttonTexts, SonarLintImageMoniker imageMoniker);
+        IInfoBar AttachInfoBarToMainWindow(string message, SonarLintImageMoniker imageMoniker, params string[] buttonTexts);
 
         /// <summary>
         /// Detaches an <see cref="IInfoBar"/> from its tool window

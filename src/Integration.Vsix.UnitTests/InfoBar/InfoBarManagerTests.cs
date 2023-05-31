@@ -309,7 +309,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         /// which is why a simple test to check if it gets the main window instead of a toolwindow and if it can detach correctly is enough.
         /// </summary>
         [TestMethod]
-        public void InfoBarManager_AttachInfoBarWithMainWindowAndDetach()
+        public void InfoBarManager_AttachInfoBarToMainWindowAndDetach()
         {
             var serviceProviderMock = new Mock<IServiceProvider>();
             serviceProviderMock.Setup(x => x.GetService(typeof(SVsInfoBarUIFactory))).Returns(new ConfigurableVsInfoBarUIFactory());
@@ -319,7 +319,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new InfoBarManager(serviceProviderMock.Object);
             host.Verify(x => x.AddInfoBar(It.IsAny<IVsInfoBarUIElement>()), Times.Never);
 
-            var infoBar = testSubject.AttachInfoBarMainWindow("message", default);
+            var infoBar = testSubject.AttachInfoBarToMainWindow("message", default);
             host.Verify(x => x.AddInfoBar(It.IsAny<IVsInfoBarUIElement>()), Times.Once);
 
             testSubject.DetachInfoBar(infoBar);
