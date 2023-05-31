@@ -335,6 +335,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         [DataRow(RuleType.BUG, AnalysisIssueType.Bug)]
         [DataRow(RuleType.CODE_SMELL, AnalysisIssueType.CodeSmell)]
         [DataRow(RuleType.VULNERABILITY, AnalysisIssueType.Vulnerability)]
+        [DataRow(RuleType.SECURITY_HOTSPOT, AnalysisIssueType.SecurityHotspot)]
         public void ConvertFromRuleType(int eslintRuleType, AnalysisIssueType analysisIssueType)
         {
             EslintBridgeIssueConverter.Convert((RuleType)eslintRuleType).Should().Be(analysisIssueType);

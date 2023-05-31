@@ -100,7 +100,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
     {
         CodeSmell,
         Bug,
-        Vulnerability
+        Vulnerability,
+        SecurityHotspot
     }
 
     public static class IAnalysisIssueExtensions
