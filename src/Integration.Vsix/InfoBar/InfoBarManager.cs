@@ -87,6 +87,46 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
             return AttachInfoBarImpl(toolWindowGuid, message, imageMoniker);
         }
 
+        public IInfoBar AttachInfoBarWithButtonMainWindow(string message, string buttonText, SonarLintImageMoniker imageMoniker)
+        {
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            if (string.IsNullOrWhiteSpace(buttonText))
+            {
+                throw new ArgumentNullException(nameof(buttonText));
+            }
+
+            return AttachInfoBarMainWindowImpl(message, imageMoniker, ButtonStyle.Button, buttonText);
+        }
+
+        public IInfoBar AttachInfoBarWithButtonsMainWindow(string message, IEnumerable<string> buttonTexts, SonarLintImageMoniker imageMoniker)
+        {
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            if (buttonTexts == null)
+            {
+                throw new ArgumentNullException(nameof(buttonTexts));
+            }
+
+            return AttachInfoBarMainWindowImpl(message, imageMoniker, ButtonStyle.Hyperlink, buttonTexts.ToArray());
+        }
+
+        public IInfoBar AttachInfoBarMainWindow(string message, SonarLintImageMoniker imageMoniker)
+        {
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            return AttachInfoBarMainWindowImpl(message, imageMoniker);
+        }
+
         public void DetachInfoBar(IInfoBar currentInfoBar)
         {
             if (currentInfoBar == null)
@@ -102,8 +142,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
             currentInfoBar.Close();
 
             ThreadHelper.ThrowIfNotOnUIThread();
-            IVsInfoBarHost host;
-            if (TryGetInfoBarHost(wrapper.Frame, out host))
+            IVsInfoBarHost host = wrapper.Host;
+            if (host != null || TryGetInfoBarHost(wrapper.Frame, out host))
             {
                 host.RemoveInfoBar(wrapper.InfoBarUIElement);
             }
@@ -127,6 +167,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
                 && TryAddInfoBarToFrame(frame, uiElement))
             {
                 return new PrivateInfoBarWrapper(frame, uiElement);
+            }
+
+            return null;
+        }
+
+        private IInfoBar AttachInfoBarMainWindowImpl(string message, SonarLintImageMoniker imageMoniker, ButtonStyle buttonStyle = ButtonStyle.Button, params string[] buttonTexts)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            var shell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
+            Debug.Assert(shell != null);
+
+            shell.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out object value);
+
+            InfoBarModel model = CreateModel(message, buttonTexts, buttonStyle, imageMoniker);
+            IVsInfoBarUIFactory infoBarUIFactory = serviceProvider.GetService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
+            IVsInfoBarUIElement uiElement;
+
+            if (TryCreateInfoBarUI(infoBarUIFactory, model, out uiElement)
+                && value is IVsInfoBarHost host)
+            {
+                host.AddInfoBar(uiElement);
+                return new PrivateInfoBarWrapper(host, uiElement);
             }
 
             return null;
@@ -227,9 +290,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
                 this.Advise();
             }
 
+            public PrivateInfoBarWrapper(IVsInfoBarHost host, IVsInfoBarUIElement uiElement)
+            {
+                Debug.Assert(uiElement != null);
+                Debug.Assert(uiElement != null);
+
+                this.Host = host;
+                this.InfoBarUIElement = uiElement;
+
+                this.Advise();
+            }
+
             internal IVsInfoBarUIElement InfoBarUIElement { get; }
 
             internal IVsWindowFrame Frame { get; }
+
+            internal IVsInfoBarHost Host { get; }
 
             #region IInfoBarEvents
             public event EventHandler<InfoBarButtonClickedEventArgs> ButtonClick;

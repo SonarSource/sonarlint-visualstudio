@@ -303,6 +303,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             eventHandler.VerifyNoOtherCalls();
         }
 
+        /// <summary>
+        /// The other tests cover the implementation of gold bar functionality.
+        /// The methods AttachInfoBarWithMainWindow & AttachInfoBarWithMainWindowButtons are almost identical to their ToolWindow method counterparts
+        /// which is why a simple test to check if it gets the main window instead of a toolwindow and if it can detach correctly is enough.
+        /// </summary>
+        [TestMethod]
+        public void InfoBarManager_AttachInfoBarWithMainWindowAndDetach()
+        {
+            var serviceProviderMock = new Mock<IServiceProvider>();
+            serviceProviderMock.Setup(x => x.GetService(typeof(SVsInfoBarUIFactory))).Returns(new ConfigurableVsInfoBarUIFactory());
+
+            var host = RegisterHostWithShell(serviceProviderMock);
+
+            var testSubject = new InfoBarManager(serviceProviderMock.Object);
+            host.Verify(x => x.AddInfoBar(It.IsAny<IVsInfoBarUIElement>()), Times.Never);
+
+            var infoBar = testSubject.AttachInfoBarMainWindow("message", default);
+            host.Verify(x => x.AddInfoBar(It.IsAny<IVsInfoBarUIElement>()), Times.Once);
+
+            testSubject.DetachInfoBar(infoBar);
+            host.Verify(x => x.RemoveInfoBar(It.IsAny<IVsInfoBarUIElement>()), Times.Once);
+        }
+
         #endregion Tests
 
         #region Test helpers
@@ -324,6 +347,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var host = new ConfigurableVsInfoBarHost();
             frame.RegisterProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, host);
+            return host;
+        }
+
+        private static Mock<IVsInfoBarHost> RegisterHostWithShell(Mock<IServiceProvider> serviceProvider)
+        {
+            var host = new Mock<IVsInfoBarHost>();
+            var hostObject = (object)host.Object;
+
+            var shellMock = new Mock<IVsShell>();
+            shellMock.Setup(x => x.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out hostObject));
+
+            serviceProvider.Setup(x => x.GetService(typeof(SVsShell))).Returns(shellMock.Object);
+
             return host;
         }
 

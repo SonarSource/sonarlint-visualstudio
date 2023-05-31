@@ -55,6 +55,35 @@ namespace SonarLint.VisualStudio.Core.InfoBar
         IInfoBar AttachInfoBarWithButtons(Guid toolWindowGuid, string message, IEnumerable<string> buttonTexts, SonarLintImageMoniker imageMoniker);
 
         /// <summary>
+        /// Attach an info bar with just a message to the main window
+        /// </summary>
+        /// <param name="toolWindowGuid">Tool window Guid</param>
+        /// <param name="message">Message to show on the info bar</param>
+        /// <param name="imageMoniker">Image</param>
+        /// <returns><see cref="IInfoBar"/></returns>
+        IInfoBar AttachInfoBarMainWindow(string message, SonarLintImageMoniker imageMoniker);
+
+        /// <summary>
+        /// Attach an info bar with a message and a button to the main window
+        /// </summary>
+        /// <remarks>
+        /// The created info bar will have one button with a "button" style
+        /// </remarks>
+        /// <param name="toolWindowGuid">Tool window Guid</param>
+        /// <param name="message">Message to show on the info bar</param>
+        /// <param name="buttonText">The button text</param>
+        /// <param name="imageMoniker">Image</param>
+        IInfoBar AttachInfoBarWithButtonMainWindow(string message, string buttonText, SonarLintImageMoniker imageMoniker);
+
+        /// <summary>
+        /// Attach an info bar with a message and multiple buttons to the main window
+        /// </summary>
+        /// <remarks>
+        /// The created info bar will have multiple buttons with a "hyperlink" style
+        /// </remarks>
+        IInfoBar AttachInfoBarWithButtonsMainWindow(string message, IEnumerable<string> buttonTexts, SonarLintImageMoniker imageMoniker);
+
+        /// <summary>
         /// Detaches an <see cref="IInfoBar"/> from its tool window
         /// </summary>
         /// <param name="currentInfoBar">Instance of <see cref="IInfoBar"/> created by <see cref="AttachInfoBar(Guid, string, SonarLintImageMoniker)"/></param>
