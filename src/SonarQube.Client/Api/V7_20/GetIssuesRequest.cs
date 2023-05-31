@@ -24,6 +24,7 @@ using System.ComponentModel;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SonarQube.Client.Api.Common;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 using SonarQube.Client.Requests;
@@ -66,7 +67,7 @@ namespace SonarQube.Client.Api.V7_20
             // This is a paged request so ParseResponse will be called once for each "page"
             // of the response. However, we expect each page to be self-contained, so we want
             // to rebuild the lookup each time.
-            componentKeyPathLookup = GetComponentKeyPathLookup(root);
+            componentKeyPathLookup = ServerComponent.GetComponentKeyPathLookup(root);
 
             return root["issues"]
                 .ToObject<ServerIssue[]>()
@@ -83,24 +84,13 @@ namespace SonarQube.Client.Api.V7_20
         /// </summary>
         private ILookup<string, string> componentKeyPathLookup;
 
-        private static ILookup<string, string> GetComponentKeyPathLookup(JObject root)
-        {
-            var components = root["components"] == null
-                ? Array.Empty<ServerComponent>()
-                : root["components"].ToObject<ServerComponent[]>();
-
-            return components
-                .Where(c => c.IsFile)
-                .ToLookup(c => c.Key, c => c.Path); // Using a Lookup because it does not throw, unlike the Dictionary
-        }
-
         private SonarQubeIssue ToSonarQubeIssue(ServerIssue issue) =>
             new SonarQubeIssue(issue.IssueKey, ComputePath(issue.Component), issue.Hash, issue.Message, ComputeModuleKey(issue),
                 issue.CompositeRuleKey, issue.Status == "RESOLVED",
                 SonarQubeIssueSeverityConverter.Convert(issue.Severity),
                 issue.CreationDate,
                 issue.UpdateDate,
-                ToIssueTextRange(issue.TextRange),
+                ServerIssueTextRange.ToIssueTextRange(issue.TextRange),
                 ToIssueFlows(issue.Flows),
                 issue.ContextKey);
 
@@ -117,17 +107,7 @@ namespace SonarQube.Client.Api.V7_20
             new IssueFlow(serverIssueFlow.Locations?.Select(ToIssueLocation).ToList());
 
         private IssueLocation ToIssueLocation(ServerIssueLocation serverIssueLocation) =>
-            new IssueLocation(ComputePath(serverIssueLocation.Component), serverIssueLocation.Component, ToIssueTextRange(serverIssueLocation.TextRange), serverIssueLocation.Message);
-
-        private static IssueTextRange ToIssueTextRange(ServerIssueTextRange serverIssueTextRange)
-        {
-            return serverIssueTextRange == null
-                ? null
-                : new IssueTextRange(serverIssueTextRange.StartLine,
-                    serverIssueTextRange.EndLine,
-                    serverIssueTextRange.StartOffset,
-                    serverIssueTextRange.EndOffset);
-        }
+            new IssueLocation(ComputePath(serverIssueLocation.Component), serverIssueLocation.Component, ServerIssueTextRange.ToIssueTextRange(serverIssueLocation.TextRange), serverIssueLocation.Message);
 
         #endregion Json data classes -> public read-only class conversion methods
 
@@ -175,23 +155,6 @@ namespace SonarQube.Client.Api.V7_20
             public string ContextKey { get; set; }
         }
 
-        private sealed class ServerComponent
-        {
-            [JsonProperty("key")]
-            public string Key { get; set; }
-
-            [JsonProperty("qualifier")]
-            public string Qualifier { get; set; }
-
-            [JsonProperty("path")]
-            public string Path { get; set; }
-
-            public bool IsFile
-            {
-                get { return Qualifier == "FIL"; }
-            }
-        }
-
         private sealed class ServerIssueFlow
         {
             [JsonProperty("locations")]
@@ -208,21 +171,6 @@ namespace SonarQube.Client.Api.V7_20
 
             [JsonProperty("msg")]
             public string Message { get; set; }
-        }
-
-        private sealed class ServerIssueTextRange
-        {
-            [JsonProperty("startLine")]
-            public int StartLine { get; set; }
-
-            [JsonProperty("endLine")]
-            public int EndLine { get; set; }
-
-            [JsonProperty("startOffset")]
-            public int StartOffset { get; set; }
-
-            [JsonProperty("endOffset")]
-            public int EndOffset { get; set; }
         }
 
         #endregion // JSON data classes

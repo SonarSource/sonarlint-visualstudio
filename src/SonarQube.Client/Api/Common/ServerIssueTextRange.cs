@@ -18,14 +18,33 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Newtonsoft.Json;
 using SonarQube.Client.Models;
-using SonarQube.Client.Requests;
 
-namespace SonarQube.Client.Api
+namespace SonarQube.Client.Api.Common
 {
-    public interface ISearcHotspotRequest : IRequest<SonarQubeHotspotSearch[]>
+    internal sealed class ServerIssueTextRange
     {
-        string ProjectKey { get; set; }
-        string BranchKey { get; set; }
+        [JsonProperty("startLine")]
+        public int StartLine { get; set; }
+
+        [JsonProperty("endLine")]
+        public int EndLine { get; set; }
+
+        [JsonProperty("startOffset")]
+        public int StartOffset { get; set; }
+
+        [JsonProperty("endOffset")]
+        public int EndOffset { get; set; }
+
+        internal static IssueTextRange ToIssueTextRange(ServerIssueTextRange serverIssueTextRange)
+        {
+            return serverIssueTextRange == null
+                ? null
+                : new IssueTextRange(serverIssueTextRange.StartLine,
+                    serverIssueTextRange.EndLine,
+                    serverIssueTextRange.StartOffset,
+                    serverIssueTextRange.EndOffset);
+        }
     }
 }
