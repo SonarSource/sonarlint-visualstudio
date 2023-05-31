@@ -134,6 +134,9 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
                 case RuleType.VULNERABILITY:
                     return AnalysisIssueType.Vulnerability;
+                
+                case RuleType.SECURITY_HOTSPOT:
+                    return AnalysisIssueType.SecurityHotspot;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(ruleType));
