@@ -67,7 +67,7 @@ namespace SonarQube.Client.Api.V7_20
             // This is a paged request so ParseResponse will be called once for each "page"
             // of the response. However, we expect each page to be self-contained, so we want
             // to rebuild the lookup each time.
-            componentKeyPathLookup = ServerComponent.GetComponentKeyPathLookup(root);
+            componentKeyPathLookup = root.GetComponentKeyPathLookup();
 
             return root["issues"]
                 .ToObject<ServerIssue[]>()
@@ -90,7 +90,7 @@ namespace SonarQube.Client.Api.V7_20
                 SonarQubeIssueSeverityConverter.Convert(issue.Severity),
                 issue.CreationDate,
                 issue.UpdateDate,
-                ServerIssueTextRange.ToIssueTextRange(issue.TextRange),
+                issue.TextRange.ToIssueTextRange(),
                 ToIssueFlows(issue.Flows),
                 issue.ContextKey);
 
@@ -107,7 +107,7 @@ namespace SonarQube.Client.Api.V7_20
             new IssueFlow(serverIssueFlow.Locations?.Select(ToIssueLocation).ToList());
 
         private IssueLocation ToIssueLocation(ServerIssueLocation serverIssueLocation) =>
-            new IssueLocation(ComputePath(serverIssueLocation.Component), serverIssueLocation.Component, ServerIssueTextRange.ToIssueTextRange(serverIssueLocation.TextRange), serverIssueLocation.Message);
+            new IssueLocation(ComputePath(serverIssueLocation.Component), serverIssueLocation.Component, serverIssueLocation.TextRange.ToIssueTextRange(), serverIssueLocation.Message);
 
         #endregion Json data classes -> public read-only class conversion methods
 

@@ -19,7 +19,6 @@
  */
 
 using Newtonsoft.Json;
-using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Api.Common
 {
@@ -36,15 +35,5 @@ namespace SonarQube.Client.Api.Common
 
         [JsonProperty("endOffset")]
         public int EndOffset { get; set; }
-
-        internal static IssueTextRange ToIssueTextRange(ServerIssueTextRange serverIssueTextRange)
-        {
-            return serverIssueTextRange == null
-                ? null
-                : new IssueTextRange(serverIssueTextRange.StartLine,
-                    serverIssueTextRange.EndLine,
-                    serverIssueTextRange.StartOffset,
-                    serverIssueTextRange.EndOffset);
-        }
     }
 }

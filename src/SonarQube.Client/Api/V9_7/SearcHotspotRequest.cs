@@ -29,7 +29,7 @@ using SonarQube.Client.Requests;
 
 namespace SonarQube.Client.Api.V9_7
 {
-    public class SearchHotspotRequest : PagedRequestBase<SonarQubeHotspotSearch>, ISearcHotspotRequest
+    public class SearchHotspotRequest : PagedRequestBase<SonarQubeHotspotSearch>, ISearchHotspotRequest
     {
         [JsonProperty("projectKey")]
         public string ProjectKey { get; set; }
@@ -58,7 +58,7 @@ namespace SonarQube.Client.Api.V9_7
             // This is a paged request so ParseResponse will be called once for each "page"
             // of the response. However, we expect each page to be self-contained, so we want
             // to rebuild the lookup each time.
-            componentKeyPathLookup = ServerComponent.GetComponentKeyPathLookup(root);
+            componentKeyPathLookup = root.GetComponentKeyPathLookup();
 
             return root["hotspots"]
                 .ToObject<ServerHotspotSearch[]>()
@@ -74,7 +74,7 @@ namespace SonarQube.Client.Api.V9_7
                 serverHotspotSearch.ProjectKey,
                 serverHotspotSearch.Status,
                 serverHotspotSearch.Resolution,
-                ServerIssueTextRange.ToIssueTextRange(serverHotspotSearch.TextRange),
+                serverHotspotSearch.TextRange.ToIssueTextRange(),
                 serverHotspotSearch.RuleKey);
         }
 

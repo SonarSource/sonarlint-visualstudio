@@ -23,7 +23,7 @@ using SonarQube.Client.Requests;
 
 namespace SonarQube.Client.Api
 {
-    public interface ISearcHotspotRequest : IRequest<SonarQubeHotspotSearch[]>
+    public interface ISearchHotspotRequest : IRequest<SonarQubeHotspotSearch[]>
     {
         string ProjectKey { get; set; }
         string BranchKey { get; set; }

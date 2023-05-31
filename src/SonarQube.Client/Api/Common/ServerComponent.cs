@@ -18,10 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace SonarQube.Client.Api.Common
 {
@@ -39,17 +36,6 @@ namespace SonarQube.Client.Api.Common
         public bool IsFile
         {
             get { return Qualifier == "FIL"; }
-        }
-
-        internal static ILookup<string, string> GetComponentKeyPathLookup(JObject root)
-        {
-            var components = root["components"] == null
-                ? Array.Empty<ServerComponent>()
-                : root["components"].ToObject<ServerComponent[]>();
-
-            return components
-                .Where(c => c.IsFile)
-                .ToLookup(c => c.Key, c => c.Path); // Using a Lookup because it does not throw, unlike the Dictionary
         }
     }
 }
