@@ -292,7 +292,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
 
             public PrivateInfoBarWrapper(IVsInfoBarHost host, IVsInfoBarUIElement uiElement)
             {
-                Debug.Assert(uiElement != null);
+                Debug.Assert(host != null);
                 Debug.Assert(uiElement != null);
 
                 this.Host = host;
