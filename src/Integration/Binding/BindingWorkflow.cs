@@ -21,7 +21,6 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Progress.Controller;
@@ -76,8 +75,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private ProgressStepDefinition[] CreateWorkflowSteps(IProgressController controller)
         {
             const StepAttributes IndeterminateNonCancellableBackgroundStep = StepAttributes.Indeterminate | StepAttributes.NonCancellable | StepAttributes.BackgroundThread;
-            const StepAttributes IndeterminateNonCancellableUIStep = StepAttributes.Indeterminate | StepAttributes.NonCancellable;
-            const StepAttributes HiddenIndeterminateNonImpactingNonCancellableUIStep = IndeterminateNonCancellableUIStep | StepAttributes.Hidden | StepAttributes.NoProgressImpact;
             const StepAttributes HiddenNonImpactingBackgroundStep = StepAttributes.BackgroundThread | StepAttributes.Hidden | StepAttributes.NoProgressImpact;
 
             return new ProgressStepDefinition[]
@@ -89,12 +86,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 //*****************************************************************
                 // Initialization
                 //*****************************************************************
-                // Show an initial message and check the solution isn't dirty
+                // Show an initial message
                 new ProgressStepDefinition(null, HiddenNonImpactingBackgroundStep,
                         (token, notifications) => notifications.ProgressChanged(Strings.StartedSolutionBindingWorkflow)),
-
-                new ProgressStepDefinition(null, StepAttributes.Indeterminate | StepAttributes.Hidden,
-                        (token, notifications) => this.PromptSaveSolutionIfDirty(controller, token)),
 
                 //*****************************************************************
                 // Preparation
@@ -126,10 +120,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 //*****************************************************************
                 // Finalization
                 //*****************************************************************
-                // Save solution and show message
-                new ProgressStepDefinition(null, HiddenIndeterminateNonImpactingNonCancellableUIStep,
-                        (token, notifications) => this.SilentSaveSolutionIfDirty()),
-
+                // Show final message
                 new ProgressStepDefinition(null, HiddenNonImpactingBackgroundStep,
                         (token, notifications) => this.EmitBindingCompleteMessage(notifications))
             };
@@ -138,14 +129,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #endregion
 
         #region Workflow steps
-
-        internal /*for testing purposes*/ void PromptSaveSolutionIfDirty(IProgressController controller, CancellationToken token)
-        {
-            if (!bindingProcess.PromptSaveSolutionIfDirty())
-            {
-                this.AbortWorkflow(controller, token);
-            }
-        }
 
         internal /*for testing purposes*/ async System.Threading.Tasks.Task DownloadQualityProfileAsync(
             IProgressController controller, IProgressStepExecutionEvents notificationEvents,
@@ -197,11 +180,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 AbortWorkflow(controller, token);
             }
-        }
-
-        internal /*for testing purposes*/ void SilentSaveSolutionIfDirty()
-        {
-            bindingProcess.SilentSaveSolutionIfDirty();
         }
 
         internal /*for testing purposes*/ void EmitBindingCompleteMessage(IProgressStepExecutionEvents notifications)

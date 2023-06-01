@@ -34,8 +34,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// making the changes to projects and files.</remarks>
     internal interface IBindingProcess
     {
-        bool PromptSaveSolutionIfDirty();
-
         Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken);
 
         Task<bool> SaveServerExclusionsAsync(CancellationToken cancellationToken);
@@ -45,8 +43,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         void PrepareSolutionBinding(CancellationToken cancellationToken);
 
         bool FinishSolutionBindingOnUIThread();
-
-        void SilentSaveSolutionIfDirty();
 
         bool BindOperationSucceeded { get; }
     }

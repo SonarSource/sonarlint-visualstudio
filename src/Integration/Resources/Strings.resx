@@ -377,10 +377,6 @@ ocalization note: '[try again]()' is a special markup used to translate the text
     <value>Not all NuGet packages were installed. Please see output above for more information.</value>
     <comment>Output message indicating not all NuGet packages were installed during the binding workflow</comment>
   </data>
-  <data name="SolutionSaveCancelledBindAborted" xml:space="preserve">
-    <value>Cannot bind or sync if there are unsaved changes. Operation canceled.</value>
-    <comment>Output window message when the user cancels the solution save dialog</comment>
-  </data>
   <data name="UnexpectedErrorMessageFormat" xml:space="preserve">
     <value>{0}: Unexpected error: {1}.
 
