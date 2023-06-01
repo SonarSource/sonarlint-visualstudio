@@ -25,6 +25,16 @@ using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
+    /// <summary>
+    /// ServiceProvider that correctly handles COM type equivalence for embedded interop types.
+    /// See https://learn.microsoft.com/en-us/dotnet/framework/interop/type-equivalence-and-embedded-interop-types
+    /// Mock<ISeviceProvider> does not handle this, which *can* lead to requests for services 
+    /// failing unexpectedly e.g. a test that works against VS2022 might fail for VS2019 because
+    /// a service can't be found.
+    /// 
+    /// Type-equivalence issues can also manifest as tests failing because casting to an embedded
+    /// interop type fails unexpectedly.
+    /// </summary>
     public class ConfigurableServiceProvider : IServiceProvider
     {
         private readonly Dictionary<Type, object> serviceInstances = new Dictionary<Type, object>(new TypeComparer());
@@ -163,6 +173,14 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         public void AssertServiceUsed(Type expectedServiceType)
         {
             this.requestedServices.Contains(expectedServiceType).Should().BeTrue("Service Provider: service was not requested: {0}", expectedServiceType.FullName);
+        }
+
+        /// <summary>
+        /// Checks that the specified service was not used.
+        /// </summary>
+        public void AssertServiceNotUsed(Type serviceType)
+        {
+            this.requestedServices.Contains(serviceType).Should().BeFalse("Service Provider: service should not have been requested: {0}", serviceType.FullName);
         }
 
         #region IServiceProvider interface methods

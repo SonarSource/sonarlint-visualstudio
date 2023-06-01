@@ -33,6 +33,12 @@ using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
+    // NB we need to use the ConfigurableServiceProvider for these tests because it correctly handles
+    // COM type equivalance for embedded interop types such as SVsInfoBarUIFactory.
+    // Otherwise, we can get unexpected failures such as tests passing in the VS2022 build but not in
+    // the VS2019 build
+    // See https://learn.microsoft.com/en-us/dotnet/framework/interop/type-equivalence-and-embedded-interop-types
+
     [TestClass]
     public class InfoBarManagerTests
     {
@@ -322,39 +328,37 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void InfoBarManager_AttachInfoBarToMainWindowAndDetach_AttachAndDetach()
         {
-            var serviceProviderMock = new Mock<IServiceProvider>();
-            serviceProviderMock.Setup(x => x.GetService(typeof(SVsInfoBarUIFactory))).Returns(new ConfigurableVsInfoBarUIFactory());
+            var sp = new ConfigurableServiceProvider();
+            sp.RegisterService(typeof(SVsInfoBarUIFactory), new ConfigurableVsInfoBarUIFactory());
 
-            var host = new Mock<IVsInfoBarHost>();
-            RegisterMainWindowHostWithShell(serviceProviderMock, host.Object);
+            var host = new ConfigurableVsInfoBarHost();
+            RegisterMainWindowHostWithShell(sp, host);
 
-            var testSubject = new InfoBarManager(serviceProviderMock.Object);
-            host.Verify(x => x.AddInfoBar(It.IsAny<IVsInfoBarUIElement>()), Times.Never);
+            var testSubject = new InfoBarManager(sp);
+            host.AssertInfoBars(0);
 
             var infoBar = testSubject.AttachInfoBarToMainWindow("message", default);
             infoBar.Should().NotBeNull();
 
-            serviceProviderMock.Verify(x => x.GetService(typeof(SVsInfoBarUIFactory)), Times.Once);
-            host.Verify(x => x.AddInfoBar(It.IsAny<IVsInfoBarUIElement>()), Times.Once);
+            host.AssertInfoBars(1);
 
             testSubject.DetachInfoBar(infoBar);
-            host.Verify(x => x.RemoveInfoBar(It.IsAny<IVsInfoBarUIElement>()), Times.Once);
+            host.AssertInfoBars(0);
         }
 
         [TestMethod]
         public void InfoBarManager_AttachInfoBarToMainWindow_HostIsNotAvailable_ReturnsNull()
         {
-            var serviceProviderMock = new Mock<IServiceProvider>();
-            serviceProviderMock.Setup(x => x.GetService(typeof(SVsInfoBarUIFactory))).Returns(new ConfigurableVsInfoBarUIFactory());
+            var sp = new ConfigurableServiceProvider();
+            RegisterMainWindowHostWithShell(sp, null);
 
-            RegisterMainWindowHostWithShell(serviceProviderMock, null);
-
-            var testSubject = new InfoBarManager(serviceProviderMock.Object);
+            var testSubject = new InfoBarManager(sp);
 
             // infoBarUIFactory not called
             var actual = testSubject.AttachInfoBarToMainWindow("message", default);
             actual.Should().BeNull();
-            serviceProviderMock.Verify(x => x.GetService(typeof(SVsInfoBarUIFactory)), Times.Never);
+            sp.AssertServiceUsed(typeof(SVsShell));
+            sp.AssertServiceNotUsed(typeof(SVsInfoBarUIFactory));
         }
 
         #endregion
@@ -383,15 +387,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return host;
         }
 
-        private static void RegisterMainWindowHostWithShell(Mock<IServiceProvider> serviceProvider, IVsInfoBarHost host)
+        private static void RegisterMainWindowHostWithShell(ConfigurableServiceProvider serviceProvider, IVsInfoBarHost host)
         {
             var hostAsObject = (object)host;
 
             var shellMock = new Mock<IVsShell>();
             shellMock.Setup(x => x.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out hostAsObject));
 
-            serviceProvider.Setup(x => x.GetService(typeof(SVsShell))).Returns(shellMock.Object);
+            serviceProvider.RegisterService(typeof(SVsShell), shellMock.Object);
         }
+
 
         private class InvalidInfoBar : IInfoBar
         {
