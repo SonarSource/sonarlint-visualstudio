@@ -75,16 +75,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #region IBindingTemplate methods
 
-        public bool PromptSaveSolutionIfDirty()
-        {
-            var result = VsShellUtils.SaveSolution(this.host, silent: false);
-            if (!result)
-            {
-                this.host.Logger.WriteLine(Strings.SolutionSaveCancelledBindAborted);
-            }
-            return result;
-        }
-
         public async Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)
         {
             var languageList = this.GetBindingLanguages();
@@ -197,12 +187,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         public bool FinishSolutionBindingOnUIThread()
         {
             return this.solutionBindingOperation.CommitSolutionBinding();
-        }
-
-        public void SilentSaveSolutionIfDirty()
-        {
-            bool saved = VsShellUtils.SaveSolution(this.host, silent: true);
-            Debug.Assert(saved, "Should not be cancellable");
         }
 
         public bool BindOperationSucceeded => InternalState.BindingOperationSucceeded;
