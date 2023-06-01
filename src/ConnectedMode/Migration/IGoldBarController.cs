@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
     [Export(typeof(IGoldBarController))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class GoldBarController
+    public class GoldBarController : IGoldBarController
     {
         public void ShowGoldBar() { }
     }

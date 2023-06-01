@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
     [Export(typeof(MigrationChecker))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class MigrationChecker : IDisposable
+    internal sealed class MigrationChecker : IDisposable
     {
         private readonly IActiveSolutionTracker activeSolutionTracker;
         private readonly IGoldBarController goldBarController;
