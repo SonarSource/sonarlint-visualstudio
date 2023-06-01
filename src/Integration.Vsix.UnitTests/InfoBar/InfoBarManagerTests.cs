@@ -303,28 +303,61 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             eventHandler.VerifyNoOtherCalls();
         }
 
-        /// <summary>
-        /// The other tests cover the implementation of gold bar functionality.
-        /// The methods AttachInfoBarWithMainWindow & AttachInfoBarWithMainWindowButtons are almost identical to their ToolWindow method counterparts
-        /// which is why a simple test to check if it gets the main window instead of a toolwindow and if it can detach correctly is enough.
-        /// </summary>
+        #region MainWindow tests
+        // The ToolWindow tests above cover the common implementation of gold bar functionality.
+        // These MainWindow tests just cover a few extra main window specific cases.
+
         [TestMethod]
-        public void InfoBarManager_AttachInfoBarToMainWindowAndDetach()
+        public void InfoBarManager_AttachInfoBarToMainWindowAndDetach_ArgChecks()
+        {
+            var testSubject = CreateTestSubject();
+
+            Action act = () => testSubject.AttachInfoBarToMainWindow(null, SonarLintImageMoniker.OfficialSonarLintMoniker);
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("message");
+
+            act = () => testSubject.AttachInfoBarToMainWindow("a message", SonarLintImageMoniker.OfficialSonarLintMoniker, null);
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("buttonTexts");
+        }
+
+        [TestMethod]
+        public void InfoBarManager_AttachInfoBarToMainWindowAndDetach_AttachAndDetach()
         {
             var serviceProviderMock = new Mock<IServiceProvider>();
             serviceProviderMock.Setup(x => x.GetService(typeof(SVsInfoBarUIFactory))).Returns(new ConfigurableVsInfoBarUIFactory());
 
-            var host = RegisterHostWithShell(serviceProviderMock);
+            var host = new Mock<IVsInfoBarHost>();
+            RegisterMainWindowHostWithShell(serviceProviderMock, host.Object);
 
             var testSubject = new InfoBarManager(serviceProviderMock.Object);
             host.Verify(x => x.AddInfoBar(It.IsAny<IVsInfoBarUIElement>()), Times.Never);
 
             var infoBar = testSubject.AttachInfoBarToMainWindow("message", default);
+            infoBar.Should().NotBeNull();
+
+            serviceProviderMock.Verify(x => x.GetService(typeof(SVsInfoBarUIFactory)), Times.Once);
             host.Verify(x => x.AddInfoBar(It.IsAny<IVsInfoBarUIElement>()), Times.Once);
 
             testSubject.DetachInfoBar(infoBar);
             host.Verify(x => x.RemoveInfoBar(It.IsAny<IVsInfoBarUIElement>()), Times.Once);
         }
+
+        [TestMethod]
+        public void InfoBarManager_AttachInfoBarToMainWindow_HostIsNotAvailable_ReturnsNull()
+        {
+            var serviceProviderMock = new Mock<IServiceProvider>();
+            serviceProviderMock.Setup(x => x.GetService(typeof(SVsInfoBarUIFactory))).Returns(new ConfigurableVsInfoBarUIFactory());
+
+            RegisterMainWindowHostWithShell(serviceProviderMock, null);
+
+            var testSubject = new InfoBarManager(serviceProviderMock.Object);
+
+            // infoBarUIFactory not called
+            var actual = testSubject.AttachInfoBarToMainWindow("message", default);
+            actual.Should().BeNull();
+            serviceProviderMock.Verify(x => x.GetService(typeof(SVsInfoBarUIFactory)), Times.Never);
+        }
+
+        #endregion
 
         #endregion Tests
 
@@ -350,17 +383,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return host;
         }
 
-        private static Mock<IVsInfoBarHost> RegisterHostWithShell(Mock<IServiceProvider> serviceProvider)
+        private static void RegisterMainWindowHostWithShell(Mock<IServiceProvider> serviceProvider, IVsInfoBarHost host)
         {
-            var host = new Mock<IVsInfoBarHost>();
-            var hostObject = (object)host.Object;
+            var hostAsObject = (object)host;
 
             var shellMock = new Mock<IVsShell>();
-            shellMock.Setup(x => x.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out hostObject));
+            shellMock.Setup(x => x.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out hostAsObject));
 
             serviceProvider.Setup(x => x.GetService(typeof(SVsShell))).Returns(shellMock.Object);
-
-            return host;
         }
 
         private class InvalidInfoBar : IInfoBar

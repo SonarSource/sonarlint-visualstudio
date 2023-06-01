@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
                 throw new ArgumentNullException(nameof(currentInfoBar));
             }
 
-            if (!(currentInfoBar is PrivateInfoBarWrapper wrapper))
+            if (!(currentInfoBar is PrivateInfoBarWrapper))
             {
                 throw new ArgumentException(Strings.InvalidInfoBarInstance, nameof(currentInfoBar));
             }
