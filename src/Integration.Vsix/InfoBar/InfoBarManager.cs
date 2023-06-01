@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
 
             IVsUIShell shell = serviceProvider.GetService<SVsUIShell, IVsUIShell>();
             IVsWindowFrame frame = GetToolWindowFrame(shell, toolWindowGuid);
-            if (!TryGetInfoBarHost(frame, out var host))
+            if (!TryGetInfoBarHostFromFrame(frame, out var host))
             {
                 return null;
             }
@@ -210,7 +210,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
                 isCloseButtonVisible: true);
         }
 
-        private static bool TryGetInfoBarHost(IVsWindowFrame frame, out IVsInfoBarHost infoBarHost)
+        private static bool TryGetInfoBarHostFromFrame(IVsWindowFrame frame, out IVsInfoBarHost infoBarHost)
         {
             object infoBarHostObj;
 
