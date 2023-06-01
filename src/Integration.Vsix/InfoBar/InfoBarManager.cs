@@ -99,7 +99,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
                 throw new ArgumentNullException(nameof(buttonTexts));
             }
 
-            return AttachInfoBarMainWindowImpl(message, imageMoniker, ButtonStyle.Hyperlink, buttonTexts);
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            // Note: this will return null if the VS main window hasn't been initialized
+            // e.g. on startup when the startup dialog is visible
+            if (!TryGetMainWindowInfoBarHost(out var host))
+            {
+                return null;
+            }
+
+            return AttachInfoBarImpl(host, message, imageMoniker, ButtonStyle.Hyperlink, buttonTexts);
         }
 
         public void DetachInfoBar(IInfoBar currentInfoBar)
@@ -118,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
         }
         #endregion
 
-        #region Static helpers
+        #region Helpers
 
         private IInfoBar AttachInfoBarToolWindowImpl(Guid toolWindowGuid, string message, SonarLintImageMoniker imageMoniker, ButtonStyle buttonStyle = ButtonStyle.Button, params string[] buttonTexts)
         {
@@ -138,18 +147,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
             }
 
             return result;
-        }
-
-        private IInfoBar AttachInfoBarMainWindowImpl(string message, SonarLintImageMoniker imageMoniker, ButtonStyle buttonStyle = ButtonStyle.Button, params string[] buttonTexts)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            if (!TryGetMainWindowInfoBarHost(out var host))
-            {
-                return null;
-            }
-
-            return AttachInfoBarImpl(host, message, imageMoniker, buttonStyle, buttonTexts);
         }
 
         private IInfoBar AttachInfoBarImpl(IVsInfoBarHost host, string message, SonarLintImageMoniker imageMoniker, ButtonStyle buttonStyle = ButtonStyle.Button, params string[] buttonTexts)
