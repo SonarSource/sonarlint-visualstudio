@@ -326,7 +326,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void InfoBarManager_AttachInfoBarToMainWindowAndDetach_AttachAndDetach()
+        public void InfoBarManager_AttachInfoBarToMainWindowAndDetach_AttachesThenDetaches()
         {
             var sp = new ConfigurableServiceProvider();
             sp.RegisterService(typeof(SVsInfoBarUIFactory), new ConfigurableVsInfoBarUIFactory());
