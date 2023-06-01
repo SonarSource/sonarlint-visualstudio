@@ -26,10 +26,9 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.ConnectedMode.Migration;
 using Task = System.Threading.Tasks.Task;
 
-namespace SonarLint.VisualStudio.ConnectedMode
+namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
     [ExcludeFromCodeCoverage]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
