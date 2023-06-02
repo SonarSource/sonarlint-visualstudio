@@ -40,11 +40,6 @@ namespace SonarLint.VisualStudio.Core.Notifications
     [PartCreationPolicy(CreationPolicy.NonShared)]
     internal sealed class NotificationService : INotificationService
     {
-        /// <summary>
-        /// Taken from "ToolWindowGuids80.ErrorList"
-        /// </summary>
-        internal static readonly Guid ErrorListToolWindowGuid = new Guid("D78612C7-9962-4B83-95D9-268046DAD23A");
-
         private readonly IInfoBarManager infoBarManager;
         private readonly IDisabledNotificationsStorage notificationsStorage;
         private readonly IThreadHandling threadHandling;
@@ -143,10 +138,9 @@ namespace SonarLint.VisualStudio.Core.Notifications
             {
                 var buttonTexts = notification.Actions.Select(x => x.CommandText).ToArray();
 
-                var infoBar = infoBarManager.AttachInfoBarWithButtons(ErrorListToolWindowGuid,
-                    notification.Message,
-                    buttonTexts,
-                    SonarLintImageMoniker.OfficialSonarLintMoniker);
+                var infoBar = infoBarManager.AttachInfoBarToMainWindow(notification.Message,
+                    SonarLintImageMoniker.OfficialSonarLintMoniker,
+                    buttonTexts);
 
                 activeNotification = new Tuple<IInfoBar, INotification>(infoBar, notification);
                 activeNotification.Item1.ButtonClick += CurrentInfoBar_ButtonClick;
