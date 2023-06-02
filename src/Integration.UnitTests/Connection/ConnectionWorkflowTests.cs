@@ -51,7 +51,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private Mock<ISonarQubeService> sonarQubeServiceMock;
         private ConfigurableHost host;
         private ConfigurableSonarLintSettings settings;
-        private ConfigurableProjectSystemFilter filter;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private Mock<ICredentialStoreService> credentialStoreMock;
         private Mock<ITestProjectRegexSetter> testProjectRegexSetter;
@@ -85,9 +84,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 MefTestHelpers.CreateExport<IProjectToLanguageMapper>(new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), Mock.Of<IProjectLanguageIndicator>(), Mock.Of<IConnectedModeSecrets>())));
 
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
-
-            this.filter = new ConfigurableProjectSystemFilter();
-            this.serviceProvider.RegisterService(typeof(IProjectSystemFilter), this.filter);
 
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
 
