@@ -97,14 +97,6 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        public IEnumerable<Project> GetFilteredSolutionProjects()
-        {
-            var projectFilter = this.serviceProvider.GetService<IProjectSystemFilter>();
-            projectFilter.AssertLocalServiceIsNotNull();
-
-            return GetSolutionProjects().Where(x => projectFilter.IsAccepted(x));
-        }
-
         public Project GetProject(IVsHierarchy projectHierarchy)
         {
             if (projectHierarchy == null)
