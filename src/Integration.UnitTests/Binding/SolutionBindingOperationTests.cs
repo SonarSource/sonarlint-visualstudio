@@ -25,12 +25,9 @@ using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using System.Threading;
 using FluentAssertions;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Core.Secrets;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 using Language = SonarLint.VisualStudio.Core.Language;
@@ -48,13 +45,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private ConfigurableSourceControlledFileSystem sccFileSystem;
         private MockFileSystem fileSystem;
 
-        // Note: currently the project binding saves files using the IRuleSetSerializer.
-        // However, solution binding saves files using IBindingConfigFileWithRuleSet.Save(...)
-        // -> a test might need to mock both.
-        // If/when the project binding switches to IBindingConfigFileWithRuleSet.Save(...)
-        // then the tests can be simplified.
-        private ConfigurableRuleSetSerializer ruleFS;
-
         private const string SolutionRoot = @"c:\solution";
 
         [TestInitialize]
@@ -69,15 +59,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.projectSystemHelper.CurrentActiveSolution = this.solutionMock;
             this.fileSystem = new MockFileSystem();
             this.sccFileSystem = new ConfigurableSourceControlledFileSystem(fileSystem);
-            this.ruleFS = new ConfigurableRuleSetSerializer(fileSystem);
 
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), this.sccFileSystem);
-            this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), this.ruleFS);
-
-            var projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), Mock.Of<IProjectLanguageIndicator>(), Mock.Of<IConnectedModeSecrets>());
-            var mefHost = ConfigurableComponentModel.CreateWithExports(MefTestHelpers.CreateExport<IProjectToLanguageMapper>(projectToLanguageMapper));
-            serviceProvider.RegisterService(typeof(SComponentModel), mefHost);
         }
 
         #region Tests
@@ -107,9 +91,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Arrange
             SolutionBindingOperation testSubject = this.CreateTestSubject();
-            var languageToFileMap = new Dictionary<Language, IBindingConfig>();
-            languageToFileMap[Language.CSharp] = CreateMockConfigFile("c:\\csharp.txt").Object;
-            languageToFileMap[Language.VBNET] = CreateMockConfigFile("c:\\vbnet.txt").Object;
+            var languageToFileMap = new Dictionary<Language, IBindingConfig>
+            {
+                [Language.CSharp] = CreateMockConfigFile("c:\\csharp.txt").Object,
+                [Language.VBNET] = CreateMockConfigFile("c:\\vbnet.txt").Object
+            };
 
             // Sanity
             testSubject.RuleSetsInformationMap.Should().BeEmpty("Not expecting any registered rulesets");
