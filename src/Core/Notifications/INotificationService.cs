@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
     }
 
     [Export(typeof(INotificationService))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
+    [PartCreationPolicy(CreationPolicy.NonShared)]
     internal sealed class NotificationService : INotificationService
     {
         /// <summary>
