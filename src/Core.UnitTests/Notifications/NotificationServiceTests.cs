@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -42,6 +43,14 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
                 MefTestHelpers.CreateExport<IDisabledNotificationsStorage>(),
                 MefTestHelpers.CreateExport<IThreadHandling>(),
                 MefTestHelpers.CreateExport<ILogger>());
+        }
+
+        [TestMethod]
+        public void NotificationServiceIsNonShared()
+        {
+            var customAttributes = typeof(NotificationService).GetCustomAttributes(typeof(PartCreationPolicyAttribute), true);
+            var partCreationPolicyAttribute = (PartCreationPolicyAttribute)customAttributes[0];
+            partCreationPolicyAttribute.CreationPolicy.Should().Be(CreationPolicy.NonShared);
         }
 
         [TestMethod]
