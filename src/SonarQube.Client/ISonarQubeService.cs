@@ -139,5 +139,7 @@ namespace SonarQube.Client
         /// Creates a new <see cref="ISSEStreamReader"/> for the given <see cref="projectKey"/>
         /// </summary>
         Task<ISSEStreamReader> CreateSSEStreamReader(string projectKey, CancellationToken token);
+
+        Task<IList<SonarQubeHotspotSearch>> SearchHotspotsAsync(string projectKey, string branch, CancellationToken token);
     }
 }
