@@ -30,44 +30,53 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     internal sealed class MigrationChecker : IDisposable
     {
         private readonly IActiveSolutionTracker activeSolutionTracker;
-        private readonly IGoldBarController goldBarController;
+        private readonly IMigrationPrompt migrationPrompt;
         private readonly IConfigurationProvider configurationProvider;
         private readonly IObsoleteConfigurationProvider obsoleteConfigurationProvider;
 
         [ImportingConstructor]
         public MigrationChecker(
             IActiveSolutionTracker activeSolutionTracker,
-            IGoldBarController goldBarController,
+            IMigrationPrompt migrationPrompt,
             IConfigurationProvider configurationProvider,
             IObsoleteConfigurationProvider obsoleteConfigurationProvider)
         {
             this.activeSolutionTracker = activeSolutionTracker;
-            this.goldBarController = goldBarController;
+            this.migrationPrompt = migrationPrompt;
             this.configurationProvider = configurationProvider;
             this.obsoleteConfigurationProvider = obsoleteConfigurationProvider;
 
             activeSolutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
 
             // Initial check incase event was fired before we registered.
-            DisplayGoldBarIfMigrationIsNeeded();
+            DisplayMigrationPromptIfMigrationIsNeeded();
         }
 
         private void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs args)
         {
             if (args.IsSolutionOpen)
             {
-                DisplayGoldBarIfMigrationIsNeeded();
+                DisplayMigrationPromptIfMigrationIsNeeded();
+            }
+            else
+            {
+                ClearMigrationPrompt();
             }
         }
 
-        private void DisplayGoldBarIfMigrationIsNeeded()
+        private void DisplayMigrationPromptIfMigrationIsNeeded()
         {
             // If the user has the old files but not the new files it means they are bound and a goldbar should be shown to initiate migration.
             if (obsoleteConfigurationProvider.GetConfiguration()?.Mode != SonarLintMode.Standalone
                 && configurationProvider.GetConfiguration()?.Mode == SonarLintMode.Standalone)
             {
-               goldBarController.ShowGoldBar();
+                migrationPrompt.Show();
             }
+        }
+
+        private void ClearMigrationPrompt()
+        {
+            migrationPrompt.Clear();
         }
 
         public void Dispose()

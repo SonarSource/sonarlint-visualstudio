@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         {
             MefTestHelpers.CheckTypeCanBeImported<MigrationChecker, MigrationChecker>(
                 MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
-                MefTestHelpers.CreateExport<IGoldBarController>(),
+                MefTestHelpers.CreateExport<IMigrationPrompt>(),
                 MefTestHelpers.CreateExport<IConfigurationProvider>(),
                 MefTestHelpers.CreateExport<IObsoleteConfigurationProvider>()); 
         }
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         [DataRow(SonarLintMode.LegacyConnected, SonarLintMode.Connected, false)]
         public void Migrate_BindingGetsCalledWithCorrectCondition(SonarLintMode obsoleteMode, SonarLintMode mode, bool expectBindingToBeCalled)
         {
-            var goldBarController = new Mock<IGoldBarController>();
+            var migrationPrompt = new Mock<IMigrationPrompt>();
 
             var configurationProvider = new Mock<IConfigurationProvider>();
             configurationProvider.Setup(x => x.GetConfiguration()).Returns(CreateBindingConfiguration(mode));
@@ -55,16 +55,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var obsoleteConfigurationProvider = new Mock<IObsoleteConfigurationProvider>();
             obsoleteConfigurationProvider.Setup(x => x.GetConfiguration()).Returns(CreateBindingConfiguration(obsoleteMode));
 
-            _ = new MigrationChecker(Mock.Of<IActiveSolutionTracker>(), goldBarController.Object, configurationProvider.Object, obsoleteConfigurationProvider.Object);
+            _ = new MigrationChecker(Mock.Of<IActiveSolutionTracker>(), migrationPrompt.Object, configurationProvider.Object, obsoleteConfigurationProvider.Object);
 
-            goldBarController.Verify(x => x.ShowGoldBar(), expectBindingToBeCalled ? Times.Once : Times.Never);
+            migrationPrompt.Verify(x => x.Show(), expectBindingToBeCalled ? Times.Once : Times.Never);
         }
 
         [TestMethod]
-        public void Ctor_SubscribeToSolutionChangedRaised_GoldBarControllerInvoked()
+        public void Ctor_SubscribeToSolutionChangedRaised_SolutionOpenedCLose_MigrationPromptShowClearInvoked()
         {
             var activeSolutionTracker = new Mock<IActiveSolutionTracker>();
-            var goldBarController = new Mock<IGoldBarController>();
+            var migrationPrompt = new Mock<IMigrationPrompt>();
 
             var configurationProvider = new Mock<IConfigurationProvider>();
             configurationProvider.Setup(x => x.GetConfiguration()).Returns(CreateBindingConfiguration(SonarLintMode.Standalone));
@@ -72,19 +72,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var obsoleteConfigurationProvider = new Mock<IObsoleteConfigurationProvider>();
             obsoleteConfigurationProvider.Setup(x => x.GetConfiguration()).Returns(CreateBindingConfiguration(SonarLintMode.Connected));
 
-            new MigrationChecker(activeSolutionTracker.Object, goldBarController.Object, configurationProvider.Object, obsoleteConfigurationProvider.Object);
-            goldBarController.Invocations.Clear();
+            new MigrationChecker(activeSolutionTracker.Object, migrationPrompt.Object, configurationProvider.Object, obsoleteConfigurationProvider.Object);
+            migrationPrompt.Invocations.Clear();
 
             activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(true));
+            migrationPrompt.Verify(x => x.Show(), Times.Once);
 
-            goldBarController.Verify(x => x.ShowGoldBar(), Times.Once);
+            activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(false));
+            migrationPrompt.Verify(x => x.Clear(), Times.Once);
         }
 
         [TestMethod]
         public void Dispose_UnsubscribeFromEvents()
         {
             var activeSolutionTracker = new Mock<IActiveSolutionTracker>();
-            var goldBarController = new Mock<IGoldBarController>();
+            var migrationPrompt = new Mock<IMigrationPrompt>();
         
             var configurationProvider = new Mock<IConfigurationProvider>();
             configurationProvider.Setup(x => x.GetConfiguration()).Returns(CreateBindingConfiguration(SonarLintMode.Standalone));
@@ -93,13 +95,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             obsoleteConfigurationProvider.Setup(x => x.GetConfiguration()).Returns(CreateBindingConfiguration(SonarLintMode.Connected));
 
 
-            var testSubject = new MigrationChecker(activeSolutionTracker.Object, goldBarController.Object, configurationProvider.Object, obsoleteConfigurationProvider.Object);
+            var testSubject = new MigrationChecker(activeSolutionTracker.Object, migrationPrompt.Object, configurationProvider.Object, obsoleteConfigurationProvider.Object);
             testSubject.Dispose();
-            goldBarController.Invocations.Clear();
+            migrationPrompt.Invocations.Clear();
 
             activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, EventArgs.Empty);
 
-            goldBarController.Verify(x => x.ShowGoldBar(), Times.Never);
+            migrationPrompt.Verify(x => x.Show(), Times.Never);
         }
 
         private BindingConfiguration CreateBindingConfiguration(SonarLintMode mode)

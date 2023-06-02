@@ -22,15 +22,19 @@ using System.ComponentModel.Composition;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
-    public interface IGoldBarController
+    public interface IMigrationPrompt
     {
-       void ShowGoldBar();
+       void Show();
+
+        void Clear();
     }
 
-    [Export(typeof(IGoldBarController))]
+    [Export(typeof(IMigrationPrompt))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class GoldBarController : IGoldBarController
+    public class MigrationPrompt : IMigrationPrompt
     {
-        public void ShowGoldBar() { }
+        public void Show() { }
+
+        public void Clear() { }
     }
 }
