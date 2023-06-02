@@ -28,7 +28,7 @@ using SonarLint.VisualStudio.Integration;
 namespace SonarLint.VisualStudio.Core.Notifications
 {
     /// <summary>
-    ///  This service can be used to display any type of notification. Each instance of this service
+    ///  This service can be used to display any type of user visible notification. Each instance of this service
     ///  is responsible for one info bar.
     /// </summary>
     public interface INotificationService : IDisposable

@@ -180,5 +180,27 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             using var container = new CompositionContainer(catalog);
             container.Compose(batch);
         }
+
+        /// <summary>
+        /// Check if type has creation policy non shared.
+        /// </summary>
+        public static bool IsMefComponentNonShared(Type type)
+        {
+            var customAttributes = type.GetCustomAttributes(typeof(PartCreationPolicyAttribute), true);
+            var partCreationPolicyAttribute = (PartCreationPolicyAttribute)customAttributes[0];
+
+            return partCreationPolicyAttribute.CreationPolicy == CreationPolicy.NonShared;
+        }
+
+        /// <summary>
+        /// Check if type has creation policy shared.
+        /// </summary>
+        public static bool IsMefComponentShared(Type type)
+        {
+            var customAttributes = type.GetCustomAttributes(typeof(PartCreationPolicyAttribute), true);
+            var partCreationPolicyAttribute = (PartCreationPolicyAttribute)customAttributes[0];
+
+            return partCreationPolicyAttribute.CreationPolicy == CreationPolicy.Shared;
+        }
     }
 }

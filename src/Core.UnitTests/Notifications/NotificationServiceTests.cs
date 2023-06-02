@@ -46,11 +46,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         }
 
         [TestMethod]
-        public void NotificationServiceIsNonShared()
+        public void CheckIsNonSharedMefComponent()
         {
-            var customAttributes = typeof(NotificationService).GetCustomAttributes(typeof(PartCreationPolicyAttribute), true);
-            var partCreationPolicyAttribute = (PartCreationPolicyAttribute)customAttributes[0];
-            partCreationPolicyAttribute.CreationPolicy.Should().Be(CreationPolicy.NonShared);
+            MefTestHelpers.IsMefComponentNonShared(typeof(NotificationService));
         }
 
         [TestMethod]
