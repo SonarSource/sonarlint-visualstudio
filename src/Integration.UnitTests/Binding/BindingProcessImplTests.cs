@@ -26,12 +26,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using FluentAssertions;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
@@ -352,47 +348,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Test case 1: Default state is 'true'
             testSubject.InternalState.BindingOperationSucceeded.Should().BeTrue($"Initial state of {nameof(BindingProcessImpl.InternalState.BindingOperationSucceeded)} should be true");
-        }
-
-        [TestMethod]
-        public void PromptSaveSolutionIfDirty()
-        {
-            // Arrange
-            var testSubject = this.CreateTestSubject();
-            var solution = new SolutionMock();
-            serviceProvider.RegisterService(typeof(SVsSolution), solution);
-
-            // Case 1: Users saves the changes
-            solution.SaveSolutionElementAction = (options, hierarchy, docCookie) => VSConstants.S_OK;
-            // Act
-            var result = testSubject.PromptSaveSolutionIfDirty();
-            // Assert
-            result.Should().BeTrue();
-            logger.AssertOutputStrings(0);
-
-            // Case 2: Users cancels the save
-            solution.SaveSolutionElementAction = (options, hierarchy, docCookie) => VSConstants.S_FALSE;
-            // Act
-            result = testSubject.PromptSaveSolutionIfDirty();
-            // Assert
-            result.Should().BeFalse();
-            logger.AssertOutputStrings(Strings.SolutionSaveCancelledBindAborted);
-        }
-
-        [TestMethod]
-        public void SilentSaveSolutionIfDirty()
-        {
-            // Arrange
-            var testSubject = this.CreateTestSubject();
-            var solution = new SolutionMock();
-            serviceProvider.RegisterService(typeof(SVsSolution), solution);
-            solution.SaveSolutionElementAction = (options, hierarchy, docCookie) => VSConstants.S_OK;
-
-            // Act
-            testSubject.SilentSaveSolutionIfDirty();
-
-            // Assert
-            logger.AssertOutputStrings(0);
         }
 
         #endregion Tests

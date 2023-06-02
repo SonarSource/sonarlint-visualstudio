@@ -233,38 +233,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             notificationsFail.AssertProgressMessages(string.Format(CultureInfo.CurrentCulture, Strings.FinishedSolutionBindingWorkflowNotAllPackagesInstalled));
         }
 
-        [TestMethod]
-        public void BindingWorkflow_PromptSaveSolutionIfDirty()
-        {
-            // Arrange
-            var controller = new ConfigurableProgressController();
-
-            // Case 1: Users saves the changes
-            mockBindingProcess.Setup(x => x.PromptSaveSolutionIfDirty()).Returns(true);
-
-            // Act
-            testSubject.PromptSaveSolutionIfDirty(controller, CancellationToken.None);
-            // Assert
-            controller.NumberOfAbortRequests.Should().Be(0);
-
-            // Case 2: Users cancels the save
-            mockBindingProcess.Setup(x => x.PromptSaveSolutionIfDirty()).Returns(false);
-            // Act
-            testSubject.PromptSaveSolutionIfDirty(controller, CancellationToken.None);
-            // Assert
-            controller.NumberOfAbortRequests.Should().Be(1);
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_SilentSaveSolutionIfDirty()
-        {
-            // Act
-            testSubject.SilentSaveSolutionIfDirty();
-
-            // Assert
-            mockBindingProcess.Verify(x => x.SilentSaveSolutionIfDirty(), Times.Once);
-        }
-
         #endregion Tests
     }
 }

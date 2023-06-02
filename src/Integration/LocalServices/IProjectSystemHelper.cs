@@ -78,14 +78,6 @@ namespace SonarLint.VisualStudio.Integration
         IEnumerable<Project> GetSolutionProjects();
 
         /// <summary>
-        /// Returns only the filtered project based on a common filter.
-        /// This should only be called after we connected to a SonarQube server,
-        /// since some of the filtering is SonarQube server instance specific.
-        /// <seealso cref="IProjectSystemFilter"/> which is used internally.
-        /// </summary>
-        IEnumerable<Project> GetFilteredSolutionProjects();
-
-        /// <summary>
         /// Returns the <seealso cref="IVsHierarchy"/> for a <see cref="Project"/>
         /// </summary>
         IVsHierarchy GetIVsHierarchy(Project dteProject);
