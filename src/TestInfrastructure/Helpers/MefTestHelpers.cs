@@ -184,23 +184,29 @@ namespace SonarLint.VisualStudio.TestInfrastructure
         /// <summary>
         /// Check if type has creation policy non shared.
         /// </summary>
-        public static bool IsMefComponentNonShared(Type type)
+        public static void CheckIsNonSharedMefComponent<T>()
         {
-            var customAttributes = type.GetCustomAttributes(typeof(PartCreationPolicyAttribute), true);
-            var partCreationPolicyAttribute = (PartCreationPolicyAttribute)customAttributes[0];
-
-            return partCreationPolicyAttribute.CreationPolicy == CreationPolicy.NonShared;
+            var creationPolicy = GetCreationPolicyFromAttribute<T>();
+            creationPolicy.Should().Be(CreationPolicy.NonShared);
         }
 
         /// <summary>
         /// Check if type has creation policy shared.
         /// </summary>
-        public static bool IsMefComponentShared(Type type)
+        public static void CheckIsSingletonMefComponent<T>()
         {
-            var customAttributes = type.GetCustomAttributes(typeof(PartCreationPolicyAttribute), true);
+            var creationPolicy = GetCreationPolicyFromAttribute<T>();
+            creationPolicy.Should().Be(CreationPolicy.Shared);
+        }
+
+        private static CreationPolicy GetCreationPolicyFromAttribute<T>()
+        {
+            var customAttributes = typeof(T).GetCustomAttributes(typeof(PartCreationPolicyAttribute), true);
+            customAttributes.Should().HaveCount(1);
+
             var partCreationPolicyAttribute = (PartCreationPolicyAttribute)customAttributes[0];
 
-            return partCreationPolicyAttribute.CreationPolicy == CreationPolicy.Shared;
+            return partCreationPolicyAttribute.CreationPolicy;
         }
     }
 }

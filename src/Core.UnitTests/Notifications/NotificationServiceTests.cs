@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         [TestMethod]
         public void CheckIsNonSharedMefComponent()
         {
-            MefTestHelpers.IsMefComponentNonShared(typeof(NotificationService));
+            MefTestHelpers.CheckIsNonSharedMefComponent<NotificationService>();
         }
 
         [TestMethod]
