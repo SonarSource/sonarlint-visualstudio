@@ -325,40 +325,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_GetFilteredSolutionProjects()
-        {
-            ProjectMock csProject = this.solutionMock.AddOrGetProject("c#");
-            csProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, csProject);
-            csProject.ProjectKind = ProjectSystemHelper.CSharpProjectKind;
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(csProject)).Returns(true);
-
-            ProjectMock vbProject = this.solutionMock.AddOrGetProject("vb.net");
-            vbProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, vbProject);
-            vbProject.ProjectKind = ProjectSystemHelper.VbProjectKind;
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(vbProject)).Returns(true);
-
-            ProjectMock otherProject = this.solutionMock.AddOrGetProject("other");
-            otherProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, otherProject);
-            otherProject.ProjectKind = "other";
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(otherProject)).Returns(false);
-
-            ProjectMock erronousProject = this.solutionMock.AddOrGetProject("err");
-            erronousProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, null);
-            erronousProject.ProjectKind = ProjectSystemHelper.VbProjectKind;
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(erronousProject)).Returns(true);
-
-            // Filter out C#, keep VB
-            projectFilter.MatchingProjects.Add(vbProject);
-
-            // Act
-            var actual = this.testSubject.GetFilteredSolutionProjects().ToArray();
-
-            // Assert
-            CollectionAssert.AreEqual(new[] { vbProject }, actual,
-                "Unexpected projects: {0}", string.Join(", ", actual.Select(p => p.Name)));
-        }
-
-        [TestMethod]
         public void ProjectSystemHelper_AddFileToProject_ProjectArgCheck()
         {
             Action act = () => this.testSubject.AddFileToProject(null, "file");

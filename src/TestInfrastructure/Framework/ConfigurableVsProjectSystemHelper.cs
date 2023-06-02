@@ -67,11 +67,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             return this.Projects ?? Enumerable.Empty<Project>();
         }
 
-        IEnumerable<Project> IProjectSystemHelper.GetFilteredSolutionProjects()
-        {
-            return this.FilteredProjects ?? Enumerable.Empty<Project>();
-        }
-
         bool IProjectSystemHelper.IsFileInProject(Project project, string file)
         {
             return this.IsFileInProjectAction?.Invoke(project, file) ?? false;
