@@ -372,6 +372,14 @@ namespace SonarQube.Client
                 },
                 token);
 
+        public async Task<IList<SonarQubeHotspotSearch>> SearchHotspotsAsync(string projectKey, string branch, CancellationToken token) => await InvokeCheckedRequestAsync<ISearchHotspotRequest, SonarQubeHotspotSearch[]>(
+                request =>
+                {
+                    request.BranchKey = branch;
+                    request.ProjectKey = projectKey;
+                },
+                token);
+
         public async Task<IList<SonarQubeIssue>> GetTaintVulnerabilitiesAsync(string projectKey, string branch, CancellationToken token)
         {
             var issues = await InvokeCheckedRequestAsync<IGetTaintVulnerabilitiesRequest, SonarQubeIssue[]>(
