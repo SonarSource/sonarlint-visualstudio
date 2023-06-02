@@ -49,7 +49,6 @@ namespace SonarLint.VisualStudio.Integration
                 typeof(IProjectSystemHelper),
                 typeof(ISourceControlledFileSystem),
                 typeof(IRuleSetInspector),
-                typeof(IProjectSystemFilter),
                 typeof(IConfigurationPersister),
                 typeof(ICredentialStoreService),
                 typeof(ITestProjectRegexSetter)
@@ -312,21 +311,6 @@ namespace SonarLint.VisualStudio.Integration
 
             this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this, projectToLanguageMapper)));
             this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));
-            this.localServices.Add(typeof(IProjectSystemFilter), new Lazy<ILocalService>(() =>
-            {
-                var testProjectIndicators = new List<ITestProjectIndicator>
-                {
-                    new BuildPropertyTestProjectIndicator(this),
-                    new ProjectKindTestProjectIndicator(this),
-                    new ProjectCapabilityTestProjectIndicator(this),
-                    new ServiceGuidTestProjectIndicator(),
-                    projectNameTestProjectIndicator.Value as ITestProjectIndicator,
-                };
-
-                var testProjectIndicator = new TestProjectIndicator(testProjectIndicators);
-
-                return new ProjectSystemFilter(this, testProjectIndicator);
-            }));
 
             // Use Lazy<object> to avoid creating instances needlessly, since the interfaces are serviced by the same instance
             var sccFs = new Lazy<ILocalService>(() => new SourceControlledFileSystem(this, Logger));
