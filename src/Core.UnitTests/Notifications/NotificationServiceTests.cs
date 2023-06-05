@@ -379,7 +379,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
             var infoBarManager = new Mock<IInfoBarManager>();
             infoBarManager
-                .Setup(x => x.AttachInfoBarWithButtons(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), SonarLintImageMoniker.OfficialSonarLintMoniker))
+                .Setup(x => x.AttachInfoBarToMainWindow(It.IsAny<string>(), SonarLintImageMoniker.OfficialSonarLintMoniker, It.IsAny<string[]>()))
                 .Throws(new NotImplementedException("this is a test"));
 
             var logger = new TestLogger();
@@ -401,7 +401,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
             var infoBarManager = new Mock<IInfoBarManager>();
             infoBarManager
-                .Setup(x => x.AttachInfoBarWithButtons(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), SonarLintImageMoniker.OfficialSonarLintMoniker))
+                .Setup(x => x.AttachInfoBarToMainWindow(It.IsAny<string>(), SonarLintImageMoniker.OfficialSonarLintMoniker, It.IsAny<string[]>()))
                 .Throws(new StackOverflowException("this is a test"));
 
             var logger = new TestLogger();
@@ -595,21 +595,19 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         private static void SetupInfoBarManager(Mock<IInfoBarManager> infoBarManager, INotification notification, IInfoBar infoBar)
         {
             infoBarManager
-                .Setup(x => x.AttachInfoBarWithButtons(
-                    NotificationService.ErrorListToolWindowGuid,
+                .Setup(x => x.AttachInfoBarToMainWindow(
                     notification.Message,
-                    It.IsAny<IEnumerable<string>>(),
-                    SonarLintImageMoniker.OfficialSonarLintMoniker))
+                    SonarLintImageMoniker.OfficialSonarLintMoniker,
+                    It.IsAny<string[]>()))
                 .Returns(infoBar);
         }
 
         private static void VerifyInfoBarCreatedCorrectly(Mock<IInfoBarManager> infoBarManager, INotification notification)
         {
-            infoBarManager.Verify(x => x.AttachInfoBarWithButtons(
-                    NotificationService.ErrorListToolWindowGuid,
+            infoBarManager.Verify(x => x.AttachInfoBarToMainWindow(
                     notification.Message,
-                    It.IsAny<IEnumerable<string>>(),
-                    SonarLintImageMoniker.OfficialSonarLintMoniker),
+                    SonarLintImageMoniker.OfficialSonarLintMoniker,
+                    It.IsAny<string[]>()),
                 Times.Once);
 
             var expectedButtonTexts = notification.Actions.Select(x => x.CommandText).ToArray();
