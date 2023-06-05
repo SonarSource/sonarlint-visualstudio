@@ -142,7 +142,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
 
             eventCounter.Events.Should().BeEmpty();
 
-            result.Should().HaveCount(1);
+            result.Should().ContainSingle();
 
             result[0].HotspotKey.Should().Be("key1");
         }
@@ -172,7 +172,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
             eventCounter.Events[0].ProjectKey.Should().Be(projectKey);
             eventCounter.Events[0].BranchName.Should().Be(branchName);
 
-            result.Should().HaveCount(1);
+            result.Should().ContainSingle();
 
             result[0].HotspotKey.Should().Be("key1");
         }
