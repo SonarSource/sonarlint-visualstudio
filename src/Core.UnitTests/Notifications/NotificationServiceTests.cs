@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -42,6 +43,12 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
                 MefTestHelpers.CreateExport<IDisabledNotificationsStorage>(),
                 MefTestHelpers.CreateExport<IThreadHandling>(),
                 MefTestHelpers.CreateExport<ILogger>());
+        }
+
+        [TestMethod]
+        public void CheckIsNonSharedMefComponent()
+        {
+            MefTestHelpers.CheckIsNonSharedMefComponent<NotificationService>();
         }
 
         [TestMethod]
