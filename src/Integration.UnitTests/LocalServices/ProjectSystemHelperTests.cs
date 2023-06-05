@@ -42,7 +42,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableServiceProvider serviceProvider;
         private SolutionMock solutionMock;
         private ProjectSystemHelper testSubject;
-        private ConfigurableProjectSystemFilter projectFilter;
         private Mock<IProjectToLanguageMapper> projectToLanguageMapper;
 
         [TestInitialize]
@@ -51,8 +50,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.solutionMock = new SolutionMock();
             this.serviceProvider = new ConfigurableServiceProvider();
             this.serviceProvider.RegisterService(typeof(SVsSolution), this.solutionMock);
-            this.projectFilter = new ConfigurableProjectSystemFilter();
-            this.serviceProvider.RegisterService(typeof(IProjectSystemFilter), this.projectFilter);
             projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
 
             this.testSubject = new ProjectSystemHelper(this.serviceProvider, projectToLanguageMapper.Object);
