@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Threading;
 using FluentAssertions;
@@ -27,7 +26,6 @@ using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarQube.Client;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
 {
@@ -105,8 +103,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             // Simulate product code
             this.VisualStateManager.SyncCommandFromActiveSection();
         }
-
-        public ISet<Language> SupportedPluginLanguages { get; } = new HashSet<Language>();
 
         #endregion IHost
 

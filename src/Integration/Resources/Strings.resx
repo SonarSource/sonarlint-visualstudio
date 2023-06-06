@@ -345,10 +345,6 @@ ocalization note: '[try again]()' is a special markup used to translate the text
     <value>A SonarQube server plugin has a malformed version and cannot be compared. Version was '{0}'.</value>
     <comment>Exception message indicating that the provided version string is malformed and cannot be compared. {0} version string</comment>
   </data>
-  <data name="ServerHasNoSupportedPluginVersion" xml:space="preserve">
-    <value>The specified SonarQube server does not have the minimum required version of any of the supported plugins (C#, VB.Net). </value>
-    <comment>Error message indicating that the server does not have the required version of any of the supported server plugins.</comment>
-  </data>
   <data name="FailedToUnpackAdditionalFiles" xml:space="preserve">
     <value>Failed to unpack additional files required for analyzers</value>
     <comment>Output window message indicating failure when unpacking additional files for analyzers</comment>
@@ -507,26 +503,6 @@ This is the general format to use when writing errors to output window or when t
     <value>   {0}</value>
     <comment>Output window message format. Used whenever the message should be displayed as a sub-message from a step message so the user can clearly identify the grouping. {0} the actual message to display.</comment>
   </data>
-  <data name="InstalledAndMinimumSonarQubePlugin" xml:space="preserve">
-    <value>Plugin: '{0}', Language(s): '{1}', Installed version: '{2}', Minimum version: '{3}'</value>
-    <comment>Error message displayed for every supported plugin when none of them match the minimum required version. {0} the plugin name, {1} languages supported by the plugin, {2} the installed plugin version, {3} the minimum plugin version.</comment>
-  </data>
-  <data name="DetectingSonarQubePlugins" xml:space="preserve">
-    <value>Detecting server plugins</value>
-    <comment>Output window message printed before accessing to server plugins.</comment>
-  </data>
-  <data name="SolutionContainsNoSupportedProjects" xml:space="preserve">
-    <value>This solution does not contain any supported languages (C#, VB.Net, C, C++, JavaScript, TypeScript). Please create at least one project using a supported language and then try to reconnect.</value>
-    <comment>Output window message printed when some server plugin are supported but the current solution contains no supported project.</comment>
-  </data>
-  <data name="SupportedPluginFoundMessage" xml:space="preserve">
-    <value>Discovered a supported plugin: {0}</value>
-    <comment>Output window message displayed when the server plugin respects the minimum version requirements. {0} the plugin ToString() message.</comment>
-  </data>
-  <data name="UnsupportedPluginFoundMessage" xml:space="preserve">
-    <value>Discovered an unsupported plugin: {0}</value>
-    <comment>Output window message displayed when the server plugin doesn't respect the minimum version requirements. {0} the plugin ToString() message.</comment>
-  </data>
   <data name="SonarQubeRuleSetNameFormat" xml:space="preserve">
     <value>SonarQube - {0} {1}</value>
     <comment>Format used to build the project specific ruleset file name. {0} SonarQube project name. {1} SonarQube quality profile name.</comment>
@@ -579,10 +555,6 @@ This is the general format to use when writing errors to output window or when t
   <data name="Notifications_NotSupported" xml:space="preserve">
     <value>Notifications are not supported on this version of SonarQube</value>
     <comment>Output window message</comment>
-  </data>
-  <data name="OnlySupportedPluginsHaveNoProjectInSolution" xml:space="preserve">
-    <value>The languages supported by plugins on this SonarQube server ({0}) do not match any of the solution projects' languages.</value>
-    <comment>Output window message printed when the only supported plugin has no matching project types in the current solution. {0} the name of the language.</comment>
   </data>
   <data name="Telemetry_ERROR_Recording" xml:space="preserve">
     <value>Telemetry: error occurred when recording: {0}</value>
