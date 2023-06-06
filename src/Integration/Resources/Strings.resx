@@ -314,8 +314,8 @@ ocalization note: '[try again]()' is a special markup used to translate the text
     <comment>Server context menu command display text to show all projects (inc. unbound projects)</comment>
   </data>
   <data name="DownloadingQualityProfileProgressMessage" xml:space="preserve">
-    <value>Download quality profile(s):</value>
-    <comment>A progress notification message.</comment>
+    <value>Downloading quality profile: {0}</value>
+    <comment>A progress notification message e.g. "Downloading quality profile: C#"</comment>
   </data>
   <data name="AutomationServerDescription" xml:space="preserve">
     <value>SonarQube server: {0}</value>
