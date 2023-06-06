@@ -20,7 +20,7 @@
 
 using System.Collections.Generic;
 using System.Threading;
-using EnvDTE;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         void Initialize();
 
-        void Prepare(CancellationToken token);
+        void Prepare(IEnumerable<IBindingConfig> bindingConfigs, CancellationToken token);
 
         bool CommitSolutionBinding();
     }

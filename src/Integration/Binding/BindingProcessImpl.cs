@@ -120,6 +120,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     return false;
                 }
 
+                // TODO - CM: we don't need the dictionary, just the list of configs.
                 InternalState.BindingConfigs[language] = bindingConfig;
 
                 host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
@@ -218,7 +219,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public void PrepareSolutionBinding(CancellationToken cancellationToken)
         {
-            this.solutionBindingOperation.Prepare(cancellationToken);
+            this.solutionBindingOperation.Prepare(this.InternalState.BindingConfigs.Values, cancellationToken);
         }
 
         public bool FinishSolutionBindingOnUIThread()
@@ -248,6 +249,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             public bool IsFirstBinding { get; }
 
+            // TODO - change to simple list of configs
             public Dictionary<Language, IBindingConfig> BindingConfigs
             {
                 get;

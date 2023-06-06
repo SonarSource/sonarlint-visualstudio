@@ -82,24 +82,22 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // no-op
         }
 
-        public void Prepare(CancellationToken token)
+        public void Prepare(IEnumerable<IBindingConfig> bindingConfigs, CancellationToken token)
         {
-            foreach (var keyValue in this.bindingConfigInformationMap)
+            foreach (var config in bindingConfigs)
             {
                 if (token.IsCancellationRequested)
                 {
                     return;
                 }
 
-                var info = keyValue.Value;
-
-                foreach (var solutionItem in info.SolutionLevelFilePaths)
+                foreach (var solutionItem in config.SolutionLevelFilePaths)
                 {
                     var ruleSetDirectoryPath = Path.GetDirectoryName(solutionItem);
                     fileSystem.Directory.CreateDirectory(ruleSetDirectoryPath); // will no-op if exists
                 }
 
-                info.Save();
+                config.Save();
             }
         }
 
