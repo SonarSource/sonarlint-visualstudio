@@ -97,50 +97,76 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public async Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)
         {
-            var languageList = this.GetBindingLanguages();
+            var languageList = GetBindingLanguages();
 
             var languageCount = languageList.Count();
             int currentLanguage = 0;
-            progress?.Report(new FixedStepsProgress(Strings.DownloadingQualityProfileProgressMessage, currentLanguage, languageCount));
 
             foreach (var language in languageList)
             {
-                var serverLanguage = language.ServerLanguage;
+                currentLanguage++;
 
-                // Download the quality profile for each language
-                var qualityProfileInfo = await Core.WebServiceHelper.SafeServiceCallAsync(() =>
-                    this.host.SonarQubeService.GetQualityProfileAsync(
-                        this.bindingArgs.ProjectKey, this.bindingArgs.Connection.Organization?.Key, serverLanguage, cancellationToken),
-                    this.host.Logger);
+                var progressMessage = string.Format(Strings.DownloadingQualityProfileProgressMessage, language.Name);
+                progress?.Report(new FixedStepsProgress(progressMessage, currentLanguage, languageCount));
+
+                var qualityProfileInfo = await TryDownloadQualityProfileAsync(language, cancellationToken);
+                
                 if (qualityProfileInfo == null)
                 {
-                    this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
-                       string.Format(Strings.CannotDownloadQualityProfileForLanguage, language.Name)));
-                    return false;
+                    continue; // skip to the next language
                 }
-                this.InternalState.QualityProfiles[language] = qualityProfileInfo;
+
+                InternalState.QualityProfiles[language] = qualityProfileInfo;
 
                 var bindingConfiguration = QueueWriteBindingInformation();
 
                 // Create the binding configuration for the language
-                var bindingConfig = await this.bindingConfigProvider.GetConfigurationAsync(qualityProfileInfo, language, bindingConfiguration, cancellationToken);
+                var bindingConfig = await bindingConfigProvider.GetConfigurationAsync(qualityProfileInfo, language, bindingConfiguration, cancellationToken);
                 if (bindingConfig == null)
                 {
-                    this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
+                    host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
                         string.Format(Strings.FailedToCreateBindingConfigForLanguage, language.Name)));
                     return false;
                 }
 
-                this.InternalState.BindingConfigs[language] = bindingConfig;
+                InternalState.BindingConfigs[language] = bindingConfig;
 
-                currentLanguage++;
-                progress?.Report(new FixedStepsProgress(string.Empty, currentLanguage, languageCount));
-
-                this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
+                host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
                     string.Format(Strings.QualityProfileDownloadSuccessfulMessageFormat, qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name)));
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Attempts to fetch the QP for the specified language.
+        /// </summary>
+        /// <returns>The QP, or null if the language plugin is not available on the server</returns>
+        private async Task<SonarQubeQualityProfile> TryDownloadQualityProfileAsync(Language language, CancellationToken cancellationToken)
+        {
+            // There are valid scenarios in which a language plugin will not be available on the server:
+            // 1) the CFamily plugin does not ship in Community edition (nor do any other commerical plugins)
+            // 2) a recently added language will not be available in older-but-still-supported SQ versions
+            //      e.g. the "secrets" language
+            // The unavailability of a language should not prevent binding from succeeding.
+
+            // Note: the historical check that plugins meet a minimum version was removed. 
+            // See https://github.com/SonarSource/sonarlint-visualstudio/issues/4272
+
+            var qualityProfileInfo = await WebServiceHelper.SafeServiceCallAsync(() =>
+    
+            host.SonarQubeService.GetQualityProfileAsync(
+                bindingArgs.ProjectKey, bindingArgs.Connection.Organization?.Key, language.ServerLanguage, cancellationToken),
+                host.Logger);
+
+            if (qualityProfileInfo == null)
+            {
+                host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
+                   string.Format(Strings.CannotDownloadQualityProfileForLanguage, language.Name)));
+                return null;
+            }
+            
+            return qualityProfileInfo;
         }
 
         /// <summary>

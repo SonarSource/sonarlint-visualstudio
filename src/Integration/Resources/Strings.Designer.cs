@@ -387,7 +387,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Download quality profile(s):.
+        ///   Looks up a localized string similar to Downloading quality profile: {0}.
         /// </summary>
         public static string DownloadingQualityProfileProgressMessage {
             get {

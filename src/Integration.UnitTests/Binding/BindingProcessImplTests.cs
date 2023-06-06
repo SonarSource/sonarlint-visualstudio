@@ -166,53 +166,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public async Task DownloadQualityProfile_Success()
-        {
-            var configPersister = new ConfigurableConfigurationProvider();
-            this.serviceProvider.RegisterService(typeof(IConfigurationPersister), configPersister);
-
-            // Arrange
-            const string QualityProfileName = "SQQualityProfileName";
-            const string ProjectName = "SQProjectName";
-
-            var notifications = new ConfigurableProgressStepExecutionEvents();
-            var progressAdapter = new FixedStepsProgressAdapter(notifications);
-
-            var bindingConfig = new Mock<IBindingConfig>().Object;
-
-            var language = Language.VBNET;
-            SonarQubeQualityProfile profile = this.ConfigureQualityProfile(language, QualityProfileName);
-
-            var configProviderMock = new Mock<IBindingConfigProvider>();
-            configProviderMock.Setup(x => x.GetConfigurationAsync(profile, language, BindingConfiguration.Standalone, CancellationToken.None))
-                .ReturnsAsync(bindingConfig);
-
-            var bindingArgs = CreateBindCommandArgs("key", ProjectName, new ConnectionInformation(new Uri("http://connected")));
-            var testSubject = this.CreateTestSubject(bindingArgs, configProviderMock.Object, languagesToBind: new[] { language });
-
-            List<Language> supportedLanguages = new List<Language>() { language };
-
-            // Act
-            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
-
-            // Assert
-            result.Should().BeTrue();
-            testSubject.InternalState.BindingConfigs.Should().ContainKey(language);
-            testSubject.InternalState.BindingConfigs[language].Should().Be(bindingConfig);
-            testSubject.InternalState.BindingConfigs.Count().Should().Be(1);
-
-            testSubject.InternalState.QualityProfiles[language].Should().Be(profile);
-
-            notifications.AssertProgress(0.0, 1.0);
-            notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage, string.Empty);
-
-            logger.AssertOutputStrings(1);
-            var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
-                string.Format(Strings.QualityProfileDownloadSuccessfulMessageFormat, QualityProfileName, string.Empty, language.Name));
-            logger.AssertOutputStrings(expectedOutput);
-        }
-
-        [TestMethod]
         public async Task DownloadQualityProfile_SavesConfiguration()
         {
             var configPersister = new ConfigurableConfigurationProvider();
@@ -252,32 +205,77 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public async Task DownloadQualityProfile_WhenQualityProfileIsNotAvailable_Fails()
+        public async Task DownloadQualityProfile_WhenQualityProfileIsNotAvailable_OtherLanguagesDownloadedSucceessfully()
         {
             // Arrange
-            var testSubject = this.CreateTestSubject();
+            var languagesToBind = new[] {
+                Language.Cpp,       // unavailable
+                Language.CSharp,
+                Language.Secrets,   // unavailable
+                Language.VBNET
+            };
+
+            // Configure available languages on the server
+            var configProvider = new Mock<IBindingConfigProvider>();
+            SetupAvailableLanguages(configProvider,
+                Language.CSharp,
+                Language.VBNET,
+                Language.Css /* available on server, but shouldn't be requested*/ );
+
+            var configPersister = new ConfigurableConfigurationProvider();
+            serviceProvider.RegisterService(typeof(IConfigurationPersister), configPersister);
+
+            var testSubject = CreateTestSubject(
+                configProvider: configProvider.Object,
+                languagesToBind: languagesToBind);
+
             var notifications = new ConfigurableProgressStepExecutionEvents();
             var progressAdapter = new FixedStepsProgressAdapter(notifications);
-
-            // CSharp is a supported language, but only the VB.NET QP is available
-            var language = Language.CSharp;
-
-            this.ConfigureQualityProfile(Language.VBNET, "");
 
             // Act
             var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
 
             // Assert
-            result.Should().BeFalse();
-            testSubject.InternalState.BindingConfigs.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
-            testSubject.InternalState.BindingConfigs.Should().NotContainKey(language, "Not expecting any rules");
+            result.Should().BeTrue();
+            testSubject.InternalState.BindingConfigs.Should().NotContainKey(Language.Cpp);
+            testSubject.InternalState.BindingConfigs.Should().NotContainKey(Language.Secrets);
+            testSubject.InternalState.BindingConfigs.Should().NotContainKey(Language.Css);
 
-            notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
+            testSubject.InternalState.BindingConfigs.Should().ContainKey(Language.CSharp);
+            testSubject.InternalState.BindingConfigs.Should().ContainKey(Language.VBNET);
 
-            logger.AssertOutputStrings(1);
-            var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
-                string.Format(Strings.CannotDownloadQualityProfileForLanguage, language.Name));
-            logger.AssertOutputStrings(expectedOutput);
+            // Progess notifications - percentage complete and messages
+            notifications.AssertProgress(0.25, 0.5, 0.75, 1.0);
+            CheckProgressMessages(languagesToBind);
+
+            // Check output messages
+            var missingPluginMessageCFamily = string.Format(Strings.SubTextPaddingFormat,
+                string.Format(Strings.CannotDownloadQualityProfileForLanguage, Language.Cpp.Name));
+            var missingPluginMessageSecrets = string.Format(Strings.SubTextPaddingFormat,
+                string.Format(Strings.CannotDownloadQualityProfileForLanguage, Language.Secrets.Name));
+
+            logger.AssertOutputStringExists(missingPluginMessageCFamily);
+            logger.AssertOutputStringExists(missingPluginMessageSecrets);
+            logger.AssertPartialOutputStringDoesNotExist(Language.Css.Name);
+
+            void CheckProgressMessages(params Language[] languages)
+            {
+                var expected = languages.Select(GetDownloadProgressMessages).ToArray();
+                notifications.AssertProgressMessages(expected);
+            }
+
+            static string GetDownloadProgressMessages(Language language)
+                => string.Format(Strings.DownloadingQualityProfileProgressMessage, language.Name);
+        }
+
+        private void SetupAvailableLanguages(Mock<IBindingConfigProvider> configProvider, params Language[] languages)
+        {
+            foreach (var language in languages)
+            {
+                var profile = ConfigureQualityProfile(language, "Profile" + language.Name);
+                configProvider.Setup(x => x.GetConfigurationAsync(profile, language, BindingConfiguration.Standalone, CancellationToken.None))
+                    .ReturnsAsync(Mock.Of<IBindingConfig>());
+            }
         }
 
         [TestMethod]
@@ -289,7 +287,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
             const string ProjectName = "SQProjectName";
-
 
             var notifications = new ConfigurableProgressStepExecutionEvents();
             var progressAdapter = new FixedStepsProgressAdapter(notifications);
@@ -307,9 +304,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             result.Should().BeFalse();
             testSubject.InternalState.QualityProfiles[language].Should().Be(profile);
-
-            notifications.AssertProgress(0.0);
-            notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
 
             logger.AssertOutputStrings(1);
             var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
