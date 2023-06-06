@@ -382,24 +382,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void BindingController_ChooseWorkflow_Legacy_UsesOldWorkflow()
-        {
-            // Arrange
-            configProvider.ModeToReturn = SonarLintMode.LegacyConnected;
-            configProvider.ProjectToReturn = ValidProject;
-            
-
-            // Act
-            var actual = BindingController.CreateBindingProcess(host, ValidBindingArgs);
-
-            // Assert
-            actual.Should().BeOfType<BindingProcessImpl>();
-            logger.AssertOutputStrings(Strings.Bind_UpdatingLegacyBinding);
-            ((BindingProcessImpl)actual).InternalState.IsFirstBinding.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void BindingController_ChooseWorkflow_Standalone_UsesNewWorkflow()
+        public void BindingController_InStandalone_IsFirstBindingIsTrue()
         {
             // Arrange
             configProvider.ModeToReturn = SonarLintMode.Standalone;
@@ -416,7 +399,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void BindingController_ChooseWorkflow_Connected_UsesNewWorkflow()
+        public void BindingController_InConnectedMode_IsFirstBindingIsFalse()
         {
             // Arrange
             configProvider.ModeToReturn = SonarLintMode.Connected;

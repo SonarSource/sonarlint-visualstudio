@@ -31,10 +31,6 @@ using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    // Legacy connected mode:
-    // * writes the binding info files to disk and adds them as solution items.
-    // * co-ordinates writing project-level changes
-
     /// <summary>
     /// Handles writing solution-level files
     /// </summary>
@@ -45,18 +41,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IDictionary<Language, IBindingConfig> bindingConfigInformationMap = new Dictionary<Language, IBindingConfig>();
         private readonly IFileSystem fileSystem;
 
-        public SolutionBindingOperation(IServiceProvider serviceProvider,
-            SonarLintMode bindingMode)
-            : this(serviceProvider, bindingMode, new FileSystem())
+        public SolutionBindingOperation(IServiceProvider serviceProvider)
+            : this(serviceProvider, new FileSystem())
         {
         }
 
         internal SolutionBindingOperation(IServiceProvider serviceProvider,
-            SonarLintMode bindingMode,
             IFileSystem fileSystem)
         {
-            bindingMode.ThrowIfNotConnected();
-
             serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 

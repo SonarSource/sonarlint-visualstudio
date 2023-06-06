@@ -69,11 +69,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void SolutionBindingOperation_ArgChecks()
         {
-            var logger = new TestLogger();
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(null, SonarLintMode.LegacyConnected));
-
-            var testSubject = new SolutionBindingOperation(serviceProvider, SonarLintMode.LegacyConnected);
-            testSubject.Should().NotBeNull("Avoid 'testSubject' not used analysis warning");
+            Action act = () => new SolutionBindingOperation(null);
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
 
         [TestMethod]
@@ -187,34 +184,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             CheckRuleSetFileWasSaved(vbConfigFile);
         }
 
-        // TODO - CM cleanup - do we still need this test?
         [TestMethod]
-        public void SolutionBindingOperation_CommitSolutionBinding_LegacyConnectedMode_NoFilesSaved()
+        public void SolutionBindingOperation_CommitSolutionBinding()
         {
-            // Act & Assert
-            var expectedFilePath = $"c:\\{Guid.NewGuid()}.txt"; 
-            ExecuteCommitSolutionBindingTest(SonarLintMode.LegacyConnected, expectedFilePath);
-
-            this.solutionItemsProject.Files.Should().BeEmpty();
-        }
-
-        [TestMethod]
-        public void SolutionBindingOperation_CommitSolutionBinding_ConnectedMode()
-        {
-            // Act & Assert
             var expectedFilePath = $"c:\\{Guid.NewGuid()}.txt";
-            ExecuteCommitSolutionBindingTest(SonarLintMode.Connected, expectedFilePath);
 
-            this.solutionItemsProject.Files.Count.Should().Be(0, "Not expecting any items to be added to the solution in new connected mode");
-            fileSystem.GetFile(expectedFilePath).Should().NotBe(null); // check the file was saved
-        }
-
-        private void ExecuteCommitSolutionBindingTest(SonarLintMode bindingMode, string expectedFilePath)
-        {
             // Arrange
             var csConfigFile = CreateMockConfigFile(expectedFilePath);
 
-            SolutionBindingOperation testSubject = this.CreateTestSubject(bindingMode);
+            SolutionBindingOperation testSubject = this.CreateTestSubject();
 
             var languageToFileMap = new Dictionary<Language, IBindingConfig>()
             {
@@ -231,17 +209,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Assert
             commitResult.Should().BeTrue();
+
+            solutionItemsProject.Files.Count.Should().Be(0, "Not expecting any items to be added to the solution in new connected mode");
+            fileSystem.GetFile(expectedFilePath).Should().NotBe(null); // check the file was saved
         }
 
         #endregion Tests
 
         #region Helpers
 
-        private SolutionBindingOperation CreateTestSubject(SonarLintMode bindingMode = SonarLintMode.LegacyConnected)
+        private SolutionBindingOperation CreateTestSubject()
         {
-            return new SolutionBindingOperation(serviceProvider,
-                bindingMode,
-                fileSystem);
+            return new SolutionBindingOperation(serviceProvider, fileSystem);
         }
 
         private Mock<IBindingConfig> CreateMockConfigFile(string expectedFilePath)

@@ -88,15 +88,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Can save configuration only in Connected Mode. Current mode: {0}.
-        /// </summary>
-        public static string Bind_CannotSaveConfig_InvalidMode {
-            get {
-                return ResourceManager.GetString("Bind_CannotSaveConfig_InvalidMode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Failed to save configuration.
         /// </summary>
         public static string Bind_FailedToSaveConfiguration {
@@ -139,15 +130,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string Bind_SavingBindingConfiguration {
             get {
                 return ResourceManager.GetString("Bind_SavingBindingConfiguration", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Updating legacy binding....
-        /// </summary>
-        public static string Bind_UpdatingLegacyBinding {
-            get {
-                return ResourceManager.GetString("Bind_UpdatingLegacyBinding", resourceCulture);
             }
         }
         
