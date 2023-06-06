@@ -28,12 +28,14 @@ using SonarLint.VisualStudio.Integration;
 namespace SonarLint.VisualStudio.Core.Notifications
 {
     /// <summary>
-    ///  This service can be used to display any type of user visible notification. Each instance of this service
-    ///  is responsible for one info bar.
+    /// This service can be used to display any type of user visible notification. Each instance of this service
+    /// will only show one notification at a time i.e. showing a second notification will remove the first one.
     /// </summary>
     public interface INotificationService : IDisposable
     {
         void ShowNotification(INotification notification);
+
+        void RemoveNotification();
     }
 
     [Export(typeof(INotificationService))]
@@ -86,6 +88,8 @@ namespace SonarLint.VisualStudio.Core.Notifications
                 ShowInfoBar(notification);
             });
         }
+
+        public void RemoveNotification() => RemoveExistingInfoBar();
 
         private void CurrentInfoBar_ButtonClick(object sender, InfoBarButtonClickedEventArgs e)
         {

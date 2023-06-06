@@ -409,7 +409,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             var testSubject = CreateTestSubject(infoBarManager.Object, logger: logger);
             Action act = () => testSubject.ShowNotification(notification);
 
-            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("this is a test");
+            act.Should().ThrowExactly<StackOverflowException>().WithMessage("this is a test");
 
             infoBarManager.VerifyAll();
 
@@ -454,7 +454,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
             Action act = () => infoBar.Raise(x => x.ButtonClick += null, new InfoBarButtonClickedEventArgs("action"));
 
-            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("this is a test");
+            act.Should().ThrowExactly<StackOverflowException>().WithMessage("this is a test");
             logger.AssertNoOutputMessages();
         }
 
@@ -497,9 +497,42 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             testSubject.ShowNotification(notification);
 
             Action act = () => infoBar.Raise(x => x.Closed += null, EventArgs.Empty);
-            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("this is a test");
+            act.Should().ThrowExactly<StackOverflowException>().WithMessage("this is a test");
 
             logger.AssertNoOutputMessages();
+        }
+
+        [TestMethod]
+        public void RemoveNotification_HasACurrentNotification_RemovesCurrentNotification()
+        {
+            var notification = CreateNotification();
+            var infoBar = CreateInfoBar();
+            var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
+            var testSubject = CreateTestSubject(infoBarManager.Object);
+
+            testSubject.ShowNotification(notification);
+
+            VerifyInfoBarCreatedCorrectly(infoBarManager, notification);
+            VerifySubscribedToInfoBarEvents(infoBar);
+
+            testSubject.RemoveNotification();
+
+            VerifyInfoBarRemoved(infoBarManager, infoBar);
+
+            infoBarManager.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void RemoveNotification_CurrentNotificationIsNull_DoesNotThrow()
+        {
+            var infoBarManager = new Mock<IInfoBarManager>();
+            var testSubject = CreateTestSubject(infoBarManager.Object);
+
+            Action act = () => testSubject.RemoveNotification();
+
+            act.Should().NotThrow();
+
+            infoBarManager.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -541,7 +574,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             testSubject.ShowNotification(notification);
 
             Action act = () => testSubject.Dispose();
-            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("this is a test");
+            act.Should().ThrowExactly<StackOverflowException>().WithMessage("this is a test");
 
             logger.AssertNoOutputMessages();
         }
