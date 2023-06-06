@@ -27,7 +27,6 @@ using System.Windows.Threading;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.LocalServices.TestProjectIndicators;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
@@ -37,7 +36,6 @@ using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.UnintrusiveBinding;
 using SonarQube.Client;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -140,8 +138,6 @@ namespace SonarLint.VisualStudio.Integration
         public ISonarQubeService SonarQubeService { get; }
 
         public ISectionController ActiveSection { get; private set; }
-
-        public ISet<Language> SupportedPluginLanguages { get; } = new HashSet<Language>();
 
         public ILogger Logger { get; }
 

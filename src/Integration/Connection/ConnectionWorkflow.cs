@@ -30,16 +30,13 @@ using System.Windows;
 using System.Windows.Input;
 using Microsoft.Alm.Authentication;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Connection.UI;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Connection
 {
@@ -50,7 +47,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
     {
         private readonly IHost host;
         private readonly ICommand parentCommand;
-        private readonly IProjectSystemHelper projectSystem;
         private readonly ICredentialStoreService credentialStore;
         private readonly ITestProjectRegexSetter testProjectRegexSetter;
 
@@ -58,9 +54,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
             this.parentCommand = parentCommand ?? throw new ArgumentNullException(nameof(parentCommand));
-
-            this.projectSystem = this.host.GetService<IProjectSystemHelper>();
-            this.projectSystem.AssertLocalServiceIsNotNull();
 
             this.credentialStore = this.host.GetService<ICredentialStoreService>();
 
@@ -163,13 +156,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
                         new Credential(connection.UserName, connection.Password.ToUnsecureString()));
                 }
 
-                var isCompatible = await this.AreSolutionProjectsAndSonarQubePluginsCompatibleAsync(controller, notifications,
-                    cancellationToken);
-                if (!isCompatible)
-                {
-                    return; // Message is already displayed by the method
-                }
-
                 this.ConnectedServer = connection;
 
                 notifications.ProgressChanged(Strings.ConnectionStepRetrievingProjects);
@@ -268,85 +254,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
         #endregion
 
         #region Helpers
-
-        private async Task<bool> AreSolutionProjectsAndSonarQubePluginsCompatibleAsync(IProgressController controller,
-            IProgressStepExecutionEvents notifications, CancellationToken cancellationToken)
-        {
-            var folderWorkspaceService = host.GetMefService<IFolderWorkspaceService>();
-
-            if (folderWorkspaceService.IsFolderWorkspace())
-            {
-                return true;
-            }
-
-            notifications.ProgressChanged(Strings.DetectingSonarQubePlugins);
-
-            var plugins = await this.host.SonarQubeService.GetAllPluginsAsync(cancellationToken);
-            var projectToLanguageMapper = host.GetMefService<IProjectToLanguageMapper>();
-
-            var csharpOrVbNetProjects = new HashSet<EnvDTE.Project>(this.projectSystem.GetSolutionProjects());
-            var supportedPluginsLanguages = MinimumSupportedSonarQubePlugin.All
-                .Where(supportedPlugin => IsSonarQubePluginSupported(plugins, supportedPlugin, host.Logger))
-                .SelectMany(lang => lang.Languages);
-            this.host.SupportedPluginLanguages.UnionWith(new HashSet<Language>(supportedPluginsLanguages));
-
-            // If any of the projects can be bound then return success
-            if (csharpOrVbNetProjects.SelectMany(projectToLanguageMapper.GetAllBindingLanguagesForProject)
-                                     .Any(this.host.SupportedPluginLanguages.Contains))
-            {
-                return true;
-            }
-
-            string errorMessage = GetPluginProjectMismatchErrorMessage(csharpOrVbNetProjects);
-            this.host.ActiveSection?.UserNotifications?.ShowNotificationError(errorMessage, NotificationIds.BadSonarQubePluginId, null);
-            this.host.Logger.WriteLine(Strings.SubTextPaddingFormat, errorMessage);
-            notifications.ProgressChanged(Strings.ConnectionResultFailure);
-
-            AbortWorkflow(controller, cancellationToken);
-            return false;
-        }
-
-        private string GetPluginProjectMismatchErrorMessage(ICollection<EnvDTE.Project> csharpOrVbNetProjects)
-        {
-            if (this.host.SupportedPluginLanguages.Count == 0)
-            {
-                return Strings.ServerHasNoSupportedPluginVersion;
-            }
-
-            if (csharpOrVbNetProjects.Count == 0)
-            {
-                return Strings.SolutionContainsNoSupportedProjects;
-            }
-
-            var supportedPluginsNames = string.Join(", ", this.host.SupportedPluginLanguages.Select(p => p.Name));
-            return string.Format(Strings.OnlySupportedPluginsHaveNoProjectInSolution, supportedPluginsNames);
-        }
-
-        internal static /*for testing purposes*/ bool IsSonarQubePluginSupported(IEnumerable<SonarQubePlugin> installedPlugins,
-            MinimumSupportedSonarQubePlugin minimumSupportedPlugin, ILogger logger)
-        {
-            var installedPlugin = installedPlugins.FirstOrDefault(x => StringComparer.Ordinal.Equals(x.Key, minimumSupportedPlugin.Key));
-
-            if (installedPlugin == null) // plugin is not installed on remote server
-            {
-                return false;
-            }
-
-            var languageNames = string.Join(", ", minimumSupportedPlugin.Languages.Select(l => l.Name));
-            var pluginInfoMessage = string.Format(CultureInfo.CurrentCulture, Strings.InstalledAndMinimumSonarQubePlugin,
-                minimumSupportedPlugin.PluginName, languageNames, installedPlugin.Version, minimumSupportedPlugin.MinimumVersion);
-
-            var isPluginSupported = !string.IsNullOrWhiteSpace(installedPlugin.Version) &&
-                VersionHelper.Compare(installedPlugin.Version, minimumSupportedPlugin.MinimumVersion) >= 0;
-
-            var pluginSupportMessageFormat = string.Format(CultureInfo.CurrentCulture, Strings.SubTextPaddingFormat,
-                isPluginSupported
-                    ? Strings.SupportedPluginFoundMessage
-                    : Strings.UnsupportedPluginFoundMessage);
-            logger.WriteLine(pluginSupportMessageFormat, pluginInfoMessage);
-
-            return isPluginSupported;
-        }
 
         private void AbortWorkflow(IProgressController controller, CancellationToken token)
         {
