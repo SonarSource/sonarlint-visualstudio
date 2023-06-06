@@ -147,8 +147,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     Strings.Bind_FirstTimeBinding :
                     Strings.Bind_UpdatingNewStyleBinding);
 
-
-            var solutionBindingOp = new SolutionBindingOperation(host);
+            var solutionBindingOp = new SolutionBindingOperation();
 
             var cSharpVBBindingConfigProvider = new CSharpVBBindingConfigProvider(host.SonarQubeService, host.Logger);
             var nonRoslynBindingConfigProvider = new NonRoslynBindingConfigProvider(
