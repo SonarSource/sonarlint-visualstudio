@@ -267,7 +267,7 @@ jobs:
     displayName: VsTest - testAssemblies
     inputs:
       testAssemblyVer2: |
-        **\$(BuildConfiguration)\**\*test*.dll
+        **\bin\**\$(BuildConfiguration)\**\sonar*.*tests.dll
         !**\obj\**
       runInParallel: false
       runTestsInIsolation: false
