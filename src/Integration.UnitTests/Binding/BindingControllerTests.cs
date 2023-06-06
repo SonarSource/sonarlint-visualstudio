@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using System.Windows.Threading;
 using FluentAssertions;
@@ -31,7 +30,6 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -74,7 +72,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             configProvider = new ConfigurableConfigurationProvider();
 
             serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper);
-            serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem(new MockFileSystem()));
 
             logger = new TestLogger();
             serviceProvider.RegisterService(typeof(ILogger), logger);
