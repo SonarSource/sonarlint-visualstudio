@@ -24,12 +24,12 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
-using System.Threading.Tasks;
+using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
     /// <summary>
-    /// Controls a gold bar that prompts the user to initiate migration.
+    /// In charge of showing users a prompt to migrate to a new connected mode.
     /// </summary>
     public interface IMigrationPrompt
     {
