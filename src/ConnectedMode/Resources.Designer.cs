@@ -268,6 +268,33 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Learn More...
+        /// </summary>
+        internal static string Migration_MigrationPrompt_LearnMoreButton {
+            get {
+                return ResourceManager.GetString("Migration_MigrationPrompt_LearnMoreButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint: We have detected an outdated version of connected mode..
+        /// </summary>
+        internal static string Migration_MigrationPrompt_Message {
+            get {
+                return ResourceManager.GetString("Migration_MigrationPrompt_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Migrate.
+        /// </summary>
+        internal static string Migration_MigrationPrompt_MigrateButton {
+            get {
+                return ResourceManager.GetString("Migration_MigrationPrompt_MigrateButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {null}.
         /// </summary>
         internal static string NullBranchName {

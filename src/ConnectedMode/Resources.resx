@@ -263,4 +263,13 @@
   <data name="ImportBeforeFileGenerator_WritingTargetFileToDisk" xml:space="preserve">
     <value>[ConnectedMode/ImportsBeforeFileGenerator] Writing file to imports before directory</value>
   </data>
+  <data name="Migration_MigrationPrompt_LearnMoreButton" xml:space="preserve">
+    <value>Learn More..</value>
+  </data>
+  <data name="Migration_MigrationPrompt_Message" xml:space="preserve">
+    <value>SonarLint: We have detected an outdated version of connected mode.</value>
+  </data>
+  <data name="Migration_MigrationPrompt_MigrateButton" xml:space="preserve">
+    <value>Migrate</value>
+  </data>
 </root>
