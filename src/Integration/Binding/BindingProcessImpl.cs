@@ -44,6 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IBindingConfigProvider bindingConfigProvider;
         private readonly SonarLintMode bindingMode;
         private readonly IExclusionSettingsStorage exclusionSettingsStorage;
+        private readonly IEnumerable<Language> languagesToBind;
 
         public BindingProcessImpl(IHost host,
             BindCommandArgs bindingArgs,
@@ -52,6 +53,24 @@ namespace SonarLint.VisualStudio.Integration.Binding
             SonarLintMode bindingMode,
             IExclusionSettingsStorage exclusionSettingsStorage,
             bool isFirstBinding = false)
+            : this(host,
+                  bindingArgs,
+                  solutionBindingOperation,
+                  bindingConfigProvider,
+                  bindingMode,
+                  exclusionSettingsStorage,
+                  isFirstBinding,
+                  languagesToBind: Language.KnownLanguages)
+        { }
+
+        internal /* for testing */ BindingProcessImpl(IHost host,
+            BindCommandArgs bindingArgs,
+            ISolutionBindingOperation solutionBindingOperation,
+            IBindingConfigProvider bindingConfigProvider,
+            SonarLintMode bindingMode,
+            IExclusionSettingsStorage exclusionSettingsStorage,
+            bool isFirstBinding,
+            IEnumerable<Language> languagesToBind)
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
             this.bindingArgs = bindingArgs ?? throw new ArgumentNullException(nameof(bindingArgs));
@@ -59,6 +78,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.bindingConfigProvider = bindingConfigProvider ?? throw new ArgumentNullException(nameof(bindingConfigProvider));
             this.exclusionSettingsStorage = exclusionSettingsStorage ?? throw new ArgumentNullException(nameof(exclusionSettingsStorage));
             this.bindingMode = bindingMode;
+            this.languagesToBind = languagesToBind ?? throw new ArgumentNullException(nameof(languagesToBind));
 
             Debug.Assert(bindingArgs.ProjectKey != null);
             Debug.Assert(bindingArgs.ProjectName != null);
@@ -196,7 +216,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #region Private methods
 
         internal /* for testing */ IEnumerable<Language> GetBindingLanguages()
-            => host.SupportedPluginLanguages;
+            => languagesToBind;
 
         #endregion
 

@@ -188,9 +188,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .ReturnsAsync(bindingConfig);
 
             var bindingArgs = CreateBindCommandArgs("key", ProjectName, new ConnectionInformation(new Uri("http://connected")));
-            var testSubject = this.CreateTestSubject(bindingArgs, configProviderMock.Object);
-
-            host.SupportedPluginLanguages.Add(language);
+            var testSubject = this.CreateTestSubject(bindingArgs, configProviderMock.Object, languagesToBind: new[] { language });
 
             List<Language> supportedLanguages = new List<Language>() { language };
 
@@ -237,9 +235,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .ReturnsAsync(bindingConfig);
 
             var bindingArgs = CreateBindCommandArgs("key", ProjectName, new ConnectionInformation(new Uri("http://connected")));
-            var testSubject = this.CreateTestSubject(bindingArgs, configProviderMock.Object);
-
-            host.SupportedPluginLanguages.Add(language);
+            var testSubject = this.CreateTestSubject(bindingArgs, configProviderMock.Object, languagesToBind: new []{ language });
 
             // Act
             await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
@@ -265,7 +261,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // CSharp is a supported language, but only the VB.NET QP is available
             var language = Language.CSharp;
-            host.SupportedPluginLanguages.Add(language);
 
             this.ConfigureQualityProfile(Language.VBNET, "");
 
@@ -304,9 +299,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var configProviderMock = new Mock<IBindingConfigProvider>();
             var bindingArgs = CreateBindCommandArgs("key", ProjectName, new ConnectionInformation(new Uri("http://connected")));
-            var testSubject = this.CreateTestSubject(bindingArgs, configProviderMock.Object);
-
-            host.SupportedPluginLanguages.Add(language);
+            var testSubject = this.CreateTestSubject(bindingArgs, configProviderMock.Object, languagesToBind: new[] { language });
 
             // Act
             var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
@@ -325,19 +318,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void GetBindingLanguages_ReturnsExpectedLanguagese()
+        public void GetBindingLanguages_ReturnsExpectedLanguages()
         {
             // Arrange
-            var testSubject = this.CreateTestSubject();
-
             var expectedLanguages = new[] { Language.CSharp, Language.VBNET };
-            this.host.SupportedPluginLanguages.UnionWith(expectedLanguages);
+
+            var testSubject = this.CreateTestSubject(languagesToBind: expectedLanguages);
 
             // Act
             var actualLanguages = testSubject.GetBindingLanguages();
 
             // Assert
             CollectionAssert.AreEquivalent(expectedLanguages, actualLanguages.ToArray(), "Unexpected languages for binding projects");
+        }
+
+        [TestMethod]
+        public void GetBindingLanguages_PublicCtor_ReturnsAllKnownLanguages()
+        {
+            // Arrange
+            var testSubject = this.CreateTestSubject();
+
+            // Act
+            var actualLanguages = testSubject.GetBindingLanguages();
+
+            // Assert
+            CollectionAssert.AreEquivalent(Language.KnownLanguages.ToArray(), actualLanguages.ToArray(), "Unexpected languages for binding projects");
         }
 
         [TestMethod]
@@ -358,17 +363,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             IBindingConfigProvider configProvider = null,
             SonarLintMode mode = SonarLintMode.Connected,
             ISonarQubeService sonarQubeService = null,
-            IExclusionSettingsStorage exclusionSettingsStorage = null)
+            IExclusionSettingsStorage exclusionSettingsStorage = null,
+            IEnumerable<Language> languagesToBind = null)
         {
             bindingArgs = bindingArgs ?? CreateBindCommandArgs();
             configProvider = configProvider ?? new Mock<IBindingConfigProvider>().Object;
             exclusionSettingsStorage = exclusionSettingsStorage ?? Mock.Of<IExclusionSettingsStorage>();
+            languagesToBind = languagesToBind ?? Language.KnownLanguages;
 
             this.host.SonarQubeService = sonarQubeService ?? this.sonarQubeServiceMock.Object;
 
             var slnBindOperation = new SolutionBindingOperation(this.host, SonarLintMode.LegacyConnected);
 
-            return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, configProvider, mode, exclusionSettingsStorage);
+            return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, configProvider, mode, exclusionSettingsStorage, false, languagesToBind);
         }
 
         private BindCommandArgs CreateBindCommandArgs(string projectKey = "key", string projectName = "name", ConnectionInformation connection = null)
