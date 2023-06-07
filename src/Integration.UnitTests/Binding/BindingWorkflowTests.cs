@@ -152,7 +152,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var cts = new CancellationTokenSource();
 
             // Act
-            testSubject.SaveConfiguration(cts.Token);
+            testSubject.SaveRuleConfiguration(cts.Token);
 
             // Assert
             mockBindingProcess.Verify(x => x.SaveRuleConfiguration(cts.Token), Times.Once);
