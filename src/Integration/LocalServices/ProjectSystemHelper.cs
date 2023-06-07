@@ -22,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Linq;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio;

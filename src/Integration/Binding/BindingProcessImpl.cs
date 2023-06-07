@@ -39,7 +39,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         private readonly IHost host;
         private readonly BindCommandArgs bindingArgs;
-        private readonly IProjectSystemHelper projectSystem;
         private readonly ISolutionBindingOperation solutionBindingOperation;
         private readonly IBindingConfigProvider bindingConfigProvider;
         private readonly IExclusionSettingsStorage exclusionSettingsStorage;
@@ -78,9 +77,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             Debug.Assert(bindingArgs.ProjectKey != null);
             Debug.Assert(bindingArgs.ProjectName != null);
             Debug.Assert(bindingArgs.Connection != null);
-
-            this.projectSystem = this.host.GetService<IProjectSystemHelper>();
-            this.projectSystem.AssertLocalServiceIsNotNull();
 
             this.InternalState = new BindingProcessState(isFirstBinding);
         }

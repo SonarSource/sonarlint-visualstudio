@@ -64,13 +64,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         #region Tests
 
         [TestMethod]
-        public void SolutionBindingOperation_ArgChecks()
-        {
-            Action act = () => new SolutionBindingOperation(null);
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
-        }
-
-        [TestMethod]
         public void SolutionBindingOperation_RegisterKnownRuleSets_ArgChecks()
         {
             // Arrange
@@ -101,51 +94,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             CollectionAssert.AreEquivalent(languageToFileMap.Keys.ToArray(), testSubject.RuleSetsInformationMap.Keys.ToArray());
             testSubject.RuleSetsInformationMap[Language.CSharp].Should().Be(languageToFileMap[Language.CSharp]);
             testSubject.RuleSetsInformationMap[Language.VBNET].Should().Be(languageToFileMap[Language.VBNET]);
-        }
-
-        [TestMethod]
-        public void SolutionBindingOperation_GetRuleSetInformation()
-        {
-            // Arrange
-            SolutionBindingOperation testSubject = this.CreateTestSubject();
-
-            // Test case 1: unknown ruleset map
-            var ruleSetMap = new Dictionary<Language, IBindingConfig>();
-            testSubject.RegisterKnownConfigFiles(ruleSetMap);
-
-            // Act + Assert
-            using (new AssertIgnoreScope())
-            {
-                testSubject.GetBindingConfig(Language.CSharp).Should().BeNull();
-            }
-
-            // Test case 2: known ruleset map
-            // Arrange
-            ruleSetMap[Language.CSharp] = CreateMockConfigFile("c:\\csharp.txt").Object;
-            ruleSetMap[Language.VBNET] = CreateMockConfigFile("c:\\vb.txt").Object;
-
-            testSubject.RegisterKnownConfigFiles(ruleSetMap);
-            testSubject.Initialize();
-            testSubject.Prepare(CancellationToken.None);
-
-            // Act
-            var config = testSubject.GetBindingConfig(Language.CSharp);
-
-            // Assert
-            config.Should().Be(testSubject.RuleSetsInformationMap[Language.CSharp]);
-        }
-
-        [TestMethod]
-        public void SolutionBindingOperation_Initialization()
-        {
-            // Arrange
-            var testSubject = CreateTestSubject();
-
-            // Act
-            testSubject.Initialize();
-
-            // Assert
-            testSubject.SolutionFullPath.Should().Be(Path.Combine(SolutionRoot, "xxx.sln"));
         }
 
         [TestMethod]
@@ -215,7 +163,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private SolutionBindingOperation CreateTestSubject()
         {
-            return new SolutionBindingOperation(serviceProvider, fileSystem);
+            return new SolutionBindingOperation(fileSystem);
         }
 
         private Mock<IBindingConfig> CreateMockConfigFile(string expectedFilePath)

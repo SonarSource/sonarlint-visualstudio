@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Threading;
@@ -36,32 +35,20 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// </summary>
     internal class SolutionBindingOperation : ISolutionBindingOperation
     {
-        private readonly IProjectSystemHelper projectSystem;
         private readonly IDictionary<Language, IBindingConfig> bindingConfigInformationMap = new Dictionary<Language, IBindingConfig>();
         private readonly IFileSystem fileSystem;
 
-        public SolutionBindingOperation(IServiceProvider serviceProvider)
-            : this(serviceProvider, new FileSystem())
+        public SolutionBindingOperation()
+            : this(new FileSystem())
         {
         }
 
-        internal SolutionBindingOperation(IServiceProvider serviceProvider,
-            IFileSystem fileSystem)
+        internal SolutionBindingOperation(IFileSystem fileSystem)
         {
-            serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
-
-            this.projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
-            this.projectSystem.AssertLocalServiceIsNotNull();
         }
 
         #region State
-
-        internal /*for testing purposes*/ string SolutionFullPath
-        {
-            get;
-            private set;
-        }
 
         internal /*for testing purposes*/ IReadOnlyDictionary<Language, IBindingConfig> RuleSetsInformationMap => 
             new ReadOnlyDictionary<Language, IBindingConfig>(bindingConfigInformationMap);
@@ -85,29 +72,18 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        public IBindingConfig GetBindingConfig(Language language)
-        {
-            if (!bindingConfigInformationMap.TryGetValue(language, out var info) || info == null)
-            {
-                Debug.Fail("Expected to be called by the ProjectBinder after the known rulesets were registered");
-                return null;
-            }
-            return info;
-        }
-
         #endregion
 
         #region Public API
 
         public void Initialize()
         {
-            this.SolutionFullPath = this.projectSystem.GetCurrentActiveSolution().FullName;
+            // TODO CM cleanup
+            // no-op
         }
 
         public void Prepare(CancellationToken token)
         {
-            Debug.Assert(this.SolutionFullPath != null, "Expected to be initialized");
-
             foreach (var keyValue in this.bindingConfigInformationMap)
             {
                 if (token.IsCancellationRequested)
