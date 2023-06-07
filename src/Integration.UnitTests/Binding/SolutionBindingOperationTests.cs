@@ -18,137 +18,99 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.IO.Abstractions.TestingHelpers;
-using System.Linq;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
-using SonarLint.VisualStudio.TestInfrastructure;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
     [TestClass]
     public class SolutionBindingOperationTests
     {
-        private DTEMock dte;
-        private ConfigurableServiceProvider serviceProvider;
-        private ConfigurableVsProjectSystemHelper projectSystemHelper;
-        private ProjectMock solutionItemsProject;
-        private SolutionMock solutionMock;
-        private MockFileSystem fileSystem;
-
-        private const string SolutionRoot = @"c:\solution";
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            this.dte = new DTEMock();
-            this.serviceProvider = new ConfigurableServiceProvider();
-            this.solutionMock = new SolutionMock(dte, Path.Combine(SolutionRoot, "xxx.sln"));
-            this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
-            this.solutionItemsProject = this.solutionMock.AddOrGetProject("Solution items");
-            this.projectSystemHelper.SolutionItemsProject = this.solutionItemsProject;
-            this.projectSystemHelper.CurrentActiveSolution = this.solutionMock;
-            this.fileSystem = new MockFileSystem();
-
-            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
-        }
-
         #region Tests
-
-        [TestMethod]
-        public void SolutionBindingOperation_RegisterKnownRuleSets_ArgChecks()
-        {
-            // Arrange
-            SolutionBindingOperation testSubject = this.CreateTestSubject();
-
-            // Act + Assert
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.RegisterKnownConfigFiles(null));
-        }
-
-        [TestMethod]
-        public void SolutionBindingOperation_RegisterKnownRuleSets()
-        {
-            // Arrange
-            SolutionBindingOperation testSubject = this.CreateTestSubject();
-            var languageToFileMap = new Dictionary<Language, IBindingConfig>
-            {
-                [Language.CSharp] = CreateMockConfigFile("c:\\csharp.txt").Object,
-                [Language.VBNET] = CreateMockConfigFile("c:\\vbnet.txt").Object
-            };
-
-            // Sanity
-            testSubject.RuleSetsInformationMap.Should().BeEmpty("Not expecting any registered rulesets");
-
-            // Act
-            testSubject.RegisterKnownConfigFiles(languageToFileMap);
-
-            // Assert
-            CollectionAssert.AreEquivalent(languageToFileMap.Keys.ToArray(), testSubject.RuleSetsInformationMap.Keys.ToArray());
-            testSubject.RuleSetsInformationMap[Language.CSharp].Should().Be(languageToFileMap[Language.CSharp]);
-            testSubject.RuleSetsInformationMap[Language.VBNET].Should().Be(languageToFileMap[Language.VBNET]);
-        }
 
         [TestMethod]
         public void SolutionBindingOperation_Prepare_SolutionLevelFilesAreSaved()
         {
             // Arrange
-            var csConfigFile = CreateMockConfigFile("c:\\csharp.txt");
-
-            var vbConfigFile = CreateMockConfigFile("c:\\vb.txt");
+            var config1 = CreateBindingConfig("c:\\csharp.txt");
+            var config2 = CreateBindingConfig("c:\\vb.txt");
 
             var testSubject = CreateTestSubject();
 
             var bindingConfigs = new IBindingConfig[]
             {
-                csConfigFile.Object,
-                vbConfigFile.Object
+                config1.Object,
+                config2.Object
             };
 
             // Act
             testSubject.Prepare(bindingConfigs, CancellationToken.None);
 
             // Assert
-            CheckRuleSetFileWasSaved(csConfigFile);
-            CheckRuleSetFileWasSaved(vbConfigFile);
+            CheckConfigWasSaved(config1);
+            CheckConfigWasSaved(config2);
+        }
+
+        [TestMethod]
+        public void SolutionBindingOperation_Prepare_DirectoryiesAreCreated()
+        {
+            // Arrange
+            var config1 = CreateBindingConfig("c:\\x.txt");
+            var config2 = CreateBindingConfig("c:\\XXX\\any.txt", "D:\\YYY\\any.txt");
+            var config3 = CreateBindingConfig("c:\\aaa\\bbb\\any.txt");
+
+            var fileSystem = new MockFileSystem();
+
+            var testSubject = CreateTestSubject(fileSystem);
+
+            var bindingConfigs = new IBindingConfig[]
+            {
+                config1.Object,
+                config2.Object,
+                config3.Object
+            };
+
+            // Act
+            testSubject.Prepare(bindingConfigs, CancellationToken.None);
+
+            // Assert
+            fileSystem.AllDirectories.Should().BeEquivalentTo(new string[]
+                {
+                    "C:\\",             // note: the MockFileSystem capitalises the drive
+                    "c:\\aaa",          // note: the MockFileSystem lists the parent directory separately
+                    "c:\\aaa\\bbb",
+                    "c:\\XXX",
+
+                    "D:\\",
+                    "D:\\YYY"
+                });
         }
 
         #endregion Tests
 
         #region Helpers
 
-        private SolutionBindingOperation CreateTestSubject()
+        private SolutionBindingOperation CreateTestSubject(MockFileSystem fileSystem = null)
         {
+            fileSystem = fileSystem ?? new MockFileSystem();
             return new SolutionBindingOperation(fileSystem);
         }
 
-        private Mock<IBindingConfig> CreateMockConfigFile(string expectedFilePath)
+        private Mock<IBindingConfig> CreateBindingConfig(params string[] slnLevelFilePaths)
         {
-            var configFile = new Mock<IBindingConfig>();
-            configFile.SetupGet(x => x.SolutionLevelFilePaths).Returns(new List<string> {expectedFilePath});
+            var config = new Mock<IBindingConfig>();
+            config.SetupGet(x => x.SolutionLevelFilePaths).Returns(slnLevelFilePaths);
 
-            // Simulate an update to the scc file system on Save (prevents an assertion
-            // in the product code).
-            configFile.Setup(x => x.Save())
-                .Callback(() =>
-                {
-                    fileSystem.AddFile(expectedFilePath, new MockFileData(""));
-                });
-
-            return configFile;
+            return config;
         }
 
-        private static void CheckRuleSetFileWasSaved(Mock<IBindingConfig> mock)
-        {
-            mock.Verify(x => x.Save(), Times.Once);
-        }
+        private static void CheckConfigWasSaved(Mock<IBindingConfig> config)
+            => config.Verify(x => x.Save(), Times.Once);
 
         #endregion Helpers
     }
