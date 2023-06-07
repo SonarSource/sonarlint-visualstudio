@@ -42,7 +42,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IProjectSystemHelper projectSystem;
         private readonly ISolutionBindingOperation solutionBindingOperation;
         private readonly IBindingConfigProvider bindingConfigProvider;
-        private readonly SonarLintMode bindingMode;
         private readonly IExclusionSettingsStorage exclusionSettingsStorage;
         private readonly IEnumerable<Language> languagesToBind;
 
@@ -50,14 +49,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
             BindCommandArgs bindingArgs,
             ISolutionBindingOperation solutionBindingOperation,
             IBindingConfigProvider bindingConfigProvider,
-            SonarLintMode bindingMode,
             IExclusionSettingsStorage exclusionSettingsStorage,
             bool isFirstBinding = false)
             : this(host,
                   bindingArgs,
                   solutionBindingOperation,
                   bindingConfigProvider,
-                  bindingMode,
                   exclusionSettingsStorage,
                   isFirstBinding,
                   languagesToBind: Language.KnownLanguages)
@@ -67,7 +64,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             BindCommandArgs bindingArgs,
             ISolutionBindingOperation solutionBindingOperation,
             IBindingConfigProvider bindingConfigProvider,
-            SonarLintMode bindingMode,
             IExclusionSettingsStorage exclusionSettingsStorage,
             bool isFirstBinding,
             IEnumerable<Language> languagesToBind)
@@ -77,7 +73,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.solutionBindingOperation = solutionBindingOperation ?? throw new ArgumentNullException(nameof(solutionBindingOperation));
             this.bindingConfigProvider = bindingConfigProvider ?? throw new ArgumentNullException(nameof(bindingConfigProvider));
             this.exclusionSettingsStorage = exclusionSettingsStorage ?? throw new ArgumentNullException(nameof(exclusionSettingsStorage));
-            this.bindingMode = bindingMode;
             this.languagesToBind = languagesToBind ?? throw new ArgumentNullException(nameof(languagesToBind));
 
             Debug.Assert(bindingArgs.ProjectKey != null);
@@ -200,7 +195,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             bound.Profiles = map;
 
-            return configurationPersister.Persist(bound, bindingMode);
+            return configurationPersister.Persist(bound);
         }
 
         public async Task<bool> SaveServerExclusionsAsync(CancellationToken cancellationToken)

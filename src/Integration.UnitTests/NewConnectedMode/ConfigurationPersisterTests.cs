@@ -71,40 +71,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Persist_NullProject_Throws()
         {
             // Act
-            Action act = () => testSubject.Persist(null, SonarLintMode.Connected);
+            Action act = () => testSubject.Persist(null);
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("project");
         }
 
         [TestMethod]
-        public void Persist_StandaloneMode_Throws()
-        {
-            // Act
-            Action act = () => testSubject.Persist(new BoundSonarQubeProject(), SonarLintMode.Standalone);
-
-            // Assert
-            act.Should().ThrowExactly<InvalidOperationException>();
-        }
-
-        [TestMethod]
-        [DataRow(SonarLintMode.Standalone)]
-        [DataRow(SonarLintMode.LegacyConnected)]
-        public void Persist_InvalidMode_Throws(SonarLintMode invalidMode)
-        {
-            // Arrange
-            var project = new BoundSonarQubeProject();
-
-            // Act
-            Action act = () => testSubject.Persist(project, invalidMode);
-
-            // Assert
-            act.Should().ThrowExactly<InvalidOperationException>().And.Message.Should().Contain(invalidMode.ToString());
-            solutionBindingDataWriter.Invocations.Should().BeEmpty();
-        }
-
-        [TestMethod]
-        public void Persist_ConnectedModeConfig_SaveNewConfig()
+        public void Persist_SaveNewConfig()
         {
             var projectToWrite = new BoundSonarQubeProject();
             configFilePathProvider.Setup(x => x.Get()).Returns("c:\\new.txt");
@@ -114,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Returns(true);
 
             // Act
-            var actual = testSubject.Persist(projectToWrite, SonarLintMode.Connected);
+            var actual = testSubject.Persist(projectToWrite);
 
             // Assert
             actual.Should().NotBe(null);
