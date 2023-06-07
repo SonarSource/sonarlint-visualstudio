@@ -23,16 +23,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Core.UnitTests.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
 {
     [TestClass]
     public class NonRoslynBindingConfigProviderTests

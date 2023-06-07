@@ -23,21 +23,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CSharpVB;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.Integration.Binding;
-using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 
 using Language = SonarLint.VisualStudio.Core.Language;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
 {
     [TestClass]
     public class CSharpVBBindingConfigProviderTests

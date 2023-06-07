@@ -21,9 +21,11 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Core.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     /// <summary>
     /// Contract to provide the binding-related configuration for one or more languages

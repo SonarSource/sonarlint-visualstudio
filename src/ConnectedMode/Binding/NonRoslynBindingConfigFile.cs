@@ -22,8 +22,9 @@ using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Core.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     public class NonRoslynBindingConfigFile : IBindingConfig
     {

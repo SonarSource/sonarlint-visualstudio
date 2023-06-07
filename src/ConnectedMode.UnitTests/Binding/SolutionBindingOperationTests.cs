@@ -20,13 +20,8 @@
 
 using System.IO.Abstractions.TestingHelpers;
 using System.Threading;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.Binding;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
 {
     [TestClass]
     public class SolutionBindingOperationTests
