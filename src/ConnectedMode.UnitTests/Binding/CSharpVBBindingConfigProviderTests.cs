@@ -125,8 +125,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.Should().BeNull();
 
             builder.Logger.AssertOutputStrings(1);
-            var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
-                string.Format(Strings.NoSonarAnalyzerActiveRulesForQualityProfile, validQualityProfile.Name, Language.VBNET.Name));
+            var expectedOutput = string.Format(BindingStrings.SubTextPaddingFormat,
+                string.Format(BindingStrings.NoSonarAnalyzerActiveRulesForQualityProfile, validQualityProfile.Name, Language.VBNET.Name));
             builder.Logger.AssertOutputStrings(expectedOutput);
 
             builder.AssertGlobalConfigGeneratorNotCalled();

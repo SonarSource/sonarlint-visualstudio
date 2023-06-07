@@ -586,16 +586,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There are no active rules on the selected Quality Profile &apos;{0}&apos; for Language {1} (rules from the SonarAnalyzer repository). Connected mode requires at least one active rule.
-        ///   Note that third party rules are excluded from SonarLint.
-        /// </summary>
-        public static string NoSonarAnalyzerActiveRulesForQualityProfile {
-            get {
-                return ResourceManager.GetString("NoSonarAnalyzerActiveRulesForQualityProfile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Field can not be empty.
         /// </summary>
         public static string NotEmptyValidatorRequiredField {
