@@ -18,25 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading;
-using EnvDTE;
-using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.CSharpVB;
 
-namespace SonarLint.VisualStudio.Integration.Binding
+// Note: this interface was added as part of the refactoring that was done when
+// the support for configuration of C++ files in Connected Mode was added.
+// It minimised the changes required to the existing binding code that is
+// ruleset-specific, at the cost of downcasts in a couple of places (done by
+// the TryGetRuleSet extension method).
+
+namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     /// <summary>
-    /// Performs binding operations on a given project
+    /// Extends the base binding configuration interface for C#/VB projects where
+    /// the config is expected to have a ruleset
     /// </summary>
-    internal interface IProjectBinder
+    public interface ICSharpVBBindingConfig : IBindingConfig
     {
-        /// <summary>
-        /// Returns true if the project is supported by the binder and if the project is unbound/partially-bound.
-        /// Returns false if the project is not supported by the binder, or if the project is already bound.
-        /// </summary>
-        bool IsBindingRequired(BindingConfiguration binding, Project project);
+        FilePathAndContent<SonarLintConfiguration> AdditionalFile { get; }
 
-        BindProject GetBindAction(IBindingConfig config, Project project, CancellationToken cancellationToken);
+        FilePathAndContent<string> GlobalConfig { get; }
     }
-
-    public delegate void BindProject();
 }

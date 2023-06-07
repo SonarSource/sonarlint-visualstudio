@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -32,7 +31,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class SolutionBindingDataWriterTests
     {
-        private Mock<ISourceControlledFileSystem> sourceControlledFileSystem;
         private Mock<ISolutionBindingCredentialsLoader> credentialsLoader;
         private Mock<ISolutionBindingFileLoader> solutionBindingFileLoader;
         private BoundSonarQubeProject boundSonarQubeProject;
@@ -44,12 +42,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestInitialize]
         public void TestInitialize()
         {
-            sourceControlledFileSystem = new Mock<ISourceControlledFileSystem>();
             credentialsLoader = new Mock<ISolutionBindingCredentialsLoader>();
             solutionBindingFileLoader = new Mock<ISolutionBindingFileLoader>();
 
-            testSubject = new SolutionBindingDataWriter(sourceControlledFileSystem.Object,
-                solutionBindingFileLoader.Object,
+            testSubject = new SolutionBindingDataWriter(solutionBindingFileLoader.Object,
                 credentialsLoader.Object);
 
             mockCredentials = new BasicAuthCredentials("user", "pwd".ToSecureString());
@@ -59,24 +55,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 "MyProject Key",
                 "projectName",
                 mockCredentials);
-
-            sourceControlledFileSystem
-                .Setup(x => x.QueueFileWrites(new List<string>{MockFilePath}, It.IsAny<Func<bool>>()))
-                .Callback((IEnumerable<string> filePath, Func<bool> method) => method());
-        }
-
-        [TestMethod]
-        public void Ctor_NullSourceControlledFileSystem_Exception()
-        {
-            Action act = () => new SolutionBindingDataWriter(null, (ISolutionBindingFileLoader)null, null);
-
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sccFileSystem");
         }
 
         [TestMethod]
         public void Ctor_NullFileLoader_Exception()
         {
-            Action act = () => new SolutionBindingDataWriter(sourceControlledFileSystem.Object, (ISolutionBindingFileLoader)null, null);
+            Action act = () => new SolutionBindingDataWriter((ISolutionBindingFileLoader)null, null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingFileLoader");
         }
@@ -84,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Ctor_NullCredentialsLoader_Exception()
         {
-            Action act = () => new SolutionBindingDataWriter(sourceControlledFileSystem.Object, solutionBindingFileLoader.Object, null);
+            Action act = () => new SolutionBindingDataWriter(solutionBindingFileLoader.Object, null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("credentialsLoader");
         }

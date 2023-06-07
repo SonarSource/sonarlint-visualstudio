@@ -51,6 +51,8 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
         private Tuple<IInfoBar, INotification> activeNotification;
 
+        internal /* for testing */ bool HasActiveNotification => activeNotification != null;
+
         [ImportingConstructor]
         public NotificationService(IInfoBarManager infoBarManager, 
             IDisabledNotificationsStorage notificationsStorage,
@@ -123,17 +125,20 @@ namespace SonarLint.VisualStudio.Core.Notifications
                 return;
             }
 
-            try
+            threadHandling.RunOnUIThread(() =>
             {
-                activeNotification.Item1.ButtonClick -= CurrentInfoBar_ButtonClick;
-                activeNotification.Item1.Closed -= CurrentInfoBar_Closed;
-                infoBarManager.DetachInfoBar(activeNotification.Item1);
-                activeNotification = null;
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(CoreStrings.Notifications_FailedToRemove, ex);
-            }
+                try
+                {
+                    activeNotification.Item1.ButtonClick -= CurrentInfoBar_ButtonClick;
+                    activeNotification.Item1.Closed -= CurrentInfoBar_Closed;
+                    infoBarManager.DetachInfoBar(activeNotification.Item1);
+                    activeNotification = null;
+                }
+                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+                {
+                    logger.WriteLine(CoreStrings.Notifications_FailedToRemove, ex);
+                }
+            });
         }
 
         private void ShowInfoBar(INotification notification)

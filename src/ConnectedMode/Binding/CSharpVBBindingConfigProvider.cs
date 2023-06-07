@@ -28,13 +28,12 @@ using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CSharpVB;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.Integration;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 using Language = SonarLint.VisualStudio.Core.Language;
 
-namespace SonarLint.VisualStudio.Integration.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     internal class CSharpVBBindingConfigProvider : IBindingConfigProvider
     {
@@ -89,8 +88,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // Give up if the quality profile is empty - no point in fetching anything else
             if (!activeRules.Any())
             {
-                logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
-                    string.Format(Strings.NoSonarAnalyzerActiveRulesForQualityProfile, qualityProfile.Name, language.Name)));
+                logger.WriteLine(string.Format(BindingStrings.SubTextPaddingFormat,
+                    string.Format(BindingStrings.NoSonarAnalyzerActiveRulesForQualityProfile, qualityProfile.Name, language.Name)));
                 return null;
             }
 

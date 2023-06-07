@@ -38,11 +38,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         Task<bool> SaveServerExclusionsAsync(CancellationToken cancellationToken);
 
-        void InitializeSolutionBindingOnBackgroundThread();
-
-        void PrepareSolutionBinding(CancellationToken cancellationToken);
-
-        bool FinishSolutionBindingOnUIThread();
+        void SaveRuleConfiguration(CancellationToken cancellationToken);
 
         bool BindOperationSucceeded { get; }
     }

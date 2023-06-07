@@ -88,15 +88,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Can save configuration only in Connected Mode. Current mode: {0}.
-        /// </summary>
-        public static string Bind_CannotSaveConfig_InvalidMode {
-            get {
-                return ResourceManager.GetString("Bind_CannotSaveConfig_InvalidMode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Failed to save configuration.
         /// </summary>
         public static string Bind_FailedToSaveConfiguration {
@@ -139,15 +130,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string Bind_SavingBindingConfiguration {
             get {
                 return ResourceManager.GetString("Bind_SavingBindingConfiguration", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Updating legacy binding....
-        /// </summary>
-        public static string Bind_UpdatingLegacyBinding {
-            get {
-                return ResourceManager.GetString("Bind_UpdatingLegacyBinding", resourceCulture);
             }
         }
         
@@ -387,16 +369,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Detecting server plugins.
-        /// </summary>
-        public static string DetectingSonarQubePlugins {
-            get {
-                return ResourceManager.GetString("DetectingSonarQubePlugins", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Download quality profile(s):.
+        ///   Looks up a localized string similar to Downloading quality profile: {0}.
         /// </summary>
         public static string DownloadingQualityProfileProgressMessage {
             get {
@@ -550,15 +523,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Plugin: &apos;{0}&apos;, Language(s): &apos;{1}&apos;, Installed version: &apos;{2}&apos;, Minimum version: &apos;{3}&apos;.
-        /// </summary>
-        public static string InstalledAndMinimumSonarQubePlugin {
-            get {
-                return ResourceManager.GetString("InstalledAndMinimumSonarQubePlugin", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Colon (&quot;:&quot;) is not a permitted character..
         /// </summary>
         public static string InvalidCharacterColon {
@@ -622,16 +586,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There are no active rules on the selected Quality Profile &apos;{0}&apos; for Language {1} (rules from the SonarAnalyzer repository). Connected mode requires at least one active rule.
-        ///   Note that third party rules are excluded from SonarLint.
-        /// </summary>
-        public static string NoSonarAnalyzerActiveRulesForQualityProfile {
-            get {
-                return ResourceManager.GetString("NoSonarAnalyzerActiveRulesForQualityProfile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Field can not be empty.
         /// </summary>
         public static string NotEmptyValidatorRequiredField {
@@ -655,15 +609,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string Notifications_NotSupported {
             get {
                 return ResourceManager.GetString("Notifications_NotSupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The languages supported by plugins on this SonarQube server ({0}) do not match any of the solution projects&apos; languages..
-        /// </summary>
-        public static string OnlySupportedPluginsHaveNoProjectInSolution {
-            get {
-                return ResourceManager.GetString("OnlySupportedPluginsHaveNoProjectInSolution", resourceCulture);
             }
         }
         
@@ -758,15 +703,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generating project rule sets.
-        /// </summary>
-        public static string RuleSetGenerationProgressMessage {
-            get {
-                return ResourceManager.GetString("RuleSetGenerationProgressMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Ruleset could not be loaded. File: {0}, Error: {1}.
         /// </summary>
         public static string RulesetSerializer_FailedToLoadRuleset {
@@ -821,15 +757,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified SonarQube server does not have the minimum required version of any of the supported plugins (C#, VB.Net). .
-        /// </summary>
-        public static string ServerHasNoSupportedPluginVersion {
-            get {
-                return ResourceManager.GetString("ServerHasNoSupportedPluginVersion", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to (no projects).
         /// </summary>
         public static string ServerNoProjectsInlineText {
@@ -853,15 +780,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string ShowAllProjectsCommandText {
             get {
                 return ResourceManager.GetString("ShowAllProjectsCommandText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to This solution does not contain any supported languages (C#, VB.Net, C, C++, JavaScript, TypeScript). Please create at least one project using a supported language and then try to reconnect..
-        /// </summary>
-        public static string SolutionContainsNoSupportedProjects {
-            get {
-                return ResourceManager.GetString("SolutionContainsNoSupportedProjects", resourceCulture);
             }
         }
         
@@ -1109,15 +1027,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Discovered a supported plugin: {0}.
-        /// </summary>
-        public static string SupportedPluginFoundMessage {
-            get {
-                return ResourceManager.GetString("SupportedPluginFoundMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Checking for suppressions....
         /// </summary>
         public static string Suppression_Checking {
@@ -1235,15 +1144,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string UnpackingAdditionalFile {
             get {
                 return ResourceManager.GetString("UnpackingAdditionalFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Discovered an unsupported plugin: {0}.
-        /// </summary>
-        public static string UnsupportedPluginFoundMessage {
-            get {
-                return ResourceManager.GetString("UnsupportedPluginFoundMessage", resourceCulture);
             }
         }
         

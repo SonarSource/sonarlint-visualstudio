@@ -16,6 +16,7 @@
     <AssemblyName>SonarLint.VisualStudio.ConnectedMode</AssemblyName>
     <RootNamespace>SonarLint.VisualStudio.ConnectedMode</RootNamespace>
     <RequiresLibGit>true</RequiresLibGit>
+    <RequiresNewtonsoft>true</RequiresNewtonsoft>
 
     <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
 
@@ -41,6 +42,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Binding\BindingStrings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>BindingStrings.resx</DependentUpon>
+    </Compile>
     <Compile Update="Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -49,6 +55,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="Binding\BindingStrings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>BindingStrings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Update="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

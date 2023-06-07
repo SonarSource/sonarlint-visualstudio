@@ -19,20 +19,18 @@
  */
 
 using System.Collections.Generic;
-using SonarLint.VisualStudio.Core.Binding;
-using Language = SonarLint.VisualStudio.Core.Language;
+using System.Threading;
 
-namespace SonarLint.VisualStudio.Integration.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     /// <summary>
-    /// Provides access to solution-level binding configuration files
+    /// Encapsulates solution-level binding operations.
     /// </summary>
-    public interface ISolutionBindingConfigFileStore
+    /// <remarks>
+    /// * writes the binding info files to disk
+    /// </remarks>
+    public interface ISolutionBindingOperation
     {
-        /// <summary>
-        /// Registers a mapping of <see cref="Language"/> to <see cref="IBindingConfig"/>/>.
-        /// </summary>
-        /// <param name="languageToFileMap">Required</param>
-        void RegisterKnownConfigFiles(IDictionary<Language, IBindingConfig> languageToFileMap);
+        void SaveRuleConfiguration(IEnumerable<IBindingConfig> bindingConfigs, CancellationToken token);
     }
 }

@@ -22,6 +22,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.OLE.Interop;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Exclusions;
@@ -138,31 +139,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             var currentConfiguration = configProvider.GetConfiguration();
 
-            SonarLintMode modeToBind;
-
             // If we are currently in standalone then the project is being bound for the first time.
             // Otherwise, we are updating an existing binding
             var isFirstBinding = currentConfiguration.Mode == SonarLintMode.Standalone;
 
-            // TODO: CM cleanup - will never be saving in legacy format
-            if (currentConfiguration.Mode == SonarLintMode.LegacyConnected)
-            {
-                host.Logger.WriteLine(Strings.Bind_UpdatingLegacyBinding);
-                modeToBind = SonarLintMode.LegacyConnected;
-            }
-            else
-            {
-                host.Logger.WriteLine(
-                    isFirstBinding ?
-                        Strings.Bind_FirstTimeBinding :
-                        Strings.Bind_UpdatingNewStyleBinding);
+            host.Logger.WriteLine(
+                isFirstBinding ?
+                    Strings.Bind_FirstTimeBinding :
+                    Strings.Bind_UpdatingNewStyleBinding);
 
-                modeToBind = SonarLintMode.Connected;
-            }
-
-            var solutionBindingOp = new SolutionBindingOperation(
-                host,
-                modeToBind);
+            var solutionBindingOp = new SolutionBindingOperation();
 
             var cSharpVBBindingConfigProvider = new CSharpVBBindingConfigProvider(host.SonarQubeService, host.Logger);
             var nonRoslynBindingConfigProvider = new NonRoslynBindingConfigProvider(
@@ -180,7 +166,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             var exclusionSettingsStorage = new ExclusionSettingsStorage(configProvider, host.Logger);
 
-            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, ruleConfigProvider, modeToBind, exclusionSettingsStorage, isFirstBinding);
+            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, ruleConfigProvider, exclusionSettingsStorage, isFirstBinding);
 
             return bindingProcess;
         }

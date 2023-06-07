@@ -39,11 +39,10 @@ namespace SonarLint.VisualStudio.TestInfrastructure
                 : BindingConfiguration.CreateBoundConfiguration(ProjectToReturn, ModeToReturn, FolderPathToReturn);
         }
 
-        public BindingConfiguration Persist(BoundSonarQubeProject project, SonarLintMode bindingMode)
+        public BindingConfiguration Persist(BoundSonarQubeProject project)
         {
             project.Should().NotBeNull();
             SavedProject = project;
-            SavedMode = bindingMode;
 
             return GetConfiguration();
         }
@@ -58,7 +57,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         public bool WriteResultToReturn { get; set; }
         public BoundSonarQubeProject SavedProject { get; set; }
-        public SonarLintMode SavedMode { get; set; }
 
         #endregion Test helpers
     }

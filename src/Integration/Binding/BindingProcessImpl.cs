@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
@@ -39,33 +40,44 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         private readonly IHost host;
         private readonly BindCommandArgs bindingArgs;
-        private readonly IProjectSystemHelper projectSystem;
         private readonly ISolutionBindingOperation solutionBindingOperation;
         private readonly IBindingConfigProvider bindingConfigProvider;
-        private readonly SonarLintMode bindingMode;
         private readonly IExclusionSettingsStorage exclusionSettingsStorage;
+        private readonly IEnumerable<Language> languagesToBind;
 
         public BindingProcessImpl(IHost host,
             BindCommandArgs bindingArgs,
             ISolutionBindingOperation solutionBindingOperation,
             IBindingConfigProvider bindingConfigProvider,
-            SonarLintMode bindingMode,
             IExclusionSettingsStorage exclusionSettingsStorage,
             bool isFirstBinding = false)
+            : this(host,
+                  bindingArgs,
+                  solutionBindingOperation,
+                  bindingConfigProvider,
+                  exclusionSettingsStorage,
+                  isFirstBinding,
+                  languagesToBind: Language.KnownLanguages)
+        { }
+
+        internal /* for testing */ BindingProcessImpl(IHost host,
+            BindCommandArgs bindingArgs,
+            ISolutionBindingOperation solutionBindingOperation,
+            IBindingConfigProvider bindingConfigProvider,
+            IExclusionSettingsStorage exclusionSettingsStorage,
+            bool isFirstBinding,
+            IEnumerable<Language> languagesToBind)
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
             this.bindingArgs = bindingArgs ?? throw new ArgumentNullException(nameof(bindingArgs));
             this.solutionBindingOperation = solutionBindingOperation ?? throw new ArgumentNullException(nameof(solutionBindingOperation));
             this.bindingConfigProvider = bindingConfigProvider ?? throw new ArgumentNullException(nameof(bindingConfigProvider));
             this.exclusionSettingsStorage = exclusionSettingsStorage ?? throw new ArgumentNullException(nameof(exclusionSettingsStorage));
-            this.bindingMode = bindingMode;
+            this.languagesToBind = languagesToBind ?? throw new ArgumentNullException(nameof(languagesToBind));
 
             Debug.Assert(bindingArgs.ProjectKey != null);
             Debug.Assert(bindingArgs.ProjectName != null);
             Debug.Assert(bindingArgs.Connection != null);
-
-            this.projectSystem = this.host.GetService<IProjectSystemHelper>();
-            this.projectSystem.AssertLocalServiceIsNotNull();
 
             this.InternalState = new BindingProcessState(isFirstBinding);
         }
@@ -77,50 +89,77 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public async Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)
         {
-            var languageList = this.GetBindingLanguages();
+            var languageList = GetBindingLanguages();
 
             var languageCount = languageList.Count();
             int currentLanguage = 0;
-            progress?.Report(new FixedStepsProgress(Strings.DownloadingQualityProfileProgressMessage, currentLanguage, languageCount));
 
             foreach (var language in languageList)
             {
-                var serverLanguage = language.ServerLanguage;
+                currentLanguage++;
 
-                // Download the quality profile for each language
-                var qualityProfileInfo = await Core.WebServiceHelper.SafeServiceCallAsync(() =>
-                    this.host.SonarQubeService.GetQualityProfileAsync(
-                        this.bindingArgs.ProjectKey, this.bindingArgs.Connection.Organization?.Key, serverLanguage, cancellationToken),
-                    this.host.Logger);
+                var progressMessage = string.Format(Strings.DownloadingQualityProfileProgressMessage, language.Name);
+                progress?.Report(new FixedStepsProgress(progressMessage, currentLanguage, languageCount));
+
+                var qualityProfileInfo = await TryDownloadQualityProfileAsync(language, cancellationToken);
+                
                 if (qualityProfileInfo == null)
                 {
-                    this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
-                       string.Format(Strings.CannotDownloadQualityProfileForLanguage, language.Name)));
-                    return false;
+                    continue; // skip to the next language
                 }
-                this.InternalState.QualityProfiles[language] = qualityProfileInfo;
+
+                InternalState.QualityProfiles[language] = qualityProfileInfo;
 
                 var bindingConfiguration = QueueWriteBindingInformation();
 
                 // Create the binding configuration for the language
-                var bindingConfig = await this.bindingConfigProvider.GetConfigurationAsync(qualityProfileInfo, language, bindingConfiguration, cancellationToken);
+                var bindingConfig = await bindingConfigProvider.GetConfigurationAsync(qualityProfileInfo, language, bindingConfiguration, cancellationToken);
                 if (bindingConfig == null)
                 {
-                    this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
+                    host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
                         string.Format(Strings.FailedToCreateBindingConfigForLanguage, language.Name)));
                     return false;
                 }
 
-                this.InternalState.BindingConfigs[language] = bindingConfig;
+                // TODO - CM: we don't need the dictionary, just the list of configs.
+                InternalState.BindingConfigs[language] = bindingConfig;
 
-                currentLanguage++;
-                progress?.Report(new FixedStepsProgress(string.Empty, currentLanguage, languageCount));
-
-                this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
+                host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
                     string.Format(Strings.QualityProfileDownloadSuccessfulMessageFormat, qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name)));
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Attempts to fetch the QP for the specified language.
+        /// </summary>
+        /// <returns>The QP, or null if the language plugin is not available on the server</returns>
+        private async Task<SonarQubeQualityProfile> TryDownloadQualityProfileAsync(Language language, CancellationToken cancellationToken)
+        {
+            // There are valid scenarios in which a language plugin will not be available on the server:
+            // 1) the CFamily plugin does not ship in Community edition (nor do any other commerical plugins)
+            // 2) a recently added language will not be available in older-but-still-supported SQ versions
+            //      e.g. the "secrets" language
+            // The unavailability of a language should not prevent binding from succeeding.
+
+            // Note: the historical check that plugins meet a minimum version was removed. 
+            // See https://github.com/SonarSource/sonarlint-visualstudio/issues/4272
+
+            var qualityProfileInfo = await WebServiceHelper.SafeServiceCallAsync(() =>
+    
+            host.SonarQubeService.GetQualityProfileAsync(
+                bindingArgs.ProjectKey, bindingArgs.Connection.Organization?.Key, language.ServerLanguage, cancellationToken),
+                host.Logger);
+
+            if (qualityProfileInfo == null)
+            {
+                host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
+                   string.Format(Strings.CannotDownloadQualityProfileForLanguage, language.Name)));
+                return null;
+            }
+            
+            return qualityProfileInfo;
         }
 
         /// <summary>
@@ -154,7 +193,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             bound.Profiles = map;
 
-            return configurationPersister.Persist(bound, bindingMode);
+            return configurationPersister.Persist(bound);
         }
 
         public async Task<bool> SaveServerExclusionsAsync(CancellationToken cancellationToken)
@@ -172,21 +211,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return true;
         }
 
-        public void InitializeSolutionBindingOnBackgroundThread()
+        public void SaveRuleConfiguration(CancellationToken cancellationToken)
         {
-            this.solutionBindingOperation.RegisterKnownConfigFiles(this.InternalState.BindingConfigs);
-
-            this.solutionBindingOperation.Initialize();
-        }
-
-        public void PrepareSolutionBinding(CancellationToken cancellationToken)
-        {
-            this.solutionBindingOperation.Prepare(cancellationToken);
-        }
-
-        public bool FinishSolutionBindingOnUIThread()
-        {
-            return this.solutionBindingOperation.CommitSolutionBinding();
+            solutionBindingOperation.SaveRuleConfiguration(this.InternalState.BindingConfigs.Values, cancellationToken);
         }
 
         public bool BindOperationSucceeded => InternalState.BindingOperationSucceeded;
@@ -196,7 +223,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #region Private methods
 
         internal /* for testing */ IEnumerable<Language> GetBindingLanguages()
-            => host.SupportedPluginLanguages;
+            => languagesToBind;
 
         #endregion
 
@@ -211,6 +238,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             public bool IsFirstBinding { get; }
 
+            // TODO - change to simple list of configs
             public Dictionary<Language, IBindingConfig> BindingConfigs
             {
                 get;

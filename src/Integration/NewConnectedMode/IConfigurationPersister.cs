@@ -22,14 +22,13 @@ using System;
 using System.IO;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Persistence;
-using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.UnintrusiveBinding;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
     public interface IConfigurationPersister : ILocalService
     {
-        BindingConfiguration Persist(BoundSonarQubeProject project, SonarLintMode bindingMode);
+        BindingConfiguration Persist(BoundSonarQubeProject project);
     }
 
     internal class ConfigurationPersister : IConfigurationPersister
@@ -48,14 +47,14 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                                              throw new ArgumentNullException(nameof(solutionBindingDataWriter));
         }
 
-        public BindingConfiguration Persist(BoundSonarQubeProject project, SonarLintMode bindingMode)
+        public BindingConfiguration Persist(BoundSonarQubeProject project)
         {
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            var configFilePath = GetConfigFilePath(bindingMode);
+            var configFilePath = configFilePathProvider.Get();
 
             var success = configFilePath != null &&
                           solutionBindingDataWriter.Write(configFilePath, project);
@@ -63,18 +62,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             // The binding directory is the folder containing the binding config file
             var bindingConfigDirectory = Path.GetDirectoryName(configFilePath);
             return success ?
-                BindingConfiguration.CreateBoundConfiguration(project, bindingMode, bindingConfigDirectory) : null;
-        }
-
-        private string GetConfigFilePath(SonarLintMode bindingMode)
-        {
-            if (bindingMode != SonarLintMode.Connected)
-            {
-                var message = string.Format(Strings.Bind_CannotSaveConfig_InvalidMode, bindingMode);
-                throw new InvalidOperationException(message);
-            }
-
-            return configFilePathProvider.Get();
+                BindingConfiguration.CreateBoundConfiguration(project, SonarLintMode.Connected, bindingConfigDirectory) : null;
         }
     }
 }

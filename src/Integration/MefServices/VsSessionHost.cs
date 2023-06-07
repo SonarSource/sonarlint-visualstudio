@@ -27,7 +27,6 @@ using System.Windows.Threading;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.LocalServices.TestProjectIndicators;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
@@ -37,7 +36,6 @@ using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.UnintrusiveBinding;
 using SonarQube.Client;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -47,7 +45,6 @@ namespace SonarLint.VisualStudio.Integration
     {
         internal /*for testing purposes*/ static readonly Type[] SupportedLocalServices = {
                 typeof(IProjectSystemHelper),
-                typeof(ISourceControlledFileSystem),
                 typeof(IRuleSetInspector),
                 typeof(IConfigurationPersister),
                 typeof(ICredentialStoreService),
@@ -140,8 +137,6 @@ namespace SonarLint.VisualStudio.Integration
         public ISonarQubeService SonarQubeService { get; }
 
         public ISectionController ActiveSection { get; private set; }
-
-        public ISet<Language> SupportedPluginLanguages { get; } = new HashSet<Language>();
 
         public ILogger Logger { get; }
 
@@ -312,18 +307,13 @@ namespace SonarLint.VisualStudio.Integration
             this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this, projectToLanguageMapper)));
             this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));
 
-            // Use Lazy<object> to avoid creating instances needlessly, since the interfaces are serviced by the same instance
-            var sccFs = new Lazy<ILocalService>(() => new SourceControlledFileSystem(this, Logger));
-            this.localServices.Add(typeof(ISourceControlledFileSystem), sccFs);
-
             Debug.Assert(SupportedLocalServices.Length == this.localServices.Count, "Unexpected number of local services");
             Debug.Assert(SupportedLocalServices.All(t => this.localServices.ContainsKey(t)), "Not all the LocalServices are registered");
         }
 
         private ILocalService GetConfigurationPersister()
         {
-            var sccFileSystem = this.GetService<ISourceControlledFileSystem>();
-            var solutionBindingDataWriter = new SolutionBindingDataWriter(sccFileSystem, credentialStoreService, Logger);
+            var solutionBindingDataWriter = new SolutionBindingDataWriter(credentialStoreService, Logger);
 
             return new ConfigurationPersister(configFilePathProvider, solutionBindingDataWriter);
         }
