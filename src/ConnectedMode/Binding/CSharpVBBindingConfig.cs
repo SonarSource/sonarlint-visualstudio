@@ -21,10 +21,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CSharpVB;
 
-namespace SonarLint.VisualStudio.Integration.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     internal class CSharpVBBindingConfig : ICSharpVBBindingConfig
     {

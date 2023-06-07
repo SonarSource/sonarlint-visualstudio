@@ -24,11 +24,10 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Abstractions;
 using System.Threading;
-using SonarLint.VisualStudio.Core.Binding;
 using IFileSystem = System.IO.Abstractions.IFileSystem;
 using Language = SonarLint.VisualStudio.Core.Language;
 
-namespace SonarLint.VisualStudio.Integration.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     /// <summary>
     /// Handles writing solution-level files
