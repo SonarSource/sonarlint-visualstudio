@@ -28,12 +28,14 @@ using SonarLint.VisualStudio.Integration;
 namespace SonarLint.VisualStudio.Core.Notifications
 {
     /// <summary>
-    ///  This service can be used to display any type of user visible notification. Each instance of this service
-    ///  is responsible for one info bar.
+    /// This service can be used to display any type of user visible notification. Each instance of this service
+    /// will only show one notification at a time i.e. showing a second notification will remove the first one.
     /// </summary>
     public interface INotificationService : IDisposable
     {
         void ShowNotification(INotification notification);
+
+        void RemoveNotification();
     }
 
     [Export(typeof(INotificationService))]
@@ -48,6 +50,8 @@ namespace SonarLint.VisualStudio.Core.Notifications
         private readonly HashSet<string> oncePerSessionNotifications = new HashSet<string>();
 
         private Tuple<IInfoBar, INotification> activeNotification;
+
+        internal /* for testing */ bool HasActiveNotification => activeNotification != null;
 
         [ImportingConstructor]
         public NotificationService(IInfoBarManager infoBarManager, 
@@ -87,6 +91,8 @@ namespace SonarLint.VisualStudio.Core.Notifications
             });
         }
 
+        public void RemoveNotification() => RemoveExistingInfoBar();
+
         private void CurrentInfoBar_ButtonClick(object sender, InfoBarButtonClickedEventArgs e)
         {
             try
@@ -119,17 +125,20 @@ namespace SonarLint.VisualStudio.Core.Notifications
                 return;
             }
 
-            try
+            threadHandling.RunOnUIThread(() =>
             {
-                activeNotification.Item1.ButtonClick -= CurrentInfoBar_ButtonClick;
-                activeNotification.Item1.Closed -= CurrentInfoBar_Closed;
-                infoBarManager.DetachInfoBar(activeNotification.Item1);
-                activeNotification = null;
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(CoreStrings.Notifications_FailedToRemove, ex);
-            }
+                try
+                {
+                    activeNotification.Item1.ButtonClick -= CurrentInfoBar_ButtonClick;
+                    activeNotification.Item1.Closed -= CurrentInfoBar_Closed;
+                    infoBarManager.DetachInfoBar(activeNotification.Item1);
+                    activeNotification = null;
+                }
+                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+                {
+                    logger.WriteLine(CoreStrings.Notifications_FailedToRemove, ex);
+                }
+            });
         }
 
         private void ShowInfoBar(INotification notification)
