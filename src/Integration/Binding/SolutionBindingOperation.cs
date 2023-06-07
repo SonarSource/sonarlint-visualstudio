@@ -55,25 +55,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #endregion
 
-        #region ISolutionRuleStore
-
-        public void RegisterKnownConfigFiles(IDictionary<Language, IBindingConfig> languageToFileMap)
-        {
-            if (languageToFileMap == null)
-            {
-                throw new ArgumentNullException(nameof(languageToFileMap));
-            }
-
-            bindingConfigInformationMap.Clear();
-
-            foreach (var bindingConfig in languageToFileMap)
-            {
-                bindingConfigInformationMap.Add(bindingConfig);
-            }
-        }
-
-        #endregion
-
         #region Public API
 
         public void Initialize()

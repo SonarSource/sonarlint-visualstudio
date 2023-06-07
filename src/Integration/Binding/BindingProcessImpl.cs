@@ -212,8 +212,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public void InitializeSolutionBindingOnBackgroundThread()
         {
-            this.solutionBindingOperation.RegisterKnownConfigFiles(this.InternalState.BindingConfigs);
-
             this.solutionBindingOperation.Initialize();
         }
 
