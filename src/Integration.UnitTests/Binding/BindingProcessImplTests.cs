@@ -60,10 +60,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
 
-            var mockFileSystem = new MockFileSystem();
-            var sccFileSystem = new ConfigurableSourceControlledFileSystem(mockFileSystem);
-
-            this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), sccFileSystem);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
 
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);

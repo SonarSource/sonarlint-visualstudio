@@ -42,7 +42,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private ProjectMock solutionItemsProject;
         private SolutionMock solutionMock;
-        private ConfigurableSourceControlledFileSystem sccFileSystem;
         private MockFileSystem fileSystem;
 
         private const string SolutionRoot = @"c:\solution";
@@ -58,10 +57,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.projectSystemHelper.SolutionItemsProject = this.solutionItemsProject;
             this.projectSystemHelper.CurrentActiveSolution = this.solutionMock;
             this.fileSystem = new MockFileSystem();
-            this.sccFileSystem = new ConfigurableSourceControlledFileSystem(fileSystem);
 
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
-            this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), this.sccFileSystem);
         }
 
         #region Tests
@@ -176,8 +173,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Act
             testSubject.Prepare(CancellationToken.None);
-            // Act (write pending)
-            sccFileSystem.WritePendingNoErrorsExpected();
 
             // Assert
             CheckRuleSetFileWasSaved(csConfigFile);
