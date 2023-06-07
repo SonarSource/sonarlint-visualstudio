@@ -16,6 +16,7 @@
     <AssemblyName>SonarLint.VisualStudio.ConnectedMode</AssemblyName>
     <RootNamespace>SonarLint.VisualStudio.ConnectedMode</RootNamespace>
     <RequiresLibGit>true</RequiresLibGit>
+    <RequiresNewtonsoft>true</RequiresNewtonsoft>
 
     <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
 
