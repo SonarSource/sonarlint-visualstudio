@@ -20,9 +20,8 @@
 
 using System.Collections.Generic;
 using System.Threading;
-using SonarLint.VisualStudio.Core.Binding;
 
-namespace SonarLint.VisualStudio.Integration.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     /// <summary>
     /// Encapsulates solution-level binding operations.
