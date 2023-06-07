@@ -20,85 +20,41 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.Threading;
-using System.Threading.Tasks;
-using SonarQube.Client;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 {
     internal interface IServerHotspotStore
     {
-        Task UpdateAsync(string projectKey, string branch, CancellationToken token);
+        void Refresh(IList<SonarQubeHotspot> serverHotspots);
 
-        Task<IList<SonarQubeHotspotSearch>> GetServerHotspotsAsync(string projectKey, string branch, CancellationToken token);
+        IList<SonarQubeHotspot> GetAl();
 
-        event EventHandler<ServerHotspotStoreUpdatedEventArgs> ServerHotspotStoreUpdated;
+        event EventHandler ServerHotspotStoreRefreshed;
     }
 
-    [Export(typeof(IServerHotspotStore))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ServerHotspotStore : IServerHotspotStore
-    {
-        private readonly ISonarQubeService sonarQubeService;
-        internal /*for testing*/ readonly static Dictionary<string, IList<SonarQubeHotspotSearch>> serverHotspots = new Dictionary<string, IList<SonarQubeHotspotSearch>>();
+    //[Export(typeof(IServerHotspotStore))]
+    //[PartCreationPolicy(CreationPolicy.Shared)]
+    //internal class ServerHotspotStore : IServerHotspotStore
+    //{
+    //    private IList<SonarQubeHotspot> currentHotspots = new List<SonarQubeHotspot>();
 
-        public event EventHandler<ServerHotspotStoreUpdatedEventArgs> ServerHotspotStoreUpdated;
+    //    public event EventHandler ServerHotspotStoreRefreshed;
 
-        [ImportingConstructor]
-        public ServerHotspotStore(ISonarQubeService sonarQubeService)
-        {
-            this.sonarQubeService = sonarQubeService;
-        }
+    //    public IList<SonarQubeHotspot> GetAl()
+    //    {
+    //        return currentHotspots;
+    //    }
 
-        public async Task UpdateAsync(string projectKey, string branch, CancellationToken token)
-        {
-            var compositeKey = CreateCompositeKey(projectKey, branch);
+    //    public void Refresh(IList<SonarQubeHotspot> serverHotspots)
+    //    {
+    //        currentHotspots = serverHotspots;
+    //        InvokeRefreshed();
+    //    }
 
-            var serverResult = await sonarQubeService.SearchHotspotsAsync(projectKey, branch, token);
-
-            if (serverHotspots.ContainsKey(compositeKey))
-            {
-                serverHotspots.Remove(compositeKey);
-            }
-
-            serverHotspots.Add(compositeKey, serverResult);
-            RaiseServerHotspotStoreUpdated(projectKey, branch);
-        }
-
-        public async Task<IList<SonarQubeHotspotSearch>> GetServerHotspotsAsync(string projectKey, string branch, CancellationToken token)
-        {
-            var compositeKey = CreateCompositeKey(projectKey, branch);
-
-            if (!serverHotspots.ContainsKey(compositeKey))
-            {
-                await UpdateAsync(projectKey, branch, token);
-            }
-
-            return serverHotspots[compositeKey];
-        }
-
-        internal /* for testing */ static string CreateCompositeKey(string projectKey, string branch)
-        {
-            return $"{projectKey}:{branch}";
-        }
-
-        private void RaiseServerHotspotStoreUpdated(string projectKey, string branchName)
-        {
-            ServerHotspotStoreUpdated.Invoke(this, new ServerHotspotStoreUpdatedEventArgs(projectKey, branchName));
-        }
-    }
-
-    internal class ServerHotspotStoreUpdatedEventArgs : EventArgs
-    {
-        public ServerHotspotStoreUpdatedEventArgs(string projectKey, string branchName)
-        {
-            ProjectKey = projectKey;
-            BranchName = branchName;
-        }
-
-        public string ProjectKey { get; }
-        public string BranchName { get; }
-    }
+    //    private void InvokeRefreshed()
+    //    {
+    //        ServerHotspotStoreRefreshed.Invoke(this, null);
+    //    }
+    //}
 }
