@@ -74,7 +74,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private ProgressStepDefinition[] CreateWorkflowSteps(IProgressController controller)
         {
-            const StepAttributes IndeterminateNonCancellableBackgroundStep = StepAttributes.Indeterminate | StepAttributes.NonCancellable | StepAttributes.BackgroundThread;
             const StepAttributes HiddenNonImpactingBackgroundStep = StepAttributes.BackgroundThread | StepAttributes.Hidden | StepAttributes.NoProgressImpact;
 
             return new ProgressStepDefinition[]
@@ -104,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 // Most of the work is delegated to SolutionBindingOperation
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread | StepAttributes.Indeterminate,
-                        (token, notifications) => this.PrepareSolutionBinding(token)),
+                        (token, notifications) => this.SaveConfiguration(token)),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread | StepAttributes.Indeterminate,
                         (token, notifications) => this.SaveServerExclusionsAsync(controller, notifications, token).GetAwaiter().GetResult()),
@@ -150,9 +149,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        internal /* for testing */ void PrepareSolutionBinding(CancellationToken token)
+        internal /* for testing */ void SaveConfiguration(CancellationToken token)
         {
-            this.bindingProcess.PrepareSolutionBinding(token);
+            this.bindingProcess.SaveRuleConfiguration(token);
         }
 
         internal /*for testing purposes*/ void EmitBindingCompleteMessage(IProgressStepExecutionEvents notifications)
