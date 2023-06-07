@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         private readonly IThreadHandling threadHandling;
 
-        private const string idPrefix = "migration_";
+        private const string idPrefix = "ConnectedModeMigration_";
 
         [ImportingConstructor]
         public MigrationPrompt([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, INotificationService notificationService, IThreadHandling threadHandling)
@@ -62,6 +62,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         {
            await threadHandling.RunOnUIThread(() =>
             {
+                // The id contains the solution path so that each opened solution
+                // per session has its own notification.
                 var id = idPrefix + GetSolutionPath();
 
                 var notification = new Notification(

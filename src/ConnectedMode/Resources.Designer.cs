@@ -268,7 +268,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Learn More...
+        ///   Looks up a localized string similar to Learn More.
         /// </summary>
         internal static string Migration_MigrationPrompt_LearnMoreButton {
             get {
@@ -277,7 +277,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: We have detected an outdated version of connected mode..
+        ///   Looks up a localized string similar to SonarLint: You are using an outdated Connected Mode configuration format..
         /// </summary>
         internal static string Migration_MigrationPrompt_Message {
             get {

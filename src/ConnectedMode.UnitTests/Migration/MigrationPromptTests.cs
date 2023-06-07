@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.TestInfrastructure;
+using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 {
@@ -43,7 +44,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         }
 
         [TestMethod]
-        public void ShowAsync_VerifyNotificationIsCreatedWithExpectedParameters()
+        public async Task ShowAsync_VerifyNotificationIsCreatedWithExpectedParameters()
         {
             var notificationService = new Mock<INotificationService>();
             INotification notification = null;
@@ -54,10 +55,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var serviceProvider = SetUpServiceProviderWithSolution("path_to_solution");
 
             var testSubject = new MigrationPrompt(serviceProvider, notificationService.Object, new NoOpThreadHandler());
-            testSubject.ShowAsync().Forget();
+            await testSubject.ShowAsync();
 
             notificationService.Verify(x => x.ShowNotification(notification), Times.Once);
-            notification.Id.Should().Be("migration_path_to_solution");
+            notification.Id.Should().Be("ConnectedModeMigration_path_to_solution");
             notification.Message.Should().Be(Resources.Migration_MigrationPrompt_Message);
             notification.Actions.Count().Should().Be(2);
 
@@ -66,7 +67,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         }
 
         [TestMethod]
-        public void ShowAsync_ShowNotificationIsCalledOnMainThread()
+        public async Task ShowAsync_ShowNotificationIsCalledOnMainThread()
         {
             var notificationService = new Mock<INotificationService>();
             var threadHandling = new Mock<IThreadHandling>();
@@ -78,9 +79,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var serviceProvider = SetUpServiceProviderWithSolution();
 
             var testSubject = new MigrationPrompt(serviceProvider, notificationService.Object, threadHandling.Object);
-            testSubject.ShowAsync().Forget();
+            await testSubject.ShowAsync();
 
             threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
+
+            notificationService.Invocations.Should().HaveCount(0);
 
             runOnUiAction.Should().NotBeNull();
             runOnUiAction();
