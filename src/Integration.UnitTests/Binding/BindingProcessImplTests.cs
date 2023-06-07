@@ -82,28 +82,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var exclusionSettingsStorage = Mock.Of<IExclusionSettingsStorage>();
 
             // 1. Null host
-            Action act = () => new BindingProcessImpl(null, bindingArgs, slnBindOp, bindingConfigProvider, SonarLintMode.Connected, exclusionSettingsStorage);
+            Action act = () => new BindingProcessImpl(null, bindingArgs, slnBindOp, bindingConfigProvider, exclusionSettingsStorage);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
 
             // 2. Null binding args
-            act = () => new BindingProcessImpl(validHost, null, slnBindOp, bindingConfigProvider, SonarLintMode.Connected, exclusionSettingsStorage);
+            act = () => new BindingProcessImpl(validHost, null, slnBindOp, bindingConfigProvider, exclusionSettingsStorage);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingArgs");
 
             // 3. Null solution binding operation
-            act = () => new BindingProcessImpl(validHost, bindingArgs, null, bindingConfigProvider, SonarLintMode.Connected, exclusionSettingsStorage);
+            act = () => new BindingProcessImpl(validHost, bindingArgs, null, bindingConfigProvider, exclusionSettingsStorage);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingOperation");
 
             // 4. Null rules configuration provider
-            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, null, SonarLintMode.Connected, exclusionSettingsStorage);
+            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, null, exclusionSettingsStorage);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingConfigProvider");
 
             // 5. Null exclusion settings storage
-            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, bindingConfigProvider, SonarLintMode.Connected, null);
+            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, bindingConfigProvider, null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("exclusionSettingsStorage");
         }
 
         [TestMethod]
-        public async Task SaveServerExclusionsAsync_ConnectedMode_ReturnsTrue()
+        public async Task SaveServerExclusionsAsync_ReturnsTrue()
         {
             var bindingArgs = CreateBindCommandArgs(projectKey: "projectKey");
 
@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var exclusionSettingsStorage = new Mock<IExclusionSettingsStorage>();
 
-            var testSubject = CreateTestSubject(bindingArgs: bindingArgs, mode: SonarLintMode.Connected, sonarQubeService: sonarQubeService.Object, exclusionSettingsStorage: exclusionSettingsStorage.Object);
+            var testSubject = CreateTestSubject(bindingArgs: bindingArgs, sonarQubeService: sonarQubeService.Object, exclusionSettingsStorage: exclusionSettingsStorage.Object);
 
             await testSubject.SaveServerExclusionsAsync(CancellationToken.None);
 
@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var sonarQubeService = new Mock<ISonarQubeService>();
             sonarQubeService.Setup(s => s.GetServerExclusions("projectKey", It.IsAny<CancellationToken>())).Throws(new Exception("Expected Error"));
 
-            var testSubject = CreateTestSubject(bindingArgs: bindingArgs, mode: SonarLintMode.Connected, sonarQubeService: sonarQubeService.Object);
+            var testSubject = CreateTestSubject(bindingArgs: bindingArgs, sonarQubeService: sonarQubeService.Object);
 
             var result = await testSubject.SaveServerExclusionsAsync(CancellationToken.None);
 
@@ -147,7 +147,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var sonarQubeService = new Mock<ISonarQubeService>();
             sonarQubeService.Setup(s => s.GetServerExclusions("projectKey", It.IsAny<CancellationToken>())).Throws(new StackOverflowException("Critical Error"));
 
-            var testSubject = CreateTestSubject(bindingArgs: bindingArgs, mode: SonarLintMode.Connected, sonarQubeService: sonarQubeService.Object);
+            var testSubject = CreateTestSubject(bindingArgs: bindingArgs, sonarQubeService: sonarQubeService.Object);
 
             Func<Task<bool>> act = async () => await testSubject.SaveServerExclusionsAsync(CancellationToken.None);
 
@@ -195,7 +195,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             configPersister.SavedProject.Should().NotBeNull();
-            configPersister.SavedMode.Should().Be(SonarLintMode.Connected);
 
             var savedProject = configPersister.SavedProject;
             savedProject.ServerUri.Should().Be(bindingArgs.Connection.ServerUri);
@@ -355,7 +354,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private BindingProcessImpl CreateTestSubject(BindCommandArgs bindingArgs = null,
             IBindingConfigProvider configProvider = null,
-            SonarLintMode mode = SonarLintMode.Connected,
             ISonarQubeService sonarQubeService = null,
             IExclusionSettingsStorage exclusionSettingsStorage = null,
             IEnumerable<Language> languagesToBind = null)
@@ -367,9 +365,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             this.host.SonarQubeService = sonarQubeService ?? this.sonarQubeServiceMock.Object;
 
-            var slnBindOperation = new SolutionBindingOperation(this.host, SonarLintMode.LegacyConnected);
+            var slnBindOperation = new SolutionBindingOperation(this.host);
 
-            return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, configProvider, mode, exclusionSettingsStorage, false, languagesToBind);
+            return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, configProvider, exclusionSettingsStorage, false, languagesToBind);
         }
 
         private BindCommandArgs CreateBindCommandArgs(string projectKey = "key", string projectName = "name", ConnectionInformation connection = null)
