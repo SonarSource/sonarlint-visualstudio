@@ -100,19 +100,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 //*****************************************************************
                 // Solution update phase
                 //*****************************************************************
-                // * copy shared ruleset to shared location
-                // * add files to solution
-                // * create/update per-project ruleset
-                // * set project-level properties
+                // * write config files to non-scc location
                 // Most of the work is delegated to SolutionBindingOperation
-                new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, IndeterminateNonCancellableBackgroundStep,
-                        (token, notifications) => this.InitializeSolutionBindingOnBackgroundThread(notifications)),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread | StepAttributes.Indeterminate,
                         (token, notifications) => this.PrepareSolutionBinding(token)),
-
-                new ProgressStepDefinition(null, StepAttributes.Hidden | StepAttributes.Indeterminate,
-                        (token, notifications) => this.FinishSolutionBindingOnUIThread(controller, token)),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread | StepAttributes.Indeterminate,
                         (token, notifications) => this.SaveServerExclusionsAsync(controller, notifications, token).GetAwaiter().GetResult()),
@@ -158,28 +150,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-
-        internal /* for testing */ void InitializeSolutionBindingOnBackgroundThread(IProgressStepExecutionEvents notificationEvents)
-        {
-
-            notificationEvents.ProgressChanged(Strings.RuleSetGenerationProgressMessage);
-
-            bindingProcess.InitializeSolutionBindingOnBackgroundThread();
-        }
-
         internal /* for testing */ void PrepareSolutionBinding(CancellationToken token)
         {
             this.bindingProcess.PrepareSolutionBinding(token);
-        }
-
-        internal /* for testing */ void FinishSolutionBindingOnUIThread(IProgressController controller, CancellationToken token)
-        {
-            Debug.Assert(host.UIDispatcher.CheckAccess(), "Expected to run on UI thread");
-
-            if (!bindingProcess.FinishSolutionBindingOnUIThread())
-            {
-                AbortWorkflow(controller, token);
-            }
         }
 
         internal /*for testing purposes*/ void EmitBindingCompleteMessage(IProgressStepExecutionEvents notifications)

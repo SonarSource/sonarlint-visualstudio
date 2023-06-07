@@ -29,14 +29,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// </summary>
     /// <remarks>
     /// * writes the binding info files and shared rulesets to disk
-    /// For legacy connected mode, the solution-level items are added to the solution file
     /// </remarks>
     public interface ISolutionBindingOperation
     {
-        void Initialize();
-
         void Prepare(IEnumerable<IBindingConfig> bindingConfigs, CancellationToken token);
-
-        bool CommitSolutionBinding();
     }
 }

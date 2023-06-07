@@ -713,15 +713,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generating project rule sets.
-        /// </summary>
-        public static string RuleSetGenerationProgressMessage {
-            get {
-                return ResourceManager.GetString("RuleSetGenerationProgressMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Ruleset could not be loaded. File: {0}, Error: {1}.
         /// </summary>
         public static string RulesetSerializer_FailedToLoadRuleset {
