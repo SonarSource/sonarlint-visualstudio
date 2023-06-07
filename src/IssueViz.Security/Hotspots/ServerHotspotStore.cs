@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
@@ -33,28 +34,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
         event EventHandler Refreshed;
     }
 
-    //[Export(typeof(IServerHotspotStore))]
-    //[PartCreationPolicy(CreationPolicy.Shared)]
-    //internal class ServerHotspotStore : IServerHotspotStore
-    //{
-    //    private IList<SonarQubeHotspot> currentHotspots = new List<SonarQubeHotspot>();
+    [Export(typeof(IServerHotspotStore))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class ServerHotspotStore : IServerHotspotStore
+    {
+        private IList<SonarQubeHotspot> currentHotspots = new List<SonarQubeHotspot>();
 
-    //    public event EventHandler ServerHotspotStoreRefreshed;
+        public event EventHandler Refreshed;
 
-    //    public IList<SonarQubeHotspot> GetAl()
-    //    {
-    //        return currentHotspots;
-    //    }
+        public IList<SonarQubeHotspot> GetAll()
+        {
+            return currentHotspots;
+        }
 
-    //    public void Refresh(IList<SonarQubeHotspot> serverHotspots)
-    //    {
-    //        currentHotspots = serverHotspots;
-    //        InvokeRefreshed();
-    //    }
+        public void Refresh(IList<SonarQubeHotspot> serverHotspots)
+        {
+            if (serverHotspots == null)
+            {
+                throw new ArgumentNullException(nameof(serverHotspots));
+            }
 
-    //    private void InvokeRefreshed()
-    //    {
-    //        ServerHotspotStoreRefreshed.Invoke(this, null);
-    //    }
-    //}
+            currentHotspots = serverHotspots;
+            InvokeRefreshed();
+        }
+
+        private void InvokeRefreshed()
+        {
+            Refreshed.Invoke(this, null);
+        }
+    }
 }
