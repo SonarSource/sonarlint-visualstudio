@@ -71,6 +71,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
             eventCounter.RefreshedCount.Should().HaveCount(2);
         }
 
+        [TestMethod]
+        public void Refresh_NullParameter_Fails()
+        {
+            var testSubject = new ServerHotspotStore();
+            var eventCounter = new EventCounter(testSubject);
+
+            Action act = () => testSubject.Refresh(null);
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serverHotspots");
+
+            eventCounter.RefreshedCount.Should().BeEmpty();
+        }
+
         private IList<SonarQubeHotspot> CreateHotspotList(params string[] hotspotKeys)
         {
             var result = new List<SonarQubeHotspot>();
