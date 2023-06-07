@@ -106,55 +106,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             var testSubject = CreateTestSubject();
 
-            var ruleSetMap = new Dictionary<Language, IBindingConfig>
+            var bindingConfigs = new IBindingConfig[]
             {
-                [Language.CSharp] = csConfigFile.Object,
-                [Language.VBNET] = vbConfigFile.Object
+                csConfigFile.Object,
+                vbConfigFile.Object
             };
 
-            testSubject.RegisterKnownConfigFiles(ruleSetMap);
-            testSubject.Initialize();
-
-            // Sanity
-            testSubject.RuleSetsInformationMap[Language.CSharp].Should().Be(csConfigFile.Object);
-            testSubject.RuleSetsInformationMap[Language.VBNET].Should().Be(vbConfigFile.Object);
-
             // Act
-            testSubject.Prepare(CancellationToken.None);
+            testSubject.Prepare(bindingConfigs, CancellationToken.None);
 
             // Assert
             CheckRuleSetFileWasSaved(csConfigFile);
             CheckRuleSetFileWasSaved(vbConfigFile);
-        }
-
-        [TestMethod]
-        public void SolutionBindingOperation_CommitSolutionBinding()
-        {
-            var expectedFilePath = $"c:\\{Guid.NewGuid()}.txt";
-
-            // Arrange
-            var csConfigFile = CreateMockConfigFile(expectedFilePath);
-
-            SolutionBindingOperation testSubject = this.CreateTestSubject();
-
-            var languageToFileMap = new Dictionary<Language, IBindingConfig>()
-            {
-                { Language.CSharp, csConfigFile.Object }
-            };
-
-            testSubject.RegisterKnownConfigFiles(languageToFileMap);
-
-            testSubject.Initialize();
-            testSubject.Prepare(CancellationToken.None);
-
-            // Act
-            var commitResult = testSubject.CommitSolutionBinding();
-
-            // Assert
-            commitResult.Should().BeTrue();
-
-            solutionItemsProject.Files.Count.Should().Be(0, "Not expecting any items to be added to the solution in new connected mode");
-            fileSystem.GetFile(expectedFilePath).Should().NotBe(null); // check the file was saved
         }
 
         #endregion Tests
