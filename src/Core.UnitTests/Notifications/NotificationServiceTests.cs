@@ -355,21 +355,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         [TestMethod]
         public void Dispose_HasExistingNotification_ExistingNotificationRemoved()
         {
-            var notification = CreateNotification();
-            var infoBar = CreateInfoBar();
-            var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
-            var testSubject = CreateTestSubject(infoBarManager.Object);
-
-            testSubject.ShowNotification(notification);
-
-            VerifyInfoBarCreatedCorrectly(infoBarManager, notification);
-            VerifySubscribedToInfoBarEvents(infoBar);
-
-            testSubject.Dispose();
-
-            VerifyInfoBarRemoved(infoBarManager, infoBar);
-
-            infoBarManager.VerifyNoOtherCalls();
+            Check_HasACurrentNotification_RemovesCurrentNotification(x => x.Dispose());
         }
 
         [TestMethod]
@@ -505,21 +491,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         [TestMethod]
         public void RemoveNotification_HasACurrentNotification_RemovesCurrentNotification()
         {
-            var notification = CreateNotification();
-            var infoBar = CreateInfoBar();
-            var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
-            var testSubject = CreateTestSubject(infoBarManager.Object);
-
-            testSubject.ShowNotification(notification);
-
-            VerifyInfoBarCreatedCorrectly(infoBarManager, notification);
-            VerifySubscribedToInfoBarEvents(infoBar);
-
-            testSubject.RemoveNotification();
-
-            VerifyInfoBarRemoved(infoBarManager, infoBar);
-
-            infoBarManager.VerifyNoOtherCalls();
+            Check_HasACurrentNotification_RemovesCurrentNotification(x => x.RemoveNotification());
         }
 
         [TestMethod]
@@ -533,6 +505,43 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             act.Should().NotThrow();
 
             infoBarManager.Invocations.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void RemoveNotification_InfoBarRemovedIsCalledOnMainThread()
+        {
+            var notification = CreateNotification();
+            var infoBar = CreateInfoBar();
+            var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
+
+            var threadHandling = new Mock<IThreadHandling>();
+            Action runOnUiAction = null;
+            threadHandling
+                .Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
+                .Callback((Action callbackAction) => runOnUiAction = callbackAction);
+
+            var testSubject = CreateTestSubject(infoBarManager.Object, threadHandling: threadHandling.Object);
+            testSubject.ShowNotification(notification);
+
+            runOnUiAction.Should().NotBeNull();
+            runOnUiAction();
+
+            VerifySubscribedToInfoBarEvents(infoBar);
+            VerifyInfoBarCreatedCorrectly(infoBarManager, notification);
+
+            threadHandling.Invocations.Clear();
+
+            testSubject.RemoveNotification();
+            threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
+
+            runOnUiAction.Should().NotBeNull();
+            runOnUiAction();
+
+            VerifyInfoBarRemoved(infoBarManager, infoBar);
+            VerifyUnsubscribedFromInfoBarEvents(infoBar);
+
+            infoBarManager.VerifyNoOtherCalls();
+            threadHandling.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -577,6 +586,26 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             act.Should().ThrowExactly<StackOverflowException>().WithMessage("this is a test");
 
             logger.AssertNoOutputMessages();
+        }
+
+        private void Check_HasACurrentNotification_RemovesCurrentNotification(Action<NotificationService> op)
+        {
+            var notification = CreateNotification();
+            var infoBar = CreateInfoBar();
+            var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
+            var testSubject = CreateTestSubject(infoBarManager.Object);
+
+            testSubject.ShowNotification(notification);
+
+            VerifyInfoBarCreatedCorrectly(infoBarManager, notification);
+            VerifySubscribedToInfoBarEvents(infoBar);
+
+            // Call the product code
+            op(testSubject);
+
+            VerifyInfoBarRemoved(infoBarManager, infoBar);
+
+            infoBarManager.VerifyNoOtherCalls();
         }
 
         private static NotificationService CreateTestSubject(IInfoBarManager infoBarManager = null,
