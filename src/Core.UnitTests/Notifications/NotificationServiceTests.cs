@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -510,38 +509,33 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         [TestMethod]
         public void RemoveNotification_InfoBarRemovedIsCalledOnMainThread()
         {
+            // Arrange
+            var calls = new List<string>();
+
             var notification = CreateNotification();
-            var infoBar = CreateInfoBar();
-            var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
+            var infoBarManager = CreateInfoBarManager(notification, CreateInfoBar().Object);
+            infoBarManager.Setup(x => x.DetachInfoBar(It.IsAny<IInfoBar>()))
+                .Callback<IInfoBar>(x => calls.Add("DetachInfoBar"));
 
             var threadHandling = new Mock<IThreadHandling>();
-            Action runOnUiAction = null;
             threadHandling
                 .Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
-                .Callback((Action callbackAction) => runOnUiAction = callbackAction);
+                .Callback<Action>(callbackAction =>
+                {
+                    calls.Add("RunOnUIThread");
+                    callbackAction();
+                });
 
             var testSubject = CreateTestSubject(infoBarManager.Object, threadHandling: threadHandling.Object);
-            testSubject.ShowNotification(notification);
+            testSubject.ShowNotification(notification); // setup - need to start with a visible notification
+            testSubject.HasActiveNotification.Should().BeTrue("[Test setup] - expecting a notification to be visible");
 
-            runOnUiAction.Should().NotBeNull();
-            runOnUiAction();
+            calls.Clear();
 
-            VerifySubscribedToInfoBarEvents(infoBar);
-            VerifyInfoBarCreatedCorrectly(infoBarManager, notification);
-
-            threadHandling.Invocations.Clear();
-
+            // Act
             testSubject.RemoveNotification();
-            threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
 
-            runOnUiAction.Should().NotBeNull();
-            runOnUiAction();
-
-            VerifyInfoBarRemoved(infoBarManager, infoBar);
-            VerifyUnsubscribedFromInfoBarEvents(infoBar);
-
-            infoBarManager.VerifyNoOtherCalls();
-            threadHandling.VerifyNoOtherCalls();
+            calls.Should().ContainInOrder("RunOnUIThread", "DetachInfoBar");
         }
 
         [TestMethod]
@@ -681,7 +675,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         private static void VerifyInfoBarRemoved(Mock<IInfoBarManager> infoBarManager, Mock<IInfoBar> infoBar)
         {
             VerifyUnsubscribedFromInfoBarEvents(infoBar);
-            infoBarManager.Verify(x => x.DetachInfoBar(infoBar.Object));
+            infoBarManager.Verify(x => x.DetachInfoBar(infoBar.Object), Times.Once);
         }
 
         private static void VerifyUnsubscribedFromInfoBarEvents(Mock<IInfoBar> infoBar)

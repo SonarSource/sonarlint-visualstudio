@@ -51,6 +51,8 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
         private Tuple<IInfoBar, INotification> activeNotification;
 
+        internal /* for testing */ bool HasActiveNotification => activeNotification != null;
+
         [ImportingConstructor]
         public NotificationService(IInfoBarManager infoBarManager, 
             IDisabledNotificationsStorage notificationsStorage,
