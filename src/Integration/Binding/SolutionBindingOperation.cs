@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #region Public API
 
-        public void Prepare(IEnumerable<IBindingConfig> bindingConfigs, CancellationToken token)
+        public void SaveRuleConfiguration(IEnumerable<IBindingConfig> bindingConfigs, CancellationToken token)
         {
             foreach (var config in bindingConfigs)
             {

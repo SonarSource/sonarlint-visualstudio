@@ -28,10 +28,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// Encapsulates solution-level binding operations.
     /// </summary>
     /// <remarks>
-    /// * writes the binding info files and shared rulesets to disk
+    /// * writes the binding info files to disk
     /// </remarks>
     public interface ISolutionBindingOperation
     {
-        void Prepare(IEnumerable<IBindingConfig> bindingConfigs, CancellationToken token);
+        void SaveRuleConfiguration(IEnumerable<IBindingConfig> bindingConfigs, CancellationToken token);
     }
 }

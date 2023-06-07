@@ -210,9 +210,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return true;
         }
 
-        public void PrepareSolutionBinding(CancellationToken cancellationToken)
+        public void SaveRuleConfiguration(CancellationToken cancellationToken)
         {
-            this.solutionBindingOperation.Prepare(this.InternalState.BindingConfigs.Values, cancellationToken);
+            solutionBindingOperation.SaveRuleConfiguration(this.InternalState.BindingConfigs.Values, cancellationToken);
         }
 
         public bool BindOperationSucceeded => InternalState.BindingOperationSucceeded;
