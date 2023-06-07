@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,7 +44,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private ConfigurableServiceProvider serviceProvider;
         private Mock<ISonarQubeService> sonarQubeServiceMock;
-        private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private ConfigurableHost host;
         private TestLogger logger;
 
@@ -58,9 +56,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             serviceProvider.RegisterService(typeof(ILogger), logger);
 
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
-            this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
-
-            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
 
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             host.Logger = logger;
@@ -361,7 +356,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             this.host.SonarQubeService = sonarQubeService ?? this.sonarQubeServiceMock.Object;
 
-            var slnBindOperation = new SolutionBindingOperation(this.host);
+            var slnBindOperation = new SolutionBindingOperation();
 
             return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, configProvider, exclusionSettingsStorage, false, languagesToBind);
         }
