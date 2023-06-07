@@ -235,10 +235,6 @@ Localization note: '[try again]()' is a special markup used to translate the tex
     <value>This server has no available projects with which to bind to. Please create at least one project and then refresh this connection.</value>
     <comment>Tool tip text to be displayed for the connected SonarQube server in the Team Explorer tree view when there are no SonarQube Projects available under the given server</comment>
   </data>
-  <data name="RuleSetGenerationProgressMessage" xml:space="preserve">
-    <value>Generating project rule sets</value>
-    <comment>A progress notification message</comment>
-  </data>
   <data name="FailedDuringNuGetPackageInstall" xml:space="preserve">
     <value>Failed to install NuGet package '{0}' for project '{1}'. Message: {2}</value>
     <comment>Output window message in case of failure - {0} nuget package id, {1} project name, {2} message</comment>

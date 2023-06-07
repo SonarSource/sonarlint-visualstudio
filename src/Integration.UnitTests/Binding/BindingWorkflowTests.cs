@@ -146,20 +146,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void BindingWorkflow_InitializeSolutionBindingOnBackgroundThread_NoError()
-        {
-            // Arrange
-            var progressEvents = new ConfigurableProgressStepExecutionEvents();
-
-            // Act
-            testSubject.InitializeSolutionBindingOnBackgroundThread(progressEvents);
-
-            // Assert
-            mockBindingProcess.Verify(x => x.InitializeSolutionBindingOnBackgroundThread(), Times.Once);
-            progressEvents.AssertProgressMessages(Strings.RuleSetGenerationProgressMessage);
-        }
-
-        [TestMethod]
         public void BindingWorkflow_PrepareSolutionBinding_Passthrough()
         {
             // Arrange
@@ -172,39 +158,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockBindingProcess.Verify(x => x.PrepareSolutionBinding(cts.Token), Times.Once);
         }
 
-        [TestMethod]
-        public void BindingWorkflow_FinishSolutionBindingOnUIThread_Succeeds()
-        {
-            // Arrange
-            ConfigurableProgressController controller = new ConfigurableProgressController();
-            var cts = new CancellationTokenSource();
-
-            mockBindingProcess.Setup(x => x.FinishSolutionBindingOnUIThread()).Returns(true);
-
-            // Act
-            testSubject.FinishSolutionBindingOnUIThread(controller, cts.Token);
-
-            // Assert
-            mockBindingProcess.Verify(x => x.FinishSolutionBindingOnUIThread(), Times.Once);
-            controller.NumberOfAbortRequests.Should().Be(0);
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_FinishSolutionBindingOnUIThread_Fails()
-        {
-            // Arrange
-            ConfigurableProgressController controller = new ConfigurableProgressController();
-            var cts = new CancellationTokenSource();
-
-            mockBindingProcess.Setup(x => x.FinishSolutionBindingOnUIThread()).Returns(false);
-
-            // Act
-            testSubject.FinishSolutionBindingOnUIThread(controller, cts.Token);
-
-            // Assert
-            mockBindingProcess.Verify(x => x.FinishSolutionBindingOnUIThread(), Times.Once);
-            controller.NumberOfAbortRequests.Should().Be(1);
-        }
 
         [TestMethod]
         public void BindingWorkflow_EmitBindingCompleteMessage()

@@ -57,12 +57,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #region Public API
 
-        public void Initialize()
-        {
-            // TODO CM cleanup
-            // no-op
-        }
-
         public void Prepare(IEnumerable<IBindingConfig> bindingConfigs, CancellationToken token)
         {
             foreach (var config in bindingConfigs)
@@ -80,13 +74,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 config.Save();
             }
-        }
-
-        public bool CommitSolutionBinding()
-        {
-            // TODO - CM cleanup
-            // no-op
-            return true;
         }
             
         #endregion
