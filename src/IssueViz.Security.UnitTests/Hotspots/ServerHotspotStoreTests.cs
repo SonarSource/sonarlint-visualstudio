@@ -18,12 +18,84 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
+using SonarLint.VisualStudio.TestInfrastructure;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
 {
     [TestClass]
     public class ServerHotspotStoreTests
     {
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<ServerHotspotStore, IServerHotspotStore>();
+        }
+
+        [TestMethod]
+        public void GetAll_NotRefreshed_ReturnsEmpty()
+        {
+            var testSubject = new ServerHotspotStore();
+
+            var result = testSubject.GetAll();
+
+            result.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void Refresh_SetsCollection()
+        {
+            var serverHotspots1 = CreateHotspotList("key1", "key2");
+            var serverHotspots2 = CreateHotspotList("key3", "key4", "key5");
+
+            var testSubject = new ServerHotspotStore();
+            var eventCounter = new EventCounter(testSubject);
+
+            testSubject.Refresh(serverHotspots1);
+
+            var result = testSubject.GetAll();
+
+            result.Should().BeEquivalentTo(serverHotspots1);
+            eventCounter.RefreshedCount.Should().HaveCount(1);
+
+            testSubject.Refresh(serverHotspots2);
+
+            result = testSubject.GetAll();
+
+            result.Should().BeEquivalentTo(serverHotspots2);
+            eventCounter.RefreshedCount.Should().HaveCount(2);
+        }
+
+        private IList<SonarQubeHotspot> CreateHotspotList(params string[] hotspotKeys)
+        {
+            var result = new List<SonarQubeHotspot>();
+
+            foreach (var hotspotKey in hotspotKeys)
+            {
+                result.Add(new SonarQubeHotspot(hotspotKey, null, null, null, null, null, null, null, null, null, DateTimeOffset.Now, DateTimeOffset.Now, null, null));
+            }
+
+            return result;
+        }
+
+        private class EventCounter
+        {
+            private readonly List<EventArgs> refreshedCount = new List<EventArgs>();
+
+            public IReadOnlyList<EventArgs> RefreshedCount => refreshedCount;
+
+            public EventCounter(IServerHotspotStore store)
+            {
+                store.Refreshed += (_, e) =>
+                {
+                    refreshedCount.Add(e);
+                };
+            }
+        }
     }
 }
