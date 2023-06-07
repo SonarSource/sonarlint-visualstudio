@@ -20,6 +20,7 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Integration.Binding

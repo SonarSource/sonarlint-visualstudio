@@ -24,7 +24,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Abstractions;
 using System.Threading;
-using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using IFileSystem = System.IO.Abstractions.IFileSystem;
 using Language = SonarLint.VisualStudio.Core.Language;
 

@@ -22,12 +22,10 @@ using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Core.UnitTests.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 {
     [TestClass]
     public class NonRoslynBindingConfigFileTests
