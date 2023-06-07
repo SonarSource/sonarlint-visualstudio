@@ -24,7 +24,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
