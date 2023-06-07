@@ -22,6 +22,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.OLE.Interop;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Exclusions;

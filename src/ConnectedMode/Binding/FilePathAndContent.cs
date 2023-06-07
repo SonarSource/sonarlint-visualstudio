@@ -20,7 +20,7 @@
 
 using System;
 
-namespace SonarLint.VisualStudio.Core.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     public class FilePathAndContent<T>
     {

@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CSharpVB;
 
 // Note: this interface was added as part of the refactoring that was done when
@@ -27,7 +26,7 @@ using SonarLint.VisualStudio.Core.CSharpVB;
 // ruleset-specific, at the cost of downcasts in a couple of places (done by
 // the TryGetRuleSet extension method).
 
-namespace SonarLint.VisualStudio.Integration.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     /// <summary>
     /// Extends the base binding configuration interface for C#/VB projects where
