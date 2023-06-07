@@ -82,6 +82,12 @@
           "stdole": "17.0.31902.203"
         }
       },
+      "Newtonsoft.Json": {
+        "type": "Direct",
+        "requested": "[13.0.1, )",
+        "resolved": "13.0.1",
+        "contentHash": "ppPFpBcvxdsfUonNcvITKqLl3bqxWbDCZIzDWHzjpdAHRFfZe0Dw9HmA0+za13IdyrgJwpkDTDA9fHaxOrt20A=="
+      },
       "BouncyCastle": {
         "type": "Transitive",
         "resolved": "1.8.9",
@@ -822,11 +828,6 @@
           "System.Net.WebSockets": "4.3.0",
           "System.Runtime.CompilerServices.Unsafe": "4.7.1"
         }
-      },
-      "Newtonsoft.Json": {
-        "type": "Transitive",
-        "resolved": "13.0.1",
-        "contentHash": "ppPFpBcvxdsfUonNcvITKqLl3bqxWbDCZIzDWHzjpdAHRFfZe0Dw9HmA0+za13IdyrgJwpkDTDA9fHaxOrt20A=="
       },
       "stdole": {
         "type": "Transitive",
