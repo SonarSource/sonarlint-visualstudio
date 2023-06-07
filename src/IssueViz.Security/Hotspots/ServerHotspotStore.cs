@@ -28,9 +28,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     {
         void Refresh(IList<SonarQubeHotspot> serverHotspots);
 
-        IList<SonarQubeHotspot> GetAl();
+        IList<SonarQubeHotspot> GetAll();
 
-        event EventHandler ServerHotspotStoreRefreshed;
+        event EventHandler Refreshed;
     }
 
     //[Export(typeof(IServerHotspotStore))]
