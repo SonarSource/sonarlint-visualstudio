@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         #region Tests
 
         [TestMethod]
-        public void SolutionBindingOperation_Prepare_SolutionLevelFilesAreSaved()
+        public void SaveConfiguration_SolutionLevelFilesAreSaved()
         {
             // Arrange
             var config1 = CreateBindingConfig("c:\\csharp.txt");
@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             };
 
             // Act
-            testSubject.Prepare(bindingConfigs, CancellationToken.None);
+            testSubject.SaveRuleConfiguration(bindingConfigs, CancellationToken.None);
 
             // Assert
             CheckConfigWasSaved(config1);
@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void SolutionBindingOperation_Prepare_DirectoryiesAreCreated()
+        public void SaveConfiguration_DirectoryiesAreCreated()
         {
             // Arrange
             var config1 = CreateBindingConfig("c:\\x.txt");
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             };
 
             // Act
-            testSubject.Prepare(bindingConfigs, CancellationToken.None);
+            testSubject.SaveRuleConfiguration(bindingConfigs, CancellationToken.None);
 
             // Assert
             fileSystem.AllDirectories.Should().BeEquivalentTo(new string[]
@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private SolutionBindingOperation CreateTestSubject(MockFileSystem fileSystem = null)
         {
-            fileSystem = fileSystem ?? new MockFileSystem();
+            fileSystem ??= new MockFileSystem();
             return new SolutionBindingOperation(fileSystem);
         }
 
