@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             _ = new MigrationChecker(Mock.Of<IActiveSolutionTracker>(), migrationPrompt.Object, configurationProvider.Object, obsoleteConfigurationProvider.Object);
 
-            migrationPrompt.Verify(x => x.Show(), expectBindingToBeCalled ? Times.Once : Times.Never);
+            migrationPrompt.Verify(x => x.ShowAsync(), expectBindingToBeCalled ? Times.Once : Times.Never);
         }
 
         [TestMethod]
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             migrationPrompt.Invocations.Clear();
 
             activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(true));
-            migrationPrompt.Verify(x => x.Show(), Times.Once);
+            migrationPrompt.Verify(x => x.ShowAsync(), Times.Once);
 
             activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(false));
             migrationPrompt.Verify(x => x.Clear(), Times.Once);
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, EventArgs.Empty);
 
-            migrationPrompt.Verify(x => x.Show(), Times.Never);
+            migrationPrompt.Verify(x => x.ShowAsync(), Times.Never);
         }
 
         private BindingConfiguration CreateBindingConfiguration(SonarLintMode mode)

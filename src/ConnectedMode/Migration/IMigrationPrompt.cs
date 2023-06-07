@@ -18,13 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Notifications;
+using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
+    /// <summary>
+    /// In charge of showing users a prompt to migrate to a new connected mode.
+    /// </summary>
     public interface IMigrationPrompt
     {
-       void Show();
+        Task ShowAsync();
 
         void Clear();
     }
@@ -33,8 +42,64 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class MigrationPrompt : IMigrationPrompt
     {
-        public void Show() { }
+        private readonly INotificationService notificationService;
 
-        public void Clear() { }
+        private readonly IServiceProvider serviceProvider;
+
+        private readonly IThreadHandling threadHandling;
+
+        private const string idPrefix = "ConnectedModeMigration_";
+
+        [ImportingConstructor]
+        public MigrationPrompt([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, INotificationService notificationService, IThreadHandling threadHandling)
+        {
+            this.notificationService = notificationService;
+            this.serviceProvider = serviceProvider;
+            this.threadHandling = threadHandling;
+        }
+
+        public async Task ShowAsync()
+        {
+           await threadHandling.RunOnUIThread(() =>
+            {
+                // The id contains the solution path so that each opened solution
+                // per session has its own notification.
+                var id = idPrefix + GetSolutionPath();
+
+                var notification = new Notification(
+                    id: id,
+                    message: Resources.Migration_MigrationPrompt_Message,
+                    actions: new INotificationAction[]
+                    {
+                    new NotificationAction(Resources.Migration_MigrationPrompt_MigrateButton, _ => OnMigrate(), false),
+                    new NotificationAction(Resources.Migration_MigrationPrompt_LearnMoreButton, _ => OnLearnMore(), false),
+                    });
+
+                notificationService.ShowNotification(notification);
+            });
+        }
+
+        public void Clear()
+        {
+            notificationService.RemoveNotification();
+        }
+
+        private void OnMigrate()
+        {
+            // TODO: Show migration wizard
+        }
+
+        private void OnLearnMore()
+        {
+            // TODO: Show relevant documentation in browser
+        }
+
+        private string GetSolutionPath()
+        {
+            var solution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
+            solution.GetProperty((int)__VSPROPID.VSPROPID_SolutionFileName, out var fullSolutionName);
+
+            return fullSolutionName as string;
+        }
     }
 }

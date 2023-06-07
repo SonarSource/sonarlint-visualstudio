@@ -22,6 +22,7 @@ using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using Microsoft.VisualStudio.Threading;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
@@ -70,7 +71,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             if (obsoleteConfigurationProvider.GetConfiguration()?.Mode != SonarLintMode.Standalone
                 && configurationProvider.GetConfiguration()?.Mode == SonarLintMode.Standalone)
             {
-                migrationPrompt.Show();
+               migrationPrompt.ShowAsync().Forget();
             }
         }
 
