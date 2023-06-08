@@ -23,14 +23,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.Binding;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -38,7 +34,7 @@ using SonarQube.Client;
 using SonarQube.Client.Models;
 using Language = SonarLint.VisualStudio.Core.Language;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 {
     [TestClass]
     public class BindingProcessImplTests

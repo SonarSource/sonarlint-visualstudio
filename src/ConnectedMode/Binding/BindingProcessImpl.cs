@@ -24,17 +24,16 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
-using SonarLint.VisualStudio.Integration.Persistence;
+using SonarLint.VisualStudio.Integration;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 using Language = SonarLint.VisualStudio.Core.Language;
 
-namespace SonarLint.VisualStudio.Integration.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     internal class BindingProcessImpl : IBindingProcess
     {

@@ -23,7 +23,7 @@ using System.Security;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.Persistence
+namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 {
     internal class BasicAuthCredentials : ICredentials
     {
