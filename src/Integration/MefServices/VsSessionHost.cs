@@ -27,13 +27,10 @@ using System.Windows.Threading;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
-using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarLint.VisualStudio.Integration.UnintrusiveBinding;
 using SonarQube.Client;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
@@ -46,7 +43,6 @@ namespace SonarLint.VisualStudio.Integration
         internal /*for testing purposes*/ static readonly Type[] SupportedLocalServices = {
                 typeof(IProjectSystemHelper),
                 typeof(IRuleSetInspector),
-                typeof(IConfigurationPersister),
                 typeof(ICredentialStoreService),
                 typeof(ITestProjectRegexSetter)
         };
@@ -56,7 +52,6 @@ namespace SonarLint.VisualStudio.Integration
         private readonly ICredentialStoreService credentialStoreService;
         private readonly IProjectToLanguageMapper projectToLanguageMapper;
         private readonly IConfigurationProvider configurationProvider;
-        private readonly IUnintrusiveBindingPathProvider configFilePathProvider;
 
         private readonly IProgressStepRunnerWrapper progressStepRunner;
         private readonly Dictionary<Type, Lazy<ILocalService>> localServices = new Dictionary<Type, Lazy<ILocalService>>();
@@ -71,7 +66,6 @@ namespace SonarLint.VisualStudio.Integration
             ICredentialStoreService credentialStoreService,
             IProjectToLanguageMapper projectToLanguageMapper,
             IConfigurationProvider configurationProvider,
-            IUnintrusiveBindingPathProvider configFilePathProvider,
             ILogger logger)
             : this(serviceProvider,
                 null,
@@ -81,7 +75,6 @@ namespace SonarLint.VisualStudio.Integration
                 credentialStoreService,
                 projectToLanguageMapper,
                 configurationProvider,
-                configFilePathProvider,
                 logger,
                 Dispatcher.CurrentDispatcher)
         {
@@ -95,7 +88,6 @@ namespace SonarLint.VisualStudio.Integration
                                     ICredentialStoreService credentialStoreService,
                                     IProjectToLanguageMapper projectToLanguageMapper,
                                     IConfigurationProvider configurationProvider,
-                                    IUnintrusiveBindingPathProvider configFilePathProvider,
                                     ILogger logger,
                                     Dispatcher uiDispatcher)
         {
@@ -108,7 +100,6 @@ namespace SonarLint.VisualStudio.Integration
             this.credentialStoreService = credentialStoreService ?? throw new ArgumentNullException(nameof(credentialStoreService));
             this.projectToLanguageMapper = projectToLanguageMapper ?? throw new ArgumentNullException(nameof(projectToLanguageMapper));
             this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
-            this.configFilePathProvider = configFilePathProvider;
             this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
             this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -297,25 +288,16 @@ namespace SonarLint.VisualStudio.Integration
 
         private void RegisterLocalServices()
         {
-            this.localServices.Add(typeof(ICredentialStoreService), new Lazy<ILocalService>(() => credentialStoreService));
-
-            this.localServices.Add(typeof(IConfigurationPersister), new Lazy<ILocalService>(GetConfigurationPersister));
+            localServices.Add(typeof(ICredentialStoreService), new Lazy<ILocalService>(() => credentialStoreService));
 
             var projectNameTestProjectIndicator = new Lazy<ILocalService>(() => new ProjectNameTestProjectIndicator(Logger));
-            this.localServices.Add(typeof(ITestProjectRegexSetter), projectNameTestProjectIndicator);
+            localServices.Add(typeof(ITestProjectRegexSetter), projectNameTestProjectIndicator);
 
-            this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this, projectToLanguageMapper)));
-            this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));
+            localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this, projectToLanguageMapper)));
+            localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));
 
-            Debug.Assert(SupportedLocalServices.Length == this.localServices.Count, "Unexpected number of local services");
-            Debug.Assert(SupportedLocalServices.All(t => this.localServices.ContainsKey(t)), "Not all the LocalServices are registered");
-        }
-
-        private ILocalService GetConfigurationPersister()
-        {
-            var solutionBindingDataWriter = new SolutionBindingDataWriter(credentialStoreService, Logger);
-
-            return new ConfigurationPersister(configFilePathProvider, solutionBindingDataWriter);
+            Debug.Assert(SupportedLocalServices.Length == localServices.Count, "Unexpected number of local services");
+            Debug.Assert(SupportedLocalServices.All(t => localServices.ContainsKey(t)), "Not all the LocalServices are registered");
         }
 
         public object GetService(Type serviceType)
