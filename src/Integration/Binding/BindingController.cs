@@ -22,10 +22,8 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.OLE.Interop;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.Exclusions;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -43,6 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IBindingWorkflowExecutor workflowExecutor;
         private readonly IProjectSystemHelper projectSystemHelper;
         private readonly IFolderWorkspaceService folderWorkspaceService;
+        private readonly IBindingProcessFactory bindingProcessFactory;
         private readonly IKnownUIContexts knownUIContexts;
 
         public BindingController(IHost host)
@@ -67,6 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.projectSystemHelper.AssertLocalServiceIsNotNull();
 
             folderWorkspaceService = host.GetMefService<IFolderWorkspaceService>();
+            bindingProcessFactory = host.GetMefService<IBindingProcessFactory>();
         }
 
         #region Commands
@@ -123,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         void IBindingWorkflowExecutor.BindProject(BindCommandArgs bindingArgs)
         {
-            var bindingProcess = CreateBindingProcess(host, bindingArgs);
+            var bindingProcess = CreateBindingProcess(host, bindingArgs, bindingProcessFactory);
             var workflow = new BindingWorkflow(host, bindingProcess);
 
             IProgressEvents progressEvents = workflow.Run();
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.SetBindingInProgress(progressEvents, bindingArgs);
         }
 
-        internal static /* for testing purposes */ IBindingProcess CreateBindingProcess(IHost host, BindCommandArgs bindingArgs)
+        internal static /* for testing purposes */ IBindingProcess CreateBindingProcess(IHost host, BindCommandArgs bindingArgs, IBindingProcessFactory bindingProcessFactory)
         {
             // Choose the type of binding
             var configProvider = host.GetMefService<IConfigurationProvider>();
@@ -148,26 +148,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     Strings.Bind_FirstTimeBinding :
                     Strings.Bind_UpdatingNewStyleBinding);
 
-            var solutionBindingOp = new SolutionBindingOperation();
-
-            var cSharpVBBindingConfigProvider = new CSharpVBBindingConfigProvider(host.SonarQubeService, host.Logger);
-            var nonRoslynBindingConfigProvider = new NonRoslynBindingConfigProvider(
-                new[]
-                {
-                    Language.C,
-                    Language.Cpp,
-                    Language.Js,
-                    Language.Ts,
-                    Language.Secrets,
-                    Language.Css
-                }, host.SonarQubeService, host.Logger);
-
-            var ruleConfigProvider = new CompositeBindingConfigProvider(cSharpVBBindingConfigProvider, nonRoslynBindingConfigProvider);
-
-            var exclusionSettingsStorage = new ExclusionSettingsStorage(configProvider, host.Logger);
-
-            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, ruleConfigProvider, exclusionSettingsStorage, isFirstBinding);
-
+            var bindingProcess = bindingProcessFactory.Create(bindingArgs, isFirstBinding);
             return bindingProcess;
         }
 
