@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
 using System.IO;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Persistence;
@@ -31,20 +32,21 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
         BindingConfiguration Persist(BoundSonarQubeProject project);
     }
 
+    [Export(typeof(IConfigurationPersister))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ConfigurationPersister : IConfigurationPersister
     {
         private readonly IUnintrusiveBindingPathProvider configFilePathProvider;
         private readonly ISolutionBindingDataWriter solutionBindingDataWriter;
 
+        [ImportingConstructor]
         public ConfigurationPersister(
             IUnintrusiveBindingPathProvider configFilePathProvider,
             ISolutionBindingDataWriter solutionBindingDataWriter)
         {
-            this.configFilePathProvider = configFilePathProvider ??
-                                             throw new ArgumentNullException(nameof(ConfigurationPersister.configFilePathProvider));
+            this.configFilePathProvider = configFilePathProvider;
 
-            this.solutionBindingDataWriter = solutionBindingDataWriter ??
-                                             throw new ArgumentNullException(nameof(solutionBindingDataWriter));
+            this.solutionBindingDataWriter = solutionBindingDataWriter;
         }
 
         public BindingConfiguration Persist(BoundSonarQubeProject project)
