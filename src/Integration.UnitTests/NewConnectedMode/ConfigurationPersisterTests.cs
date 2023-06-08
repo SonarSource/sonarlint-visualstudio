@@ -52,8 +52,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<ConfigurationPersister, IConfigurationPersister>(
-                MefTestHelpers.CreateExport<ISolutionBindingDataWriter>(),
-                MefTestHelpers.CreateExport<ILogger>());
+                MefTestHelpers.CreateExport<IUnintrusiveBindingPathProvider>(),
+                MefTestHelpers.CreateExport<ISolutionBindingDataWriter>());
         }
 
         [TestMethod]
