@@ -1,4 +1,4 @@
-﻿<Project >
+﻿<Project>
 
   <!-- ************************************************************** -->
   <!-- Entry point - the Build target -->
@@ -8,12 +8,12 @@
        We use the "EmbeddedSonarAnalyzer.props" file as the sole input file, as it specifies
        the jars to download. At the end of a build we will write a single timestamp output
        file and treat that as the sole output file.
-       
+
        If the EmbeddedSonarAnalyzer.props file changes, it will have a newer timestamp than
        the timestamp output file, and MSBuild will build the project.
        If the project fails to build correctly the output file will not be updated, so the
        next time we trigger a build MSBuild will attempt to build the project again.
-       
+
        Cleaning/rebuilding the project will delete the output file, so the project will then
        be built again.
     -->
@@ -44,11 +44,9 @@
     <Message Importance="high" Text="[ProcessJarFiles] Temporary directory: $(_WorkingDirectory)" />
   </Target>
 
-
   <Target Name="DownloadIndividualJars">
     <DownloadFile SourceUrl="%(PluginJars.URL)" DestinationFolder="$(JarDownloadDir)" SkipUnchangedFiles="true" Retries="3" />
   </Target>
-
 
   <Target Name="ExtractJsonFromJars">
     <Message Importance="high" Text="[ProcessJarFiles] Removing existing json files ..." />
@@ -58,9 +56,8 @@
     <Delete Files="@(TempJsonFilesToClean)" />
 
     <Message Importance="high" Text="[ProcessJarFiles] Extracting json files to $(_WorkingDirectory) ..." />
-    <Exec Command="java -jar $(RuleJsonExtractorJar) --plugins $(JarDownloadDir)\%(PluginJars.JarName) --languages=%(PluginJars.LanguageKey) --output=$(_WorkingDirectory)\%(PluginJars.RepoKey)-rules.json" />
+    <Exec Command="java -jar $(RuleJsonExtractorJar) --include-hotspots --plugins $(JarDownloadDir)\%(PluginJars.JarName) --languages=%(PluginJars.LanguageKey) --output=$(_WorkingDirectory)\%(PluginJars.RepoKey)-rules.json" />
   </Target>
-
 
   <Target Name="ExtractRuleDescFromJson">
     <Message Importance="high" Text="[ProcessJarFiles] Checking for existence of rule extractor exe: $(RuleDescExtractorExe) ..." />
@@ -73,17 +70,15 @@
     <Exec Command="dir $(BaseRuleDescFileTargetDirectory)%(PluginJars.RepoKey)" />
   </Target>
 
-
   <Target Name="WriteOutputFile">
     <!-- The timestamp on the output file is used by MSBuild to decide whether to build this project or not.
          If the timestamp on the EmbeddedSonarAnalyzer.props file is later than that of the output file then
-         MSBuild will rebuild the project. 
-         
+         MSBuild will rebuild the project.
+
          We use a copy of the EmbeddedSonarAnalyzer.props file as the output file so we easily see which
          plugins were processed last.
          -->
     <Message Importance="high" Text="[ProcessJarFiles] Completed successfully. Writing timestamp file: @(OutputFile)" />
     <Copy SourceFiles="@(InputFile)" DestinationFiles="@(OutputFile)" />
   </Target>
-
 </Project>
