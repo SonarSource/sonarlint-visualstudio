@@ -207,10 +207,6 @@ Localization note: '[try again]()' is a special markup used to translate the tex
     <value>Failed to download quality profile. Name: '{0}', Key: '{1}', Language: '{2}'</value>
     <comment>Output window message indicating the quality profile file failed to download. {0} quality profile name, {1} quality profile key, {2} language name.</comment>
   </data>
-  <data name="QualityProfileDownloadSuccessfulMessageFormat" xml:space="preserve">
-    <value>Successfully downloaded quality profile. Name: '{0}', Key: '{1}', Language: '{2}'</value>
-    <comment>Output window message indicating the quality profile file was successfully downloaded. {0} quality profile name, {1} quality profile key, {2} language name.</comment>
-  </data>
   <data name="RuleSetDescription" xml:space="preserve">
     <value>Rule set generated from SonarQube</value>
     <comment>Generated rule set description.</comment>
@@ -308,10 +304,6 @@ ocalization note: '[try again]()' is a special markup used to translate the text
   <data name="HideUnboundProjectsCommandText" xml:space="preserve">
     <value>Hide Unbound Projects</value>
     <comment>Server context menu command display text to show all projects (inc. unbound projects)</comment>
-  </data>
-  <data name="DownloadingQualityProfileProgressMessage" xml:space="preserve">
-    <value>Downloading quality profile: {0}</value>
-    <comment>A progress notification message e.g. "Downloading quality profile: C#"</comment>
   </data>
   <data name="AutomationServerDescription" xml:space="preserve">
     <value>SonarQube server: {0}</value>
@@ -507,10 +499,6 @@ This is the general format to use when writing errors to output window or when t
     <value>{0}profiles/show?key={1}</value>
     <comment>Used to create the Quality Profile URL. This will be integrated as part of the ruleset description. {0} the server URL. {1} the quality profile key.</comment>
   </data>
-  <data name="CannotDownloadQualityProfileForLanguage" xml:space="preserve">
-    <value>Cannot download the quality profile for language {0}</value>
-    <comment>Output window message displayed when the application failed to download the quality profile associated to a language. {0} the language name.</comment>
-  </data>
   <data name="ConnectionStepRetrievingOrganizations" xml:space="preserve">
     <value>Retrieving organizations</value>
   </data>
@@ -573,10 +561,6 @@ This is the general format to use when writing errors to output window or when t
     <value>Failed to check out files for saving. Error code: {0}</value>
     <comment>Output window message showing the tagVSQuerySaveResult enum value</comment>
   </data>
-  <data name="FailedToCreateBindingConfigForLanguage" xml:space="preserve">
-    <value>Failed to create the configuration for language {0}</value>
-    <comment>Output window message displayed when the application failed to fetch and create the binding configuration associated with a language. {0} the language name.</comment>
-  </data>
   <data name="FailedToCheckIfTestProject" xml:space="preserve">
     <value>Error identifying project '{0}' as test project: {1}</value>
     <comment>Error message indicating that an error occured while checking if a project is a test project</comment>
@@ -598,9 +582,6 @@ This is the general format to use when writing errors to output window or when t
   </data>
   <data name="ExclusionGetError" xml:space="preserve">
     <value>Error loading server settings. Analysis settings from the server (e.g. inclusions/exclusions) will not be applied in the IDE. Error: {0}</value>
-  </data>
-  <data name="SaveExclusionsFailed" xml:space="preserve">
-    <value>Failed to retrieve/process server settings. Error: {0}</value>
   </data>
   <data name="SaveServerExclusionsMessage" xml:space="preserve">
     <value>Downloading Server Exclusions</value>

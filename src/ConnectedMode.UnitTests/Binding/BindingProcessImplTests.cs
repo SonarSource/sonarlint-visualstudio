@@ -32,6 +32,7 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.Progress.Controller;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
@@ -161,14 +162,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public async Task DownloadQualityProfile_SavesConfiguration()
         {
-            var configPersister = new ConfigurableConfigurationProvider();
+            var configPersister = new DummyConfigPersister();
 
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
             const string ProjectName = "SQProjectName";
 
-            var notifications = new ConfigurableProgressStepExecutionEvents();
-            var progressAdapter = new FixedStepsProgressAdapter(notifications);
+            var progressAdapter = Mock.Of<IProgress<FixedStepsProgress>>();
 
             var bindingConfig = new Mock<IBindingConfig>().Object;
 
@@ -220,7 +220,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Language.VBNET,
                 Language.Css /* available on server, but shouldn't be requested*/ );
 
-            var configPersister = new ConfigurableConfigurationProvider();
+            var configPersister = new DummyConfigPersister();
 
             var testSubject = CreateTestSubject(
                 bindingConfigProvider: configProvider.Object,
@@ -230,10 +230,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 logger: logger);
 
             var notifications = new ConfigurableProgressStepExecutionEvents();
-            var progressAdapter = new FixedStepsProgressAdapter(notifications);
+            var progressAdapter = new Mock<IProgress<FixedStepsProgress>>();
+            progressAdapter.Setup(x => x.Report(It.IsAny<FixedStepsProgress>()))
+                .Callback<FixedStepsProgress>(x => ((IProgressStepExecutionEvents)notifications).ProgressChanged(x.Message, x.CurrentStep));
 
             // Act
-            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
+            var result = await testSubject.DownloadQualityProfileAsync(progressAdapter.Object, CancellationToken.None);
 
             // Assert
             result.Should().BeTrue();
@@ -245,14 +247,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.InternalState.BindingConfigs.Should().ContainKey(Language.VBNET);
 
             // Progess notifications - percentage complete and messages
-            notifications.AssertProgress(0.25, 0.5, 0.75, 1.0);
+            notifications.AssertProgress(1.0, 2.0, 3.0, 4.0);
             CheckProgressMessages(languagesToBind);
 
             // Check output messages
             var missingPluginMessageCFamily = string.Format(Strings.SubTextPaddingFormat,
-                string.Format(Strings.CannotDownloadQualityProfileForLanguage, Language.Cpp.Name));
+                string.Format(BindingStrings.CannotDownloadQualityProfileForLanguage, Language.Cpp.Name));
             var missingPluginMessageSecrets = string.Format(Strings.SubTextPaddingFormat,
-                string.Format(Strings.CannotDownloadQualityProfileForLanguage, Language.Secrets.Name));
+                string.Format(BindingStrings.CannotDownloadQualityProfileForLanguage, Language.Secrets.Name));
 
             logger.AssertOutputStringExists(missingPluginMessageCFamily);
             logger.AssertOutputStringExists(missingPluginMessageSecrets);
@@ -265,7 +267,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
 
             static string GetDownloadProgressMessages(Language language)
-                => string.Format(Strings.DownloadingQualityProfileProgressMessage, language.Name);
+                => string.Format(BindingStrings.DownloadingQualityProfileProgressMessage, language.Name);
         }
 
         private void SetupAvailableLanguages(Mock<IBindingConfigProvider> configProvider,
@@ -275,7 +277,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             foreach (var language in languages)
             {
                 var profile = ConfigureQualityProfile(sonarQubeService, language, "Profile" + language.Name);
-                configProvider.Setup(x => x.GetConfigurationAsync(profile, language, BindingConfiguration.Standalone, CancellationToken.None))
+                configProvider.Setup(x => x.GetConfigurationAsync(profile, language, It.IsAny<BindingConfiguration>(), CancellationToken.None))
                     .ReturnsAsync(Mock.Of<IBindingConfig>());
             }
         }
@@ -285,12 +287,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var logger = new TestLogger(logToConsole: true);
-            var configPersister = new ConfigurableConfigurationProvider();
+            var configPersister = new DummyConfigPersister();
             const string QualityProfileName = "SQQualityProfileName";
             const string ProjectName = "SQProjectName";
 
-            var notifications = new ConfigurableProgressStepExecutionEvents();
-            var progressAdapter = new FixedStepsProgressAdapter(notifications);
+           var progressAdapter = Mock.Of<IProgress<FixedStepsProgress>>();
 
             var language = Language.VBNET;
             var sonarQubeService = new Mock<ISonarQubeService>();
@@ -313,7 +314,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             logger.AssertOutputStrings(1);
             var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
-                string.Format(Strings.FailedToCreateBindingConfigForLanguage, language.Name));
+                string.Format(BindingStrings.FailedToCreateBindingConfigForLanguage, language.Name));
             logger.AssertOutputStrings(expectedOutput);
         }
 
@@ -396,6 +397,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             return profile;
         }
+
+        private class DummyConfigPersister : IConfigurationPersister
+        {
+            public BoundSonarQubeProject SavedProject { get; private set; }
+
+            BindingConfiguration IConfigurationPersister.Persist(BoundSonarQubeProject project)
+            {
+                SavedProject = project;
+                return new BindingConfiguration(new BoundSonarQubeProject(), SonarLintMode.Connected, "c:\\any");
+            }
+        }
+
+
 
         #endregion Helpers
     }
