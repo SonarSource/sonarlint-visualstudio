@@ -22,7 +22,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SonarLint.VisualStudio.Integration.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     /// <summary>
     /// Encapsulates the set of operations carried out in sequence by the binding workflow.
