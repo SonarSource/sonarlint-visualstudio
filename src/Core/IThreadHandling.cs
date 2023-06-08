@@ -115,6 +115,5 @@ namespace SonarLint.VisualStudio.Core
     {
         bool IsCompleted { get; }
         void GetResult();
-
     }
 }
