@@ -39,20 +39,18 @@ namespace SonarLint.VisualStudio.Integration.Binding
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class BindingProcessFactory : IBindingProcessFactory
     {
-        private readonly IHost host;
         private readonly ISonarQubeService sonarQubeService;
         private readonly IConfigurationPersister configurationPersister;
         private readonly IExclusionSettingsStorage exclusionSettingsStorage;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public BindingProcessFactory(IHost host,
+        public BindingProcessFactory(
             ISonarQubeService sonarQubeService,
             IExclusionSettingsStorage exclusionSettingsStorage,
             IConfigurationPersister configurationPersister,
             ILogger logger)
         {
-            this.host = host;
             this.sonarQubeService = sonarQubeService;
             this.configurationPersister = configurationPersister;
             this.exclusionSettingsStorage = exclusionSettingsStorage;
@@ -76,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private IBindingConfigProvider CreateBindingConfigProvider()
         {
-            var cSharpVBBindingConfigProvider = new CSharpVBBindingConfigProvider(host.SonarQubeService, host.Logger);
+            var cSharpVBBindingConfigProvider = new CSharpVBBindingConfigProvider(sonarQubeService, logger);
             var nonRoslynBindingConfigProvider = new NonRoslynBindingConfigProvider(
                 new[]
                 {
