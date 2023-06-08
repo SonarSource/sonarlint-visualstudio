@@ -31,6 +31,7 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
+using SonarQube.Client;
 using SonarQube.Client.Models;
 using Language = SonarLint.VisualStudio.Core.Language;
 
@@ -38,41 +39,53 @@ namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal class BindingProcessImpl : IBindingProcess
     {
-        private readonly IHost host;
         private readonly BindCommandArgs bindingArgs;
         private readonly ISolutionBindingOperation solutionBindingOperation;
         private readonly IBindingConfigProvider bindingConfigProvider;
+        private readonly ISonarQubeService sonarQubeService;
+        private readonly IConfigurationPersister configurationPersister;
         private readonly IExclusionSettingsStorage exclusionSettingsStorage;
         private readonly IEnumerable<Language> languagesToBind;
+        private readonly ILogger logger;
 
-        public BindingProcessImpl(IHost host,
+        public BindingProcessImpl(
             BindCommandArgs bindingArgs,
             ISolutionBindingOperation solutionBindingOperation,
             IBindingConfigProvider bindingConfigProvider,
             IExclusionSettingsStorage exclusionSettingsStorage,
+            IConfigurationPersister configurationPersister,
+            ISonarQubeService sonarQubeService,
+            ILogger logger,
             bool isFirstBinding = false)
-            : this(host,
-                  bindingArgs,
+            : this(bindingArgs,
                   solutionBindingOperation,
                   bindingConfigProvider,
                   exclusionSettingsStorage,
+                  configurationPersister,
+                  sonarQubeService,
+                  logger,
                   isFirstBinding,
                   languagesToBind: Language.KnownLanguages)
         { }
 
-        internal /* for testing */ BindingProcessImpl(IHost host,
+        internal /* for testing */ BindingProcessImpl(
             BindCommandArgs bindingArgs,
             ISolutionBindingOperation solutionBindingOperation,
             IBindingConfigProvider bindingConfigProvider,
             IExclusionSettingsStorage exclusionSettingsStorage,
+            IConfigurationPersister configurationPersister,
+            ISonarQubeService sonarQubeService,
+            ILogger logger,
             bool isFirstBinding,
             IEnumerable<Language> languagesToBind)
         {
-            this.host = host ?? throw new ArgumentNullException(nameof(host));
             this.bindingArgs = bindingArgs ?? throw new ArgumentNullException(nameof(bindingArgs));
             this.solutionBindingOperation = solutionBindingOperation ?? throw new ArgumentNullException(nameof(solutionBindingOperation));
             this.bindingConfigProvider = bindingConfigProvider ?? throw new ArgumentNullException(nameof(bindingConfigProvider));
             this.exclusionSettingsStorage = exclusionSettingsStorage ?? throw new ArgumentNullException(nameof(exclusionSettingsStorage));
+            this.configurationPersister = configurationPersister ?? throw new ArgumentNullException(nameof(configurationPersister));
+            this.sonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.languagesToBind = languagesToBind ?? throw new ArgumentNullException(nameof(languagesToBind));
 
             Debug.Assert(bindingArgs.ProjectKey != null);
@@ -116,7 +129,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 var bindingConfig = await bindingConfigProvider.GetConfigurationAsync(qualityProfileInfo, language, bindingConfiguration, cancellationToken);
                 if (bindingConfig == null)
                 {
-                    host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
+                    logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
                         string.Format(Strings.FailedToCreateBindingConfigForLanguage, language.Name)));
                     return false;
                 }
@@ -124,7 +137,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 // TODO - CM: we don't need the dictionary, just the list of configs.
                 InternalState.BindingConfigs[language] = bindingConfig;
 
-                host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
+                logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
                     string.Format(Strings.QualityProfileDownloadSuccessfulMessageFormat, qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name)));
             }
 
@@ -148,13 +161,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             var qualityProfileInfo = await WebServiceHelper.SafeServiceCallAsync(() =>
     
-            host.SonarQubeService.GetQualityProfileAsync(
+            sonarQubeService.GetQualityProfileAsync(
                 bindingArgs.ProjectKey, bindingArgs.Connection.Organization?.Key, language.ServerLanguage, cancellationToken),
-                host.Logger);
+                logger);
 
             if (qualityProfileInfo == null)
             {
-                host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
+                logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
                    string.Format(Strings.CannotDownloadQualityProfileForLanguage, language.Name)));
                 return null;
             }
@@ -168,9 +181,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private BindingConfiguration QueueWriteBindingInformation()
         {
             Debug.Assert(InternalState.QualityProfiles != null, "Initialize was expected to be called first");
-
-            var configurationPersister = host.GetService<IConfigurationPersister>();
-            configurationPersister.AssertLocalServiceIsNotNull();
 
             BasicAuthCredentials credentials = bindingArgs.Connection.UserName == null ? null : new BasicAuthCredentials(bindingArgs.Connection.UserName, bindingArgs.Connection.Password);
 
@@ -200,12 +210,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             try
             {
-                var exclusions = await host.SonarQubeService.GetServerExclusions(bindingArgs.ProjectKey, cancellationToken);
+                var exclusions = await sonarQubeService.GetServerExclusions(bindingArgs.ProjectKey, cancellationToken);
                 exclusionSettingsStorage.SaveSettings(exclusions);
             }
             catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                host.Logger.WriteLine(string.Format(Strings.SaveExclusionsFailed, ex.Message));
+                logger.WriteLine(string.Format(Strings.SaveExclusionsFailed, ex.Message));
                 return false;
             }
             return true;
