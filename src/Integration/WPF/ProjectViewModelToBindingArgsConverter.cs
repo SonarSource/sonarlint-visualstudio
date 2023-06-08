@@ -21,7 +21,7 @@
 using System;
 using System.Globalization;
 using System.Windows.Data;
-using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 
 namespace SonarLint.VisualStudio.Integration.WPF

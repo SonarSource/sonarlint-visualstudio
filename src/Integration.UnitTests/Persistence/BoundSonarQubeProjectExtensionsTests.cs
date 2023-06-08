@@ -21,8 +21,8 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;

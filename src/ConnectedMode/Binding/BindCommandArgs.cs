@@ -20,7 +20,7 @@
 
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     /// <summary>
     /// Data class containing the arguments required by the bind command

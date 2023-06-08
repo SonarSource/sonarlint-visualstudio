@@ -20,6 +20,7 @@
 
 using System;
 using System.Diagnostics;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Integration.Binding
