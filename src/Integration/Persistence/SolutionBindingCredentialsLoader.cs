@@ -21,7 +21,7 @@
 using System;
 using System.Diagnostics;
 using Microsoft.Alm.Authentication;
-using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Helpers;
 
