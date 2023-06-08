@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// <summary>
     /// Data class containing the arguments required by the bind command
     /// </summary>
-    internal class BindCommandArgs
+    public class BindCommandArgs
     {
         public BindCommandArgs(string projectKey, string projectName, ConnectionInformation connection)
         {

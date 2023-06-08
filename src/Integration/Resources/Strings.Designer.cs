@@ -233,15 +233,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot download the quality profile for language {0}.
-        /// </summary>
-        public static string CannotDownloadQualityProfileForLanguage {
-            get {
-                return ResourceManager.GetString("CannotDownloadQualityProfileForLanguage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to _Connect.
         /// </summary>
         public static string ConnectButtonText {
@@ -369,15 +360,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Downloading quality profile: {0}.
-        /// </summary>
-        public static string DownloadingQualityProfileProgressMessage {
-            get {
-                return ResourceManager.GetString("DownloadingQualityProfileProgressMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Downloading server settings..
         /// </summary>
         public static string DownloadingServerSettingsProgessMessage {
@@ -437,15 +419,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string FailedToCheckIfTestProject {
             get {
                 return ResourceManager.GetString("FailedToCheckIfTestProject", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to create the configuration for language {0}.
-        /// </summary>
-        public static string FailedToCreateBindingConfigForLanguage {
-            get {
-                return ResourceManager.GetString("FailedToCreateBindingConfigForLanguage", resourceCulture);
             }
         }
         
@@ -667,15 +640,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Successfully downloaded quality profile. Name: &apos;{0}&apos;, Key: &apos;{1}&apos;, Language: &apos;{2}&apos;.
-        /// </summary>
-        public static string QualityProfileDownloadSuccessfulMessageFormat {
-            get {
-                return ResourceManager.GetString("QualityProfileDownloadSuccessfulMessageFormat", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Refresh.
         /// </summary>
         public static string RefreshCommandDisplayText {
@@ -717,15 +681,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string RulesetSerializer_RulesetDoesNotExist {
             get {
                 return ResourceManager.GetString("RulesetSerializer_RulesetDoesNotExist", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to retrieve/process server settings. Error: {0}.
-        /// </summary>
-        public static string SaveExclusionsFailed {
-            get {
-                return ResourceManager.GetString("SaveExclusionsFailed", resourceCulture);
             }
         }
         

@@ -30,7 +30,6 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
-using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 using Language = SonarLint.VisualStudio.Core.Language;
@@ -111,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 currentLanguage++;
 
-                var progressMessage = string.Format(Strings.DownloadingQualityProfileProgressMessage, language.Name);
+                var progressMessage = string.Format(BindingStrings.DownloadingQualityProfileProgressMessage, language.Name);
                 progress?.Report(new FixedStepsProgress(progressMessage, currentLanguage, languageCount));
 
                 var qualityProfileInfo = await TryDownloadQualityProfileAsync(language, cancellationToken);
@@ -129,16 +128,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 var bindingConfig = await bindingConfigProvider.GetConfigurationAsync(qualityProfileInfo, language, bindingConfiguration, cancellationToken);
                 if (bindingConfig == null)
                 {
-                    logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
-                        string.Format(Strings.FailedToCreateBindingConfigForLanguage, language.Name)));
+                    logger.WriteLine(string.Format(BindingStrings.SubTextPaddingFormat,
+                        string.Format(BindingStrings.FailedToCreateBindingConfigForLanguage, language.Name)));
                     return false;
                 }
 
                 // TODO - CM: we don't need the dictionary, just the list of configs.
                 InternalState.BindingConfigs[language] = bindingConfig;
 
-                logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
-                    string.Format(Strings.QualityProfileDownloadSuccessfulMessageFormat, qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name)));
+                logger.WriteLine(string.Format(BindingStrings.SubTextPaddingFormat,
+                    string.Format(BindingStrings.QualityProfileDownloadSuccessfulMessageFormat, qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name)));
             }
 
             return true;
@@ -167,8 +166,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             if (qualityProfileInfo == null)
             {
-                logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
-                   string.Format(Strings.CannotDownloadQualityProfileForLanguage, language.Name)));
+                logger.WriteLine(string.Format(BindingStrings.SubTextPaddingFormat,
+                   string.Format(BindingStrings.CannotDownloadQualityProfileForLanguage, language.Name)));
                 return null;
             }
             
@@ -215,7 +214,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
             catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(string.Format(Strings.SaveExclusionsFailed, ex.Message));
+                logger.WriteLine(string.Format(BindingStrings.SaveExclusionsFailed, ex.Message));
                 return false;
             }
             return true;
