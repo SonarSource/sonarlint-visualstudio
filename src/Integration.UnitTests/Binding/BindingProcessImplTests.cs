@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -43,61 +42,53 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class BindingProcessImplTests
     {
-        private ConfigurableServiceProvider serviceProvider;
-        private Mock<ISonarQubeService> sonarQubeServiceMock;
-        private ConfigurableHost host;
-        private TestLogger logger;
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            this.serviceProvider = new ConfigurableServiceProvider();
-
-            logger = new TestLogger();
-            serviceProvider.RegisterService(typeof(ILogger), logger);
-
-            this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
-
-            this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
-            host.Logger = logger;
-        }
-
         #region Tests
 
         [TestMethod]
         public void Ctor_ArgChecks()
         {
-            var validHost = new ConfigurableHost();
             var bindingArgs = CreateBindCommandArgs(connection: new ConnectionInformation(new Uri("http://server")));
-            var slnBindOp = new Mock<ISolutionBindingOperation>().Object;
-            var bindingConfigProvider = new Mock<IBindingConfigProvider>().Object;
+            var slnBindOp = Mock.Of<ISolutionBindingOperation>();
+            var bindingConfigProvider = Mock.Of<IBindingConfigProvider>();
+            var sonarQubeService = Mock.Of<ISonarQubeService>();
+            var configurationPersister = Mock.Of<IConfigurationPersister>();
             var exclusionSettingsStorage = Mock.Of<IExclusionSettingsStorage>();
+            var logger = Mock.Of<ILogger>();
 
-            // 1. Null host
-            Action act = () => new BindingProcessImpl(null, bindingArgs, slnBindOp, bindingConfigProvider, exclusionSettingsStorage);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
-
-            // 2. Null binding args
-            act = () => new BindingProcessImpl(validHost, null, slnBindOp, bindingConfigProvider, exclusionSettingsStorage);
+            // 1. Null binding args
+            Action act = () => new BindingProcessImpl(null, slnBindOp, bindingConfigProvider, exclusionSettingsStorage, configurationPersister, sonarQubeService, logger);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingArgs");
 
-            // 3. Null solution binding operation
-            act = () => new BindingProcessImpl(validHost, bindingArgs, null, bindingConfigProvider, exclusionSettingsStorage);
+            // 2. Null solution binding operation
+            act = () => new BindingProcessImpl(bindingArgs, null, bindingConfigProvider, exclusionSettingsStorage, configurationPersister, sonarQubeService, logger);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingOperation");
 
-            // 4. Null rules configuration provider
-            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, null, exclusionSettingsStorage);
+            // 3. Null binding configuration provider
+            act = () => new BindingProcessImpl(bindingArgs, slnBindOp, null, exclusionSettingsStorage, configurationPersister, sonarQubeService, logger);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingConfigProvider");
 
-            // 5. Null exclusion settings storage
-            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, bindingConfigProvider, null);
+            // 4. Null exclusion settings storage
+            act = () => new BindingProcessImpl(bindingArgs, slnBindOp, bindingConfigProvider, null, configurationPersister, sonarQubeService, logger);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("exclusionSettingsStorage");
+
+            // 5. Null configuration persister
+            act = () => new BindingProcessImpl(bindingArgs, slnBindOp, bindingConfigProvider, exclusionSettingsStorage, null, sonarQubeService, logger);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("configurationPersister");
+
+            // 6. Null SonarQubeService
+            act = () => new BindingProcessImpl(bindingArgs, slnBindOp, bindingConfigProvider, exclusionSettingsStorage, configurationPersister, null, logger);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
+
+            // 7. Null logger
+            act = () => new BindingProcessImpl(bindingArgs, slnBindOp, bindingConfigProvider, exclusionSettingsStorage, configurationPersister, sonarQubeService, null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
         public async Task SaveServerExclusionsAsync_ReturnsTrue()
         {
             var bindingArgs = CreateBindCommandArgs(projectKey: "projectKey");
+            var logger = new TestLogger(logToConsole: true);
 
             ServerExclusions settings = CreateSettings();
 
@@ -106,7 +97,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var exclusionSettingsStorage = new Mock<IExclusionSettingsStorage>();
 
-            var testSubject = CreateTestSubject(bindingArgs: bindingArgs, sonarQubeService: sonarQubeService.Object, exclusionSettingsStorage: exclusionSettingsStorage.Object);
+            var testSubject = CreateTestSubject(bindingArgs: bindingArgs,
+                sonarQubeService: sonarQubeService.Object,
+                exclusionSettingsStorage: exclusionSettingsStorage.Object,
+                logger: logger);
 
             await testSubject.SaveServerExclusionsAsync(CancellationToken.None);
 
@@ -117,12 +111,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public async Task SaveServerExclusionsAsync_HasError_ReturnsFalse()
         {
+            var logger = new TestLogger(logToConsole: true);
             var bindingArgs = CreateBindCommandArgs(projectKey: "projectKey");
 
             var sonarQubeService = new Mock<ISonarQubeService>();
             sonarQubeService.Setup(s => s.GetServerExclusions("projectKey", It.IsAny<CancellationToken>())).Throws(new Exception("Expected Error"));
 
-            var testSubject = CreateTestSubject(bindingArgs: bindingArgs, sonarQubeService: sonarQubeService.Object);
+            var testSubject = CreateTestSubject(
+                bindingArgs: bindingArgs,
+                sonarQubeService: sonarQubeService.Object,
+                logger: logger);
 
             var result = await testSubject.SaveServerExclusionsAsync(CancellationToken.None);
 
@@ -134,12 +132,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void SaveServerExclusionsAsync_HasCriticalError_Throws()
         {
+            var logger = new TestLogger(logToConsole: true);
             var bindingArgs = CreateBindCommandArgs(projectKey: "projectKey");
 
             var sonarQubeService = new Mock<ISonarQubeService>();
             sonarQubeService.Setup(s => s.GetServerExclusions("projectKey", It.IsAny<CancellationToken>())).Throws(new StackOverflowException("Critical Error"));
 
-            var testSubject = CreateTestSubject(bindingArgs: bindingArgs, sonarQubeService: sonarQubeService.Object);
+            var testSubject = CreateTestSubject(bindingArgs: bindingArgs,
+                sonarQubeService: sonarQubeService.Object,
+                logger: logger);
 
             Func<Task<bool>> act = async () => await testSubject.SaveServerExclusionsAsync(CancellationToken.None);
 
@@ -161,7 +162,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public async Task DownloadQualityProfile_SavesConfiguration()
         {
             var configPersister = new ConfigurableConfigurationProvider();
-            this.serviceProvider.RegisterService(typeof(IConfigurationPersister), configPersister);
 
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
@@ -173,14 +173,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var bindingConfig = new Mock<IBindingConfig>().Object;
 
             var language = Language.VBNET;
-            SonarQubeQualityProfile profile = this.ConfigureQualityProfile(language, QualityProfileName);
+            var sonarQubeService = new Mock<ISonarQubeService>();
+            SonarQubeQualityProfile profile = ConfigureQualityProfile(sonarQubeService, language, QualityProfileName);
 
             var configProviderMock = new Mock<IBindingConfigProvider>();
             configProviderMock.Setup(x => x.GetConfigurationAsync(profile, language, It.IsAny<BindingConfiguration>(), CancellationToken.None))
                 .ReturnsAsync(bindingConfig);
 
             var bindingArgs = CreateBindCommandArgs("key", ProjectName, new ConnectionInformation(new Uri("http://connected")));
-            var testSubject = this.CreateTestSubject(bindingArgs, configProviderMock.Object, languagesToBind: new []{ language });
+            var testSubject = CreateTestSubject(bindingArgs,
+                configProviderMock.Object,
+                sonarQubeService: sonarQubeService.Object,
+                configurationPersister: configPersister,
+                languagesToBind: new []{ language });
 
             // Act
             await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
@@ -199,6 +204,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public async Task DownloadQualityProfile_WhenQualityProfileIsNotAvailable_OtherLanguagesDownloadedSucceessfully()
         {
             // Arrange
+            var logger = new TestLogger(logToConsole: true);
             var languagesToBind = new[] {
                 Language.Cpp,       // unavailable
                 Language.CSharp,
@@ -208,17 +214,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Configure available languages on the server
             var configProvider = new Mock<IBindingConfigProvider>();
-            SetupAvailableLanguages(configProvider,
+            var sonarQubeService = new Mock<ISonarQubeService>();
+            SetupAvailableLanguages(configProvider, sonarQubeService,
                 Language.CSharp,
                 Language.VBNET,
                 Language.Css /* available on server, but shouldn't be requested*/ );
 
             var configPersister = new ConfigurableConfigurationProvider();
-            serviceProvider.RegisterService(typeof(IConfigurationPersister), configPersister);
 
             var testSubject = CreateTestSubject(
-                configProvider: configProvider.Object,
-                languagesToBind: languagesToBind);
+                bindingConfigProvider: configProvider.Object,
+                configurationPersister: configPersister,
+                languagesToBind: languagesToBind,
+                sonarQubeService: sonarQubeService.Object,
+                logger: logger);
 
             var notifications = new ConfigurableProgressStepExecutionEvents();
             var progressAdapter = new FixedStepsProgressAdapter(notifications);
@@ -259,11 +268,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 => string.Format(Strings.DownloadingQualityProfileProgressMessage, language.Name);
         }
 
-        private void SetupAvailableLanguages(Mock<IBindingConfigProvider> configProvider, params Language[] languages)
+        private void SetupAvailableLanguages(Mock<IBindingConfigProvider> configProvider,
+            Mock<ISonarQubeService> sonarQubeService,
+            params Language[] languages)
         {
             foreach (var language in languages)
             {
-                var profile = ConfigureQualityProfile(language, "Profile" + language.Name);
+                var profile = ConfigureQualityProfile(sonarQubeService, language, "Profile" + language.Name);
                 configProvider.Setup(x => x.GetConfigurationAsync(profile, language, BindingConfiguration.Standalone, CancellationToken.None))
                     .ReturnsAsync(Mock.Of<IBindingConfig>());
             }
@@ -272,10 +283,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public async Task DownloadQualityProfile_WhenBindingConfigIsNull_Fails()
         {
-            var configPersister = new ConfigurableConfigurationProvider();
-            this.serviceProvider.RegisterService(typeof(IConfigurationPersister), configPersister);
-
             // Arrange
+            var logger = new TestLogger(logToConsole: true);
+            var configPersister = new ConfigurableConfigurationProvider();
             const string QualityProfileName = "SQQualityProfileName";
             const string ProjectName = "SQProjectName";
 
@@ -283,11 +293,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var progressAdapter = new FixedStepsProgressAdapter(notifications);
 
             var language = Language.VBNET;
-            SonarQubeQualityProfile profile = this.ConfigureQualityProfile(language, QualityProfileName);
+            var sonarQubeService = new Mock<ISonarQubeService>();
+            SonarQubeQualityProfile profile = ConfigureQualityProfile(sonarQubeService, language, QualityProfileName);
 
             var configProviderMock = new Mock<IBindingConfigProvider>();
             var bindingArgs = CreateBindCommandArgs("key", ProjectName, new ConnectionInformation(new Uri("http://connected")));
-            var testSubject = this.CreateTestSubject(bindingArgs, configProviderMock.Object, languagesToBind: new[] { language });
+            var testSubject = CreateTestSubject(bindingArgs, configProviderMock.Object,
+                configurationPersister: configPersister,
+                languagesToBind: new[] { language },
+                sonarQubeService: sonarQubeService.Object,
+                logger: logger);
 
             // Act
             var result = await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
@@ -345,21 +360,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Helpers
 
         private BindingProcessImpl CreateTestSubject(BindCommandArgs bindingArgs = null,
-            IBindingConfigProvider configProvider = null,
-            ISonarQubeService sonarQubeService = null,
+            IBindingConfigProvider bindingConfigProvider = null,
             IExclusionSettingsStorage exclusionSettingsStorage = null,
+            IConfigurationPersister configurationPersister = null,
+            ISonarQubeService sonarQubeService = null,
+            ILogger logger = null,
             IEnumerable<Language> languagesToBind = null)
         {
             bindingArgs = bindingArgs ?? CreateBindCommandArgs();
-            configProvider = configProvider ?? new Mock<IBindingConfigProvider>().Object;
-            exclusionSettingsStorage = exclusionSettingsStorage ?? Mock.Of<IExclusionSettingsStorage>();
-            languagesToBind = languagesToBind ?? Language.KnownLanguages;
-
-            this.host.SonarQubeService = sonarQubeService ?? this.sonarQubeServiceMock.Object;
+            bindingConfigProvider ??= new Mock<IBindingConfigProvider>().Object;
+            sonarQubeService ??= Mock.Of<ISonarQubeService>();
+            configurationPersister ??= Mock.Of<IConfigurationPersister>();
+            exclusionSettingsStorage ??= Mock.Of<IExclusionSettingsStorage>();
+            logger ??= new TestLogger(logToConsole: true);
+            languagesToBind ??= Language.KnownLanguages;
 
             var slnBindOperation = new SolutionBindingOperation();
 
-            return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, configProvider, exclusionSettingsStorage, false, languagesToBind);
+            return new BindingProcessImpl(bindingArgs, slnBindOperation, bindingConfigProvider,
+                exclusionSettingsStorage, configurationPersister, sonarQubeService, logger, false, languagesToBind);
         }
 
         private BindCommandArgs CreateBindCommandArgs(string projectKey = "key", string projectName = "name", ConnectionInformation connection = null)
@@ -368,10 +387,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return new BindCommandArgs(projectKey, projectName, connection);
         }
 
-        private SonarQubeQualityProfile ConfigureQualityProfile(Language language, string profileName)
+        private SonarQubeQualityProfile ConfigureQualityProfile(Mock<ISonarQubeService> sonarQubeService, Language language, string profileName)
         {
             var profile = new SonarQubeQualityProfile("", profileName, "", false, DateTime.Now);
-            this.sonarQubeServiceMock
+            sonarQubeService
                 .Setup(x => x.GetQualityProfileAsync(It.IsAny<string>(), It.IsAny<string>(), language.ServerLanguage, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(profile);
 

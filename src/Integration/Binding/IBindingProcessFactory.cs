@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -40,6 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         private readonly IHost host;
         private readonly ISonarQubeService sonarQubeService;
+        private readonly IConfigurationPersister configurationPersister;
         private readonly IExclusionSettingsStorage exclusionSettingsStorage;
         private readonly ILogger logger;
 
@@ -47,10 +49,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
         public BindingProcessFactory(IHost host,
             ISonarQubeService sonarQubeService,
             IExclusionSettingsStorage exclusionSettingsStorage,
+            IConfigurationPersister configurationPersister,
             ILogger logger)
         {
             this.host = host;
             this.sonarQubeService = sonarQubeService;
+            this.configurationPersister = configurationPersister;
             this.exclusionSettingsStorage = exclusionSettingsStorage;
             this.logger = logger;
         }
@@ -60,7 +64,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var bindingConfigProvider = CreateBindingConfigProvider();
             var solutionBindingOp = new SolutionBindingOperation();
 
-            return new BindingProcessImpl(host, bindingArgs, solutionBindingOp, bindingConfigProvider, exclusionSettingsStorage, isFirstBinding);
+            return new BindingProcessImpl(bindingArgs,
+                solutionBindingOp,
+                bindingConfigProvider,
+                exclusionSettingsStorage,
+                configurationPersister,
+                sonarQubeService,
+                logger,
+                isFirstBinding);
         }
 
         private IBindingConfigProvider CreateBindingConfigProvider()

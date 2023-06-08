@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
@@ -40,6 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 MefTestHelpers.CreateExport<IHost>(),
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IExclusionSettingsStorage>(),
+                MefTestHelpers.CreateExport<IConfigurationPersister>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
@@ -61,14 +63,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private static BindingProcessFactory CreateTestSubject(IHost host = null,
             ISonarQubeService service = null,
             IExclusionSettingsStorage exclusionSettingsStorage = null,
+            IConfigurationPersister configurationPersister = null,
             ILogger logger = null)
         {
             host ??= Mock.Of<IHost>();
             service ??= Mock.Of<ISonarQubeService>();
             exclusionSettingsStorage ??= Mock.Of<IExclusionSettingsStorage>();
+            configurationPersister ??= Mock.Of<IConfigurationPersister>();
             logger ??= new TestLogger(logToConsole: true);
 
-            return new BindingProcessFactory(host, service, exclusionSettingsStorage, logger);
+            return new BindingProcessFactory(host, service, exclusionSettingsStorage, configurationPersister, logger);
         }
 
     }
