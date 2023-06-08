@@ -117,10 +117,29 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CannotDownloadQualityProfileForLanguage" xml:space="preserve">
+    <value>Cannot download the quality profile for language {0}</value>
+    <comment>Output window message displayed when the application failed to download the quality profile associated to a language. {0} the language name.</comment>
+  </data>
+  <data name="DownloadingQualityProfileProgressMessage" xml:space="preserve">
+    <value>Downloading quality profile: {0}</value>
+    <comment>A progress notification message e.g. "Downloading quality profile: C#"</comment>
+  </data>
+  <data name="FailedToCreateBindingConfigForLanguage" xml:space="preserve">
+    <value>Failed to create the configuration for language {0}</value>
+    <comment>Output window message displayed when the application failed to fetch and create the binding configuration associated with a language. {0} the language name.</comment>
+  </data>
   <data name="NoSonarAnalyzerActiveRulesForQualityProfile" xml:space="preserve">
     <value>There are no active rules on the selected Quality Profile '{0}' for Language {1} (rules from the SonarAnalyzer repository). Connected mode requires at least one active rule.
    Note that third party rules are excluded from SonarLint</value>
     <comment>Output window message displayed when the result from the API export call returns no active rule from the SonarAnalyzer repository. {0} The name of the Quality Profile. {1} the language.</comment>
+  </data>
+  <data name="QualityProfileDownloadSuccessfulMessageFormat" xml:space="preserve">
+    <value>Successfully downloaded quality profile. Name: '{0}', Key: '{1}', Language: '{2}'</value>
+    <comment>Output window message indicating the quality profile file was successfully downloaded. {0} quality profile name, {1} quality profile key, {2} language name.</comment>
+  </data>
+  <data name="SaveExclusionsFailed" xml:space="preserve">
+    <value>Failed to retrieve/process server settings. Error: {0}</value>
   </data>
   <data name="SubTextPaddingFormat" xml:space="preserve">
     <value>   {0}</value>

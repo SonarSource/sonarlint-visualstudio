@@ -27,11 +27,6 @@ using SonarLint.VisualStudio.Integration.UnintrusiveBinding;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
-    public interface IConfigurationPersister
-    {
-        BindingConfiguration Persist(BoundSonarQubeProject project);
-    }
-
     [Export(typeof(IConfigurationPersister))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ConfigurationPersister : IConfigurationPersister
