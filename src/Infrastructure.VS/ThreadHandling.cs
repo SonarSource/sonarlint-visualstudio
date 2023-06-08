@@ -83,6 +83,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         public async Task RunAsync(Func<Task> asyncMethod) => await ThreadHelper.JoinableTaskFactory.RunAsync(asyncMethod);
 
         public IAwaitableWrapper SwitchToBackgroundThread() => new TaskSchedulerAwaitableWrapper(new AwaitExtensions.TaskSchedulerAwaitable(TaskScheduler.Default));
+        
+        public async Task SwitchToMainThreadAsync() => await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
         #region Wrappers for VS TaskSchedule awaiter/awaitable structs
 
