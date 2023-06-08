@@ -27,9 +27,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarLint.VisualStudio.Integration.UnintrusiveBinding;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
@@ -82,7 +80,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 MefTestHelpers.CreateExport<ICredentialStoreService>(),
                 MefTestHelpers.CreateExport<IProjectToLanguageMapper>(),
                 MefTestHelpers.CreateExport<IConfigurationProvider>(),
-                MefTestHelpers.CreateExport<IUnintrusiveBindingPathProvider>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
@@ -395,7 +392,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 Mock.Of<ICredentialStoreService>(),
                 Mock.Of<IProjectToLanguageMapper>(),
                 this.configProvider,
-                Mock.Of<IUnintrusiveBindingPathProvider>(),
                 Mock.Of<ILogger>(),
                 Dispatcher.CurrentDispatcher);
 
