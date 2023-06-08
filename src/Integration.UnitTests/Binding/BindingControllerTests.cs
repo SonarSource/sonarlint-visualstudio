@@ -77,9 +77,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             serviceProvider.RegisterService(typeof(ILogger), logger);
 
             folderWorkspaceServiceMock = new Mock<IFolderWorkspaceService>();
+            var bindingProcessFactoryMock = new Mock<IBindingProcessFactory>();
+
             var mefHost = ConfigurableComponentModel.CreateWithExports(
                 MefTestHelpers.CreateExport<IFolderWorkspaceService>(folderWorkspaceServiceMock.Object),
-                MefTestHelpers.CreateExport<IConfigurationProvider>(configProvider));
+                MefTestHelpers.CreateExport<IConfigurationProvider>(configProvider),
+                MefTestHelpers.CreateExport<IBindingProcessFactory>(bindingProcessFactoryMock.Object));
 
             serviceProvider.RegisterService(typeof(SComponentModel), mefHost);
 
@@ -385,14 +388,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             configProvider.ModeToReturn = SonarLintMode.Standalone;
             configProvider.ProjectToReturn = ValidProject;
 
+            var bindingProcessFactory = new Mock<IBindingProcessFactory>();
+            var bindingProcess = Mock.Of<IBindingProcess>();
+            bindingProcessFactory.Setup(x => x.Create(ValidBindingArgs, true)).Returns(bindingProcess);
+
             // Act
-            var actual = BindingController.CreateBindingProcess(host, ValidBindingArgs);
+            var actual = BindingController.CreateBindingProcess(host, ValidBindingArgs, bindingProcessFactory.Object);
 
             // Assert
-            actual.Should().BeOfType<BindingProcessImpl>();
-            var bindingProcessImpl = (BindingProcessImpl)actual;
+            actual.Should().BeSameAs(bindingProcess);
             logger.AssertOutputStrings(Strings.Bind_FirstTimeBinding);
-            bindingProcessImpl.InternalState.IsFirstBinding.Should().BeTrue();
         }
 
         [TestMethod]
@@ -402,13 +407,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             configProvider.ModeToReturn = SonarLintMode.Connected;
             configProvider.ProjectToReturn = ValidProject;
 
+            var bindingProcessFactory = new Mock<IBindingProcessFactory>();
+            var bindingProcess = Mock.Of<IBindingProcess>();
+            bindingProcessFactory.Setup(x => x.Create(ValidBindingArgs, false)).Returns(bindingProcess);
+
             // Act
-            var actual = BindingController.CreateBindingProcess(host, ValidBindingArgs);
+            var actual = BindingController.CreateBindingProcess(host, ValidBindingArgs, bindingProcessFactory.Object);
 
             // Assert
-            actual.Should().BeOfType<BindingProcessImpl>();
-            var bindingProcessImpl = (BindingProcessImpl)actual;
-            bindingProcessImpl.InternalState.IsFirstBinding.Should().BeFalse();
+            actual.Should().BeSameAs(bindingProcess);
             logger.AssertOutputStrings(Strings.Bind_UpdatingNewStyleBinding);
         }
 
