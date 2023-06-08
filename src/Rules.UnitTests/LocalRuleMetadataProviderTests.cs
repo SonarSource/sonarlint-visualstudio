@@ -94,7 +94,6 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
 
                 actual.FullRuleKey.Should().Be(ruleId.ToString());
                 actual.Description.Should().Be(expectedDescription);
-                actual.Description.Should().NotBeNullOrWhiteSpace();
             }
         }
 

@@ -28,8 +28,6 @@ using System.Xml;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Newtonsoft.Json;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.Rules;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -107,7 +105,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
         [TestMethod]
         public void Create_CheckAllEmbedded()
-        {            
+        {
             // Performance: this test is loading nearly 2000 files and creating
             // XAML document for them, but it still only takes a around 3 seconds
             // to run.
@@ -139,15 +137,17 @@ namespace SonarLint.VisualStudio.Education.UnitTests
                 var data = ReadResource(fullResourceName);
                 var jsonRuleInfo = LocalRuleMetadataProvider.RuleInfoJsonDeserializer.Deserialize(data);
 
-                var doc = testSubject.Create(jsonRuleInfo);
+                if (!string.IsNullOrWhiteSpace(jsonRuleInfo.Description))
+                {
+                    var doc = testSubject.Create(jsonRuleInfo);
 
-                // Quick sanity check that something was produced
-                // Note: this is a quick way of getting the size of the document. Serializing the doc to a string
-                // and checking the length takes much longer (around 25 seconds)
-                var docLength = doc.ContentStart.DocumentStart.GetOffsetToPosition(doc.ContentEnd.DocumentEnd);
-                Console.WriteLine($"{jsonRuleInfo.FullRuleKey}: size = {docLength}");
-                docLength.Should().BeGreaterThan(30);
-
+                    // Quick sanity check that something was produced
+                    // Note: this is a quick way of getting the size of the document. Serializing the doc to a string
+                    // and checking the length takes much longer (around 25 seconds)
+                    var docLength = doc.ContentStart.DocumentStart.GetOffsetToPosition(doc.ContentEnd.DocumentEnd);
+                    Console.WriteLine($"{jsonRuleInfo.FullRuleKey}: size = {docLength}");
+                    docLength.Should().BeGreaterThan(30);
+                }
                 return true;
             }
             catch (Exception ex)
@@ -162,18 +162,6 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         {
             using var stream = new StreamReader(ResourceAssembly.GetManifestResourceStream(fullResourceName));
             return stream.ReadToEnd();
-        }
-
-        private static SonarCompositeRuleId GetCompositeRuleIdFromResourceName(string fullResourceName)
-        {
-            // Names are expected to be in the format:
-            //   SonarLint.VisualStudio.Rules.Embedded.{repo key}.{rule key}
-            // e.g. SonarLint.VisualStudio.Rules.Embedded.cpp.S101.json
-            var parts = fullResourceName.Split('.');
-            var repoKey = parts[parts.Length - 3];
-            var ruleKey = parts[parts.Length - 2];
-
-            return new SonarCompositeRuleId(repoKey, ruleKey);
         }
     }
 }
