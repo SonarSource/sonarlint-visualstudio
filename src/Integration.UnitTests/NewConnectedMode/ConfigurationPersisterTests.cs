@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.UnintrusiveBinding;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -48,23 +49,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void Ctor_InvalidArgs_NullConnectedModeSerializer_Throws()
+        public void MefCtor_CheckIsExported()
         {
-            // Arrange
-            Action act = () => new ConfigurationPersister(null, null);
-
-            // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("configFilePathProvider");
-        }
-
-        [TestMethod]
-        public void Ctor_InvalidArgs_NullSolutionBindingSerializer_Throws()
-        {
-            // Arrange
-            Action act = () => new ConfigurationPersister(configFilePathProvider.Object, null);
-
-            // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingDataWriter");
+            MefTestHelpers.CheckTypeCanBeImported<ConfigurationPersister, IConfigurationPersister>(
+                MefTestHelpers.CreateExport<IUnintrusiveBindingPathProvider>(),
+                MefTestHelpers.CreateExport<ISolutionBindingDataWriter>());
         }
 
         [TestMethod]

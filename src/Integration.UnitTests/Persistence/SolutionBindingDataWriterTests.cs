@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Persistence;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -58,19 +59,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void Ctor_NullFileLoader_Exception()
+        public void MefCtor_CheckIsExported()
         {
-            Action act = () => new SolutionBindingDataWriter((ISolutionBindingFileLoader)null, null);
-
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingFileLoader");
-        }
-
-        [TestMethod]
-        public void Ctor_NullCredentialsLoader_Exception()
-        {
-            Action act = () => new SolutionBindingDataWriter(solutionBindingFileLoader.Object, null);
-
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("credentialsLoader");
+            MefTestHelpers.CheckTypeCanBeImported<SolutionBindingDataWriter, ISolutionBindingDataWriter>(
+                MefTestHelpers.CreateExport<ICredentialStoreService>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [DataTestMethod]

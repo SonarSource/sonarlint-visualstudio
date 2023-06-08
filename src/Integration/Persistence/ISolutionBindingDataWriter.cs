@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
@@ -32,11 +33,14 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         bool Write(string configFilePath, BoundSonarQubeProject binding);
     }
 
+    [Export(typeof(ISolutionBindingDataWriter))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class SolutionBindingDataWriter : ISolutionBindingDataWriter
     {
         private readonly ISolutionBindingFileLoader solutionBindingFileLoader;
         private readonly ISolutionBindingCredentialsLoader credentialsLoader;
 
+        [ImportingConstructor]
         public SolutionBindingDataWriter(ICredentialStoreService credentialStoreService,
             ILogger logger)
             : this(new SolutionBindingFileLoader(logger), new SolutionBindingCredentialsLoader(credentialStoreService))
@@ -47,8 +51,8 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             ISolutionBindingFileLoader solutionBindingFileLoader,
             ISolutionBindingCredentialsLoader credentialsLoader)
         {
-            this.solutionBindingFileLoader = solutionBindingFileLoader ?? throw new ArgumentNullException(nameof(solutionBindingFileLoader));
-            this.credentialsLoader = credentialsLoader ?? throw new ArgumentNullException(nameof(credentialsLoader));
+            this.solutionBindingFileLoader = solutionBindingFileLoader;
+            this.credentialsLoader = credentialsLoader;
         }
 
         /// <summary>
