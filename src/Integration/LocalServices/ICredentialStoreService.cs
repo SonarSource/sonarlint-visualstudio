@@ -22,7 +22,7 @@ using Microsoft.Alm.Authentication;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public interface ICredentialStoreService : ILocalService
+    public interface ICredentialStoreService
     {
         void DeleteCredentials(TargetUri targetUri);
         Credential ReadCredentials(TargetUri targetUri);
