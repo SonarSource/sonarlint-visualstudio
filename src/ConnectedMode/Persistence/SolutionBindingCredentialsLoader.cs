@@ -21,11 +21,11 @@
 using System;
 using System.Diagnostics;
 using Microsoft.Alm.Authentication;
-using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Helpers;
 
-namespace SonarLint.VisualStudio.Integration.Persistence
+namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 {
     internal class SolutionBindingCredentialsLoader : ISolutionBindingCredentialsLoader
     {

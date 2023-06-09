@@ -17,13 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-using SonarLint.VisualStudio.ConnectedMode.Binding;
-using System.ComponentModel.Composition;
+
 using System;
-using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.Persistence;
-using SonarLint.VisualStudio.Integration.UnintrusiveBinding;
+using System.ComponentModel.Composition;
 using System.IO;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
@@ -31,10 +30,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     {
         BindingConfiguration Persist(BoundSonarQubeProject project);
     }
-}
 
-namespace SonarLint.VisualStudio.Integration.NewConnectedMode
-{
     [Export(typeof(IConfigurationPersister))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ConfigurationPersister : IConfigurationPersister

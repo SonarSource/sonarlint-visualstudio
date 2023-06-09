@@ -20,7 +20,7 @@
 
 using Microsoft.Alm.Authentication;
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     public interface ICredentialStoreService
     {

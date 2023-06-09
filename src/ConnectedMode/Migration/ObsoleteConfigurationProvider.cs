@@ -22,11 +22,10 @@ using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.Persistence;
-using SonarLint.VisualStudio.ConnectedMode.Migration;
 
-namespace SonarLint.VisualStudio.Integration.NewConnectedMode
+namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
     [Export(typeof(IObsoleteConfigurationProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]

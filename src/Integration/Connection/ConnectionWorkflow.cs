@@ -29,6 +29,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Alm.Authentication;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Connection.UI;
 using SonarLint.VisualStudio.Integration.Progress;

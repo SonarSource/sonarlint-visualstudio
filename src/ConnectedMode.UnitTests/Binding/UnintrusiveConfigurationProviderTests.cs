@@ -18,13 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
-using SonarLint.VisualStudio.Integration.Persistence;
-using SonarLint.VisualStudio.Integration.UnintrusiveBinding;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.UnintrusiveBinding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     [TestClass]
     public class UnintrusiveConfigurationProviderTests

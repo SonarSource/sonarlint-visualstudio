@@ -22,9 +22,8 @@ using System;
 using System.IO;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
-using SonarLint.VisualStudio.Integration.Persistence;
 
-namespace SonarLint.VisualStudio.Integration.NewConnectedMode
+namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
     /// <summary>
     /// Return the path of solution's binding configuration file when in connected mode.
