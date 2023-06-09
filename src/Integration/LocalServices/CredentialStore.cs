@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration
         {
         }
 
-        internal CredentialStore(ICredentialStore store, ILogger logger)
+        internal /* for testing */ CredentialStore(ICredentialStore store, ILogger logger)
         {
             this.store = store ?? throw new ArgumentNullException(nameof(store));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));

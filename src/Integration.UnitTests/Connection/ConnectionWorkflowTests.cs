@@ -70,15 +70,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             folderWorkspaceService = new Mock<IFolderWorkspaceService>();
             folderWorkspaceService.Setup(x => x.IsFolderWorkspace()).Returns(false);
 
+            this.credentialStoreMock = new Mock<ICredentialStoreService>();
+
             var mefModel = ConfigurableComponentModel.CreateWithExports(
                 MefTestHelpers.CreateExport<IFolderWorkspaceService>(folderWorkspaceService.Object),
                 MefTestHelpers.CreateExport<ISonarLintSettings>(settings),
-                MefTestHelpers.CreateExport<IProjectToLanguageMapper>(new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), Mock.Of<IProjectLanguageIndicator>(), Mock.Of<IConnectedModeSecrets>())));
+                MefTestHelpers.CreateExport<IProjectToLanguageMapper>(new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>(), Mock.Of<IProjectLanguageIndicator>(), Mock.Of<IConnectedModeSecrets>())),
+                MefTestHelpers.CreateExport<ICredentialStoreService>(credentialStoreMock.Object));
 
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
 
-            this.credentialStoreMock = new Mock<ICredentialStoreService>();
-            this.serviceProvider.RegisterService(typeof(ICredentialStoreService), this.credentialStoreMock.Object);
 
             this.testProjectRegexSetter = new Mock<ITestProjectRegexSetter>();
             this.serviceProvider.RegisterService(typeof(ITestProjectRegexSetter), testProjectRegexSetter.Object);
