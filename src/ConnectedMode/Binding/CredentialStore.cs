@@ -22,6 +22,7 @@ using System;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using Microsoft.Alm.Authentication;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration

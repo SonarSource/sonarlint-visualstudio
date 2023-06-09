@@ -20,7 +20,7 @@
 
 using SonarLint.VisualStudio.Core.Binding;
 
-namespace SonarLint.VisualStudio.Integration.Persistence
+namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 {
     internal interface ISolutionBindingFileLoader
     {
