@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             this.host = host ?? throw new ArgumentNullException(nameof(host));
             this.parentCommand = parentCommand ?? throw new ArgumentNullException(nameof(parentCommand));
 
-            this.credentialStore = this.host.GetService<ICredentialStoreService>();
+            this.credentialStore = this.host.GetMefService<ICredentialStoreService>();
 
             this.testProjectRegexSetter = this.host.GetService<ITestProjectRegexSetter>();
             testProjectRegexSetter.AssertLocalServiceIsNotNull();
