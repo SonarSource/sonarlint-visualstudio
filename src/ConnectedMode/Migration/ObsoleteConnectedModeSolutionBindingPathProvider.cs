@@ -21,6 +21,7 @@
 using System;
 using System.IO;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
@@ -40,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            solution = serviceProvider.GetService<SVsSolution, IVsSolution>();
+            solution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
         }
 
         public string Get()
@@ -62,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             var solutionFolder = Path.GetDirectoryName(solutionFilePath);
             var solutionName = Path.GetFileNameWithoutExtension(solutionFilePath);
             
-            return Path.Combine(solutionFolder, Constants.SonarlintManagedFolderName, $"{solutionName}.slconfig");
+            return Path.Combine(solutionFolder, PersistenceConstants.SonarlintManagedFolderName, $"{solutionName}.slconfig");
         }
     }
 }

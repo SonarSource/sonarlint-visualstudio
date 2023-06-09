@@ -20,12 +20,8 @@
 
 using System;
 using System.ComponentModel;
-using System.IO;
 using System.Linq.Expressions;
-using FluentAssertions;
 using Microsoft.Alm.Authentication;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
@@ -190,10 +186,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         {
             mockCredentialStore
                 .Setup(x => x.DeleteCredentials(wellKnownTargetUri))
-                .Throws(new FileFormatException());
+                .Throws(new InvalidOperationException());
 
             Action action = () => testSubject.DeleteCredentials(wellKnownTargetUri);
-            action.Should().ThrowExactly<FileFormatException>();
+            action.Should().ThrowExactly<InvalidOperationException>();
 
             logger.AssertNoOutputMessages();
         }
@@ -214,10 +210,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         {
             mockCredentialStore
                 .Setup(x => x.ReadCredentials(wellKnownTargetUri))
-                .Throws(new FileFormatException());
+                .Throws(new InvalidOperationException());
 
             Action action = () => testSubject.ReadCredentials(wellKnownTargetUri);
-            action.Should().ThrowExactly<FileFormatException>();
+            action.Should().ThrowExactly<InvalidOperationException>();
 
             logger.AssertNoOutputMessages();
         }
@@ -238,10 +234,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         {
             mockCredentialStore
                 .Setup(x => x.WriteCredentials(wellKnownTargetUri, It.IsAny<Credential>()))
-                .Throws(new FileFormatException());
+                .Throws(new InvalidOperationException());
 
             Action action = () => testSubject.WriteCredentials(wellKnownTargetUri, new Credential("old token", string.Empty));
-            action.Should().ThrowExactly<FileFormatException>();
+            action.Should().ThrowExactly<InvalidOperationException>();
 
             logger.AssertNoOutputMessages();
         }

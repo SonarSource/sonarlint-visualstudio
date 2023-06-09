@@ -18,31 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using Microsoft.Alm.Authentication;
-
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 {
-    internal class ConfigurableCredentialStore : ICredentialStoreService
+    internal static class PersistenceConstants
     {
-        internal readonly Dictionary<Uri, Credential> data =
-            new Dictionary<Uri, Credential>();
+        /// <summary>
+        /// The directory name of the SonarQube specific files that are being created in legacy connected mode
+        /// </summary>
+        public const string SonarlintManagedFolderName = ".sonarlint";
 
-        public void DeleteCredentials(TargetUri targetUri)
-        {
-            this.data.Remove(targetUri);
-        }
-
-        public Credential ReadCredentials(TargetUri targetUri)
-        {
-            Credential credentials;
-            return this.data.TryGetValue(targetUri, out credentials) ? credentials : null;
-        }
-
-        public void WriteCredentials(TargetUri targetUri, Credential credentials)
-        {
-            this.data[targetUri] = credentials;
-        }
+        /// <summary>
+        /// The directory name of the SonarQube specific files that are being created in legacy connected mode
+        /// </summary>
+        public const string LegacySonarQubeManagedFolderName = "SonarQube";
     }
 }

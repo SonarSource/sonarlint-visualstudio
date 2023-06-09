@@ -20,11 +20,8 @@
 
 using System;
 using System.IO;
-using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.UnintrusiveBinding;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -64,14 +61,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.UnintrusiveBinding
             var actual = testSubject.Get();
             actual.Should().BeNull();
         }
-        
+
         [TestMethod]
         public void Get_HasOpenSolution_ReturnsExpectedValue()
         {
             const string solutionPath = @"c:\aaa\bbbb\C C";
             const string solutionName = "mysolutionName";
             const string rootFolderName = @"x:\users\foo\";
-            
+
             var fullPathSlnPath = Path.Combine(solutionPath, solutionName + ".sln");
 
             var serviceProvider = CreateConfiguredServiceProvider(fullPathSlnPath);
