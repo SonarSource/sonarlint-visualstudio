@@ -22,6 +22,8 @@ using System;
 using System.ComponentModel;
 using System.Linq.Expressions;
 using Microsoft.Alm.Authentication;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
