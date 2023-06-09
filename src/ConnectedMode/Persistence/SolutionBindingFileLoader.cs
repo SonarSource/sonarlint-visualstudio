@@ -23,8 +23,8 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                 }
                 catch (JsonException)
                 {
-                    logger.WriteLine(Strings.FailedToDeserializeSQCOnfiguration, filePath);
+                    logger.WriteLine(PersistenceStrings.FailedToDeserializeSQCOnfiguration, filePath);
                 }
             }
 

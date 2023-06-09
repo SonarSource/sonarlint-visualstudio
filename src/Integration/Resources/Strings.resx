@@ -265,10 +265,6 @@ ocalization note: '[try again]()' is a special markup used to translate the text
     <value>Toggle visibility of unbound projects for this server.</value>
     <comment>Server context menu command tool tip text to show all projects</comment>
   </data>
-  <data name="FailedToDeserializeSQCOnfiguration" xml:space="preserve">
-    <value>Failed loading file: '{0}'. Please rebind solution to create a new configuration file.</value>
-    <comment>Output window message in case of deserialization error. {0} file path.</comment>
-  </data>
   <data name="ExpectedAbsoluteUris" xml:space="preserve">
     <value>The target URI must be an absolute URI</value>
     <comment>Exception message</comment>

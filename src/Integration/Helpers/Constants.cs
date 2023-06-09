@@ -33,16 +33,6 @@ namespace SonarLint.VisualStudio.Integration
         public const string CodeAnalysisRuleSetDirectoriesPropertyKey = "CodeAnalysisRuleSetDirectories";
 
         /// <summary>
-        /// The directory name of the SonarQube specific files that are being created in legacy connected mode
-        /// </summary>
-        public const string LegacySonarQubeManagedFolderName = "SonarQube";
-
-        /// <summary>
-        /// The directory name of the SonarQube specific files that are being created in legacy connected mode
-        /// </summary>
-        public const string SonarlintManagedFolderName = ".sonarlint";
-
-        /// <summary>
         /// The generated rule set name
         /// </summary>
         public const string RuleSetName = "SonarQube";
