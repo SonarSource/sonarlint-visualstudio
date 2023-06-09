@@ -9,14 +9,20 @@
 
   <PropertyGroup>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+
+    <RequiresLibGit>true</RequiresLibGit>
+    <RequiresNewtonsoft>true</RequiresNewtonsoft>
   </PropertyGroup>
+
+  <PropertyGroup Label="Specify which external/VS-specific refs are required">
+    <RequiresAlmAuthentication>true</RequiresAlmAuthentication>
+  </PropertyGroup>
+  <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
   <PropertyGroup>
     <ProjectGuid>0BE551DB-3C46-42A5-BB38-DA80E83F8ABD</ProjectGuid>
     <AssemblyName>SonarLint.VisualStudio.ConnectedMode</AssemblyName>
     <RootNamespace>SonarLint.VisualStudio.ConnectedMode</RootNamespace>
-    <RequiresLibGit>true</RequiresLibGit>
-    <RequiresNewtonsoft>true</RequiresNewtonsoft>
 
     <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
 
