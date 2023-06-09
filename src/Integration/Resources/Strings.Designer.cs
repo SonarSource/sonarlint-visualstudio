@@ -432,15 +432,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed loading file: &apos;{0}&apos;. Please rebind solution to create a new configuration file..
-        /// </summary>
-        public static string FailedToDeserializeSQCOnfiguration {
-            get {
-                return ResourceManager.GetString("FailedToDeserializeSQCOnfiguration", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Failed to bind the solution to SonarQube project, [try again]().
         ///See more information in the output window (SonarLint)..
         /// </summary>
