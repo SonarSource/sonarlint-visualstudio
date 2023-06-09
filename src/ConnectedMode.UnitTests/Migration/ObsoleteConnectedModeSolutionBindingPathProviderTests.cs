@@ -19,13 +19,10 @@
  */
 
 using System;
-using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarLint.VisualStudio.ConnectedMode.Migration;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 {
     [TestClass]
     public class ObsoleteConnectedModeSolutionBindingPathProviderTests

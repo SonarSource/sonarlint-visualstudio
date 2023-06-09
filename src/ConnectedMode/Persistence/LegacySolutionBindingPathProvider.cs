@@ -23,7 +23,7 @@ using System.IO;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 
-namespace SonarLint.VisualStudio.Integration.Persistence
+namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 {
     internal class LegacySolutionBindingPathProvider : ISolutionBindingPathProvider
     {

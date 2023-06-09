@@ -20,11 +20,10 @@
 
 using System.ComponentModel.Composition;
 using System.IO;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.Persistence;
-using SonarLint.VisualStudio.Integration.UnintrusiveBinding;
 
-namespace SonarLint.VisualStudio.Integration.NewConnectedMode
+namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     [Export(typeof(IConfigurationProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]

@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Alm.Authentication;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

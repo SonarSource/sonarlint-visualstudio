@@ -23,10 +23,10 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.Integration.Persistence
+namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 {
     internal class SolutionBindingFileLoader : ISolutionBindingFileLoader
     {

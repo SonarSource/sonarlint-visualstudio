@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Integration.UnintrusiveBinding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     /// <summary>
     /// Return the path of solution's binding configuration file when in connected mode.
