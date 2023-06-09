@@ -24,6 +24,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -70,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var actual = testSubject.Get();
 
-            var expected = Path.Combine("c:\\test", Constants.LegacySonarQubeManagedFolderName, LegacySolutionBindingPathProvider.LegacyBindingConfigurationFileName);
+            var expected = Path.Combine("c:\\test", PersistenceConstants.LegacySonarQubeManagedFolderName, LegacySolutionBindingPathProvider.LegacyBindingConfigurationFileName);
 
             actual.Should().Be(expected);
         }

@@ -21,6 +21,7 @@
 using System;
 using System.IO;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
@@ -36,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            vsSolution = serviceProvider.GetService<SVsSolution, IVsSolution>();
+            vsSolution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
         }
 
         public string Get()
@@ -49,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                 return null;
             }
 
-            return Path.Combine(solutionDirectory, Constants.LegacySonarQubeManagedFolderName, LegacyBindingConfigurationFileName);
+            return Path.Combine(solutionDirectory, PersistenceConstants.LegacySonarQubeManagedFolderName, LegacyBindingConfigurationFileName);
         }
     }
 }
