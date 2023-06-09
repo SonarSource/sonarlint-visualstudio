@@ -355,7 +355,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             shell.RegisterPropertyGetter((int)__VSSPROPID2.VSSPROPID_InstallRootDir, () => this.TestContext.TestRunDirectory);
             this.serviceProvider.RegisterService(typeof(SVsShell), shell);
             this.serviceProvider.RegisterService(typeof(SVsSolution), new Mock<IVsSolution>().Object);
-            this.serviceProvider.RegisterService(typeof(ICredentialStoreService), new Mock<ICredentialStoreService>().Object);
 
             var testSubject = CreateTestSubject(new ConfigurableActiveSolutionTracker());
 
@@ -389,7 +388,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 this.stepRunner,
                 this.sonarQubeServiceMock.Object,
                 tracker ?? new ConfigurableActiveSolutionTracker(),
-                Mock.Of<ICredentialStoreService>(),
                 Mock.Of<IProjectToLanguageMapper>(),
                 this.configProvider,
                 Mock.Of<ILogger>(),
