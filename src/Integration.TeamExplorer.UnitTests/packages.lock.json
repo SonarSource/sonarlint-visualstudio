@@ -1227,10 +1227,12 @@
       "SonarLint.VisualStudio.ConnectedMode": {
         "type": "Project",
         "dependencies": {
+          "Microsoft.Alm.Authentication": "[4.0.0.1, )",
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
           "Newtonsoft.Json": "[13.0.1, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
-          "SonarLint.VisualStudio.IssueVisualization": "[1.0.0, )"
+          "SonarLint.VisualStudio.IssueVisualization": "[1.0.0, )",
+          "StrongNamer": "[0.0.8, )"
         }
       },
       "SonarLint.VisualStudio.Core": {
@@ -1272,6 +1274,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
+          "SonarLint.VisualStudio.ConnectedMode": "[1.0.0, )",
           "SonarLint.VisualStudio.Integration": "[1.0.0, )",
           "SonarQube.Client": "[1.0.0, )"
         }
