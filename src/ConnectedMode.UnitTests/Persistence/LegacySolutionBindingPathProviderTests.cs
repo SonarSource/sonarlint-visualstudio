@@ -20,14 +20,10 @@
 
 using System;
 using System.IO;
-using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
-using SonarLint.VisualStudio.Integration.Persistence;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 {
     [TestClass]
     public class LegacySolutionBindingPathProviderTests

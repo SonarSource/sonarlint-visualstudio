@@ -23,10 +23,9 @@ using System.IO;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration.UnintrusiveBinding;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.UnintrusiveBinding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
 {
     [TestClass]
     public class UnintrusiveBindingPathProviderTests

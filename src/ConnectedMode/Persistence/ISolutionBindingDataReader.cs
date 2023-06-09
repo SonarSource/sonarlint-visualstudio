@@ -21,9 +21,11 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.Integration.Persistence
+namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 {
     internal interface ISolutionBindingDataReader
     {
