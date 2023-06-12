@@ -34,8 +34,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Embedded\SonarLintTargets.xml" />
-    <EmbeddedResource Include="Embedded\SonarLintTargets.xml" />
+    <None Remove="Install\SonarLintTargets.xml" />
+    <EmbeddedResource Include="Install\SonarLintTargets.xml" />
   </ItemGroup>
 
   <ItemGroup>
