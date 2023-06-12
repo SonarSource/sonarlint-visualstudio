@@ -147,7 +147,7 @@ public class ImportsBeforeFileGeneratorTests
 
     private static string GetTargetFileContent()
     {
-        var resourcePath = "SonarLint.VisualStudio.ConnectedMode.Embedded.SonarLintTargets.xml";
+        var resourcePath = "SonarLint.VisualStudio.ConnectedMode.Install.SonarLintTargets.xml";
         using var stream = new StreamReader(typeof(ImportBeforeFileGenerator).Assembly.GetManifestResourceStream(resourcePath));
 
         return stream.ReadToEnd();
