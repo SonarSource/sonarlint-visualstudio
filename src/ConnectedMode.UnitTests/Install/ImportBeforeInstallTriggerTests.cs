@@ -19,12 +19,12 @@
  */
 
 using System;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Install;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Install
 {
     [TestClass]
     public class ImportBeforeInstallTriggerTests
@@ -129,7 +129,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 
             var testSubject = CreateTestSubject(activeSolutionTracker.Object, Mock.Of<IImportBeforeFileGenerator>());
 
-            ((IDisposable)testSubject).Dispose();
+            testSubject.Dispose();
 
             activeSolutionTracker.VerifyRemove(x => x.PreSolutionBindingChanged -= It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>(), Times.Once);
             activeSolutionTracker.VerifyRemove(x => x.PreSolutionBindingUpdated -= It.IsAny<EventHandler>(), Times.Once);

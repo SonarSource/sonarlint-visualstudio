@@ -25,7 +25,7 @@ using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Install
 {
     /// <summary>
     /// Creates a .targets file in the ImportBefore directory with the contents
@@ -44,9 +44,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         private readonly ILogger logger;
 
         private const string targetsFileName = "SonarLint.targets";
-        private const string resourcePath = "SonarLint.VisualStudio.ConnectedMode.Embedded.SonarLintTargets.xml";
+        private const string resourcePath = "SonarLint.VisualStudio.ConnectedMode.Install.SonarLintTargets.xml";
 
-        private static readonly Object locker = new Object();
+        private static readonly object locker = new object();
 
         [ImportingConstructor]
         public ImportBeforeFileGenerator(ILogger logger) : this(logger, new FileSystem()) { }
