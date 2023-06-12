@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
@@ -51,17 +52,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     {
         private readonly ISuppressedIssueMatcher suppressedIssueMatcher;
         private readonly IAnalysisIssueVisualizationConverter converter;
+        private readonly ILocalHotspotsStoreUpdater localHotspotsStore;
 
         [ImportingConstructor]
-        internal IssueConsumerFactory(ISuppressedIssueMatcher suppressedIssueMatcher, IAnalysisIssueVisualizationConverter converter)
+        internal IssueConsumerFactory(ISuppressedIssueMatcher suppressedIssueMatcher, IAnalysisIssueVisualizationConverter converter, ILocalHotspotsStoreUpdater localHotspotsStore)
         {
             this.suppressedIssueMatcher = suppressedIssueMatcher;
             this.converter = converter;
+            this.localHotspotsStore = localHotspotsStore;
         }
 
         public IIssueConsumer Create(ITextDocument textDocument, string projectName, Guid projectGuid, SnapshotChangedHandler onSnapshotChanged)
         {
-            var issueHandler = new IssueHandler(textDocument, projectName, projectGuid, suppressedIssueMatcher, onSnapshotChanged);
+            var issueHandler = new IssueHandler(textDocument, projectName, projectGuid, suppressedIssueMatcher, onSnapshotChanged, localHotspotsStore);
             var issueConsumer = new AccumulatingIssueConsumer(textDocument.TextBuffer.CurrentSnapshot, textDocument.FilePath, issueHandler.HandleNewIssues, converter);
 
             return issueConsumer;
