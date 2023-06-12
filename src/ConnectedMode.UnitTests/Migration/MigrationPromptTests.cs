@@ -145,7 +145,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         {
             var notificationService = new Mock<INotificationService>();
 
-            var testSubject = new MigrationPrompt(Mock.Of<IServiceProvider>(), notificationService.Object, Mock.Of<IMigrationWizardController>(), new NoOpThreadHandler()); ;
+            var testSubject = new MigrationPrompt(Mock.Of<IServiceProvider>(), notificationService.Object, Mock.Of<IMigrationWizardController>(), new NoOpThreadHandler());
             testSubject.Clear();
 
             notificationService.Verify(x => x.RemoveNotification(), Times.Once);
@@ -156,7 +156,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         {
             var notificationService = new Mock<INotificationService>();
             var migrationWizardController = new Mock<IMigrationWizardController>();
-            var testSubject = new MigrationPrompt(Mock.Of<IServiceProvider>(), notificationService.Object, migrationWizardController.Object, new NoOpThreadHandler()); ;
+            var testSubject = new MigrationPrompt(Mock.Of<IServiceProvider>(), notificationService.Object, migrationWizardController.Object, new NoOpThreadHandler());
 
             testSubject.Dispose();
             notificationService.Invocations.Clear();
