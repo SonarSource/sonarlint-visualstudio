@@ -53,8 +53,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             logger.WriteLine(MigrationStrings.Starting);
 
             // TODO: implement migration
-            progress.Report(new MigrationProgress(1, 2, "TODO 1", false));
-            progress.Report(new MigrationProgress(2, 2, "TODO 2", true));
+            progress?.Report(new MigrationProgress(1, 2, "TODO 1", false));
+            progress?.Report(new MigrationProgress(2, 2, "TODO 2", true));
 
             logger.WriteLine(MigrationStrings.Finished);
             return Task.CompletedTask;
