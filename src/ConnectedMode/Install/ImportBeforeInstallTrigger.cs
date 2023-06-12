@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Install
 {
     [Export(typeof(ImportBeforeInstallTrigger))]
     [PartCreationPolicy(CreationPolicy.Shared)]
@@ -78,8 +78,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         {
             if (!disposed)
             {
-                this.activeSolutionBoundTracker.PreSolutionBindingChanged -= OnPreSolutionBindingChanged;
-                this.activeSolutionBoundTracker.PreSolutionBindingUpdated -= OnPreSolutionBindingUpdated;
+                activeSolutionBoundTracker.PreSolutionBindingChanged -= OnPreSolutionBindingChanged;
+                activeSolutionBoundTracker.PreSolutionBindingUpdated -= OnPreSolutionBindingUpdated;
                 disposed = true;
             }
         }
