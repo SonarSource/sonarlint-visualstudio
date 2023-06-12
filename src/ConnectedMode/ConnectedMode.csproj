@@ -53,6 +53,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>BindingStrings.resx</DependentUpon>
     </Compile>
+    <Compile Update="Migration\MigrationStrings.Designer.cs">
+      <DependentUpon>MigrationStrings.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
     <Compile Update="Persistence\PersistenceStrings.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -69,6 +74,10 @@
     <EmbeddedResource Update="Binding\BindingStrings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>BindingStrings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Migration\MigrationStrings.resx">
+      <LastGenOutput>MigrationStrings.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
     </EmbeddedResource>
     <EmbeddedResource Update="Persistence\PersistenceStrings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
