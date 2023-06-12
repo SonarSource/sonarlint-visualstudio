@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
+using SonarLint.VisualStudio.ConnectedMode.Migration.Wizard;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -40,7 +41,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             MefTestHelpers.CheckTypeCanBeImported<MigrationPrompt, IMigrationPrompt>(
                 MefTestHelpers.CreateExport<SVsServiceProvider>(),
                 MefTestHelpers.CreateExport<INotificationService>(),
+                MefTestHelpers.CreateExport<IMigrationWizardController>(),
                 MefTestHelpers.CreateExport<IThreadHandling>());
+        }
+
+        [TestMethod]
+        public void Ctor_VerifySubscribed()
+        {
+            var migrationWizardController = new Mock<IMigrationWizardController>();
+            _ = new MigrationPrompt(Mock.Of<SVsServiceProvider>(), Mock.Of<INotificationService>() , migrationWizardController.Object, new NoOpThreadHandler());
+
+            migrationWizardController.VerifyAdd(x => x.MigrationWizardFinished += It.IsAny<EventHandler>(), Times.Once);
         }
 
         [TestMethod]
@@ -54,7 +65,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var serviceProvider = SetUpServiceProviderWithSolution("path_to_solution");
 
-            var testSubject = new MigrationPrompt(serviceProvider, notificationService.Object, new NoOpThreadHandler());
+            var testSubject = new MigrationPrompt(serviceProvider, notificationService.Object, Mock.Of<IMigrationWizardController>(),new NoOpThreadHandler());
             await testSubject.ShowAsync();
 
             notificationService.Verify(x => x.ShowNotification(notification), Times.Once);
@@ -78,7 +89,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var serviceProvider = SetUpServiceProviderWithSolution();
 
-            var testSubject = new MigrationPrompt(serviceProvider, notificationService.Object, threadHandling.Object);
+            var testSubject = new MigrationPrompt(serviceProvider, notificationService.Object, Mock.Of<IMigrationWizardController>(), threadHandling.Object);
             await testSubject.ShowAsync();
 
             threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
@@ -92,11 +103,49 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         }
 
         [TestMethod]
+        public async Task MigrateButtonClicked_StartMigrationWizard()
+        {
+            var notificationService = new Mock<INotificationService>();
+            INotification notification = null;
+            notificationService
+                .Setup(x => x.ShowNotification(It.IsAny<INotification>()))
+                .Callback((INotification n) => notification = n);
+
+            var migrationWizardController = new Mock<IMigrationWizardController>();
+
+            var serviceProvider = SetUpServiceProviderWithSolution();
+
+            var testSubject = new MigrationPrompt(serviceProvider, notificationService.Object, migrationWizardController.Object, new NoOpThreadHandler());
+
+            await testSubject.ShowAsync();
+
+            notification.Actions.First().CommandText.Should().Be(Resources.Migration_MigrationPrompt_MigrateButton);
+            notification.Actions.First().Action(null);
+
+            migrationWizardController.Verify(x => x.StartMigrationWizard(), Times.Once);
+        }
+
+        [TestMethod]
+        public void FinishMigrationRaised_ClearIsCalled()
+        {
+            var notificationService = new Mock<INotificationService>();
+
+            var migrationWizardController = new Mock<IMigrationWizardController>();
+
+            var serviceProvider = SetUpServiceProviderWithSolution();
+
+            _ = new MigrationPrompt(serviceProvider, notificationService.Object, migrationWizardController.Object, new NoOpThreadHandler());
+
+            migrationWizardController.Raise(x => x.MigrationWizardFinished += null, EventArgs.Empty);
+            notificationService.Verify(x => x.RemoveNotification(), Times.Once);
+        }
+
+        [TestMethod]
         public void Clear_RemoveNotificationIsCalled()
         {
             var notificationService = new Mock<INotificationService>();
 
-            var testSubject = new MigrationPrompt(Mock.Of<IServiceProvider>(), notificationService.Object, new NoOpThreadHandler()); ;
+            var testSubject = new MigrationPrompt(Mock.Of<IServiceProvider>(), notificationService.Object, Mock.Of<IMigrationWizardController>(), new NoOpThreadHandler()); ;
             testSubject.Clear();
 
             notificationService.Verify(x => x.RemoveNotification(), Times.Once);

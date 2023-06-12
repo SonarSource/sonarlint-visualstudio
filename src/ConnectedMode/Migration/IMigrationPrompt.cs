@@ -22,6 +22,7 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.ConnectedMode.Migration.Wizard;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
 using Task = System.Threading.Tasks.Task;
@@ -46,16 +47,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         private readonly IServiceProvider serviceProvider;
 
+        private readonly IMigrationWizardController migrationWizardController;
+
         private readonly IThreadHandling threadHandling;
 
         private const string idPrefix = "ConnectedModeMigration_";
 
         [ImportingConstructor]
-        public MigrationPrompt([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, INotificationService notificationService, IThreadHandling threadHandling)
+        public MigrationPrompt([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            INotificationService notificationService,
+            IMigrationWizardController migrationWizardController,
+            IThreadHandling threadHandling)
         {
             this.notificationService = notificationService;
             this.serviceProvider = serviceProvider;
+            this.migrationWizardController = migrationWizardController;
             this.threadHandling = threadHandling;
+
+            migrationWizardController.MigrationWizardFinished += (object sender, EventArgs e) => Clear();
         }
 
         public async Task ShowAsync()
@@ -86,7 +95,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         private void OnMigrate()
         {
-            // TODO: Show migration wizard
+            migrationWizardController.StartMigrationWizard();
         }
 
         private void OnLearnMore()
