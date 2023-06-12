@@ -151,6 +151,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             notificationService.Verify(x => x.RemoveNotification(), Times.Once);
         }
 
+        [TestMethod]
+        public void Dispose_UnsubscribesFromEvents()
+        {
+            var notificationService = new Mock<INotificationService>();
+            var migrationWizardController = new Mock<IMigrationWizardController>();
+            var testSubject = new MigrationPrompt(Mock.Of<IServiceProvider>(), notificationService.Object, migrationWizardController.Object, new NoOpThreadHandler()); ;
+
+            testSubject.Dispose();
+            notificationService.Invocations.Clear();
+
+            migrationWizardController.Raise(x => x.MigrationWizardFinished += null, EventArgs.Empty);
+
+            notificationService.Verify(x => x.RemoveNotification(), Times.Never);
+        }
+
         private IServiceProvider SetUpServiceProviderWithSolution(string pathToSolution = "")
         {
             var serviceProvider = new Mock<IServiceProvider>();

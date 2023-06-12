@@ -83,6 +83,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         public void Dispose()
         {
             activeSolutionTracker.ActiveSolutionChanged -= OnActiveSolutionChanged;
+            migrationPrompt.Dispose();
         }
     }
 }
