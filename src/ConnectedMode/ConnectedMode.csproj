@@ -16,6 +16,7 @@
 
   <PropertyGroup Label="Specify which external/VS-specific refs are required">
     <RequiresAlmAuthentication>true</RequiresAlmAuthentication>
+    <RequiresLanguageServices>true</RequiresLanguageServices>
   </PropertyGroup>
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
