@@ -34,12 +34,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
     public class ConnectedModeMigrationTests
     {
         [TestMethod]
-        public void MefCtor_CheckIsExported_NonShared()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<ConnectedModeMigration, IConnectedModeMigration>(
-                CreationPolicy.NonShared,
-                MefTestHelpers.CreateExport<ILogger>());
-        }
+        public void MefCtor_CheckTypeIsNonShared()
+            => MefTestHelpers.CheckIsNonSharedMefComponent<ConnectedModeMigration>();
 
         [TestMethod]
         public void MefCtor_CheckIsExported_NoProjectCleaners()

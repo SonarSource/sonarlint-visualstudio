@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -29,11 +28,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
     public class AdditionalFileCleanerTests
     {
         [TestMethod]
-        public void MefCtor_CheckIsExported_NonShared()
+        public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<AdditionalFileCleaner, IProjectCleaner>(
-                CreationPolicy.NonShared,
                 MefTestHelpers.CreateExport<ILogger>());
         }
+
+        [TestMethod]
+        public void MefCtor_CheckTypeIsNonShared()
+            => MefTestHelpers.CheckIsNonSharedMefComponent<AdditionalFileCleaner>();
     }
 }

@@ -56,44 +56,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         /// <summary>
         /// Overload that imports using a SingleObjectImporter and checks that the expected
-        /// implementing type was imported, and that the expected CreationPolicy has been applied
-        /// </summary>
-        public static SingleObjectImporter<TImportType> CheckTypeCanBeImported<TTypeToCheck, TImportType>(
-            CreationPolicy expectedCreationPolicy,
-            params Export[] requiredExports)
-            where TImportType : class
-            where TTypeToCheck : class
-        {
-            if (expectedCreationPolicy == CreationPolicy.Any)
-            {
-                throw new ArgumentOutOfRangeException("Test setup error: CreationPolicy.Any is not supported (we don't use it anywhere currently)");
-            }
-
-            // First, just try to import the type
-            var importer1 = new SingleObjectImporter<TImportType>();
-            Compose(importer1, typeof(TTypeToCheck), requiredExports);
-            importer1.AssertImportIsNotNull();
-            importer1.AssertImportIsInstanceOf<TTypeToCheck>();
-
-            // Now import the type again, doing the full check that the requiredExports
-            // are actually required
-            var importer2 = CheckTypeCanBeImported<TTypeToCheck, TImportType>(requiredExports);
-
-            // Check the expected creation policy was used
-            if (expectedCreationPolicy == CreationPolicy.Shared)
-            {
-                importer1.Import.Should().BeSameAs(importer2.Import, "Expecting a singleton");
-            }
-            else
-            {
-                importer1.Import.Should().NotBeSameAs(importer2.Import, "Not expecting a singleton");
-            }
-
-            return importer1;
-        }
-
-        /// <summary>
-        /// Overload that imports using a SingleObjectImporter and checks that the expected
         /// implementing type was imported.
         /// </summary>
         /// <remarks>This method can be used if the import being tested doesn't specify an explicit contract name.
