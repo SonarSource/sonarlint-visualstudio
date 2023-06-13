@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
     [Export(typeof(IMigrationPrompt))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
-    public class MigrationPrompt : IMigrationPrompt
+    internal class MigrationPrompt : IMigrationPrompt
     {
         private readonly INotificationService notificationService;
 
@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private const string idPrefix = "ConnectedModeMigration_";
 
         [ImportingConstructor]
-        public MigrationPrompt([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+        internal MigrationPrompt([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             INotificationService notificationService,
             IMigrationWizardController migrationWizardController,
             IThreadHandling threadHandling)

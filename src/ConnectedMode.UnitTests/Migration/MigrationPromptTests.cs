@@ -46,6 +46,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         }
 
         [TestMethod]
+        public void CheckIsNonSharedMefComponent()
+        {
+            MefTestHelpers.CheckIsNonSharedMefComponent<MigrationPrompt>();
+        }
+
+        [TestMethod]
         public void Ctor_VerifySubscribed()
         {
             var migrationWizardController = new Mock<IMigrationWizardController>();
