@@ -24,6 +24,8 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using Microsoft.VisualStudio.Threading;
 
+using Task = System.Threading.Tasks.Task;
+
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
     [Export(typeof(MigrationChecker))]
@@ -31,33 +33,34 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     internal sealed class MigrationChecker : IDisposable
     {
         private readonly IActiveSolutionTracker activeSolutionTracker;
-        private readonly IMigrationPrompt migrationPrompt;
+        private readonly IMefFactory mefFactory;
         private readonly IConfigurationProvider configurationProvider;
         private readonly IObsoleteConfigurationProvider obsoleteConfigurationProvider;
+        private IMigrationPrompt migrationPrompt;
 
         [ImportingConstructor]
         public MigrationChecker(
             IActiveSolutionTracker activeSolutionTracker,
-            IMigrationPrompt migrationPrompt,
+            IMefFactory mefFactory,
             IConfigurationProvider configurationProvider,
             IObsoleteConfigurationProvider obsoleteConfigurationProvider)
         {
             this.activeSolutionTracker = activeSolutionTracker;
-            this.migrationPrompt = migrationPrompt;
+            this.mefFactory = mefFactory;
             this.configurationProvider = configurationProvider;
             this.obsoleteConfigurationProvider = obsoleteConfigurationProvider;
 
             activeSolutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
 
             // Initial check incase event was fired before we registered.
-            DisplayMigrationPromptIfMigrationIsNeeded();
+            DisplayMigrationPromptIfMigrationIsNeededAsync().Forget();
         }
 
         private void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs args)
         {
             if (args.IsSolutionOpen)
             {
-                DisplayMigrationPromptIfMigrationIsNeeded();
+                DisplayMigrationPromptIfMigrationIsNeededAsync().Forget();
             }
             else
             {
@@ -65,25 +68,27 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             }
         }
 
-        private void DisplayMigrationPromptIfMigrationIsNeeded()
+        private async Task DisplayMigrationPromptIfMigrationIsNeededAsync()
         {
             // If the user has the old files but not the new files it means they are bound and a goldbar should be shown to initiate migration.
             if (obsoleteConfigurationProvider.GetConfiguration()?.Mode != SonarLintMode.Standalone
                 && configurationProvider.GetConfiguration()?.Mode == SonarLintMode.Standalone)
             {
+
+               migrationPrompt = await mefFactory.CreateAsync<IMigrationPrompt>();
                migrationPrompt.ShowAsync().Forget();
             }
         }
 
         private void ClearMigrationPrompt()
         {
-            migrationPrompt.Clear();
+            migrationPrompt?.Dispose();
         }
 
         public void Dispose()
         {
             activeSolutionTracker.ActiveSolutionChanged -= OnActiveSolutionChanged;
-            migrationPrompt.Dispose();
+            ClearMigrationPrompt();
         }
     }
 }
