@@ -169,7 +169,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         }
 
         [TestMethod]
-        [Ignore] // Flaky. See https://github.com/SonarSource/sonarlint-visualstudio/issues/4347
         public async Task UpdateAll_CallInProgress_CallIsCancelled()
         {
             var testTimeout = GetThreadedTestTimout();
@@ -433,7 +432,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             // This test uses a number of manual signals to control the order of execution.
             // We want a longer timeout when debugging.
             => System.Diagnostics.Debugger.IsAttached ?
-                TimeSpan.FromMinutes(2) : TimeSpan.FromMilliseconds(200);
+                TimeSpan.FromMinutes(2) : TimeSpan.FromMilliseconds(500);
 
         private static Mock<IServerIssuesStoreWriter> CreateIssuesStore(params SonarQubeIssue[] issuesInStore)
         {
