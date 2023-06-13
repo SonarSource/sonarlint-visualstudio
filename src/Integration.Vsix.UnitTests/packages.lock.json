@@ -521,10 +521,10 @@
       },
       "Microsoft.VisualStudio.GraphModel": {
         "type": "Transitive",
-        "resolved": "17.3.32804.24",
-        "contentHash": "mzPAiBjrBj4Yo1LE/DAVIe5kzxZM3nDs8LqAdApVIE6kiCdTTkpj42g45G/nuWtCkZnHyEgeswDP0uacvV6RIQ==",
+        "resolved": "17.3.32622.426",
+        "contentHash": "7D8bGmI4JXMmQbddvir0UME3WA6/wGoNa7U8ojRu6cabnTRb4Obwxoo0i7sqkgmA/rpzEI8W7xLXSsDHBznaog==",
         "dependencies": {
-          "Microsoft.VisualStudio.Interop": "17.3.32804.24",
+          "Microsoft.VisualStudio.Interop": "17.3.32622.426",
           "System.ComponentModel.Composition": "6.0.0"
         }
       },
@@ -753,22 +753,22 @@
       },
       "Microsoft.VisualStudio.Shell.15.0": {
         "type": "Transitive",
-        "resolved": "17.3.32804.24",
-        "contentHash": "f9o9AjZnOYCfCo40CgBK+yqKJVvIxKyQ0ZYGeZERjbdYOkFygsOnNCnEwGmznPYm5IBGECdDfw+86kpiowSqRQ==",
+        "resolved": "17.3.32622.426",
+        "contentHash": "OoBu36OfGiJble0/9/jQrwyHhzqHmV+3ton+F6M0URnQA1QN+WXi/1DFIT1pTqeK50CoIVe0MXCZYTswovY1pQ==",
         "dependencies": {
           "Microsoft.Build.Framework": "17.1.0",
-          "Microsoft.VisualStudio.ComponentModelHost": "17.3.198",
-          "Microsoft.VisualStudio.GraphModel": "17.3.32804.24",
-          "Microsoft.VisualStudio.ImageCatalog": "17.3.32804.24",
-          "Microsoft.VisualStudio.Imaging": "17.3.32804.24",
-          "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": "17.3.32803.143",
-          "Microsoft.VisualStudio.Interop": "17.3.32804.24",
-          "Microsoft.VisualStudio.ProjectAggregator": "17.3.32803.143",
+          "Microsoft.VisualStudio.ComponentModelHost": "17.3.159-preview",
+          "Microsoft.VisualStudio.GraphModel": "17.3.32622.426",
+          "Microsoft.VisualStudio.ImageCatalog": "17.3.32622.426",
+          "Microsoft.VisualStudio.Imaging": "17.3.32622.426",
+          "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": "17.3.32622.426",
+          "Microsoft.VisualStudio.Interop": "17.3.32622.426",
+          "Microsoft.VisualStudio.ProjectAggregator": "17.3.32622.426",
           "Microsoft.VisualStudio.SDK.Analyzers": "16.10.10",
-          "Microsoft.VisualStudio.Shell.Framework": "17.3.32804.24",
-          "Microsoft.VisualStudio.Utilities": "17.3.32804.24",
-          "envdte": "17.3.32804.24",
-          "envdte80": "17.3.32804.24"
+          "Microsoft.VisualStudio.Shell.Framework": "17.3.32622.426",
+          "Microsoft.VisualStudio.Utilities": "17.3.32622.426",
+          "envdte": "17.3.32622.426",
+          "envdte80": "17.3.32622.426"
         }
       },
       "Microsoft.VisualStudio.Shell.Design": {
@@ -1725,6 +1725,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Alm.Authentication": "[4.0.0.1, )",
+          "Microsoft.VisualStudio.LanguageServices": "[1.3.2, )",
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
           "Newtonsoft.Json": "[13.0.1, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
