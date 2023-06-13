@@ -30,6 +30,8 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.TestInfrastructure;
 
+using Task = System.Threading.Tasks.Task;
+
 namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 {
     [TestClass]

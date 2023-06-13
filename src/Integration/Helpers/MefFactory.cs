@@ -25,6 +25,8 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 
+using Task = System.Threading.Tasks.Task;
+
 namespace SonarLint.VisualStudio.Integration.Helpers
 {
     [Export(typeof(IMefFactory))]
