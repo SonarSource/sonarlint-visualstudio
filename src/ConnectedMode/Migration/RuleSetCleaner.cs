@@ -18,32 +18,36 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
+using EnvDTE;
+using SonarLint.VisualStudio.Integration;
+
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
+    [Export(typeof(IProjectCleaner))]
+    [PartCreationPolicy(CreationPolicy.NonShared)]
     /// <summary>
-    /// Data class containing information about migration progress
+    /// Attempts to remove references to the generated ruleset from the project
     /// </summary>
-    internal class MigrationProgress
+    /// <remarks>NB this should only be called for C# or VB.NET projects - other project types
+    /// won't have references to a generated ruleset</remarks>
+    internal class RuleSetCleaner : IProjectCleaner
     {
-        public MigrationProgress(int currentProject, int totalProjects, string message, bool isWarning)
+        private readonly ILogger logger;
+
+        [ImportingConstructor]
+        public RuleSetCleaner(ILogger logger)
         {
-            CurrentProject = currentProject;
-            TotalProjects = totalProjects;
-            Message = message;
-            IsWarning = isWarning;
+            this.logger = logger;
         }
 
-        public int CurrentProject { get; }
-
-        public int TotalProjects { get; }
-
-        public string Message { get; }
-
-        /// <summary>
-        /// Indicates whether the step is a warning or not
-        /// i.e. true if the migration process didn't manage to carry out part of the cleanup
-        /// sucessfully
-        /// </summary>
-        public bool IsWarning { get; }
+        public Task CleanAsync(Project project, IProgress<MigrationProgress> progress, CancellationToken token)
+        {
+            // TODO
+            return Task.CompletedTask;
+        }
     }
 }
