@@ -31,5 +31,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.Wizard
         {
             MefTestHelpers.CheckTypeCanBeImported<MigrationWizardController, IMigrationWizardController>();
         }
+
+        [TestMethod]
+        public void CheckIsNonSharedMefComponent()
+        {
+            MefTestHelpers.CheckIsNonSharedMefComponent<MigrationWizardController>();
+        }
     }
 }

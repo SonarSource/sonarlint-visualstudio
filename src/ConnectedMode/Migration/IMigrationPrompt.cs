@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             this.migrationWizardController = migrationWizardController;
             this.threadHandling = threadHandling;
 
-            migrationWizardController.MigrationWizardFinished += OnMigrationWIzardFinished;
+            migrationWizardController.MigrationWizardFinished += OnMigrationWizardFinished;
         }
 
         public async Task ShowAsync()
@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             });
         }
 
-        private void OnMigrationWIzardFinished(object sender, EventArgs e) => Clear();
+        private void OnMigrationWizardFinished(object sender, EventArgs e) => Clear();
         
         public void Clear()
         {
@@ -115,7 +115,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         public void Dispose()
         {
-            migrationWizardController.MigrationWizardFinished -= OnMigrationWIzardFinished;
+            migrationWizardController.MigrationWizardFinished -= OnMigrationWizardFinished;
+            Clear();
         }
     }
 }
