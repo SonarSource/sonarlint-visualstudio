@@ -76,6 +76,7 @@
     <RequiresSystemIOAbstractions>true</RequiresSystemIOAbstractions>
     <RequiresLibGit>true</RequiresLibGit>
     <RequiresChannels>true</RequiresChannels>
+    <RequiresLanguageServices>true</RequiresLanguageServices>
   </PropertyGroup>
   
   <!-- This project references the SonarLint TeamExplorer assembly which is VS-version specific -->
@@ -148,9 +149,6 @@
          files means it's simpler to always include it so the contents of the lock file don't change for
          signed builds. -->
     <PackageReference Include="Microsoft.VSSDK.Vsixsigntool" Version="16.2.29116.78" PrivateAssets="all" />
-
-    <!-- This package references Roslyn components used by VS. It isn't part of the VSSDK meta-package. -->
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="1.3.2" />
   </ItemGroup>
 
   <ItemGroup Label="Project references">
