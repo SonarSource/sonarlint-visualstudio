@@ -19,10 +19,9 @@
  */
 
 using System;
-using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using SonarLint.VisualStudio.Integration;
+using EnvDTE;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
@@ -37,28 +36,39 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         Task MigrateAsync(IProgress<MigrationProgress> progress, CancellationToken token);
     }
 
-    [Export(typeof(IConnectedModeMigration))]
-    internal class ConnectedModeMigration : IConnectedModeMigration
+    /// <summary>
+    /// Contract for a component that can perform a specific type of clean-up on a VS project
+    /// e.g. removing a ruleset reference
+    /// </summary>
+    internal interface IProjectCleaner
     {
-        private readonly ILogger logger;
-
-        [ImportingConstructor]
-        public ConnectedModeMigration(ILogger logger)
-        {
-            this.logger = logger;
-        }
-
-        public Task MigrateAsync(IProgress<MigrationProgress> progress, CancellationToken token)
-        {
-            logger.WriteLine(MigrationStrings.Starting);
-
-            // TODO: implement migration
-            progress?.Report(new MigrationProgress(1, 2, "TODO 1", false));
-            progress?.Report(new MigrationProgress(2, 2, "TODO 2", true));
-
-            logger.WriteLine(MigrationStrings.Finished);
-            return Task.CompletedTask;
-        }
+        Task CleanAsync(Project project, IProgress<MigrationProgress> progress, CancellationToken token);
     }
 
+    /// <summary>
+    /// Data class containing information about migration progress
+    /// </summary>
+    internal class MigrationProgress
+    {
+        public MigrationProgress(int currentProject, int totalProjects, string message, bool isWarning)
+        {
+            CurrentProject = currentProject;
+            TotalProjects = totalProjects;
+            Message = message;
+            IsWarning = isWarning;
+        }
+
+        public int CurrentProject { get; }
+
+        public int TotalProjects { get; }
+
+        public string Message { get; }
+
+        /// <summary>
+        /// Indicates whether the step is a warning or not
+        /// i.e. true if the migration process didn't manage to carry out part of the cleanup
+        /// sucessfully
+        /// </summary>
+        public bool IsWarning { get; }
+    }
 }

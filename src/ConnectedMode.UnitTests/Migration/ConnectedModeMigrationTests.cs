@@ -20,6 +20,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
@@ -31,12 +33,43 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
     [TestClass]
     public class ConnectedModeMigrationTests
     {
+        [TestMethod]
+        public void MefCtor_CheckIsExported_NonShared()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<ConnectedModeMigration, IConnectedModeMigration>(
+                CreationPolicy.NonShared,
+                MefTestHelpers.CreateExport<ILogger>());
+        }
 
         [TestMethod]
-        public void MefCtor_CheckIsExported()
+        public void MefCtor_CheckIsExported_NoProjectCleaners()
         {
             MefTestHelpers.CheckTypeCanBeImported<ConnectedModeMigration, IConnectedModeMigration>(
                 MefTestHelpers.CreateExport<ILogger>());
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported_MultipleProjectCleaners()
+        {
+            var batch = new CompositionBatch();
+            batch.AddExport(MefTestHelpers.CreateExport<ILogger>());
+
+            batch.AddExport(MefTestHelpers.CreateExport<IProjectCleaner>());
+            batch.AddExport(MefTestHelpers.CreateExport<IProjectCleaner>());
+            batch.AddExport(MefTestHelpers.CreateExport<IProjectCleaner>());
+
+            var importer = new SingleObjectImporter<IConnectedModeMigration>();
+            batch.AddPart(importer);
+
+            using var catalog = new TypeCatalog(typeof(ConnectedModeMigration));
+            using var container = new CompositionContainer(catalog);
+            Action act = () => container.Compose(batch);
+
+            act.Should().NotThrow();
+            importer.Import.Should().NotBeNull();
+
+            var actualType = (ConnectedModeMigration)importer.Import;
+            actualType.ProjectCleaners.Should().HaveCount(3);
         }
 
         [TestMethod]
@@ -64,11 +97,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             progressMessages.Should().NotBeEmpty();
         }
 
-        private static ConnectedModeMigration CreateTestSubject(ILogger logger = null)
+        private static ConnectedModeMigration CreateTestSubject(ILogger logger = null, params IProjectCleaner[] projectCleaners)
         {
             logger ??= new TestLogger(logToConsole: true);
 
-            return new ConnectedModeMigration(logger);
+            return new ConnectedModeMigration(logger, projectCleaners);
         }
     }
 }
