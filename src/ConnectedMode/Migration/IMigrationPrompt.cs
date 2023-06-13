@@ -22,6 +22,7 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.ConnectedMode.Migration.Wizard;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
 using Task = System.Threading.Tasks.Task;
@@ -31,7 +32,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     /// <summary>
     /// In charge of showing users a prompt to migrate to a new connected mode.
     /// </summary>
-    public interface IMigrationPrompt
+    internal interface IMigrationPrompt : IDisposable
     {
         Task ShowAsync();
 
@@ -40,22 +41,30 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
     [Export(typeof(IMigrationPrompt))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
-    public class MigrationPrompt : IMigrationPrompt
+    internal class MigrationPrompt : IMigrationPrompt
     {
         private readonly INotificationService notificationService;
 
         private readonly IServiceProvider serviceProvider;
+
+        private readonly IMigrationWizardController migrationWizardController;
 
         private readonly IThreadHandling threadHandling;
 
         private const string idPrefix = "ConnectedModeMigration_";
 
         [ImportingConstructor]
-        public MigrationPrompt([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, INotificationService notificationService, IThreadHandling threadHandling)
+        internal MigrationPrompt([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            INotificationService notificationService,
+            IMigrationWizardController migrationWizardController,
+            IThreadHandling threadHandling)
         {
             this.notificationService = notificationService;
             this.serviceProvider = serviceProvider;
+            this.migrationWizardController = migrationWizardController;
             this.threadHandling = threadHandling;
+
+            migrationWizardController.MigrationWizardFinished += OnMigrationWizardFinished;
         }
 
         public async Task ShowAsync()
@@ -79,6 +88,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             });
         }
 
+        private void OnMigrationWizardFinished(object sender, EventArgs e) => Clear();
+        
         public void Clear()
         {
             notificationService.RemoveNotification();
@@ -86,7 +97,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         private void OnMigrate()
         {
-            // TODO: Show migration wizard
+            migrationWizardController.StartMigrationWizard();
         }
 
         private void OnLearnMore()
@@ -100,6 +111,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             solution.GetProperty((int)__VSPROPID.VSPROPID_SolutionFileName, out var fullSolutionName);
 
             return fullSolutionName as string;
+        }
+
+        public void Dispose()
+        {
+            migrationWizardController.MigrationWizardFinished -= OnMigrationWizardFinished;
+            Clear();
         }
     }
 }

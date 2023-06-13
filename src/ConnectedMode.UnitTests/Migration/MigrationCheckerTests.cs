@@ -94,11 +94,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var obsoleteConfigurationProvider = new Mock<IObsoleteConfigurationProvider>();
             obsoleteConfigurationProvider.Setup(x => x.GetConfiguration()).Returns(CreateBindingConfiguration(SonarLintMode.Connected));
 
-
             var testSubject = new MigrationChecker(activeSolutionTracker.Object, migrationPrompt.Object, configurationProvider.Object, obsoleteConfigurationProvider.Object);
             testSubject.Dispose();
-            migrationPrompt.Invocations.Clear();
+            migrationPrompt.Verify(x => x.Dispose(), Times.Once);
 
+            migrationPrompt.Invocations.Clear();
             activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, EventArgs.Empty);
 
             migrationPrompt.Verify(x => x.ShowAsync(), Times.Never);
