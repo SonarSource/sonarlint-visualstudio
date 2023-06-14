@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     /// </summary>
     internal interface ILocalHotspotsStore : ILocalHotspotsStoreUpdater, IIssuesStore
     {
-        List<LocalHotspot> GetAllLocalHotspots();
+        IReadOnlyCollection<LocalHotspot> GetAllLocalHotspots();
     }
     
     [Export(typeof(ILocalHotspotsStoreUpdater))]
@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
             }
         }
 
-        public List<LocalHotspot> GetAllLocalHotspots()
+        public IReadOnlyCollection<LocalHotspot> GetAllLocalHotspots()
         {
             threadHandling.ThrowIfOnUIThread();
 
@@ -115,15 +115,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
                 {
                     oldIssueVisualizations = EmptyList;
                 }
-
-                var hotspotsList = hotspots.ToList();
                 
-                if (!hotspotsList.Any() && !oldIssueVisualizations.Any())
+                if (!hotspots.Any() && !oldIssueVisualizations.Any())
                 {
                     return;
                 }
+                
+                var hotspotsList = hotspots.ToList();
 
-                fileToHotspotsMapping[filePath] = GetLocalHotspots(hotspotsList);
+                fileToHotspotsMapping[filePath] = CreateLocalHotspots(hotspotsList);
 
                 NotifyIssuesChanged(new IssuesChangedEventArgs(oldIssueVisualizations, hotspotsList));
             }
@@ -148,7 +148,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
             }
         }
 
-        private List<LocalHotspot> GetLocalHotspots(IEnumerable<IAnalysisIssueVisualization> hotspots)
+        private List<LocalHotspot> CreateLocalHotspots(IEnumerable<IAnalysisIssueVisualization> hotspots)
         {
             return hotspots.Select(visualization => MatchAndConvert(visualization)).ToList();
         }
@@ -160,7 +160,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
                 InitializeServerHotspots(serverHotspotStore.GetAll());
 
                 fileToHotspotsMapping = fileToHotspotsMapping.ToDictionary(kvp => kvp.Key,
-                    kvp => GetLocalHotspots(kvp.Value.Select(localHotspot => localHotspot.Visualization)));
+                    kvp => CreateLocalHotspots(kvp.Value.Select(localHotspot => localHotspot.Visualization)));
 
                 var visualizations = GetAll();
                 

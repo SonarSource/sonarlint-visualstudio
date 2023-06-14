@@ -18,23 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarQube.Client.Models;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots;
+
+[TestClass]
+public class HotspotMatcherTests
 {
-    internal interface IHotspotMatcher
+    [TestMethod]
+    public void MefCtor_CheckExports()
     {
-        bool IsMatch(IAnalysisIssueVisualization localHotspotVisualization, SonarQubeHotspot serverHotspot);
-    }
-
-    [Export(typeof(IHotspotMatcher))]
-    internal class NoOpHotspotMatcher : IHotspotMatcher
-    {
-        public bool IsMatch(IAnalysisIssueVisualization localHotspotVisualization, SonarQubeHotspot serverHotspot)
-        {
-            return false;
-        }
+        MefTestHelpers.CheckTypeCanBeImported<NoOpHotspotMatcher, IHotspotMatcher>();
     }
 }

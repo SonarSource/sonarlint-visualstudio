@@ -68,8 +68,8 @@ public class LocalHotspotStoreTests
     {
         var testSubject = CreateTestSubject(out var eventListener);
 
-        testSubject.AddOrUpdate("lalala", Array.Empty<IAnalysisIssueVisualization>());
-        testSubject.AddOrUpdate("lalala", Array.Empty<IAnalysisIssueVisualization>());
+        testSubject.AddOrUpdate("file1", Array.Empty<IAnalysisIssueVisualization>());
+        testSubject.AddOrUpdate("file1", Array.Empty<IAnalysisIssueVisualization>());
 
         VerifyContent(testSubject, Array.Empty<LocalHotspot>());
         eventListener.Events.Should().BeEmpty();
@@ -84,7 +84,7 @@ public class LocalHotspotStoreTests
         var testSubject = CreateTestSubject(out var eventListener, threadHandling: threadHandlingMock.Object);
         var hotspots = new[] { issueVis1, issueVis2 };
 
-        testSubject.AddOrUpdate("lalala", hotspots);
+        testSubject.AddOrUpdate("file1", hotspots);
 
         threadHandlingMock.Verify(x => x.ThrowIfOnUIThread(), Times.Once);
         VerifyContent(testSubject, hotspots.Select(x => new LocalHotspot(x)).ToArray());
@@ -100,10 +100,10 @@ public class LocalHotspotStoreTests
         var issueVis3 = Mock.Of<IAnalysisIssueVisualization>();
         var testSubject = CreateTestSubject(out var eventListener);
         var oldHotspots = new[] { issueVis1 };
-        testSubject.AddOrUpdate("lalala", oldHotspots);
+        testSubject.AddOrUpdate("file1", oldHotspots);
         var newHotspots = new[] { issueVis2, issueVis3 };
 
-        testSubject.AddOrUpdate("lalala", newHotspots);
+        testSubject.AddOrUpdate("file1", newHotspots);
 
         VerifyContent(testSubject, newHotspots.Select(x => new LocalHotspot(x)).ToArray());
         eventListener.Events.Should().HaveCount(2).And.Subject.Last().Should()
@@ -116,12 +116,14 @@ public class LocalHotspotStoreTests
         var issueVis1 = Mock.Of<IAnalysisIssueVisualization>();
         var issueVis2 = Mock.Of<IAnalysisIssueVisualization>();
         var testSubject = CreateTestSubject(out var eventListener);
-        testSubject.AddOrUpdate("lalala", new[] { issueVis1 });
+        testSubject.AddOrUpdate("file1", new[] { issueVis1 });
         var newHotspots = new[] { issueVis2 };
 
-        testSubject.AddOrUpdate("cococo", newHotspots);
+        testSubject.AddOrUpdate("file2", newHotspots);
 
-        VerifyContent(testSubject, new LocalHotspot(issueVis1), new LocalHotspot(issueVis2));
+        VerifyContent(testSubject, 
+            new LocalHotspot(issueVis1),
+            new LocalHotspot(issueVis2));
         eventListener.Events.Should().HaveCount(2).And.Subject.Last().Should()
             .BeEquivalentTo(new IssuesChangedEventArgs(Array.Empty<IAnalysisIssueVisualization>(), newHotspots));
     }
@@ -146,10 +148,12 @@ public class LocalHotspotStoreTests
 
         var testSubject = CreateTestSubject(out _, serverStoreMock.Object, matcherMock.Object);
 
-        testSubject.AddOrUpdate("lalala", new[] { issueVis1, issueVis2, issueVis3 });
+        testSubject.AddOrUpdate("file1", new[] { issueVis1, issueVis2, issueVis3 });
 
-        VerifyContent(testSubject, new LocalHotspot(issueVis1, serverHotspot1),
-            new LocalHotspot(issueVis2, serverHotspot2), new LocalHotspot(issueVis3));
+        VerifyContent(testSubject, 
+            new LocalHotspot(issueVis1, serverHotspot1),
+            new LocalHotspot(issueVis2, serverHotspot2),
+            new LocalHotspot(issueVis3));
     }
 
     [TestMethod]
@@ -173,12 +177,21 @@ public class LocalHotspotStoreTests
 
         var testSubject = CreateTestSubject(out _, serverStoreMock.Object, matcherMock.Object);
 
-        testSubject.AddOrUpdate("lalala", new[] { issueVis1, issueVis2 });
-        testSubject.AddOrUpdate("lalala", new[] { issueVis3 });
-        testSubject.AddOrUpdate("lalala", new[] { issueVis3, issueVis4 });
-
-        VerifyContent(testSubject, new LocalHotspot(issueVis3, serverHotspot1),
+        testSubject.AddOrUpdate("file1", new[] { issueVis1, issueVis2 });
+        VerifyContent(testSubject, 
+            new LocalHotspot(issueVis1, serverHotspot1),
+            new LocalHotspot(issueVis2, serverHotspot2));
+        
+        testSubject.AddOrUpdate("file1", new[] { issueVis3 });
+        VerifyContent(testSubject, 
+            new LocalHotspot(issueVis3, serverHotspot1));
+        
+        testSubject.AddOrUpdate("file1", new[] { issueVis3, issueVis4 });
+        VerifyContent(testSubject, 
+            new LocalHotspot(issueVis3, serverHotspot1),
             new LocalHotspot(issueVis4, serverHotspot2));
+        
+        serverStoreMock.Verify(store => store.GetAll(), Times.Once);
     }
 
 
@@ -219,7 +232,7 @@ public class LocalHotspotStoreTests
 
         var testSubject = CreateTestSubject(out var eventListener, serverStoreMock.Object, matcherMock.Object);
 
-        testSubject.AddOrUpdate("a", issueVisualizations);
+        testSubject.AddOrUpdate("file1", issueVisualizations);
         VerifyContent(testSubject, new LocalHotspot(issueVis1, serverHotspot1),
             new LocalHotspot(issueVis2, serverHotspot2));
 
@@ -236,7 +249,8 @@ public class LocalHotspotStoreTests
     {
         var testSubject = CreateTestSubject(out var eventListener);
         
-        testSubject.RemoveForFile("a");
+        testSubject.RemoveForFile("file1");
+        
         eventListener.Events.Should().BeEmpty();
     }
 
@@ -246,11 +260,11 @@ public class LocalHotspotStoreTests
         var testSubject = CreateTestSubject(out var eventListener);
         var visToKeep = Mock.Of<IAnalysisIssueVisualization>();
         var visToRemove = Mock.Of<IAnalysisIssueVisualization>();
-        testSubject.AddOrUpdate("a", new [] { visToKeep });
-        testSubject.AddOrUpdate("b", new [] { visToRemove });
+        testSubject.AddOrUpdate("file1", new [] { visToKeep });
+        testSubject.AddOrUpdate("file2", new [] { visToRemove });
         eventListener.Events.Clear();
 
-        testSubject.RemoveForFile("b");
+        testSubject.RemoveForFile("file2");
         
         VerifyContent(testSubject, new LocalHotspot(visToKeep));
         eventListener.Events.Single()
@@ -274,11 +288,11 @@ public class LocalHotspotStoreTests
         var newHotspot = Mock.Of<IAnalysisIssueVisualization>();
 
         var testSubject = CreateTestSubject(out _, serverStoreMock.Object, matcherMock.Object);
-        testSubject.AddOrUpdate("a", new[] { oldHotspot });
+        testSubject.AddOrUpdate("file1", new[] { oldHotspot });
         VerifyContent(testSubject, new LocalHotspot(oldHotspot, serverHotspot));
 
-        testSubject.RemoveForFile("a");
-        testSubject.AddOrUpdate("b", new[] { newHotspot });
+        testSubject.RemoveForFile("file1");
+        testSubject.AddOrUpdate("file2", new[] { newHotspot });
 
         VerifyContent(testSubject, new LocalHotspot(newHotspot, serverHotspot));
     }
