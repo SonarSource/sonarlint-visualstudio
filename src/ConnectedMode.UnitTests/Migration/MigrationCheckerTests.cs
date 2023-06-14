@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         [DataRow(SonarLintMode.LegacyConnected, SonarLintMode.Standalone, true)]
         [DataRow(SonarLintMode.Connected, SonarLintMode.Connected, false)]
         [DataRow(SonarLintMode.LegacyConnected, SonarLintMode.Connected, false)]
-        public void Migrate_BindingGetsCalledWithCorrectCondition(SonarLintMode obsoleteMode, SonarLintMode mode, bool expectBindingToBeCalled)
+        public async Task Migrate_BindingGetsCalledWithCorrectCondition(SonarLintMode obsoleteMode, SonarLintMode mode, bool expectBindingToBeCalled)
         {
             var migrationPrompt = new Mock<IMigrationPrompt>();
             var mefFactory = CreateMefFactory(migrationPrompt.Object);
@@ -64,7 +64,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var obsoleteConfigurationProvider = new Mock<IObsoleteConfigurationProvider>();
             obsoleteConfigurationProvider.Setup(x => x.GetConfiguration()).Returns(CreateBindingConfiguration(obsoleteMode));
 
-            _ = new MigrationChecker(Mock.Of<IActiveSolutionTracker>(), mefFactory, configurationProvider.Object, obsoleteConfigurationProvider.Object);
+            var testSubject = new MigrationChecker(Mock.Of<IActiveSolutionTracker>(), mefFactory, configurationProvider.Object, obsoleteConfigurationProvider.Object);
+            await testSubject.DisplayMigrationPromptIfMigrationIsNeededAsync();
 
             migrationPrompt.Verify(x => x.ShowAsync(), expectBindingToBeCalled ? Times.Once : Times.Never);
         }
@@ -94,7 +95,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         }
 
         [TestMethod]
-        public void Dispose_UnsubscribeFromEvents_DisposeMigrationPrompt()
+        public async Task Dispose_UnsubscribeFromEvents_DisposeMigrationPrompt()
         {
             var activeSolutionTracker = new Mock<IActiveSolutionTracker>();
             var migrationPrompt = new Mock<IMigrationPrompt>();
@@ -107,6 +108,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             obsoleteConfigurationProvider.Setup(x => x.GetConfiguration()).Returns(CreateBindingConfiguration(SonarLintMode.Connected));
 
             var testSubject = new MigrationChecker(activeSolutionTracker.Object, mefFactory, configurationProvider.Object, obsoleteConfigurationProvider.Object);
+            await testSubject.DisplayMigrationPromptIfMigrationIsNeededAsync();
             testSubject.Dispose();
             migrationPrompt.Verify(x => x.Dispose(), Times.Once);
 

@@ -51,9 +51,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             this.obsoleteConfigurationProvider = obsoleteConfigurationProvider;
 
             activeSolutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
-
-            // Initial check incase event was fired before we registered.
-            DisplayMigrationPromptIfMigrationIsNeededAsync().Forget();
         }
 
         private void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs args)
@@ -68,7 +65,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             }
         }
 
-        private async Task DisplayMigrationPromptIfMigrationIsNeededAsync()
+        public async Task DisplayMigrationPromptIfMigrationIsNeededAsync()
         {
             // If the user has the old files but not the new files it means they are bound and a goldbar should be shown to initiate migration.
             if (obsoleteConfigurationProvider.GetConfiguration()?.Mode != SonarLintMode.Standalone
