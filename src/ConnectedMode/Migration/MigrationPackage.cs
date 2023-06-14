@@ -45,6 +45,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             var componentModel = await GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
 
             migrationChecker = componentModel.GetService<MigrationChecker>();
+            // Initial check incase event was fired before we registered.
+            migrationChecker.DisplayMigrationPromptIfMigrationIsNeededAsync().Forget();
         }
 
         protected override void Dispose(bool disposing)
