@@ -21,6 +21,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration;
@@ -36,33 +37,41 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         IEnumerable<IVsHierarchy> Walk();
     }
 
-
     [Export(typeof(IRoslynProjectWalker))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
     internal class RoslynProjectWalker : IRoslynProjectWalker
     {
-        private readonly VisualStudioWorkspace vsWorkspace;
+        private readonly IVisualStudioWorkspace wrappedWorkspace;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public RoslynProjectWalker(VisualStudioWorkspace vsWorkspace, ILogger logger)
         {
-            this.vsWorkspace = vsWorkspace;
+        }
+
+        internal /* for testing */ RoslynProjectWalker(IVisualStudioWorkspace wrappedWorkspace, ILogger logger)
+        {
+            this.wrappedWorkspace = wrappedWorkspace;
             this.logger = logger;
         }
 
         public IEnumerable<IVsHierarchy> Walk()
         {
-            LogVerbose($"[Migration] Fetching Roslyn projects... Count: {vsWorkspace?.CurrentSolution.Projects.Count() ?? 0}");
+            LogVerbose($"[Migration] Fetching Roslyn projects... Count: {wrappedWorkspace.CurrentSolution?.Projects.Count() ?? 0}");
 
-            foreach (var project in vsWorkspace?.CurrentSolution.Projects)
+            if (wrappedWorkspace.CurrentSolution == null)
+            {
+                yield break;
+            }
+
+            foreach (var project in wrappedWorkspace.CurrentSolution?.Projects)
             {
                 // Note: the RoslynVisualStudioWorkspace has an immutable dictionary of
                 // project -> IVsHierarchy, so it doesn't need to be on the UI thread to
                 // return the hierarchy. However, that is an internal implementation 
                 // detail that could change in the future.
                 LogVerbose($" Processing project: {project.Name}");
-                var vsHierarchy = vsWorkspace.GetHierarchy(project.Id);
+                var vsHierarchy = wrappedWorkspace.GetHierarchy(project.Id);
 
                 if (vsHierarchy == null)
                 {
