@@ -36,7 +36,12 @@
 
   <ItemGroup>
     <None Remove="Install\SonarLintTargets.xml" />
+    <None Remove="Migration\Wizard\MigrationWizardWindow.xaml" />
     <EmbeddedResource Include="Install\SonarLintTargets.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Include="Migration\Wizard\MigrationWizardWindow.xaml" />
   </ItemGroup>
 
   <ItemGroup>

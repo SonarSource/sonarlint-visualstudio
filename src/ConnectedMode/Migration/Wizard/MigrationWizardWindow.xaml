@@ -1,0 +1,34 @@
+﻿<platformUi:DialogWindow
+    x:Class="SonarLint.VisualStudio.ConnectedMode.Migration.Wizard.MigrationWizardWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+    Title="SonarLint Connected Mode Migration"
+    ResizeMode="NoResize"
+    SizeToContent="WidthAndHeight">
+
+    <Window.Resources>
+        <Style x:Key="Button_Style" TargetType="Button">
+            <Setter Property="Height" Value="25" />
+            <Setter Property="Width" Value="75" />
+        </Style>
+    </Window.Resources>
+
+    <StackPanel Height="200" Width="350">
+        <Separator/>
+        <StackPanel x:Name="StartWindow" Visibility="Visible" Orientation="Vertical" Margin="10,10,10,10">
+            <TextBlock Height="150" Width="Auto" HorizontalAlignment="Left" Text="Start Window" VerticalAlignment="Top" />
+            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                <Button Content="Cancel" IsCancel="True" HorizontalAlignment="Left" Style="{DynamicResource Button_Style}" Margin="0,0,180,0"/>
+                <Button Content="Continue" Click="NavigateToMigrationProgressPage" HorizontalAlignment="Right" Style="{DynamicResource Button_Style}"/>
+            </StackPanel>
+        </StackPanel>
+        <StackPanel x:Name="MigrationProgressWindow" Visibility="Collapsed" Orientation="Vertical" Margin="10,10,10,10">
+            <TextBlock Height="150" Width="Auto" HorizontalAlignment="Left" Text="Migration Window" VerticalAlignment="Top" />
+            <StackPanel Orientation="Horizontal" Margin="255,5,0,0">
+                <Button Content="Migrate" x:Name="migrateButton" Click="OnStartMigration" Style="{DynamicResource Button_Style}"/>
+                <Button Content="Finish" Visibility="Collapsed" x:Name="finishButton" IsCancel="True" Style="{DynamicResource Button_Style}"/>
+            </StackPanel>
+        </StackPanel>
+    </StackPanel>
+</platformUi:DialogWindow>
