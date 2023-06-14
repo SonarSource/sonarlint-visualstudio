@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Windows.Navigation;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
