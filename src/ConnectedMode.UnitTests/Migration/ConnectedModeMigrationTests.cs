@@ -25,6 +25,7 @@ using System.ComponentModel.Composition.Hosting;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -41,7 +42,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         public void MefCtor_CheckIsExported_NoProjectCleaners()
         {
             MefTestHelpers.CheckTypeCanBeImported<ConnectedModeMigration, IConnectedModeMigration>(
-                MefTestHelpers.CreateExport<ILogger>());
+                MefTestHelpers.CreateExport<IRoslynProjectWalker>(),
+                MefTestHelpers.CreateExport<ILogger>(),
+                MefTestHelpers.CreateExport<IThreadHandling>());
         }
 
         [TestMethod]
@@ -49,6 +52,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         {
             var batch = new CompositionBatch();
             batch.AddExport(MefTestHelpers.CreateExport<ILogger>());
+            batch.AddExport(MefTestHelpers.CreateExport<IRoslynProjectWalker>());
+            batch.AddExport(MefTestHelpers.CreateExport<IThreadHandling>());
 
             batch.AddExport(MefTestHelpers.CreateExport<IProjectCleaner>());
             batch.AddExport(MefTestHelpers.CreateExport<IProjectCleaner>());
@@ -93,11 +98,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             progressMessages.Should().NotBeEmpty();
         }
 
-        private static ConnectedModeMigration CreateTestSubject(ILogger logger = null, params IProjectCleaner[] projectCleaners)
+        private static ConnectedModeMigration CreateTestSubject(
+            IRoslynProjectWalker projectWalker = null,
+            IThreadHandling threadHandling = null,
+            ILogger logger = null,
+            params IProjectCleaner[] projectCleaners)
         {
+            projectWalker ??= Mock.Of<IRoslynProjectWalker>();
+            threadHandling ??= new NoOpThreadHandler();
             logger ??= new TestLogger(logToConsole: true);
 
-            return new ConnectedModeMigration(logger, projectCleaners);
+            return new ConnectedModeMigration(projectWalker, projectCleaners, logger, threadHandling);
         }
     }
 }

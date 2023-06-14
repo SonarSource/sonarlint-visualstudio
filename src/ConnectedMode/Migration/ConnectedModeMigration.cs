@@ -25,6 +25,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE;
+using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
@@ -33,20 +35,26 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     [PartCreationPolicy(CreationPolicy.NonShared)]
     internal class ConnectedModeMigration : IConnectedModeMigration
     {
-        private readonly ILogger logger;
+        private readonly IRoslynProjectWalker projectWalker;
         private readonly IProjectCleaner[] projectCleaners;
+        private readonly ILogger logger;
+        private readonly IThreadHandling threadHandling;
 
         internal /* for testing */ IEnumerable<IProjectCleaner> ProjectCleaners => projectCleaners?.ToList() ?? Enumerable.Empty<IProjectCleaner>();
 
         [ImportingConstructor]
-        public ConnectedModeMigration(ILogger logger, [ImportMany]IProjectCleaner[] projectCleaners)
+        public ConnectedModeMigration(IRoslynProjectWalker projectWalker, [ImportMany]IProjectCleaner[] projectCleaners,
+            ILogger logger, IThreadHandling threadHandling)
         {
-            this.logger = logger;
+            this.projectWalker = projectWalker;
             this.projectCleaners = projectCleaners;
+            this.logger = logger;
+            this.threadHandling = threadHandling;
         }
 
         public async Task MigrateAsync(IProgress<MigrationProgress> progress, CancellationToken token)
         {
+            await threadHandling.SwitchToBackgroundThread();
             logger.WriteLine(MigrationStrings.Starting);
 
             // TODO: cleanup - dummy implementation to provide feedback for the UI
@@ -57,17 +65,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             {
                 foreach (var cleaner in projectCleaners)
                 {
-                    await cleaner.CleanAsync(project, progress, token);
+                    await cleaner.CleanAsync(null, progress, token);
                 }
             }
 
             logger.WriteLine(MigrationStrings.Finished);
         }
 
-        private IEnumerable<Project> GetProjects()
-        {
-            // TODO
-            return Array.Empty<Project>();
-        }
+        private IEnumerable<IVsHierarchy> GetProjects() => projectWalker.Walk();
     }
 }
