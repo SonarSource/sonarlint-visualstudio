@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
     public class IssueHandlerTests
     {
         [TestMethod]
-        public void HandleNewIssues_UpdatedSnapshotHasExpectedValues()
+        public void HandleNewIssues_UpdatedSnapshotAndHotspotStoreHaveExpectedValues()
         {
             var hotspotStoreMock = new Mock<ILocalHotspotsStoreUpdater>();
 
@@ -70,8 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             notificationHandler.InvocationCount.Should().Be(1);
 
             // Check the updated issues
-            hotspotStoreMock.Verify(store => store.AddOrUpdate(expectedFilePath, 
-                It.Is<IEnumerable<IAnalysisIssueVisualization>>(x => x.SequenceEqual(new []{ hotspot }))), Times.Once);
+            VerifyHotspotsAdded(hotspotStoreMock, expectedFilePath, new []{ hotspot });
             
             notificationHandler.UpdatedSnapshot.Issues.Count().Should().Be(1);
             notificationHandler.UpdatedSnapshot.Issues.Should().BeEquivalentTo(new []{issue});
@@ -127,18 +126,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             var inputIssues = new[]
             {
                 CreateIssue("xxx", startLine: 1, endLine: 1),
-                CreateIssue("xxxx", startLine: 3, endLine: 3, true)
+                CreateIssue("xxxx", startLine: 3, endLine: 3, isHotspot: true)
             };
 
             var issuesToReturnFromTranslator = new[]
             {
                 CreateIssue("yyy", startLine: 2, endLine: 2),
-                CreateIssue("yyyy", startLine: 4, endLine: 4, true)
+                CreateIssue("yyyy", startLine: 4, endLine: 4, isHotspot: true)
             };
 
             var notificationHandler = new SnapshotChangeHandler();
 
-            var filePath = "any.txt";
+            const string filePath = "any.txt";
             var textDocument = CreateValidTextDocument(filePath);
 
             var translator = new Mock<TranslateSpans>();
@@ -157,9 +156,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             notificationHandler.InvocationCount.Should().Be(1);
             notificationHandler.UpdatedSnapshot.Issues.Should().BeEquivalentTo(issuesToReturnFromTranslator.First());
             
-            hotspotStoreMock.Verify(store => store.AddOrUpdate(filePath, 
-                It.Is<IEnumerable<IAnalysisIssueVisualization>>(hotspots =>
-                    hotspots.SequenceEqual(new[] { issuesToReturnFromTranslator.Last() }))), Times.Once);
+            VerifyHotspotsAdded(hotspotStoreMock, filePath, new []{ issuesToReturnFromTranslator.Last()});
         }
 
         [TestMethod]
@@ -226,6 +223,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             issue2.IsSuppressed.Should().BeFalse();
             issue3.IsSuppressed.Should().BeFalse();
             issue4.IsSuppressed.Should().BeTrue();
+        }
+        
+        private static void VerifyHotspotsAdded(Mock<ILocalHotspotsStoreUpdater> hotspotStoreMock, string filePath,
+            IAnalysisIssueVisualization[] expectedHotspots)
+        {
+            hotspotStoreMock.Verify(store => store.AddOrUpdate(filePath,
+                It.Is<IEnumerable<IAnalysisIssueVisualization>>(hotspots =>
+                    hotspots.SequenceEqual(expectedHotspots))), Times.Once);
         }
 
         private static IAnalysisIssueVisualization CreateIssue(string ruleKey, int startLine, int endLine, bool isHotspot = false)
@@ -337,8 +342,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             return testSubject;
         }
 
-        private static IEnumerable<IAnalysisIssueVisualization> PassthroughSpanTranslator(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot)
-            => issues;
+        private static IAnalysisIssueVisualization[] PassthroughSpanTranslator(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot)
+            => issues.ToArray();
 
         internal class SnapshotChangeHandler
         {

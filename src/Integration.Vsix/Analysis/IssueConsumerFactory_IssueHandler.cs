@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             // We can't mock the span translation code (to difficult to mock),
             // so we use this delegate to by-passes it in tests.
             // See https://github.com/SonarSource/sonarlint-visualstudio/issues/1522
-            internal /* for testing */ delegate IEnumerable<IAnalysisIssueVisualization> TranslateSpans(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot);
+            internal /* for testing */ delegate IAnalysisIssueVisualization[] TranslateSpans(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot);
 
             private readonly ITextDocument textDocument;
             private readonly string projectName;
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 // The text buffer might have changed since the analysis was triggered, so translate
                 // all issues to the current snapshot.
                 // See bug #1487: https://github.com/SonarSource/sonarlint-visualstudio/issues/1487
-                var translatedIssues = translateSpans(issues, textDocument.TextBuffer.CurrentSnapshot).ToList();
+                var translatedIssues = translateSpans(issues, textDocument.TextBuffer.CurrentSnapshot);
                 
                 localHotspotsStore.AddOrUpdate(textDocument.FilePath,
                     translatedIssues
@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                     translatedIssues.Where(issue =>
                     {
                         var analysisIssueType = (issue.Issue as IAnalysisIssue)?.Type;
-                        return analysisIssueType == AnalysisIssueType.Bug || analysisIssueType == AnalysisIssueType.CodeSmell;
+                        return analysisIssueType != AnalysisIssueType.SecurityHotspot;
                     }));
                 onSnapshotChanged(newSnapshot);
             }
@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 }
             }
 
-            private static IEnumerable<IAnalysisIssueVisualization> DoTranslateSpans(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot)
+            private static IAnalysisIssueVisualization[] DoTranslateSpans(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot)
             {
                 var issuesWithTranslatedSpans = issues
                     .Where(x => x.Span.HasValue)

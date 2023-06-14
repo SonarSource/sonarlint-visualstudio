@@ -19,23 +19,35 @@
  */
 
 using System;
-using SonarLint.VisualStudio.IssueVisualization.Models;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
-{
-    internal class LocalHotspot
-    {
-        /// <param name="visualization">Locally analyzed hotspot visualization</param>
-        /// <param name="serverHotspot">Matched server hotspot. Can be null</param>
-        /// <exception cref="ArgumentNullException">Visualization can't be null</exception>
-        public LocalHotspot(IAnalysisIssueVisualization visualization, SonarQubeHotspot serverHotspot = null)
-        {
-            Visualization = visualization ?? throw new ArgumentNullException(nameof(visualization));
-            ServerHotspot = serverHotspot;
-        }
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots;
 
-        public IAnalysisIssueVisualization Visualization { get; }
-        public SonarQubeHotspot ServerHotspot { get;  }
+[TestClass]
+public class LocalHotspotTests
+{
+    [TestMethod]
+    public void Ctor_VisualizationIsNull_Throws()
+    {
+        Action test = () => new LocalHotspot(null,
+            new SonarQubeHotspot(string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                DateTimeOffset.Now,
+                DateTimeOffset.Now,
+                null,
+                null));
+
+        test.Should().Throw<ArgumentNullException>().Which.Message.Should().Contain("visualization");
     }
 }

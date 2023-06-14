@@ -29,12 +29,18 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 {
+    /// <summary>
+    /// Methods for modification of <see cref="ILocalHotspotsStore"/>
+    /// </summary>
     public interface ILocalHotspotsStoreUpdater
     {
         void AddOrUpdate(string filePath, IEnumerable<IAnalysisIssueVisualization> hotspots);
         void RemoveForFile(string filePath);
     }
 
+    /// <summary>
+    /// Represents the storage for locally analyzed hotspots and matching them against hotspots from the server
+    /// </summary>
     internal interface ILocalHotspotsStore : ILocalHotspotsStoreUpdater, IIssuesStore
     {
         List<LocalHotspot> GetAllLocalHotspots();
