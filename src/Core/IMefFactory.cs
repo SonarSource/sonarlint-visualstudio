@@ -30,8 +30,6 @@ namespace SonarLint.VisualStudio.Core
         /// <summary>
         /// Creates and returns a mef instance on the main thread.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
         Task<T> CreateAsync<T>() where T : class;
     }
 }
