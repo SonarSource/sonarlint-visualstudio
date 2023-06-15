@@ -19,9 +19,13 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
@@ -30,6 +34,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     [PartCreationPolicy(CreationPolicy.NonShared)]
     internal class ConnectedModeMigration : IConnectedModeMigration
     {
+        // Private "alias" to simplify method arguments
+        private class ChangedFiles : List<FilePathAndContent<string>> { }
+
         private readonly ILogger logger;
         private readonly IFileProvider fileProvider;
         private readonly IFileCleaner fileCleaner;
@@ -46,34 +53,87 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         public async Task MigrateAsync(IProgress<MigrationProgress> progress, CancellationToken token)
         {
+            // TODO - add cancellation
+            // TODO - add progress messages
+
             logger.WriteLine(MigrationStrings.Starting);
 
             // TODO: cleanup - dummy implementation to provide feedback for the UI
             progress?.Report(new MigrationProgress(1, 2, "TODO 1", false));
             progress?.Report(new MigrationProgress(2, 2, "TODO 2", true));
 
-            var files = await fileProvider.GetFilesAsync(token);
-            var legacySettings = GetLegacySettitngs();
+            var legacySettings = GetLegacySettings();
 
-            foreach (var file in files)
+            logger.WriteLine(MigrationStrings.GettingFiles);
+            var files = await fileProvider.GetFilesAsync(token);
+
+            if (files.Any())
             {
-                var content = GetFileContent(file);
-                await fileCleaner.CleanAsync(content, legacySettings, token);
+                logger.WriteLine(MigrationStrings.CleaningFiles);
+                var changedFiles = await CleanFilesAsync(files, legacySettings, token);
+
+                // Note: no files have been changed yet. Now we are going to start making changes
+                // to the user's projects and deleting files that might be under source control...
+
+                logger.WriteLine(MigrationStrings.SavingFiles);
+                await SaveChangedFilesAsync(changedFiles);
             }
+            else
+            {
+                logger.WriteLine(MigrationStrings.SkippingCleaning);
+            }
+
+            // TODO - trigger unintrusive binding process (will need the binding arguments)
+            logger.WriteLine(MigrationStrings.ProcessingNewBinding);
+
+            // Note: SLVS will continue to detect the legacy binding mode until this step,
+            // so if anything goes wrong during the migration and an exception occurs, the
+            // user will see the migration gold bar next time they open the solution.
+            logger.WriteLine(MigrationStrings.DeletingSonarLintFolder);
+            await fileSystem.DeleteFolderAsync(legacySettings.LegacySonarLintFolderPath);
 
             logger.WriteLine(MigrationStrings.Finished);
         }
 
-        private LegacySettings GetLegacySettitngs()
+        private LegacySettings GetLegacySettings()
         {
             // TODO - calculate the partial paths to the ruleset and SonarLint.xml files
-            return null;
+            // for both C# and VB.NET - #4362 and #4363
+            return new LegacySettings("folder", "cs ruleset", "cs xml", "vb ruleset", "vb xml");
         }
 
-        private string GetFileContent(string filePath)
+        private Task<string> GetFileContentAsync(string filePath)
+            => fileSystem.LoadAsTextAsync(filePath);
+
+        private async Task<ChangedFiles> CleanFilesAsync(IEnumerable<string> filesToClean,
+            LegacySettings legacySettings,
+            CancellationToken token)
         {
-            // TODO - fetch the content from disc/memory
-            return "<Project />"; // minimal valid Project
+            var changedFiles = new ChangedFiles();
+
+            foreach (var file in filesToClean)
+            {
+                var content = await GetFileContentAsync(file);
+
+                var newContent = await fileCleaner.CleanAsync(content, legacySettings, token);
+                Debug.Assert(newContent == null || !newContent.Equals(content),
+                            "New file content should be null or different from original content");
+
+                if (newContent != MSBuildFileCleaner.Unchanged)
+                {
+                    changedFiles.Add(new FilePathAndContent<string>(file, newContent));
+                }
+            }
+
+            return changedFiles;
+        }
+
+        private async Task SaveChangedFilesAsync(ChangedFiles changedFiles)
+        {
+            foreach(var file in changedFiles)
+            {
+                await fileSystem.SaveAsync(file.Path, file.Content);
+            }
         }
     }
 }

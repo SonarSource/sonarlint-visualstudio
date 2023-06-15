@@ -117,8 +117,26 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CleaningFiles" xml:space="preserve">
+    <value>[Migration] Cleaning files...</value>
+  </data>
+  <data name="DeletingSonarLintFolder" xml:space="preserve">
+    <value>[Migration] Deleting the legacy .sonarlint...</value>
+  </data>
   <data name="Finished" xml:space="preserve">
     <value>[Migration] Finished ConnectedMode migration.</value>
+  </data>
+  <data name="GettingFiles" xml:space="preserve">
+    <value>[Migration] Getting list of files to clean...</value>
+  </data>
+  <data name="ProcessingNewBinding" xml:space="preserve">
+    <value>[Migration] Creating new binding configuration...</value>
+  </data>
+  <data name="SavingFiles" xml:space="preserve">
+    <value>[Migration] Saving files...</value>
+  </data>
+  <data name="SkippingCleaning" xml:space="preserve">
+    <value>[Migration] Skipping cleaning files: no files were found that could contain settings that need to cleaned.</value>
   </data>
   <data name="Starting" xml:space="preserve">
     <value>[Migration] Starting Connected Mode migration...</value>

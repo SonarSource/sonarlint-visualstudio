@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
+using SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.ConnectedModeMigrationTestsExtensions;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 {
@@ -46,21 +47,56 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         }
 
         [TestMethod]
-        public void Migrate_FilesExist_AllFilesCleaned()
+        public async Task Migrate_NoFilesToClean_DirectoryIsDeleted()
         {
-            var fileProvider = CreateFileProvider("file1", "file2", "file3");
+            var fileProvider = CreateFileProvider();
+            var fileSystem = new Mock<IVsAwareFileSystem>();
             var fileCleaner = new Mock<IFileCleaner>();
 
-            var testSubject = CreateTestSubject(fileProvider.Object, fileCleaner.Object);
+            var testSubject = CreateTestSubject(fileProvider.Object, fileCleaner.Object, fileSystem.Object);
 
-            Func<Task> act = async () => await testSubject.MigrateAsync(null, CancellationToken.None);
-
-            act.Should().NotThrow();
+            await testSubject.MigrateAsync(null, CancellationToken.None);
 
             fileProvider.Verify(x => x.GetFilesAsync(It.IsAny<CancellationToken>()), Times.Once);
+
+            fileCleaner.Invocations.Should().HaveCount(0);
+            fileSystem.VerifyNoFilesSaved();
+            fileSystem.VerifyDirectoryDeleted("folder"); // TODO - check for the correct path. Depends on #4362
+        }
+
+        [TestMethod]
+        public async Task Migrate_FilesExist_AllFilesCleanedAndSaved_AndDirectoryDeleted()
+        {
+            var fileProvider = CreateFileProvider("file1", "file2", "file3");
+            var fileSystem = new Mock<IVsAwareFileSystem>();
+            fileSystem.AddFile("file1", "content1");
+            fileSystem.AddFile("file2", "content2");
+            fileSystem.AddFile("file3", "content3");
+
+            var fileCleaner = new Mock<IFileCleaner>();
+            fileCleaner.SetupFileToClean("content1", "cleaned1");
+            fileCleaner.SetupFileToClean("content2", "cleaned2");
+            fileCleaner.SetupFileToClean("content3", "cleaned3");
+
+            var testSubject = CreateTestSubject(fileProvider.Object, fileCleaner.Object, fileSystem.Object);
+
+            await testSubject.MigrateAsync(null, CancellationToken.None);
+
+            fileProvider.Verify(x => x.GetFilesAsync(It.IsAny<CancellationToken>()), Times.Once);
+            fileSystem.VerifyFileLoaded("file1");
+            fileSystem.VerifyFileLoaded("file2");
+            fileSystem.VerifyFileLoaded("file3");
+
             fileCleaner.Invocations.Should().HaveCount(3);
-            
-            // TODO - verify expected content used (the class doesn't yet load the content)
+            fileCleaner.VerifyFileCleaned("content1");
+            fileCleaner.VerifyFileCleaned("content2");
+            fileCleaner.VerifyFileCleaned("content3");
+
+            fileSystem.VerifyFileSaved("file1", "cleaned1");
+            fileSystem.VerifyFileSaved("file2", "cleaned2");
+            fileSystem.VerifyFileSaved("file3", "cleaned3");
+
+            fileSystem.VerifyDirectoryDeleted("folder"); // TODO - check for the correct path. Depends on #4362
         }
 
         [TestMethod]
@@ -88,11 +124,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             progressMessages.Should().NotBeEmpty();
         }
 
-        private static void VerifyFileCleaned(Mock<IFileCleaner> fileCleaner, string expectedContent)
-            => fileCleaner.Verify(x => x.CleanAsync(expectedContent,
-                It.IsAny<LegacySettings>(),
-                It.IsAny<CancellationToken>()), Times.Once);
-
         private static ConnectedModeMigration CreateTestSubject(
             IFileProvider fileProvider = null,
             IFileCleaner fileCleaner = null,
@@ -113,8 +144,40 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var fileProvider = new Mock<IFileProvider>();
             fileProvider.Setup(x => x.GetFilesAsync(It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult<IEnumerable<string>>(filesToReturn));
-        
+
             return fileProvider;
+        }
+    }
+
+    // Extension methods to make the mocks easier to work with.
+    // In a separate namespace so we don't pollute IntelliSense for other tests.
+    namespace ConnectedModeMigrationTestsExtensions
+    {
+        internal static class MockExtensions
+        {
+            public static void SetupFileToClean(this Mock<IFileCleaner> fileCleaner, string input, string output)
+                => fileCleaner.Setup(x => x.CleanAsync(input, It.IsAny<LegacySettings>(), It.IsAny<CancellationToken>()))
+                    .Returns(Task.FromResult(output));
+
+            public static void VerifyFileCleaned(this Mock<IFileCleaner> fileCleaner, string expectedContent)
+                => fileCleaner.Verify(x => x.CleanAsync(expectedContent,
+                    It.IsAny<LegacySettings>(),
+                    It.IsAny<CancellationToken>()), Times.Once);
+
+            public static void AddFile(this Mock<IVsAwareFileSystem> fileSystem, string filePath, string content)
+                => fileSystem.Setup(x => x.LoadAsTextAsync(filePath)).Returns(Task.FromResult(content));
+
+            public static void VerifyFileLoaded(this Mock<IVsAwareFileSystem> fileSystem, string filePath)
+                => fileSystem.Verify(x => x.LoadAsTextAsync(filePath), Times.Once);
+
+            public static void VerifyFileSaved(this Mock<IVsAwareFileSystem> fileSystem, string filePath, string content)
+                => fileSystem.Verify(x => x.SaveAsync(filePath, content), Times.Once);
+
+            public static void VerifyNoFilesSaved(this Mock<IVsAwareFileSystem> fileSystem)
+                => fileSystem.Verify(x => x.SaveAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+
+            public static void VerifyDirectoryDeleted(this Mock<IVsAwareFileSystem> fileSystem, string folderPath)
+                => fileSystem.Verify(x => x.DeleteFolderAsync(folderPath), Times.Once);
         }
     }
 }
