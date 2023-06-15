@@ -120,6 +120,9 @@
   <data name="CleaningFiles" xml:space="preserve">
     <value>[Migration] Cleaning files...</value>
   </data>
+  <data name="CountOfFilesToClean" xml:space="preserve">
+    <value>[Migration] Number of files to clean: {0}</value>
+  </data>
   <data name="DeletingSonarLintFolder" xml:space="preserve">
     <value>[Migration] Deleting the legacy .sonarlint...</value>
   </data>

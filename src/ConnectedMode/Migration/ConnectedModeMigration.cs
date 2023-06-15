@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     internal class ConnectedModeMigration : IConnectedModeMigration
     {
         // Private "alias" to simplify method arguments
-        private class ChangedFiles : List<FilePathAndContent<string>> { }
+        private sealed class ChangedFiles : List<FilePathAndContent<string>> { }
 
         private readonly ILogger logger;
         private readonly IFileProvider fileProvider;
@@ -66,6 +66,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             logger.WriteLine(MigrationStrings.GettingFiles);
             var files = await fileProvider.GetFilesAsync(token);
+            logger.WriteLine(MigrationStrings.CountOfFilesToClean, files.Count());
 
             if (files.Any())
             {

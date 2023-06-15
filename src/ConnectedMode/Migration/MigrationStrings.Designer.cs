@@ -70,6 +70,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Migration] Number of files to clean: {0}.
+        /// </summary>
+        internal static string CountOfFilesToClean {
+            get {
+                return ResourceManager.GetString("CountOfFilesToClean", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Migration] Deleting the legacy .sonarlint....
         /// </summary>
         internal static string DeletingSonarLintFolder {

@@ -100,6 +100,43 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         }
 
         [TestMethod]
+        public async Task Migrate_FilesExist_OnlyChangedFilesAreSaved()
+        {
+            // Setup - only odd-numbered files are changed -> only they should be saved
+            var fileProvider = CreateFileProvider("file1", "file2", "file3", "file4");
+            var fileSystem = new Mock<IVsAwareFileSystem>();
+            fileSystem.AddFile("file1", "1 original content");
+            fileSystem.AddFile("file2", "2 will not change");
+            fileSystem.AddFile("file3", "3 original content");
+            fileSystem.AddFile("file4", "4 will not change");
+
+            var fileCleaner = new Mock<IFileCleaner>();
+            fileCleaner.SetupFileToClean("1 original content", "1 new content");
+            fileCleaner.SetupFileToClean("2 will not change", null); // null = unchanged
+            fileCleaner.SetupFileToClean("3 original content", "3 new content");
+            fileCleaner.SetupFileToClean("4 will not change", null); // null = unchanged
+
+            var testSubject = CreateTestSubject(fileProvider.Object, fileCleaner.Object, fileSystem.Object);
+
+            await testSubject.MigrateAsync(null, CancellationToken.None);
+
+            fileProvider.Verify(x => x.GetFilesAsync(It.IsAny<CancellationToken>()), Times.Once);
+
+            fileCleaner.Invocations.Should().HaveCount(4);
+            fileCleaner.VerifyFileCleaned("1 original content");
+            fileCleaner.VerifyFileCleaned("2 will not change");
+            fileCleaner.VerifyFileCleaned("3 original content");
+            fileCleaner.VerifyFileCleaned("4 will not change");
+
+            fileSystem.VerifyFileSaved("file1", "1 new content");
+            fileSystem.VerifyFileNotSaved("file2");
+            fileSystem.VerifyFileSaved("file3", "3 new content");
+            fileSystem.VerifyFileNotSaved("file4");
+
+            fileSystem.VerifyDirectoryDeleted("folder"); // TODO - check for the correct path. Depends on #4362
+        }
+
+        [TestMethod]
         public void Migrate_NoProgressListener_NoError()
         {
             var testSubject = CreateTestSubject();
@@ -172,6 +209,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             public static void VerifyFileSaved(this Mock<IVsAwareFileSystem> fileSystem, string filePath, string content)
                 => fileSystem.Verify(x => x.SaveAsync(filePath, content), Times.Once);
+
+            public static void VerifyFileNotSaved(this Mock<IVsAwareFileSystem> fileSystem, string filePath)
+                => fileSystem.Verify(x => x.SaveAsync(filePath, It.IsAny<string>()), Times.Never);
 
             public static void VerifyNoFilesSaved(this Mock<IVsAwareFileSystem> fileSystem)
                 => fileSystem.Verify(x => x.SaveAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
