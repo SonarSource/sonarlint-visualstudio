@@ -18,33 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using EnvDTE;
 using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
-    [Export(typeof(IProjectCleaner))]
+    [Export(typeof(IFileCleaner))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
-    /// <summary>
-    /// Attempts to remove references to SonarLint.xml from the project
-    /// </summary>
-    /// <remarks>NB this should only be called for C# or VB.NET projects - other project types
-    /// won't have references to the SonarLint xml file</remarks>
-    internal class AdditionalFileCleaner : IProjectCleaner
+    internal class MSBuildFileCleaner : IFileCleaner
     {
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public AdditionalFileCleaner(ILogger logger)
+        public MSBuildFileCleaner(ILogger logger)
         {
             this.logger = logger;
         }
 
-        public Task CleanAsync(Project project, IProgress<MigrationProgress> progress, CancellationToken token)
+        public Task CleanAsync(string filePath, LegacySettings legacySettings, CancellationToken token)
         {
             // TODO
             return Task.CompletedTask;

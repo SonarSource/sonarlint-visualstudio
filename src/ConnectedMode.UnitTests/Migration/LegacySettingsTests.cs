@@ -18,24 +18,35 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
-using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 {
     [TestClass]
-    public class RuleSetCleanerTests
+    public class LegacySettingsTests
     {
         [TestMethod]
-        public void MefCtor_CheckIsExported()
+        public void Ctor_RulesetPathIsRequired()
         {
-            MefTestHelpers.CheckTypeCanBeImported<RuleSetCleaner, IProjectCleaner>(
-                MefTestHelpers.CreateExport<ILogger>());
+            Action action = () => new LegacySettings(null, "sonarlint.xml");    
+            action.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("partialRuleSetPath");
         }
 
         [TestMethod]
-        public void MefCtor_CheckTypeIsNonShared()
-            => MefTestHelpers.CheckIsNonSharedMefComponent<RuleSetCleaner>();
+        public void Ctor_SonarLintPathsRequired()
+        {
+            Action action = () => new LegacySettings("x.ruleset", null);
+            action.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("partialSonarLintXmlPath");
+        }
+
+        [TestMethod]
+        public void Ctor_ValidArgs_PropertiesSetCorrectly()
+        {
+            var testSubject = new LegacySettings("c:\\bar\\x.ruleset", "c:\\foo\\SonarLint.xml");
+
+            testSubject.PartialRuleSetPath.Should().Be("c:\\bar\\x.ruleset");
+            testSubject.PartialSonarLintXmlPath.Should().Be("c:\\foo\\SonarLint.xml");
+        }
     }
 }

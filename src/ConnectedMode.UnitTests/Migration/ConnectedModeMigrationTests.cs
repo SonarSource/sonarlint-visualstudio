@@ -20,8 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
@@ -41,31 +39,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         public void MefCtor_CheckIsExported_NoProjectCleaners()
         {
             MefTestHelpers.CheckTypeCanBeImported<ConnectedModeMigration, IConnectedModeMigration>(
+                MefTestHelpers.CreateExport<IFileProvider>(),
+                MefTestHelpers.CreateExport<IFileCleaner>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]
-        public void MefCtor_CheckIsExported_MultipleProjectCleaners()
+        public void Migrate_FilesExist_AllFilesCleaned()
         {
-            var batch = new CompositionBatch();
-            batch.AddExport(MefTestHelpers.CreateExport<ILogger>());
+            var fileProvider = CreateFileProvider("file1", "file2", "file3");
+            var fileCleaner = new Mock<IFileCleaner>();
 
-            batch.AddExport(MefTestHelpers.CreateExport<IProjectCleaner>());
-            batch.AddExport(MefTestHelpers.CreateExport<IProjectCleaner>());
-            batch.AddExport(MefTestHelpers.CreateExport<IProjectCleaner>());
+            var testSubject = CreateTestSubject(fileProvider.Object, fileCleaner.Object);
 
-            var importer = new SingleObjectImporter<IConnectedModeMigration>();
-            batch.AddPart(importer);
-
-            using var catalog = new TypeCatalog(typeof(ConnectedModeMigration));
-            using var container = new CompositionContainer(catalog);
-            Action act = () => container.Compose(batch);
+            Func<Task> act = async () => await testSubject.MigrateAsync(null, CancellationToken.None);
 
             act.Should().NotThrow();
-            importer.Import.Should().NotBeNull();
 
-            var actualType = (ConnectedModeMigration)importer.Import;
-            actualType.ProjectCleaners.Should().HaveCount(3);
+            fileProvider.Verify(x => x.GetFilesAsync(It.IsAny<CancellationToken>()), Times.Once);
+            fileCleaner.Invocations.Should().HaveCount(3);
+            VerifyFileCleaned(fileCleaner, "file1");
+            VerifyFileCleaned(fileCleaner, "file2");
+            VerifyFileCleaned(fileCleaner, "file3");
         }
 
         [TestMethod]
@@ -93,11 +88,29 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             progressMessages.Should().NotBeEmpty();
         }
 
-        private static ConnectedModeMigration CreateTestSubject(ILogger logger = null, params IProjectCleaner[] projectCleaners)
+        private static void VerifyFileCleaned(Mock<IFileCleaner> fileCleaner, string filePath)
+            => fileCleaner.Verify(x => x.CleanAsync(filePath, It.IsAny<LegacySettings>(), It.IsAny<CancellationToken>()), Times.Once);
+
+        private static ConnectedModeMigration CreateTestSubject(
+            IFileProvider fileProvider = null,
+            IFileCleaner fileCleaner = null,
+            ILogger logger = null)
         {
+            fileProvider ??= Mock.Of<IFileProvider>();
+            fileCleaner ??= Mock.Of<IFileCleaner>();
+
             logger ??= new TestLogger(logToConsole: true);
 
-            return new ConnectedModeMigration(logger, projectCleaners);
+            return new ConnectedModeMigration(fileProvider, fileCleaner, logger);
+        }
+
+        private static Mock<IFileProvider> CreateFileProvider(params string[] filesToReturn)
+        {
+            var fileProvider = new Mock<IFileProvider>();
+            fileProvider.Setup(x => x.GetFilesAsync(It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult<IEnumerable<string>>(filesToReturn));
+        
+            return fileProvider;
         }
     }
 }

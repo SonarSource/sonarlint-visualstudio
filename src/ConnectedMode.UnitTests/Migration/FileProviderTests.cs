@@ -25,17 +25,17 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 {
     [TestClass]
-    public class AdditionalFileCleanerTests
+    public class MSBuildFileProviderTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<AdditionalFileCleaner, IProjectCleaner>(
+            MefTestHelpers.CheckTypeCanBeImported<MSBuildFileProvider, IFileProvider>(
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]
         public void MefCtor_CheckTypeIsNonShared()
-            => MefTestHelpers.CheckIsNonSharedMefComponent<AdditionalFileCleaner>();
+            => MefTestHelpers.CheckIsNonSharedMefComponent<MSBuildFileProvider>();
     }
 }
