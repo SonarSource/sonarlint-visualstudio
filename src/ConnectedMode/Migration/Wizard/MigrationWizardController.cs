@@ -43,13 +43,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
         public event EventHandler MigrationWizardFinished;
 
         public void StartMigrationWizard()
-        { 
-            // TODO show the migration wizard window.
-        }
-
-        private void OnMigrationWizardFinished()
         {
-            MigrationWizardFinished?.Invoke(this, EventArgs.Empty);
+            var migrationWizardWindow = new MigrationWizardWindow();
+
+            var finishedSuccessfully = migrationWizardWindow.ShowModal();
+
+            if (finishedSuccessfully != null && finishedSuccessfully.Value)
+            {
+               MigrationWizardFinished?.Invoke(this, EventArgs.Empty);
+            }
         }
     }
 }
