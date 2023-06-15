@@ -19,9 +19,9 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using EnvDTE;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
@@ -34,15 +34,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         // TODO: decide if the method should return a list of specific manual cleanup
         // steps that the user still needs to perform
         Task MigrateAsync(IProgress<MigrationProgress> progress, CancellationToken token);
-    }
-
-    /// <summary>
-    /// Contract for a component that can perform a specific type of clean-up on a VS project
-    /// e.g. removing a ruleset reference
-    /// </summary>
-    internal interface IProjectCleaner
-    {
-        Task CleanAsync(Project project, IProgress<MigrationProgress> progress, CancellationToken token);
     }
 
     /// <summary>
@@ -70,5 +61,50 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         /// sucessfully
         /// </summary>
         public bool IsWarning { get; }
+    }
+
+    /// <summary>
+    /// Finds the set of MSBuild files that need to be cleaned as part of the migration
+    /// </summary>
+    internal interface IFileProvider
+    {
+        /// <summary>
+        /// Returns a list of full paths to the set of MSBuild files to be cleaned
+        /// </summary>
+        /// <remarks>The files can be project files or imported props/targets etc</remarks>
+        Task<IEnumerable<string>> GetFilesAsync(CancellationToken token);
+    }
+
+    /// <summary>
+    /// Contract for a component that will clean ruleset and additional file references for a single filee
+    /// </summary>
+    /// <remarks>The file will be an MSBuild file i.e. XML. It could be project file/imported prop or targets/
+    /// Directory.Build.props/targets</remarks>
+    internal interface IFileCleaner
+    {
+        Task CleanAsync(string filePath, LegacySettings legacySettings, CancellationToken token);
+    }
+
+    /// <summary>
+    /// Data class containing information about the paths to the legacy generated files
+    /// </summary>
+    /// <remarks>Required by <see cref="IFileCleaner"/> to identify the references to remove</remarks>
+    internal class LegacySettings
+    {
+        public LegacySettings(string partialRuleSetPath, string partialSonarLintXmlPath)
+        {
+            PartialRuleSetPath = partialRuleSetPath ?? throw new ArgumentNullException(nameof(partialRuleSetPath));
+            PartialSonarLintXmlPath = partialSonarLintXmlPath ?? throw new ArgumentNullException(nameof(partialSonarLintXmlPath));
+        }
+
+        /// <summary>
+        /// Partial path to the generated ruleset e.g. ".sonarlint\slvs_samples_bound_vs2019csharp.ruleset"
+        /// </summary>
+        public string PartialRuleSetPath { get; }
+
+        /// <summary>
+        /// Partial path to the generated SonarLint.xml file e.g. ".sonarlint\slvs_samples_bound_vs2019\CSharp\SonarLint.xml"
+        /// </summary>
+        public string PartialSonarLintXmlPath { get; }
     }
 }

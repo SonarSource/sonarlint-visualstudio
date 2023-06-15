@@ -19,12 +19,9 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using EnvDTE;
 using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
@@ -34,15 +31,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     internal class ConnectedModeMigration : IConnectedModeMigration
     {
         private readonly ILogger logger;
-        private readonly IProjectCleaner[] projectCleaners;
-
-        internal /* for testing */ IEnumerable<IProjectCleaner> ProjectCleaners => projectCleaners?.ToList() ?? Enumerable.Empty<IProjectCleaner>();
+        private readonly IFileProvider fileProvider;
+        private readonly IFileCleaner fileCleaner;
 
         [ImportingConstructor]
-        public ConnectedModeMigration(ILogger logger, [ImportMany]IProjectCleaner[] projectCleaners)
+        public ConnectedModeMigration(IFileProvider fileProvider, IFileCleaner fileCleaner, ILogger logger)
         {
             this.logger = logger;
-            this.projectCleaners = projectCleaners;
+            this.fileProvider = fileProvider;
+            this.fileCleaner = fileCleaner;
         }
 
         public async Task MigrateAsync(IProgress<MigrationProgress> progress, CancellationToken token)
@@ -53,21 +50,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             progress?.Report(new MigrationProgress(1, 2, "TODO 1", false));
             progress?.Report(new MigrationProgress(2, 2, "TODO 2", true));
 
-            foreach (var project in GetProjects())
+            var files = await fileProvider.GetFilesAsync(token);
+            var legacySettings = GetLegacySettitngs();
+
+            foreach (var file in files)
             {
-                foreach (var cleaner in projectCleaners)
-                {
-                    await cleaner.CleanAsync(project, progress, token);
-                }
+                await fileCleaner.CleanAsync(file, legacySettings, token);
             }
 
             logger.WriteLine(MigrationStrings.Finished);
         }
 
-        private IEnumerable<Project> GetProjects()
+        private LegacySettings GetLegacySettitngs()
         {
-            // TODO
-            return Array.Empty<Project>();
+            // TODO - calculate the partial paths to the ruleset and SonarLint.xml files
+            return null;
         }
     }
 }

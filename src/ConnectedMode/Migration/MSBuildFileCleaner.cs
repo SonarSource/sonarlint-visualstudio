@@ -18,24 +18,29 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.ConnectedMode.Migration;
+using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
+namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
-    [TestClass]
-    public class RuleSetCleanerTests
+    [Export(typeof(IFileCleaner))]
+    [PartCreationPolicy(CreationPolicy.NonShared)]
+    internal class MSBuildFileCleaner : IFileCleaner
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
+        private readonly ILogger logger;
+
+        [ImportingConstructor]
+        public MSBuildFileCleaner(ILogger logger)
         {
-            MefTestHelpers.CheckTypeCanBeImported<RuleSetCleaner, IProjectCleaner>(
-                MefTestHelpers.CreateExport<ILogger>());
+            this.logger = logger;
         }
 
-        [TestMethod]
-        public void MefCtor_CheckTypeIsNonShared()
-            => MefTestHelpers.CheckIsNonSharedMefComponent<RuleSetCleaner>();
+        public Task CleanAsync(string filePath, LegacySettings legacySettings, CancellationToken token)
+        {
+            // TODO
+            return Task.CompletedTask;
+        }
     }
 }
