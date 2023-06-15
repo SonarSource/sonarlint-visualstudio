@@ -18,36 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.ComponentModel.Composition;
-using System.Threading;
-using System.Threading.Tasks;
-using EnvDTE;
+using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Migration
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 {
-    [Export(typeof(IProjectCleaner))]
-    [PartCreationPolicy(CreationPolicy.NonShared)]
-    /// <summary>
-    /// Attempts to remove references to the generated ruleset from the project
-    /// </summary>
-    /// <remarks>NB this should only be called for C# or VB.NET projects - other project types
-    /// won't have references to a generated ruleset</remarks>
-    internal class RuleSetCleaner : IProjectCleaner
+    [TestClass]
+    public class MSBuildFileCleanerTests
     {
-        private readonly ILogger logger;
-
-        [ImportingConstructor]
-        public RuleSetCleaner(ILogger logger)
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
         {
-            this.logger = logger;
+            MefTestHelpers.CheckTypeCanBeImported<MSBuildFileCleaner, IFileCleaner>(
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
-        public Task CleanAsync(Project project, IProgress<MigrationProgress> progress, CancellationToken token)
-        {
-            // TODO
-            return Task.CompletedTask;
-        }
+        [TestMethod]
+        public void MefCtor_CheckTypeIsNonShared()
+            => MefTestHelpers.CheckIsNonSharedMefComponent<MSBuildFileCleaner>();
     }
 }
