@@ -71,7 +71,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             if (obsoleteConfigurationProvider.GetConfiguration()?.Mode != SonarLintMode.Standalone
                 && configurationProvider.GetConfiguration()?.Mode == SonarLintMode.Standalone)
             {
-
                migrationPrompt = await mefFactory.CreateAsync<IMigrationPrompt>();
                migrationPrompt.ShowAsync().Forget();
             }
