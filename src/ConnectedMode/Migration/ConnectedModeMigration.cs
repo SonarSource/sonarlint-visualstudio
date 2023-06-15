@@ -33,13 +33,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly ILogger logger;
         private readonly IFileProvider fileProvider;
         private readonly IFileCleaner fileCleaner;
+        private readonly IVsAwareFileSystem fileSystem;
 
         [ImportingConstructor]
-        public ConnectedModeMigration(IFileProvider fileProvider, IFileCleaner fileCleaner, ILogger logger)
+        public ConnectedModeMigration(IFileProvider fileProvider, IFileCleaner fileCleaner, IVsAwareFileSystem fileSystem, ILogger logger)
         {
             this.logger = logger;
             this.fileProvider = fileProvider;
             this.fileCleaner = fileCleaner;
+            this.fileSystem = fileSystem;
         }
 
         public async Task MigrateAsync(IProgress<MigrationProgress> progress, CancellationToken token)
@@ -55,7 +57,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             foreach (var file in files)
             {
-                await fileCleaner.CleanAsync(file, legacySettings, token);
+                var content = GetFileContent(file);
+                await fileCleaner.CleanAsync(content, legacySettings, token);
             }
 
             logger.WriteLine(MigrationStrings.Finished);
@@ -65,6 +68,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         {
             // TODO - calculate the partial paths to the ruleset and SonarLint.xml files
             return null;
+        }
+
+        private string GetFileContent(string filePath)
+        {
+            // TODO - fetch the content from disc/memory
+            return "<Project />"; // minimal valid Project
         }
     }
 }
