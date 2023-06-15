@@ -107,4 +107,36 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         /// </summary>
         public string PartialSonarLintXmlPath { get; }
     }
+
+    /// <summary>
+    /// Abstraction over file operations required during migration against files that might
+    /// be in a VS solution.
+    /// </summary>
+    /// <remarks>
+    /// Types involved in migration should use this abstraction for all reads/writes to files
+    /// that might be part of the solution.
+    /// It gives us a way to centralise any additional API calls that might be needed
+    /// e.g. calling VS source-control APIs notifying it that files have changed or been deleted.
+    /// </remarks>
+    internal interface IVsAwareFileSystem
+    {
+        /// <summary>
+        /// Returns the contents of the specified document as text
+        /// </summary>
+        /// <returns>The data might be fetched from disc or from in-memory, depending on
+        /// whether the file is open in VS</returns>
+        Task<string> LoadAsTextAsync(string filePath);
+
+        /// <summary>
+        /// Writes the text back to the document
+        /// </summary>
+        /// <remarks>The data might be persisted to disc, or used to update the in-memory representation
+        /// if the document is open in VS</remarks>
+        Task SaveAsync(string filePath, string text);
+
+        /// <summary>
+        /// Deletes the folder from disc
+        /// </summary>
+        Task DeleteFolderAsync(string folderPath);
+    }
 }
