@@ -41,6 +41,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             MefTestHelpers.CheckTypeCanBeImported<ConnectedModeMigration, IConnectedModeMigration>(
                 MefTestHelpers.CreateExport<IFileProvider>(),
                 MefTestHelpers.CreateExport<IFileCleaner>(),
+                MefTestHelpers.CreateExport<IVsAwareFileSystem>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
@@ -58,9 +59,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             fileProvider.Verify(x => x.GetFilesAsync(It.IsAny<CancellationToken>()), Times.Once);
             fileCleaner.Invocations.Should().HaveCount(3);
-            VerifyFileCleaned(fileCleaner, "file1");
-            VerifyFileCleaned(fileCleaner, "file2");
-            VerifyFileCleaned(fileCleaner, "file3");
+            
+            // TODO - verify expected content used (the class doesn't yet load the content)
         }
 
         [TestMethod]
@@ -88,20 +88,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             progressMessages.Should().NotBeEmpty();
         }
 
-        private static void VerifyFileCleaned(Mock<IFileCleaner> fileCleaner, string filePath)
-            => fileCleaner.Verify(x => x.CleanAsync(filePath, It.IsAny<LegacySettings>(), It.IsAny<CancellationToken>()), Times.Once);
+        private static void VerifyFileCleaned(Mock<IFileCleaner> fileCleaner, string expectedContent)
+            => fileCleaner.Verify(x => x.CleanAsync(expectedContent,
+                It.IsAny<LegacySettings>(),
+                It.IsAny<CancellationToken>()), Times.Once);
 
         private static ConnectedModeMigration CreateTestSubject(
             IFileProvider fileProvider = null,
             IFileCleaner fileCleaner = null,
+            IVsAwareFileSystem fileSystem = null,
             ILogger logger = null)
         {
             fileProvider ??= Mock.Of<IFileProvider>();
             fileCleaner ??= Mock.Of<IFileCleaner>();
+            fileSystem ??= Mock.Of<IVsAwareFileSystem>();
 
             logger ??= new TestLogger(logToConsole: true);
 
-            return new ConnectedModeMigration(fileProvider, fileCleaner, logger);
+            return new ConnectedModeMigration(fileProvider, fileCleaner, fileSystem, logger);
         }
 
         private static Mock<IFileProvider> CreateFileProvider(params string[] filesToReturn)

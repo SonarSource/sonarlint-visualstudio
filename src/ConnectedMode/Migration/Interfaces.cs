@@ -76,13 +76,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     }
 
     /// <summary>
-    /// Contract for a component that will clean ruleset and additional file references for a single filee
+    /// Contract for a component that will clean ruleset and additional file references for a single file
     /// </summary>
-    /// <remarks>The file will be an MSBuild file i.e. XML. It could be project file/imported prop or targets/
-    /// Directory.Build.props/targets</remarks>
+    /// <remarks>The file will be an XML file. It could be ruleset file or an MSBuild project file (including
+    /// .props, .targets and Directory.Build.props/targets</remarks>
     internal interface IFileCleaner
     {
-        Task CleanAsync(string filePath, LegacySettings legacySettings, CancellationToken token);
+        /// <summary>
+        /// Removes unwanted settings from the supplied XML content
+        /// </summary>
+        /// <returns>The modified content, or null if the text was not modified</returns>
+        Task<string> CleanAsync(string content, LegacySettings legacySettings, CancellationToken token);
     }
 
     /// <summary>

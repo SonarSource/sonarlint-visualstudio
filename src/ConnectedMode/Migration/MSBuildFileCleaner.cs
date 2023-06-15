@@ -29,6 +29,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     [PartCreationPolicy(CreationPolicy.NonShared)]
     internal class MSBuildFileCleaner : IFileCleaner
     {
+        /// <summary>
+        /// Return value indicating the file has not changed
+        /// </summary>
+        public const string Unchanged = null;
+
         private readonly ILogger logger;
 
         [ImportingConstructor]
@@ -37,10 +42,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             this.logger = logger;
         }
 
-        public Task CleanAsync(string filePath, LegacySettings legacySettings, CancellationToken token)
+        public Task<string> CleanAsync(string content, LegacySettings legacySettings, CancellationToken token)
         {
             // TODO
-            return Task.CompletedTask;
+            return Task.FromResult(Unchanged);
         }
     }
 }
