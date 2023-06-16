@@ -115,7 +115,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Learn More.
+        ///   Looks up a localized string similar to Learn more.
         /// </summary>
         internal static string MigrationPrompt_LearnMoreButton {
             get {
@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Migration configuration.
+        ///   Looks up a localized string similar to Migrate configuration.
         /// </summary>
         internal static string MigrationPrompt_MigrateButton {
             get {

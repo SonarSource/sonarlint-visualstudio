@@ -136,13 +136,13 @@
     <value>https://github.com/SonarSource/sonarlint-visualstudio/wiki/migrate-connected-mode-to-v7</value>
   </data>
   <data name="MigrationPrompt_LearnMoreButton" xml:space="preserve">
-    <value>Learn More</value>
+    <value>Learn more</value>
   </data>
   <data name="MigrationPrompt_Message" xml:space="preserve">
     <value>SonarLint: You are using an outdated Connected Mode configuration format.</value>
   </data>
   <data name="MigrationPrompt_MigrateButton" xml:space="preserve">
-    <value>Migration configuration</value>
+    <value>Migrate configuration</value>
   </data>
   <data name="ProcessingNewBinding" xml:space="preserve">
     <value>[Migration] Creating new binding configuration...</value>
