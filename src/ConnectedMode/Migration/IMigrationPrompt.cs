@@ -77,11 +77,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
                 var notification = new Notification(
                     id: id,
-                    message: Resources.Migration_MigrationPrompt_Message,
+                    message: MigrationStrings.MigrationPrompt_Message,
                     actions: new INotificationAction[]
                     {
-                    new NotificationAction(Resources.Migration_MigrationPrompt_MigrateButton, _ => OnMigrate(), false),
-                    new NotificationAction(Resources.Migration_MigrationPrompt_LearnMoreButton, _ => OnLearnMore(), false),
+                    new NotificationAction(MigrationStrings.MigrationPrompt_MigrateButton, _ => OnMigrate(), false),
+                    new NotificationAction(MigrationStrings.MigrationPrompt_LearnMoreButton, _ => OnLearnMore(), false),
                     });
 
                 notificationService.ShowNotification(notification);

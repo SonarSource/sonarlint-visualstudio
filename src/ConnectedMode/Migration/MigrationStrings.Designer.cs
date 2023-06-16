@@ -106,6 +106,42 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to https://github.com/SonarSource/sonarlint-visualstudio/wiki/migrate-connected-mode-to-v7.
+        /// </summary>
+        internal static string LearnMoreUrl {
+            get {
+                return ResourceManager.GetString("LearnMoreUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Learn more.
+        /// </summary>
+        internal static string MigrationPrompt_LearnMoreButton {
+            get {
+                return ResourceManager.GetString("MigrationPrompt_LearnMoreButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint: You&apos;re using an outdated Connected Mode configuration format. Please migrate..
+        /// </summary>
+        internal static string MigrationPrompt_Message {
+            get {
+                return ResourceManager.GetString("MigrationPrompt_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Migrate configuration.
+        /// </summary>
+        internal static string MigrationPrompt_MigrateButton {
+            get {
+                return ResourceManager.GetString("MigrationPrompt_MigrateButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Migration] Creating new binding configuration....
         /// </summary>
         internal static string ProcessingNewBinding {
