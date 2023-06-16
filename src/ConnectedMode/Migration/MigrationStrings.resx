@@ -117,6 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CancelTokenFailure_NormalLog" xml:space="preserve">
+    <value>[Migration] Failed to close migration window correctly: {0}</value>
+  </data>
+  <data name="CancelTokenFailure_VerboseLog" xml:space="preserve">
+    <value>[MigrationWizardXaml] Failed to close migration windowe correctly: {0}</value>
+  </data>
   <data name="CleaningFiles" xml:space="preserve">
     <value>[Migration] Cleaning files...</value>
   </data>
