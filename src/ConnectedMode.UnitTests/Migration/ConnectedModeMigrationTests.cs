@@ -32,14 +32,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
     [TestClass]
     public class ConnectedModeMigrationTests
     {
+        private static readonly LegacySettings DefaultTestLegacySettings = new LegacySettings("folder", "cs ruleset", "cs xml", "vb ruleset", "vb xml");
+
         [TestMethod]
         public void MefCtor_CheckTypeIsNonShared()
             => MefTestHelpers.CheckIsNonSharedMefComponent<ConnectedModeMigration>();
 
         [TestMethod]
-        public void MefCtor_CheckIsExported_NoProjectCleaners()
+        public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<ConnectedModeMigration, IConnectedModeMigration>(
+                MefTestHelpers.CreateExport<IMigrationSettingsProvider>(),
                 MefTestHelpers.CreateExport<IFileProvider>(),
                 MefTestHelpers.CreateExport<IFileCleaner>(),
                 MefTestHelpers.CreateExport<IVsAwareFileSystem>(),
@@ -53,7 +56,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var fileSystem = new Mock<IVsAwareFileSystem>();
             var fileCleaner = new Mock<IFileCleaner>();
 
-            var testSubject = CreateTestSubject(fileProvider.Object, fileCleaner.Object, fileSystem.Object);
+            var settings = new LegacySettings("expected folder", "any", "any", "any", "any");
+            var settingsProvider = CreateSettingsProvider(settings);
+
+            var testSubject = CreateTestSubject(fileProvider.Object, fileCleaner.Object, fileSystem.Object, settingsProvider.Object);
 
             await testSubject.MigrateAsync(null, CancellationToken.None);
 
@@ -61,7 +67,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             fileCleaner.Invocations.Should().HaveCount(0);
             fileSystem.VerifyNoFilesSaved();
-            fileSystem.VerifyDirectoryDeleted("folder"); // TODO - check for the correct path. Depends on #4362
+            fileSystem.VerifyDirectoryDeleted("expected folder");
         }
 
         [TestMethod]
@@ -78,7 +84,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             fileCleaner.SetupFileToClean("content2", "cleaned2");
             fileCleaner.SetupFileToClean("content3", "cleaned3");
 
-            var testSubject = CreateTestSubject(fileProvider.Object, fileCleaner.Object, fileSystem.Object);
+            var settings = new LegacySettings("root folder", "any", "any", "any", "any");
+            var settingsProvider = CreateSettingsProvider(settings);
+
+            var testSubject = CreateTestSubject(fileProvider.Object, fileCleaner.Object, fileSystem.Object, settingsProvider.Object);
 
             await testSubject.MigrateAsync(null, CancellationToken.None);
 
@@ -96,7 +105,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             fileSystem.VerifyFileSaved("file2", "cleaned2");
             fileSystem.VerifyFileSaved("file3", "cleaned3");
 
-            fileSystem.VerifyDirectoryDeleted("folder"); // TODO - check for the correct path. Depends on #4362
+            fileSystem.VerifyDirectoryDeleted("root folder");
         }
 
         [TestMethod]
@@ -165,15 +174,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             IFileProvider fileProvider = null,
             IFileCleaner fileCleaner = null,
             IVsAwareFileSystem fileSystem = null,
+            IMigrationSettingsProvider settingsProvider = null,
             ILogger logger = null)
         {
             fileProvider ??= Mock.Of<IFileProvider>();
             fileCleaner ??= Mock.Of<IFileCleaner>();
             fileSystem ??= Mock.Of<IVsAwareFileSystem>();
+            settingsProvider ??= CreateSettingsProvider(DefaultTestLegacySettings).Object;
 
             logger ??= new TestLogger(logToConsole: true);
 
-            return new ConnectedModeMigration(fileProvider, fileCleaner, fileSystem, logger);
+            return new ConnectedModeMigration(settingsProvider, fileProvider, fileCleaner, fileSystem, logger);
         }
 
         private static Mock<IFileProvider> CreateFileProvider(params string[] filesToReturn)
@@ -183,6 +194,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 .Returns(Task.FromResult<IEnumerable<string>>(filesToReturn));
 
             return fileProvider;
+        }
+
+        private static Mock<IMigrationSettingsProvider> CreateSettingsProvider(LegacySettings settingsToReturn = null)
+        {
+            settingsToReturn ??= DefaultTestLegacySettings;
+
+            var settingsProvider = new Mock<IMigrationSettingsProvider>();
+            settingsProvider.Setup(x => x.Get()).Returns(settingsToReturn);
+            return settingsProvider;
         }
     }
 

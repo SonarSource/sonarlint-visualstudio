@@ -37,18 +37,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         // Private "alias" to simplify method arguments
         private sealed class ChangedFiles : List<FilePathAndContent<string>> { }
 
-        private readonly ILogger logger;
+        private readonly IMigrationSettingsProvider settingsProvider;
         private readonly IFileProvider fileProvider;
         private readonly IFileCleaner fileCleaner;
         private readonly IVsAwareFileSystem fileSystem;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
-        public ConnectedModeMigration(IFileProvider fileProvider, IFileCleaner fileCleaner, IVsAwareFileSystem fileSystem, ILogger logger)
+        public ConnectedModeMigration(IMigrationSettingsProvider settingsProvider, IFileProvider fileProvider, IFileCleaner fileCleaner, IVsAwareFileSystem fileSystem, ILogger logger)
         {
-            this.logger = logger;
+            this.settingsProvider = settingsProvider;
             this.fileProvider = fileProvider;
             this.fileCleaner = fileCleaner;
             this.fileSystem = fileSystem;
+            this.logger = logger;
         }
 
         public async Task MigrateAsync(IProgress<MigrationProgress> progress, CancellationToken token)
@@ -62,7 +64,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             progress?.Report(new MigrationProgress(1, 2, "TODO 1", false));
             progress?.Report(new MigrationProgress(2, 2, "TODO 2", true));
 
-            var legacySettings = GetLegacySettings();
+            var legacySettings = settingsProvider.Get();
 
             logger.WriteLine(MigrationStrings.GettingFiles);
             var files = await fileProvider.GetFilesAsync(token);
@@ -94,13 +96,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             await fileSystem.DeleteFolderAsync(legacySettings.LegacySonarLintFolderPath);
 
             logger.WriteLine(MigrationStrings.Finished);
-        }
-
-        private LegacySettings GetLegacySettings()
-        {
-            // TODO - calculate the partial paths to the ruleset and SonarLint.xml files
-            // for both C# and VB.NET - #4362 and #4363
-            return new LegacySettings("folder", "cs ruleset", "cs xml", "vb ruleset", "vb xml");
         }
 
         private Task<string> GetFileContentAsync(string filePath)
