@@ -232,11 +232,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         internal static class MockExtensions
         {
             public static void SetupFileToClean(this Mock<IFileCleaner> fileCleaner, string input, string output)
-                => fileCleaner.Setup(x => x.CleanAsync(input, It.IsAny<LegacySettings>(), It.IsAny<CancellationToken>()))
-                    .Returns(Task.FromResult(output));
+                => fileCleaner.Setup(x => x.Clean(input, It.IsAny<LegacySettings>(), It.IsAny<CancellationToken>()))
+                    .Returns(output);
 
             public static void VerifyFileCleaned(this Mock<IFileCleaner> fileCleaner, string expectedContent)
-                => fileCleaner.Verify(x => x.CleanAsync(expectedContent,
+                => fileCleaner.Verify(x => x.Clean(expectedContent,
                     It.IsAny<LegacySettings>(),
                     It.IsAny<CancellationToken>()), Times.Once);
 
