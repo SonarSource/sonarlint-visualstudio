@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 {
@@ -43,16 +44,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
         public event EventHandler MigrationWizardFinished;
 
         private readonly IConnectedModeMigration connectedModeMigration;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
-        public MigrationWizardController(IConnectedModeMigration connectedModeMigration)
+        public MigrationWizardController(IConnectedModeMigration connectedModeMigration, ILogger logger)
         {
-            this.connectedModeMigration= connectedModeMigration;
+            this.connectedModeMigration = connectedModeMigration;
+            this.logger = logger;
         }
 
         public void StartMigrationWizard()
         {
-            var migrationWizardWindow = new MigrationWizardWindow(connectedModeMigration);
+            var migrationWizardWindow = new MigrationWizardWindow(connectedModeMigration, logger);
 
             var finishedSuccessfully = migrationWizardWindow.ShowModal();
 

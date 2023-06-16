@@ -26,6 +26,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
@@ -34,15 +35,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
     {
         public event EventHandler StartMigration;
 
-        private bool dialogResult;
-
         private readonly IConnectedModeMigration connectedModeMigration;
+        private readonly ILogger logger;
 
+        private bool dialogResult;
         private bool migrationInProgress;
 
-        internal MigrationWizardWindow(IConnectedModeMigration connectedModeMigration)
+        private CancellationTokenSource cancellationTokenSource;
+
+        internal MigrationWizardWindow(IConnectedModeMigration connectedModeMigration, ILogger logger)
         {
             this.connectedModeMigration = connectedModeMigration;
+            this.logger = logger;
+
+            cancellationTokenSource = new CancellationTokenSource();
 
             InitializeComponent();
             this.Closing += OnClosing;
@@ -69,12 +75,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         private async Task MigrateAsync()
         {
-            await connectedModeMigration.MigrateAsync(this, CancellationToken.None);
+            await connectedModeMigration.MigrateAsync(this, cancellationTokenSource.Token);
             MigrationFinished();
         }
 
         private void MigrationFinished()
         {
+            migrationInProgress = false;
             this.finishButton.Visibility = Visibility.Visible;
             this.IsCloseButtonEnabled = true;
             dialogResult = true;
@@ -82,8 +89,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         private void OnClosing(object sender, CancelEventArgs e)
         {
-            migrationInProgress = false;
-            this.DialogResult = dialogResult;
+            try
+            {
+                cancellationTokenSource.Cancel();
+                migrationInProgress = false;
+                this.DialogResult = dialogResult;
+            }
+            catch(OperationCanceledException ex)
+            {
+                logger.LogVerbose(MigrationStrings.CancelTokenFailure_VerboseLog, ex);
+                logger.WriteLine(MigrationStrings.CancelTokenFailure_NormalLog, ex.Message);
+            }
         }
 
         void IProgress<MigrationProgress>.Report(MigrationProgress value)
