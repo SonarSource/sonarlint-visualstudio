@@ -201,7 +201,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             settingsToReturn ??= DefaultTestLegacySettings;
 
             var settingsProvider = new Mock<IMigrationSettingsProvider>();
-            settingsProvider.Setup(x => x.Get()).Returns(settingsToReturn);
+            settingsProvider.Setup(x => x.GetAsync()).Returns(Task.FromResult(settingsToReturn));
             return settingsProvider;
         }
     }

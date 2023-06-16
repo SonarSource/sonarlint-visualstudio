@@ -24,9 +24,9 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration;
+using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             progress?.Report(new MigrationProgress(1, 2, "TODO 1", false));
             progress?.Report(new MigrationProgress(2, 2, "TODO 2", true));
 
-            var legacySettings = settingsProvider.Get();
+            var legacySettings = await settingsProvider.GetAsync();
 
             logger.WriteLine(MigrationStrings.GettingFiles);
             var files = await fileProvider.GetFilesAsync(token);
@@ -98,10 +98,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             logger.WriteLine(MigrationStrings.Finished);
         }
 
-        private Task<string> GetFileContentAsync(string filePath)
+        private System.Threading.Tasks.Task<string> GetFileContentAsync(string filePath)
             => fileSystem.LoadAsTextAsync(filePath);
 
-        private async Task<ChangedFiles> CleanFilesAsync(IEnumerable<string> filesToClean,
+        private async System.Threading.Tasks.Task<ChangedFiles> CleanFilesAsync(IEnumerable<string> filesToClean,
             LegacySettings legacySettings,
             CancellationToken token)
         {
@@ -130,12 +130,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             {
                 await fileSystem.SaveAsync(file.Path, file.Content);
             }
-        }
-
-        private string GetFileContent(string filePath)
-        {
-            // TODO - fetch the content from disc/memory
-            return "<Project />"; // minimal valid Project
         }
     }
 }
