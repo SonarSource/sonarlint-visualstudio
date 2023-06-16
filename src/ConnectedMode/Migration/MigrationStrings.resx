@@ -139,7 +139,7 @@
     <value>Learn more</value>
   </data>
   <data name="MigrationPrompt_Message" xml:space="preserve">
-    <value>SonarLint: You are using an outdated Connected Mode configuration format.</value>
+    <value>SonarLint: You are using an outdated Connected Mode configuration format. Please Migrate:</value>
   </data>
   <data name="MigrationPrompt_MigrateButton" xml:space="preserve">
     <value>Migrate configuration</value>
