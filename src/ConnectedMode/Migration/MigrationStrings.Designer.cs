@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: You are using an outdated Connected Mode configuration format..
+        ///   Looks up a localized string similar to SonarLint: You are using an outdated Connected Mode configuration format. Please Migrate:.
         /// </summary>
         internal static string MigrationPrompt_Message {
             get {
