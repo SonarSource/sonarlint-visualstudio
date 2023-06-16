@@ -31,7 +31,7 @@ public class XmlDocumentHelperTests
         MefTestHelpers.CheckTypeCanBeImported<XmlDocumentHelper, IXmlDocumentHelper>();
 
     [TestMethod]
-    public void MefCtor_CheckTypeIsNonShared() =>
+    public void MefCtor_CheckTypeIsShared() =>
         MefTestHelpers.CheckIsSingletonMefComponent<XmlDocumentHelper>();
     
     [TestMethod]
