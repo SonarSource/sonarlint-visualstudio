@@ -27,26 +27,41 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
     public class LegacySettingsTests
     {
         [TestMethod]
-        public void Ctor_RulesetPathIsRequired()
+        public void Ctor_AllArgumentsAreRequired()
         {
-            Action action = () => new LegacySettings(null, "sonarlint.xml");    
-            action.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("partialRuleSetPath");
-        }
+            Action action = () => new LegacySettings(null, "cs ruleset", "cs sonarlint", "vb ruleset", "vb sonarlint");    
+            action.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("sonarLintFolderPath");
 
-        [TestMethod]
-        public void Ctor_SonarLintPathsRequired()
-        {
-            Action action = () => new LegacySettings("x.ruleset", null);
-            action.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("partialSonarLintXmlPath");
+            action = () => new LegacySettings("folder", null, "cs sonarlint", "vb ruleset", "vb sonarlint");
+            action.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("partialCSharpRuleSetPath");
+
+            action = () => new LegacySettings("folder", "cs ruleset", null, "vb ruleset", "vb sonarlint");
+            action.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("partialCSharpSonarLintXmlPath");
+
+            action = () => new LegacySettings("folder", "cs ruleset", "cs sonarlint", null, "vb sonarlint");
+            action.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("partialVBRuleSetPath");
+
+            action = () => new LegacySettings("folder", "cs ruleset", "cs sonarlint", "vb ruleset", null);
+            action.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("partialVBSonarLintXmlPath");
         }
 
         [TestMethod]
         public void Ctor_ValidArgs_PropertiesSetCorrectly()
         {
-            var testSubject = new LegacySettings("c:\\bar\\x.ruleset", "c:\\foo\\SonarLint.xml");
+            var testSubject = new LegacySettings(
+                "c:\\foo\\.sonarlint",
+                "c:\\csharp\\x.ruleset",
+                "c:\\csharp\\SonarLint.xml",
+                "c:\\vb\\x.ruleset",
+                "c:\\vb\\SonarLint.xml");
 
-            testSubject.PartialRuleSetPath.Should().Be("c:\\bar\\x.ruleset");
-            testSubject.PartialSonarLintXmlPath.Should().Be("c:\\foo\\SonarLint.xml");
+            testSubject.LegacySonarLintFolderPath.Should().Be("c:\\foo\\.sonarlint");
+
+            testSubject.PartialCSharpRuleSetPath.Should().Be("c:\\csharp\\x.ruleset");
+            testSubject.PartialCSharpSonarLintXmlPath.Should().Be("c:\\csharp\\SonarLint.xml");
+
+            testSubject.PartialVBRuleSetPath.Should().Be("c:\\vb\\x.ruleset");
+            testSubject.PartialVBSonarLintXmlPath.Should().Be("c:\\vb\\SonarLint.xml");
         }
     }
 }
