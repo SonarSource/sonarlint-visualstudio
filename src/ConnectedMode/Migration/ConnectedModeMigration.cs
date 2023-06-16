@@ -136,5 +136,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 await fileSystem.SaveAsync(file.Path, file.Content);
             }
         }
+
+        private string GetFileContent(string filePath)
+        {
+            // TODO - fetch the content from disc/memory
+            return "<Project />"; // minimal valid Project
+        }
     }
 }
