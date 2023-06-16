@@ -24,7 +24,7 @@
             </StackPanel>
         </StackPanel>
         <StackPanel x:Name="MigrationProgressWindow" Visibility="Collapsed" Orientation="Vertical" Margin="10,10,10,10">
-            <TextBlock Height="150" Width="Auto" HorizontalAlignment="Left" Text="Migration Window" VerticalAlignment="Top" />
+            <ListBox x:Name="progressList" Height="150" Width="Auto" HorizontalAlignment="Left" VerticalAlignment="Top"/>
             <StackPanel Orientation="Horizontal" Margin="255,5,0,0">
                 <Button Content="Migrate" x:Name="migrateButton" Click="OnStartMigration" Style="{DynamicResource Button_Style}"/>
                 <Button Content="Finish" Visibility="Collapsed" x:Name="finishButton" IsCancel="True" Style="{DynamicResource Button_Style}"/>

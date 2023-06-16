@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.ConnectedMode.Migration.Wizard;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -29,7 +30,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.Wizard
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<MigrationWizardController, IMigrationWizardController>();
+            MefTestHelpers.CheckTypeCanBeImported<MigrationWizardController, IMigrationWizardController>(
+                MefTestHelpers.CreateExport<IConnectedModeMigration>());
         }
 
         [TestMethod]

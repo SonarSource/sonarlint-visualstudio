@@ -42,9 +42,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
     {
         public event EventHandler MigrationWizardFinished;
 
+        private readonly IConnectedModeMigration connectedModeMigration;
+
+        [ImportingConstructor]
+        public MigrationWizardController(IConnectedModeMigration connectedModeMigration)
+        {
+            this.connectedModeMigration= connectedModeMigration;
+        }
+
         public void StartMigrationWizard()
         {
-            var migrationWizardWindow = new MigrationWizardWindow();
+            var migrationWizardWindow = new MigrationWizardWindow(connectedModeMigration);
 
             var finishedSuccessfully = migrationWizardWindow.ShowModal();
 

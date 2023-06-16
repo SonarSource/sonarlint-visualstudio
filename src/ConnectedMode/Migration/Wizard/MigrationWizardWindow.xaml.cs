@@ -19,20 +19,31 @@
  */
 
 using System;
-using System.Windows;
-using Microsoft.VisualStudio.PlatformUI;
 using System.ComponentModel;
+using System.Threading;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Threading;
+using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 {
-    public sealed partial class MigrationWizardWindow : DialogWindow
+    public sealed partial class MigrationWizardWindow : DialogWindow, IProgress<MigrationProgress>
     {
         public event EventHandler StartMigration;
 
         private bool dialogResult;
 
-        internal MigrationWizardWindow()
+        private readonly IConnectedModeMigration connectedModeMigration;
+
+        private bool migrationInProgress;
+
+        internal MigrationWizardWindow(IConnectedModeMigration connectedModeMigration)
         {
+            this.connectedModeMigration = connectedModeMigration;
+
             InitializeComponent();
             this.Closing += OnClosing;
             dialogResult = false;
@@ -46,9 +57,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         private void OnStartMigration(object sender, RoutedEventArgs e)
         {
+            if (migrationInProgress) { return; }
+            migrationInProgress = true;
+
             // Disables all closing / cancel buttons.
             this.migrateButton.Visibility = Visibility.Collapsed;
             this.IsCloseButtonEnabled = false;
+
+            MigrateAsync().Forget();
+        }
+
+        private async Task MigrateAsync()
+        {
+            await connectedModeMigration.MigrateAsync(this, CancellationToken.None);
             MigrationFinished();
         }
 
@@ -59,6 +80,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             dialogResult = true;
         }
 
-        private void OnClosing(object sender, CancelEventArgs e) => this.DialogResult = dialogResult;
+        private void OnClosing(object sender, CancelEventArgs e)
+        {
+            migrationInProgress = false;
+            this.DialogResult = dialogResult;
+        }
+
+        void IProgress<MigrationProgress>.Report(MigrationProgress value)
+        {
+            ListBoxItem item = new ListBoxItem();
+            item.Foreground = value.IsWarning ? Brushes.Red : Brushes.Black;
+            item.Content = value.Message;
+            progressList.Items.Add(item);
+        }
     }
 }
