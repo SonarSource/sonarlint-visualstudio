@@ -20,6 +20,7 @@
 
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.TestInfrastructure;
+using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 {
@@ -37,12 +38,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             => MefTestHelpers.CheckIsNonSharedMefComponent<MigrationSettingsProvider>();
 
         [TestMethod]
-        public void Get_ReturnsExpectedValue()
+        public async Task Get_ReturnsExpectedValue()
         {
             var testSubject = CreateTestSubject();
 
             // TODO - fix once implemented
-            testSubject.Get().Should().BeNull();
+            var actual = await testSubject.GetAsync();
+            actual.Should().BeNull();
         }
 
         private static MigrationSettingsProvider CreateTestSubject() => new MigrationSettingsProvider();

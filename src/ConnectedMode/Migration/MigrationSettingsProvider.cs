@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
@@ -27,17 +28,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         /// <summary>
         /// Returns the data required for the migration process
         /// </summary>
-        LegacySettings Get();
+        System.Threading.Tasks.Task<LegacySettings> GetAsync();
     }
 
     [Export(typeof(IMigrationSettingsProvider))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
     internal class MigrationSettingsProvider : IMigrationSettingsProvider
     {
-        public LegacySettings Get()
+        public System.Threading.Tasks.Task<LegacySettings> GetAsync()
         {
             // TODO: implement
-            return null;
+            return Task.FromResult((LegacySettings)null);
         }
     }
 }
