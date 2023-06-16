@@ -63,7 +63,7 @@ public class XmlDocumentHelperTests
     public void LoadFromString_SaveToString_NoModification_XmlHeaderPreserved()
     {
         var input =
-            @"<?xml version=""1.0"" encoding=""utf-8""?>
+@"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project Sdk=""Microsoft.NET.Sdk"">
 
   <PropertyGroup>
@@ -89,7 +89,7 @@ public class XmlDocumentHelperTests
     public void LoadFromString_SaveToString_Modification_SavesCorrectly()
     {
         var input =
-            @"<Project Sdk=""Microsoft.NET.Sdk"">
+@"<Project Sdk=""Microsoft.NET.Sdk"">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>

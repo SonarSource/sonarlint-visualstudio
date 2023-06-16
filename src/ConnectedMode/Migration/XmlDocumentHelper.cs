@@ -35,15 +35,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         /// <param name="content">XML document contents</param>
         /// <returns><see cref="XmlDocument"/> object representation</returns>
         XmlDocument LoadFromString(string content);
+        
         /// <summary>
         /// Saves <see cref="XmlDocument"/> to <see cref="string"/>
         /// </summary>
-        /// <remarks>Does not force add ?xml? header if the original XML didn't have it</remarks>
+        /// <remarks>Preserves formatting and does not force add ?xml? header if the original XML didn't have it</remarks>
         /// <param name="document"><see cref="XmlDocument"/> object</param>
         /// <returns>XML document as string</returns>
         string SaveToString(XmlDocument document);
     }
-
     
     [Export(typeof(IXmlDocumentHelper))]
     [PartCreationPolicy(CreationPolicy.Shared)]
@@ -58,11 +58,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         public string SaveToString(XmlDocument document)
         {
-            var memoryStream = new MemoryStream();
-            var streamReader = new StreamReader(memoryStream);
-            document.Save(memoryStream);
-            memoryStream.Seek(0, SeekOrigin.Begin);
-            return streamReader.ReadToEnd();
+            using (var memoryStream = new MemoryStream())
+            {
+                using (var streamReader = new StreamReader(memoryStream))
+                {
+                    // using StringWriter introduced unexpected <?xml?> header for files that don't have it
+                    document.Save(memoryStream);
+                    memoryStream.Seek(0, SeekOrigin.Begin);
+                    return streamReader.ReadToEnd();
+                }
+            }
         }
     }
 }
