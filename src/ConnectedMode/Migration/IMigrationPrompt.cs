@@ -44,11 +44,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     internal class MigrationPrompt : IMigrationPrompt
     {
         private readonly INotificationService notificationService;
-
         private readonly IServiceProvider serviceProvider;
-
         private readonly IMigrationWizardController migrationWizardController;
-
+        private readonly IBrowserService browserService;
         private readonly IThreadHandling threadHandling;
 
         private const string idPrefix = "ConnectedModeMigration_";
@@ -57,11 +55,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         internal MigrationPrompt([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             INotificationService notificationService,
             IMigrationWizardController migrationWizardController,
+            IBrowserService browserService,
             IThreadHandling threadHandling)
         {
             this.notificationService = notificationService;
             this.serviceProvider = serviceProvider;
             this.migrationWizardController = migrationWizardController;
+            this.browserService = browserService;
             this.threadHandling = threadHandling;
 
             migrationWizardController.MigrationWizardFinished += OnMigrationWizardFinished;
@@ -102,7 +102,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         private void OnLearnMore()
         {
-            // TODO: Show relevant documentation in browser
+            browserService.Navigate(MigrationStrings.LearnMoreUrl);
         }
 
         private string GetSolutionPath()
