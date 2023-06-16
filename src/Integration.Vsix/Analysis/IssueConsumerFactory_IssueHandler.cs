@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 // See bug #1487: https://github.com/SonarSource/sonarlint-visualstudio/issues/1487
                 var translatedIssues = translateSpans(issues, textDocument.TextBuffer.CurrentSnapshot);
                 
-                localHotspotsStore.AddOrUpdate(textDocument.FilePath,
+                localHotspotsStore.UpdateForFile(textDocument.FilePath,
                     translatedIssues
                         .Where(issue => (issue.Issue as IAnalysisIssue)?.Type == AnalysisIssueType.SecurityHotspot));
                 

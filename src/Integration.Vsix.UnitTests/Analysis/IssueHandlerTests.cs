@@ -228,7 +228,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         private static void VerifyHotspotsAdded(Mock<ILocalHotspotsStoreUpdater> hotspotStoreMock, string filePath,
             IAnalysisIssueVisualization[] expectedHotspots)
         {
-            hotspotStoreMock.Verify(store => store.AddOrUpdate(filePath,
+            hotspotStoreMock.Verify(store => store.UpdateForFile(filePath,
                 It.Is<IEnumerable<IAnalysisIssueVisualization>>(hotspots =>
                     hotspots.SequenceEqual(expectedHotspots))), Times.Once);
         }

@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     /// </summary>
     public interface ILocalHotspotsStoreUpdater
     {
-        void AddOrUpdate(string filePath, IEnumerable<IAnalysisIssueVisualization> hotspots);
+        void UpdateForFile(string filePath, IEnumerable<IAnalysisIssueVisualization> hotspots);
         void RemoveForFile(string filePath);
     }
 
@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
             }
         }
 
-        public void AddOrUpdate(string filePath, IEnumerable<IAnalysisIssueVisualization> hotspots)
+        public void UpdateForFile(string filePath, IEnumerable<IAnalysisIssueVisualization> hotspots)
         {
             threadHandling.ThrowIfOnUIThread();
 
