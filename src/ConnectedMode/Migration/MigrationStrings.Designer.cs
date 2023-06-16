@@ -61,11 +61,74 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Migration] Cleaning files....
+        /// </summary>
+        internal static string CleaningFiles {
+            get {
+                return ResourceManager.GetString("CleaningFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Migration] Number of files to clean: {0}.
+        /// </summary>
+        internal static string CountOfFilesToClean {
+            get {
+                return ResourceManager.GetString("CountOfFilesToClean", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Migration] Deleting the legacy .sonarlint....
+        /// </summary>
+        internal static string DeletingSonarLintFolder {
+            get {
+                return ResourceManager.GetString("DeletingSonarLintFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Migration] Finished ConnectedMode migration..
         /// </summary>
         internal static string Finished {
             get {
                 return ResourceManager.GetString("Finished", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Migration] Getting list of files to clean....
+        /// </summary>
+        internal static string GettingFiles {
+            get {
+                return ResourceManager.GetString("GettingFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Migration] Creating new binding configuration....
+        /// </summary>
+        internal static string ProcessingNewBinding {
+            get {
+                return ResourceManager.GetString("ProcessingNewBinding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Migration] Saving files....
+        /// </summary>
+        internal static string SavingFiles {
+            get {
+                return ResourceManager.GetString("SavingFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Migration] Skipping cleaning files: no files were found that could contain settings that need to cleaned..
+        /// </summary>
+        internal static string SkippingCleaning {
+            get {
+                return ResourceManager.GetString("SkippingCleaning", resourceCulture);
             }
         }
         

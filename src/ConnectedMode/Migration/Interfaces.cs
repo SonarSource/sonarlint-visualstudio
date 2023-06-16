@@ -95,21 +95,44 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     /// <remarks>Required by <see cref="IFileCleaner"/> to identify the references to remove</remarks>
     internal class LegacySettings
     {
-        public LegacySettings(string partialRuleSetPath, string partialSonarLintXmlPath)
+        public LegacySettings(
+            string sonarLintFolderPath,
+            string partialCSharpRuleSetPath,
+            string partialCSharpSonarLintXmlPath,
+            string partialVBRuleSetPath,
+            string partialVBSonarLintXmlPath)
         {
-            PartialRuleSetPath = partialRuleSetPath ?? throw new ArgumentNullException(nameof(partialRuleSetPath));
-            PartialSonarLintXmlPath = partialSonarLintXmlPath ?? throw new ArgumentNullException(nameof(partialSonarLintXmlPath));
+            LegacySonarLintFolderPath = sonarLintFolderPath ?? throw new ArgumentNullException(nameof(sonarLintFolderPath));
+            PartialCSharpRuleSetPath = partialCSharpRuleSetPath ?? throw new ArgumentNullException(nameof(partialCSharpRuleSetPath));
+            PartialCSharpSonarLintXmlPath = partialCSharpSonarLintXmlPath ?? throw new ArgumentNullException(nameof(partialCSharpSonarLintXmlPath));
+            PartialVBRuleSetPath = partialVBRuleSetPath ?? throw new ArgumentNullException(nameof(partialVBRuleSetPath));
+            PartialVBSonarLintXmlPath = partialVBSonarLintXmlPath ?? throw new ArgumentNullException(nameof(partialVBSonarLintXmlPath));
         }
+
+        /// <summary>
+        /// Full path to the legacy .sonarlint folder path
+        /// </summary>
+        public string LegacySonarLintFolderPath { get; }
 
         /// <summary>
         /// Partial path to the generated ruleset e.g. ".sonarlint\slvs_samples_bound_vs2019csharp.ruleset"
         /// </summary>
-        public string PartialRuleSetPath { get; }
+        public string PartialCSharpRuleSetPath { get; }
 
         /// <summary>
         /// Partial path to the generated SonarLint.xml file e.g. ".sonarlint\slvs_samples_bound_vs2019\CSharp\SonarLint.xml"
         /// </summary>
-        public string PartialSonarLintXmlPath { get; }
+        public string PartialCSharpSonarLintXmlPath { get; }
+
+        /// <summary>
+        /// Partial path to the generated ruleset e.g. ".sonarlint\slvs_samples_bound_vs2019vb.ruleset"
+        /// </summary>
+        public string PartialVBRuleSetPath { get; }
+
+        /// <summary>
+        /// Partial path to the generated SonarLint.xml file e.g. ".sonarlint\slvs_samples_bound_vs2019\VB\SonarLint.xml"
+        /// </summary>
+        public string PartialVBSonarLintXmlPath { get; }
     }
 
     /// <summary>
