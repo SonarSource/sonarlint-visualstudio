@@ -31,7 +31,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<MSBuildFileCleaner, IFileCleaner>(
-                MefTestHelpers.CreateExport<ILogger>());
+                MefTestHelpers.CreateExport<ILogger>(),
+                MefTestHelpers.CreateExport<IXmlDocumentHelper>());
         }
 
         [TestMethod]

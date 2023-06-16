@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             {
                 var content = await GetFileContentAsync(file);
 
-                var newContent = await fileCleaner.CleanAsync(content, legacySettings, token);
+                var newContent = fileCleaner.Clean(content, legacySettings, token);
                 Debug.Assert(newContent == null || !newContent.Equals(content),
                             "New file content should be null or different from original content");
 

@@ -18,9 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
+using System.Xml;
 using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
@@ -30,22 +33,59 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     internal class MSBuildFileCleaner : IFileCleaner
     {
         /// <summary>
-        /// Return value indicating the file has not changed
+        ///     Return value indicating the file has not changed
         /// </summary>
         public const string Unchanged = null;
 
+        private const string AdditionalFilesTagName = "AdditionalFiles";
+
         private readonly ILogger logger;
+        private readonly IXmlDocumentHelper xmlDocumentHelper;
 
         [ImportingConstructor]
-        public MSBuildFileCleaner(ILogger logger)
+        public MSBuildFileCleaner(ILogger logger, IXmlDocumentHelper xmlDocumentHelper)
         {
             this.logger = logger;
+            this.xmlDocumentHelper = xmlDocumentHelper;
         }
 
-        public Task<string> CleanAsync(string content, LegacySettings legacySettings, CancellationToken token)
+        public string Clean(string content, LegacySettings legacySettings, CancellationToken token)
         {
-            // TODO
-            return Task.FromResult(Unchanged);
+            var document = xmlDocumentHelper.LoadFromString(content);
+
+            var nodesToRemove = new List<XmlNode>();
+            foreach (XmlNode item in document.GetElementsByTagName(AdditionalFilesTagName))
+            {
+                if (ContainsSonarLintXmlReferenceInAttributes(item.Attributes,
+                        legacySettings.PartialVBSonarLintXmlPath,
+                        legacySettings.PartialCSharpSonarLintXmlPath))
+                {
+                    nodesToRemove.Add(item);
+                }
+            }
+
+            if (!nodesToRemove.Any())
+            {
+                return Unchanged;
+            }
+
+            nodesToRemove.ForEach(node =>
+            {
+                Debug.Assert(node.ParentNode != null);
+                node.ParentNode.RemoveChild(node);
+            });
+
+            return xmlDocumentHelper.SaveToString(document);
+        }
+
+        private static bool ContainsSonarLintXmlReferenceInAttributes(XmlAttributeCollection attributeCollection,
+            params string[] sonarlintXmlPaths)
+        {
+            return attributeCollection
+                .Cast<XmlAttribute>()
+                .Any(attribute =>
+                    sonarlintXmlPaths.Any(path =>
+                        attribute.Value.EndsWith(path)));
         }
     }
 }
