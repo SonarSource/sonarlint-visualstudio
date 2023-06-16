@@ -132,6 +132,18 @@
   <data name="GettingFiles" xml:space="preserve">
     <value>[Migration] Getting list of files to clean...</value>
   </data>
+  <data name="LearnMoreUrl" xml:space="preserve">
+    <value>https://github.com/SonarSource/sonarlint-visualstudio/wiki/migrate-connected-mode-to-v7</value>
+  </data>
+  <data name="MigrationPrompt_LearnMoreButton" xml:space="preserve">
+    <value>Learn more</value>
+  </data>
+  <data name="MigrationPrompt_Message" xml:space="preserve">
+    <value>SonarLint: You're using an outdated Connected Mode configuration format. Please migrate.</value>
+  </data>
+  <data name="MigrationPrompt_MigrateButton" xml:space="preserve">
+    <value>Migrate configuration</value>
+  </data>
   <data name="ProcessingNewBinding" xml:space="preserve">
     <value>[Migration] Creating new binding configuration...</value>
   </data>

@@ -76,11 +76,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             notificationService.Verify(x => x.ShowNotification(notification), Times.Once);
             notification.Id.Should().Be("ConnectedModeMigration_path_to_solution");
-            notification.Message.Should().Be(Resources.Migration_MigrationPrompt_Message);
+            notification.Message.Should().Be(MigrationStrings.MigrationPrompt_Message);
             notification.Actions.Count().Should().Be(2);
 
-            notification.Actions.First().CommandText.Should().Be(Resources.Migration_MigrationPrompt_MigrateButton);
-            notification.Actions.Last().CommandText.Should().Be(Resources.Migration_MigrationPrompt_LearnMoreButton);
+            notification.Actions.First().CommandText.Should().Be(MigrationStrings.MigrationPrompt_MigrateButton);
+            notification.Actions.Last().CommandText.Should().Be(MigrationStrings.MigrationPrompt_LearnMoreButton);
         }
 
         [TestMethod]
@@ -125,7 +125,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             await testSubject.ShowAsync();
 
-            notification.Actions.First().CommandText.Should().Be(Resources.Migration_MigrationPrompt_MigrateButton);
+            notification.Actions.First().CommandText.Should().Be(MigrationStrings.MigrationPrompt_MigrateButton);
             notification.Actions.First().Action(null);
 
             migrationWizardController.Verify(x => x.StartMigrationWizard(), Times.Once);
