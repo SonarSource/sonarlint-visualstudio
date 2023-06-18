@@ -26,6 +26,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core.Binding;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
@@ -35,13 +36,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
         public event EventHandler StartMigration;
 
         private bool dialogResult;
-
+        private readonly BoundSonarQubeProject oldBinding;
         private readonly IConnectedModeMigration connectedModeMigration;
 
         private bool migrationInProgress;
 
-        internal MigrationWizardWindow(IConnectedModeMigration connectedModeMigration)
+        internal MigrationWizardWindow(BoundSonarQubeProject oldBinding, IConnectedModeMigration connectedModeMigration)
         {
+            this.oldBinding = oldBinding;
             this.connectedModeMigration = connectedModeMigration;
 
             InitializeComponent();
@@ -69,7 +71,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         private async Task MigrateAsync()
         {
-            await connectedModeMigration.MigrateAsync(this, CancellationToken.None);
+            await connectedModeMigration.MigrateAsync(oldBinding, this, CancellationToken.None);
             MigrationFinished();
         }
 

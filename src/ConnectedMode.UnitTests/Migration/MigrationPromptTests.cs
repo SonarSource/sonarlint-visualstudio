@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.ConnectedMode.Migration.Wizard;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.TestInfrastructure;
 using Task = System.Threading.Tasks.Task;
@@ -35,6 +36,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
     [TestClass]
     public class MigrationPromptTests
     {
+        private static BoundSonarQubeProject AnyBoundProject = new BoundSonarQubeProject(new Uri("http://localhost:9000"), "any-key", "any-name");
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
@@ -73,7 +76,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var serviceProvider = SetUpServiceProviderWithSolution("path_to_solution");
 
             var testSubject = CreateTestSubject(serviceProvider: serviceProvider, notificationService: notificationService.Object);
-            await testSubject.ShowAsync();
+            await testSubject.ShowAsync(AnyBoundProject);
 
             notificationService.Verify(x => x.ShowNotification(notification), Times.Once);
             notification.Id.Should().Be("ConnectedModeMigration_path_to_solution");
@@ -97,7 +100,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var serviceProvider = SetUpServiceProviderWithSolution();
 
             var testSubject = CreateTestSubject(serviceProvider: serviceProvider, notificationService: notificationService.Object, threadHandling: threadHandling.Object);
-            await testSubject.ShowAsync();
+            await testSubject.ShowAsync(AnyBoundProject);
 
             threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
 
@@ -122,14 +125,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var serviceProvider = SetUpServiceProviderWithSolution();
 
+            var boundProject = new BoundSonarQubeProject(new Uri("http://any"), "my-key", "my-name");
+
             var testSubject = CreateTestSubject(serviceProvider: serviceProvider, notificationService: notificationService.Object, migrationWizardController: migrationWizardController.Object);
 
-            await testSubject.ShowAsync();
+            await testSubject.ShowAsync(boundProject);
 
             notification.Actions.First().CommandText.Should().Be(MigrationStrings.MigrationPrompt_MigrateButton);
             notification.Actions.First().Action(null);
 
-            migrationWizardController.Verify(x => x.StartMigrationWizard(), Times.Once);
+            migrationWizardController.Verify(x => x.StartMigrationWizard(boundProject), Times.Once);
         }
 
         [TestMethod]
@@ -147,7 +152,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var testSubject = CreateTestSubject(serviceProvider: serviceProvider, notificationService: notificationService.Object, browserService: browserService.Object);
 
-            await testSubject.ShowAsync();
+            await testSubject.ShowAsync(AnyBoundProject);
 
             notification.Actions.LastOrDefault().CommandText.Should().Be(MigrationStrings.MigrationPrompt_LearnMoreButton);
             notification.Actions.LastOrDefault().Action(null);

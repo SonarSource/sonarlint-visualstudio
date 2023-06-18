@@ -26,12 +26,16 @@ using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.ConnectedModeMigrationTestsExtensions;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 {
     [TestClass]
     public class ConnectedModeMigrationTests
     {
+        private static BoundSonarQubeProject AnyBoundProject = new BoundSonarQubeProject(new Uri("http://localhost:9000"), "any-key", "any-name");
+
         [TestMethod]
         public void MefCtor_CheckTypeIsNonShared()
             => MefTestHelpers.CheckIsNonSharedMefComponent<ConnectedModeMigration>();
@@ -55,7 +59,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var testSubject = CreateTestSubject(fileProvider.Object, fileCleaner.Object, fileSystem.Object);
 
-            await testSubject.MigrateAsync(null, CancellationToken.None);
+            await testSubject.MigrateAsync(AnyBoundProject, null, CancellationToken.None);
 
             fileProvider.Verify(x => x.GetFilesAsync(It.IsAny<CancellationToken>()), Times.Once);
 
@@ -80,7 +84,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var testSubject = CreateTestSubject(fileProvider.Object, fileCleaner.Object, fileSystem.Object);
 
-            await testSubject.MigrateAsync(null, CancellationToken.None);
+            await testSubject.MigrateAsync(AnyBoundProject, null, CancellationToken.None);
 
             fileProvider.Verify(x => x.GetFilesAsync(It.IsAny<CancellationToken>()), Times.Once);
             fileSystem.VerifyFileLoaded("file1");
@@ -118,7 +122,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var testSubject = CreateTestSubject(fileProvider.Object, fileCleaner.Object, fileSystem.Object);
 
-            await testSubject.MigrateAsync(null, CancellationToken.None);
+            await testSubject.MigrateAsync(AnyBoundProject, null, CancellationToken.None);
 
             fileProvider.Verify(x => x.GetFilesAsync(It.IsAny<CancellationToken>()), Times.Once);
 
@@ -141,7 +145,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         {
             var testSubject = CreateTestSubject();
 
-            Func<Task> act = async () => await testSubject.MigrateAsync(null, CancellationToken.None);
+            Func<Task> act = async () => await testSubject.MigrateAsync(AnyBoundProject, null, CancellationToken.None);
 
             act.Should().NotThrow();
         }
@@ -156,7 +160,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var testSubject = CreateTestSubject();
 
-            await testSubject.MigrateAsync(progressListener.Object, CancellationToken.None);
+            await testSubject.MigrateAsync(AnyBoundProject, progressListener.Object, CancellationToken.None);
 
             progressMessages.Should().NotBeEmpty();
         }

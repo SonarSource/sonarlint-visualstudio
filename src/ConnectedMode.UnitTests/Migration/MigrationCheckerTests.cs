@@ -31,6 +31,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
     [TestClass]
     public class MigrationCheckerTests
     {
+        private static BoundSonarQubeProject AnyBoundProject = new BoundSonarQubeProject(new Uri("http://localhost:9000"), "any-key", "any-name");
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
@@ -66,7 +68,25 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject(Mock.Of<IActiveSolutionTracker>(), migrationPrompt.Object, configurationProvider.Object, obsoleteConfigurationProvider.Object);
             await testSubject.DisplayMigrationPromptIfMigrationIsNeededAsync();
 
-            migrationPrompt.Verify(x => x.ShowAsync(), expectBindingToBeCalled ? Times.Once : Times.Never);
+            migrationPrompt.Verify(x => x.ShowAsync(It.IsAny<BoundSonarQubeProject>()), expectBindingToBeCalled ? Times.Once : Times.Never);
+        }
+
+        [TestMethod]
+        public async Task Migrate_CorrectProjectPassed()
+        {
+            var migrationPrompt = new Mock<IMigrationPrompt>();
+
+            var configurationProvider = new Mock<IConfigurationProvider>();
+            configurationProvider.Setup(x => x.GetConfiguration()).Returns(CreateBindingConfiguration(SonarLintMode.Standalone));
+
+            var obsoleteConfigurationProvider = new Mock<IObsoleteConfigurationProvider>();
+            var oldConfiguration = CreateBindingConfiguration(SonarLintMode.Connected);
+            obsoleteConfigurationProvider.Setup(x => x.GetConfiguration()).Returns(oldConfiguration); ;
+
+            var testSubject = CreateTestSubject(Mock.Of<IActiveSolutionTracker>(), migrationPrompt.Object, configurationProvider.Object, obsoleteConfigurationProvider.Object);
+            await testSubject.DisplayMigrationPromptIfMigrationIsNeededAsync();
+
+            migrationPrompt.Verify(x => x.ShowAsync(oldConfiguration.Project), Times.Once);
         }
 
         [TestMethod]
@@ -79,7 +99,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             migrationPrompt.Invocations.Clear();
 
             activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(true));
-            migrationPrompt.Verify(x => x.ShowAsync(), Times.Once);
+            migrationPrompt.Verify(x => x.ShowAsync(It.IsAny<BoundSonarQubeProject>()), Times.Once);
 
             activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(false));
             migrationPrompt.Verify(x => x.Dispose(), Times.Once);
@@ -99,7 +119,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             migrationPrompt.Invocations.Clear();
             activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, EventArgs.Empty);
 
-            migrationPrompt.Verify(x => x.ShowAsync(), Times.Never);
+            migrationPrompt.Verify(x => x.ShowAsync(AnyBoundProject), Times.Never);
         }
 
         private BindingConfiguration CreateBindingConfiguration(SonarLintMode mode)
