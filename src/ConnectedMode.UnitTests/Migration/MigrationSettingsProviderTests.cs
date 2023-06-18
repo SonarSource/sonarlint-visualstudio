@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.ConnectedMode.Migration;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 using Task = System.Threading.Tasks.Task;
 
@@ -43,7 +44,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject();
 
             // TODO - fix once implemented
-            var actual = await testSubject.GetAsync();
+            var oldBinding = new BoundSonarQubeProject(new System.Uri("https://localhost"), "any", "any");
+            var actual = await testSubject.GetAsync(oldBinding);
             actual.Should().BeNull();
         }
 

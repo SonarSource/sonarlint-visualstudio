@@ -23,11 +23,10 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
+using SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.ConnectedModeMigrationTestsExtensions;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.ConnectedModeMigrationTestsExtensions;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 {
