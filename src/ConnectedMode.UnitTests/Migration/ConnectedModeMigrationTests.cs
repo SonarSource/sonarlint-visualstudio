@@ -58,14 +58,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var fileProvider = CreateFileProvider();
 
             var settings = new LegacySettings("expected folder", "any", "any", "any", "any");
-            var oldBinding = new BoundSonarQubeProject();
+            var oldBinding = new BoundSonarQubeProject(new Uri("http://any"), "expected project key", "any");
             var settingsProvider = CreateSettingsProvider(settings);
 
             var testSubject = CreateTestSubject(fileProvider.Object, settingsProvider: settingsProvider.Object);
 
             await testSubject.MigrateAsync(oldBinding, null, CancellationToken.None);
 
-            settingsProvider.Verify(x => x.GetAsync(oldBinding), Times.Once);
+            settingsProvider.Verify(x => x.GetAsync("expected project key"), Times.Once);
         }
 
         [TestMethod]
@@ -220,7 +220,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             settingsToReturn ??= DefaultTestLegacySettings;
 
             var settingsProvider = new Mock<IMigrationSettingsProvider>();
-            settingsProvider.Setup(x => x.GetAsync(It.IsAny<BoundSonarQubeProject>())).Returns(Task.FromResult(settingsToReturn));
+            settingsProvider.Setup(x => x.GetAsync(It.IsAny<string>())).Returns(Task.FromResult(settingsToReturn));
             return settingsProvider;
         }
     }

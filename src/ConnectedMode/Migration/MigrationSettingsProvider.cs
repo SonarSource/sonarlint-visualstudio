@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.Core.Binding;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
@@ -29,14 +28,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         /// <summary>
         /// Returns the data required for the migration process
         /// </summary>
-        System.Threading.Tasks.Task<LegacySettings> GetAsync(BoundSonarQubeProject oldBinding);
+        System.Threading.Tasks.Task<LegacySettings> GetAsync(string sonarProjectKey);
     }
 
     [Export(typeof(IMigrationSettingsProvider))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
     internal class MigrationSettingsProvider : IMigrationSettingsProvider
     {
-        public System.Threading.Tasks.Task<LegacySettings> GetAsync(BoundSonarQubeProject oldBinding)
+        public System.Threading.Tasks.Task<LegacySettings> GetAsync(string sonarProjectKey)
         {
             // TODO: implement
             return Task.FromResult((LegacySettings)null);
