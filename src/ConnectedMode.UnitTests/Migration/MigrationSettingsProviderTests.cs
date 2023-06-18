@@ -18,8 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
-using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 using Task = System.Threading.Tasks.Task;
 
@@ -31,7 +34,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<MigrationSettingsProvider, IMigrationSettingsProvider>();
+            MefTestHelpers.CheckTypeCanBeImported<MigrationSettingsProvider, IMigrationSettingsProvider>(
+                MefTestHelpers.CreateExport<IServiceProvider>(),
+                MefTestHelpers.CreateExport<IThreadHandling>());
         }
 
         [TestMethod]
@@ -41,13 +46,47 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         [TestMethod]
         public async Task Get_ReturnsExpectedValue()
         {
-            var testSubject = CreateTestSubject();
+            var solution = CreateIVsSolution("c:\\rootfolder");
+            var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
 
-            // TODO - fix once implemented
-            var actual = await testSubject.GetAsync("expected project key");
-            actual.Should().BeNull();
+            var testSubject = CreateTestSubject(serviceProvider.Object);
+
+            var actual = await testSubject.GetAsync("slvs_samples_bound_vs2019");
+            actual.Should().NotBeNull();
+            actual.LegacySonarLintFolderPath.Should().Be("c:\\rootfolder\\.sonarlint");
+            actual.PartialCSharpRuleSetPath.Should().Be(".sonarlint\\slvs_samples_bound_vs2019csharp.ruleset");
+            actual.PartialCSharpSonarLintXmlPath.Should().Be(".sonarlint\\slvs_samples_bound_vs2019\\CSharp\\SonarLint.xml");
+            actual.PartialVBRuleSetPath.Should().Be(".sonarlint\\slvs_samples_bound_vs2019vb.ruleset");
+            actual.PartialVBSonarLintXmlPath.Should().Be(".sonarlint\\slvs_samples_bound_vs2019\\VB\\SonarLint.xml");
         }
 
-        private static MigrationSettingsProvider CreateTestSubject() => new MigrationSettingsProvider();
+        private static MigrationSettingsProvider CreateTestSubject(IServiceProvider serviceProvider = null,
+            IThreadHandling threadHandling = null)
+        {
+            serviceProvider ??= Mock.Of<IServiceProvider>();
+            threadHandling ??= new NoOpThreadHandler();
+
+            return new MigrationSettingsProvider(serviceProvider, threadHandling);
+        }
+
+        private static Mock<IServiceProvider> CreateServiceProviderWithSolution(IVsSolution solution)
+        {
+            var serviceProvider = new Mock<IServiceProvider>();
+            serviceProvider.Setup(x => x.GetService(typeof(SVsSolution))).Returns(solution);
+
+            return serviceProvider;
+        }
+
+        private static Mock<IVsSolution> CreateIVsSolution(string pathToReturn)
+        {
+            var solution = new Mock<IVsSolution>();
+
+            object solutionDirectory = pathToReturn;
+            solution
+                .Setup(x => x.GetProperty((int)__VSPROPID.VSPROPID_SolutionDirectory, out solutionDirectory))
+                .Returns(VSConstants.S_OK);
+
+            return solution;
+        }
     }
 }
