@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             progress?.Report(new MigrationProgress(1, 2, "TODO 1", false));
             progress?.Report(new MigrationProgress(2, 2, "TODO 2", true));
 
-            var legacySettings = await settingsProvider.GetAsync();
+            var legacySettings = await settingsProvider.GetAsync(oldBinding);
 
             logger.WriteLine(MigrationStrings.GettingFiles);
             var files = await fileProvider.GetFilesAsync(token);

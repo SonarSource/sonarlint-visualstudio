@@ -53,6 +53,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         }
 
         [TestMethod]
+        public async Task Migrate_ExpectedOldBindingIsPassedSettingsProvider()
+        {
+            var fileProvider = CreateFileProvider();
+
+            var settings = new LegacySettings("expected folder", "any", "any", "any", "any");
+            var oldBinding = new BoundSonarQubeProject();
+            var settingsProvider = CreateSettingsProvider(settings);
+
+            var testSubject = CreateTestSubject(fileProvider.Object, settingsProvider: settingsProvider.Object);
+
+            await testSubject.MigrateAsync(oldBinding, null, CancellationToken.None);
+
+            settingsProvider.Verify(x => x.GetAsync(oldBinding), Times.Once);
+        }
+
+        [TestMethod]
         public async Task Migrate_NoFilesToClean_DirectoryIsDeleted()
         {
             var fileProvider = CreateFileProvider();
@@ -204,7 +220,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             settingsToReturn ??= DefaultTestLegacySettings;
 
             var settingsProvider = new Mock<IMigrationSettingsProvider>();
-            settingsProvider.Setup(x => x.GetAsync()).Returns(Task.FromResult(settingsToReturn));
+            settingsProvider.Setup(x => x.GetAsync(It.IsAny<BoundSonarQubeProject>())).Returns(Task.FromResult(settingsToReturn));
             return settingsProvider;
         }
     }
