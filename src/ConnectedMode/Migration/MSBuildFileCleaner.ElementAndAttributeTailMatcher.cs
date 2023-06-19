@@ -50,12 +50,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             private static bool ContainsAttributeWithValue(XmlAttributeCollection attributeCollection,
                 string attributeName,
-                params string[] partialRulesetPaths)
+                params string[] valuesToTailMatch)
             {
                 return attributeCollection
                             .Cast<XmlAttribute>()
                             .Any(attribute =>
-                                partialRulesetPaths.Any(path =>
+                                valuesToTailMatch.Any(path =>
                                     attribute.Name == attributeName &&
                                     attribute.Value.EndsWith(path, System.StringComparison.OrdinalIgnoreCase)));
             }
