@@ -24,6 +24,9 @@
     <EmbeddedResource Include="Migration\FileCleanerTestCases\Ruleset_XX-project-key_Cleaned.ruleset.xml" />
     <EmbeddedResource Include="Migration\FileCleanerTestCases\Ruleset_XX-project-key_Input.ruleset.xml" />
     <EmbeddedResource Include="Migration\FileCleanerTestCases\Ruleset_NoIncludedRulesets_Input.ruleset.xml" />
+
+    <EmbeddedResource Include="Migration\FileCleanerTestCases\RulesetProp-project_key_aaa_Cleaned.vbproj" />
+    <EmbeddedResource Include="Migration\FileCleanerTestCases\RulesetProp-project_key_aaa_Input.vbproj" />
   </ItemGroup>
 
   <ItemGroup Label="Test framework">
