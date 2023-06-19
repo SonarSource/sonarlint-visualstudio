@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Migration] Failed to close migration window correctly: {0}.
+        ///   Looks up a localized string similar to [Migration] Migration cancelled: {0}.
         /// </summary>
         internal static string CancelTokenFailure_NormalLog {
             get {
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [MigrationWizardXaml] Failed to close migration window correctly: {0}.
+        ///   Looks up a localized string similar to [MigrationWizardXaml] Migration cancelled by user: {0}.
         /// </summary>
         internal static string CancelTokenFailure_VerboseLog {
             get {
@@ -102,6 +102,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         internal static string DeletingSonarLintFolder {
             get {
                 return ResourceManager.GetString("DeletingSonarLintFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Migration] Error during migration: {0}.
+        /// </summary>
+        internal static string ErrorDuringMigation_NormalLog {
+            get {
+                return ResourceManager.GetString("ErrorDuringMigation_NormalLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [MigrationWizardXaml] Error during migration: {0}.
+        /// </summary>
+        internal static string ErrorDuringMigation_VerboseLog {
+            get {
+                return ResourceManager.GetString("ErrorDuringMigation_VerboseLog", resourceCulture);
             }
         }
         
