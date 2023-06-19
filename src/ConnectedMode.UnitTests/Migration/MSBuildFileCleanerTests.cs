@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.IO;
+using System.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -27,6 +29,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
     [TestClass]
     public class MSBuildFileCleanerTests
     {
+        private static readonly LegacySettings AnyLegacySettings = new LegacySettings("c:\\any\\root\\folder", "csharpruleset", "csharpXML", "vbruleset", "vbXML");
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
@@ -37,5 +41,68 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         [TestMethod]
         public void MefCtor_CheckTypeIsNonShared()
             => MefTestHelpers.CheckIsNonSharedMefComponent<MSBuildFileCleaner>();
+
+        [TestMethod]
+        public void Clean_EmptyDocument_NoErrors_ReturnsNull()
+        {
+            const string content = "<Project/>";
+            var testSubject = CreateTestSubject();
+
+            var actual = testSubject.Clean(content, AnyLegacySettings, CancellationToken.None);
+
+            actual.Should().Be(MSBuildFileCleaner.Unchanged);
+        }
+
+        [TestMethod]
+        public void Clean_AdditionalFileRefsExist_CorrectProjectKey_SettingsAreRemoved()
+        {
+            var input = LoadEmbeddedTestCase("AdditionalFiles_my_project_key_Input.xml");
+            var expected = LoadEmbeddedTestCase("AdditionalFiles_my_project_key_Cleaned.xml");
+
+            var settings = new LegacySettings("any",
+                "any",
+                ".sonarlint\\my_project_key\\CSharp\\SonarLint.xml",
+                "any",
+                ".sonarlint\\my_project_key\\vb\\SonarLint.xml");
+
+            var testSubject = CreateTestSubject();
+
+            var actual = testSubject.Clean(input, settings, CancellationToken.None);
+            actual.Should().Be(expected);
+        }
+
+        [TestMethod]
+        public void Clean_AdditionalFileRefsExist_DifferentProjectKey_SettingsAreNotRemoved()
+        {
+            // The project key in the settings doesn't match the project key in the file,
+            // so the file content should not be changed
+            var input = LoadEmbeddedTestCase("AdditionalFiles_my_project_key_Input.xml");
+
+            var settings = new LegacySettings("any",
+                "any",
+                ".sonarlint\\DIFFERENT_project_key\\CSharp\\SonarLint.xml",
+                "any",
+                ".sonarlint\\DIFFERENT__project_key\\vb\\SonarLint.xml");
+
+            var testSubject = CreateTestSubject();
+
+            var actual = testSubject.Clean(input, settings, CancellationToken.None);
+            actual.Should().Be(MSBuildFileCleaner.Unchanged);
+        }
+
+        private static MSBuildFileCleaner CreateTestSubject(ILogger logger = null)
+        {
+            logger ??= new TestLogger(logToConsole: true);
+            return new MSBuildFileCleaner(logger);
+        }
+
+        private static string LoadEmbeddedTestCase(string testResourceName)
+        {
+            var resourcePath = "SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileCleanerTestCases." + testResourceName;
+            using var stream = new StreamReader(typeof(MSBuildFileCleanerTests).Assembly.GetManifestResourceStream(resourcePath));
+
+            return stream.ReadToEnd();
+        }
+
     }
 }
