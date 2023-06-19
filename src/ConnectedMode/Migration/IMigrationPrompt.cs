@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.ConnectedMode.Migration.Wizard;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Notifications;
 using Task = System.Threading.Tasks.Task;
 
@@ -34,7 +35,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     /// </summary>
     internal interface IMigrationPrompt : IDisposable
     {
-        Task ShowAsync();
+        Task ShowAsync(BoundSonarQubeProject oldBinding);
 
         void Clear();
     }
@@ -48,6 +49,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly IMigrationWizardController migrationWizardController;
         private readonly IBrowserService browserService;
         private readonly IThreadHandling threadHandling;
+
+        private BoundSonarQubeProject oldBinding;
 
         private const string idPrefix = "ConnectedModeMigration_";
 
@@ -67,9 +70,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             migrationWizardController.MigrationWizardFinished += OnMigrationWizardFinished;
         }
 
-        public async Task ShowAsync()
+        public async Task ShowAsync(BoundSonarQubeProject oldBinding)
         {
-           await threadHandling.RunOnUIThread(() =>
+            this.oldBinding = oldBinding;
+
+            await threadHandling.RunOnUIThread(() =>
             {
                 // The id contains the solution path so that each opened solution
                 // per session has its own notification.
@@ -97,7 +102,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         private void OnMigrate()
         {
-            migrationWizardController.StartMigrationWizard();
+            migrationWizardController.StartMigrationWizard(oldBinding);
         }
 
         private void OnLearnMore()

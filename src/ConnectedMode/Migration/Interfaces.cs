@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
@@ -33,7 +34,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     {
         // TODO: decide if the method should return a list of specific manual cleanup
         // steps that the user still needs to perform
-        Task MigrateAsync(IProgress<MigrationProgress> progress, CancellationToken token);
+        Task MigrateAsync(BoundSonarQubeProject oldBinding, IProgress<MigrationProgress> progress, CancellationToken token);
     }
 
     /// <summary>
