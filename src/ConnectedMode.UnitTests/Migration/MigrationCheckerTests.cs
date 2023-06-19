@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             migrationPrompt.Verify(x => x.ShowAsync(oldConfiguration.Project), Times.Once);
         }
-
+      
         [TestMethod]
         public void Ctor_SubscribeToSolutionChangedRaised_SolutionOpenedClose_MigrationPromptShowDisposeInvoked()
         {
