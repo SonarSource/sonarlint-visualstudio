@@ -88,6 +88,30 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             fileSystem.Verify(x => x.Directory.GetFiles("root dir", "*.vbproj", SearchOption.AllDirectories), Times.Once);
         }
 
+        [TestMethod]
+        public async Task GetFiles_FilesInExcludedDirectoriesAreNotReturned()
+        {
+            var solution = CreateIVsSolution("root dir");
+            var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
+
+            var filesInFileSystem = new string[] {
+                "should be included1",
+                "\\bin\\file1",
+                "aaa\\bin\\zzz",
+                "should be included2\\obj", // doesn't contain \obj\
+                "ccc\\obj\\xxx",
+                "should be included3"
+            };
+            
+            var fileSystem = CreateFileSystem(filesInFileSystem);
+
+            var testSubject = CreateTestSubject(serviceProvider.Object, fileSystem.Object);
+
+            var actual = await testSubject.GetFilesAsync(CancellationToken.None);
+
+            actual.Should().BeEquivalentTo("should be included1", "should be included2\\obj", "should be included3");
+        }
+
         private static MSBuildFileProvider CreateTestSubject(IServiceProvider serviceProvider = null,
             IFileSystem fileSystem = null, ILogger logger = null, IThreadHandling threadHandling = null)
         {

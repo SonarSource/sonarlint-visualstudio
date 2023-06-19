@@ -51,6 +51,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             "*.vbproj"
         };
 
+        internal static readonly string[] ExcludedDirectores = new string[]
+        {
+            "\\bin\\",
+            "\\obj\\"
+        };
+
         [ImportingConstructor]
         public MSBuildFileProvider(
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
@@ -114,8 +120,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             foreach(var pattern in FileSearchPatterns)
             {
                 var files = fileSystem.Directory.GetFiles(rootFolder, pattern, SearchOption.AllDirectories);
-                AddToMatches(allMatches, files);
-                LogVerbose($"  Pattern: {pattern}, Number of matching files: {files.Length}");
+                var filesToInclude = files.Where(x => !IsInExcludedDirectory(x)).ToArray();
+
+                AddToMatches(allMatches, filesToInclude);
+                LogVerbose($"  Pattern: {pattern}, Number of matching files: {filesToInclude.Length}");
             }
 
             timer.Stop();
@@ -125,7 +133,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             return allMatches;
         }
 
-        private static void AddToMatches(HashSet<string> results, string[] matches)
+        private static bool IsInExcludedDirectory(string fullPath) => ExcludedDirectores.Any(x => fullPath.Contains(x));
+
+        private static void AddToMatches(HashSet<string> results, IEnumerable<string> matches)
         {
             foreach(var match in matches)
             {
