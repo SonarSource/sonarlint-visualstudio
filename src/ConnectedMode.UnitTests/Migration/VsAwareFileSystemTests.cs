@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.IO.Abstractions;
+using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -37,5 +39,54 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         [TestMethod]
         public void MefCtor_CheckTypeIsNonShared()
             => MefTestHelpers.CheckIsNonSharedMefComponent<VsAwareFileSystem>();
+
+        [TestMethod]
+        public async Task LoadAsText_CallsFileSystem()
+        {
+            const string fileName = "X:\\dir\\myproj.csproj";
+            const string fileContents = "some content";
+
+            var testSubject = CreateTestSubject(out var fileSystem);
+            fileSystem.Setup(x => x.File.ReadAllText(fileName)).Returns(fileContents);
+
+            var actual = await testSubject.LoadAsTextAsync(fileName);
+
+            actual.Should().Be(fileContents);
+        }
+
+        [TestMethod]
+        public async Task Save_CallsFileSystem()
+        {
+            const string fileName = "c:\\aaa\\foo.txt";
+            const string fileContents = "some data";
+
+            var testSubject = CreateTestSubject(out var fileSystem);
+
+            await testSubject.SaveAsync(fileName, fileContents);
+
+            fileSystem.Verify(x => x.File.WriteAllText(fileName, fileContents), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task DeleteDirectory_CallsFileSystem()
+        {
+            const string dirName = "c:\\aaa\\bbb";
+
+            var testSubject = CreateTestSubject(out var fileSystem);
+
+            await testSubject.DeleteFolderAsync(dirName);
+
+            fileSystem.Verify(x => x.Directory.Delete(dirName, true), Times.Once);
+        }
+
+        private static VsAwareFileSystem CreateTestSubject(out Mock<IFileSystem> fileSystem)
+        {
+            var logger = new TestLogger(logToConsole: true);
+            fileSystem = new Mock<IFileSystem>();
+            fileSystem.Setup(x => x.File).Returns(new Mock<IFile>().Object);
+            fileSystem.Setup(x => x.Directory).Returns(new Mock<IDirectory>().Object);
+            return new VsAwareFileSystem(logger, fileSystem.Object);
+        }
+
     }
 }
