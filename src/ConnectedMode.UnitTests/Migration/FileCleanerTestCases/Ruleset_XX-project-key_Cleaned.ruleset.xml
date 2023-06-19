@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="My local ruleset" ToolsVersion="17.0">
+
+  <!-- Both vb and csharp references should be removed -->
+  
+  
+
+  <!-- The following two should not be removed -->
+  <Include Path="some other ruleset.ruleset" Action="Default" />
+  <Include Path="..\..\.sonarlint\XX-project-keyvb.rulesetXXX" Action="Default" />
+
+  <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp.Features" RuleNamespace="Microsoft.CodeAnalysis.CSharp.Features">
+    <Rule Id="IDE0001" Action="Warning" />
+    <Rule Id="IDE0002" Action="Warning" />
+  </Rules>
+  <Rules AnalyzerId="Microsoft.CodeAnalysis.VisualBasic.Features" RuleNamespace="Microsoft.CodeAnalysis.VisualBasic.Features">
+    <Rule Id="IDE0001" Action="Warning" />
+    <Rule Id="IDE0002" Action="Warning" />
+  </Rules>
+</RuleSet>
