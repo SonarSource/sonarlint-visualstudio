@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 {
@@ -34,7 +35,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
         /// </summary>
         event EventHandler MigrationWizardFinished;
 
-        void StartMigrationWizard();
+        void StartMigrationWizard(BoundSonarQubeProject oldBinding);
     }
 
     [Export(typeof(IMigrationWizardController))]
@@ -53,9 +54,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             this.logger = logger;
         }
 
-        public void StartMigrationWizard()
+        public void StartMigrationWizard(BoundSonarQubeProject oldBinding)
         {
-            var migrationWizardWindow = new MigrationWizardWindow(connectedModeMigration, logger);
+            var migrationWizardWindow = new MigrationWizardWindow(oldBinding, connectedModeMigration, logger);
 
             var finishedSuccessfully = migrationWizardWindow.ShowModal();
 

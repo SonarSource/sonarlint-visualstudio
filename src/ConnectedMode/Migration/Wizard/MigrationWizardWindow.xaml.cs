@@ -27,6 +27,7 @@ using System.Windows.Media;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
 
@@ -36,6 +37,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
     {
         public event EventHandler StartMigration;
 
+        private readonly BoundSonarQubeProject oldBinding;
         private readonly IConnectedModeMigration connectedModeMigration;
         private readonly ILogger logger;
 
@@ -44,8 +46,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         private CancellationTokenSource cancellationTokenSource;
 
-        internal MigrationWizardWindow(IConnectedModeMigration connectedModeMigration, ILogger logger)
+        internal MigrationWizardWindow(BoundSonarQubeProject oldBinding, IConnectedModeMigration connectedModeMigration, ILogger logger)
         {
+            this.oldBinding = oldBinding;
             this.connectedModeMigration = connectedModeMigration;
             this.logger = logger;
 
@@ -78,7 +81,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
         {
             try
             {
-                await connectedModeMigration.MigrateAsync(this, cancellationTokenSource.Token);
+                await connectedModeMigration.MigrateAsync(oldBinding, this, cancellationTokenSource.Token);
                 MigrationFinished();
             }
             catch (OperationCanceledException ex)
