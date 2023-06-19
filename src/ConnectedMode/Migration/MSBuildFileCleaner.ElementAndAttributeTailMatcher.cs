@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 var nodesToRemove = new List<XmlNode>();
                 foreach (XmlNode item in document.GetElementsByTagName(elementName))
                 {
-                    if (ContainsGeneratedRulesetReferenceInAttributes(item.Attributes, attributeName, valuesToTailMatch))
+                    if (ContainsAttributeWithValue(item.Attributes, attributeName, valuesToTailMatch))
                     {
                         nodesToRemove.Add(item);
                     }
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 return nodesToRemove;
             }
 
-            private static bool ContainsGeneratedRulesetReferenceInAttributes(XmlAttributeCollection attributeCollection,
+            private static bool ContainsAttributeWithValue(XmlAttributeCollection attributeCollection,
                 string attributeName,
                 params string[] partialRulesetPaths)
             {
