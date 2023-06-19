@@ -80,7 +80,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             actual.Should().BeEquivalentTo(filesToReturn);
             solution.VerifyAll();
-            fileSystem.Verify(x => x.Directory.GetFiles("root dir", MSBuildFileProvider.FileSearchPattern, SearchOption.AllDirectories), Times.Once);
+
+            fileSystem.Verify(x => x.Directory.GetFiles("root dir", "*.ruleset", SearchOption.AllDirectories), Times.Once);
+            fileSystem.Verify(x => x.Directory.GetFiles("root dir", "*.props", SearchOption.AllDirectories), Times.Once);
+            fileSystem.Verify(x => x.Directory.GetFiles("root dir", "*.targets", SearchOption.AllDirectories), Times.Once);
+            fileSystem.Verify(x => x.Directory.GetFiles("root dir", "*.csproj", SearchOption.AllDirectories), Times.Once);
+            fileSystem.Verify(x => x.Directory.GetFiles("root dir", "*.vbproj", SearchOption.AllDirectories), Times.Once);
         }
 
         private static MSBuildFileProvider CreateTestSubject(IServiceProvider serviceProvider = null,

@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
@@ -42,7 +43,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly IThreadHandling threadHandling;
         private readonly IFileSystem fileSystem;
 
-        internal const string FileSearchPattern = "*.ruleset,*.props,*.targets,*.csproj,*.vbpproj";
+        internal static readonly string[] FileSearchPatterns = new string[] {
+            "*.ruleset",
+            "*.props",
+            "*.targets",
+            "*.csproj",
+            "*.vbproj"
+        };
 
         [ImportingConstructor]
         public MSBuildFileProvider(
@@ -74,6 +81,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 return Enumerable.Empty<string>();
             }
 
+            // Make sure we are doing the disk search on a background thread
+            await threadHandling.SwitchToBackgroundThread();
+
             return FindFiles(solutionDir);
         }
 
@@ -93,12 +103,34 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             return solutionDir;
         }
 
-        private string[] FindFiles(string rootFolder)
+        private IEnumerable<string> FindFiles(string rootFolder)
         {
             LogVerbose("Searching for files... Root directory: " + rootFolder);
-            var files = fileSystem.Directory.GetFiles(rootFolder, FileSearchPattern, SearchOption.AllDirectories);
-            LogVerbose("Number of matching files: " + files.Length);
-            return files;
+
+            var timer = Stopwatch.StartNew();
+
+            var allMatches = new HashSet<string>();
+
+            foreach(var pattern in FileSearchPatterns)
+            {
+                var files = fileSystem.Directory.GetFiles(rootFolder, pattern, SearchOption.AllDirectories);
+                AddToMatches(allMatches, files);
+                LogVerbose($"  Pattern: {pattern}, Number of matching files: {files.Length}");
+            }
+
+            timer.Stop();
+            LogVerbose("Total number of matching files: " + allMatches.Count);
+            LogVerbose("Search time (ms): " + timer.ElapsedMilliseconds);
+
+            return allMatches;
+        }
+
+        private static void AddToMatches(HashSet<string> results, string[] matches)
+        {
+            foreach(var match in matches)
+            {
+                results.Add(match);
+            }
         }
 
         private void LogVerbose(string text) => logger.LogVerbose("[Migration] " + text);
