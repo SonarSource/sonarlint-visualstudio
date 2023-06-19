@@ -55,9 +55,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 return attributeCollection
                             .Cast<XmlAttribute>()
                             .Any(attribute =>
-                                valuesToTailMatch.Any(path =>
+                                valuesToTailMatch.Any(val =>
                                     attribute.Name == attributeName &&
-                                    attribute.Value.EndsWith(path, System.StringComparison.OrdinalIgnoreCase)));
+                                    attribute.Value.EndsWith(val, System.StringComparison.OrdinalIgnoreCase)));
             }
         }
     }
