@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using System.IO.Abstractions;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Integration;
 
@@ -29,26 +30,43 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     internal class VsAwareFileSystem : IVsAwareFileSystem
     {
         private readonly ILogger logger;
+        private readonly IFileSystem fileSystem;
 
         [ImportingConstructor]
-        public VsAwareFileSystem(ILogger logger) => this.logger = logger;
-        
+        public VsAwareFileSystem(ILogger logger)
+            : this(logger, new FileSystem())
+        { }
+
+        internal /* for testing */ VsAwareFileSystem(ILogger logger, IFileSystem fileSystem)
+        {
+            this.logger = logger;
+            this.fileSystem = fileSystem;
+        }
+
         public Task DeleteFolderAsync(string folderPath)
         {
-            // TODO
+            // TODO - error handling
+            LogVerbose($"Deleting directory: {folderPath}");
+            fileSystem.Directory.Delete(folderPath, true);
             return Task.CompletedTask;
         }
 
         public Task<string> LoadAsTextAsync(string filePath)
         {
-            // TODO
-            return Task.FromResult(string.Empty);
+            // TODO - error handling
+            logger.LogVerbose($"Reading file: {filePath}");
+            var content = fileSystem.File.ReadAllText(filePath);
+            return Task.FromResult(content);
         }
 
         public Task SaveAsync(string filePath, string text)
         {
-            // TODO
+            // TODO - error handling
+            logger.LogVerbose($"Saving file: {filePath}");
+            fileSystem.File.WriteAllText(filePath, text);
             return Task.CompletedTask;
         }
+
+        private void LogVerbose(string message) => logger.LogVerbose("[Migration] " + message);
     }
 }
