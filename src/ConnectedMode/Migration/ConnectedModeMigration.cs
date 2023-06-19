@@ -26,6 +26,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
@@ -51,7 +52,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             this.fileSystem = fileSystem;
         }
 
-        public async Task MigrateAsync(IProgress<MigrationProgress> progress, CancellationToken token)
+        public async Task MigrateAsync(BoundSonarQubeProject oldBinding, IProgress<MigrationProgress> progress, CancellationToken token)
         {
             // TODO - add cancellation
             // TODO - add progress messages
