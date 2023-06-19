@@ -89,10 +89,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private static bool ContainsSonarLintXmlReferenceInAttributes(XmlAttributeCollection attributeCollection,
             params string[] sonarlintXmlPaths)
         {
+            // Matches the following:
+            // 		<AdditionalFiles Include="..\..\.sonarlint\my_project_key\CSharp\SonarLint.xml" />
             return attributeCollection
                 .Cast<XmlAttribute>()
                 .Any(attribute =>
                     sonarlintXmlPaths.Any(path =>
+                        attribute.Name == "Include" &&
                         attribute.Value.EndsWith(path, System.StringComparison.OrdinalIgnoreCase)));
         }
 

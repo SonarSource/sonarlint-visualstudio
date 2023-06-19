@@ -22,8 +22,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
-        <!-- should not be removed - shouldn't match -->
+    <!-- should not be removed - shouldn't match -->
 		<AdditionalFiles Include="..\..\.sonarlint\wrong_my_project_key\vb\SonarLint.xml" />
 		<AdditionalFiles Include="some other path`vb\SonarLint.xml" />
-	</ItemGroup>
+
+    <!-- should not match - attribute name does not match -->
+    <AdditionalFiles Remove="..\..\.sonarlint\my_project_key\CSharp\SonarLint.xml" />
+
+    <!-- should not match - does not end with correct partial string -->
+    <AdditionalFiles Include="..\..\.sonarlint\my_project_key\vb\SonarLint.xmlXXX" />
+  </ItemGroup>
 </Project>
