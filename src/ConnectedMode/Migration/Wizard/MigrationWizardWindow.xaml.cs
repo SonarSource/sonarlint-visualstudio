@@ -68,15 +68,23 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
             // Disables all closing / cancel buttons.
             this.migrateButton.Visibility = Visibility.Collapsed;
-            this.IsCloseButtonEnabled = false;
+            // this.IsCloseButtonEnabled = false;
 
             MigrateAsync().Forget();
         }
 
         private async Task MigrateAsync()
         {
-            await connectedModeMigration.MigrateAsync(this, cancellationTokenSource.Token);
-            MigrationFinished();
+            try
+            {
+                await connectedModeMigration.MigrateAsync(this, cancellationTokenSource.Token);
+                MigrationFinished();
+            }
+            catch (OperationCanceledException ex)
+            {
+                logger.LogVerbose(MigrationStrings.CancelTokenFailure_VerboseLog, ex);
+                logger.WriteLine(MigrationStrings.CancelTokenFailure_NormalLog, ex.Message);
+            }
         }
 
         private void MigrationFinished()
@@ -89,17 +97,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         private void OnClosing(object sender, CancelEventArgs e)
         {
-            try
-            {
-                cancellationTokenSource.Cancel();
-                migrationInProgress = false;
-                this.DialogResult = dialogResult;
-            }
-            catch(OperationCanceledException ex)
-            {
-                logger.LogVerbose(MigrationStrings.CancelTokenFailure_VerboseLog, ex);
-                logger.WriteLine(MigrationStrings.CancelTokenFailure_NormalLog, ex.Message);
-            }
+            cancellationTokenSource.Cancel();
+            migrationInProgress = false;
+            this.DialogResult = dialogResult;
         }
 
         void IProgress<MigrationProgress>.Report(MigrationProgress value)
