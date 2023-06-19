@@ -115,7 +115,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             var timer = Stopwatch.StartNew();
 
-            var allMatches = new HashSet<string>();
+            var allMatches = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach(var pattern in FileSearchPatterns)
             {

@@ -112,6 +112,32 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             actual.Should().BeEquivalentTo("should be included1", "should be included2\\obj", "should be included3");
         }
 
+        [TestMethod]
+        public async Task GetFiles_DuplicatesAreIgnored()
+        {
+            var solution = CreateIVsSolution("root dir");
+            var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
+
+            var filesInFileSystem = new string[] {
+                // duplicates - should only appear once
+                "file_1",
+                "FILE_1",
+                "file_1",
+
+                // non-duplicates - should be included
+                "file_11",
+                "file_111"
+            };
+
+            var fileSystem = CreateFileSystem(filesInFileSystem);
+
+            var testSubject = CreateTestSubject(serviceProvider.Object, fileSystem.Object);
+
+            var actual = await testSubject.GetFilesAsync(CancellationToken.None);
+
+            actual.Should().BeEquivalentTo("file_1", "file_11", "file_111");
+        }
+
         private static MSBuildFileProvider CreateTestSubject(IServiceProvider serviceProvider = null,
             IFileSystem fileSystem = null, ILogger logger = null, IThreadHandling threadHandling = null)
         {
