@@ -61,6 +61,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Migration] Removing {0} settings from file....
+        /// </summary>
+        internal static string Cleaner_RemovingSettings {
+            get {
+                return ResourceManager.GetString("Cleaner_RemovingSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Migration] Cleaning files....
         /// </summary>
         internal static string CleaningFiles {

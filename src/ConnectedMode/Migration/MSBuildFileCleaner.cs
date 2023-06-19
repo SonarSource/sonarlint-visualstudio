@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     internal class MSBuildFileCleaner : IFileCleaner
     {
         /// <summary>
-        ///     Return value indicating the file has not changed
+        /// Return value indicating the file has not changed
         /// </summary>
         public const string Unchanged = null;
 
@@ -43,7 +43,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly IXmlDocumentHelper xmlDocumentHelper;
 
         [ImportingConstructor]
-        public MSBuildFileCleaner(ILogger logger, IXmlDocumentHelper xmlDocumentHelper)
+        public MSBuildFileCleaner(ILogger logger) : this(logger, new XmlDocumentHelper())
+        {
+        }
+
+        internal /* for testing */ MSBuildFileCleaner(ILogger logger, IXmlDocumentHelper xmlDocumentHelper)
         {
             this.logger = logger;
             this.xmlDocumentHelper = xmlDocumentHelper;
@@ -60,14 +64,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                         legacySettings.PartialVBSonarLintXmlPath,
                         legacySettings.PartialCSharpSonarLintXmlPath))
                 {
+                    LogVerbose("Detected SonarLint.xml: " + item.Value);
                     nodesToRemove.Add(item);
                 }
             }
 
             if (!nodesToRemove.Any())
             {
+                logger.LogVerbose("No settings to remove");
                 return Unchanged;
             }
+
+            logger.WriteLine(MigrationStrings.Cleaner_RemovingSettings, nodesToRemove.Count);
 
             nodesToRemove.ForEach(node =>
             {
@@ -85,7 +93,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 .Cast<XmlAttribute>()
                 .Any(attribute =>
                     sonarlintXmlPaths.Any(path =>
-                        attribute.Value.EndsWith(path)));
+                        attribute.Value.EndsWith(path, System.StringComparison.OrdinalIgnoreCase)));
         }
+
+        private void LogVerbose(string message) => logger.LogVerbose("[Migration] " + message);
     }
 }
