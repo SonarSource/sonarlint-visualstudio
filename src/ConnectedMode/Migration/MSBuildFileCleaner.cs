@@ -57,8 +57,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             var nodesToRemove = new List<XmlNode>();
 
-            nodesToRemove.AddRange(AdditionalFilesFinder.Find(document, legacySettings));
-            nodesToRemove.AddRange(IncludedRulesetFinder.Find(document, legacySettings));
+            nodesToRemove.AddRange(FindAdditionalFiles(document, legacySettings));
+            nodesToRemove.AddRange(FindIncludedRulesets(document, legacySettings));
 
             if (!nodesToRemove.Any())
             {
@@ -77,6 +77,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             return xmlDocumentHelper.SaveToString(document);
         }
 
-        private void LogVerbose(string message) => logger.LogVerbose("[Migration] " + message);
+        private static IList<XmlNode> FindAdditionalFiles(XmlDocument document, LegacySettings legacySettings)
+            => ElementAndAttributeTailMatcher.Find(document, "AdditionalFiles", "Include",
+                legacySettings.PartialCSharpSonarLintXmlPath,
+                legacySettings.PartialVBSonarLintXmlPath);
+
+        private static IList<XmlNode> FindIncludedRulesets(XmlDocument document, LegacySettings legacySettings)
+            => ElementAndAttributeTailMatcher.Find(document, "Include", "Path",
+                legacySettings.PartialCSharpRuleSetPath,
+                legacySettings.PartialVBRuleSetPath);
     }
 }
