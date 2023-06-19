@@ -121,7 +121,7 @@
     <value>[Migration] Failed to close migration window correctly: {0}</value>
   </data>
   <data name="CancelTokenFailure_VerboseLog" xml:space="preserve">
-    <value>[MigrationWizardXaml] Failed to close migration windowe correctly: {0}</value>
+    <value>[MigrationWizardXaml] Failed to close migration window correctly: {0}</value>
   </data>
   <data name="CleaningFiles" xml:space="preserve">
     <value>[Migration] Cleaning files...</value>

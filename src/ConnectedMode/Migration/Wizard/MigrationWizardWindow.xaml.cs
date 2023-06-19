@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
             // Disables all closing / cancel buttons.
             this.migrateButton.Visibility = Visibility.Collapsed;
-            // this.IsCloseButtonEnabled = false;
+            this.IsCloseButtonEnabled = false;
 
             MigrateAsync().Forget();
         }

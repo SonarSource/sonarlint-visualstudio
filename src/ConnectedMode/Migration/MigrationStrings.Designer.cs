@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [MigrationWizardXaml] Failed to close migration windowe correctly: {0}.
+        ///   Looks up a localized string similar to [MigrationWizardXaml] Failed to close migration window correctly: {0}.
         /// </summary>
         internal static string CancelTokenFailure_VerboseLog {
             get {
