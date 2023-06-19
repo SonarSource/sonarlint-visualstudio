@@ -26,18 +26,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
     internal partial class MSBuildFileCleaner
     {
-        private static class IncludedRulesetFinder
+        private static class ElementAndAttributeTailMatcher
         {
-            public static IList<XmlNode> Find(XmlDocument document, LegacySettings legacySettings)
+            /// <summary>
+            /// Returns a list of nodes in the document matching the following criteria:
+            ///   <ElementName AttributeName="xxxx[value to tail match] ... />
+            /// e.g.
+            ///   <Include Path="..\..\.sonarlint\my-project-keyvb.ruleset" Action="Default" />
+            /// </summary>
+            public static IList<XmlNode> Find(XmlDocument document, string elementName, string attributeName,
+                params string[] valuesToTailMatch)
             {
-                const string IncludeElementName = "Include";
-
                 var nodesToRemove = new List<XmlNode>();
-                foreach (XmlNode item in document.GetElementsByTagName(IncludeElementName))
+                foreach (XmlNode item in document.GetElementsByTagName(elementName))
                 {
-                    if (ContainsGeneratedRulesetReferenceInAttributes(item.Attributes,
-                            legacySettings.PartialCSharpRuleSetPath,
-                            legacySettings.PartialVBRuleSetPath))
+                    if (ContainsGeneratedRulesetReferenceInAttributes(item.Attributes, attributeName, valuesToTailMatch))
                     {
                         nodesToRemove.Add(item);
                     }
@@ -46,15 +49,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             }
 
             private static bool ContainsGeneratedRulesetReferenceInAttributes(XmlAttributeCollection attributeCollection,
+                string attributeName,
                 params string[] partialRulesetPaths)
             {
-                // Matches the following:
-                //   <Include Path="..\..\.sonarlint\my-project-keyvb.ruleset" Action="Default" />
                 return attributeCollection
                             .Cast<XmlAttribute>()
                             .Any(attribute =>
                                 partialRulesetPaths.Any(path =>
-                                    attribute.Name == "Path" &&
+                                    attribute.Name == attributeName &&
                                     attribute.Value.EndsWith(path, System.StringComparison.OrdinalIgnoreCase)));
             }
         }
