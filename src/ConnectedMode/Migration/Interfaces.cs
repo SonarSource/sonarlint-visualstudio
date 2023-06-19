@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         /// Removes unwanted settings from the supplied XML content
         /// </summary>
         /// <returns>The modified content, or null if the text was not modified</returns>
-        Task<string> CleanAsync(string content, LegacySettings legacySettings, CancellationToken token);
+        string Clean(string content, LegacySettings legacySettings, CancellationToken token);
     }
 
     /// <summary>

@@ -9,6 +9,16 @@
 
     <RequiresLibGit>true</RequiresLibGit>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <None Remove="Migration\FileCleanerTestCases\AdditionalFiles_my_project_key_Cleaned.xml" />
+    <None Remove="Migration\FileCleanerTestCases\AdditionalFiles_my_project_key_Input.xml" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="Migration\FileCleanerTestCases\AdditionalFiles_my_project_key_Cleaned.xml" />
+    <EmbeddedResource Include="Migration\FileCleanerTestCases\AdditionalFiles_my_project_key_Input.xml" />
+  </ItemGroup>
 
   <ItemGroup Label="Test framework">
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />

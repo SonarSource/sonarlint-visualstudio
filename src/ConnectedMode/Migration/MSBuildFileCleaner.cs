@@ -18,9 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
+using System.Xml;
 using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
@@ -34,18 +37,68 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         /// </summary>
         public const string Unchanged = null;
 
+        private const string AdditionalFilesTagName = "AdditionalFiles";
+
         private readonly ILogger logger;
+        private readonly IXmlDocumentHelper xmlDocumentHelper;
 
         [ImportingConstructor]
-        public MSBuildFileCleaner(ILogger logger)
+        public MSBuildFileCleaner(ILogger logger) : this(logger, new XmlDocumentHelper())
         {
-            this.logger = logger;
         }
 
-        public Task<string> CleanAsync(string content, LegacySettings legacySettings, CancellationToken token)
+        internal /* for testing */ MSBuildFileCleaner(ILogger logger, IXmlDocumentHelper xmlDocumentHelper)
         {
-            // TODO
-            return Task.FromResult(Unchanged);
+            this.logger = logger;
+            this.xmlDocumentHelper = xmlDocumentHelper;
         }
+
+        public string Clean(string content, LegacySettings legacySettings, CancellationToken token)
+        {
+            var document = xmlDocumentHelper.LoadFromString(content);
+
+            var nodesToRemove = new List<XmlNode>();
+            foreach (XmlNode item in document.GetElementsByTagName(AdditionalFilesTagName))
+            {
+                if (ContainsSonarLintXmlReferenceInAttributes(item.Attributes,
+                        legacySettings.PartialVBSonarLintXmlPath,
+                        legacySettings.PartialCSharpSonarLintXmlPath))
+                {
+                    LogVerbose("Detected SonarLint.xml: " + item.Value);
+                    nodesToRemove.Add(item);
+                }
+            }
+
+            if (!nodesToRemove.Any())
+            {
+                logger.LogVerbose("No settings to remove");
+                return Unchanged;
+            }
+
+            logger.WriteLine(MigrationStrings.Cleaner_RemovingSettings, nodesToRemove.Count);
+
+            nodesToRemove.ForEach(node =>
+            {
+                Debug.Assert(node.ParentNode != null);
+                node.ParentNode.RemoveChild(node);
+            });
+
+            return xmlDocumentHelper.SaveToString(document);
+        }
+
+        private static bool ContainsSonarLintXmlReferenceInAttributes(XmlAttributeCollection attributeCollection,
+            params string[] sonarlintXmlPaths)
+        {
+            // Matches the following:
+            // 		<AdditionalFiles Include="..\..\.sonarlint\my_project_key\CSharp\SonarLint.xml" />
+            return attributeCollection
+                .Cast<XmlAttribute>()
+                .Any(attribute =>
+                    sonarlintXmlPaths.Any(path =>
+                        attribute.Name == "Include" &&
+                        attribute.Value.EndsWith(path, System.StringComparison.OrdinalIgnoreCase)));
+        }
+
+        private void LogVerbose(string message) => logger.LogVerbose("[Migration] " + message);
     }
 }
