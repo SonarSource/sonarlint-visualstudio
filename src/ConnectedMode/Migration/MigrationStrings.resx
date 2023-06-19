@@ -118,10 +118,10 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="CancelTokenFailure_NormalLog" xml:space="preserve">
-    <value>[Migration] Failed to close migration window correctly: {0}</value>
+    <value>[Migration] Migration cancelled: {0}</value>
   </data>
   <data name="CancelTokenFailure_VerboseLog" xml:space="preserve">
-    <value>[MigrationWizardXaml] Failed to close migration window correctly: {0}</value>
+    <value>[MigrationWizardXaml] Migration cancelled by user: {0}</value>
   </data>
   <data name="CleaningFiles" xml:space="preserve">
     <value>[Migration] Cleaning files...</value>
@@ -131,6 +131,12 @@
   </data>
   <data name="DeletingSonarLintFolder" xml:space="preserve">
     <value>[Migration] Deleting the legacy .sonarlint...</value>
+  </data>
+  <data name="ErrorDuringMigation_NormalLog" xml:space="preserve">
+    <value>[Migration] Error during migration: {0}</value>
+  </data>
+  <data name="ErrorDuringMigation_VerboseLog" xml:space="preserve">
+    <value>[MigrationWizardXaml] Error during migration: {0}</value>
   </data>
   <data name="Finished" xml:space="preserve">
     <value>[Migration] Finished ConnectedMode migration.</value>

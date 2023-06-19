@@ -85,6 +85,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
                 logger.LogVerbose(MigrationStrings.CancelTokenFailure_VerboseLog, ex);
                 logger.WriteLine(MigrationStrings.CancelTokenFailure_NormalLog, ex.Message);
             }
+            catch(Exception ex)
+            {
+                logger.LogVerbose(MigrationStrings.ErrorDuringMigation_VerboseLog, ex);
+                logger.WriteLine(MigrationStrings.ErrorDuringMigation_NormalLog, ex.Message);
+            }
         }
 
         private void MigrationFinished()
