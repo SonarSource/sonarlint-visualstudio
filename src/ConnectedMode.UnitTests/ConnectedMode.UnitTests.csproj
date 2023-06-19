@@ -13,11 +13,17 @@
   <ItemGroup>
     <None Remove="Migration\FileCleanerTestCases\AdditionalFiles_my_project_key_Cleaned.xml" />
     <None Remove="Migration\FileCleanerTestCases\AdditionalFiles_my_project_key_Input.xml" />
+    <None Remove="Migration\FileCleanerTestCases\Ruleset_NoIncludedRulesets_Input.ruleset.xml" />
+    <None Remove="Migration\FileCleanerTestCases\Ruleset_XX-project-key_Cleaned.ruleset.xml" />
+    <None Remove="Migration\FileCleanerTestCases\Ruleset_XX-project-key_Input.ruleset.xml" />
   </ItemGroup>
   
   <ItemGroup>
     <EmbeddedResource Include="Migration\FileCleanerTestCases\AdditionalFiles_my_project_key_Cleaned.xml" />
     <EmbeddedResource Include="Migration\FileCleanerTestCases\AdditionalFiles_my_project_key_Input.xml" />
+    <EmbeddedResource Include="Migration\FileCleanerTestCases\Ruleset_XX-project-key_Cleaned.ruleset.xml" />
+    <EmbeddedResource Include="Migration\FileCleanerTestCases\Ruleset_XX-project-key_Input.ruleset.xml" />
+    <EmbeddedResource Include="Migration\FileCleanerTestCases\Ruleset_NoIncludedRulesets_Input.ruleset.xml" />
   </ItemGroup>
 
   <ItemGroup Label="Test framework">

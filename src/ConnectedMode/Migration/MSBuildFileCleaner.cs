@@ -69,6 +69,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 }
             }
 
+            foreach (XmlNode item in document.GetElementsByTagName("Include"))
+            {
+                if (ContainsGeneratedRulesetReferenceInAttributes(item.Attributes,
+                        legacySettings.PartialCSharpRuleSetPath,
+                        legacySettings.PartialVBRuleSetPath))
+                {
+                    LogVerbose("Detected reference to generated ruleset: " + item.Value);
+                    nodesToRemove.Add(item);
+                }
+            }
+
             if (!nodesToRemove.Any())
             {
                 logger.LogVerbose("No settings to remove");
@@ -97,6 +108,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                     sonarlintXmlPaths.Any(path =>
                         attribute.Name == "Include" &&
                         attribute.Value.EndsWith(path, System.StringComparison.OrdinalIgnoreCase)));
+        }
+
+        private static bool ContainsGeneratedRulesetReferenceInAttributes(XmlAttributeCollection attributeCollection,
+            params string[] sonarlintXmlPaths)
+        {
+            // Matches the following:
+            //   <Include Path="..\..\.sonarlint\duncanp_junkvb.ruleset" Action="Default" />
+            return attributeCollection
+                        .Cast<XmlAttribute>()
+                        .Any(attribute =>
+                            sonarlintXmlPaths.Any(path =>
+                                attribute.Name == "Path" &&
+                                attribute.Value.EndsWith(path, System.StringComparison.OrdinalIgnoreCase)));
         }
 
         private void LogVerbose(string message) => logger.LogVerbose("[Migration] " + message);
