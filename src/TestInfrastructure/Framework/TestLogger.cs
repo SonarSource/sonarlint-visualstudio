@@ -98,12 +98,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         public void WriteLine(string message)
         {
-            var messageToLog = message + Environment.NewLine;
-            if (logThreadId)
-            {
-                messageToLog = $"[Thread {System.Threading.Thread.CurrentThread.ManagedThreadId}] {messageToLog}";
-            }
-
+            var messageToLog = GetFormattedMessage(message);
             OutputStrings.Add(messageToLog);
             if (logToConsole)
             {
@@ -118,7 +113,24 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         public void LogVerbose(string message, params object[] args)
         {
-            // no-op
+            // Note: verbose messages are not stored so we can't write tests against them.
+            // However, they can be logged to test output window to help with checking the output
+            // that is produced.
+            if (logToConsole)
+            {
+                var messageToLog = GetFormattedMessage(string.Format(System.Globalization.CultureInfo.CurrentCulture, message, args));
+                Console.WriteLine("[Verbose] " + messageToLog);
+            }
+        }
+
+        private string GetFormattedMessage(string message)
+        {
+            var messageToLog = message + Environment.NewLine;
+            if (logThreadId)
+            {
+                messageToLog = $"[Thread {System.Threading.Thread.CurrentThread.ManagedThreadId}] {messageToLog}";
+            }
+            return messageToLog;
         }
 
         #endregion

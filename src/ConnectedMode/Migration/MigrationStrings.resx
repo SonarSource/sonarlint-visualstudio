@@ -120,6 +120,12 @@
   <data name="Cleaner_RemovingSettings" xml:space="preserve">
     <value>[Migration] Removing {0} settings from file...</value>
   </data>
+  <data name="CancelTokenFailure_NormalLog" xml:space="preserve">
+    <value>[Migration] Migration cancelled by user</value>
+  </data>
+  <data name="CancelTokenFailure_VerboseLog" xml:space="preserve">
+    <value>[MigrationWizardXaml] Migration cancelled by user: {0}</value>
+  </data>
   <data name="CleaningFiles" xml:space="preserve">
     <value>[Migration] Cleaning files...</value>
   </data>
@@ -128,6 +134,12 @@
   </data>
   <data name="DeletingSonarLintFolder" xml:space="preserve">
     <value>[Migration] Deleting the legacy .sonarlint...</value>
+  </data>
+  <data name="ErrorDuringMigation_NormalLog" xml:space="preserve">
+    <value>[Migration] Error during migration: {0}</value>
+  </data>
+  <data name="ErrorDuringMigation_VerboseLog" xml:space="preserve">
+    <value>[MigrationWizardXaml] Error during migration: {0}</value>
   </data>
   <data name="Finished" xml:space="preserve">
     <value>[Migration] Finished ConnectedMode migration.</value>
