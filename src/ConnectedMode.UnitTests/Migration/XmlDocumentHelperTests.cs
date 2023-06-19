@@ -19,21 +19,12 @@
  */
 
 using SonarLint.VisualStudio.ConnectedMode.Migration;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration;
 
 [TestClass]
 public class XmlDocumentHelperTests
 {
-    [TestMethod]
-    public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<XmlDocumentHelper, IXmlDocumentHelper>();
-
-    [TestMethod]
-    public void MefCtor_CheckTypeIsShared() =>
-        MefTestHelpers.CheckIsSingletonMefComponent<XmlDocumentHelper>();
-    
     [TestMethod]
     public void LoadFromString_SaveToString_NoModification_ReturnsEquivalentString()
     {

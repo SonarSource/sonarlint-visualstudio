@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
 using System.IO;
 using System.Xml;
 
@@ -45,8 +44,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         string SaveToString(XmlDocument document);
     }
     
-    [Export(typeof(IXmlDocumentHelper))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class XmlDocumentHelper : IXmlDocumentHelper
     {
         public XmlDocument LoadFromString(string content)
