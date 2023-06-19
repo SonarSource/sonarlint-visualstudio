@@ -55,15 +55,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         [DataRow(SonarLintMode.LegacyConnected, SonarLintMode.Standalone, true)]
         [DataRow(SonarLintMode.Connected, SonarLintMode.Connected, false)]
         [DataRow(SonarLintMode.LegacyConnected, SonarLintMode.Connected, false)]
-        public async Task Migrate_BindingGetsCalledWithCorrectCondition(SonarLintMode obsoleteMode, SonarLintMode mode, bool expectBindingToBeCalled)
+        [DataRow(null, SonarLintMode.Connected, false)]
+        [DataRow(SonarLintMode.LegacyConnected, null, false)]
+        public async Task Migrate_BindingGetsCalledWithCorrectCondition(SonarLintMode? obsoleteMode, SonarLintMode? mode, bool expectBindingToBeCalled)
         {
             var migrationPrompt = new Mock<IMigrationPrompt>();
 
-            var configurationProvider = new Mock<IConfigurationProvider>();
-            configurationProvider.Setup(x => x.GetConfiguration()).Returns(CreateBindingConfiguration(mode));
-
-            var obsoleteConfigurationProvider = new Mock<IObsoleteConfigurationProvider>();
-            obsoleteConfigurationProvider.Setup(x => x.GetConfiguration()).Returns(CreateBindingConfiguration(obsoleteMode));
+            var configurationProvider = CreateNewConfigProvider(mode);
+            var obsoleteConfigurationProvider = CreateObsoleteConfigProvider(obsoleteMode);
 
             var testSubject = CreateTestSubject(Mock.Of<IActiveSolutionTracker>(), migrationPrompt.Object, configurationProvider.Object, obsoleteConfigurationProvider.Object);
             await testSubject.DisplayMigrationPromptIfMigrationIsNeededAsync();
@@ -122,12 +121,40 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             migrationPrompt.Verify(x => x.ShowAsync(AnyBoundProject), Times.Never);
         }
 
-        private BindingConfiguration CreateBindingConfiguration(SonarLintMode mode)
+        private static Mock<IConfigurationProvider> CreateNewConfigProvider(SonarLintMode? sonarLintMode)
+        {
+            BindingConfiguration bindingConfig = null;
+            if (sonarLintMode.HasValue)
+            {
+                bindingConfig = CreateBindingConfiguration(sonarLintMode.Value);
+            }
+
+            var provider = new Mock<IConfigurationProvider>();
+            provider.Setup(x => x.GetConfiguration()).Returns(bindingConfig);
+
+            return provider;
+        }
+
+        private static Mock<IObsoleteConfigurationProvider> CreateObsoleteConfigProvider(SonarLintMode? sonarLintMode)
+        {
+            BindingConfiguration bindingConfig = null;
+            if (sonarLintMode.HasValue)
+            {
+                bindingConfig = CreateBindingConfiguration(sonarLintMode.Value);
+            }
+
+            var provider = new Mock<IObsoleteConfigurationProvider>();
+            provider.Setup(x => x.GetConfiguration()).Returns(bindingConfig);
+
+            return provider;
+        }
+
+        private static BindingConfiguration CreateBindingConfiguration(SonarLintMode mode)
         {
             return new BindingConfiguration(new BoundSonarQubeProject(new Uri("http://localhost"), "test", ""), mode, "");
         }
 
-        private IMefFactory CreateMefFactory(IMigrationPrompt migrationPrompt = null)
+        private static IMefFactory CreateMefFactory(IMigrationPrompt migrationPrompt = null)
         {
             var mefFactory = new Mock<IMefFactory>();
             mefFactory.Setup(x => x.CreateAsync<IMigrationPrompt>()).Returns(Task.FromResult(migrationPrompt));
@@ -135,7 +162,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             return mefFactory.Object;
         }
 
-        private MigrationChecker CreateTestSubject(IActiveSolutionTracker activeSolutionTracker = null, IMigrationPrompt migrationPromp = null, IConfigurationProvider configurationProvider = null, IObsoleteConfigurationProvider obsoleteConfigurationProvider = null)
+        private static MigrationChecker CreateTestSubject(IActiveSolutionTracker activeSolutionTracker = null, IMigrationPrompt migrationPromp = null, IConfigurationProvider configurationProvider = null, IObsoleteConfigurationProvider obsoleteConfigurationProvider = null)
         {
             activeSolutionTracker ??= Mock.Of<IActiveSolutionTracker>();
             var mefFactory = CreateMefFactory(migrationPromp);
