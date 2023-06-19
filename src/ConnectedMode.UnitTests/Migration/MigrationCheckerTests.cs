@@ -75,12 +75,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         {
             var migrationPrompt = new Mock<IMigrationPrompt>();
 
-            var configurationProvider = new Mock<IConfigurationProvider>();
-            configurationProvider.Setup(x => x.GetConfiguration()).Returns(CreateBindingConfiguration(SonarLintMode.Standalone));
+            var configurationProvider = CreateNewConfigProvider(SonarLintMode.Standalone);
 
             var obsoleteConfigurationProvider = new Mock<IObsoleteConfigurationProvider>();
             var oldConfiguration = CreateBindingConfiguration(SonarLintMode.Connected);
-            obsoleteConfigurationProvider.Setup(x => x.GetConfiguration()).Returns(oldConfiguration); ;
+            obsoleteConfigurationProvider.Setup(x => x.GetConfiguration()).Returns(oldConfiguration);
 
             var testSubject = CreateTestSubject(Mock.Of<IActiveSolutionTracker>(), migrationPrompt.Object, configurationProvider.Object, obsoleteConfigurationProvider.Object);
             await testSubject.DisplayMigrationPromptIfMigrationIsNeededAsync();
@@ -123,35 +122,27 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
         private static Mock<IConfigurationProvider> CreateNewConfigProvider(SonarLintMode? sonarLintMode)
         {
-            BindingConfiguration bindingConfig = null;
-            if (sonarLintMode.HasValue)
-            {
-                bindingConfig = CreateBindingConfiguration(sonarLintMode.Value);
-            }
-
             var provider = new Mock<IConfigurationProvider>();
-            provider.Setup(x => x.GetConfiguration()).Returns(bindingConfig);
+            provider.Setup(x => x.GetConfiguration()).Returns(CreateBindingConfiguration(sonarLintMode));
 
             return provider;
         }
 
         private static Mock<IObsoleteConfigurationProvider> CreateObsoleteConfigProvider(SonarLintMode? sonarLintMode)
         {
-            BindingConfiguration bindingConfig = null;
-            if (sonarLintMode.HasValue)
-            {
-                bindingConfig = CreateBindingConfiguration(sonarLintMode.Value);
-            }
-
             var provider = new Mock<IObsoleteConfigurationProvider>();
-            provider.Setup(x => x.GetConfiguration()).Returns(bindingConfig);
+            provider.Setup(x => x.GetConfiguration()).Returns(CreateBindingConfiguration(sonarLintMode));
 
             return provider;
         }
 
-        private static BindingConfiguration CreateBindingConfiguration(SonarLintMode mode)
+        private static BindingConfiguration CreateBindingConfiguration(SonarLintMode? mode)
         {
-            return new BindingConfiguration(new BoundSonarQubeProject(new Uri("http://localhost"), "test", ""), mode, "");
+            if (mode.HasValue)
+            {
+                return new BindingConfiguration(new BoundSonarQubeProject(new Uri("http://localhost"), "test", ""), mode.Value, "");
+            }
+            return null;
         }
 
         private static IMefFactory CreateMefFactory(IMigrationPrompt migrationPrompt = null)
