@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
@@ -44,16 +45,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
         public event EventHandler MigrationWizardFinished;
 
         private readonly IConnectedModeMigration connectedModeMigration;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
-        public MigrationWizardController(IConnectedModeMigration connectedModeMigration)
+        public MigrationWizardController(IConnectedModeMigration connectedModeMigration, ILogger logger)
         {
-            this.connectedModeMigration= connectedModeMigration;
+            this.connectedModeMigration = connectedModeMigration;
+            this.logger = logger;
         }
 
         public void StartMigrationWizard(BoundSonarQubeProject oldBinding)
         {
-            var migrationWizardWindow = new MigrationWizardWindow(oldBinding, connectedModeMigration);
+            var migrationWizardWindow = new MigrationWizardWindow(oldBinding, connectedModeMigration, logger);
 
             var finishedSuccessfully = migrationWizardWindow.ShowModal();
 

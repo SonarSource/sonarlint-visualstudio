@@ -20,6 +20,7 @@
 
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.ConnectedMode.Migration.Wizard;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.Wizard
@@ -31,7 +32,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.Wizard
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<MigrationWizardController, IMigrationWizardController>(
-                MefTestHelpers.CreateExport<IConnectedModeMigration>());
+                MefTestHelpers.CreateExport<IConnectedModeMigration>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]
