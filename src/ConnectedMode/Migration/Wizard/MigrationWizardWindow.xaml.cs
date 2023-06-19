@@ -26,6 +26,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
 
@@ -66,8 +67,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             if (migrationInProgress) { return; }
             migrationInProgress = true;
 
-            // Disables all closing / cancel buttons.
             this.migrateButton.Visibility = Visibility.Collapsed;
+            // Disables all closing / cancel buttons.
             this.IsCloseButtonEnabled = false;
 
             MigrateAsync().Forget();
@@ -83,9 +84,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             catch (OperationCanceledException ex)
             {
                 logger.LogVerbose(MigrationStrings.CancelTokenFailure_VerboseLog, ex);
-                logger.WriteLine(MigrationStrings.CancelTokenFailure_NormalLog, ex.Message);
+                logger.WriteLine(MigrationStrings.CancelTokenFailure_NormalLog);
             }
-            catch(Exception ex)
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.LogVerbose(MigrationStrings.ErrorDuringMigation_VerboseLog, ex);
                 logger.WriteLine(MigrationStrings.ErrorDuringMigation_NormalLog, ex.Message);
