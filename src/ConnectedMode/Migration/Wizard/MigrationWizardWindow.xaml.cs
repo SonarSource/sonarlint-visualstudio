@@ -26,7 +26,9 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
@@ -35,16 +37,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
     {
         public event EventHandler StartMigration;
 
-        private bool dialogResult;
         private readonly BoundSonarQubeProject oldBinding;
         private readonly IConnectedModeMigration connectedModeMigration;
+        private readonly ILogger logger;
 
+        private bool dialogResult;
         private bool migrationInProgress;
 
-        internal MigrationWizardWindow(BoundSonarQubeProject oldBinding, IConnectedModeMigration connectedModeMigration)
+        private CancellationTokenSource cancellationTokenSource;
+
+        internal MigrationWizardWindow(BoundSonarQubeProject oldBinding, IConnectedModeMigration connectedModeMigration, ILogger logger)
         {
             this.oldBinding = oldBinding;
             this.connectedModeMigration = connectedModeMigration;
+            this.logger = logger;
+
+            cancellationTokenSource = new CancellationTokenSource();
 
             InitializeComponent();
             this.Closing += OnClosing;
@@ -62,8 +70,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             if (migrationInProgress) { return; }
             migrationInProgress = true;
 
-            // Disables all closing / cancel buttons.
             this.migrateButton.Visibility = Visibility.Collapsed;
+            // Disables all closing / cancel buttons.
             this.IsCloseButtonEnabled = false;
 
             MigrateAsync().Forget();
@@ -71,12 +79,26 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         private async Task MigrateAsync()
         {
-            await connectedModeMigration.MigrateAsync(oldBinding, this, CancellationToken.None);
-            MigrationFinished();
+            try
+            {
+                await connectedModeMigration.MigrateAsync(oldBinding, this, cancellationTokenSource.Token);
+                MigrationFinished();
+            }
+            catch (OperationCanceledException ex)
+            {
+                logger.LogVerbose(MigrationStrings.CancelTokenFailure_VerboseLog, ex);
+                logger.WriteLine(MigrationStrings.CancelTokenFailure_NormalLog);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.LogVerbose(MigrationStrings.ErrorDuringMigation_VerboseLog, ex);
+                logger.WriteLine(MigrationStrings.ErrorDuringMigation_NormalLog, ex.Message);
+            }
         }
 
         private void MigrationFinished()
         {
+            migrationInProgress = false;
             this.finishButton.Visibility = Visibility.Visible;
             this.IsCloseButtonEnabled = true;
             dialogResult = true;
@@ -84,6 +106,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         private void OnClosing(object sender, CancelEventArgs e)
         {
+            cancellationTokenSource.Cancel();
             migrationInProgress = false;
             this.DialogResult = dialogResult;
         }
