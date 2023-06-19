@@ -18,8 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
-using Task = System.Threading.Tasks.Task;
+using System.IO;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
@@ -35,10 +39,52 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     [PartCreationPolicy(CreationPolicy.NonShared)]
     internal class MigrationSettingsProvider : IMigrationSettingsProvider
     {
-        public System.Threading.Tasks.Task<LegacySettings> GetAsync(string sonarProjectKey)
+        private readonly IServiceProvider serviceProvider;
+        private readonly IThreadHandling threadHandling;
+
+        [ImportingConstructor]
+        public MigrationSettingsProvider([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            IThreadHandling threadHandling)
         {
-            // TODO: implement
-            return Task.FromResult((LegacySettings)null);
+            this.serviceProvider = serviceProvider;
+            this.threadHandling = threadHandling;
+        }
+
+        public async System.Threading.Tasks.Task<LegacySettings> GetAsync(string sonarProjectKey)
+        {
+            // Required files:
+            // Root folder                      = {solution folder}\.sonarlint
+
+            // Note: we're returning partial paths
+            // CSharp ruleset       = .sonarlint\{sonar project key}csharp.ruleset
+            // CSharp addit files   = .sonarlint\{sonar project key}\CSharp\SonarLint.xml
+            // VB.NET ruleset       = .sonarlint\{sonar project key}vb.ruleset
+            // VB.NET addit files   = .sonarlint\{sonar project key}\VB\SonarLint.xml
+
+            var solutionDir = await GetSolutionDirectoryAsync();
+            var rootFolder = Path.Combine(solutionDir, ".sonarlint");
+
+            return new LegacySettings(
+                rootFolder,
+                Path.Combine(".sonarlint", sonarProjectKey + Language.CSharp.Id + ".ruleset").ToLowerInvariant(),
+                Path.Combine(".sonarlint", sonarProjectKey, Language.CSharp.Id, "SonarLint.xml"),
+                Path.Combine(".sonarlint", sonarProjectKey + Language.VBNET.Id + ".ruleset").ToLowerInvariant(),
+                Path.Combine(".sonarlint", sonarProjectKey, Language.VBNET.Id, "SonarLint.xml")
+                );
+        }
+
+        private async System.Threading.Tasks.Task<string> GetSolutionDirectoryAsync()
+        {
+            string solutionDir = null;
+
+            await threadHandling.RunOnUIThread(() => {
+                var solution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
+                // If there isn't an open solution the returned hresult will indicate an error
+                // and the returned solution name will be null. We'll just ignore the hresult.
+                solution.GetProperty((int)__VSPROPID.VSPROPID_SolutionDirectory, out var solutionDirAsObject);
+                solutionDir = solutionDirAsObject as string;
+            });
+            return solutionDir;
         }
     }
 }
