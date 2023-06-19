@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="CancelTokenFailure_NormalLog" xml:space="preserve">
-    <value>[Migration] Migration cancelled: {0}</value>
+    <value>[Migration] Migration cancelled by user</value>
   </data>
   <data name="CancelTokenFailure_VerboseLog" xml:space="preserve">
     <value>[MigrationWizardXaml] Migration cancelled by user: {0}</value>

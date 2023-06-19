@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Migration] Migration cancelled: {0}.
+        ///   Looks up a localized string similar to [Migration] Migration cancelled by user.
         /// </summary>
         internal static string CancelTokenFailure_NormalLog {
             get {
