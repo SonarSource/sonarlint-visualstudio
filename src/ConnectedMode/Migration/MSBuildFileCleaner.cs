@@ -37,8 +37,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         /// </summary>
         public const string Unchanged = null;
 
-        private const string AdditionalFilesTagName = "AdditionalFiles";
-
         private readonly ILogger logger;
         private readonly IXmlDocumentHelper xmlDocumentHelper;
 
@@ -58,27 +56,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             var document = xmlDocumentHelper.LoadFromString(content);
 
             var nodesToRemove = new List<XmlNode>();
-            foreach (XmlNode item in document.GetElementsByTagName(AdditionalFilesTagName))
-            {
-                if (ContainsSonarLintXmlReferenceInAttributes(item.Attributes,
-                        legacySettings.PartialVBSonarLintXmlPath,
-                        legacySettings.PartialCSharpSonarLintXmlPath))
-                {
-                    LogVerbose("Detected SonarLint.xml: " + item.Value);
-                    nodesToRemove.Add(item);
-                }
-            }
 
-            foreach (XmlNode item in document.GetElementsByTagName("Include"))
-            {
-                if (ContainsGeneratedRulesetReferenceInAttributes(item.Attributes,
-                        legacySettings.PartialCSharpRuleSetPath,
-                        legacySettings.PartialVBRuleSetPath))
-                {
-                    LogVerbose("Detected reference to generated ruleset: " + item.Value);
-                    nodesToRemove.Add(item);
-                }
-            }
+            nodesToRemove.AddRange(GetAdditionalFilesToRemove(document, legacySettings));
+            nodesToRemove.AddRange(GetRulesetIncludesToRemove(document, legacySettings));
 
             if (!nodesToRemove.Any())
             {
@@ -97,6 +77,41 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             return xmlDocumentHelper.SaveToString(document);
         }
 
+        private IList<XmlNode> GetAdditionalFilesToRemove(XmlDocument document, LegacySettings legacySettings)
+        {
+            const string AdditionalFilesElementName = "AdditionalFiles";
+
+            var nodesToRemove = new List<XmlNode>();
+            foreach (XmlNode item in document.GetElementsByTagName(AdditionalFilesElementName))
+            {
+                if (ContainsSonarLintXmlReferenceInAttributes(item.Attributes,
+                        legacySettings.PartialVBSonarLintXmlPath,
+                        legacySettings.PartialCSharpSonarLintXmlPath))
+                {
+                    LogVerbose("Detected SonarLint.xml: " + item.Value);
+                    nodesToRemove.Add(item);
+                }
+            }
+            return nodesToRemove;
+        }
+
+        private IList<XmlNode> GetRulesetIncludesToRemove(XmlDocument document, LegacySettings legacySettings)
+        {
+            const string IncludeElementName = "Include";
+
+            var nodesToRemove = new List<XmlNode>();
+            foreach (XmlNode item in document.GetElementsByTagName(IncludeElementName))
+            {
+                if (ContainsGeneratedRulesetReferenceInAttributes(item.Attributes,
+                        legacySettings.PartialCSharpRuleSetPath,
+                        legacySettings.PartialVBRuleSetPath))
+                {
+                    LogVerbose("Detected reference to generated ruleset: " + item.Value);
+                    nodesToRemove.Add(item);
+                }
+            }
+            return nodesToRemove;
+        }
         private static bool ContainsSonarLintXmlReferenceInAttributes(XmlAttributeCollection attributeCollection,
             params string[] sonarlintXmlPaths)
         {
