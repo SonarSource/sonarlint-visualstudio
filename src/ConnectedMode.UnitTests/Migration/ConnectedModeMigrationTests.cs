@@ -51,6 +51,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 MefTestHelpers.CreateExport<IFileProvider>(),
                 MefTestHelpers.CreateExport<IFileCleaner>(),
                 MefTestHelpers.CreateExport<IVsAwareFileSystem>(),
+                MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
@@ -194,23 +195,23 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         [TestMethod]
         [DataRow(true, false)]
         [DataRow(false, true)]
-        public async Task Migrate_ConnectToSonarQubeIfNeeded_DisconnectedNotCalled(bool isConnectedToNewConnectedMode, bool expectedResult)
+        public async Task Migrate_ConnectToSonarQubeIfNeeded_MigrationSucceeds_DisconnectedNotCalled(bool isAlreadyConnectedToServer)
         {
-            var sonarQubeService = CreateSonarQubeService(isConnectedToNewConnectedMode);
+            var sonarQubeService = CreateSonarQubeService(isAlreadyConnectedToServer);
 
             var testSubject = CreateTestSubject(sonarQubeService: sonarQubeService.Object);
             await testSubject.MigrateAsync(AnyBoundProject, null, CancellationToken.None);
 
-            sonarQubeService.Verify(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(), CancellationToken.None), expectedResult ? Times.Once : Times.Never);
+            sonarQubeService.Verify(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(), CancellationToken.None), !isAlreadyConnectedToServer ? Times.Once : Times.Never);
             sonarQubeService.Verify(x => x.Disconnect(), Times.Never);
         }
 
         [TestMethod]
         [DataRow(true, false)]
         [DataRow(false, true)]
-        public async Task Migrate_DisconnectToSonarQubeIfNeeded_NonCritical_HandledAndThrown(bool isConnectedToNewConnectedMode, bool expectedResult)
+        public async Task Migrate_DisconnectToSonarQubeIfNeeded__MigrationFails_NonCritical_HandledAndThrown(bool isAlreadyConnectedToServer)
         {
-            var sonarQubeService = CreateSonarQubeService(isConnectedToNewConnectedMode);
+            var sonarQubeService = CreateSonarQubeService(isAlreadyConnectedToServer);
             var logger = new Mock<ILogger>();
             logger.Setup(x => x.WriteLine(It.IsAny<string>())).Throws(new InvalidCastException("thrown from test"));
 
@@ -218,7 +219,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             Func<Task> act = async () => { await testSubject.MigrateAsync(AnyBoundProject, null, CancellationToken.None); };
 
             await act.Should().ThrowAsync<InvalidCastException>();
-            sonarQubeService.Verify(x => x.Disconnect(), expectedResult ? Times.Once : Times.Never);
+            sonarQubeService.Verify(x => x.Disconnect(), !isAlreadyConnectedToServer ? Times.Once : Times.Never);
         }
 
         [TestMethod]
@@ -261,10 +262,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             return fileProvider;
         }
 
-        private static Mock<ISonarQubeService> CreateSonarQubeService(bool isConnectedToNewConnectedMode)
+        private static Mock<ISonarQubeService> CreateSonarQubeService(bool isAlreadyConnectedToServer)
         {
             var sonarQubeService = new Mock<ISonarQubeService>();
-            sonarQubeService.Setup(x => x.IsConnected).Returns(isConnectedToNewConnectedMode);
+            sonarQubeService.Setup(x => x.IsConnected).Returns(isAlreadyConnectedToServer);
 
             return sonarQubeService;
         }

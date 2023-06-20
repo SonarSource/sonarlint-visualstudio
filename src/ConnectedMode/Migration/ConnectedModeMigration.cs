@@ -47,8 +47,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly ISonarQubeService sonarQubeService;
         private readonly ILogger logger;
 
-        // The user can have both the legacy and new connected mode files. In this case the behaviour is slightly different.
-        private bool isConnectedToNewConnectedMode;
+        // The user can have both the legacy and new connected mode files. In that case, we expect the SonarQubeService to already be connected.
+        private bool isAlreadyConnectedToServer;
 
         [ImportingConstructor]
         public ConnectedModeMigration(IMigrationSettingsProvider settingsProvider,
@@ -68,20 +68,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         public async Task MigrateAsync(BoundSonarQubeProject oldBinding, IProgress<MigrationProgress> progress, CancellationToken token)
         {
-            isConnectedToNewConnectedMode = sonarQubeService.IsConnected;
-
-            if (!isConnectedToNewConnectedMode)
-            {
-               await sonarQubeService.ConnectAsync(oldBinding.CreateConnectionInformation(), token);
-            }
+            isAlreadyConnectedToServer = sonarQubeService.IsConnected;
 
             try
             {
+                if (!isAlreadyConnectedToServer)
+                {
+                    await sonarQubeService.ConnectAsync(oldBinding.CreateConnectionInformation(), token);
+                }
+
                 await MigrateImplAsync(oldBinding, progress, token);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                if (!isConnectedToNewConnectedMode)
+                // If we establish the server connection during migration, disconnect it if the migration failed.
+                if (!isAlreadyConnectedToServer)
                 {
                     sonarQubeService.Disconnect();
                 }
