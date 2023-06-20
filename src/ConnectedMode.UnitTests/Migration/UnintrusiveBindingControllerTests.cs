@@ -85,13 +85,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         [TestMethod]
         public async Task BindAsnyc_CallsBindingProcessInOrderOld_Repeated()
         {
-            for (int i = 0; i < 100; i++) { await BindAsnyc_CallsBindingProcessInOrder(); }
+            for (int i = 0; i < 10000; i++) { await BindAsnyc_CallsBindingProcessInOrder(); }
         }
 
         [TestMethod]
         public async Task BindAsnyc_CallsBindingProcessInOrderNew_Repeated()
         {
-            for(int i = 0; i < 100; i++) { await BindAsnyc_CallsBindingProcessInOrderNew(); }
+            for(int i = 0; i < 10000; i++) { await BindAsnyc_CallsBindingProcessInOrderNew(); }
         }
 
         [TestMethod]
