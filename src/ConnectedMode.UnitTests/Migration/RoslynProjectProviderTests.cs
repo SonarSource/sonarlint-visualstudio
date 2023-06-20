@@ -23,7 +23,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
