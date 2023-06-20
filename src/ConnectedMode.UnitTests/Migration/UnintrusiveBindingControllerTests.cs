@@ -52,6 +52,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var testSubject = CreateTestSubject(bindingProcessFactory: bindingProcessFactory.Object);
             await testSubject.BindAsync(AnyBoundProject, CancellationToken.None);
+            
+            var args = bindingProcessFactory.Invocations[0].Arguments[0] as BindCommandArgs;
+
+            args.ProjectName.Should().Be(AnyBoundProject.ProjectName);
+            args.ProjectKey.Should().Be(AnyBoundProject.ProjectKey);
+            args.Connection.ServerUri.Should().Be(AnyBoundProject.ServerUri);
 
             bindingProcessFactory.Verify(x => x.Create(It.IsAny<BindCommandArgs>(), true), Times.Once);
         }
