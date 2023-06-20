@@ -68,10 +68,45 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var calls = new List<string>();
             var cancellationToken = CancellationToken.None;
 
+            // We're mocking async methods and care about the order they complete in
+            // See https://github.com/moq/moq4/issues/256
+
             var bindingProcess = new Mock<IBindingProcess>();
-            bindingProcess.Setup(x => x.DownloadQualityProfileAsync(null, cancellationToken)).Callback(() => calls.Add("DownloadQualityProfiles"));
+            bindingProcess.Setup(x => x.DownloadQualityProfileAsync(null, cancellationToken).Result).Callback(() => calls.Add("DownloadQualityProfiles")).Returns(true);
             bindingProcess.Setup(x => x.SaveRuleConfiguration(cancellationToken)).Callback(() => calls.Add("SaveRuleConfiguration"));
-            bindingProcess.Setup(x => x.SaveServerExclusionsAsync(cancellationToken)).Callback(() => calls.Add("SaveServerExclusionsAsync"));
+            bindingProcess.Setup(x => x.SaveServerExclusionsAsync(cancellationToken).Result).Callback(() => calls.Add("SaveServerExclusionsAsync"));
+
+            var testSubject = CreateTestSubject(bindingProcessFactory: CreateBindingProcessFactory(bindingProcess.Object).Object);
+            await testSubject.BindAsync(AnyBoundProject, cancellationToken);
+
+            calls.Should().ContainInOrder("DownloadQualityProfiles", "SaveRuleConfiguration", "SaveServerExclusionsAsync");
+        }
+
+        [TestMethod]
+        public async Task BindAsnyc_CallsBindingProcessInOrderOld_Repeated()
+        {
+            for (int i = 0; i < 100; i++) { await BindAsnyc_CallsBindingProcessInOrder(); }
+        }
+
+        [TestMethod]
+        public async Task BindAsnyc_CallsBindingProcessInOrderNew_Repeated()
+        {
+            for(int i = 0; i < 100; i++) { await BindAsnyc_CallsBindingProcessInOrderNew(); }
+        }
+
+        [TestMethod]
+        public async Task BindAsnyc_CallsBindingProcessInOrderNew()
+        {
+            var calls = new List<string>();
+            var cancellationToken = CancellationToken.None;
+
+            // We're mocking async methods and care about the order they complete in.
+            // We need to make sure the callbacks complete correctly.
+            // See "Async callbacks do not respect async / await": https://github.com/moq/moq4/issues/256
+            var bindingProcess = new Mock<IBindingProcess>();
+            bindingProcess.Setup(x => x.DownloadQualityProfileAsync(null, cancellationToken).Result).Callback(() => calls.Add("DownloadQualityProfiles")).Returns(true);
+            bindingProcess.Setup(x => x.SaveRuleConfiguration(cancellationToken)).Callback(() => calls.Add("SaveRuleConfiguration"));
+            bindingProcess.Setup(x => x.SaveServerExclusionsAsync(cancellationToken).Result).Callback(() => calls.Add("SaveServerExclusionsAsync")).Returns(true);
 
             var testSubject = CreateTestSubject(bindingProcessFactory: CreateBindingProcessFactory(bindingProcess.Object).Object);
             await testSubject.BindAsync(AnyBoundProject, cancellationToken);
