@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var actual = testSubject.Walk().ToArray();
 
-            actual.Should().HaveCount(0);
+            actual.Should().BeEmpty();
             workspace.Verify(x => x.CurrentSolution, Times.AtLeastOnce());
         }
 
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var actual = testSubject.Walk().ToArray();
 
-            actual.Should().HaveCount(0);
+            actual.Should().BeEmpty();
             workspace.Verify(x => x.CurrentSolution, Times.AtLeastOnce());
         }
 
