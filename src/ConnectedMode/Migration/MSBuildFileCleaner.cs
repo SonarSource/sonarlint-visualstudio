@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             if (!nodesToRemove.Any())
             {
-                logger.LogVerbose("No settings to remove");
+                logger.LogVerbose("    No settings to remove");
                 return Unchanged;
             }
 
