@@ -19,19 +19,46 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Threading;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core.Binding;
+
+using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
     internal interface IUnintrusiveBindingController
     {
-        void Bind(BoundSonarQubeProject project);
+        Task BindAsync(BoundSonarQubeProject project, CancellationToken token);
     }
 
     [Export(typeof(IUnintrusiveBindingController))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    public class UnintrusiveBindingController : IUnintrusiveBindingController
+    [PartCreationPolicy(CreationPolicy.NonShared)]
+    internal class UnintrusiveBindingController : IUnintrusiveBindingController
     {
-        public void Bind(BoundSonarQubeProject project) { }
+        private readonly IBindingProcessFactory bindingProcessFactory;
+
+        [ImportingConstructor]
+        public UnintrusiveBindingController(IBindingProcessFactory bindingProcessFactory)
+        {
+            this.bindingProcessFactory = bindingProcessFactory;
+        }
+
+        public async Task BindAsync(BoundSonarQubeProject project, CancellationToken token)
+        {
+            var bindingProcess = CreateBindingProcess(project);
+
+            await bindingProcess.DownloadQualityProfileAsync(null, token);
+            bindingProcess.SaveRuleConfiguration(token);
+            await bindingProcess.SaveServerExclusionsAsync(token);
+        }
+
+        private IBindingProcess CreateBindingProcess(BoundSonarQubeProject project)
+        {
+            var commandArgs = new BindCommandArgs(project.ProjectKey, project.ProjectName, project.CreateConnectionInformation());
+            var bindingProcess = bindingProcessFactory.Create(commandArgs, true);
+
+            return bindingProcess;
+        }
     }
 }
