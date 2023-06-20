@@ -24,23 +24,23 @@ using System.Xml;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
-    internal partial class MSBuildFileCleaner
+    internal partial class XmlFileCleaner
     {
-        private static class ElementAndAttributeTailMatcher
+        private static class ElementAndValueTailMatcher
         {
             /// <summary>
             /// Returns a list of nodes in the document matching the following criteria:
-            ///   <ElementName AttributeName="xxxx[value to tail match] ... />
+            ///   <ElementName ... ></ElementName>"xxxx[value to tail match]</ElementName>
             /// e.g.
-            ///   <Include Path="..\..\.sonarlint\my-project-keyvb.ruleset" Action="Default" />
+            ///   <CodeAnalysisRuleSet>..\..\.sonarlint\project_key_aaacsharp.ruleset</CodeAnalysisRuleSet>
             /// </summary>
-            public static IList<XmlNode> Find(XmlDocument document, string elementName, string attributeName,
+            public static IList<XmlNode> Find(XmlDocument document, string elementName,
                 params string[] valuesToTailMatch)
             {
                 var nodesToRemove = new List<XmlNode>();
                 foreach (XmlNode item in document.GetElementsByTagName(elementName))
                 {
-                    if (ContainsAttributeWithValue(item.Attributes, attributeName, valuesToTailMatch))
+                    if (HasTextValue(item, valuesToTailMatch))
                     {
                         nodesToRemove.Add(item);
                     }
@@ -48,16 +48,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 return nodesToRemove;
             }
 
-            private static bool ContainsAttributeWithValue(XmlAttributeCollection attributeCollection,
-                string attributeName,
-                params string[] valuesToTailMatch)
+            private static bool HasTextValue(XmlNode item, params string[] valuesToTailMatch)
             {
-                return attributeCollection
-                            .Cast<XmlAttribute>()
-                            .Any(attribute =>
-                                valuesToTailMatch.Any(val =>
-                                    attribute.Name == attributeName &&
-                                    attribute.Value.EndsWith(val, System.StringComparison.OrdinalIgnoreCase)));
+                var innerText = item.InnerText;
+                return valuesToTailMatch
+                    .Any(val => innerText.EndsWith(val, System.StringComparison.OrdinalIgnoreCase));
             }
         }
     }
