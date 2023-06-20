@@ -53,8 +53,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         [DataRow(SonarLintMode.Standalone, SonarLintMode.Standalone, false)]
         [DataRow(SonarLintMode.Connected, SonarLintMode.Standalone, true)]
         [DataRow(SonarLintMode.LegacyConnected, SonarLintMode.Standalone, true)]
-        [DataRow(SonarLintMode.Connected, SonarLintMode.Connected, false)]
-        [DataRow(SonarLintMode.LegacyConnected, SonarLintMode.Connected, false)]
+        [DataRow(SonarLintMode.Connected, SonarLintMode.Connected, true)]
+        [DataRow(SonarLintMode.LegacyConnected, SonarLintMode.Connected, true)]
         [DataRow(null, SonarLintMode.Connected, false)]
         [DataRow(SonarLintMode.LegacyConnected, null, false)]
         public async Task Migrate_BindingGetsCalledWithCorrectCondition(SonarLintMode? obsoleteMode, SonarLintMode? mode, bool expectBindingToBeCalled)
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject(Mock.Of<IActiveSolutionTracker>(), migrationPrompt.Object, configurationProvider.Object, obsoleteConfigurationProvider.Object);
             await testSubject.DisplayMigrationPromptIfMigrationIsNeededAsync();
 
-            migrationPrompt.Verify(x => x.ShowAsync(It.IsAny<BoundSonarQubeProject>()), expectBindingToBeCalled ? Times.Once : Times.Never);
+            migrationPrompt.Verify(x => x.ShowAsync(It.IsAny<BoundSonarQubeProject>(), mode == SonarLintMode.Connected), expectBindingToBeCalled ? Times.Once : Times.Never);
         }
 
         [TestMethod]
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject(Mock.Of<IActiveSolutionTracker>(), migrationPrompt.Object, configurationProvider.Object, obsoleteConfigurationProvider.Object);
             await testSubject.DisplayMigrationPromptIfMigrationIsNeededAsync();
 
-            migrationPrompt.Verify(x => x.ShowAsync(oldConfiguration.Project), Times.Once);
+            migrationPrompt.Verify(x => x.ShowAsync(oldConfiguration.Project, false), Times.Once);
         }
       
         [TestMethod]
@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             migrationPrompt.Invocations.Clear();
 
             activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(true));
-            migrationPrompt.Verify(x => x.ShowAsync(It.IsAny<BoundSonarQubeProject>()), Times.Once);
+            migrationPrompt.Verify(x => x.ShowAsync(It.IsAny<BoundSonarQubeProject>(), false), Times.Once);
 
             activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(false));
             migrationPrompt.Verify(x => x.Dispose(), Times.Once);
@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             migrationPrompt.Invocations.Clear();
             activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, EventArgs.Empty);
 
-            migrationPrompt.Verify(x => x.ShowAsync(AnyBoundProject), Times.Never);
+            migrationPrompt.Verify(x => x.ShowAsync(AnyBoundProject, false), Times.Never);
         }
 
         private static Mock<IConfigurationProvider> CreateNewConfigProvider(SonarLintMode? sonarLintMode)

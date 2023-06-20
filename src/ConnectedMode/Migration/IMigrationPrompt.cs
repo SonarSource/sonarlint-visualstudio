@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.ConnectedMode.Migration.Wizard;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Notifications;
+
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
@@ -35,7 +36,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     /// </summary>
     internal interface IMigrationPrompt : IDisposable
     {
-        Task ShowAsync(BoundSonarQubeProject oldBinding);
+        Task ShowAsync(BoundSonarQubeProject oldBinding, bool isAlreadyConnected);
 
         void Clear();
     }
@@ -70,7 +71,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             migrationWizardController.MigrationWizardFinished += OnMigrationWizardFinished;
         }
 
-        public async Task ShowAsync(BoundSonarQubeProject oldBinding)
+        public async Task ShowAsync(BoundSonarQubeProject oldBinding, bool isAlreadyConnected)
         {
             this.oldBinding = oldBinding;
 
@@ -80,9 +81,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 // per session has its own notification.
                 var id = idPrefix + GetSolutionPath();
 
+                var message = isAlreadyConnected ? MigrationStrings.MigrationPrompt_AlreadyConnected_Message : MigrationStrings.MigrationPrompt_Message;
+
                 var notification = new Notification(
                     id: id,
-                    message: MigrationStrings.MigrationPrompt_Message,
+                    message: message,
                     actions: new INotificationAction[]
                     {
                     new NotificationAction(MigrationStrings.MigrationPrompt_MigrateButton, _ => OnMigrate(), false),

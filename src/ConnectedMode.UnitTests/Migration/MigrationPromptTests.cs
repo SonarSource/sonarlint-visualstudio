@@ -65,7 +65,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         }
 
         [TestMethod]
-        public async Task ShowAsync_VerifyNotificationIsCreatedWithExpectedParameters()
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task ShowAsync_VerifyNotificationIsCreatedWithExpectedParameters(bool isAlreadyConnected)
         {
             var notificationService = new Mock<INotificationService>();
             INotification notification = null;
@@ -76,11 +78,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var serviceProvider = SetUpServiceProviderWithSolution("path_to_solution");
 
             var testSubject = CreateTestSubject(serviceProvider: serviceProvider, notificationService: notificationService.Object);
-            await testSubject.ShowAsync(AnyBoundProject);
+            await testSubject.ShowAsync(AnyBoundProject, isAlreadyConnected);
 
             notificationService.Verify(x => x.ShowNotification(notification), Times.Once);
             notification.Id.Should().Be("ConnectedModeMigration_path_to_solution");
-            notification.Message.Should().Be(MigrationStrings.MigrationPrompt_Message);
+            notification.Message.Should().Be(isAlreadyConnected ? MigrationStrings.MigrationPrompt_AlreadyConnected_Message : MigrationStrings.MigrationPrompt_Message);
             notification.Actions.Count().Should().Be(2);
 
             notification.Actions.First().CommandText.Should().Be(MigrationStrings.MigrationPrompt_MigrateButton);
@@ -100,7 +102,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var serviceProvider = SetUpServiceProviderWithSolution();
 
             var testSubject = CreateTestSubject(serviceProvider: serviceProvider, notificationService: notificationService.Object, threadHandling: threadHandling.Object);
-            await testSubject.ShowAsync(AnyBoundProject);
+            await testSubject.ShowAsync(AnyBoundProject, false);
 
             threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
 
@@ -129,7 +131,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var testSubject = CreateTestSubject(serviceProvider: serviceProvider, notificationService: notificationService.Object, migrationWizardController: migrationWizardController.Object);
 
-            await testSubject.ShowAsync(boundProject);
+            await testSubject.ShowAsync(boundProject, false);
 
             notification.Actions.First().CommandText.Should().Be(MigrationStrings.MigrationPrompt_MigrateButton);
             notification.Actions.First().Action(null);
@@ -152,7 +154,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var testSubject = CreateTestSubject(serviceProvider: serviceProvider, notificationService: notificationService.Object, browserService: browserService.Object);
 
-            await testSubject.ShowAsync(AnyBoundProject);
+            await testSubject.ShowAsync(AnyBoundProject, false);
 
             notification.Actions.LastOrDefault().CommandText.Should().Be(MigrationStrings.MigrationPrompt_LearnMoreButton);
             notification.Actions.LastOrDefault().Action(null);
