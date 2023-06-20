@@ -30,14 +30,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
     [Export(typeof(IFileCleaner))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
-    internal class MSBuildFileCleaner : IFileCleaner
+    internal partial class MSBuildFileCleaner : IFileCleaner
     {
         /// <summary>
         /// Return value indicating the file has not changed
         /// </summary>
         public const string Unchanged = null;
-
-        private const string AdditionalFilesTagName = "AdditionalFiles";
 
         private readonly ILogger logger;
         private readonly IXmlDocumentHelper xmlDocumentHelper;
@@ -58,16 +56,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             var document = xmlDocumentHelper.LoadFromString(content);
 
             var nodesToRemove = new List<XmlNode>();
-            foreach (XmlNode item in document.GetElementsByTagName(AdditionalFilesTagName))
-            {
-                if (ContainsSonarLintXmlReferenceInAttributes(item.Attributes,
-                        legacySettings.PartialVBSonarLintXmlPath,
-                        legacySettings.PartialCSharpSonarLintXmlPath))
-                {
-                    LogVerbose("Detected SonarLint.xml: " + item.Value);
-                    nodesToRemove.Add(item);
-                }
-            }
+
+            nodesToRemove.AddRange(FindAdditionalFiles(document, legacySettings));
+            nodesToRemove.AddRange(FindIncludedRulesets(document, legacySettings));
 
             if (!nodesToRemove.Any())
             {
@@ -86,19 +77,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             return xmlDocumentHelper.SaveToString(document);
         }
 
-        private static bool ContainsSonarLintXmlReferenceInAttributes(XmlAttributeCollection attributeCollection,
-            params string[] sonarlintXmlPaths)
-        {
-            // Matches the following:
-            // 		<AdditionalFiles Include="..\..\.sonarlint\my_project_key\CSharp\SonarLint.xml" />
-            return attributeCollection
-                .Cast<XmlAttribute>()
-                .Any(attribute =>
-                    sonarlintXmlPaths.Any(path =>
-                        attribute.Name == "Include" &&
-                        attribute.Value.EndsWith(path, System.StringComparison.OrdinalIgnoreCase)));
-        }
+        private static IList<XmlNode> FindAdditionalFiles(XmlDocument document, LegacySettings legacySettings)
+            => ElementAndAttributeTailMatcher.Find(document, "AdditionalFiles", "Include",
+                legacySettings.PartialCSharpSonarLintXmlPath,
+                legacySettings.PartialVBSonarLintXmlPath);
 
-        private void LogVerbose(string message) => logger.LogVerbose("[Migration] " + message);
+        private static IList<XmlNode> FindIncludedRulesets(XmlDocument document, LegacySettings legacySettings)
+            => ElementAndAttributeTailMatcher.Find(document, "Include", "Path",
+                legacySettings.PartialCSharpRuleSetPath,
+                legacySettings.PartialVBRuleSetPath);
     }
 }
