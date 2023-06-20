@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
     [Export(typeof(IFileProvider))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
-    internal class MSBuildFileProvider : IFileProvider
+    internal class XmlFileProvider : IFileProvider
     {
         private readonly IServiceProvider serviceProvider;
         private readonly ILogger logger;
@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         };
 
         [ImportingConstructor]
-        public MSBuildFileProvider(
+        public XmlFileProvider(
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             ILogger logger,
             IThreadHandling threadHandling)
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         {
         }
 
-        internal /* for testing */ MSBuildFileProvider(
+        internal /* for testing */ XmlFileProvider(
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             ILogger logger,
             IThreadHandling threadHandling,

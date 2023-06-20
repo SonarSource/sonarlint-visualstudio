@@ -27,20 +27,20 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 {
     [TestClass]
-    public class MSBuildFileCleanerTests
+    public class XmlFileCleanerTests
     {
         private static readonly LegacySettings AnyLegacySettings = new LegacySettings("c:\\any\\root\\folder", "csharpruleset", "csharpXML", "vbruleset", "vbXML");
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<MSBuildFileCleaner, IFileCleaner>(
+            MefTestHelpers.CheckTypeCanBeImported<XmlFileCleaner, IFileCleaner>(
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]
         public void MefCtor_CheckTypeIsNonShared()
-            => MefTestHelpers.CheckIsNonSharedMefComponent<MSBuildFileCleaner>();
+            => MefTestHelpers.CheckIsNonSharedMefComponent<XmlFileCleaner>();
 
         [TestMethod]
         public void Clean_EmptyDocument_NoErrors_ReturnsNull()
@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var actual = testSubject.Clean(content, AnyLegacySettings, CancellationToken.None);
 
-            actual.Should().Be(MSBuildFileCleaner.Unchanged);
+            actual.Should().Be(XmlFileCleaner.Unchanged);
         }
 
         [TestMethod]
@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject();
 
             var actual = testSubject.Clean(input, settings, CancellationToken.None);
-            actual.Should().Be(MSBuildFileCleaner.Unchanged);
+            actual.Should().Be(XmlFileCleaner.Unchanged);
         }
 
         [TestMethod]
@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject();
 
             var actual = testSubject.Clean(input, settings, CancellationToken.None);
-            actual.Should().Be(MSBuildFileCleaner.Unchanged);
+            actual.Should().Be(XmlFileCleaner.Unchanged);
         }
 
         [TestMethod]
@@ -157,19 +157,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject();
 
             var actual = testSubject.Clean(input, settings, CancellationToken.None);
-            actual.Should().Be(MSBuildFileCleaner.Unchanged);
+            actual.Should().Be(XmlFileCleaner.Unchanged);
         }
 
-        private static MSBuildFileCleaner CreateTestSubject(ILogger logger = null)
+        private static XmlFileCleaner CreateTestSubject(ILogger logger = null)
         {
             logger ??= new TestLogger(logToConsole: true);
-            return new MSBuildFileCleaner(logger);
+            return new XmlFileCleaner(logger);
         }
 
         private static string LoadEmbeddedTestCase(string testResourceName)
         {
             var resourcePath = "SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileCleanerTestCases." + testResourceName;
-            using var stream = new StreamReader(typeof(MSBuildFileCleanerTests).Assembly.GetManifestResourceStream(resourcePath));
+            using var stream = new StreamReader(typeof(XmlFileCleanerTests).Assembly.GetManifestResourceStream(resourcePath));
 
             return stream.ReadToEnd();
         }
