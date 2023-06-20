@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             var legacySettings = await settingsProvider.GetAsync(oldBinding.ProjectKey);
 
             // TODO: add proper progress messages.
-            progress?.Report(new MigrationProgress(0, 1, "Getting files...", false));
+            progress?.Report(new MigrationProgress(0, 1, "Getting files ...", false));
 
             logger.WriteLine(MigrationStrings.Process_GettingFiles);
             var files = await fileProvider.GetFilesAsync(token);
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             if (files.Any())
             {
-                progress?.Report(new MigrationProgress(0, 1, "Cleaning files...", false));
+                progress?.Report(new MigrationProgress(0, 1, "Cleaning files ...", false));
                 logger.WriteLine(MigrationStrings.Process_CheckingFiles);
                 var changedFiles = await CleanFilesAsync(files, legacySettings, token);
 
@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 logger.WriteLine(MigrationStrings.Process_SkippingChecking);
             }
 
-            progress?.Report(new MigrationProgress(0, 1, "TODO: Create new binding", true));
+            progress?.Report(new MigrationProgress(0, 1, "Create new binding files ...", false));
             logger.WriteLine(MigrationStrings.Process_ProcessingNewBinding);
 
             await unintrusiveBindingController.BindAsync(oldBinding, token);

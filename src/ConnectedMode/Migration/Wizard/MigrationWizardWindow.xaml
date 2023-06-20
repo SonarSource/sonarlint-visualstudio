@@ -14,17 +14,37 @@
         </Style>
     </Window.Resources>
 
-    <StackPanel Height="200" Width="350">
+    <StackPanel Height="235" Width="350">
         <Separator/>
-        <StackPanel x:Name="StartWindow" Visibility="Visible" Orientation="Vertical" Margin="10,10,10,10">
-            <TextBlock Height="150" Width="Auto" HorizontalAlignment="Left" Text="Start Window" VerticalAlignment="Top" />
+        <StackPanel x:Name="StartWindow" Visibility="Visible" Orientation="Vertical" Margin="10,10,10,10" >
+            <TextBlock Height="180" Width="Auto" HorizontalAlignment="Left" VerticalAlignment="Top" >
+                <Run>The storage of Connected Mode has settings has changed, </Run><LineBreak />
+                <Run>and the settings for this project need to be migrate to  the </Run><LineBreak />
+                <Run>new format. See </Run> <Hyperlink> here</Hyperlink> <Run> for more information.</Run><LineBreak />
+                
+                <LineBreak />
+
+                <Bold><Run>Before starting:</Run></Bold><LineBreak />
+                <Run>* check that you have no unsaved files</Run><LineBreak />
+                <Run>* if the solution is under source control, check that the </Run><LineBreak/>
+                <Run>  you have no uncommitted changes.</Run><LineBreak />
+
+                <LineBreak />
+
+                <Run>If you are ready to migrate, click Continue.</Run><LineBreak />
+
+                <LineBreak />
+                
+                <Run></Run><LineBreak />
+            </TextBlock>
             <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                 <Button Content="Cancel" IsCancel="True" HorizontalAlignment="Left" Style="{DynamicResource Button_Style}" Margin="0,0,180,0"/>
                 <Button Content="Continue" Click="NavigateToMigrationProgressPage" HorizontalAlignment="Right" Style="{DynamicResource Button_Style}"/>
             </StackPanel>
         </StackPanel>
+
         <StackPanel x:Name="MigrationProgressWindow" Visibility="Collapsed" Orientation="Vertical" Margin="10,10,10,10">
-            <ListBox x:Name="progressList" Height="150" Width="Auto" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <ListBox x:Name="progressList" Height="180" Width="300" HorizontalAlignment="Left" VerticalAlignment="Top" BorderBrush="Transparent"/>
             <StackPanel Orientation="Horizontal" Margin="255,5,0,0">
                 <Button Content="Migrate" x:Name="migrateButton" Click="OnStartMigration" Style="{DynamicResource Button_Style}"/>
                 <Button Content="Finish" Visibility="Collapsed" x:Name="finishButton" IsCancel="True" Style="{DynamicResource Button_Style}"/>
