@@ -52,6 +52,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 MefTestHelpers.CreateExport<IFileCleaner>(),
                 MefTestHelpers.CreateExport<IVsAwareFileSystem>(),
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
+                MefTestHelpers.CreateExport<IUnintrusiveBindingController>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
@@ -234,23 +235,37 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             await act.Should().ThrowAsync<StackOverflowException>();
         }
 
+        [TestMethod]
+        public async Task Migrate_CallBindAsync()
+        {
+            var unintrusiveBindingController = new Mock<IUnintrusiveBindingController>();
+            var cancellationToken = CancellationToken.None;
+
+            var testSubject = CreateTestSubject(unintrusiveBindingController: unintrusiveBindingController.Object);
+            await testSubject.MigrateAsync(AnyBoundProject, null, cancellationToken);
+
+            unintrusiveBindingController.Verify(x => x.BindAsync(AnyBoundProject, cancellationToken), Times.Once);
+        }
+
         private static ConnectedModeMigration CreateTestSubject(
             IFileProvider fileProvider = null,
             IFileCleaner fileCleaner = null,
             IVsAwareFileSystem fileSystem = null,
             IMigrationSettingsProvider settingsProvider = null,
             ISonarQubeService sonarQubeService = null,
+            IUnintrusiveBindingController unintrusiveBindingController = null,
             ILogger logger = null)
         {
             fileProvider ??= Mock.Of<IFileProvider>();
             fileCleaner ??= Mock.Of<IFileCleaner>();
             fileSystem ??= Mock.Of<IVsAwareFileSystem>();
             sonarQubeService ??= Mock.Of<ISonarQubeService>();
+            unintrusiveBindingController ??= Mock.Of<IUnintrusiveBindingController>();
             settingsProvider ??= CreateSettingsProvider(DefaultTestLegacySettings).Object;
 
             logger ??= new TestLogger(logToConsole: true);
 
-            return new ConnectedModeMigration(settingsProvider, fileProvider, fileCleaner, fileSystem, sonarQubeService, logger);
+            return new ConnectedModeMigration(settingsProvider, fileProvider, fileCleaner, fileSystem, sonarQubeService, unintrusiveBindingController, logger);
         }
 
         private static Mock<IFileProvider> CreateFileProvider(params string[] filesToReturn)
