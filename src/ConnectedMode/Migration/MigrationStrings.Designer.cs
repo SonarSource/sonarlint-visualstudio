@@ -79,65 +79,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Migration]   - file will be updated.
-        /// </summary>
-        internal static string CleanedFile_Changed {
-            get {
-                return ResourceManager.GetString("CleanedFile_Changed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Migration]   - no changes.
-        /// </summary>
-        internal static string CleanedFile_Unchanged {
-            get {
-                return ResourceManager.GetString("CleanedFile_Unchanged", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to [Migration] Removing {0} settings from file....
         /// </summary>
         internal static string Cleaner_RemovingSettings {
             get {
                 return ResourceManager.GetString("Cleaner_RemovingSettings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Migration] Cleaning file {0} of {1}: {2}.
-        /// </summary>
-        internal static string Cleaning_File {
-            get {
-                return ResourceManager.GetString("Cleaning_File", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Migration] Cleaning files....
-        /// </summary>
-        internal static string CleaningFiles {
-            get {
-                return ResourceManager.GetString("CleaningFiles", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Migration] Number of files to clean: {0}.
-        /// </summary>
-        internal static string CountOfFilesToClean {
-            get {
-                return ResourceManager.GetString("CountOfFilesToClean", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Migration] Deleting the legacy .sonarlint....
-        /// </summary>
-        internal static string DeletingSonarLintFolder {
-            get {
-                return ResourceManager.GetString("DeletingSonarLintFolder", resourceCulture);
             }
         }
         
@@ -156,24 +102,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         internal static string ErrorDuringMigation_VerboseLog {
             get {
                 return ResourceManager.GetString("ErrorDuringMigation_VerboseLog", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Migration] Finished ConnectedMode migration..
-        /// </summary>
-        internal static string Finished {
-            get {
-                return ResourceManager.GetString("Finished", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Migration] Getting list of files to clean....
-        /// </summary>
-        internal static string GettingFiles {
-            get {
-                return ResourceManager.GetString("GettingFiles", resourceCulture);
             }
         }
         
@@ -214,47 +142,128 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Migration]   - file will be updated.
+        /// </summary>
+        internal static string Process_CheckedFile_Changed {
+            get {
+                return ResourceManager.GetString("Process_CheckedFile_Changed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Migration]   - no changes.
+        /// </summary>
+        internal static string Process_CheckedFile_Unchanged {
+            get {
+                return ResourceManager.GetString("Process_CheckedFile_Unchanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Migration] Checking file {0} of {1}: {2}.
+        /// </summary>
+        internal static string Process_CheckingFile {
+            get {
+                return ResourceManager.GetString("Process_CheckingFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Migration] Checking files for Connected Mode settings....
+        /// </summary>
+        internal static string Process_CheckingFiles {
+            get {
+                return ResourceManager.GetString("Process_CheckingFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Migration] Number of files to check: {0}.
+        /// </summary>
+        internal static string Process_CountOfFilesToCheck {
+            get {
+                return ResourceManager.GetString("Process_CountOfFilesToCheck", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Migration] Deleting the legacy .sonarlint....
+        /// </summary>
+        internal static string Process_DeletingSonarLintFolder {
+            get {
+                return ResourceManager.GetString("Process_DeletingSonarLintFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Migration] Finished ConnectedMode migration..
+        /// </summary>
+        internal static string Process_Finished {
+            get {
+                return ResourceManager.GetString("Process_Finished", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Migration] Getting list of files to check....
+        /// </summary>
+        internal static string Process_GettingFiles {
+            get {
+                return ResourceManager.GetString("Process_GettingFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Migration]  - {0}.
+        /// </summary>
+        internal static string Process_ListChangedFile {
+            get {
+                return ResourceManager.GetString("Process_ListChangedFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Migration] Number of files to modify: {0}.
         /// </summary>
-        internal static string NumberOfChangedFiles {
+        internal static string Process_NumberOfChangedFiles {
             get {
-                return ResourceManager.GetString("NumberOfChangedFiles", resourceCulture);
+                return ResourceManager.GetString("Process_NumberOfChangedFiles", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to [Migration] Creating new binding configuration....
         /// </summary>
-        internal static string ProcessingNewBinding {
+        internal static string Process_ProcessingNewBinding {
             get {
-                return ResourceManager.GetString("ProcessingNewBinding", resourceCulture);
+                return ResourceManager.GetString("Process_ProcessingNewBinding", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to [Migration] Saving files....
         /// </summary>
-        internal static string SavingFiles {
+        internal static string Process_SavingFiles {
             get {
-                return ResourceManager.GetString("SavingFiles", resourceCulture);
+                return ResourceManager.GetString("Process_SavingFiles", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Migration] Skipping cleaning files: no files were found that could contain settings that need to cleaned..
+        ///   Looks up a localized string similar to [Migration] Skipping checking files: no files were found that could contain Connected Mode settings..
         /// </summary>
-        internal static string SkippingCleaning {
+        internal static string Process_SkippingChecking {
             get {
-                return ResourceManager.GetString("SkippingCleaning", resourceCulture);
+                return ResourceManager.GetString("Process_SkippingChecking", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to [Migration] Starting Connected Mode migration....
         /// </summary>
-        internal static string Starting {
+        internal static string Process_Starting {
             get {
-                return ResourceManager.GetString("Starting", resourceCulture);
+                return ResourceManager.GetString("Process_Starting", resourceCulture);
             }
         }
     }
