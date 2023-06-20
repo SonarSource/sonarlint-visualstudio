@@ -61,11 +61,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             logger.WriteLine(MigrationStrings.Starting);
 
-            // TODO: cleanup - dummy implementation to provide feedback for the UI
-            progress?.Report(new MigrationProgress(1, 2, "TODO 1", false));
-            progress?.Report(new MigrationProgress(2, 2, "TODO 2", true));
-
             var legacySettings = await settingsProvider.GetAsync(oldBinding.ProjectKey);
+
+            // TODO: add proper progress messages.
+            progress?.Report(new MigrationProgress(0, 1, "Getting files...", false));
 
             logger.WriteLine(MigrationStrings.GettingFiles);
             var files = await fileProvider.GetFilesAsync(token);
@@ -73,12 +72,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             if (files.Any())
             {
+                progress?.Report(new MigrationProgress(0, 1, "Cleaning files...", false));
                 logger.WriteLine(MigrationStrings.CleaningFiles);
                 var changedFiles = await CleanFilesAsync(files, legacySettings, token);
 
                 // Note: no files have been changed yet. Now we are going to start making changes
                 // to the user's projects and deleting files that might be under source control...
 
+                progress?.Report(new MigrationProgress(0, 1, "Saving modified files ...", false));
                 logger.WriteLine(MigrationStrings.SavingFiles);
                 await SaveChangedFilesAsync(changedFiles);
             }
@@ -88,14 +89,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             }
 
             // TODO - trigger unintrusive binding process (will need the binding arguments)
+            progress?.Report(new MigrationProgress(0, 1, "TODO: Create new binding", true));
             logger.WriteLine(MigrationStrings.ProcessingNewBinding);
 
             // Note: SLVS will continue to detect the legacy binding mode until this step,
             // so if anything goes wrong during the migration and an exception occurs, the
             // user will see the migration gold bar next time they open the solution.
+            progress?.Report(new MigrationProgress(0, 1, "Deleting old binding folder ...", false));
             logger.WriteLine(MigrationStrings.DeletingSonarLintFolder);
             await fileSystem.DeleteFolderAsync(legacySettings.LegacySonarLintFolderPath);
 
+            progress?.Report(new MigrationProgress(0, 1, "Finished", false));
             logger.WriteLine(MigrationStrings.Finished);
         }
 
@@ -108,19 +112,32 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         {
             var changedFiles = new ChangedFiles();
 
+            var fileCount = filesToClean.Count();
+            Debug.Assert(fileCount > 0, "Expecting to have at least one file to clean");
+            var currentFileNumber = 0;
+
             foreach (var file in filesToClean)
             {
+                currentFileNumber++;
+                logger.WriteLine(MigrationStrings.Cleaning_File, currentFileNumber, fileCount, file);
                 var content = await GetFileContentAsync(file);
 
                 var newContent = fileCleaner.Clean(content, legacySettings, token);
                 Debug.Assert(newContent == null || !newContent.Equals(content),
                             "New file content should be null or different from original content");
 
-                if (newContent != MSBuildFileCleaner.Unchanged)
+                if (newContent == MSBuildFileCleaner.Unchanged)
                 {
+                    logger.WriteLine(MigrationStrings.CleanedFile_Unchanged);
+                }
+                else
+                {
+                    logger.WriteLine(MigrationStrings.CleanedFile_Changed);
                     changedFiles.Add(new FilePathAndContent<string>(file, newContent));
                 }
             }
+
+            logger.WriteLine(MigrationStrings.NumberOfChangedFiles, changedFiles.Count);
 
             return changedFiles;
         }

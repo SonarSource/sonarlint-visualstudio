@@ -171,4 +171,17 @@
   <data name="Starting" xml:space="preserve">
     <value>[Migration] Starting Connected Mode migration...</value>
   </data>
+  <data name="CleanedFile_Changed" xml:space="preserve">
+    <value>[Migration]   - file will be updated</value>
+  </data>
+  <data name="CleanedFile_Unchanged" xml:space="preserve">
+    <value>[Migration]   - no changes</value>
+  </data>
+  <data name="Cleaning_File" xml:space="preserve">
+    <value>[Migration] Cleaning file {0} of {1}: {2}</value>
+    <comment>{X} of {Y:} {filename}</comment>
+  </data>
+  <data name="NumberOfChangedFiles" xml:space="preserve">
+    <value>[Migration] Number of files to modify: {0}</value>
+  </data>
 </root>

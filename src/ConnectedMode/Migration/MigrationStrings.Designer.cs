@@ -61,14 +61,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Migration] Removing {0} settings from file....
-        /// </summary>
-        internal static string Cleaner_RemovingSettings {
-            get {
-                return ResourceManager.GetString("Cleaner_RemovingSettings", resourceCulture);
-            }
-        }
-
         ///   Looks up a localized string similar to [Migration] Migration cancelled by user.
         /// </summary>
         internal static string CancelTokenFailure_NormalLog {
@@ -83,6 +75,42 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         internal static string CancelTokenFailure_VerboseLog {
             get {
                 return ResourceManager.GetString("CancelTokenFailure_VerboseLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Migration]   - file will be updated.
+        /// </summary>
+        internal static string CleanedFile_Changed {
+            get {
+                return ResourceManager.GetString("CleanedFile_Changed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Migration]   - no changes.
+        /// </summary>
+        internal static string CleanedFile_Unchanged {
+            get {
+                return ResourceManager.GetString("CleanedFile_Unchanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Migration] Removing {0} settings from file....
+        /// </summary>
+        internal static string Cleaner_RemovingSettings {
+            get {
+                return ResourceManager.GetString("Cleaner_RemovingSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Migration] Cleaning file {0} of {1}: {2}.
+        /// </summary>
+        internal static string Cleaning_File {
+            get {
+                return ResourceManager.GetString("Cleaning_File", resourceCulture);
             }
         }
         
@@ -182,6 +210,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         internal static string MigrationPrompt_MigrateButton {
             get {
                 return ResourceManager.GetString("MigrationPrompt_MigrateButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Migration] Number of files to modify: {0}.
+        /// </summary>
+        internal static string NumberOfChangedFiles {
+            get {
+                return ResourceManager.GetString("NumberOfChangedFiles", resourceCulture);
             }
         }
         
