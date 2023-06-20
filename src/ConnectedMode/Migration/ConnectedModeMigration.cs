@@ -45,6 +45,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly IFileCleaner fileCleaner;
         private readonly IVsAwareFileSystem fileSystem;
         private readonly ISonarQubeService sonarQubeService;
+        private readonly IUnintrusiveBindingController unintrusiveBindingController;
         private readonly ILogger logger;
 
         // The user can have both the legacy and new connected mode files. In that case, we expect the SonarQubeService to already be connected.
@@ -56,6 +57,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             IFileCleaner fileCleaner,
             IVsAwareFileSystem fileSystem,
             ISonarQubeService sonarQubeService,
+            IUnintrusiveBindingController unintrusiveBindingController,
             ILogger logger)
         {
             this.settingsProvider = settingsProvider;
@@ -63,6 +65,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             this.fileCleaner = fileCleaner;
             this.fileSystem = fileSystem;
             this.sonarQubeService = sonarQubeService;
+            this.unintrusiveBindingController = unintrusiveBindingController;
             this.logger = logger;
         }
 
@@ -125,9 +128,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 logger.WriteLine(MigrationStrings.Process_SkippingChecking);
             }
 
-            // TODO - trigger unintrusive binding process (will need the binding arguments)
             progress?.Report(new MigrationProgress(0, 1, "TODO: Create new binding", true));
             logger.WriteLine(MigrationStrings.Process_ProcessingNewBinding);
+
+            await unintrusiveBindingController.BindAsync(oldBinding, token);
 
             // Note: SLVS will continue to detect the legacy binding mode until this step,
             // so if anything goes wrong during the migration and an exception occurs, the
