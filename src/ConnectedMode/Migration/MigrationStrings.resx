@@ -126,13 +126,13 @@
   <data name="CancelTokenFailure_VerboseLog" xml:space="preserve">
     <value>[MigrationWizardXaml] Migration cancelled by user: {0}</value>
   </data>
-  <data name="CleaningFiles" xml:space="preserve">
-    <value>[Migration] Cleaning files...</value>
+  <data name="Process_CheckingFiles" xml:space="preserve">
+    <value>[Migration] Checking files for Connected Mode settings...</value>
   </data>
-  <data name="CountOfFilesToClean" xml:space="preserve">
-    <value>[Migration] Number of files to clean: {0}</value>
+  <data name="Process_CountOfFilesToCheck" xml:space="preserve">
+    <value>[Migration] Number of files to check: {0}</value>
   </data>
-  <data name="DeletingSonarLintFolder" xml:space="preserve">
+  <data name="Process_DeletingSonarLintFolder" xml:space="preserve">
     <value>[Migration] Deleting the legacy .sonarlint...</value>
   </data>
   <data name="ErrorDuringMigation_NormalLog" xml:space="preserve">
@@ -141,11 +141,11 @@
   <data name="ErrorDuringMigation_VerboseLog" xml:space="preserve">
     <value>[MigrationWizardXaml] Error during migration: {0}</value>
   </data>
-  <data name="Finished" xml:space="preserve">
+  <data name="Process_Finished" xml:space="preserve">
     <value>[Migration] Finished ConnectedMode migration.</value>
   </data>
-  <data name="GettingFiles" xml:space="preserve">
-    <value>[Migration] Getting list of files to clean...</value>
+  <data name="Process_GettingFiles" xml:space="preserve">
+    <value>[Migration] Getting list of files to check...</value>
   </data>
   <data name="LearnMoreUrl" xml:space="preserve">
     <value>https://github.com/SonarSource/sonarlint-visualstudio/wiki/migrate-connected-mode-to-v7</value>
@@ -159,16 +159,32 @@
   <data name="MigrationPrompt_MigrateButton" xml:space="preserve">
     <value>Migrate configuration</value>
   </data>
-  <data name="ProcessingNewBinding" xml:space="preserve">
+  <data name="Process_ProcessingNewBinding" xml:space="preserve">
     <value>[Migration] Creating new binding configuration...</value>
   </data>
-  <data name="SavingFiles" xml:space="preserve">
+  <data name="Process_SavingFiles" xml:space="preserve">
     <value>[Migration] Saving files...</value>
   </data>
-  <data name="SkippingCleaning" xml:space="preserve">
-    <value>[Migration] Skipping cleaning files: no files were found that could contain settings that need to cleaned.</value>
+  <data name="Process_SkippingChecking" xml:space="preserve">
+    <value>[Migration] Skipping checking files: no files were found that could contain Connected Mode settings.</value>
   </data>
-  <data name="Starting" xml:space="preserve">
+  <data name="Process_Starting" xml:space="preserve">
     <value>[Migration] Starting Connected Mode migration...</value>
+  </data>
+  <data name="Process_CheckedFile_Changed" xml:space="preserve">
+    <value>[Migration]   - file will be updated</value>
+  </data>
+  <data name="Process_CheckedFile_Unchanged" xml:space="preserve">
+    <value>[Migration]   - no changes</value>
+  </data>
+  <data name="Process_CheckingFile" xml:space="preserve">
+    <value>[Migration] Checking file {0} of {1}: {2}</value>
+    <comment>{X} of {Y:} {filename}</comment>
+  </data>
+  <data name="Process_NumberOfChangedFiles" xml:space="preserve">
+    <value>[Migration] Number of files to modify: {0}</value>
+  </data>
+  <data name="Process_ListChangedFile" xml:space="preserve">
+    <value>[Migration]  - {0}</value>
   </data>
 </root>
