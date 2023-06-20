@@ -71,6 +71,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             migrationInProgress = true;
 
             this.migrateButton.Visibility = Visibility.Collapsed;
+            this.finishButton.IsEnabled = false;
+            this.finishButton.Visibility = Visibility.Visible;
             // Disables all closing / cancel buttons.
             this.IsCloseButtonEnabled = false;
 
@@ -99,7 +101,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
         private void MigrationFinished()
         {
             migrationInProgress = false;
-            this.finishButton.Visibility = Visibility.Visible;
+            this.finishButton.IsEnabled = true;
             this.IsCloseButtonEnabled = true;
             dialogResult = true;
         }
