@@ -193,8 +193,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         }
 
         [TestMethod]
-        [DataRow(true, false)]
-        [DataRow(false, true)]
+        [DataRow(true)]
+        [DataRow(false)]
         public async Task Migrate_ConnectToSonarQubeIfNeeded_MigrationSucceeds_DisconnectedNotCalled(bool isAlreadyConnectedToServer)
         {
             var sonarQubeService = CreateSonarQubeService(isAlreadyConnectedToServer);
@@ -207,8 +207,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         }
 
         [TestMethod]
-        [DataRow(true, false)]
-        [DataRow(false, true)]
+        [DataRow(true)]
+        [DataRow(false)]
         public async Task Migrate_DisconnectToSonarQubeIfNeeded__MigrationFails_NonCritical_HandledAndThrown(bool isAlreadyConnectedToServer)
         {
             var sonarQubeService = CreateSonarQubeService(isAlreadyConnectedToServer);
