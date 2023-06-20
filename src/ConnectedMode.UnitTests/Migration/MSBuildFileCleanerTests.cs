@@ -90,6 +90,41 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             actual.Should().Be(MSBuildFileCleaner.Unchanged);
         }
 
+        [TestMethod]
+        public void Clean_RulesetRefsExist_CorrectProjectKey_SettingsAreRemoved()
+        {
+            var input = LoadEmbeddedTestCase("Ruleset_XX-project-key_Input.ruleset.xml");
+            var expected = LoadEmbeddedTestCase("Ruleset_XX-project-key_Cleaned.ruleset.xml");
+
+            var settings = new LegacySettings("any",
+                ".sonarlint\\XX-project-keycsharp.ruleset",
+                "any",
+                ".sonarlint\\XX-project-keyvb.ruleset",
+                "any");
+
+            var testSubject = CreateTestSubject();
+
+            var actual = testSubject.Clean(input, settings, CancellationToken.None);
+            actual.Should().Be(expected);
+        }
+
+        [TestMethod]
+        public void Clean_RulesetRefsExist_DifferentProjectKey_SettingsAreNotRemoved()
+        {
+            var input = LoadEmbeddedTestCase("Ruleset_XX-project-key_Input.ruleset.xml");
+
+            var settings = new LegacySettings("any",
+                ".sonarlint\\some-other-keycsharp.ruleset",
+                "any",
+                ".sonarlint\\some-other-keyvb.ruleset",
+                "any");
+
+            var testSubject = CreateTestSubject();
+
+            var actual = testSubject.Clean(input, settings, CancellationToken.None);
+            actual.Should().Be(MSBuildFileCleaner.Unchanged);
+        }
+
         private static MSBuildFileCleaner CreateTestSubject(ILogger logger = null)
         {
             logger ??= new TestLogger(logToConsole: true);
