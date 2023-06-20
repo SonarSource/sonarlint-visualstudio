@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
     [Export(typeof(IFileCleaner))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
-    internal partial class MSBuildFileCleaner : IFileCleaner
+    internal partial class XmlFileCleaner : IFileCleaner
     {
         /// <summary>
         /// Return value indicating the file has not changed
@@ -41,11 +41,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly IXmlDocumentHelper xmlDocumentHelper;
 
         [ImportingConstructor]
-        public MSBuildFileCleaner(ILogger logger) : this(logger, new XmlDocumentHelper())
+        public XmlFileCleaner(ILogger logger) : this(logger, new XmlDocumentHelper())
         {
         }
 
-        internal /* for testing */ MSBuildFileCleaner(ILogger logger, IXmlDocumentHelper xmlDocumentHelper)
+        internal /* for testing */ XmlFileCleaner(ILogger logger, IXmlDocumentHelper xmlDocumentHelper)
         {
             this.logger = logger;
             this.xmlDocumentHelper = xmlDocumentHelper;
