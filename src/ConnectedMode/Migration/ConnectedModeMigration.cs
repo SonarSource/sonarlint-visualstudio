@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 Debug.Assert(newContent == null || !newContent.Equals(content),
                             "New file content should be null or different from original content");
 
-                if (newContent == MSBuildFileCleaner.Unchanged)
+                if (newContent == XmlFileCleaner.Unchanged)
                 {
                     logger.WriteLine(MigrationStrings.Process_CheckedFile_Unchanged);
                 }

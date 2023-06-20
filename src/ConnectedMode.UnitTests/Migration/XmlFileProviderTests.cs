@@ -34,12 +34,12 @@ using Task = System.Threading.Tasks.Task;
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 {
     [TestClass]
-    public class MSBuildFileProviderTests
+    public class XmlFileProviderTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<MSBuildFileProvider, IFileProvider>(
+            MefTestHelpers.CheckTypeCanBeImported<XmlFileProvider, IFileProvider>(
                 MefTestHelpers.CreateExport<SVsServiceProvider>(),
                 MefTestHelpers.CreateExport<ILogger>(),
                 MefTestHelpers.CreateExport<IThreadHandling>());
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
         [TestMethod]
         public void MefCtor_CheckTypeIsNonShared()
-            => MefTestHelpers.CheckIsNonSharedMefComponent<MSBuildFileProvider>();
+            => MefTestHelpers.CheckIsNonSharedMefComponent<XmlFileProvider>();
 
         [TestMethod]
         public async Task GetFiles_NoSolutionFolder_ReturnsEmptyList()
@@ -138,14 +138,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             actual.Should().BeEquivalentTo("file_1", "file_11", "file_111");
         }
 
-        private static MSBuildFileProvider CreateTestSubject(IServiceProvider serviceProvider = null,
+        private static XmlFileProvider CreateTestSubject(IServiceProvider serviceProvider = null,
             IFileSystem fileSystem = null, ILogger logger = null, IThreadHandling threadHandling = null)
         {
             serviceProvider ??= CreateServiceProviderWithSolution(CreateIVsSolution(null).Object).Object;
             fileSystem ??= new System.IO.Abstractions.TestingHelpers.MockFileSystem();
             logger ??= new TestLogger(logToConsole: true);
             threadHandling ??= new NoOpThreadHandler();
-            return new MSBuildFileProvider(serviceProvider, logger, threadHandling, fileSystem);
+            return new XmlFileProvider(serviceProvider, logger, threadHandling, fileSystem);
         }
 
         private static Mock<IServiceProvider> CreateServiceProviderWithSolution(IVsSolution solution)
