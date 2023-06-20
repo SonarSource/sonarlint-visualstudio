@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             progress?.Report(new MigrationProgress(0, 1, "TODO: Create new binding", true));
             logger.WriteLine(MigrationStrings.Process_ProcessingNewBinding);
 
-            await unintrusiveBindingController.BindAsync(oldBinding, token);
+            await unintrusiveBindingController.BindAsync(oldBinding, progress, token);
 
             // Note: SLVS will continue to detect the legacy binding mode until this step,
             // so if anything goes wrong during the migration and an exception occurs, the
