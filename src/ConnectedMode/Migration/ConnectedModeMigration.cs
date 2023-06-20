@@ -25,6 +25,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarQube.Client;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
@@ -42,19 +44,53 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly IFileProvider fileProvider;
         private readonly IFileCleaner fileCleaner;
         private readonly IVsAwareFileSystem fileSystem;
+        private readonly ISonarQubeService sonarQubeService;
         private readonly ILogger logger;
 
+        // The user can have both the legacy and new connected mode files. In this case the behaviour is slightly different.
+        private bool isConnectedToNewConnectedMode;
+
         [ImportingConstructor]
-        public ConnectedModeMigration(IMigrationSettingsProvider settingsProvider, IFileProvider fileProvider, IFileCleaner fileCleaner, IVsAwareFileSystem fileSystem, ILogger logger)
+        public ConnectedModeMigration(IMigrationSettingsProvider settingsProvider,
+            IFileProvider fileProvider,
+            IFileCleaner fileCleaner,
+            IVsAwareFileSystem fileSystem,
+            ISonarQubeService sonarQubeService,
+            ILogger logger)
         {
             this.settingsProvider = settingsProvider;
             this.fileProvider = fileProvider;
             this.fileCleaner = fileCleaner;
             this.fileSystem = fileSystem;
+            this.sonarQubeService = sonarQubeService;
             this.logger = logger;
         }
 
         public async Task MigrateAsync(BoundSonarQubeProject oldBinding, IProgress<MigrationProgress> progress, CancellationToken token)
+        {
+            isConnectedToNewConnectedMode = sonarQubeService.IsConnected;
+
+            if (!isConnectedToNewConnectedMode)
+            {
+               await sonarQubeService.ConnectAsync(oldBinding.CreateConnectionInformation(), token);
+            }
+
+            try
+            {
+                await MigrateImplAsync(oldBinding, progress, token);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                if (!isConnectedToNewConnectedMode)
+                {
+                    sonarQubeService.Disconnect();
+                }
+
+                throw;
+            }
+        }
+
+        private async Task MigrateImplAsync(BoundSonarQubeProject oldBinding, IProgress<MigrationProgress> progress, CancellationToken token) 
         {
             // TODO - add cancellation
             // TODO - add progress messages
