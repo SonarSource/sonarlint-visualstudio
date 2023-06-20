@@ -35,7 +35,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         IVsHierarchy GetHierarchy(ProjectId projectId);
     }
 
-
     [ExcludeFromCodeCoverage]
     internal class VisualStudioWorkspaceWrapper : IVisualStudioWorkspace
     {
