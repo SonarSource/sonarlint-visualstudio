@@ -59,6 +59,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             nodesToRemove.AddRange(FindAdditionalFiles(document, legacySettings));
             nodesToRemove.AddRange(FindIncludedRulesets(document, legacySettings));
+            nodesToRemove.AddRange(FindRulesetProperties(document, legacySettings));
 
             if (!nodesToRemove.Any())
             {
@@ -84,6 +85,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         private static IList<XmlNode> FindIncludedRulesets(XmlDocument document, LegacySettings legacySettings)
             => ElementAndAttributeTailMatcher.Find(document, "Include", "Path",
+                legacySettings.PartialCSharpRuleSetPath,
+                legacySettings.PartialVBRuleSetPath);
+
+        private IEnumerable<XmlNode> FindRulesetProperties(XmlDocument document, LegacySettings legacySettings)
+            => ElementAndValueTailMatcher.Find(document, "CodeAnalysisRuleSet",
                 legacySettings.PartialCSharpRuleSetPath,
                 legacySettings.PartialVBRuleSetPath);
     }

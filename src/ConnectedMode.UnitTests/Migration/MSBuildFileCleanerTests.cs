@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         }
 
         [TestMethod]
-        public void Clean_RulesetRefsExist_CorrectProjectKey_SettingsAreRemoved()
+        public void Clean_RulesetIncludesExist_CorrectProjectKey_SettingsAreRemoved()
         {
             var input = LoadEmbeddedTestCase("Ruleset_XX-project-key_Input.ruleset.xml");
             var expected = LoadEmbeddedTestCase("Ruleset_XX-project-key_Cleaned.ruleset.xml");
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         }
 
         [TestMethod]
-        public void Clean_RulesetRefsExist_DifferentProjectKey_SettingsAreNotRemoved()
+        public void Clean_RulesetIncludessExist_DifferentProjectKey_SettingsAreNotRemoved()
         {
             var input = LoadEmbeddedTestCase("Ruleset_XX-project-key_Input.ruleset.xml");
 
@@ -117,6 +117,41 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 ".sonarlint\\some-other-keycsharp.ruleset",
                 "any",
                 ".sonarlint\\some-other-keyvb.ruleset",
+                "any");
+
+            var testSubject = CreateTestSubject();
+
+            var actual = testSubject.Clean(input, settings, CancellationToken.None);
+            actual.Should().Be(MSBuildFileCleaner.Unchanged);
+        }
+
+        [TestMethod]
+        public void Clean_RulesetPropertiesExist_CorrectProjectKey_SettingsAreRemoved()
+        {
+            var input = LoadEmbeddedTestCase("RulesetProp-project_key_aaa_Input.vbproj");
+            var expected = LoadEmbeddedTestCase("RulesetProp-project_key_aaa_Cleaned.vbproj");
+
+            var settings = new LegacySettings("any",
+                ".sonarlint\\project_key_aaacsharp.ruleset",
+                "any",
+                ".sonarlint\\project_key_aaavb.ruleset",
+                "any");
+
+            var testSubject = CreateTestSubject();
+
+            var actual = testSubject.Clean(input, settings, CancellationToken.None);
+            actual.Should().Be(expected);
+        }
+
+        [TestMethod]
+        public void Clean_RulesetRefsExist_DifferentProjectKey_SettingsAreNotRemoved()
+        {
+            var input = LoadEmbeddedTestCase("RulesetProp-project_key_aaa_Input.vbproj");
+
+            var settings = new LegacySettings("any",
+                ".sonarlint\\another_project_keycsharp.ruleset",
+                "any",
+                ".sonarlint\\another_project_keyvb.ruleset",
                 "any");
 
             var testSubject = CreateTestSubject();
@@ -138,6 +173,5 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             return stream.ReadToEnd();
         }
-
     }
 }
