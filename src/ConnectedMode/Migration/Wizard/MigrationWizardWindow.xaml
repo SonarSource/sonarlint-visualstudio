@@ -4,51 +4,92 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
     Title="SonarLint Connected Mode Migration"
+    HorizontalAlignment="Center"
     ResizeMode="NoResize"
-    SizeToContent="WidthAndHeight">
+    SizeToContent="WidthAndHeight"
+    MinHeight="300"
+    MaxHeight="500"
+    MinWidth="200"
+    MaxWidth="500">
 
     <Window.Resources>
         <Style x:Key="Button_Style" TargetType="Button">
-            <Setter Property="Height" Value="25" />
-            <Setter Property="Width" Value="75" />
+            <Setter Property="MinHeight" Value="25" />
+            <Setter Property="MinWidth" Value="75" />
         </Style>
+
     </Window.Resources>
 
-    <StackPanel Height="235" Width="350">
-        <Separator/>
-        <StackPanel x:Name="StartWindow" Visibility="Visible" Orientation="Vertical" Margin="10,10,10,10" >
-            <TextBlock Height="180" Width="Auto" HorizontalAlignment="Left" VerticalAlignment="Top" >
-                <Run>The storage of Connected Mode has settings has changed, </Run><LineBreak />
-                <Run>and the settings for this project need to be migrate to  the </Run><LineBreak />
-                <Run>new format. See </Run> <Hyperlink> here</Hyperlink> <Run> for more information.</Run><LineBreak />
+    <Grid TextBlock.FontSize="15">
+        <DockPanel x:Name="StartWindow" Margin="10" LastChildFill="True" Visibility="Visible" >
+            <DockPanel DockPanel.Dock="Bottom">
+                <Button DockPanel.Dock="Left" Content="Cancel" IsCancel="True" HorizontalAlignment="Left"  Style="{DynamicResource Button_Style}" />
+                <Button DockPanel.Dock="Right" Content="Continue" Click="NavigateToMigrationProgressPage" HorizontalAlignment="Right" Style="{DynamicResource Button_Style}"/>
+            </DockPanel>
+
+            <!-- Last child - fills the body of the panel -->
+            <StackPanel Orientation="Vertical" HorizontalAlignment="Left">
+
+                <!-- Intro -->
+                <TextBlock TextWrapping="WrapWithOverflow" >
+                    <Run>The storage of Connected Mode has settings has changed, 
+                        and the settings for this project need to be migrate to the new format.
+                    </Run>
+                    <LineBreak />
+                    <Run>See </Run> <Hyperlink> here</Hyperlink> <Run> for more information.</Run>
+                </TextBlock>
+
+                <!-- Header -->
+                <!-- Margin controls the spacing between the text blocks -->
+                <TextBlock TextWrapping="WrapWithOverflow" Margin="0,20,0,0">
+                    <Bold><Run>Before starting:</Run></Bold>
+                </TextBlock>
+
+                <!-- Bulleted list -->
+                <!-- Margin controls the spacing between the text blocks -->
+                <TextBlock TextWrapping="WrapWithOverflow" Margin="0,10,0,0">
+                    <BulletDecorator>
+                        <BulletDecorator.Bullet>
+                            <Ellipse Height="8" Width="8" Fill="Black" />
+                        </BulletDecorator.Bullet>
+                    </BulletDecorator>
+                    <Run> check that you have no unsaved files</Run><LineBreak />
                 
-                <LineBreak />
+                    <BulletDecorator>
+                        <BulletDecorator.Bullet>
+                            <Ellipse Height="8" Width="8" Fill="Black" />
+                        </BulletDecorator.Bullet>
+                    </BulletDecorator>
+                                    
+                    <Run> if the solution is under source control, check that you have no uncommitted changes.</Run>
+                </TextBlock>
 
-                <Bold><Run>Before starting:</Run></Bold><LineBreak />
-                <Run>* check that you have no unsaved files</Run><LineBreak />
-                <Run>* if the solution is under source control, check that the </Run><LineBreak/>
-                <Run>  you have no uncommitted changes.</Run><LineBreak />
+                <TextBlock TextWrapping="WrapWithOverflow" Margin="0,15,0,10">
+                    <Run>If you are ready to migrate, click </Run>
+                    <Italic>Continue</Italic><Run>. Otherwise, click </Run>
+                    <Italic>Cancel</Italic>
+                    <Run>.</Run>
+                    <LineBreak />
+                </TextBlock>
 
-                <LineBreak />
-
-                <Run>If you are ready to migrate, click Continue.</Run><LineBreak />
-
-                <LineBreak />
-                
-                <Run></Run><LineBreak />
-            </TextBlock>
-            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                <Button Content="Cancel" IsCancel="True" HorizontalAlignment="Left" Style="{DynamicResource Button_Style}" Margin="0,0,180,0"/>
-                <Button Content="Continue" Click="NavigateToMigrationProgressPage" HorizontalAlignment="Right" Style="{DynamicResource Button_Style}"/>
             </StackPanel>
-        </StackPanel>
 
-        <StackPanel x:Name="MigrationProgressWindow" Visibility="Collapsed" Orientation="Vertical" Margin="10,10,10,10">
-            <ListBox x:Name="progressList" Height="180" Width="300" HorizontalAlignment="Left" VerticalAlignment="Top" BorderBrush="Transparent"/>
-            <StackPanel Orientation="Horizontal" Margin="255,5,0,0">
-                <Button Content="Migrate" x:Name="migrateButton" Click="OnStartMigration" Style="{DynamicResource Button_Style}"/>
-                <Button Content="Finish" Visibility="Collapsed" x:Name="finishButton" IsCancel="True" Style="{DynamicResource Button_Style}"/>
-            </StackPanel>
-        </StackPanel>
-    </StackPanel>
+        </DockPanel>
+
+        <DockPanel x:Name="MigrationProgressWindow" Margin="10" LastChildFill="True" Visibility="Hidden">
+            <!-- Using a grid here because we want to draw one button on top of the other, and only have one visible at time -->
+            <Grid DockPanel.Dock="Bottom">
+                <Button HorizontalAlignment="Right" Content="Migrate" x:Name="migrateButton" Visibility="Visible" Click="OnStartMigration" Style="{DynamicResource Button_Style}"/>
+                <Button HorizontalAlignment="Right" Content="Finish" x:Name="finishButton" Visibility="Collapsed" IsCancel="True" Style="{DynamicResource Button_Style}"/>
+            </Grid>
+
+            <!-- Last child - fills the body of the panel -->
+            <DockPanel LastChildFill="True">
+                <TextBlock DockPanel.Dock="Top">Progress:</TextBlock>
+                <ListBox x:Name="progressList" Margin="0,8,0,10" BorderBrush="LightGray" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+            </DockPanel>
+
+        </DockPanel>
+    </Grid>
+
 </platformUi:DialogWindow>
