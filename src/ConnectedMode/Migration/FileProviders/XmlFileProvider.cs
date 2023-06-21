@@ -92,9 +92,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
                 return Enumerable.Empty<string>();
             }
 
-            var allFiles = new List<string>(roslynProjectFiles);
-            allFiles.AddRange(await GetFilesFromFileSystemAsync());
-            return allFiles;
+            var allFiles = new HashSet<string>(roslynProjectFiles, StringComparer.OrdinalIgnoreCase);
+            var foundFiles = await GetFilesFromFileSystemAsync();
+            AddToMatches(allFiles, foundFiles);
+            return allFiles.ToList();
         }
 
         private string[] GetRoslynProjectFilePaths()
@@ -103,7 +104,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
             return roslynProjects.Where(x => x.FilePath != null).Select(x => x.FilePath).ToArray();
         }
 
-        private async Task<ISet<string>> GetFilesFromFileSystemAsync()
+        private async Task<IEnumerable<string>> GetFilesFromFileSystemAsync()
         {
             var solutionDir = await GetSolutionDirectoryAsync();
             if (solutionDir == null)
@@ -134,20 +135,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
             return solutionDir;
         }
 
-        private ISet<string> FindFiles(string rootFolder)
+        private IEnumerable<string> FindFiles(string rootFolder)
         {
             LogVerbose("Searching for files... Root directory: " + rootFolder);
 
             var timer = Stopwatch.StartNew();
 
-            var allMatches = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var allMatches = new List<string>();
 
             foreach(var pattern in FileSearchPatterns)
             {
                 var files = fileSystem.Directory.GetFiles(rootFolder, pattern, SearchOption.AllDirectories);
                 var filesToInclude = files.Where(x => !IsInExcludedDirectory(x)).ToArray();
 
-                AddToMatches(allMatches, filesToInclude);
+                allMatches.AddRange(filesToInclude);
                 LogVerbose($"  Pattern: {pattern}, Number of matching files: {filesToInclude.Length}");
             }
 
