@@ -32,7 +32,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Migration
+namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
 {
     [Export(typeof(IFileProvider))]
     [PartCreationPolicy(CreationPolicy.NonShared)]

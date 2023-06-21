@@ -26,12 +26,13 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
+using SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 using Task = System.Threading.Tasks.Task;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
 {
     [TestClass]
     public class XmlFileProviderTests
@@ -71,7 +72,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var solution = CreateIVsSolution("root dir");
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
 
-            var filesToReturn = new string[] { "file1", "file2", "file3"};
+            var filesToReturn = new string[] { "file1", "file2", "file3" };
             var fileSystem = CreateFileSystem(filesToReturn);
 
             var testSubject = CreateTestSubject(serviceProvider.Object, fileSystem.Object);
@@ -102,7 +103,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 "ccc\\obj\\xxx",
                 "should be included3"
             };
-            
+
             var fileSystem = CreateFileSystem(filesInFileSystem);
 
             var testSubject = CreateTestSubject(serviceProvider.Object, fileSystem.Object);
@@ -159,7 +160,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         private static Mock<IFileSystem> CreateFileSystem(params string[] filesToReturn)
         {
             var fileSystem = new Mock<IFileSystem>();
-            fileSystem.Setup(x =>x.Directory.GetFiles(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SearchOption>()))
+            fileSystem.Setup(x => x.Directory.GetFiles(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SearchOption>()))
                 .Returns(filesToReturn);
 
             return fileSystem;
@@ -173,7 +174,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             solution
                 .Setup(x => x.GetProperty((int)__VSPROPID.VSPROPID_SolutionDirectory, out solutionDirectory))
                 .Returns(VSConstants.S_OK);
-        
+
             return solution;
         }
     }
