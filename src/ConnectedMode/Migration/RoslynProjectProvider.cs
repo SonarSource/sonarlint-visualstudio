@@ -42,6 +42,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         [ImportingConstructor]
         public RoslynProjectProvider(VisualStudioWorkspace vsWorkspace)
+            : this(new VisualStudioWorkspaceWrapper(vsWorkspace))
         {
         }
 

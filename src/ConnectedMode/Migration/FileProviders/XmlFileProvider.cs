@@ -39,16 +39,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
     internal class XmlFileProvider : IFileProvider
     {
         private readonly IServiceProvider serviceProvider;
+        private readonly IRoslynProjectProvider projectProvider;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
         private readonly IFileSystem fileSystem;
 
+        // We only search for non-project files - we get the Roslyn project file paths
+        // from the VSWorkspace.
+        // Corner case: this means that we won't clean projects that are in the solution
+        // but unloaded, since they won't appear in the VsWorkspace
         internal static readonly string[] FileSearchPatterns = new string[] {
             "*.ruleset",
             "*.props",
-            "*.targets",
-            "*.csproj",
-            "*.vbproj"
+            "*.targets"
         };
 
         internal static readonly string[] ExcludedDirectores = new string[]
@@ -60,25 +63,50 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
         [ImportingConstructor]
         public XmlFileProvider(
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            IRoslynProjectProvider projectProvider,
             ILogger logger,
             IThreadHandling threadHandling)
-            : this(serviceProvider, logger, threadHandling, new FileSystem())
+            : this(serviceProvider, projectProvider, logger, threadHandling, new FileSystem())
         {
         }
 
         internal /* for testing */ XmlFileProvider(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            IServiceProvider serviceProvider,
+            IRoslynProjectProvider projectProvider,
             ILogger logger,
             IThreadHandling threadHandling,
             IFileSystem fileSystem)
         {
             this.serviceProvider = serviceProvider;
+            this.projectProvider = projectProvider;
             this.logger = logger;
             this.threadHandling = threadHandling;
             this.fileSystem = fileSystem;
         }
 
         public async Task<IEnumerable<string>> GetFilesAsync(CancellationToken token)
+        {
+            var roslynProjectFiles = GetRoslynProjectFilePaths();
+            // If there are no Roslyn projects then there is nothing to clean up
+            if (roslynProjectFiles.Length == 0)
+            {
+                LogVerbose("No Roslyn projects: nothing to clean");
+                return Enumerable.Empty<string>();
+            }
+
+            var allFiles = new HashSet<string>(roslynProjectFiles, StringComparer.OrdinalIgnoreCase);
+            var foundFiles = await GetFilesFromFileSystemAsync();
+            AddToMatches(allFiles, foundFiles);
+            return allFiles.ToList();
+        }
+
+        private string[] GetRoslynProjectFilePaths()
+        {
+            var roslynProjects = projectProvider.Get();
+            return roslynProjects.Where(x => x.FilePath != null).Select(x => x.FilePath).ToArray();
+        }
+
+        private async Task<IEnumerable<string>> GetFilesFromFileSystemAsync()
         {
             var solutionDir = await GetSolutionDirectoryAsync();
             if (solutionDir == null)
@@ -115,14 +143,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
 
             var timer = Stopwatch.StartNew();
 
-            var allMatches = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var allMatches = new List<string>();
 
             foreach(var pattern in FileSearchPatterns)
             {
                 var files = fileSystem.Directory.GetFiles(rootFolder, pattern, SearchOption.AllDirectories);
                 var filesToInclude = files.Where(x => !IsInExcludedDirectory(x)).ToArray();
 
-                AddToMatches(allMatches, filesToInclude);
+                allMatches.AddRange(filesToInclude);
                 LogVerbose($"  Pattern: {pattern}, Number of matching files: {filesToInclude.Length}");
             }
 
