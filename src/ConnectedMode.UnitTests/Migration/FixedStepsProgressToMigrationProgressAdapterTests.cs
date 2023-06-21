@@ -20,21 +20,25 @@
 
 using System;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Migration;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Migration
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 {
-    internal class FixedStepsProgressToMigrationProgressConverter : IProgress<FixedStepsProgress>
+    [TestClass]
+    public class FixedStepsProgressToMigrationProgressAdapterTests
     {
-        private readonly IProgress<MigrationProgress> progress;
-
-        public FixedStepsProgressToMigrationProgressConverter(IProgress<MigrationProgress> progress)
+        [TestMethod]
+        public void Report_ReportsMigrationProgress()
         {
-            this.progress = progress;
-        }
+            var migrationProgress = new Mock<IProgress<MigrationProgress>>();
+            MigrationProgress migrationProgressReport = null;
+            migrationProgress.Setup(x => x.Report(It.IsAny<MigrationProgress>())).Callback<MigrationProgress>(x => migrationProgressReport = x) ;
 
-        public void Report(FixedStepsProgress value)
-        {
-            progress?.Report(new MigrationProgress(0, 1, value.Message, false));
+            var testSubject = new FixedStepsProgressToMigrationProgressAdapter(migrationProgress.Object);
+            testSubject.Report(new FixedStepsProgress("test message", 0, 1));
+
+            migrationProgress.Verify(x => x.Report(migrationProgressReport), Times.Once);
+            migrationProgressReport.Message.Should().Be("test message");
         }
     }
 }
