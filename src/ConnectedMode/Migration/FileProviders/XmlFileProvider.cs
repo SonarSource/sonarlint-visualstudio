@@ -39,16 +39,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
     internal class XmlFileProvider : IFileProvider
     {
         private readonly IServiceProvider serviceProvider;
+        private readonly IRoslynProjectProvider projectProvider;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
         private readonly IFileSystem fileSystem;
 
+        // We only search for non-project files - we get the Roslyn project file paths
+        // from the VSWorkspace
         internal static readonly string[] FileSearchPatterns = new string[] {
             "*.ruleset",
             "*.props",
-            "*.targets",
-            "*.csproj",
-            "*.vbproj"
+            "*.targets"
         };
 
         internal static readonly string[] ExcludedDirectores = new string[]
@@ -60,19 +61,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
         [ImportingConstructor]
         public XmlFileProvider(
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            IRoslynProjectProvider projectProvider,
             ILogger logger,
             IThreadHandling threadHandling)
-            : this(serviceProvider, logger, threadHandling, new FileSystem())
+            : this(serviceProvider, projectProvider, logger, threadHandling, new FileSystem())
         {
         }
 
         internal /* for testing */ XmlFileProvider(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            IServiceProvider serviceProvider,
+            IRoslynProjectProvider projectProvider,
             ILogger logger,
             IThreadHandling threadHandling,
             IFileSystem fileSystem)
         {
             this.serviceProvider = serviceProvider;
+            this.projectProvider = projectProvider;
             this.logger = logger;
             this.threadHandling = threadHandling;
             this.fileSystem = fileSystem;
@@ -80,11 +84,32 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
 
         public async Task<IEnumerable<string>> GetFilesAsync(CancellationToken token)
         {
+            var roslynProjectFiles = GetRoslynProjectFilePaths();
+            // If there are no Roslyn projects then there is nothing to clean up
+            if (roslynProjectFiles.Length == 0)
+            {
+                LogVerbose("No Roslyn projects: nothing to clean");
+                return Enumerable.Empty<string>();
+            }
+
+            var allFiles = new List<string>(roslynProjectFiles);
+            allFiles.AddRange(await GetFilesFromFileSystemAsync());
+            return allFiles;
+        }
+
+        private string[] GetRoslynProjectFilePaths()
+        {
+            var roslynProjects = projectProvider.Get();
+            return roslynProjects.Where(x => x.FilePath != null).Select(x => x.FilePath).ToArray();
+        }
+
+        private async Task<ISet<string>> GetFilesFromFileSystemAsync()
+        {
             var solutionDir = await GetSolutionDirectoryAsync();
             if (solutionDir == null)
             {
                 LogVerbose("Unable to locate the solution folder.");
-                return Enumerable.Empty<string>();
+                return new HashSet<string>();
             }
 
             // Make sure we are doing the disk search on a background thread
@@ -109,7 +134,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
             return solutionDir;
         }
 
-        private IEnumerable<string> FindFiles(string rootFolder)
+        private ISet<string> FindFiles(string rootFolder)
         {
             LogVerbose("Searching for files... Root directory: " + rootFolder);
 

@@ -19,9 +19,12 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
+using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -37,11 +40,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
     [TestClass]
     public class XmlFileProviderTests
     {
+        // Non-empty provider used by tests that don't care about the specific projects,
+        // just that there are some. CreateTestSubject will use this provider by default.
+        private static readonly IRoslynProjectProvider NonEmptyRoslynProjectProvider = CreateRoslynProjectProvider("c:\\any\\x.proj").Object;
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<XmlFileProvider, IFileProvider>(
                 MefTestHelpers.CreateExport<SVsServiceProvider>(),
+                MefTestHelpers.CreateExport<IRoslynProjectProvider>(),
                 MefTestHelpers.CreateExport<ILogger>(),
                 MefTestHelpers.CreateExport<IThreadHandling>());
         }
@@ -51,18 +59,54 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
             => MefTestHelpers.CheckIsNonSharedMefComponent<XmlFileProvider>();
 
         [TestMethod]
-        public async Task GetFiles_NoSolutionFolder_ReturnsEmptyList()
+        public async Task GetFiles_NoRoslynProjects_ReturnsEmptyList()
         {
-            var solution = CreateIVsSolution(null /* no solution folder */);
-            var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
-
+            var serviceProvider = new Mock<IServiceProvider>();
             var fileSystem = new Mock<IFileSystem>();
-
-            var testSubject = CreateTestSubject(serviceProvider.Object, fileSystem.Object);
+            var projectProvider = CreateRoslynProjectProvider( /* no project */ );
+            
+            var testSubject = CreateTestSubject(serviceProvider.Object, fileSystem.Object, projectProvider.Object);
 
             var actual = await testSubject.GetFilesAsync(CancellationToken.None);
 
             actual.Should().BeEmpty();
+            projectProvider.Verify(x => x.Get(), Times.Once);
+            serviceProvider.Invocations.Should().BeEmpty();
+            fileSystem.Invocations.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public async Task GetFiles_HasRoslynProjectsButNoOtherFiles_ReturnsRoslynFilePaths()
+        {
+            var solution = CreateIVsSolution("c:\\searchPath");
+            var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
+
+            var fileSystem = CreateFileSystem();
+            var projectProvider = CreateRoslynProjectProvider("c:\\any.proj", "x:\\any.proj2");
+
+            var testSubject = CreateTestSubject(serviceProvider.Object, fileSystem.Object, projectProvider.Object);
+
+            var actual = await testSubject.GetFilesAsync(CancellationToken.None);
+
+            actual.Should().BeEquivalentTo("c:\\any.proj", "x:\\any.proj2");
+            projectProvider.Verify(x => x.Get(), Times.Once);
+            fileSystem.Invocations.Should().HaveCount(XmlFileProvider.FileSearchPatterns.Length);
+        }
+
+        [TestMethod]
+        public async Task GetFiles_NoSolutionFolder_ReturnsOnlyProjectFiles()
+        {
+            var solution = CreateIVsSolution(null /* no solution folder */);
+            var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
+            var projectProvider = CreateRoslynProjectProvider("project1", "project2");
+
+            var fileSystem = new Mock<IFileSystem>();
+
+            var testSubject = CreateTestSubject(serviceProvider.Object, fileSystem.Object, projectProvider.Object);
+
+            var actual = await testSubject.GetFilesAsync(CancellationToken.None);
+
+            actual.Should().BeEquivalentTo("project1", "project2");
             fileSystem.Invocations.Should().HaveCount(0);
         }
 
@@ -71,22 +115,26 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
         {
             var solution = CreateIVsSolution("root dir");
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
+            var projectProvider = CreateRoslynProjectProvider("project1", "project2");
 
             var filesToReturn = new string[] { "file1", "file2", "file3" };
             var fileSystem = CreateFileSystem(filesToReturn);
 
-            var testSubject = CreateTestSubject(serviceProvider.Object, fileSystem.Object);
+            var testSubject = CreateTestSubject(serviceProvider.Object, fileSystem.Object, projectProvider.Object);
 
             var actual = await testSubject.GetFilesAsync(CancellationToken.None);
 
-            actual.Should().BeEquivalentTo(filesToReturn);
+            // Expecting the project files and any files found by searching
+            actual.Should().BeEquivalentTo("file1", "file2", "file3", "project1", "project2");
             solution.VerifyAll();
 
             fileSystem.Verify(x => x.Directory.GetFiles("root dir", "*.ruleset", SearchOption.AllDirectories), Times.Once);
             fileSystem.Verify(x => x.Directory.GetFiles("root dir", "*.props", SearchOption.AllDirectories), Times.Once);
             fileSystem.Verify(x => x.Directory.GetFiles("root dir", "*.targets", SearchOption.AllDirectories), Times.Once);
-            fileSystem.Verify(x => x.Directory.GetFiles("root dir", "*.csproj", SearchOption.AllDirectories), Times.Once);
-            fileSystem.Verify(x => x.Directory.GetFiles("root dir", "*.vbproj", SearchOption.AllDirectories), Times.Once);
+
+            // We shouldn't be searching the file system for project files
+            fileSystem.Verify(x => x.Directory.GetFiles("root dir", "*.csproj", SearchOption.AllDirectories), Times.Never);
+            fileSystem.Verify(x => x.Directory.GetFiles("root dir", "*.vbproj", SearchOption.AllDirectories), Times.Never);
         }
 
         [TestMethod]
@@ -94,6 +142,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
         {
             var solution = CreateIVsSolution("root dir");
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
+            var projectProvider = CreateRoslynProjectProvider("the project file");
 
             var filesInFileSystem = new string[] {
                 "should be included1",
@@ -106,11 +155,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
 
             var fileSystem = CreateFileSystem(filesInFileSystem);
 
-            var testSubject = CreateTestSubject(serviceProvider.Object, fileSystem.Object);
+            var testSubject = CreateTestSubject(serviceProvider.Object, fileSystem.Object, projectProvider.Object);
 
             var actual = await testSubject.GetFilesAsync(CancellationToken.None);
 
-            actual.Should().BeEquivalentTo("should be included1", "should be included2\\obj", "should be included3");
+            actual.Should().BeEquivalentTo("should be included1", "should be included2\\obj", "should be included3",
+                "the project file"); // the project file will always be included
         }
 
         [TestMethod]
@@ -118,6 +168,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
         {
             var solution = CreateIVsSolution("root dir");
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
+            var projectProvider = CreateRoslynProjectProvider("the project file");
 
             var filesInFileSystem = new string[] {
                 // duplicates - should only appear once
@@ -132,21 +183,27 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
 
             var fileSystem = CreateFileSystem(filesInFileSystem);
 
-            var testSubject = CreateTestSubject(serviceProvider.Object, fileSystem.Object);
+            var testSubject = CreateTestSubject(serviceProvider.Object, fileSystem.Object, projectProvider.Object);
 
             var actual = await testSubject.GetFilesAsync(CancellationToken.None);
 
-            actual.Should().BeEquivalentTo("file_1", "file_11", "file_111");
+            actual.Should().BeEquivalentTo("file_1", "file_11", "file_111",
+                "the project file"); // project file will always be included
         }
 
         private static XmlFileProvider CreateTestSubject(IServiceProvider serviceProvider = null,
-            IFileSystem fileSystem = null, ILogger logger = null, IThreadHandling threadHandling = null)
+            IFileSystem fileSystem = null,
+            IRoslynProjectProvider projectProvider = null,
+            ILogger logger = null,
+            IThreadHandling threadHandling = null)
         {
             serviceProvider ??= CreateServiceProviderWithSolution(CreateIVsSolution(null).Object).Object;
             fileSystem ??= new System.IO.Abstractions.TestingHelpers.MockFileSystem();
+            projectProvider ??= NonEmptyRoslynProjectProvider;
             logger ??= new TestLogger(logToConsole: true);
             threadHandling ??= new NoOpThreadHandler();
-            return new XmlFileProvider(serviceProvider, logger, threadHandling, fileSystem);
+
+            return new XmlFileProvider(serviceProvider, projectProvider, logger, threadHandling, fileSystem);
         }
 
         private static Mock<IServiceProvider> CreateServiceProviderWithSolution(IVsSolution solution)
@@ -176,6 +233,43 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
                 .Returns(VSConstants.S_OK);
 
             return solution;
+        }
+
+        private static Mock<IRoslynProjectProvider> CreateRoslynProjectProvider(params string[] projectFilePaths)
+        {
+            var projectProvider = new Mock<IRoslynProjectProvider>();
+
+            var projects = CreateProjects(projectFilePaths);
+            projectProvider.Setup(x => x.Get()).Returns(projects);
+
+            return projectProvider;
+        }
+
+        private static IReadOnlyList<Project> CreateProjects(params string[] projectFilePaths)
+        {
+            var projectInfos = projectFilePaths.Select(CreateProjectInfo);
+
+            // We can't directly create or mock a Roslyn Project. However, we can 
+            // create a real Roslyn AdhocWorkspace and use that to create a Solution
+            // with Projects.
+            AdhocWorkspace adhocWorkspace = new AdhocWorkspace();
+
+            var slnInfo = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default, null,
+                projectInfos);
+            adhocWorkspace.AddSolution(slnInfo);
+
+            return adhocWorkspace.CurrentSolution.Projects.ToList();
+        }
+
+        private static ProjectInfo CreateProjectInfo(string projectFilePath)
+        {
+            var guid = Guid.NewGuid();
+            return ProjectInfo.Create(ProjectId.CreateFromSerialized(guid),
+                VersionStamp.Default,
+                guid.ToString(),
+                guid.ToString(),
+                LanguageNames.CSharp,
+                filePath: projectFilePath);
         }
     }
 }
