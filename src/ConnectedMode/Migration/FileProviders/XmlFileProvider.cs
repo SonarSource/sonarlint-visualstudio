@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
             if (solutionDir == null)
             {
                 LogVerbose("Unable to locate the solution folder.");
-                return new HashSet<string>();
+                return Enumerable.Empty<string>();
             }
 
             // Make sure we are doing the disk search on a background thread
