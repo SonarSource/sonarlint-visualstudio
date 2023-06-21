@@ -61,6 +61,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         private void NavigateToMigrationProgressPage(object sender, RoutedEventArgs e)
         {
+            // Changing the first page visibility to Hidden rather than Collapsed so
+            // that the size of the dialog does not change.
+            // If we used "Collapsed", the size of the dialog would be recalculated as
+            // if the first page did not exist.
             StartWindow.Visibility = Visibility.Hidden;
             MigrationProgressWindow.Visibility = Visibility.Visible;
         }

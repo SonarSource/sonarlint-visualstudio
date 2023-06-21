@@ -21,7 +21,7 @@
     </Window.Resources>
 
     <Grid TextBlock.FontSize="15">
-        <DockPanel x:Name="StartWindow" Margin="10" LastChildFill="True" Visibility="Hidden" >
+        <DockPanel x:Name="StartWindow" Margin="10" LastChildFill="True" Visibility="Visible" >
             <DockPanel DockPanel.Dock="Bottom">
                 <Button DockPanel.Dock="Left" Content="Cancel" IsCancel="True" HorizontalAlignment="Left"  Style="{DynamicResource Button_Style}" />
                 <Button DockPanel.Dock="Right" Content="Continue" Click="NavigateToMigrationProgressPage" HorizontalAlignment="Right" Style="{DynamicResource Button_Style}"/>
@@ -76,7 +76,7 @@
 
         </DockPanel>
 
-        <DockPanel x:Name="MigrationProgressWindow" Margin="10" LastChildFill="True" Visibility="Visible">
+        <DockPanel x:Name="MigrationProgressWindow" Margin="10" LastChildFill="True" Visibility="Hidden">
             <!-- Using a grid here because we want to draw one button on top of the other, and only have one visible at time -->
             <Grid DockPanel.Dock="Bottom">
                 <Button HorizontalAlignment="Right" Content="Migrate" x:Name="migrateButton" Visibility="Visible" Click="OnStartMigration" Style="{DynamicResource Button_Style}"/>
