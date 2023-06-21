@@ -115,6 +115,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarLint: You have both old and new connected mode settings. Please Migrate again to clean up the old settings.
+        /// </summary>
+        internal static string MigrationPrompt_AlreadyConnected_Message {
+            get {
+                return ResourceManager.GetString("MigrationPrompt_AlreadyConnected_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Learn more.
         /// </summary>
         internal static string MigrationPrompt_LearnMoreButton {
