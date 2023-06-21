@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             dialogResult = false;
         }
 
-        private void NavigateToMigrationProgressPage(object sender, RoutedEventArgs e)
+        private void NavigateToMigrationProgressPage()
         {
             // Changing the first page visibility to Hidden rather than Collapsed so
             // that the size of the dialog does not change.
@@ -67,17 +67,27 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             // if the first page did not exist.
             StartWindow.Visibility = Visibility.Hidden;
             MigrationProgressWindow.Visibility = Visibility.Visible;
+
+            // Set button states
+            btnPage1_Cancel.IsEnabled = false;
+            btnPage1_Start.IsEnabled = false;
+
+            finishButton.IsEnabled = false; // disabled until migration finished
         }
 
         private void OnStartMigration(object sender, RoutedEventArgs e)
         {
+            // User has clicked on the "Start" button on the first page
+            // -> show page 2
+            // -> start the process
+
             if (migrationInProgress) { return; }
             migrationInProgress = true;
 
-            this.migrateButton.Visibility = Visibility.Collapsed;
-            this.finishButton.IsEnabled = false;
-            this.finishButton.Visibility = Visibility.Visible;
-            // Disables all closing / cancel buttons.
+            NavigateToMigrationProgressPage();
+
+            // Disables all closing / cancel buttons, including the 
+            // the X in the top-right of the window
             this.IsCloseButtonEnabled = false;
 
             MigrateAsync().Forget();
