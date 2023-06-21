@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         private void NavigateToMigrationProgressPage(object sender, RoutedEventArgs e)
         {
-            StartWindow.Visibility = Visibility.Collapsed;
+            StartWindow.Visibility = Visibility.Hidden;
             MigrationProgressWindow.Visibility = Visibility.Visible;
         }
 
