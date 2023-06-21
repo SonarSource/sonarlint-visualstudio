@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     /// </summary>
     internal interface IMigrationPrompt : IDisposable
     {
-        Task ShowAsync(BoundSonarQubeProject oldBinding, bool isAlreadyConnected);
+        Task ShowAsync(BoundSonarQubeProject oldBinding, bool hasNewBindingFiles);
 
         void Clear();
     }
@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             migrationWizardController.MigrationWizardFinished += OnMigrationWizardFinished;
         }
 
-        public async Task ShowAsync(BoundSonarQubeProject oldBinding, bool isAlreadyConnected)
+        public async Task ShowAsync(BoundSonarQubeProject oldBinding, bool hasNewBindingFiles)
         {
             this.oldBinding = oldBinding;
 
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 // per session has its own notification.
                 var id = idPrefix + GetSolutionPath();
 
-                var message = isAlreadyConnected ? MigrationStrings.MigrationPrompt_AlreadyConnected_Message : MigrationStrings.MigrationPrompt_Message;
+                var message = hasNewBindingFiles ? MigrationStrings.MigrationPrompt_AlreadyConnected_Message : MigrationStrings.MigrationPrompt_Message;
 
                 var notification = new Notification(
                     id: id,

@@ -68,13 +68,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         public async Task DisplayMigrationPromptIfMigrationIsNeededAsync()
         {
             // There can be a case where the user has both the old and new files. This will display a different message on the prompt.
-            var isAlreadyConnected = configurationProvider.GetConfiguration()?.Mode != SonarLintMode.Standalone;
+            var hasNewBindingFiles = configurationProvider.GetConfiguration()?.Mode != SonarLintMode.Standalone;
 
             var oldConfiguration = obsoleteConfigurationProvider.GetConfiguration();
             if (oldConfiguration != null && oldConfiguration.Mode != SonarLintMode.Standalone)
             {
                migrationPrompt = await mefFactory.CreateAsync<IMigrationPrompt>();
-               migrationPrompt.ShowAsync(oldConfiguration.Project, isAlreadyConnected).Forget();
+               migrationPrompt.ShowAsync(oldConfiguration.Project, hasNewBindingFiles).Forget();
             }
         }
 

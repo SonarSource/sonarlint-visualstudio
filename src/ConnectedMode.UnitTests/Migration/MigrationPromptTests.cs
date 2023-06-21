@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
-        public async Task ShowAsync_VerifyNotificationIsCreatedWithExpectedParameters(bool isAlreadyConnected)
+        public async Task ShowAsync_VerifyNotificationIsCreatedWithExpectedParameters(bool hasNewBindingFiles)
         {
             var notificationService = new Mock<INotificationService>();
             INotification notification = null;
@@ -78,11 +78,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var serviceProvider = SetUpServiceProviderWithSolution("path_to_solution");
 
             var testSubject = CreateTestSubject(serviceProvider: serviceProvider, notificationService: notificationService.Object);
-            await testSubject.ShowAsync(AnyBoundProject, isAlreadyConnected);
+            await testSubject.ShowAsync(AnyBoundProject, hasNewBindingFiles);
 
             notificationService.Verify(x => x.ShowNotification(notification), Times.Once);
             notification.Id.Should().Be("ConnectedModeMigration_path_to_solution");
-            notification.Message.Should().Be(isAlreadyConnected ? MigrationStrings.MigrationPrompt_AlreadyConnected_Message : MigrationStrings.MigrationPrompt_Message);
+            notification.Message.Should().Be(hasNewBindingFiles ? MigrationStrings.MigrationPrompt_AlreadyConnected_Message : MigrationStrings.MigrationPrompt_Message);
             notification.Actions.Count().Should().Be(2);
 
             notification.Actions.First().CommandText.Should().Be(MigrationStrings.MigrationPrompt_MigrateButton);
