@@ -36,6 +36,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     /// </summary>
     internal interface IMigrationPrompt : IDisposable
     {
+        /// <summary>
+        /// Shows a prompt async with a different message depending on the value of hasNewBindingFiles.
+        /// </summary>
         Task ShowAsync(BoundSonarQubeProject oldBinding, bool hasNewBindingFiles);
 
         void Clear();
