@@ -45,7 +45,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
         private readonly IFileSystem fileSystem;
 
         // We only search for non-project files - we get the Roslyn project file paths
-        // from the VSWorkspace
+        // from the VSWorkspace.
+        // Corner case: this means that we won't clean projects that are in the solution
+        // but unloaded, since they won't appear in the VsWorkspace
         internal static readonly string[] FileSearchPatterns = new string[] {
             "*.ruleset",
             "*.props",
