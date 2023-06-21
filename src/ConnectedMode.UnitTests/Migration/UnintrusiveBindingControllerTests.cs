@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var bindingProcessFactory = CreateBindingProcessFactory();
 
             var testSubject = CreateTestSubject(bindingProcessFactory: bindingProcessFactory.Object);
-            await testSubject.BindAsync(AnyBoundProject, CancellationToken.None);
+            await testSubject.BindAsync(AnyBoundProject, null, CancellationToken.None);
             
             var args = bindingProcessFactory.Invocations[0].Arguments[0] as BindCommandArgs;
 
@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             bindingProcess.Setup(x => x.SaveServerExclusionsAsync(cancellationToken)).Callback(() => calls.Add("SaveServerExclusionsAsync"));
 
             var testSubject = CreateTestSubject(bindingProcessFactory: CreateBindingProcessFactory(bindingProcess.Object).Object);
-            await testSubject.BindAsync(AnyBoundProject, cancellationToken);
+            await testSubject.BindAsync(AnyBoundProject, null, cancellationToken);
 
             calls.Should().ContainInOrder("DownloadQualityProfiles", "SaveRuleConfiguration", "SaveServerExclusionsAsync");
         }

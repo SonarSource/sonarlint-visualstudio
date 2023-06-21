@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.ConnectedModeMigrationTestsExtensions;
 using SonarLint.VisualStudio.Core.Binding;
@@ -240,11 +241,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         {
             var unintrusiveBindingController = new Mock<IUnintrusiveBindingController>();
             var cancellationToken = CancellationToken.None;
+            var migrationProgress = Mock.Of<IProgress<MigrationProgress>>();
 
             var testSubject = CreateTestSubject(unintrusiveBindingController: unintrusiveBindingController.Object);
-            await testSubject.MigrateAsync(AnyBoundProject, null, cancellationToken);
+            await testSubject.MigrateAsync(AnyBoundProject, migrationProgress, cancellationToken);
 
-            unintrusiveBindingController.Verify(x => x.BindAsync(AnyBoundProject, cancellationToken), Times.Once);
+            unintrusiveBindingController.Verify(x => x.BindAsync(AnyBoundProject, It.IsAny<IProgress<FixedStepsProgress>>(), cancellationToken), Times.Once);
         }
 
         private static ConnectedModeMigration CreateTestSubject(
