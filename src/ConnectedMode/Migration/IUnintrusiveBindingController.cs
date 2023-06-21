@@ -18,18 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core.Binding;
-
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
     internal interface IUnintrusiveBindingController
     {
-        Task BindAsync(BoundSonarQubeProject project, CancellationToken token);
+        Task BindAsync(BoundSonarQubeProject project, IProgress<FixedStepsProgress> progress, CancellationToken token);
     }
 
     [Export(typeof(IUnintrusiveBindingController))]
@@ -44,11 +44,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             this.bindingProcessFactory = bindingProcessFactory;
         }
 
-        public async Task BindAsync(BoundSonarQubeProject project, CancellationToken token)
+        public async Task BindAsync(BoundSonarQubeProject project, IProgress<FixedStepsProgress> progress, CancellationToken token)
         {
             var bindingProcess = CreateBindingProcess(project);
 
-            await bindingProcess.DownloadQualityProfileAsync(null, token);
+            await bindingProcess.DownloadQualityProfileAsync(progress, token);
             bindingProcess.SaveRuleConfiguration(token);
             await bindingProcess.SaveServerExclusionsAsync(token);
         }
