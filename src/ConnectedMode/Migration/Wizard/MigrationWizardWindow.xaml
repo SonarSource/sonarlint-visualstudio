@@ -7,10 +7,10 @@
     HorizontalAlignment="Center"
     ResizeMode="NoResize"
     SizeToContent="WidthAndHeight"
-    MinHeight="300"
-    MaxHeight="500"
-    MinWidth="200"
-    MaxWidth="500">
+    MinHeight="400"
+    MaxHeight="600"
+    MinWidth="400"
+    MaxWidth="600">
 
     <Window.Resources>
         <Style x:Key="Button_Style" TargetType="Button">
@@ -21,17 +21,19 @@
     </Window.Resources>
 
     <Grid TextBlock.FontSize="15">
+        <Separator VerticalAlignment="Top" />
         <DockPanel x:Name="StartWindow" Margin="10" LastChildFill="True" Visibility="Visible" >
             <DockPanel DockPanel.Dock="Bottom">
-                <Button DockPanel.Dock="Left" Content="Cancel" IsCancel="True" HorizontalAlignment="Left"  Style="{DynamicResource Button_Style}" />
-                <Button DockPanel.Dock="Right" Content="Continue" Click="NavigateToMigrationProgressPage" HorizontalAlignment="Right" Style="{DynamicResource Button_Style}"/>
+                <Button x:Name="btnPage1_Cancel" DockPanel.Dock="Left" Content="Cancel" IsCancel="True" HorizontalAlignment="Left"  Style="{DynamicResource Button_Style}" />
+                <Button x:Name="btnPage1_Start" DockPanel.Dock="Right" Content="Start" IsDefault="true" Click="OnStartMigration" HorizontalAlignment="Right" Style="{DynamicResource Button_Style}"/>
             </DockPanel>
 
             <!-- Last child - fills the body of the panel -->
             <StackPanel Orientation="Vertical" HorizontalAlignment="Left">
 
                 <!-- Intro -->
-                <TextBlock TextWrapping="WrapWithOverflow" >
+                <!-- Margin controls the spacing between the text blocks -->
+                <TextBlock TextWrapping="WrapWithOverflow" Margin="0,20,0,0" >
                     <Run>The storage of Connected Mode has settings has changed, 
                         and the settings for this project need to be migrate to the new format.
                     </Run>
@@ -41,7 +43,7 @@
 
                 <!-- Header -->
                 <!-- Margin controls the spacing between the text blocks -->
-                <TextBlock TextWrapping="WrapWithOverflow" Margin="0,20,0,0">
+                <TextBlock TextWrapping="WrapWithOverflow" Margin="0,40,0,0">
                     <Bold><Run>Before starting:</Run></Bold>
                 </TextBlock>
 
@@ -64,7 +66,7 @@
                     <Run> if the solution is under source control, check that you have no uncommitted changes.</Run>
                 </TextBlock>
 
-                <TextBlock TextWrapping="WrapWithOverflow" Margin="0,15,0,10">
+                <TextBlock TextWrapping="WrapWithOverflow" Margin="0,40,0,0">
                     <Run>If you are ready to migrate, click </Run>
                     <Italic>Continue</Italic><Run>. Otherwise, click </Run>
                     <Italic>Cancel</Italic>
@@ -77,16 +79,14 @@
         </DockPanel>
 
         <DockPanel x:Name="MigrationProgressWindow" Margin="10" LastChildFill="True" Visibility="Hidden">
-            <!-- Using a grid here because we want to draw one button on top of the other, and only have one visible at time -->
-            <Grid DockPanel.Dock="Bottom">
-                <Button HorizontalAlignment="Right" Content="Migrate" x:Name="migrateButton" Visibility="Visible" Click="OnStartMigration" Style="{DynamicResource Button_Style}"/>
-                <Button HorizontalAlignment="Right" Content="Finish" x:Name="finishButton" Visibility="Collapsed" IsCancel="True" Style="{DynamicResource Button_Style}"/>
-            </Grid>
+            <DockPanel DockPanel.Dock="Bottom">
+                <Button HorizontalAlignment="Right" Content="Finish" x:Name="finishButton" IsEnabled="false" IsCancel="True" Style="{DynamicResource Button_Style}"/>
+            </DockPanel>
 
             <!-- Last child - fills the body of the panel -->
             <DockPanel LastChildFill="True">
                 <TextBlock DockPanel.Dock="Top">Progress:</TextBlock>
-                <ListBox x:Name="progressList" Margin="0,8,0,10" BorderBrush="LightGray" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                <ListBox x:Name="progressList" Margin="0,8,0,10" BorderBrush="LightGray" ScrollViewer.VerticalScrollBarVisibility="Auto" Height="350" />
             </DockPanel>
 
         </DockPanel>
