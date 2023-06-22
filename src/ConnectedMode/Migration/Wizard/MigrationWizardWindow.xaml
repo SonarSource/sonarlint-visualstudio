@@ -24,8 +24,8 @@
         <Separator VerticalAlignment="Top" />
         <DockPanel x:Name="StartWindow" Margin="10" LastChildFill="True" Visibility="Visible" >
             <DockPanel DockPanel.Dock="Bottom">
-                <Button x:Name="btnPage1_Cancel" DockPanel.Dock="Left" Content="Cancel" IsCancel="True" IsDefault="true" HorizontalAlignment="Left"  Style="{DynamicResource Button_Style}" />
-                <Button x:Name="btnPage1_Start" DockPanel.Dock="Right" Content="Start" Click="OnStartMigration" HorizontalAlignment="Right" Style="{DynamicResource Button_Style}"/>
+                <Button x:Name="btnPage1_Cancel" DockPanel.Dock="Left" Content="Cancel" IsCancel="True" HorizontalAlignment="Left"  Style="{DynamicResource Button_Style}" />
+                <Button x:Name="btnPage1_Start" DockPanel.Dock="Right" Content="Start" IsDefault="true" Click="OnStartMigration" HorizontalAlignment="Right" Style="{DynamicResource Button_Style}"/>
             </DockPanel>
 
             <!-- Last child - fills the body of the panel -->
