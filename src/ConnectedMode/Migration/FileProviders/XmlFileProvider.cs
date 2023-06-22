@@ -21,9 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.IO;
-using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,13 +34,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
 {
     [Export(typeof(IFileProvider))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
-    internal class XmlFileProvider : IFileProvider
+    internal partial class XmlFileProvider : IFileProvider
     {
         private readonly IServiceProvider serviceProvider;
         private readonly IRoslynProjectProvider projectProvider;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
-        private readonly IFileSystem fileSystem;
+        private readonly IFileFinder fileFinder;
 
         // We only search for non-project files - we get the Roslyn project file paths
         // from the VSWorkspace.
@@ -54,19 +52,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
             "*.targets"
         };
 
-        internal static readonly string[] ExcludedDirectores = new string[]
-        {
-            "\\bin\\",
-            "\\obj\\"
-        };
-
         [ImportingConstructor]
         public XmlFileProvider(
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IRoslynProjectProvider projectProvider,
             ILogger logger,
             IThreadHandling threadHandling)
-            : this(serviceProvider, projectProvider, logger, threadHandling, new FileSystem())
+            : this(serviceProvider, projectProvider, logger, threadHandling, new FileFinder(logger))
         {
         }
 
@@ -75,13 +67,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
             IRoslynProjectProvider projectProvider,
             ILogger logger,
             IThreadHandling threadHandling,
-            IFileSystem fileSystem)
+            IFileFinder fileFinder)
         {
             this.serviceProvider = serviceProvider;
             this.projectProvider = projectProvider;
             this.logger = logger;
             this.threadHandling = threadHandling;
-            this.fileSystem = fileSystem;
+            this.fileFinder = fileFinder;
         }
 
         public async Task<IEnumerable<string>> GetFilesAsync(CancellationToken token)
@@ -90,7 +82,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
             // If there are no Roslyn projects then there is nothing to clean up
             if (roslynProjectFiles.Length == 0)
             {
-                LogVerbose("No Roslyn projects: nothing to clean");
+                logger.LogMigrationVerbose("No Roslyn projects: nothing to clean");
                 return Enumerable.Empty<string>();
             }
 
@@ -111,14 +103,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
             var solutionDir = await GetSolutionDirectoryAsync();
             if (solutionDir == null)
             {
-                LogVerbose("Unable to locate the solution folder.");
+                logger.LogMigrationVerbose("Unable to locate the solution folder.");
                 return Enumerable.Empty<string>();
             }
 
             // Make sure we are doing the disk search on a background thread
             await threadHandling.SwitchToBackgroundThread();
 
-            return FindFiles(solutionDir);
+            return fileFinder.GetFiles(solutionDir, SearchOption.AllDirectories, FileSearchPatterns);
         }
 
         private async Task<string> GetSolutionDirectoryAsync()
@@ -137,32 +129,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
             return solutionDir;
         }
 
-        private IEnumerable<string> FindFiles(string rootFolder)
-        {
-            LogVerbose("Searching for files... Root directory: " + rootFolder);
-
-            var timer = Stopwatch.StartNew();
-
-            var allMatches = new List<string>();
-
-            foreach(var pattern in FileSearchPatterns)
-            {
-                var files = fileSystem.Directory.GetFiles(rootFolder, pattern, SearchOption.AllDirectories);
-                var filesToInclude = files.Where(x => !IsInExcludedDirectory(x)).ToArray();
-
-                allMatches.AddRange(filesToInclude);
-                LogVerbose($"  Pattern: {pattern}, Number of matching files: {filesToInclude.Length}");
-            }
-
-            timer.Stop();
-            LogVerbose("Total number of matching files: " + allMatches.Count);
-            LogVerbose("Search time (ms): " + timer.ElapsedMilliseconds);
-
-            return allMatches;
-        }
-
-        private static bool IsInExcludedDirectory(string fullPath) => ExcludedDirectores.Any(x => fullPath.Contains(x));
-
         private static void AddToMatches(HashSet<string> results, IEnumerable<string> matches)
         {
             foreach(var match in matches)
@@ -170,7 +136,5 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
                 results.Add(match);
             }
         }
-
-        private void LogVerbose(string text) => logger.LogVerbose("[Migration] " + text);
     }
 }
