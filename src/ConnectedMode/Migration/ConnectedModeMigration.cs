@@ -47,6 +47,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly ISonarQubeService sonarQubeService;
         private readonly IUnintrusiveBindingController unintrusiveBindingController;
         private readonly ILogger logger;
+        private readonly IThreadHandling threadHandling;
 
         // The user can have both the legacy and new connected mode files. In that case, we expect the SonarQubeService to already be connected.
         private bool isAlreadyConnectedToServer;
@@ -58,7 +59,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             IVsAwareFileSystem fileSystem,
             ISonarQubeService sonarQubeService,
             IUnintrusiveBindingController unintrusiveBindingController,
-            ILogger logger)
+            ILogger logger,
+            IThreadHandling threadHandling)
         {
             this.settingsProvider = settingsProvider;
             this.fileProvider = fileProvider;
@@ -67,11 +69,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             this.sonarQubeService = sonarQubeService;
             this.unintrusiveBindingController = unintrusiveBindingController;
             this.logger = logger;
+            this.threadHandling = threadHandling;
         }
 
         public async Task MigrateAsync(BoundSonarQubeProject oldBinding, IProgress<MigrationProgress> progress, CancellationToken token)
         {
             isAlreadyConnectedToServer = sonarQubeService.IsConnected;
+
+            await threadHandling.SwitchToBackgroundThread();
 
             try
             {

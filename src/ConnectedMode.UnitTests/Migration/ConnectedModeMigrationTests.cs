@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.ConnectedModeMigrationTestsExtensions;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -54,7 +55,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 MefTestHelpers.CreateExport<IVsAwareFileSystem>(),
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IUnintrusiveBindingController>(),
-                MefTestHelpers.CreateExport<ILogger>());
+                MefTestHelpers.CreateExport<ILogger>(),
+                MefTestHelpers.CreateExport<IThreadHandling>());
         }
 
         [TestMethod]
@@ -249,6 +251,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             unintrusiveBindingController.Verify(x => x.BindAsync(AnyBoundProject, It.IsAny<IProgress<FixedStepsProgress>>(), cancellationToken), Times.Once);
         }
 
+        [TestMethod]
+        public async Task Migrate_SwitchToBackgroundThread()
+        {
+            var threadHandling = new Mock<IThreadHandling>();
+            threadHandling.Setup(x => x.SwitchToBackgroundThread())
+               .Returns(() => new NoOpThreadHandler.NoOpAwaitable());
+
+            var testSubject = CreateTestSubject(threadHandling: threadHandling.Object);
+            await testSubject.MigrateAsync(AnyBoundProject, It.IsAny<IProgress<MigrationProgress>>(), CancellationToken.None);
+
+            threadHandling.Verify(x => x.SwitchToBackgroundThread(), Times.Once);
+        }
+
         private static ConnectedModeMigration CreateTestSubject(
             IFileProvider fileProvider = null,
             IFileCleaner fileCleaner = null,
@@ -256,7 +271,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             IMigrationSettingsProvider settingsProvider = null,
             ISonarQubeService sonarQubeService = null,
             IUnintrusiveBindingController unintrusiveBindingController = null,
-            ILogger logger = null)
+            ILogger logger = null,
+            IThreadHandling threadHandling = null)
         {
             fileProvider ??= Mock.Of<IFileProvider>();
             fileCleaner ??= Mock.Of<IFileCleaner>();
@@ -264,10 +280,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             sonarQubeService ??= Mock.Of<ISonarQubeService>();
             unintrusiveBindingController ??= Mock.Of<IUnintrusiveBindingController>();
             settingsProvider ??= CreateSettingsProvider(DefaultTestLegacySettings).Object;
-
+            
             logger ??= new TestLogger(logToConsole: true);
+            threadHandling ??= new NoOpThreadHandler();
 
-            return new ConnectedModeMigration(settingsProvider, fileProvider, fileCleaner, fileSystem, sonarQubeService, unintrusiveBindingController, logger);
+            return new ConnectedModeMigration(settingsProvider, fileProvider, fileCleaner, fileSystem, sonarQubeService, unintrusiveBindingController, logger, threadHandling);
         }
 
         private static Mock<IFileProvider> CreateFileProvider(params string[] filesToReturn)
