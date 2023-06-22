@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             var legacySettings = await settingsProvider.GetAsync(oldBinding.ProjectKey);
 
             // TODO: add proper progress messages.
-            progress?.Report(new MigrationProgress(0, 1, "Getting files ...", false));
+            progress?.Report(new MigrationProgress(0, 1, "Getting files to clean...", false));
 
             logger.WriteLine(MigrationStrings.Process_GettingFiles);
             var files = await fileProvider.GetFilesAsync(token);
@@ -130,14 +130,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             }
             else
             {
+                progress?.Report(new MigrationProgress(0, 1, "Skipping cleaning as no dirty files were found...", false));
                 logger.WriteLine(MigrationStrings.Process_SkippingChecking);
             }
 
-            progress?.Report(new MigrationProgress(0, 1, "Create new binding files ...", false));
+            progress?.Report(new MigrationProgress(0, 1, "Creating new binding files ...", false));
             logger.WriteLine(MigrationStrings.Process_ProcessingNewBinding);
 
             var progressAdapter = new FixedStepsProgressToMigrationProgressAdapter(progress);
             await unintrusiveBindingController.BindAsync(oldBinding, progressAdapter, token);
+            progress?.Report(new MigrationProgress(0, 1, "Saving new binding files ...", false));
 
             // Note: SLVS will continue to detect the legacy binding mode until this step,
             // so if anything goes wrong during the migration and an exception occurs, the
@@ -146,7 +148,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             logger.WriteLine(MigrationStrings.Process_DeletingSonarLintFolder);
             await fileSystem.DeleteFolderAsync(legacySettings.LegacySonarLintFolderPath);
 
-            progress?.Report(new MigrationProgress(0, 1, "Finished", false));
+            progress?.Report(new MigrationProgress(0, 1, "Finished!", false));
             logger.WriteLine(MigrationStrings.Process_Finished);
         }
 
