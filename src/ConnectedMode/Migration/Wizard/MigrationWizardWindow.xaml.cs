@@ -126,19 +126,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             }
             catch (OperationCanceledException ex)
             {
-                var progress = new MigrationProgress(0, 1, MigrationStrings.Wizard_Progress_Cancelled, true);
-                ((IProgress<MigrationProgress>)this).Report(progress);
-
                 logger.LogVerbose(MigrationStrings.CancelTokenFailure_VerboseLog, ex);
                 logger.WriteLine(MigrationStrings.CancelTokenFailure_NormalLog);
+
+                var progress = new MigrationProgress(0, 1, MigrationStrings.Wizard_Progress_Cancelled, true);
+                ((IProgress<MigrationProgress>)this).Report(progress);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                var progress = new MigrationProgress(0, 1, MigrationStrings.Wizard_Progress_Cancelled, true);
-                ((IProgress<MigrationProgress>)this).Report(progress);
-
                 logger.LogVerbose(MigrationStrings.ErrorDuringMigation_VerboseLog, ex);
                 logger.WriteLine(MigrationStrings.ErrorDuringMigation_NormalLog, ex.Message);
+
+                var progress = new MigrationProgress(0, 1, MigrationStrings.Wizard_Progress_Error, true);
+                ((IProgress<MigrationProgress>)this).Report(progress);
             }
             finally
             {
