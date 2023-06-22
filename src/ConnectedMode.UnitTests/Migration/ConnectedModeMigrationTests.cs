@@ -27,7 +27,6 @@ using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.ConnectedModeMigrationTestsExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
@@ -56,7 +55,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 MefTestHelpers.CreateExport<IVsAwareFileSystem>(),
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IUnintrusiveBindingController>(),
-                MefTestHelpers.CreateExport<ILogger>());
+                MefTestHelpers.CreateExport<ILogger>(),
+                MefTestHelpers.CreateExport<IThreadHandling>());
         }
 
         [TestMethod]
