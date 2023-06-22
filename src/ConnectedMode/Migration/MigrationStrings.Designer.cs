@@ -88,7 +88,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Migration] Error during migration: {0}.
+        ///   Looks up a localized string similar to [Migration] Error during migration: {0}
+        ///  Run migration again with verbose logging enabled for more information..
         /// </summary>
         internal static string ErrorDuringMigation_NormalLog {
             get {
@@ -273,6 +274,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         internal static string Process_Starting {
             get {
                 return ResourceManager.GetString("Process_Starting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Migration cancelled.
+        /// </summary>
+        internal static string Wizard_Progress_Cancelled {
+            get {
+                return ResourceManager.GetString("Wizard_Progress_Cancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error during migration. See the Output Window for more information..
+        /// </summary>
+        internal static string Wizard_Progress_Error {
+            get {
+                return ResourceManager.GetString("Wizard_Progress_Error", resourceCulture);
             }
         }
     }
