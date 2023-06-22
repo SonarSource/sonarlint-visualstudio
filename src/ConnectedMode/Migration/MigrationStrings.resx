@@ -136,7 +136,8 @@
     <value>[Migration] Deleting the legacy .sonarlint...</value>
   </data>
   <data name="ErrorDuringMigation_NormalLog" xml:space="preserve">
-    <value>[Migration] Error during migration: {0}</value>
+    <value>[Migration] Error during migration: {0}
+  Run migration again with verbose logging enabled for more information.</value>
   </data>
   <data name="ErrorDuringMigation_VerboseLog" xml:space="preserve">
     <value>[MigrationWizardXaml] Error during migration: {0}</value>
@@ -189,5 +190,11 @@
   </data>
   <data name="MigrationPrompt_AlreadyConnected_Message" xml:space="preserve">
     <value>SonarLint: You have both old and new connected mode settings. Please Migrate again to clean up the old settings</value>
+  </data>
+  <data name="Wizard_Progress_Cancelled" xml:space="preserve">
+    <value>Migration cancelled</value>
+  </data>
+  <data name="Wizard_Progress_Error" xml:space="preserve">
+    <value>Error during migration. See the Output Window for more information.</value>
   </data>
 </root>

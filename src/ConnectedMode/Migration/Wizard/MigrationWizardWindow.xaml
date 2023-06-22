@@ -35,7 +35,7 @@
                 <!-- Margin controls the spacing between the text blocks -->
                 <TextBlock TextWrapping="WrapWithOverflow" Margin="0,20,0,0" >
                     <Run>The storage of Connected Mode has settings has changed, 
-                        and the settings for this project need to be migrate to the new format.
+                        and the settings for this project need to be migrated to the new format.
                     </Run>
                     <LineBreak />
                     <Run>See </Run> <Hyperlink> here</Hyperlink> <Run> for more information.</Run>
@@ -80,12 +80,19 @@
 
         <DockPanel x:Name="MigrationProgressWindow" Margin="10" LastChildFill="True" Visibility="Hidden">
             <DockPanel DockPanel.Dock="Bottom">
+                <Button x:Name="btnPage2_Cancel" DockPanel.Dock="Left" Content="Cancel" Click="btnPage2_Cancel_Click" HorizontalAlignment="Left"  Style="{DynamicResource Button_Style}" />
                 <Button HorizontalAlignment="Right" Content="Finish" x:Name="finishButton" IsEnabled="false" IsCancel="True" Style="{DynamicResource Button_Style}"/>
             </DockPanel>
 
             <!-- Last child - fills the body of the panel -->
             <DockPanel LastChildFill="True">
-                <TextBlock DockPanel.Dock="Top">Progress:</TextBlock>
+                <DockPanel DockPanel.Dock="Top">
+                    <TextBlock DockPanel.Dock="Left">Progress:</TextBlock>
+                    <StackPanel x:Name="panelStopwatch" DockPanel.Dock="Right" HorizontalAlignment="Right" Orientation="Horizontal">
+                        <TextBlock x:Name="txtStopwatchLabel">Elapsed time:</TextBlock>
+                        <TextBlock x:Name="txtStopwatchTime" Margin="5,0,40,0">00:00</TextBlock>
+                    </StackPanel>
+                </DockPanel>
                 <ListBox x:Name="progressList" Margin="0,8,0,10" BorderBrush="LightGray" ScrollViewer.VerticalScrollBarVisibility="Auto" Height="350" />
             </DockPanel>
 
