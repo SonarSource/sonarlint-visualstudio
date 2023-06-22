@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             var legacySettings = await settingsProvider.GetAsync(oldBinding.ProjectKey);
 
             // TODO: add proper progress messages.
-            progress?.Report(new MigrationProgress(0, 1, "Getting files to clean...", false));
+            progress?.Report(new MigrationProgress(0, 1, "Finding files to clean ...", false));
 
             logger.WriteLine(MigrationStrings.Process_GettingFiles);
             var files = await fileProvider.GetFilesAsync(token);
@@ -139,7 +139,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             var progressAdapter = new FixedStepsProgressToMigrationProgressAdapter(progress);
             await unintrusiveBindingController.BindAsync(oldBinding, progressAdapter, token);
-            progress?.Report(new MigrationProgress(0, 1, "Saving new binding files ...", false));
 
             // Note: SLVS will continue to detect the legacy binding mode until this step,
             // so if anything goes wrong during the migration and an exception occurs, the
@@ -148,7 +147,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             logger.WriteLine(MigrationStrings.Process_DeletingSonarLintFolder);
             await fileSystem.DeleteFolderAsync(legacySettings.LegacySonarLintFolderPath);
 
-            progress?.Report(new MigrationProgress(0, 1, "Finished!", false));
+            progress?.Report(new MigrationProgress(0, 1, "Migration finished successfully!", false));
             logger.WriteLine(MigrationStrings.Process_Finished);
         }
 
