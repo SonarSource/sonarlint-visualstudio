@@ -62,17 +62,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
         public async Task GetFiles_NoRoslynProjects_ReturnsEmptyList()
         {
             var serviceProvider = new Mock<IServiceProvider>();
-            var fileSystem = new Mock<IFileSystem>();
+            var fileFinder = new Mock<XmlFileProvider.IFileFinder>();
             var projectProvider = CreateRoslynProjectProvider( /* no project */ );
             
-            var testSubject = CreateTestSubject(serviceProvider.Object, fileSystem.Object, projectProvider.Object);
+            var testSubject = CreateTestSubject(serviceProvider.Object, fileFinder.Object, projectProvider.Object);
 
             var actual = await testSubject.GetFilesAsync(CancellationToken.None);
 
             actual.Should().BeEmpty();
             projectProvider.Verify(x => x.Get(), Times.Once);
             serviceProvider.Invocations.Should().BeEmpty();
-            fileSystem.Invocations.Should().BeEmpty();
+            fileFinder.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -81,16 +81,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
             var solution = CreateIVsSolution("c:\\searchPath");
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
 
-            var fileSystem = CreateFileSystem();
+            var fileFinder = CreateFileFinder();
             var projectProvider = CreateRoslynProjectProvider("c:\\any.proj", "x:\\any.proj2");
 
-            var testSubject = CreateTestSubject(serviceProvider.Object, fileSystem.Object, projectProvider.Object);
+            var testSubject = CreateTestSubject(serviceProvider.Object, fileFinder.Object, projectProvider.Object);
 
             var actual = await testSubject.GetFilesAsync(CancellationToken.None);
 
             actual.Should().BeEquivalentTo("c:\\any.proj", "x:\\any.proj2");
             projectProvider.Verify(x => x.Get(), Times.Once);
-            fileSystem.Invocations.Should().HaveCount(XmlFileProvider.FileSearchPatterns.Length);
+            fileFinder.Invocations.Should().HaveCount(1);
         }
 
         [TestMethod]
@@ -100,14 +100,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
             var projectProvider = CreateRoslynProjectProvider("project1", "project2");
 
-            var fileSystem = new Mock<IFileSystem>();
+            var fileFinder = new Mock<XmlFileProvider.IFileFinder>();
 
-            var testSubject = CreateTestSubject(serviceProvider.Object, fileSystem.Object, projectProvider.Object);
+            var testSubject = CreateTestSubject(serviceProvider.Object, fileFinder.Object, projectProvider.Object);
 
             var actual = await testSubject.GetFilesAsync(CancellationToken.None);
 
             actual.Should().BeEquivalentTo("project1", "project2");
-            fileSystem.Invocations.Should().HaveCount(0);
+            fileFinder.Invocations.Should().HaveCount(0);
         }
 
         [TestMethod]
@@ -118,7 +118,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
             var projectProvider = CreateRoslynProjectProvider("project1", "project2");
 
             var filesToReturn = new string[] { "file1", "file2", "file3" };
-            var fileSystem = CreateFileSystem(filesToReturn);
+            var fileSystem = CreateFileFinder(filesToReturn);
 
             var testSubject = CreateTestSubject(serviceProvider.Object, fileSystem.Object, projectProvider.Object);
 
@@ -128,39 +128,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
             actual.Should().BeEquivalentTo("file1", "file2", "file3", "project1", "project2");
             solution.VerifyAll();
 
-            fileSystem.Verify(x => x.Directory.GetFiles("root dir", "*.ruleset", SearchOption.AllDirectories), Times.Once);
-            fileSystem.Verify(x => x.Directory.GetFiles("root dir", "*.props", SearchOption.AllDirectories), Times.Once);
-            fileSystem.Verify(x => x.Directory.GetFiles("root dir", "*.targets", SearchOption.AllDirectories), Times.Once);
-
-            // We shouldn't be searching the file system for project files
-            fileSystem.Verify(x => x.Directory.GetFiles("root dir", "*.csproj", SearchOption.AllDirectories), Times.Never);
-            fileSystem.Verify(x => x.Directory.GetFiles("root dir", "*.vbproj", SearchOption.AllDirectories), Times.Never);
-        }
-
-        [TestMethod]
-        public async Task GetFiles_FilesInExcludedDirectoriesAreNotReturned()
-        {
-            var solution = CreateIVsSolution("root dir");
-            var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
-            var projectProvider = CreateRoslynProjectProvider("the project file");
-
-            var filesInFileSystem = new string[] {
-                "should be included1",
-                "\\bin\\file1",
-                "aaa\\bin\\zzz",
-                "should be included2\\obj", // doesn't contain \obj\
-                "ccc\\obj\\xxx",
-                "should be included3"
-            };
-
-            var fileSystem = CreateFileSystem(filesInFileSystem);
-
-            var testSubject = CreateTestSubject(serviceProvider.Object, fileSystem.Object, projectProvider.Object);
-
-            var actual = await testSubject.GetFilesAsync(CancellationToken.None);
-
-            actual.Should().BeEquivalentTo("should be included1", "should be included2\\obj", "should be included3",
-                "the project file"); // the project file will always be included
+            fileSystem.Verify(x => x.GetFiles("root dir", SearchOption.AllDirectories, XmlFileProvider.FileSearchPatterns), Times.Once);
         }
 
         [TestMethod]
@@ -181,7 +149,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
                 "file_111"
             };
 
-            var fileSystem = CreateFileSystem(filesInFileSystem);
+            var fileSystem = CreateFileFinder(filesInFileSystem);
 
             var testSubject = CreateTestSubject(serviceProvider.Object, fileSystem.Object, projectProvider.Object);
 
@@ -192,18 +160,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
         }
 
         private static XmlFileProvider CreateTestSubject(IServiceProvider serviceProvider = null,
-            IFileSystem fileSystem = null,
+            XmlFileProvider.IFileFinder fileFinder = null,
             IRoslynProjectProvider projectProvider = null,
             ILogger logger = null,
             IThreadHandling threadHandling = null)
         {
             serviceProvider ??= CreateServiceProviderWithSolution(CreateIVsSolution(null).Object).Object;
-            fileSystem ??= new System.IO.Abstractions.TestingHelpers.MockFileSystem();
+            fileFinder ??= Mock.Of<XmlFileProvider.FileFinder>();
             projectProvider ??= NonEmptyRoslynProjectProvider;
             logger ??= new TestLogger(logToConsole: true);
             threadHandling ??= new NoOpThreadHandler();
 
-            return new XmlFileProvider(serviceProvider, projectProvider, logger, threadHandling, fileSystem);
+            return new XmlFileProvider(serviceProvider, projectProvider, logger, threadHandling, fileFinder);
         }
 
         private static Mock<IServiceProvider> CreateServiceProviderWithSolution(IVsSolution solution)
@@ -214,10 +182,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
             return serviceProvider;
         }
 
-        private static Mock<IFileSystem> CreateFileSystem(params string[] filesToReturn)
+        private static Mock<XmlFileProvider.IFileFinder> CreateFileFinder(params string[] filesToReturn)
         {
-            var fileSystem = new Mock<IFileSystem>();
-            fileSystem.Setup(x => x.Directory.GetFiles(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SearchOption>()))
+            var fileSystem = new Mock<XmlFileProvider.IFileFinder>();
+            fileSystem.Setup(x => x.GetFiles(It.IsAny<string>(), It.IsAny<SearchOption>(), It.IsAny<string[]>()))
                 .Returns(filesToReturn);
 
             return fileSystem;
