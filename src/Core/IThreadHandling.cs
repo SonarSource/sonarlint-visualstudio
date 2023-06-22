@@ -61,7 +61,17 @@ namespace SonarLint.VisualStudio.Core
         /// If the caller is not on the main thread then the method will switch to the main thread,
         /// then resume on the caller's thread when then the operation completes.
         /// </summary>
+        [Obsolete]
         void RunOnUIThreadSync(Action op);
+
+        /// <summary>
+        /// Executes the operation asynchronously on the main thread. While synchronously blocking 
+        /// synchronously the calling thread.
+        /// If the caller is on the main thread already then the operation is executed directly.
+        /// If the caller is not on the main thread then the method will switch to the main thread,
+        /// then resume on the caller's thread when then the operation completes.
+        /// </summary>
+        void RunOnUIThreadSync2(Action op);
 
         /// <summary>
         /// Executes the operation asynchronously on the background thread.
@@ -101,6 +111,12 @@ namespace SonarLint.VisualStudio.Core
         /// </summary>
         /// <remarks>Wrapper that calls <see cref="TaskScheduler.Default"/></remarks>
         IAwaitableWrapper SwitchToBackgroundThread();
+        
+        /// <summary>
+        /// Switches to the main thread
+        /// </summary>
+        /// <remarks>Wrapper that calls <see cref="ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync()"/></remarks>
+        Task SwitchToMainThreadAsync();
     }
 
     // Wrappers for awaiter /awaitable to avoid VS-specific types on the interface
@@ -119,5 +135,6 @@ namespace SonarLint.VisualStudio.Core
     {
         bool IsCompleted { get; }
         void GetResult();
+
     }
 }

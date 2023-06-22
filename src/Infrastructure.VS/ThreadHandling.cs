@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
@@ -51,6 +52,22 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         // TODO: check the implementation of RunOnUIThread.Run is actually synchronous
         // See https://github.com/SonarSource/sonarlint-visualstudio/issues/4179
         public void RunOnUIThreadSync(Action op) => VS.RunOnUIThread.Run(op);
+
+        public void RunOnUIThreadSync2(Action op)
+        {
+            if (ThreadHelper.CheckAccess())
+            {
+                op();
+                return;
+            }
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                op();
+            });
+
+            Debug.Assert(!ThreadHelper.CheckAccess(), "Not expecting to returning on the UI thread");
+        }
 
         public async Task<T> RunOnBackgroundThread<T>(Func<Task<T>> asyncMethod)
         {
@@ -87,6 +104,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         public async Task RunAsync(Func<Task> asyncMethod) => await ThreadHelper.JoinableTaskFactory.RunAsync(asyncMethod);
 
         public IAwaitableWrapper SwitchToBackgroundThread() => new TaskSchedulerAwaitableWrapper(new AwaitExtensions.TaskSchedulerAwaitable(TaskScheduler.Default));
+
+        public async Task SwitchToMainThreadAsync() => await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
         #region Wrappers for VS TaskSchedule awaiter/awaitable structs
 

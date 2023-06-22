@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
 
@@ -40,6 +41,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
         private readonly BoundSonarQubeProject oldBinding;
         private readonly IConnectedModeMigration connectedModeMigration;
         private readonly ILogger logger;
+        private readonly IThreadHandling threadHandling;
 
         private bool dialogResult;
         private bool migrationInProgress;
@@ -51,6 +53,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             this.oldBinding = oldBinding;
             this.connectedModeMigration = connectedModeMigration;
             this.logger = logger;
+            this.threadHandling = ThreadHandling.Instance;
 
             cancellationTokenSource = new CancellationTokenSource();
 
@@ -129,10 +132,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         void IProgress<MigrationProgress>.Report(MigrationProgress value)
         {
-            ListBoxItem item = new ListBoxItem();
-            item.Foreground = value.IsWarning ? Brushes.Red : Brushes.Black;
-            item.Content = value.Message;
-            progressList.Items.Add(item);
+            threadHandling.RunOnUIThreadSync2(() =>
+            {
+                ListBoxItem item = new ListBoxItem();
+                item.Foreground = value.IsWarning ? Brushes.Red : Brushes.Black;
+                item.Content = value.Message;
+                progressList.Items.Add(item);
+            });
         }
     }
 }
