@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.IO;
 using System.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
@@ -26,6 +27,11 @@ using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 {
+    // NOTE: in the event of a test failure the actual and expected results are
+    // written to files and added to the Test Results i.e. they should be
+    // accessible in the test results pane (and automatically capture by the
+    // Azure DevOps CI build).
+
     [TestClass]
     public class XmlFileCleanerTests
     {
@@ -180,7 +186,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         }
 
         [TestMethod]
-        public void Clean_None_DifferentProjectKey_SettingsAreRemoved()
+        public void Clean_None_DifferentProjectKey_SettingsAreNotRemoved()
         {
             var input = LoadEmbeddedTestCase("AdditionalFiles_XprojectkeyY_NoneItemGroup_Input.xml");
             var expected = LoadEmbeddedTestCase("AdditionalFiles_XprojectkeyY_NoneItemGroup_Cleaned.xml");
@@ -194,8 +200,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject();
 
             var actual = testSubject.Clean(input, settings, CancellationToken.None);
-
-            CheckAreSame(actual, expected);
+            CheckIsUnchanged(actual);
         }
 
         private static XmlFileCleaner CreateTestSubject(ILogger logger = null)
@@ -214,22 +219,32 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
         private void CheckAreSame(string actual, string expected)
         {
-            WriteResultFile("actual.txt", actual);
-            WriteResultFile("expected.txt", expected);
+            // Only dump the files to disk if the test will fail so
+            // we don't clutter it up
+            if (actual != expected)
+            { 
+                WriteResultFile("actual.txt", actual);
+                WriteResultFile("expected.txt", expected);
+            }
             actual.Should().Be(expected);
         }
 
         private void CheckIsUnchanged(string actual)
         {
-            WriteResultFile("actual.txt", actual);
+            // Only dump the files to disk if the test will fail so
+            // we don't clutter it up
+            if (actual != XmlFileCleaner.Unchanged)
+            {
+                WriteResultFile("actual.txt", actual);
+            }
             actual.Should().Be(XmlFileCleaner.Unchanged);
         }
 
         private void WriteResultFile(string fileName, string content)
         {
             var testDir = EnsureTestSpecificDirectoryExists();
-
             string fullFilePath = Path.Combine(testDir, fileName);
+            Console.WriteLine("Writing results file: " + fullFilePath);
 
             // If the result is null it means the file wasn't changed
             File.WriteAllText(fullFilePath, content ?? "{null i.e. the input was not changed}");
