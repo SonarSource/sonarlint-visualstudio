@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
     {
         private readonly IServiceProvider serviceProvider;
         private readonly IRoslynProjectProvider projectProvider;
-        private readonly ILogger logger;
+        private readonly ILogger logger;    
         private readonly IThreadHandling threadHandling;
         private readonly IFileFinder fileFinder;
 
@@ -87,8 +87,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
             }
 
             var allFiles = new HashSet<string>(roslynProjectFiles, StringComparer.OrdinalIgnoreCase);
-            var foundFiles = await GetFilesFromFileSystemAsync();
-            AddToMatches(allFiles, foundFiles);
+
+            // Make sure we are doing the disk search on a background thread
+            await threadHandling.SwitchToBackgroundThread();
+
+            await AddFilesUnderSolutionFolderAsync(allFiles);
+            AddFilesInProjectFolders(allFiles, roslynProjectFiles);
+
             return allFiles.ToList();
         }
 
@@ -98,19 +103,31 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
             return roslynProjects.Where(x => x.FilePath != null).Select(x => x.FilePath).ToArray();
         }
 
-        private async Task<IEnumerable<string>> GetFilesFromFileSystemAsync()
+        private async Task AddFilesUnderSolutionFolderAsync(HashSet<string> allFiles)
         {
             var solutionDir = await GetSolutionDirectoryAsync();
             if (solutionDir == null)
             {
                 logger.LogMigrationVerbose("Unable to locate the solution folder.");
-                return Enumerable.Empty<string>();
+                return;
             }
 
-            // Make sure we are doing the disk search on a background thread
-            await threadHandling.SwitchToBackgroundThread();
+            var files = fileFinder.GetFiles(solutionDir, SearchOption.AllDirectories, FileSearchPatterns);
+            AddToResults(allFiles, files);
+        }
 
-            return fileFinder.GetFiles(solutionDir, SearchOption.AllDirectories, FileSearchPatterns);
+        private void AddFilesInProjectFolders(HashSet<string> allFiles, string[] projectFilePaths)
+        {
+            foreach(var projectFilePath in projectFilePaths)
+            {
+                var projectDirectorynfo = Directory.GetParent(projectFilePath);
+
+                // Only search the top-level of project directory.
+                // If the project directory is under the solution folder then this will find duplicates
+                // which will be filtered out.
+                var files = fileFinder.GetFiles(projectDirectorynfo.FullName, SearchOption.TopDirectoryOnly, FileSearchPatterns);
+                AddToResults(allFiles, files);
+            }
         }
 
         private async Task<string> GetSolutionDirectoryAsync()
@@ -129,11 +146,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
             return solutionDir;
         }
 
-        private static void AddToMatches(HashSet<string> results, IEnumerable<string> matches)
+        private static void AddToResults(HashSet<string> results, IEnumerable<string> newFiles)
         {
-            foreach(var match in matches)
+            foreach(var newFile in newFiles)
             {
-                results.Add(match);
+                results.Add(newFile);
             }
         }
     }
