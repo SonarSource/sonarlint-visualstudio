@@ -47,6 +47,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly ISonarQubeService sonarQubeService;
         private readonly IUnintrusiveBindingController unintrusiveBindingController;
         private readonly ILogger logger;
+        private readonly IThreadHandling threadHandling;
 
         // The user can have both the legacy and new connected mode files. In that case, we expect the SonarQubeService to already be connected.
         private bool isAlreadyConnectedToServer;
@@ -58,7 +59,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             IVsAwareFileSystem fileSystem,
             ISonarQubeService sonarQubeService,
             IUnintrusiveBindingController unintrusiveBindingController,
-            ILogger logger)
+            ILogger logger,
+            IThreadHandling threadHandling)
         {
             this.settingsProvider = settingsProvider;
             this.fileProvider = fileProvider;
@@ -67,11 +69,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             this.sonarQubeService = sonarQubeService;
             this.unintrusiveBindingController = unintrusiveBindingController;
             this.logger = logger;
+            this.threadHandling = threadHandling;
         }
 
         public async Task MigrateAsync(BoundSonarQubeProject oldBinding, IProgress<MigrationProgress> progress, CancellationToken token)
         {
             isAlreadyConnectedToServer = sonarQubeService.IsConnected;
+
+            await threadHandling.SwitchToBackgroundThread();
 
             try
             {
@@ -104,7 +109,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             var legacySettings = await settingsProvider.GetAsync(oldBinding.ProjectKey);
 
             // TODO: add proper progress messages.
-            progress?.Report(new MigrationProgress(0, 1, "Getting files ...", false));
+            progress?.Report(new MigrationProgress(0, 1, "Finding files to clean ...", false));
 
             logger.WriteLine(MigrationStrings.Process_GettingFiles);
             var files = await fileProvider.GetFilesAsync(token);
@@ -125,10 +130,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             }
             else
             {
+                progress?.Report(new MigrationProgress(0, 1, "Skipping cleaning as no dirty files were found...", false));
                 logger.WriteLine(MigrationStrings.Process_SkippingChecking);
             }
 
-            progress?.Report(new MigrationProgress(0, 1, "Create new binding files ...", false));
+            progress?.Report(new MigrationProgress(0, 1, "Creating new binding files ...", false));
             logger.WriteLine(MigrationStrings.Process_ProcessingNewBinding);
 
             var progressAdapter = new FixedStepsProgressToMigrationProgressAdapter(progress);
@@ -141,7 +147,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             logger.WriteLine(MigrationStrings.Process_DeletingSonarLintFolder);
             await fileSystem.DeleteFolderAsync(legacySettings.LegacySonarLintFolderPath);
 
-            progress?.Report(new MigrationProgress(0, 1, "Finished", false));
+            progress?.Report(new MigrationProgress(0, 1, "Migration finished successfully!", false));
             logger.WriteLine(MigrationStrings.Process_Finished);
         }
 
