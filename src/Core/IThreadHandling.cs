@@ -61,7 +61,8 @@ namespace SonarLint.VisualStudio.Core
         /// If the caller is not on the main thread then the method will switch to the main thread,
         /// then resume on the caller's thread when then the operation completes.
         /// </summary>
-        [Obsolete]
+        [Obsolete("This method does not work correctly. Use RunOnUIThreadSync2 instead.")]
+        // See https://github.com/SonarSource/sonarlint-visualstudio/issues/4179 for more info.
         void RunOnUIThreadSync(Action op);
 
         /// <summary>
