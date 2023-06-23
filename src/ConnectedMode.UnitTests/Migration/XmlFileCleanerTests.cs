@@ -36,6 +36,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
     public class XmlFileCleanerTests
     {
         private static readonly LegacySettings AnyLegacySettings = new LegacySettings("c:\\any\\root\\folder", "csharpruleset", "csharpXML", "vbruleset", "vbXML");
+     
         public TestContext TestContext { get; set; }
 
         [TestMethod]
