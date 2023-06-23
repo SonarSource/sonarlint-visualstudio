@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
     public class XmlFileCleanerTests
     {
         private static readonly LegacySettings AnyLegacySettings = new LegacySettings("c:\\any\\root\\folder", "csharpruleset", "csharpXML", "vbruleset", "vbXML");
+        public TestContext TestContext { get; set; }
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
@@ -50,7 +51,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var actual = testSubject.Clean(content, AnyLegacySettings, CancellationToken.None);
 
-            actual.Should().Be(XmlFileCleaner.Unchanged);
+            CheckIsUnchanged(actual);
         }
 
         [TestMethod]
@@ -68,7 +69,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject();
 
             var actual = testSubject.Clean(input, settings, CancellationToken.None);
-            actual.Should().Be(expected);
+            CheckAreSame(actual, expected);
         }
 
         [TestMethod]
@@ -87,7 +88,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject();
 
             var actual = testSubject.Clean(input, settings, CancellationToken.None);
-            actual.Should().Be(XmlFileCleaner.Unchanged);
+            CheckIsUnchanged(actual);
         }
 
         [TestMethod]
@@ -105,7 +106,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject();
 
             var actual = testSubject.Clean(input, settings, CancellationToken.None);
-            actual.Should().Be(expected);
+            CheckAreSame(actual, expected);
         }
 
         [TestMethod]
@@ -122,7 +123,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject();
 
             var actual = testSubject.Clean(input, settings, CancellationToken.None);
-            actual.Should().Be(XmlFileCleaner.Unchanged);
+            CheckIsUnchanged(actual);
         }
 
         [TestMethod]
@@ -140,7 +141,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject();
 
             var actual = testSubject.Clean(input, settings, CancellationToken.None);
-            actual.Should().Be(expected);
+            CheckAreSame(actual, expected);
         }
 
         [TestMethod]
@@ -157,7 +158,44 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject();
 
             var actual = testSubject.Clean(input, settings, CancellationToken.None);
-            actual.Should().Be(XmlFileCleaner.Unchanged);
+            CheckIsUnchanged(actual);
+        }
+
+        [TestMethod]
+        public void Clean_None_CorrectProjectKey_SettingsAreRemoved()
+        {
+            var input = LoadEmbeddedTestCase("AdditionalFiles_XprojectkeyY_NoneItemGroup_Input.xml");
+            var expected = LoadEmbeddedTestCase("AdditionalFiles_XprojectkeyY_NoneItemGroup_Cleaned.xml");
+
+            var settings = new LegacySettings("any",
+                ".sonarlint\\XprojectkeyYcsharp.ruleset",
+                "any",
+                ".sonarlint\\XprojectkeyYvb.ruleset",
+                "any");
+
+            var testSubject = CreateTestSubject();
+
+            var actual = testSubject.Clean(input, settings, CancellationToken.None);
+            CheckAreSame(actual, expected);
+        }
+
+        [TestMethod]
+        public void Clean_None_DifferentProjectKey_SettingsAreRemoved()
+        {
+            var input = LoadEmbeddedTestCase("AdditionalFiles_XprojectkeyY_NoneItemGroup_Input.xml");
+            var expected = LoadEmbeddedTestCase("AdditionalFiles_XprojectkeyY_NoneItemGroup_Cleaned.xml");
+
+            var settings = new LegacySettings("any",
+                ".sonarlint\\XXXprojectkeyYYYcsharp.ruleset",
+                "any",
+                ".sonarlint\\XXXprojectkeyYYYvb.ruleset",
+                "any");
+
+            var testSubject = CreateTestSubject();
+
+            var actual = testSubject.Clean(input, settings, CancellationToken.None);
+
+            CheckAreSame(actual, expected);
         }
 
         private static XmlFileCleaner CreateTestSubject(ILogger logger = null)
@@ -172,6 +210,37 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             using var stream = new StreamReader(typeof(XmlFileCleanerTests).Assembly.GetManifestResourceStream(resourcePath));
 
             return stream.ReadToEnd();
+        }
+
+        private void CheckAreSame(string actual, string expected)
+        {
+            WriteResultFile("actual.txt", actual);
+            WriteResultFile("expected.txt", expected);
+            actual.Should().Be(expected);
+        }
+
+        private void CheckIsUnchanged(string actual)
+        {
+            WriteResultFile("actual.txt", actual);
+            actual.Should().Be(XmlFileCleaner.Unchanged);
+        }
+
+        private void WriteResultFile(string fileName, string content)
+        {
+            var testDir = EnsureTestSpecificDirectoryExists();
+
+            string fullFilePath = Path.Combine(testDir, fileName);
+
+            // If the result is null it means the file wasn't changed
+            File.WriteAllText(fullFilePath, content ?? "{null i.e. the input was not changed}");
+            TestContext.AddResultFile(fullFilePath);
+        }
+
+        private string EnsureTestSpecificDirectoryExists()
+        {
+            var testDir = Path.Combine(TestContext.DeploymentDirectory, TestContext.TestName);
+            Directory.CreateDirectory(testDir);
+            return testDir;
         }
     }
 }
