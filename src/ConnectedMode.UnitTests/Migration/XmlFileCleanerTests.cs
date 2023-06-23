@@ -29,8 +29,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 {
     // NOTE: in the event of a test failure the actual and expected results are
     // written to files and added to the Test Results i.e. they should be
-    // accessible in the test results pane (and automatically capture by the
-    // Azure DevOps CI build).
+    // accessible at the bottom of the test results pane (and automatically
+    // captured by the Azure DevOps CI build).
 
     [TestClass]
     public class XmlFileCleanerTests
