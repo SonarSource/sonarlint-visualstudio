@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
                 op();
             });
 
-            Debug.Assert(!ThreadHelper.CheckAccess(), "Not expecting to returning on the UI thread");
+            Debug.Assert(!ThreadHelper.CheckAccess(), "Not expecting to be returning on the UI thread");
         }
 
         public async Task<T> RunOnBackgroundThread<T>(Func<Task<T>> asyncMethod)
