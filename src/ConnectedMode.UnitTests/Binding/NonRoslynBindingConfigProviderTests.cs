@@ -224,32 +224,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
         }
 
         [TestMethod]
-        public async Task GetRules_AbortIfCancellationRequested()
-        {
-            // Arrange
-            var testLogger = new TestLogger();
-
-            CancellationTokenSource cts = new CancellationTokenSource();
-
-            var serviceMock = new Mock<ISonarQubeService>();
-            serviceMock.Setup(x => x.GetRulesAsync(It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() =>
-                    {
-                        cts.Cancel();
-                        return new List<SonarQubeRule>();
-                    });
-
-            var testSubject = CreateTestSubject(serviceMock, testLogger);
-
-            // Act
-            var result = await testSubject.GetConfigurationAsync(CreateQp(), Language.Cpp, BindingConfiguration.Standalone, cts.Token);
-
-            // Assert
-            result.Should().BeNull();
-            testLogger.AssertPartialOutputStringExists(CoreStrings.SonarQubeRequestTimeoutOrCancelled);
-        }
-
-        [TestMethod]
         public void GetRules_UnsupportedLanguage_Throws()
         {
             // Arrange

@@ -90,28 +90,30 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
         }
 
         [TestMethod]
-        public async Task TaskIsCancelled_ExceptionIsSuppressed()
+        public async Task TaskIsCanceled_ExceptionIsNotSuppressed()
         {
             // Arrange
             var testLogger = new TestLogger();
+            Func<Task> operation = () => WebServiceHelper.SafeServiceCallAsync(
+                () => throw new TaskCanceledException("should not be suppressed"), testLogger);
 
             // Act
-            await WebServiceHelper.SafeServiceCallAsync<bool>(() => throw new TaskCanceledException("dummy error message"),
-                testLogger);
+            await operation.Should().ThrowAsync<TaskCanceledException>();
 
             // Assert
             testLogger.AssertOutputStringExists(CoreStrings.SonarQubeRequestTimeoutOrCancelled);
         }
 
         [TestMethod]
-        public async Task OperationIsCancelled_ExceptionIsSuppressed()
+        public async Task OperationIsCanceled_ExceptionIsNotSuppressed()
         {
             // Arrange
             var testLogger = new TestLogger();
+            Func<Task> operation = () => WebServiceHelper.SafeServiceCallAsync(
+                () => throw new OperationCanceledException("should not be suppressed"), testLogger);
 
             // Act
-            await WebServiceHelper.SafeServiceCallAsync<bool>(() => throw new OperationCanceledException("dummy error message"),
-                testLogger);
+            await operation.Should().ThrowAsync<OperationCanceledException>();
 
             // Assert
             testLogger.AssertOutputStringExists(CoreStrings.SonarQubeRequestTimeoutOrCancelled);
