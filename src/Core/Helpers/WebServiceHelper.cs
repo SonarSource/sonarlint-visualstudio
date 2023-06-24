@@ -40,15 +40,14 @@ namespace SonarLint.VisualStudio.Core
                 var innerException = e.InnerException as System.Net.WebException;
                 logger.WriteLine(CoreStrings.SonarQubeRequestFailed, e.Message, innerException?.Message);
             }
-            catch (TaskCanceledException)
-            {
-                // Canceled or timeout
-                logger.WriteLine(CoreStrings.SonarQubeRequestTimeoutOrCancelled);
-            }
             catch (OperationCanceledException)
             {
                 // Canceled or timeout
                 logger.WriteLine(CoreStrings.SonarQubeRequestTimeoutOrCancelled);
+
+                // Re-throw the exception so that methods further up the stack know the task was cancelled
+                // See bug https://github.com/SonarSource/sonarlint-visualstudio/issues/4424
+                throw;
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
