@@ -22,6 +22,7 @@ using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 {
@@ -45,25 +46,31 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
         public event EventHandler MigrationWizardFinished;
 
         private readonly IConnectedModeMigration connectedModeMigration;
+        private readonly IBrowserService browserService;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public MigrationWizardController(IConnectedModeMigration connectedModeMigration, ILogger logger)
+        public MigrationWizardController(IConnectedModeMigration connectedModeMigration,
+            IBrowserService browserService,
+            ILogger logger)
         {
             this.connectedModeMigration = connectedModeMigration;
+            this.browserService = browserService;
             this.logger = logger;
         }
 
         public void StartMigrationWizard(BoundSonarQubeProject oldBinding)
         {
-            var migrationWizardWindow = new MigrationWizardWindow(oldBinding, connectedModeMigration, logger);
+            var migrationWizardWindow = new MigrationWizardWindow(oldBinding, connectedModeMigration, OnShowHelp, logger);
 
             var finishedSuccessfully = migrationWizardWindow.ShowModal();
 
             if (finishedSuccessfully != null && finishedSuccessfully.Value)
             {
-               MigrationWizardFinished?.Invoke(this, EventArgs.Empty);
+                MigrationWizardFinished?.Invoke(this, EventArgs.Empty);
             }
         }
+
+        private void OnShowHelp() => browserService.Navigate(MigrationStrings.LearnMoreUrl);
     }
 }

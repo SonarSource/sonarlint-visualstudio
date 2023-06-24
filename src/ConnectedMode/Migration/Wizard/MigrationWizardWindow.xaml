@@ -38,7 +38,7 @@
                         and the settings for this project need to be migrated to the new format.
                     </Run>
                     <LineBreak />
-                    <Run>See </Run> <Hyperlink> here</Hyperlink> <Run> for more information.</Run>
+                    <Run>See </Run> <Hyperlink NavigateUri="http://any" RequestNavigate="OnNavigateToHelp"> here</Hyperlink> <Run> for more information.</Run>
                 </TextBlock>
 
                 <!-- Header -->
