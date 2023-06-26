@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.IO.Abstractions;
 using System.Linq;
 using Microsoft.VisualStudio;
@@ -33,6 +34,8 @@ namespace SonarLint.VisualStudio.Integration
     /// The idea is to checkout files (and notify that about to create new files) by using the <see cref="IVsQueryEditQuerySave2"/> service
     /// which will in turn notify the source control system and will delegate the rest of the work to it (i.e. checking it out).
     /// </summary>
+    [Export(typeof(ISourceControlledFileSystem))]
+    [PartCreationPolicy(CreationPolicy.NonShared)]
     internal class SourceControlledFileSystem : ISourceControlledFileSystem
     {
         private readonly IServiceProvider serviceProvider;
@@ -44,7 +47,8 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IKnownUIContexts knownUIContexts;
         private IVsQueryEditQuerySave2 queryFileOperation;
 
-        public SourceControlledFileSystem(IServiceProvider serviceProvider, ILogger logger)
+        [ImportingConstructor]
+        public SourceControlledFileSystem([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ILogger logger)
             : this(serviceProvider, logger, new FileSystem(), new KnownUIContextsWrapper())
         {
         }

@@ -52,6 +52,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             logger = new TestLogger();
         }
 
+
+        [TestMethod]
+        public void MefCtor_CheckTypeIsNonShared()
+            => MefTestHelpers.CheckIsNonSharedMefComponent<SourceControlledFileSystem>();
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<SourceControlledFileSystem, ISourceControlledFileSystem>(
+                MefTestHelpers.CreateExport<SVsServiceProvider>(),
+                MefTestHelpers.CreateExport<ILogger>());
+        }
+
         [TestMethod]
         public void SourceControlledFileSystem_ArgCheck()
         {
