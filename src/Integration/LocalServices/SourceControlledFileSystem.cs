@@ -179,4 +179,25 @@ namespace SonarLint.VisualStudio.Integration
         }
         #endregion
     }
+
+    internal static class SourceControlledFileSystemExtensions
+    {
+        /// <summary>
+        /// Queues a write operation for a file path. New or edit is evaluated at the time of this method execution.
+        /// </summary>
+        /// <param name="filePath">File path that want to write to</param>
+        /// <param name="fileWriteOperation">The actual write operation, return false if failed</param>
+        public static void QueueFileWrite(this ISourceControlledFileSystem sourceControlledFile, string filePath, Func<bool> fileWriteOperation)
+        {
+            sourceControlledFile.QueueFileWrites(new List<string> { filePath }, fileWriteOperation);
+        }
+
+        /// <summary>
+        /// Returns whether the file exists on disk or in a queue to be written. <seealso cref="QueueFileWrite(ISourceControlledFileSystem,string,Func{bool})"/>
+        /// </summary>
+        public static bool FileExistOrQueuedToBeWritten(this ISourceControlledFileSystem sourceControlledFile, string filePath)
+        {
+            return sourceControlledFile.FilesExistOrQueuedToBeWritten(new List<string> { filePath });
+        }
+    }
 }
