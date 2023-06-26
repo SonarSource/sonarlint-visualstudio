@@ -58,6 +58,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             var nodesToRemove = new List<XmlNode>();
 
             nodesToRemove.AddRange(FindAdditionalFiles(document, legacySettings));
+            nodesToRemove.AddRange(FindNoneRulesets(document, legacySettings));
             nodesToRemove.AddRange(FindIncludedRulesets(document, legacySettings));
             nodesToRemove.AddRange(FindRulesetProperties(document, legacySettings));
 
@@ -82,6 +83,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             => ElementAndAttributeTailMatcher.Find(document, "AdditionalFiles", "Include",
                 legacySettings.PartialCSharpSonarLintXmlPath,
                 legacySettings.PartialVBSonarLintXmlPath);
+
+        // e.g. <None Include="..\SolutionFolder\.sonarlint\myprojectkeyvb.ruleset">
+        private static IList<XmlNode> FindNoneRulesets(XmlDocument document, LegacySettings legacySettings)
+            => ElementAndAttributeTailMatcher.Find(document, "None", "Include",
+                legacySettings.PartialCSharpRuleSetPath,
+                legacySettings.PartialVBRuleSetPath);
 
         private static IList<XmlNode> FindIncludedRulesets(XmlDocument document, LegacySettings legacySettings)
             => ElementAndAttributeTailMatcher.Find(document, "Include", "Path",
