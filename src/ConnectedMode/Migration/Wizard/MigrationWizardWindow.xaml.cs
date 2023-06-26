@@ -38,6 +38,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
     {
         private readonly BoundSonarQubeProject oldBinding;
         private readonly IConnectedModeMigration connectedModeMigration;
+        private readonly Action onShowHelp;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
 
@@ -46,12 +47,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         private CancellationTokenSource cancellationTokenSource;
 
-        internal MigrationWizardWindow(BoundSonarQubeProject oldBinding, IConnectedModeMigration connectedModeMigration, ILogger logger)
+        internal MigrationWizardWindow(BoundSonarQubeProject oldBinding,
+            IConnectedModeMigration connectedModeMigration,
+            Action onShowHelp,
+            ILogger logger)
         {
             this.oldBinding = oldBinding;
             this.connectedModeMigration = connectedModeMigration;
             this.logger = logger;
-            this.threadHandling = ThreadHandling.Instance;
+            this.onShowHelp = onShowHelp;
+            threadHandling = ThreadHandling.Instance;
 
             cancellationTokenSource = new CancellationTokenSource();
 
@@ -182,5 +187,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             btnPage2_Cancel.IsEnabled = false;
             cancellationTokenSource.Cancel();
         }
+
+        private void OnNavigateToHelp(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+            => onShowHelp?.Invoke();
     }
 }
