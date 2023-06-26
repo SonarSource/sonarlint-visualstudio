@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration
     /// Provides abstraction over the SCC file management. The files are queued up using <see cref="QueueFileWrites(IEnumerable{string}, Func{bool})"/>
     /// until <see cref="WriteQueuedFiles"/> which will call the SCC to check out the file and will run the queued up write operations.
     /// </summary>
-    internal interface ISourceControlledFileSystem : ILocalService
+    public interface ISourceControlledFileSystem
     {
         /// <summary>
         /// Queues a write operation for given file paths. New or edit is evaluated at the time of this method execution.
