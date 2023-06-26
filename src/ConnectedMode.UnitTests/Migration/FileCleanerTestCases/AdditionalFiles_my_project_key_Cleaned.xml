@@ -9,16 +9,12 @@
 
 	<ItemGroup Label="Should be removed - CSharp">
         <!-- simple reference -->
-		
 
         <!-- with conditions -->
-		
 	</ItemGroup>
 
 	<ItemGroup Label="Should be removed - VB">
         <!-- different cases -->
-		
-		
 	</ItemGroup>
 
 	<ItemGroup>

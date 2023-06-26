@@ -204,6 +204,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             CheckIsUnchanged(actual);
         }
 
+        [TestMethod]
+        public void Clean_RulesetIncludeExists_ParentIsTopLevel_OnlyChildIsRemoved()
+        {
+            var input = LoadEmbeddedTestCase("Ruleset_IncludedTopLevel-project-key_Input.ruleset.xml");
+            var expected = LoadEmbeddedTestCase("Ruleset_IncludedTopLevel-project-key_Cleaned.ruleset.xml");
+
+            var settings = new LegacySettings("any",
+                ".sonarlint\\XX-project-keycsharp.ruleset",
+                "any",
+                ".sonarlint\\XX-project-keyvb.ruleset",
+                "any");
+
+            var testSubject = CreateTestSubject();
+
+            var actual = testSubject.Clean(input, settings, CancellationToken.None);
+            actual.Should().Be(expected);
+        }
+
         private static XmlFileCleaner CreateTestSubject(ILogger logger = null)
         {
             logger ??= new TestLogger(logToConsole: true);
