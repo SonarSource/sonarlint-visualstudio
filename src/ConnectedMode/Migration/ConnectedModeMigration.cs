@@ -115,18 +115,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             var files = await fileProvider.GetFilesAsync(token);
             logger.WriteLine(MigrationStrings.Process_CountOfFilesToCheck, files.Count());
 
+            ChangedFiles changedFiles = null;
             if (files.Any())
             {
                 progress?.Report(new MigrationProgress(0, 1, "Cleaning files ...", false));
                 logger.WriteLine(MigrationStrings.Process_CheckingFiles);
-                var changedFiles = await CleanFilesAsync(files, legacySettings, token);
-
-                // Note: no files have been changed yet. Now we are going to start making changes
-                // to the user's projects and deleting files that might be under source control...
-
-                progress?.Report(new MigrationProgress(0, 1, "Saving modified files ...", false));
-                logger.WriteLine(MigrationStrings.Process_SavingFiles);
-                await SaveChangedFilesAsync(changedFiles);
+                changedFiles = await CleanFilesAsync(files, legacySettings, token);
             }
             else
             {
@@ -140,12 +134,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             var progressAdapter = new FixedStepsProgressToMigrationProgressAdapter(progress);
             await unintrusiveBindingController.BindAsync(oldBinding, progressAdapter, token);
 
-            // Note: SLVS will continue to detect the legacy binding mode until this step,
-            // so if anything goes wrong during the migration and an exception occurs, the
-            // user will see the migration gold bar next time they open the solution.
-            progress?.Report(new MigrationProgress(0, 1, "Deleting old binding folder ...", false));
-            logger.WriteLine(MigrationStrings.Process_DeletingSonarLintFolder);
-            await fileSystem.DeleteFolderAsync(legacySettings.LegacySonarLintFolderPath);
+            // Now make all of the files changes required to remove the legacy settings
+            // i.e. update project files and delete .sonarlint folder
+            await MakeLegacyFileChangesAsync(legacySettings, changedFiles, progress);
 
             progress?.Report(new MigrationProgress(0, 1, "Migration finished successfully!", false));
             logger.WriteLine(MigrationStrings.Process_Finished);
@@ -194,9 +185,38 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             return changedFiles;
         }
 
-        private async Task SaveChangedFilesAsync(ChangedFiles changedFiles)
+        private async Task MakeLegacyFileChangesAsync(LegacySettings legacySettings, ChangedFiles changedFiles,
+            IProgress<MigrationProgress> progress)
         {
-            foreach(var file in changedFiles)
+            // Note: no files have been changed yet. Now we are going to start making changes
+            // to the user's projects and deleting files that might be under source control...
+            await SaveChangedFilesAsync(changedFiles, progress);
+
+            await DeleteSonarLintFolderAsync(legacySettings, progress);
+        }
+
+        private async Task DeleteSonarLintFolderAsync(LegacySettings legacySettings,
+            IProgress<MigrationProgress> progress)
+        {
+            // Note: SLVS will continue to detect the legacy binding mode until this step,
+            // so if anything goes wrong during the migration and an exception occurs, the
+            // user will see the migration gold bar next time they open the solution.
+            progress?.Report(new MigrationProgress(0, 1, "Deleting old binding folder ...", false));
+            logger.WriteLine(MigrationStrings.Process_DeletingSonarLintFolder);
+            await fileSystem.DeleteFolderAsync(legacySettings.LegacySonarLintFolderPath);
+        }
+
+        private async Task SaveChangedFilesAsync(ChangedFiles changedFiles, IProgress<MigrationProgress> progress)
+        {
+            if (changedFiles == null)
+            {
+                return; // nothing to do
+            }
+
+            progress?.Report(new MigrationProgress(0, 1, "Saving modified files ...", false));
+            logger.WriteLine(MigrationStrings.Process_SavingFiles);
+
+            foreach (var file in changedFiles)
             {
                 await fileSystem.SaveAsync(file.Path, file.Content);
             }
