@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup Label="Should be removed - CSharp">
+    <None Include="..\SolutionFolder\.sonarlint\XprojectkeyYcsharp.ruleset">
+      <Link>XprojectkeyYcsharp.ruleset</Link>
+    </None>
+
+    <None Include="..\SolutionFolder\.sonarlint\XprojectkeyYcsharp.ruleset" />
+  </ItemGroup>
+
+  <ItemGroup Label="Should be removed - VB">
+    <None Include="..\SolutionFolder\.sonarlint\XprojectkeyYvb.ruleset">
+      <Link>XprojectkeyYvb.ruleset</Link>
+    </None>
+
+    <None Include="..\SolutionFolder\.sonarlint\XprojectkeyYvb.ruleset" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- should not be removed - shouldn't match -->
+
+    <None Include="..\SolutionFolder\.sonarlint\wrong_keycsharp.ruleset">
+      <Link>wrong_keycsharp.ruleset</Link>
+    </None>
+
+    <None Include="..\SolutionFolder\.sonarlint\wrong_keyvb.ruleset">
+      <Link>wrong_key.ruleset</Link>
+    </None>
+
+    <None Include="..\SomethingElse.txt" />
+
+  </ItemGroup>
+</Project>
