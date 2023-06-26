@@ -22,7 +22,7 @@
 
     <Grid TextBlock.FontSize="15">
         <Separator VerticalAlignment="Top" />
-        <DockPanel x:Name="StartWindow" Margin="10" LastChildFill="True" Visibility="Visible" >
+        <DockPanel x:Name="StartWindow" Margin="20" LastChildFill="True" Visibility="Visible" >
             <DockPanel DockPanel.Dock="Bottom">
                 <Button x:Name="btnPage1_Cancel" DockPanel.Dock="Left" Content="Cancel" IsCancel="True" HorizontalAlignment="Left"  Style="{DynamicResource Button_Style}" />
                 <Button x:Name="btnPage1_Start" DockPanel.Dock="Right" Content="Start" IsDefault="true" Click="OnStartMigration" HorizontalAlignment="Right" Style="{DynamicResource Button_Style}"/>
@@ -33,10 +33,11 @@
 
                 <!-- Intro -->
                 <!-- Margin controls the spacing between the text blocks -->
-                <TextBlock TextWrapping="WrapWithOverflow" Margin="0,20,0,0" >
+                <TextBlock TextWrapping="WrapWithOverflow" Margin="0,20,20,0" >
                     <Run>The storage of Connected Mode has settings has changed, 
                         and the settings for this project need to be migrated to the new format.
                     </Run>
+                    <LineBreak />
                     <LineBreak />
                     <Run>See </Run> <Hyperlink NavigateUri="http://any" RequestNavigate="OnNavigateToHelp"> here</Hyperlink> <Run> for more information.</Run>
                 </TextBlock>
@@ -49,22 +50,40 @@
 
                 <!-- Bulleted list -->
                 <!-- Margin controls the spacing between the text blocks -->
-                <TextBlock TextWrapping="WrapWithOverflow" Margin="0,10,0,0">
-                    <BulletDecorator>
+                <!-- Add a grid so we can make sure the bullets are aligned with the middle
+                     of the first line of text.-->
+                <Grid Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="20" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+
+                    <BulletDecorator Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" >
                         <BulletDecorator.Bullet>
                             <Ellipse Height="8" Width="8" Fill="Black" />
                         </BulletDecorator.Bullet>
                     </BulletDecorator>
-                    <Run> check that you have no unsaved files</Run><LineBreak />
-                
-                    <BulletDecorator>
+
+                    <TextBlock Grid.Column="1" Grid.Row="0" TextWrapping="WrapWithOverflow">
+                        <Run> check that you have no unsaved files</Run>
+                    </TextBlock>
+                    
+                    <BulletDecorator Grid.Column="0" Grid.Row="1" VerticalAlignment="Center">
                         <BulletDecorator.Bullet>
                             <Ellipse Height="8" Width="8" Fill="Black" />
                         </BulletDecorator.Bullet>
                     </BulletDecorator>
-                                    
-                    <Run> if the solution is under source control, check that you have no uncommitted changes.</Run>
-                </TextBlock>
+
+                    <TextBlock Grid.Column="1" Grid.Row="1" Grid.RowSpan="2" TextWrapping="WrapWithOverflow">                
+                        <Run> if the solution is under source control, check that you have no uncommitted changes.</Run>
+                    </TextBlock>
+
+                </Grid>
 
                 <TextBlock TextWrapping="WrapWithOverflow" Margin="0,40,0,0">
                     <Run>If you are ready to migrate, click </Run>
