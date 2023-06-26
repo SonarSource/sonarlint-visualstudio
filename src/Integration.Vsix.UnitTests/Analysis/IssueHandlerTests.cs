@@ -27,10 +27,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using static SonarLint.VisualStudio.Integration.Vsix.Analysis.IssueConsumerFactory;
 using static SonarLint.VisualStudio.Integration.Vsix.Analysis.IssueConsumerFactory.IssueHandler;
 
@@ -40,11 +42,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
     public class IssueHandlerTests
     {
         [TestMethod]
-        public void HandleNewIssues_UpdatedSnapshotHasExpectedValues()
+        public void HandleNewIssues_UpdatedSnapshotAndHotspotStoreHaveExpectedValues()
         {
+            var hotspotStoreMock = new Mock<ILocalHotspotsStoreUpdater>();
+
+            var hotspot = CreateIssue("S112", startLine: 1, endLine: 1, isHotspot: true);
+            var issue = CreateIssue("S111", startLine: 1, endLine: 1);
             var inputIssues = new[]
             {
-                CreateIssue("S111", startLine: 1, endLine: 1),
+                issue,
+                hotspot,
             };
 
             var notificationHandler = new SnapshotChangeHandler();
@@ -54,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             const string expectedFilePath = "c:\\aaa\\file.txt";
             
             var testSubject = CreateTestSubject(notificationHandler.OnSnapshotChanged,
-                expectedProjectName, expectedGuid, expectedFilePath);
+                expectedProjectName, expectedGuid, expectedFilePath, localHotspotsStoreUpdater:hotspotStoreMock.Object);
 
             // Act
             testSubject.HandleNewIssues(inputIssues);
@@ -63,8 +70,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             notificationHandler.InvocationCount.Should().Be(1);
 
             // Check the updated issues
+            VerifyHotspotsAdded(hotspotStoreMock, expectedFilePath, new []{ hotspot });
+            
             notificationHandler.UpdatedSnapshot.Issues.Count().Should().Be(1);
-            notificationHandler.UpdatedSnapshot.Issues.Should().BeEquivalentTo(inputIssues);
+            notificationHandler.UpdatedSnapshot.Issues.Should().BeEquivalentTo(new []{issue});
 
             notificationHandler.UpdatedSnapshot.TryGetValue(0, StandardTableKeyNames.ProjectName, out var actualProjectName).Should().BeTrue();
             actualProjectName.Should().Be(expectedProjectName);
@@ -112,25 +121,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         [TestMethod]
         public void HandleNewIssues_SpansAreTranslated()
         {
+            var hotspotStoreMock = new Mock<ILocalHotspotsStoreUpdater>();
+
             var inputIssues = new[]
             {
-                CreateIssue("xxx", startLine: 1, endLine: 1)
+                CreateIssue("xxx", startLine: 1, endLine: 1),
+                CreateIssue("xxxx", startLine: 3, endLine: 3, isHotspot: true)
             };
 
             var issuesToReturnFromTranslator = new[]
             {
-                CreateIssue("yyy", startLine: 2, endLine: 2)
+                CreateIssue("yyy", startLine: 2, endLine: 2),
+                CreateIssue("yyyy", startLine: 4, endLine: 4, isHotspot: true)
             };
 
             var notificationHandler = new SnapshotChangeHandler();
 
-            var textDocument = CreateValidTextDocument("any.txt");
+            const string filePath = "any.txt";
+            var textDocument = CreateValidTextDocument(filePath);
 
             var translator = new Mock<TranslateSpans>();
             translator.Setup(x => x.Invoke(It.IsAny<IEnumerable<IAnalysisIssueVisualization>>(), textDocument.TextBuffer.CurrentSnapshot))
                 .Returns(issuesToReturnFromTranslator);
 
-            var testSubject = CreateTestSubject(notificationHandler:notificationHandler.OnSnapshotChanged, translator:translator.Object, textDocument:textDocument);
+            var testSubject = CreateTestSubject(notificationHandler: notificationHandler.OnSnapshotChanged,
+                translator: translator.Object, textDocument: textDocument,
+                localHotspotsStoreUpdater: hotspotStoreMock.Object);
 
             // Act
             testSubject.HandleNewIssues(inputIssues);
@@ -138,7 +154,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             // Assert
             translator.VerifyAll();
             notificationHandler.InvocationCount.Should().Be(1);
-            notificationHandler.UpdatedSnapshot.Issues.Should().BeEquivalentTo(issuesToReturnFromTranslator);
+            notificationHandler.UpdatedSnapshot.Issues.Should().BeEquivalentTo(issuesToReturnFromTranslator.First());
+            
+            VerifyHotspotsAdded(hotspotStoreMock, filePath, new []{ issuesToReturnFromTranslator.Last()});
         }
 
         [TestMethod]
@@ -206,8 +224,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             issue3.IsSuppressed.Should().BeFalse();
             issue4.IsSuppressed.Should().BeTrue();
         }
+        
+        private static void VerifyHotspotsAdded(Mock<ILocalHotspotsStoreUpdater> hotspotStoreMock, string filePath,
+            IAnalysisIssueVisualization[] expectedHotspots)
+        {
+            hotspotStoreMock.Verify(store => store.UpdateForFile(filePath,
+                It.Is<IEnumerable<IAnalysisIssueVisualization>>(hotspots =>
+                    hotspots.SequenceEqual(expectedHotspots))), Times.Once);
+        }
 
-        private static IAnalysisIssueVisualization CreateIssue(string ruleKey, int startLine, int endLine)
+        private static IAnalysisIssueVisualization CreateIssue(string ruleKey, int startLine, int endLine, bool isHotspot = false)
         {
             var issue = new DummyAnalysisIssue
             {
@@ -219,7 +245,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
                         StartLine = startLine,
                         EndLine = endLine,
                     }
-                }
+                },
+                Type = isHotspot ? AnalysisIssueType.SecurityHotspot : AnalysisIssueType.CodeSmell
             };
 
             var issueVizMock = new Mock<IAnalysisIssueVisualization>();
@@ -279,21 +306,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         private static IssueHandler CreateTestSubject(SnapshotChangedHandler notificationHandler,
             ISuppressedIssueMatcher suppressedIssueMatcher = null, 
             TranslateSpans translator = null,
-            ITextDocument textDocument = null)
+            ITextDocument textDocument = null,
+            ILocalHotspotsStoreUpdater localHotspotsStoreUpdater = null)
             => CreateTestSubject(notificationHandler, "any project name", Guid.NewGuid(),
-                suppressedIssueMatcher, translator, textDocument);
+                suppressedIssueMatcher, translator, textDocument, localHotspotsStoreUpdater);
 
         private static IssueHandler CreateTestSubject(SnapshotChangedHandler notificationHandler,
             string projectName,
             Guid projectGuid,
-            string filePath)
-            => CreateTestSubject(notificationHandler, projectName, projectGuid, null, null, CreateValidTextDocument(filePath));
+            string filePath,
+            ILocalHotspotsStoreUpdater localHotspotsStoreUpdater = null)
+            => CreateTestSubject(notificationHandler, projectName, projectGuid, null, null, CreateValidTextDocument(filePath), localHotspotsStoreUpdater);
 
         private static IssueHandler CreateTestSubject(SnapshotChangedHandler notificationHandler,
             string projectName, Guid projectGuid,
             ISuppressedIssueMatcher suppressedIssueMatcher = null,
             TranslateSpans translator = null,
-            ITextDocument textDocument = null)
+            ITextDocument textDocument = null,
+            ILocalHotspotsStoreUpdater localHotspotsStoreUpdater = null)
         {
             suppressedIssueMatcher ??= Mock.Of<ISuppressedIssueMatcher>();
             translator ??= PassthroughSpanTranslator;
@@ -305,14 +335,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
                 projectGuid,                
                 suppressedIssueMatcher,
                 notificationHandler,
+                localHotspotsStoreUpdater ?? Mock.Of<ILocalHotspotsStoreUpdater>(),
                 // Override the un-testable "TranslateSpans" behaviour
                 translator);
 
             return testSubject;
         }
 
-        private static IEnumerable<IAnalysisIssueVisualization> PassthroughSpanTranslator(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot)
-            => issues;
+        private static IAnalysisIssueVisualization[] PassthroughSpanTranslator(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot)
+            => issues.ToArray();
 
         internal class SnapshotChangeHandler
         {
