@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="My local ruleset" ToolsVersion="17.0">
+    <Include Path="..\..\.sonarlint\XX-project-keycsharp.ruleset" Action="Default" />
+    <Include Path="..\..\.sonarlint\XX-project-keyvb.RULESET" Action="Default" />
+</RuleSet>

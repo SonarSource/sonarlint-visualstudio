@@ -7,18 +7,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup Label="Should be removed - CSharp">
-    
-
-    
-  </ItemGroup>
-
-  <ItemGroup Label="Should be removed - VB">
-    
-
-    
-  </ItemGroup>
-
   <ItemGroup>
     <!-- should not be removed - shouldn't match -->
 

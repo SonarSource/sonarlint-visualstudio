@@ -2,8 +2,6 @@
 <RuleSet Name="My local ruleset" ToolsVersion="17.0">
 
   <!-- Both vb and csharp references should be removed -->
-  
-  
 
   <!-- The following two should not be removed -->
   <Include Path="some other ruleset.ruleset" Action="Default" />
