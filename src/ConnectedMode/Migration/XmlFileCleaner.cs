@@ -75,15 +75,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 Debug.Assert(node.ParentNode != null);
 
                 // If the only child elements in the parent element are white spaces and the node the whole parent elemnt can be removed.
-                var currentNode = ShouldRemoveParentElement(node) ? node.ParentNode : node;
+                var nodeToRemove = ShouldRemoveParentElement(node) ? node.ParentNode : node;
 
-                // This will ensure that there is no white space left behind awhen removing the actual currentNode.
-                if (currentNode.PreviousSibling.NodeType == XmlNodeType.Whitespace)
+                // This will ensure that there is no white space left behind when removing the actual currentNode.
+                if (nodeToRemove.PreviousSibling.NodeType == XmlNodeType.Whitespace)
                 {
-                    currentNode.ParentNode.RemoveChild(currentNode.PreviousSibling);
+                    nodeToRemove.ParentNode.RemoveChild(nodeToRemove.PreviousSibling);
                 }
 
-                currentNode.ParentNode.RemoveChild(currentNode);
+                nodeToRemove.ParentNode.RemoveChild(nodeToRemove);
             });
 
             return xmlDocumentHelper.SaveToString(document);
