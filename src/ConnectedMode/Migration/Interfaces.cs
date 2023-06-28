@@ -166,5 +166,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         /// Deletes the folder from disc
         /// </summary>
         Task DeleteFolderAsync(string folderPath);
+
+        /// <summary>
+        /// Notifies the class that a set of related file changes is about to be made
+        /// </summary>
+        Task BeginChangeBatchAsync();
+
+        /// <summary>
+        /// Notifies the class that the set of file changes has finished
+        /// </summary>
+        Task EndChangeBatchAsync();
     }
 }

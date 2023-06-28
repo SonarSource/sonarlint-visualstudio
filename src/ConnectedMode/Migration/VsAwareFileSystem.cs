@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 using System.IO.Abstractions;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Integration;
+using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
@@ -46,7 +47,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         public Task DeleteFolderAsync(string folderPath)
         {
             // TODO - error handling
-            LogVerbose($"Deleting directory: {folderPath}");
+            logger.LogMigrationVerbose($"Deleting directory: {folderPath}");
             fileSystem.Directory.Delete(folderPath, true);
             return Task.CompletedTask;
         }
@@ -54,7 +55,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         public Task<string> LoadAsTextAsync(string filePath)
         {
             // TODO - error handling
-            logger.LogVerbose($"Reading file: {filePath}");
+            logger.LogMigrationVerbose($"Reading file: {filePath}");
             var content = fileSystem.File.ReadAllText(filePath);
             return Task.FromResult(content);
         }
@@ -62,11 +63,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         public Task SaveAsync(string filePath, string text)
         {
             // TODO - error handling
-            logger.LogVerbose($"Saving file: {filePath}");
+            logger.LogMigrationVerbose($"Saving file: {filePath}");
             fileSystem.File.WriteAllText(filePath, text);
             return Task.CompletedTask;
         }
 
-        private void LogVerbose(string message) => logger.LogVerbose("[Migration] " + message);
+        public Task BeginChangeBatchAsync()
+        {
+            logger.LogMigrationVerbose("Beginning batch of file changes...");
+            return Task.CompletedTask;
+        }
+
+        public Task EndChangeBatchAsync()
+        {
+            logger.LogMigrationVerbose("File changes complete");
+            return Task.CompletedTask;
+        }
     }
 }

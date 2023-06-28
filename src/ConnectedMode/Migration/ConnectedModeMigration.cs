@@ -25,10 +25,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarQube.Client;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
+using SonarQube.Client;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
@@ -188,11 +188,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private async Task MakeLegacyFileChangesAsync(LegacySettings legacySettings, ChangedFiles changedFiles,
             IProgress<MigrationProgress> progress)
         {
-            // Note: no files have been changed yet. Now we are going to start making changes
-            // to the user's projects and deleting files that might be under source control...
-            await SaveChangedFilesAsync(changedFiles, progress);
+            try
+            {
+                await fileSystem.BeginChangeBatchAsync();
 
-            await DeleteSonarLintFolderAsync(legacySettings, progress);
+                // Note: no files have been changed yet. Now we are going to start making changes
+                // to the user's projects and deleting files that might be under source control...
+                await SaveChangedFilesAsync(changedFiles, progress);
+
+                await DeleteSonarLintFolderAsync(legacySettings, progress);
+            }
+            finally
+            {
+                await fileSystem.EndChangeBatchAsync();
+            }
         }
 
         private async Task DeleteSonarLintFolderAsync(LegacySettings legacySettings,
