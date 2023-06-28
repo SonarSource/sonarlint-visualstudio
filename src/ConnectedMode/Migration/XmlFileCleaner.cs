@@ -73,10 +73,33 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             nodesToRemove.ForEach(node =>
             {
                 Debug.Assert(node.ParentNode != null);
-                node.ParentNode.RemoveChild(node);
+
+                // If the only child elements in the parent element are white spaces and the node the whole parent elemnt can be removed.
+                var nodeToRemove = ShouldRemoveParentElement(node) ? node.ParentNode : node;
+
+                // This will ensure that there is no white space left behind when removing the actual currentNode.
+                if (nodeToRemove.PreviousSibling.NodeType == XmlNodeType.Whitespace)
+                {
+                    nodeToRemove.ParentNode.RemoveChild(nodeToRemove.PreviousSibling);
+                }
+
+                nodeToRemove.ParentNode.RemoveChild(nodeToRemove);
             });
 
             return xmlDocumentHelper.SaveToString(document);
+        }
+
+        private static bool ShouldRemoveParentElement(XmlNode node)
+        {
+            foreach (XmlNode child in node.ParentNode.ChildNodes)
+            {
+                if (child.NodeType != XmlNodeType.Whitespace && child != node)
+                {
+                    return false;
+                }
+            }
+
+            return node.ParentNode.ParentNode.ParentNode != null;
         }
 
         private static IList<XmlNode> FindAdditionalFiles(XmlDocument document, LegacySettings legacySettings)
