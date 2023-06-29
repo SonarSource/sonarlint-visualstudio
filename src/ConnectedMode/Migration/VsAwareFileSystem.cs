@@ -18,9 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.IO.Abstractions;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
 
@@ -30,18 +34,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     [PartCreationPolicy(CreationPolicy.NonShared)]
     internal class VsAwareFileSystem : IVsAwareFileSystem
     {
+        private readonly IServiceProvider serviceProvider;
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
+        private readonly IThreadHandling threadHandling;
+        private IVsQueryEditQuerySave2 queryFileOperation;
 
         [ImportingConstructor]
-        public VsAwareFileSystem(ILogger logger)
-            : this(logger, new FileSystem())
+        public VsAwareFileSystem([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            ILogger logger,
+            IThreadHandling threadHandling)
+            : this(serviceProvider, logger, threadHandling, new FileSystem())
         { }
 
-        internal /* for testing */ VsAwareFileSystem(ILogger logger, IFileSystem fileSystem)
+        internal /* for testing */ VsAwareFileSystem(IServiceProvider serviceProvider,
+            ILogger logger,
+            IThreadHandling threadHandling,
+            IFileSystem fileSystem)
         {
+            this.serviceProvider = serviceProvider;
             this.logger = logger;
             this.fileSystem = fileSystem;
+            this.threadHandling = threadHandling;
         }
 
         public Task DeleteFolderAsync(string folderPath)
@@ -68,16 +82,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             return Task.CompletedTask;
         }
 
-        public Task BeginChangeBatchAsync()
+        public async Task BeginChangeBatchAsync()
         {
             logger.LogMigrationVerbose("Beginning batch of file changes...");
-            return Task.CompletedTask;
+
+            queryFileOperation = await GetSccServiceAsync();
         }
 
         public Task EndChangeBatchAsync()
         {
             logger.LogMigrationVerbose("File changes complete");
             return Task.CompletedTask;
+        }
+
+        private async Task<IVsQueryEditQuerySave2> GetSccServiceAsync()
+        {
+            IVsQueryEditQuerySave2 sccService = null;
+            await threadHandling.RunOnUIThread( () =>
+            {
+                sccService = serviceProvider.GetService(typeof(SVsQueryEditQuerySave)) as IVsQueryEditQuerySave2;
+            });
+
+            return sccService;
         }
     }
 }
