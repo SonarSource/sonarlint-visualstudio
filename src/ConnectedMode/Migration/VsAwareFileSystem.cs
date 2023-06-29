@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO.Abstractions;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
@@ -38,7 +39,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
         private readonly IThreadHandling threadHandling;
-        private IVsQueryEditQuerySave2 queryFileOperation;
+        private IVsQueryEditQuerySave2 sccService;
 
         [ImportingConstructor]
         public VsAwareFileSystem([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
@@ -74,24 +75,40 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             return Task.FromResult(content);
         }
 
-        public Task SaveAsync(string filePath, string text)
+        public async Task SaveAsync(string filePath, string text)
         {
             // TODO - error handling
             logger.LogMigrationVerbose($"Saving file: {filePath}");
+
+            //await threadHandling.SwitchToMainThreadAsync();
+
+            bool success = false;
+            await threadHandling.RunOnUIThread(() =>
+            {
+                success = CheckoutForEdit(filePath);
+            });
+
+            if (!success)
+            {
+                var message = string.Format(MigrationStrings.VSFileSystem_Error_FailedToCheckOutFile, filePath);
+                throw new InvalidOperationException(message);
+            }
+
             fileSystem.File.WriteAllText(filePath, text);
-            return Task.CompletedTask;
         }
 
         public async Task BeginChangeBatchAsync()
         {
             logger.LogMigrationVerbose("Beginning batch of file changes...");
 
-            queryFileOperation = await GetSccServiceAsync();
+            sccService = await GetSccServiceAsync();
+            sccService.BeginQuerySaveBatch();
         }
 
         public Task EndChangeBatchAsync()
         {
-            logger.LogMigrationVerbose("File changes complete");
+            logger.LogMigrationVerbose("Batch file changes completed");
+            sccService.EndQuerySaveBatch();
             return Task.CompletedTask;
         }
 
@@ -105,5 +122,51 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             return sccService;
         }
+
+        private bool CheckoutForEdit(params string[] fileNames)
+        {
+            Debug.Assert(sccService != null, "sccService should not be null");
+            logger.LogMigrationVerbose("Checking out file(s) for edit: " +
+                string.Join(", ", fileNames));
+
+            VsQueryEditFlags flags = VsQueryEditFlags.SilentMode | VsQueryEditFlags.DetectAnyChangedFile |
+                // Force no prompting here to fix SLVS#801 (otherwise TFS would prompt about the slconfig
+                // and generated ruleset files in new connected mode that are not in the solution)
+                VsQueryEditFlags.ForceEdit_NoPrompting;
+
+            uint verdict;
+            uint moreInfo;
+            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(sccService.QueryEditFiles((uint)flags, fileNames.Length, fileNames, null, null, out verdict, out moreInfo));
+
+            var success = (tagVSQueryEditResult.QER_EditOK == (tagVSQueryEditResult)verdict);
+            if (!success)
+            {
+                this.logger.WriteLine(MigrationStrings.VSFileSystem_FailedToCheckOutFilesForEditing, (tagVSQueryEditResultFlags)moreInfo);
+            }
+            return success;
+        }
+
+        private bool CheckoutForSave(params string[] fileNames)
+        {
+            uint result;
+            uint[] rgrgf = new uint[fileNames.Length];
+
+            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(sccService.QuerySaveFiles((uint)VsQuerySaveFlags.SilentMode, fileNames.Length, fileNames, rgrgf, null, out result));
+            tagVSQuerySaveResult saveResult = (tagVSQuerySaveResult)result;
+
+            if (saveResult == tagVSQuerySaveResult.QSR_NoSave_NoisyPromptRequired)
+            {
+                Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(sccService.QuerySaveFiles((uint)VsQuerySaveFlags.DefaultOperation, fileNames.Length, fileNames, rgrgf, null, out result));
+                saveResult = (tagVSQuerySaveResult)result;
+            }
+
+            var success = (tagVSQuerySaveResult.QSR_SaveOK == saveResult);
+            if (!success)
+            {
+                this.logger.WriteLine(MigrationStrings.VSFileSystem_FailedToCheckOutFilesForSave, saveResult);
+            }
+            return success;
+        }
+
     }
 }
