@@ -18,9 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.IO.Abstractions;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -33,7 +36,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<VsAwareFileSystem, IVsAwareFileSystem>(
-                MefTestHelpers.CreateExport<ILogger>());
+                MefTestHelpers.CreateExport<SVsServiceProvider>(),
+                MefTestHelpers.CreateExport<ILogger>(),
+                MefTestHelpers.CreateExport<IThreadHandling>());
         }
 
         [TestMethod]
@@ -79,14 +84,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             fileSystem.Verify(x => x.Directory.Delete(dirName, true), Times.Once);
         }
 
-        private static VsAwareFileSystem CreateTestSubject(out Mock<IFileSystem> fileSystem)
+        private static VsAwareFileSystem CreateTestSubject(
+            out Mock<IFileSystem> fileSystem,
+            IServiceProvider serviceProvider = null,
+            IThreadHandling threadHandling = null)
         {
             var logger = new TestLogger(logToConsole: true);
+            threadHandling ??= new NoOpThreadHandler();
+            serviceProvider ??= Mock.Of<IServiceProvider>();
+
             fileSystem = new Mock<IFileSystem>();
             fileSystem.Setup(x => x.File).Returns(new Mock<IFile>().Object);
             fileSystem.Setup(x => x.Directory).Returns(new Mock<IDirectory>().Object);
-            return new VsAwareFileSystem(logger, fileSystem.Object);
+            return new VsAwareFileSystem(serviceProvider, logger, threadHandling, fileSystem.Object);
         }
-
     }
 }
