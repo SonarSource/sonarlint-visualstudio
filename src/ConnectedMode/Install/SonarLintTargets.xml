@@ -1,19 +1,13 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <!-- TODO 
-
-        * decide the final root directory location
-        * remove the debug Target
-        * decide whether to include $(DesignTimeBuild) in the Conditions.
-     -->
-
     <!-- 
       This targets file was added by SonarLint for Visual Studio.
       If you are no longer using SonarLint for Visual Studio then you can safely delete it.
       
-      It is only active for builds taking place inside Visual Studio, and does not impact the content of the assembly being built.
+      It is only active for builds taking place inside Visual Studio. It does not impact the content of the assembly being built.
  
       Its purpose is to ensure the correct configuration for the Sonar C# and Sonar VB.NET Roslyn rules is used
-      when a solution is in Connected Mode i.e. when it is bound to a SonarQube or SonarCloud project.
+      when a solution is in Connected Mode i.e. when it is bound to a SonarQube or SonarCloud project. If you are not using
+      Connected Mode then it will have no effect on the build.
       
   -->
 
@@ -33,28 +27,4 @@
         <EditorConfigFiles Condition="Exists($(_SLVSGeneratedRoslynConfigFile))" Include="$(_SLVSGeneratedRoslynConfigFile)" />
         <AdditionalFiles Condition="Exists($(_SLVSGeneratedAdditionalFile))" Include="$(_SLVSGeneratedAdditionalFile)" />
     </ItemGroup>
-
-
-    <Target Name="SLVS_DebugOutput_TODO_Remove" BeforeTargets="CoreCompile" >
-
-        <PropertyGroup>
-            <_SLVSGeneratedRoslynConfigFileExists>false</_SLVSGeneratedRoslynConfigFileExists>
-            <_SLVSGeneratedAdditionalFileExists>false</_SLVSGeneratedAdditionalFileExists>
-
-            <_SLVSGeneratedRoslynConfigFileExists Condition=" Exists($(_SLVSGeneratedRoslynConfigFile)) ">true</_SLVSGeneratedRoslynConfigFileExists>
-            <_SLVSGeneratedAdditionalFileExists Condition=" Exists($(_SLVSGeneratedAdditionalFile)) ">true</_SLVSGeneratedAdditionalFileExists>
-        </PropertyGroup>
-
-        <Message Importance="high" Text="XXX: Building inside VS: $(BuildingInsideVisualStudio)" />
-        <Message Importance="high" Text="XXX: _SonarLanguage: $(_SonarLanguage)" />
-        <Message Importance="high" Text="XXX: _SolutionDirAsInVs: $(_SolutionDirAsInVs)" />
-        <Message Importance="high" Text="XXX: _SolutionDirAsInVs.GetHashCode: $(_SolutionDirAsInVs.GetHashCode())" />
-        <Message Importance="high" Text="XXX: _SLVSRootFolder: $(_SLVSRootFolder)" />
-        <Message Importance="high" Text="XXX: This file: $(MSBuildThisFileFullPath)" />
-        <Message Importance="high" Text="XXX: Config file: $(_SLVSGeneratedRoslynConfigFile)" />
-        <Message Importance="high" Text="XXX: Config exists: $(_SLVSGeneratedRoslynConfigFileExists)" />
-        <Message Importance="high" Text="XXX: Additional file: $(_SLVSGeneratedAdditionalFile)" />
-        <Message Importance="high" Text="XXX: Additional exists: $(_SLVSGeneratedAdditionalFileExists)" />
-    </Target>
-
 </Project>
