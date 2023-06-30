@@ -33,28 +33,4 @@
         <EditorConfigFiles Condition="Exists($(_SLVSGeneratedRoslynConfigFile))" Include="$(_SLVSGeneratedRoslynConfigFile)" />
         <AdditionalFiles Condition="Exists($(_SLVSGeneratedAdditionalFile))" Include="$(_SLVSGeneratedAdditionalFile)" />
     </ItemGroup>
-
-
-    <Target Name="SLVS_DebugOutput_TODO_Remove" BeforeTargets="CoreCompile" >
-
-        <PropertyGroup>
-            <_SLVSGeneratedRoslynConfigFileExists>false</_SLVSGeneratedRoslynConfigFileExists>
-            <_SLVSGeneratedAdditionalFileExists>false</_SLVSGeneratedAdditionalFileExists>
-
-            <_SLVSGeneratedRoslynConfigFileExists Condition=" Exists($(_SLVSGeneratedRoslynConfigFile)) ">true</_SLVSGeneratedRoslynConfigFileExists>
-            <_SLVSGeneratedAdditionalFileExists Condition=" Exists($(_SLVSGeneratedAdditionalFile)) ">true</_SLVSGeneratedAdditionalFileExists>
-        </PropertyGroup>
-
-        <Message Importance="high" Text="XXX: Building inside VS: $(BuildingInsideVisualStudio)" />
-        <Message Importance="high" Text="XXX: _SonarLanguage: $(_SonarLanguage)" />
-        <Message Importance="high" Text="XXX: _SolutionDirAsInVs: $(_SolutionDirAsInVs)" />
-        <Message Importance="high" Text="XXX: _SolutionDirAsInVs.GetHashCode: $(_SolutionDirAsInVs.GetHashCode())" />
-        <Message Importance="high" Text="XXX: _SLVSRootFolder: $(_SLVSRootFolder)" />
-        <Message Importance="high" Text="XXX: This file: $(MSBuildThisFileFullPath)" />
-        <Message Importance="high" Text="XXX: Config file: $(_SLVSGeneratedRoslynConfigFile)" />
-        <Message Importance="high" Text="XXX: Config exists: $(_SLVSGeneratedRoslynConfigFileExists)" />
-        <Message Importance="high" Text="XXX: Additional file: $(_SLVSGeneratedAdditionalFile)" />
-        <Message Importance="high" Text="XXX: Additional exists: $(_SLVSGeneratedAdditionalFileExists)" />
-    </Target>
-
 </Project>
