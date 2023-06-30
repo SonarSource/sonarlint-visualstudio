@@ -212,4 +212,7 @@
     <value>Failed to check out file for editing: {0}</value>
     <comment>Error message displayed in the UI if a file can't be checked out</comment>
   </data>
+  <data name="VsFileSystem_Error_FailedToCheckOutFolderForDeletion" xml:space="preserve">
+    <value>Failed to check out folder contents for deletion: {0}</value>
+  </data>
 </root>
