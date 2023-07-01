@@ -40,6 +40,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
         private readonly BoundSonarQubeProject oldBinding;
         private readonly IConnectedModeMigration connectedModeMigration;
         private readonly Action onShowHelp;
+        private readonly Action onShowTfvcHelp;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
 
@@ -51,12 +52,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
         internal MigrationWizardWindow(BoundSonarQubeProject oldBinding,
             IConnectedModeMigration connectedModeMigration,
             Action onShowHelp,
+            Action onShowTfvcHelp,
             ILogger logger)
         {
             this.oldBinding = oldBinding;
             this.connectedModeMigration = connectedModeMigration;
             this.logger = logger;
             this.onShowHelp = onShowHelp;
+            this.onShowTfvcHelp = onShowTfvcHelp;
             threadHandling = ThreadHandling.Instance;
 
             cancellationTokenSource = new CancellationTokenSource();
@@ -205,5 +208,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         private void OnNavigateToHelp(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
             => onShowHelp?.Invoke();
+
+        private void OnNavigateToTfvcHelp(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+            => onShowTfvcHelp?.Invoke();
     }
 }

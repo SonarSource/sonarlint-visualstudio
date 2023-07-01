@@ -85,6 +85,15 @@
 
                 </Grid>
 
+                <Border x:Name="tfvcInfo" BorderThickness="2" BorderBrush="Red" Margin="15,20,15,0" >
+                    <TextBlock TextWrapping="WrapWithOverflow" Padding="10">
+                        <Run>NB: If you are using Tfvc source control, please read the additional information 
+                        </Run>
+                        <Hyperlink NavigateUri="http://any" RequestNavigate="OnNavigateToTfvcHelp"> here</Hyperlink>
+                            <Run> before starting.</Run>
+                    </TextBlock>
+                </Border>
+
                 <TextBlock TextWrapping="WrapWithOverflow" Margin="0,40,0,0">
                     <Run>If you are ready to migrate, click </Run>
                     <Italic>Continue</Italic><Run>. Otherwise, click </Run>
