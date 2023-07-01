@@ -113,7 +113,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         private void OnLearnMore()
         {
-            browserService.Navigate(MigrationStrings.LearnMoreUrl);
+            browserService.Navigate(MigrationStrings.Url_LearnMoreUrl);
         }
 
         private string GetSolutionPath()

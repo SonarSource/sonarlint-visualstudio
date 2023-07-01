@@ -107,15 +107,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://github.com/SonarSource/sonarlint-visualstudio/wiki/migrate-connected-mode-to-v7.
-        /// </summary>
-        internal static string LearnMoreUrl {
-            get {
-                return ResourceManager.GetString("LearnMoreUrl", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SonarLint: You have both old and new connected mode settings. Please Migrate again to clean up the old settings.
         /// </summary>
         internal static string MigrationPrompt_AlreadyConnected_Message {
@@ -274,6 +265,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         internal static string Process_Starting {
             get {
                 return ResourceManager.GetString("Process_Starting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://github.com/SonarSource/sonarlint-visualstudio/wiki/migrate-connected-mode-to-v7.
+        /// </summary>
+        internal static string Url_LearnMoreUrl {
+            get {
+                return ResourceManager.GetString("Url_LearnMoreUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://github.com/SonarSource/sonarlint-visualstudio/wiki/migrate-connected-mode-to-v7-tfvc.
+        /// </summary>
+        internal static string Url_TfvcHelp {
+            get {
+                return ResourceManager.GetString("Url_TfvcHelp", resourceCulture);
             }
         }
         

@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         public void StartMigrationWizard(BoundSonarQubeProject oldBinding)
         {
-            var migrationWizardWindow = new MigrationWizardWindow(oldBinding, connectedModeMigration, OnShowHelp, logger);
+            var migrationWizardWindow = new MigrationWizardWindow(oldBinding, connectedModeMigration, OnShowHelp, OnShowTfvcHelp, logger);
 
             var finishedSuccessfully = migrationWizardWindow.ShowModal();
 
@@ -71,6 +71,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             }
         }
 
-        private void OnShowHelp() => browserService.Navigate(MigrationStrings.LearnMoreUrl);
+        private void OnShowHelp() => browserService.Navigate(MigrationStrings.Url_LearnMoreUrl);
+
+        private void OnShowTfvcHelp() => browserService.Navigate(MigrationStrings.Url_TfvcHelp);
     }
 }

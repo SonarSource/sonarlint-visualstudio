@@ -148,7 +148,7 @@
   <data name="Process_GettingFiles" xml:space="preserve">
     <value>[Migration] Getting list of files to check...</value>
   </data>
-  <data name="LearnMoreUrl" xml:space="preserve">
+  <data name="Url_LearnMoreUrl" xml:space="preserve">
     <value>https://github.com/SonarSource/sonarlint-visualstudio/wiki/migrate-connected-mode-to-v7</value>
   </data>
   <data name="MigrationPrompt_LearnMoreButton" xml:space="preserve">
@@ -196,5 +196,8 @@
   </data>
   <data name="Wizard_Progress_Error" xml:space="preserve">
     <value>Error during migration. See the Output Window for more information.</value>
+  </data>
+  <data name="Url_TfvcHelp" xml:space="preserve">
+    <value>https://github.com/SonarSource/sonarlint-visualstudio/wiki/migrate-connected-mode-to-v7-tfvc</value>
   </data>
 </root>
