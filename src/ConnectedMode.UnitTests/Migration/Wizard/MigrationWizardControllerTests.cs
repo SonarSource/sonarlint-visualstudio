@@ -35,6 +35,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.Wizard
             MefTestHelpers.CheckTypeCanBeImported<MigrationWizardController, IMigrationWizardController>(
                 MefTestHelpers.CreateExport<IConnectedModeMigration>(),
                 MefTestHelpers.CreateExport<IBrowserService>(),
+                MefTestHelpers.CreateExport<IOutputWindowService>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
