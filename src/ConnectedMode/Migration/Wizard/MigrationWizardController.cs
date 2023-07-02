@@ -47,15 +47,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         private readonly IConnectedModeMigration connectedModeMigration;
         private readonly IBrowserService browserService;
+        private readonly IOutputWindowService outputWindowService;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public MigrationWizardController(IConnectedModeMigration connectedModeMigration,
             IBrowserService browserService,
+            IOutputWindowService outputWindowService,
             ILogger logger)
         {
             this.connectedModeMigration = connectedModeMigration;
             this.browserService = browserService;
+            this.outputWindowService = outputWindowService;
             this.logger = logger;
         }
 
@@ -68,6 +71,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             if (finishedSuccessfully != null && finishedSuccessfully.Value)
             {
                 MigrationWizardFinished?.Invoke(this, EventArgs.Empty);
+            }
+            else
+            {
+                // Show the output window in event of an unsuccessful migration
+                outputWindowService.Show();
             }
         }
 
