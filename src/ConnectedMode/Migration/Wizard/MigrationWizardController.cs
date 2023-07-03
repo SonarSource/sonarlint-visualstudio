@@ -48,23 +48,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
         private readonly IConnectedModeMigration connectedModeMigration;
         private readonly IBrowserService browserService;
         private readonly IOutputWindowService outputWindowService;
+        private readonly IGitWorkspaceService gitWorkspaceService;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public MigrationWizardController(IConnectedModeMigration connectedModeMigration,
             IBrowserService browserService,
             IOutputWindowService outputWindowService,
+            IGitWorkspaceService gitWorkspaceService,
             ILogger logger)
         {
             this.connectedModeMigration = connectedModeMigration;
             this.browserService = browserService;
             this.outputWindowService = outputWindowService;
+            this.gitWorkspaceService = gitWorkspaceService;
             this.logger = logger;
         }
 
         public void StartMigrationWizard(BoundSonarQubeProject oldBinding)
         {
-            var migrationWizardWindow = new MigrationWizardWindow(oldBinding, connectedModeMigration, OnShowHelp, OnShowTfvcHelp, logger);
+            var showTfvcHelpOp = GetTfVcHelpAction(); 
+
+            var migrationWizardWindow = new MigrationWizardWindow(oldBinding, connectedModeMigration, OnShowHelp, showTfvcHelpOp, logger);
 
             var finishedSuccessfully = migrationWizardWindow.ShowModal();
 
@@ -77,6 +82,29 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
                 // Show the output window in event of an unsuccessful migration
                 outputWindowService.Show();
             }
+        }
+
+        private Action GetTfVcHelpAction()
+        {
+            Action helpOp;
+
+            // We don't have an existing component that detects whether user is using Tfvc.
+            // However, we can tell if they are using git, which we expect to be the majority
+            // of users. So to reduce the noise, we won't show the Tfvc help for git users.
+            var showTfvcWarning = gitWorkspaceService.GetRepoRoot() != null;
+
+            if (showTfvcWarning)
+            {
+                logger.LogMigrationVerbose("Did not detect a git repo - displaying the Tfvc warning");
+                helpOp = OnShowTfvcHelp;
+            }
+            else
+            {
+                logger.LogMigrationVerbose("Detected a git repo - not displaying the Tfvc warning");
+                helpOp = null;
+            }
+
+            return helpOp;
         }
 
         private void OnShowHelp() => browserService.Navigate(MigrationStrings.Url_LearnMoreUrl);

@@ -36,6 +36,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.Wizard
                 MefTestHelpers.CreateExport<IConnectedModeMigration>(),
                 MefTestHelpers.CreateExport<IBrowserService>(),
                 MefTestHelpers.CreateExport<IOutputWindowService>(),
+                MefTestHelpers.CreateExport<IGitWorkspaceService>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 

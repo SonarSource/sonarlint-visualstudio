@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
         internal MigrationWizardWindow(BoundSonarQubeProject oldBinding,
             IConnectedModeMigration connectedModeMigration,
             Action onShowHelp,
-            Action onShowTfvcHelp,
+            Action onShowTfvcHelp, // null = don't show the Tfvc info section
             ILogger logger)
         {
             this.oldBinding = oldBinding;
@@ -65,8 +65,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             cancellationTokenSource = new CancellationTokenSource();
 
             InitializeComponent();
+
+            SetTfvcInfoVisibility();
+
             this.Closing += OnClosing;
             dialogResult = false;
+        }
+        
+        private void SetTfvcInfoVisibility()
+        {
+            bool shouldShowTfvcText = onShowTfvcHelp != null;
+
+            tfvcInfo.Visibility = shouldShowTfvcText ? Visibility.Visible : Visibility.Hidden;
         }
 
         private void NavigateToMigrationProgressPage()
