@@ -23,6 +23,7 @@ using System.ComponentModel;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Threading;
@@ -95,6 +96,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             // Disables all closing / cancel buttons, including the 
             // the X in the top-right of the window
             this.IsCloseButtonEnabled = false;
+            this.btnPage2_Cancel.Focus();
 
             StartTimer();
 
@@ -156,6 +158,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             migrationInProgress = false;
             StopTimer();
             finishButton.IsEnabled = true;
+            finishButton.Focus();
             btnPage2_Cancel.IsEnabled = false;
             IsCloseButtonEnabled = true;
             dialogResult = result;
@@ -183,6 +186,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
         }
 
         private void btnPage2_Cancel_Click(object sender, RoutedEventArgs e)
+            => CancelMigration();
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            if (migrationInProgress && e.Key == Key.Escape)
+            {
+                CancelMigration();
+            }
+            base.OnKeyDown(e);
+        }
+
+        private void CancelMigration()
         {
             btnPage2_Cancel.IsEnabled = false;
             cancellationTokenSource.Cancel();
