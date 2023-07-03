@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO.Abstractions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
@@ -98,6 +99,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         }
 
         [TestMethod]
+        public async Task Save_SccServiceIsCalledOnUIThread()
+        {
+            var calls = new List<string>();
+
+            var threadHandling = CreateThreadHandlingWithRunOnUICallback(() => calls.Add("RunOnUIThread"));
+            var testSubject = CreateTestSubject(out var _, out var sccService, threadHandling.Object);
+
+            sccService.SetupQueryEditResponse(tagVSQueryEditResult.QER_EditOK, new[] { "any" }, () => calls.Add("QueryEdit"));
+            await testSubject.BeginChangeBatchAsync();
+            calls.Clear();
+
+            // Act
+            await testSubject.SaveAsync("any", "any");
+
+            calls.Should().ContainInOrder("RunOnUIThread", "QueryEdit");
+        }
+
+        [TestMethod]
         [DataRow(tagVSQueryEditResult.QER_NoEdit_UserCanceled, true)]
         [DataRow(tagVSQueryEditResult.QER_EditNotOK, true)]
         [DataRow(tagVSQueryEditResult.QER_EditOK, false)]
@@ -106,7 +125,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject(out var fileSystem, out var sccService);
 
             fileSystem.SetupFile("file1");
-            sccService.SetupQueryEditResponse(verdict, "file1");
+            sccService.SetupQueryEditResponse(verdict, new[] { "file1" });
 
             await testSubject.BeginChangeBatchAsync(); // all modifications are expected to be in a batch
             Func<Task> act = () => testSubject.SaveAsync("file1", "c1");
@@ -146,8 +165,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject(out var fileSystem, out var sccService);
             fileSystem.SetupGetFilesInDir(dirName, "f1", "f2", "f3");
 
-            sccService.SetupQueryEditResponse(tagVSQueryEditResult.QER_EditOK, dirName);
-            sccService.SetupQuerySavesResponse(tagVSQuerySaveResult.QSR_SaveOK, "f1", "f2", "f3");
+            sccService.SetupQueryEditResponse(tagVSQueryEditResult.QER_EditOK, new[] { dirName });
+            sccService.SetupQuerySavesResponse(tagVSQuerySaveResult.QSR_SaveOK, new[] { "f1", "f2", "f3" });
 
             await testSubject.BeginChangeBatchAsync(); // all modifications are expected to be in a batch
             await testSubject.DeleteFolderAsync(dirName);
@@ -155,6 +174,32 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             fileSystem.Verify(x => x.Directory.Delete(dirName, true), Times.Once);
             sccService.CheckQueryEditsCalled(dirName);
             sccService.CheckQuerySavesCalled("f1", "f2", "f3");
+        }
+
+        [TestMethod]
+        public async Task DeleteDirectory_SccServiceIsCalledOnUIThread()
+        {
+            var calls = new List<string>();
+            var threadHandling = CreateThreadHandlingWithRunOnUICallback(() => calls.Add("RunOnUIThread"));
+
+            const string dirName = "c:\\aaa\\bbb";
+
+            var testSubject = CreateTestSubject(out var fileSystem, out var sccService, threadHandling.Object);
+            fileSystem.SetupGetFilesInDir(dirName, "any");
+
+            sccService.SetupQueryEditResponse(tagVSQueryEditResult.QER_EditOK, new[] { dirName },
+                () => calls.Add("QueryEdit"));
+
+            sccService.SetupQuerySavesResponse(tagVSQuerySaveResult.QSR_SaveOK, new[] { "any" },
+                () => calls.Add("QuerySave"));
+
+            await testSubject.BeginChangeBatchAsync(); // all modifications are expected to be in a batch
+            calls.Clear();
+
+            // Act
+            await testSubject.DeleteFolderAsync(dirName);
+
+            calls.Should().ContainInOrder("RunOnUIThread", "QueryEdit", "RunOnUIThread", "QuerySave");
         }
 
         [TestMethod]
@@ -168,8 +213,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject(out var fileSystem, out var sccService);
             fileSystem.SetupGetFilesInDir("f1");
 
-            sccService.SetupQueryEditResponse(result, dirName);
-            sccService.SetupQuerySavesResponse(tagVSQuerySaveResult.QSR_SaveOK, "f1");
+            sccService.SetupQueryEditResponse(result, new[] { dirName });
+            sccService.SetupQuerySavesResponse(tagVSQuerySaveResult.QSR_SaveOK, new[] { "f1" } );
 
             await testSubject.BeginChangeBatchAsync(); // all modifications are expected to be in a batch
             Func<Task> act = () => testSubject.DeleteFolderAsync(dirName);
@@ -197,8 +242,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject(out var fileSystem, out var sccService);
             fileSystem.SetupGetFilesInDir(dirName, "f1");
 
-            sccService.SetupQueryEditResponse(tagVSQueryEditResult.QER_EditOK, dirName);
-            sccService.SetupQuerySavesResponse(result, "f1");
+            sccService.SetupQueryEditResponse(tagVSQueryEditResult.QER_EditOK, new[] { dirName } );
+            sccService.SetupQuerySavesResponse(result, new[] { "f1" });
 
             await testSubject.BeginChangeBatchAsync(); // all modifications are expected to be in a batch
             Func<Task> act = () => testSubject.DeleteFolderAsync(dirName);
@@ -239,6 +284,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             sp.Setup(x => x.GetService(typeof(SVsQueryEditQuerySave))).Returns(sccService);
             return sp.Object;
         }
+
+        private static Mock<IThreadHandling> CreateThreadHandlingWithRunOnUICallback(Action testOperation)
+        {
+            var threadHandling = new Mock<IThreadHandling>();
+            threadHandling.Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
+                .Callback<Action>(productOperation =>
+                {
+                    testOperation();
+                    productOperation.Invoke();
+                });
+            return threadHandling;
+        }
     }
 
     namespace VsAwareFileSystemTestSpecificExtensions
@@ -253,7 +310,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 .Returns(files);
 
             public static void SetupQueryEditResponse(this Mock<IVsQueryEditQuerySave2> queryEditSave,
-                tagVSQueryEditResult verdict, params string[] files)
+                tagVSQueryEditResult verdict, string[] files, Action callback = null)
             {
                 var verdictAsUint = (uint)verdict;
                 uint moreInfoAsUint = 123;
@@ -265,11 +322,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                         null,
                         out verdictAsUint,
                         out moreInfoAsUint))
-                .Returns(VSConstants.S_OK);
+                    .Callback<IInvocation>(x => callback?.Invoke())
+                    .Returns(VSConstants.S_OK);
             }
 
             public static void SetupQuerySavesResponse(this Mock<IVsQueryEditQuerySave2> queryEditSave,
-                tagVSQuerySaveResult result, params string[] files)
+                tagVSQuerySaveResult result, string[] files, Action callback = null)
             {
                 var resultAsUint = (uint)result;
                 queryEditSave.Setup(x => x.QuerySaveFiles(
@@ -279,7 +337,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                         It.IsAny<uint[]>(),
                         null,
                         out resultAsUint))
-                .Returns(VSConstants.S_OK);
+                    .Callback<IInvocation>(x => callback?.Invoke())
+                    .Returns(VSConstants.S_OK);
             }
 
             public static void CheckBeginBatchCalled(this Mock<IVsQueryEditQuerySave2> service)

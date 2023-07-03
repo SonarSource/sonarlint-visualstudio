@@ -31,6 +31,10 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
+    // NB this is a fragile implementation: it assumes it's only being used 
+    // as part of migration, and that caller is using it correctly
+    // i.e. call "BeginChangeBatchAsync" first and "EndChangeBatchAsync" last.
+
     [Export(typeof(IVsAwareFileSystem))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
     internal class VsAwareFileSystem : IVsAwareFileSystem
@@ -99,6 +103,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         public async Task BeginChangeBatchAsync()
         {
             Debug.Assert(!batchStarted, "Not expecting to already be in a batch");
+            Debug.Assert(sccService == null, "Not expecting the SCC service to have been fetched");
 
             logger.LogMigrationVerbose("Beginning batch of file changes...");
 
@@ -109,6 +114,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         public Task EndChangeBatchAsync()
         {
+            Debug.Assert(batchStarted, "Expecting to already be in a batch");
             logger.LogMigrationVerbose("Batch file changes completed");
             sccService.EndQuerySaveBatch();
             batchStarted = false;
@@ -117,13 +123,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         private async Task<IVsQueryEditQuerySave2> GetSccServiceAsync()
         {
-            IVsQueryEditQuerySave2 sccService = null;
+            IVsQueryEditQuerySave2 service = null;
             await threadHandling.RunOnUIThread(() =>
             {
-                sccService = serviceProvider.GetService(typeof(SVsQueryEditQuerySave)) as IVsQueryEditQuerySave2;
+                service = serviceProvider.GetService(typeof(SVsQueryEditQuerySave)) as IVsQueryEditQuerySave2;
             });
 
-            return sccService;
+            return service;
         }
 
         private async Task CheckOutFilesToDeleteAsync(string folderPath)
