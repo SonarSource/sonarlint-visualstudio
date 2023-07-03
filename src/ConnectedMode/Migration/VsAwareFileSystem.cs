@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO.Abstractions;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
@@ -30,6 +31,10 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
+    // NB this is a fragile implementation: it assumes it's only being used 
+    // as part of migration, and that caller is using it correctly
+    // i.e. call "BeginChangeBatchAsync" first and "EndChangeBatchAsync" last.
+
     [Export(typeof(IVsAwareFileSystem))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
     internal class VsAwareFileSystem : IVsAwareFileSystem
@@ -38,7 +43,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
         private readonly IThreadHandling threadHandling;
-        private IVsQueryEditQuerySave2 queryFileOperation;
+        private IVsQueryEditQuerySave2 sccService;
+
+        private bool batchStarted = false;
 
         [ImportingConstructor]
         public VsAwareFileSystem([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
@@ -58,52 +65,150 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             this.threadHandling = threadHandling;
         }
 
-        public Task DeleteFolderAsync(string folderPath)
+        public async Task DeleteFolderAsync(string folderPath)
         {
-            // TODO - error handling
+            Debug.Assert(batchStarted, "Expecting the changes to happen in a batch");   
+
             logger.LogMigrationVerbose($"Deleting directory: {folderPath}");
+
+            await CheckOutFilesToDeleteAsync(folderPath);
+
             fileSystem.Directory.Delete(folderPath, true);
-            return Task.CompletedTask;
         }
 
         public Task<string> LoadAsTextAsync(string filePath)
         {
-            // TODO - error handling
             logger.LogMigrationVerbose($"Reading file: {filePath}");
             var content = fileSystem.File.ReadAllText(filePath);
             return Task.FromResult(content);
         }
 
-        public Task SaveAsync(string filePath, string text)
+        public async Task SaveAsync(string filePath, string text)
         {
-            // TODO - error handling
+            Debug.Assert(batchStarted, "Expecting the changes to happen in a batch");
+
             logger.LogMigrationVerbose($"Saving file: {filePath}");
+
+            bool success = await CheckoutForEditAsync(filePath);
+
+            if (!success)
+            {
+                var message = string.Format(MigrationStrings.VSFileSystem_Error_FailedToCheckOutFile, filePath);
+                throw new InvalidOperationException(message);
+            }
+
             fileSystem.File.WriteAllText(filePath, text);
-            return Task.CompletedTask;
         }
 
         public async Task BeginChangeBatchAsync()
         {
+            Debug.Assert(!batchStarted, "Not expecting to already be in a batch");
+            Debug.Assert(sccService == null, "Not expecting the SCC service to have been fetched");
+
             logger.LogMigrationVerbose("Beginning batch of file changes...");
 
-            queryFileOperation = await GetSccServiceAsync();
+            sccService = await GetSccServiceAsync();
+            sccService.BeginQuerySaveBatch();
+            batchStarted = true;
         }
 
         public Task EndChangeBatchAsync()
         {
-            logger.LogMigrationVerbose("File changes complete");
+            Debug.Assert(batchStarted, "Expecting to already be in a batch");
+            logger.LogMigrationVerbose("Batch file changes completed");
+            sccService.EndQuerySaveBatch();
+            batchStarted = false;
             return Task.CompletedTask;
         }
 
         private async Task<IVsQueryEditQuerySave2> GetSccServiceAsync()
         {
-            IVsQueryEditQuerySave2 sccService = null;
-            await threadHandling.RunOnUIThread( () =>
+            IVsQueryEditQuerySave2 service = null;
+            await threadHandling.RunOnUIThread(() =>
             {
-                sccService = serviceProvider.GetService(typeof(SVsQueryEditQuerySave)) as IVsQueryEditQuerySave2;
+                service = serviceProvider.GetService(typeof(SVsQueryEditQuerySave)) as IVsQueryEditQuerySave2;
             });
 
-            return sccService;
+            return service;
         }
+
+        private async Task CheckOutFilesToDeleteAsync(string folderPath)
+        {
+            // Can't check out the directory for saving - if you do, VS will pop up a dialogue,
+            // even if the "silent" flag is set.
+            bool success = await CheckoutForEditAsync(folderPath);
+
+            if (success)
+            {
+                var files = fileSystem.Directory.GetFiles(folderPath, "*.*", System.IO.SearchOption.AllDirectories);
+                success = await CheckoutForSaveAsync(files);
+            }
+
+            if (!success)
+            {
+                var message = string.Format(MigrationStrings.VsFileSystem_Error_FailedToCheckOutFolderForDeletion, folderPath);
+                throw new InvalidOperationException(message);
+            }
+        }
+
+        private async Task<bool> CheckoutForEditAsync(params string[] fileNames)
+        {
+            Debug.Assert(sccService != null, "sccService should not be null");
+            logger.LogMigrationVerbose("Checking out file(s) for edit: " +
+                string.Join(", ", fileNames));
+
+            VsQueryEditFlags flags = VsQueryEditFlags.SilentMode | VsQueryEditFlags.DetectAnyChangedFile |
+                // Force no prompting here to fix SLVS#801 (otherwise TFS would prompt about the slconfig
+                // and generated ruleset files in new connected mode that are not in the solution)
+                VsQueryEditFlags.ForceEdit_NoPrompting;
+
+            uint verdict = 0;
+            uint moreInfo = 0;
+
+            await threadHandling.RunOnUIThread(() =>
+            {
+                Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(sccService.QueryEditFiles((uint)flags, fileNames.Length, fileNames, null, null, out verdict, out moreInfo));
+            });
+
+            var success = (tagVSQueryEditResult.QER_EditOK == (tagVSQueryEditResult)verdict);
+            if (!success)
+            {
+                this.logger.WriteLine(MigrationStrings.VSFileSystem_FailedToCheckOutFilesForEditing, (tagVSQueryEditResultFlags)moreInfo);
+            }
+            return success;
+        }
+
+        private async Task<bool> CheckoutForSaveAsync(params string[] fileNames)
+        {
+            bool result = false;
+
+            await threadHandling.RunOnUIThread(() =>
+                result = DoCheckoutForSave(fileNames));
+
+            return result;
+        }
+
+        private bool DoCheckoutForSave(params string[] fileNames)
+        {
+            uint result;
+            uint[] rgrgf = new uint[fileNames.Length];
+
+            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(sccService.QuerySaveFiles((uint)VsQuerySaveFlags.SilentMode, fileNames.Length, fileNames, rgrgf, null, out result));
+            tagVSQuerySaveResult saveResult = (tagVSQuerySaveResult)result;
+
+            if (saveResult == tagVSQuerySaveResult.QSR_NoSave_NoisyPromptRequired)
+            {
+                Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(sccService.QuerySaveFiles((uint)VsQuerySaveFlags.DefaultOperation, fileNames.Length, fileNames, rgrgf, null, out result));
+                saveResult = (tagVSQuerySaveResult)result;
+            }
+
+            var success = (tagVSQuerySaveResult.QSR_SaveOK == saveResult);
+            if (!success)
+            {
+                this.logger.WriteLine(MigrationStrings.VSFileSystem_FailedToCheckOutFilesForSave, saveResult);
+            }
+            return success;
+        }
+
     }
 }

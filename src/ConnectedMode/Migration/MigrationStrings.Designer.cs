@@ -287,6 +287,42 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to check out file for editing: {0}.
+        /// </summary>
+        internal static string VSFileSystem_Error_FailedToCheckOutFile {
+            get {
+                return ResourceManager.GetString("VSFileSystem_Error_FailedToCheckOutFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to check out folder contents for deletion: {0}.
+        /// </summary>
+        internal static string VsFileSystem_Error_FailedToCheckOutFolderForDeletion {
+            get {
+                return ResourceManager.GetString("VsFileSystem_Error_FailedToCheckOutFolderForDeletion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to check out files for editing. Error flags: {0}.
+        /// </summary>
+        internal static string VSFileSystem_FailedToCheckOutFilesForEditing {
+            get {
+                return ResourceManager.GetString("VSFileSystem_FailedToCheckOutFilesForEditing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to check out files for saving. Error code: {0}.
+        /// </summary>
+        internal static string VSFileSystem_FailedToCheckOutFilesForSave {
+            get {
+                return ResourceManager.GetString("VSFileSystem_FailedToCheckOutFilesForSave", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Migration cancelled.
         /// </summary>
         internal static string Wizard_Progress_Cancelled {

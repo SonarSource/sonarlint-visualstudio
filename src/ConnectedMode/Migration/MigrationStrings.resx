@@ -200,4 +200,19 @@
   <data name="Url_TfvcHelp" xml:space="preserve">
     <value>https://github.com/SonarSource/sonarlint-visualstudio/wiki/migrate-connected-mode-to-v7-tfvc</value>
   </data>
+  <data name="VSFileSystem_FailedToCheckOutFilesForEditing" xml:space="preserve">
+    <value>Failed to check out files for editing. Error flags: {0}</value>
+    <comment>Output window message showing the tagVSQueryEditResultFlags enum value(s)</comment>
+  </data>
+  <data name="VSFileSystem_FailedToCheckOutFilesForSave" xml:space="preserve">
+    <value>Failed to check out files for saving. Error code: {0}</value>
+    <comment>Output window message showing the tagVSQuerySaveResult enum value</comment>
+  </data>
+  <data name="VSFileSystem_Error_FailedToCheckOutFile" xml:space="preserve">
+    <value>Failed to check out file for editing: {0}</value>
+    <comment>Error message displayed in the UI if a file can't be checked out</comment>
+  </data>
+  <data name="VsFileSystem_Error_FailedToCheckOutFolderForDeletion" xml:space="preserve">
+    <value>Failed to check out folder contents for deletion: {0}</value>
+  </data>
 </root>

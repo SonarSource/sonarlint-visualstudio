@@ -136,7 +136,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             // Now make all of the files changes required to remove the legacy settings
             // i.e. update project files and delete .sonarlint folder
-            await MakeLegacyFileChangesAsync(legacySettings, changedFiles, progress);
+            await MakeLegacyFileChangesAsync(legacySettings, changedFiles, progress, token);
 
             progress?.Report(new MigrationProgress(0, 1, "Migration finished successfully!", false));
             logger.WriteLine(MigrationStrings.Process_Finished);
@@ -186,17 +186,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         }
 
         private async Task MakeLegacyFileChangesAsync(LegacySettings legacySettings, ChangedFiles changedFiles,
-            IProgress<MigrationProgress> progress)
+            IProgress<MigrationProgress> progress,
+            CancellationToken token)
         {
+            // Last check before making changes to files on disc...
+            token.ThrowIfCancellationRequested();
+
             try
             {
                 await fileSystem.BeginChangeBatchAsync();
 
                 // Note: no files have been changed yet. Now we are going to start making changes
                 // to the user's projects and deleting files that might be under source control...
-                await SaveChangedFilesAsync(changedFiles, progress);
+                await SaveChangedFilesAsync(changedFiles, progress, token);
 
-                await DeleteSonarLintFolderAsync(legacySettings, progress);
+                await DeleteSonarLintFolderAsync(legacySettings, progress, token);
             }
             finally
             {
@@ -205,8 +209,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         }
 
         private async Task DeleteSonarLintFolderAsync(LegacySettings legacySettings,
-            IProgress<MigrationProgress> progress)
+            IProgress<MigrationProgress> progress,
+            CancellationToken token)
         {
+            token.ThrowIfCancellationRequested();
+
             // Note: SLVS will continue to detect the legacy binding mode until this step,
             // so if anything goes wrong during the migration and an exception occurs, the
             // user will see the migration gold bar next time they open the solution.
@@ -215,8 +222,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             await fileSystem.DeleteFolderAsync(legacySettings.LegacySonarLintFolderPath);
         }
 
-        private async Task SaveChangedFilesAsync(ChangedFiles changedFiles, IProgress<MigrationProgress> progress)
+        private async Task SaveChangedFilesAsync(ChangedFiles changedFiles, IProgress<MigrationProgress> progress,
+            CancellationToken token)
         {
+            token.ThrowIfCancellationRequested();
             if (changedFiles == null)
             {
                 return; // nothing to do
@@ -227,6 +236,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             foreach (var file in changedFiles)
             {
+                token.ThrowIfCancellationRequested();
                 await fileSystem.SaveAsync(file.Path, file.Content);
             }
         }
