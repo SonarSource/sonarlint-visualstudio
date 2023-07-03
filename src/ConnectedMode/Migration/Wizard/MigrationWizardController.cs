@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             // We don't have an existing component that detects whether user is using Tfvc.
             // However, we can tell if they are using git, which we expect to be the majority
             // of users. So to reduce the noise, we won't show the Tfvc help for git users.
-            var showTfvcWarning = gitWorkspaceService.GetRepoRoot() != null;
+            var showTfvcWarning = gitWorkspaceService.GetRepoRoot() == null;
 
             if (showTfvcWarning)
             {
