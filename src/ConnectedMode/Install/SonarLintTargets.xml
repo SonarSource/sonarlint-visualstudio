@@ -12,14 +12,14 @@
   -->
 
     <PropertyGroup Condition="$(BuildingInsideVisualStudio) == 'true'">
-        <_SolutionDirAsInVs>$([System.IO.Path]::GetDirectoryName($(SolutionDir)))</_SolutionDirAsInVs>
+        <_SLVSRootFolder>$(APPDATA)\SonarLint for Visual Studio\Bindings\$(SolutionName)</_SLVSRootFolder>
+
+        <!-- C#/VB.NET settings need to be in different folders -->
         <_SonarLanguage>$(Language.ToLowerInvariant)</_SonarLanguage>
         <_SonarLanguage Condition=" $(Language) == 'c#'">csharp</_SonarLanguage>
         <_SonarLanguage Condition=" $(Language) == 'visualbasic'">vb</_SonarLanguage>
-        <!-- C#/VB.NET settings need to be in different folders -->
-        <_SLVSRootFolder>$(APPDATA)\SonarLint for Visual Studio\Bindings\$(SolutionName)_$(_SolutionDirAsInVs.GetHashCode())</_SLVSRootFolder>
 
-        <_SLVSGeneratedRoslynConfigFile>$(_SLVSRootFolder)\sonarlint_$(_SonarLanguage).globalconfig</_SLVSGeneratedRoslynConfigFile>
+      <_SLVSGeneratedRoslynConfigFile>$(_SLVSRootFolder)\sonarlint_$(_SonarLanguage).globalconfig</_SLVSGeneratedRoslynConfigFile>
         <_SLVSGeneratedAdditionalFile>$(_SLVSRootFolder)\$(_SonarLanguage)\SonarLint.xml</_SLVSGeneratedAdditionalFile>
     </PropertyGroup>
 
