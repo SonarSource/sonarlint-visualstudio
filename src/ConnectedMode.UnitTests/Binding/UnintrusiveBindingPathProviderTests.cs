@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
 
             var actual = testSubject.Get();
 
-            actual.Should().Be($@"{rootFolderName}SonarLint for Visual Studio\Bindings\{solutionName}_{solutionPath.GetHashCode()}\binding.config");
+            actual.Should().Be($@"{rootFolderName}SonarLint for Visual Studio\Bindings\{solutionName}\binding.config");
         }
 
         private static UnintrusiveBindingPathProvider CreateTestSubject(IServiceProvider serviceProvider,
