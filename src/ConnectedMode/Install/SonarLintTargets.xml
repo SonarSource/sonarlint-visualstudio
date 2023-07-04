@@ -25,6 +25,9 @@
 
     <ItemGroup Condition="$(BuildingInsideVisualStudio) == 'true' AND Exists($(_SLVSGeneratedRoslynConfigFile))">
         <EditorConfigFiles Condition="Exists($(_SLVSGeneratedRoslynConfigFile))" Include="$(_SLVSGeneratedRoslynConfigFile)" />
-        <AdditionalFiles Condition="Exists($(_SLVSGeneratedAdditionalFile))" Include="$(_SLVSGeneratedAdditionalFile)" />
+        <AdditionalFiles Condition="Exists($(_SLVSGeneratedAdditionalFile))" Include="$(_SLVSGeneratedAdditionalFile)">
+            <!-- Don't show in the Solution Explorer -->  
+            <Visible>false</Visible>
+        </AdditionalFiles>
     </ItemGroup>
 </Project>
