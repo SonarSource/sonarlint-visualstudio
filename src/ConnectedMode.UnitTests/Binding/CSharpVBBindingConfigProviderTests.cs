@@ -231,7 +231,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             // The unsupported rules should have been removed.
             builder.CapturedRulesPassedToGlobalConfigGenerator.Should().NotBeNull();
             var capturedRules = builder.CapturedRulesPassedToGlobalConfigGenerator.ToList();
-            capturedRules.Count.Should().Be(2);
+            capturedRules.Should().HaveCount(2);
             capturedRules[0].Key.Should().Be("activeRuleKey");
             capturedRules[0].RepositoryKey.Should().Be("repoKey1");
             capturedRules[1].Key.Should().Be("inactiveRuleKey");

@@ -48,7 +48,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
 
             var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling: threadHandling.Object);
 
+#pragma warning disable CS0618 // Type or member is obsolete
             threadHandling.Verify(x => x.RunOnUIThreadSync(It.IsAny<Action>()), Times.Once);
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         [TestMethod]

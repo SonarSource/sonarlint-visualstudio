@@ -219,7 +219,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
         private void AssertServiceTypeNotRegistered(Type serviceType)
         {
-            this.AllRegisteredServices.Contains(serviceType).Should().BeFalse("Test setup error: a service instance or constructor for this type has already been registered: {0}",
+            this.AllRegisteredServices.Should().NotContain(serviceType, "Test setup error: a service instance or constructor for this type has already been registered: {0}",
                 serviceType.FullName);
         }
 
