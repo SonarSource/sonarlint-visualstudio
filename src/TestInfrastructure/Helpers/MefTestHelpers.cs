@@ -202,7 +202,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
         private static CreationPolicy GetCreationPolicyFromAttribute<T>()
         {
             var customAttributes = typeof(T).GetCustomAttributes(typeof(PartCreationPolicyAttribute), true);
-            customAttributes.Should().HaveCount(1);
+            customAttributes.Should().ContainSingle();
 
             var partCreationPolicyAttribute = (PartCreationPolicyAttribute)customAttributes[0];
 

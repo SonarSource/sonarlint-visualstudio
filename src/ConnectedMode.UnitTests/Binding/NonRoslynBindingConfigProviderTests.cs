@@ -238,7 +238,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             Action act = () => testSubject.GetConfigurationAsync(CreateQp(), Language.VBNET, BindingConfiguration.Standalone, cts.Token).Wait();
 
             // Assert
-            act.Should().ThrowExactly<AggregateException>().And.InnerException.Should().BeOfType<ArgumentOutOfRangeException>();
+            act.Should().ThrowExactly<AggregateException>().WithInnerException<ArgumentOutOfRangeException>();
         }
 
         [TestMethod]
