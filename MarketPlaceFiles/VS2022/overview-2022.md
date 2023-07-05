@@ -145,6 +145,6 @@ Check out the [source code on GitHub](https://github.com/SonarSource/sonarlint-v
 
 ## **License**
 
-Copyright 2016-2022 SonarSource.
+Copyright 2016-2023 SonarSource.
 
 Licensed under the GNU Lesser General Public License, Version 3.0

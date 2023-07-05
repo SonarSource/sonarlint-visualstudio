@@ -1,3 +1,5 @@
+#### Please note: requires Visual Studio 2019.7 or later
+
 ## **SonarLint: Your first line of defense for quality and secure code**
 
 SonarLint helps you detect and fix Bugs, Code Smells, and Security Vulnerabilities in-IDE. 
@@ -146,6 +148,6 @@ Check out the [source code on GitHub](https://github.com/SonarSource/sonarlint-v
 
 ## **License**
 
-Copyright 2016-2022 SonarSource.
+Copyright 2016-2023 SonarSource.
 
 Licensed under the GNU Lesser General Public License, Version 3.0
