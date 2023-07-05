@@ -27,7 +27,6 @@ using System.Windows.Threading;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -42,7 +41,6 @@ namespace SonarLint.VisualStudio.Integration
     {
         internal /*for testing purposes*/ static readonly Type[] SupportedLocalServices = {
                 typeof(IProjectSystemHelper),
-                typeof(IRuleSetInspector),
                 typeof(ITestProjectRegexSetter)
         };
 
@@ -286,7 +284,6 @@ namespace SonarLint.VisualStudio.Integration
             localServices.Add(typeof(ITestProjectRegexSetter), projectNameTestProjectIndicator);
 
             localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this, projectToLanguageMapper)));
-            localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));
 
             Debug.Assert(SupportedLocalServices.Length == localServices.Count, "Unexpected number of local services");
             Debug.Assert(SupportedLocalServices.All(t => localServices.ContainsKey(t)), "Not all the LocalServices are registered");
