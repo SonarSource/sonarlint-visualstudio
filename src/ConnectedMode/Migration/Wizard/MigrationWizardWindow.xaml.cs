@@ -190,7 +190,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             threadHandling.RunOnUIThreadSync2(() =>
             {
                 ListBoxItem item = new ListBoxItem();
-                item.Foreground = value.IsWarning ? Brushes.Red : Brushes.Black;
+                if (value.IsWarning)
+                {
+                    item.Foreground = Brushes.Red;
+                }
                 item.Content = value.Message;
                 progressList.Items.Add(item);
             });
