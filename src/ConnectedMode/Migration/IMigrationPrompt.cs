@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
     [Export(typeof(IMigrationPrompt))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
-    internal class MigrationPrompt : IMigrationPrompt
+    internal sealed class MigrationPrompt : IMigrationPrompt
     {
         private readonly INotificationService notificationService;
         private readonly IServiceProvider serviceProvider;
