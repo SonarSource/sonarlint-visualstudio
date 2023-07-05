@@ -101,14 +101,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         private async Task MigrateImplAsync(BoundSonarQubeProject oldBinding, IProgress<MigrationProgress> progress, CancellationToken token) 
         {
-            // TODO - add cancellation
-            // TODO - add progress messages
-
             logger.WriteLine(MigrationStrings.Process_Starting);
 
             var legacySettings = await settingsProvider.GetAsync(oldBinding.ProjectKey);
 
-            // TODO: add proper progress messages.
             progress?.Report(new MigrationProgress(0, 1, "Finding files to clean ...", false));
 
             logger.WriteLine(MigrationStrings.Process_GettingFiles);
@@ -124,7 +120,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             }
             else
             {
-                progress?.Report(new MigrationProgress(0, 1, "Skipping cleaning as no dirty files were found...", false));
+                progress?.Report(new MigrationProgress(0, 1, "... skipping cleaning as no candidate files were found", false));
                 logger.WriteLine(MigrationStrings.Process_SkippingChecking);
             }
 
