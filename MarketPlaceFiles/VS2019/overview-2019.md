@@ -1,4 +1,4 @@
-#### Please note: requires Visual Studio 2019.7 or later
+#### Please note: requires Visual Studio 2019.7 or greater
 
 ## **SonarLint: Your first line of defense for quality and secure code**
 
