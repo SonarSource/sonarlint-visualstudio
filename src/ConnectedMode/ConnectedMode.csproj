@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  
+
   <Import Project="..\SonarLint.Product.props" />
   <Import Project="..\SonarLint.VsPkgRefs.props" />
 
@@ -9,13 +9,21 @@
 
   <PropertyGroup>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+
+    <RequiresLibGit>true</RequiresLibGit>
+    <RequiresNewtonsoft>true</RequiresNewtonsoft>
   </PropertyGroup>
+
+  <PropertyGroup Label="Specify which external/VS-specific refs are required">
+    <RequiresAlmAuthentication>true</RequiresAlmAuthentication>
+    <RequiresLanguageServices>true</RequiresLanguageServices>
+  </PropertyGroup>
+  <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
   <PropertyGroup>
     <ProjectGuid>0BE551DB-3C46-42A5-BB38-DA80E83F8ABD</ProjectGuid>
     <AssemblyName>SonarLint.VisualStudio.ConnectedMode</AssemblyName>
     <RootNamespace>SonarLint.VisualStudio.ConnectedMode</RootNamespace>
-    <RequiresLibGit>true</RequiresLibGit>
 
     <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
 
@@ -27,15 +35,45 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Install\SonarLintTargets.xml" />
+    <None Remove="Migration\Wizard\MigrationWizardWindow.xaml" />
+    <EmbeddedResource Include="Install\SonarLintTargets.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Include="Migration\Wizard\MigrationWizardWindow.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\IssueViz\IssueViz.csproj" />
   </ItemGroup>
 
   <ItemGroup Label="Framework references">
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Binding\BindingStrings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>BindingStrings.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Migration\MigrationStrings.Designer.cs">
+      <DependentUpon>MigrationStrings.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Persistence\PersistenceStrings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PersistenceStrings.resx</DependentUpon>
+    </Compile>
     <Compile Update="Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -44,6 +82,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="Binding\BindingStrings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>BindingStrings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Migration\MigrationStrings.resx">
+      <LastGenOutput>MigrationStrings.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Persistence\PersistenceStrings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>PersistenceStrings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Update="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

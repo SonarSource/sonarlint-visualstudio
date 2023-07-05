@@ -267,14 +267,14 @@ jobs:
     displayName: VsTest - testAssemblies
     inputs:
       testAssemblyVer2: |
-        **\$(BuildConfiguration)\**\*test*.dll
+        **\bin\**\$(BuildConfiguration)\**\sonar*.*tests.dll
         !**\obj\**
       runInParallel: false
       runTestsInIsolation: false
       codeCoverageEnabled: true
       platform: $(BuildPlatform)
       configuration: $(BuildConfiguration)
-      rerunFailedTests: false
+      rerunFailedTests: true
 
   - task: SonarCloudAnalyze@1
     displayName: Run Code Analysis (VS2022 only)

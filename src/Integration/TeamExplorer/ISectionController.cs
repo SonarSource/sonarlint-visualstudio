@@ -19,6 +19,7 @@
  */
 
 using System.Windows.Input;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;

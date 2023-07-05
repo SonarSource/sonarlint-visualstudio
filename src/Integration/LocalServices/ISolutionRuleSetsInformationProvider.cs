@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Integration
     // Legacy connected mode:
     // Gets the rulesets/paths/solution folder for the old connected mode.
 
-    interface ISolutionRuleSetsInformationProvider : ILocalService
+    interface ISolutionRuleSetsInformationProvider  // : ILocalService  TODO CM cleanup - no longer provided as a service
     {
         /// <summary>
         /// For a given <paramref name="project"/> will return all the <see cref="RuleSetDeclaration"/>

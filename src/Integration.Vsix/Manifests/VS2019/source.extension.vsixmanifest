@@ -2,9 +2,9 @@
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
         <!-- Note: keep the version number in sync with AssemblyInfo.Shared.cs -->
-        <Identity Id="SonarLint.b986f788-6a16-4a3a-a68b-c757f6b1b7d5" Version="6.17.0.0" Language="en-US" Publisher="SonarSource" />
+        <Identity Id="SonarLint.b986f788-6a16-4a3a-a68b-c757f6b1b7d5" Version="7.0.0.0" Language="en-US" Publisher="SonarSource" />
         <DisplayName>SonarLint for Visual Studio 2019</DisplayName>
-      <Description xml:space="preserve">SonarLint helps you detect and fix coding issues so that the code committed is clean and safe. It supports C#, VB.NET, C, C++, JS, and TS and provides real-time feedback and clear fix guidance.</Description>
+        <Description xml:space="preserve">Linter to detect and fix coding issues locally in C#, VB.NET, C, C++, JS, TS and CSS code. Use with SonarQube and SonarCloud for optimal team performance.</Description>
         <MoreInfo>http://vs.sonarlint.org</MoreInfo>
         <License>LICENSE</License>
         <GettingStartedGuide>http://vs.sonarlint.org</GettingStartedGuide>
@@ -13,11 +13,11 @@
         <Tags>SonarLint;SonarQube;Analysis;Roslyn;CodeAnalysis;Analyzer;Code analysis;Sonar;Debt;Technical;Tech;Quality</Tags>
     </Metadata>
     <Installation>
-        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.3,17.0)"/>
+        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.7,17.0)"/>
     </Installation>
     <Dependencies>
         <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.6,)" />
-        <Dependency d:Source="Project" d:ProjectName="EmbeddedVsix" Version="[6.17.0.0]" d:InstallSource="Embed" d:VsixSubPath="EmbeddedVsix" Location="|EmbeddedVsix;VSIXContainerProjectOutputGroup|" DisplayName="|EmbeddedVsix;VSIXNameProjectOutputGroup|" Id="|EmbeddedVsix;VSIXIdentifierProjectOutputGroup|" />
+        <Dependency d:Source="Project" d:ProjectName="EmbeddedVsix" Version="[7.0.0.0]" d:InstallSource="Embed" d:VsixSubPath="EmbeddedVsix" Location="|EmbeddedVsix;VSIXContainerProjectOutputGroup|" DisplayName="|EmbeddedVsix;VSIXNameProjectOutputGroup|" Id="|EmbeddedVsix;VSIXIdentifierProjectOutputGroup|" />
     </Dependencies>
     <Assets>
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Integration" Path="|Integration|" />

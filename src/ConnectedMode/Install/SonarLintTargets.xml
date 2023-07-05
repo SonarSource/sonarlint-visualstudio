@@ -1,0 +1,33 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <!-- 
+      This targets file was added by SonarLint for Visual Studio.
+      If you are no longer using SonarLint for Visual Studio then you can safely delete it.
+      
+      It is only active for builds taking place inside Visual Studio. It does not impact the content of the assembly being built.
+ 
+      Its purpose is to ensure the correct configuration for the Sonar C# and Sonar VB.NET Roslyn rules is used
+      when a solution is in Connected Mode i.e. when it is bound to a SonarQube or SonarCloud project. If you are not using
+      Connected Mode then it will have no effect on the build.
+      
+  -->
+
+    <PropertyGroup Condition="$(BuildingInsideVisualStudio) == 'true'">
+        <_SLVSRootFolder>$(APPDATA)\SonarLint for Visual Studio\Bindings\$(SolutionName)</_SLVSRootFolder>
+
+        <!-- C#/VB.NET settings need to be in different folders -->
+        <_SonarLanguage>$(Language.ToLowerInvariant)</_SonarLanguage>
+        <_SonarLanguage Condition=" $(Language) == 'c#'">csharp</_SonarLanguage>
+        <_SonarLanguage Condition=" $(Language) == 'visualbasic'">vb</_SonarLanguage>
+
+      <_SLVSGeneratedRoslynConfigFile>$(_SLVSRootFolder)\sonarlint_$(_SonarLanguage).globalconfig</_SLVSGeneratedRoslynConfigFile>
+        <_SLVSGeneratedAdditionalFile>$(_SLVSRootFolder)\$(_SonarLanguage)\SonarLint.xml</_SLVSGeneratedAdditionalFile>
+    </PropertyGroup>
+
+    <ItemGroup Condition="$(BuildingInsideVisualStudio) == 'true' AND Exists($(_SLVSGeneratedRoslynConfigFile))">
+        <EditorConfigFiles Condition="Exists($(_SLVSGeneratedRoslynConfigFile))" Include="$(_SLVSGeneratedRoslynConfigFile)" />
+        <AdditionalFiles Condition="Exists($(_SLVSGeneratedAdditionalFile))" Include="$(_SLVSGeneratedAdditionalFile)">
+            <!-- Don't show in the Solution Explorer -->  
+            <Visible>false</Visible>
+        </AdditionalFiles>
+    </ItemGroup>
+</Project>

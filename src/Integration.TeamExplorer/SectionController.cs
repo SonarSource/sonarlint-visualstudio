@@ -26,7 +26,7 @@ using System.Linq;
 using System.Windows.Input;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
-using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client.Models;

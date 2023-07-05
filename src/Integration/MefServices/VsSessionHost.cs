@@ -27,17 +27,12 @@ using System.Windows.Threading;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.Exclusions;
-using SonarLint.VisualStudio.Integration.LocalServices.TestProjectIndicators;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
-using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarQube.Client;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -46,24 +41,16 @@ namespace SonarLint.VisualStudio.Integration
     internal sealed class VsSessionHost : IHost, IProgressStepRunnerWrapper, IDisposable
     {
         internal /*for testing purposes*/ static readonly Type[] SupportedLocalServices = {
-                typeof(ISolutionRuleSetsInformationProvider),
-                typeof(IRuleSetSerializer),
                 typeof(IProjectSystemHelper),
-                typeof(ISourceControlledFileSystem),
                 typeof(IRuleSetInspector),
-                typeof(IRuleSetConflictsController),
-                typeof(IProjectSystemFilter),
-                typeof(IErrorListInfoBarController),
-                typeof(IConfigurationProviderService),
-                typeof(IConfigurationPersister),
-                typeof(ICredentialStoreService),
                 typeof(ITestProjectRegexSetter)
         };
 
         private readonly IServiceProvider serviceProvider;
         private readonly IActiveSolutionTracker solutionTracker;
-        private readonly ICredentialStoreService credentialStoreService;
         private readonly IProjectToLanguageMapper projectToLanguageMapper;
+        private readonly IConfigurationProvider configurationProvider;
+
         private readonly IProgressStepRunnerWrapper progressStepRunner;
         private readonly Dictionary<Type, Lazy<ILocalService>> localServices = new Dictionary<Type, Lazy<ILocalService>>();
 
@@ -72,22 +59,21 @@ namespace SonarLint.VisualStudio.Integration
 
         [ImportingConstructor]
         public VsSessionHost([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            ISonarQubeService sonarQubeService, 
-            IActiveSolutionTracker solutionTacker, 
-            ICredentialStoreService credentialStoreService,
+            ISonarQubeService sonarQubeService,
+            IActiveSolutionTracker solutionTacker,
             IProjectToLanguageMapper projectToLanguageMapper,
+            IConfigurationProvider configurationProvider,
             ILogger logger)
             : this(serviceProvider,
                 null,
-                null, 
+                null,
                 sonarQubeService,
-                solutionTacker, 
-                credentialStoreService,
+                solutionTacker,
                 projectToLanguageMapper,
+                configurationProvider,
                 logger,
                 Dispatcher.CurrentDispatcher)
         {
-            Debug.Assert(ThreadHelper.CheckAccess(), "Expected to be created on the UI thread");
         }
 
         internal /*for test purposes*/ VsSessionHost(IServiceProvider serviceProvider,
@@ -95,8 +81,8 @@ namespace SonarLint.VisualStudio.Integration
                                     IProgressStepRunnerWrapper progressStepRunner,
                                     ISonarQubeService sonarQubeService,
                                     IActiveSolutionTracker solutionTacker,
-                                    ICredentialStoreService credentialStoreService,
                                     IProjectToLanguageMapper projectToLanguageMapper,
+                                    IConfigurationProvider configurationProvider,
                                     ILogger logger,
                                     Dispatcher uiDispatcher)
         {
@@ -106,8 +92,8 @@ namespace SonarLint.VisualStudio.Integration
             this.UIDispatcher = uiDispatcher ?? throw new ArgumentNullException(nameof(uiDispatcher));
             this.SonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
             this.solutionTracker = solutionTacker ?? throw new ArgumentNullException(nameof(solutionTacker));
-            this.credentialStoreService = credentialStoreService ?? throw new ArgumentNullException(nameof(credentialStoreService));
             this.projectToLanguageMapper = projectToLanguageMapper ?? throw new ArgumentNullException(nameof(projectToLanguageMapper));
+            this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
             this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
             this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -136,8 +122,6 @@ namespace SonarLint.VisualStudio.Integration
         public ISonarQubeService SonarQubeService { get; }
 
         public ISectionController ActiveSection { get; private set; }
-
-        public ISet<Language> SupportedPluginLanguages { get; } = new HashSet<Language>();
 
         public ILogger Logger { get; }
 
@@ -275,13 +259,10 @@ namespace SonarLint.VisualStudio.Integration
 
         private BindingConfiguration SafeGetBindingConfig()
         {
-            var configProvider = this.GetService<IConfigurationProviderService>();
-            configProvider.AssertLocalServiceIsNotNull();
-
             BindingConfiguration bindingConfig = null;
             try
             {
-                bindingConfig = configProvider.GetConfiguration();
+                bindingConfig = configurationProvider.GetConfiguration();
             }
             catch (Exception ex)
             {
@@ -301,67 +282,14 @@ namespace SonarLint.VisualStudio.Integration
 
         private void RegisterLocalServices()
         {
-            this.localServices.Add(typeof(ISolutionRuleSetsInformationProvider), new Lazy<ILocalService>(() => new SolutionRuleSetsInformationProvider(this, Logger)));
-            this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer(Logger)));
-            this.localServices.Add(typeof(ICredentialStoreService), new Lazy<ILocalService>(() => credentialStoreService));
-
-            this.localServices.Add(typeof(IConfigurationProviderService), new Lazy<ILocalService>(() => new ConfigurationProvider(this, credentialStoreService, Logger)));
-            this.localServices.Add(typeof(IConfigurationPersister), new Lazy<ILocalService>(GetConfigurationPersister));
-
             var projectNameTestProjectIndicator = new Lazy<ILocalService>(() => new ProjectNameTestProjectIndicator(Logger));
-            this.localServices.Add(typeof(ITestProjectRegexSetter), projectNameTestProjectIndicator);
+            localServices.Add(typeof(ITestProjectRegexSetter), projectNameTestProjectIndicator);
 
-            this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this, projectToLanguageMapper)));
-            this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));
-            this.localServices.Add(typeof(IRuleSetConflictsController), new Lazy<ILocalService>(() => new RuleSetConflictsController(this, new ConflictsManager(this, Logger), Logger)));
-            this.localServices.Add(typeof(IProjectSystemFilter), new Lazy<ILocalService>(() =>
-            {
-                var testProjectIndicators = new List<ITestProjectIndicator>
-                {
-                    new BuildPropertyTestProjectIndicator(this),
-                    new ProjectKindTestProjectIndicator(this),
-                    new ProjectCapabilityTestProjectIndicator(this),
-                    new ServiceGuidTestProjectIndicator(),
-                    projectNameTestProjectIndicator.Value as ITestProjectIndicator,
-                };
+            localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this, projectToLanguageMapper)));
+            localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));
 
-                var testProjectIndicator = new TestProjectIndicator(testProjectIndicators);
-
-                return new ProjectSystemFilter(this, testProjectIndicator);
-            }));
-            this.localServices.Add(typeof(IErrorListInfoBarController), new Lazy<ILocalService>(() =>
-                new ErrorListInfoBarController(this,
-                    new BindingChecker(
-                        new UnboundSolutionChecker(
-                            new ExclusionSettingsStorage(this.GetService<IConfigurationProviderService>(), Logger),
-                            this.GetService<IConfigurationProviderService>(),
-                            SonarQubeService,
-                            Logger),
-                        new UnboundProjectFinder(this, Logger), Logger),
-                    Logger)));
-
-            // Use Lazy<object> to avoid creating instances needlessly, since the interfaces are serviced by the same instance
-            var sccFs = new Lazy<ILocalService>(() => new SourceControlledFileSystem(this, Logger));
-            this.localServices.Add(typeof(ISourceControlledFileSystem), sccFs);
-
-            Debug.Assert(SupportedLocalServices.Length == this.localServices.Count, "Unexpected number of local services");
-            Debug.Assert(SupportedLocalServices.All(t => this.localServices.ContainsKey(t)), "Not all the LocalServices are registered");
-        }
-
-        private ILocalService GetConfigurationPersister()
-        {
-            var connectedModeConfigPathProvider = new ConnectedModeSolutionBindingPathProvider(this);
-            var legacyConfigPathProvider = new LegacySolutionBindingPathProvider(this);
-            var legacyConfigFolderItemAdder = new LegacyConfigFolderItemAdder(this);
-
-            var credentialsLoader = new SolutionBindingCredentialsLoader(credentialStoreService);
-            var bindingFileLoader = new SolutionBindingFileLoader(Logger);
-
-            var sccFileSystem = this.GetService<ISourceControlledFileSystem>();
-
-            var solutionBindingDataWriter = new SolutionBindingDataWriter(sccFileSystem, bindingFileLoader, credentialsLoader);
-
-            return new ConfigurationPersister(legacyConfigPathProvider, connectedModeConfigPathProvider, solutionBindingDataWriter, legacyConfigFolderItemAdder);
+            Debug.Assert(SupportedLocalServices.Length == localServices.Count, "Unexpected number of local services");
+            Debug.Assert(SupportedLocalServices.All(t => localServices.ContainsKey(t)), "Not all the LocalServices are registered");
         }
 
         public object GetService(Type serviceType)

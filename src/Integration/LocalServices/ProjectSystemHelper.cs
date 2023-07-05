@@ -22,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Linq;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio;
@@ -95,14 +94,6 @@ namespace SonarLint.VisualStudio.Integration
                     yield return Project;
                 }
             }
-        }
-
-        public IEnumerable<Project> GetFilteredSolutionProjects()
-        {
-            var projectFilter = this.serviceProvider.GetService<IProjectSystemFilter>();
-            projectFilter.AssertLocalServiceIsNotNull();
-
-            return GetSolutionProjects().Where(x => projectFilter.IsAccepted(x));
         }
 
         public Project GetProject(IVsHierarchy projectHierarchy)
