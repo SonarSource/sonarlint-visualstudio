@@ -32,8 +32,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     /// </summary>
     internal interface IConnectedModeMigration
     {
-        // TODO: decide if the method should return a list of specific manual cleanup
-        // steps that the user still needs to perform
         Task MigrateAsync(BoundSonarQubeProject oldBinding, IProgress<MigrationProgress> progress, CancellationToken token);
     }
 
