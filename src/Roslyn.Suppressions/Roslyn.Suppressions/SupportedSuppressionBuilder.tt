@@ -160,7 +160,18 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
         private bool IsDiagnosticAnalyzer(Type t)
         {
             if (t.IsAbstract) { return false; }
-            return t.GetCustomAttributes(true).Any(x => x.GetType().Name == "DiagnosticAnalyzerAttribute");
+            return InheritsFromDiagnosticAnalyzer(t) && t.GetCustomAttributes(true).Any(x => x.GetType().Name == "DiagnosticAnalyzerAttribute");
+        }
+
+        private static bool InheritsFromDiagnosticAnalyzer(Type t)
+        {
+            // Note: there are some symbolic execution classes that have the [DiagnosticAnalyzer] attribute
+            // but that do not inherit from DiagnosticAnalyzer 
+            // e.g. https://github.com/SonarSource/sonar-dotnet/blob/aab23c510aa525565c01658418a4c7affa29d17a/analyzers/src/SonarAnalyzer.CSharp/SymbolicExecution/Roslyn/CalculationsShouldNotOverflow.cs#L23
+            // See bug https://github.com/SonarSource/sonarlint-visualstudio/issues/4467
+            if (t == null) { return false; }
+            if (t.FullName == "Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer") { return true; }
+            return InheritsFromDiagnosticAnalyzer(t.BaseType);
         }
 
         private IEnumerable<string> GetDiagnosticIds(object analyzerInstance)
