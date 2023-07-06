@@ -9,7 +9,12 @@
 
     <RequiresLibGit>true</RequiresLibGit>
   </PropertyGroup>
-  
+
+  <PropertyGroup Label="Specify which external/VS-specific refs are required">
+    <RequiresAlmAuthentication>true</RequiresAlmAuthentication>
+  </PropertyGroup>
+  <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
+
   <ItemGroup>
     <None Remove="Migration\FileCleanerTestCases\AdditionalFiles_XprojectkeyY_NoneItemGroup_Cleaned.xml" />
     <None Remove="Migration\FileCleanerTestCases\AdditionalFiles_XprojectkeyY_NoneItemGroup_Input.xml" />
