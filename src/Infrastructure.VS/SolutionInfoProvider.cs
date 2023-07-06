@@ -25,19 +25,8 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.ConnectedMode
+namespace SonarLint.VisualStudio.Infrastructure.VS
 {
-    /// <summary>
-    /// Returns information about the current solution if there is one
-    /// </summary>
-    internal interface ISolutionInfoProvider
-    {
-        /// <summary>
-        /// Returns the name of the current solution, or null if there is not a current solution
-        /// </summary>
-        Task<string> GetSolutionNameAsync();
-    }
-
     [Export(typeof(ISolutionInfoProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class SolutionInfoProvider : ISolutionInfoProvider
