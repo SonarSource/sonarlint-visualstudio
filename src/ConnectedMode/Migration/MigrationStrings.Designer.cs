@@ -278,7 +278,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://github.com/SonarSource/sonarlint-visualstudio/wiki/migrate-connected-mode-to-v7-tfvc.
+        ///   Looks up a localized string similar to https://github.com/SonarSource/sonarlint-visualstudio/wiki/migrate-connected-mode-to-v7#additional-notes-for-tfvc-users.
         /// </summary>
         internal static string Url_TfvcHelp {
             get {
