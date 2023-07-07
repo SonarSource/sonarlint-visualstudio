@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         {
             if (!xmlDocumentHelper.TryLoadFromString(content, out var document))
             {
-                logger.WriteLine("Could not load xml");
+                logger.WriteLine(MigrationStrings.Cleaner_NotXml);
                 return Unchanged;
             }
 
@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             if (!nodesToRemove.Any())
             {
-                logger.LogVerbose("    No settings to remove");
+                logger.WriteLine(MigrationStrings.Cleaner_Unchanged);
                 return Unchanged;
             }
 
