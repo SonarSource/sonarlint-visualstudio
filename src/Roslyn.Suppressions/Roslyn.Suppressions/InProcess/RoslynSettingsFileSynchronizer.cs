@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
@@ -44,22 +45,26 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
     }
 
     [Export(typeof(IRoslynSettingsFileSynchronizer))]
+    [PartCreationPolicy(CreationPolicy.NonShared)] // stateless - doesn't need to be shared
     internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchronizer
     {
         private readonly IThreadHandling threadHandling;
         private readonly IServerIssuesStore serverIssuesStore;
         private readonly IRoslynSettingsFileStorage roslynSettingsFileStorage;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private readonly ISolutionInfoProvider solutionInfoProvider;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public RoslynSettingsFileSynchronizer(IServerIssuesStore serverIssuesStore,
             IRoslynSettingsFileStorage roslynSettingsFileStorage,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            ISolutionInfoProvider solutionInfoProvider,
             ILogger logger)
             : this(serverIssuesStore,
                 roslynSettingsFileStorage,
                 activeSolutionBoundTracker,
+                solutionInfoProvider,
                 logger,
                 ThreadHandling.Instance)
         {
@@ -68,12 +73,14 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
         internal RoslynSettingsFileSynchronizer(IServerIssuesStore serverIssuesStore,
             IRoslynSettingsFileStorage roslynSettingsFileStorage,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            ISolutionInfoProvider solutionInfoProvider,
             ILogger logger,
             IThreadHandling threadHandling)
         {
             this.serverIssuesStore = serverIssuesStore;
             this.roslynSettingsFileStorage = roslynSettingsFileStorage;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+            this.solutionInfoProvider = solutionInfoProvider;
             this.logger = logger;
             this.threadHandling = threadHandling;
 
@@ -112,6 +119,10 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
 
                 if (!string.IsNullOrEmpty(sonarProjectKey))
                 {
+                    var fullSolutionFilePath = await solutionInfoProvider.GetFullSolutionFilePathAsync();
+                    Debug.Assert(fullSolutionFilePath != null, "Not expecting the solution name to be null in Connected Mode");
+                    var solnNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(fullSolutionFilePath);
+
                     var allSuppressedIssues = serverIssuesStore.Get();
 
                     var settings = new RoslynSettings
@@ -123,7 +134,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
                                             .Where(x => x.RoslynLanguage != RoslynLanguage.Unknown && !string.IsNullOrEmpty(x.RoslynRuleId))
                                             .ToArray(),
                     };
-                    roslynSettingsFileStorage.Update(settings);
+                    roslynSettingsFileStorage.Update(settings, solnNameWithoutExtension);
                 }
             }
             finally
