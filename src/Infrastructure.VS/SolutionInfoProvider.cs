@@ -42,14 +42,14 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
             this.threadHandling = threadHandling;
         }
 
-        public async Task<string> GetSolutionNameAsync()
+        public async Task<string> GetFullSolutionFilePathAsync()
         {
             string fullSolutionName = null;
-            await threadHandling.RunOnUIThread(() => fullSolutionName = GetSolutionName());
+            await threadHandling.RunOnUIThread(() => fullSolutionName = GetSolutionFilePath());
             return fullSolutionName;
         }
 
-        private string GetSolutionName()
+        private string GetSolutionFilePath()
         {
             // If there isn't an open solution the returned hresult will indicate an error
             // and the returned solution name will be null. We'll just ignore the hresult.

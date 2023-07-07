@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             var testSubject = CreateTestSubject(serviceProvider.Object);
 
-            var actual = await testSubject.GetSolutionNameAsync();
+            var actual = await testSubject.GetFullSolutionFilePathAsync();
             actual.Should().Be(solutionNameToReturn);
         }
 
@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object);
 
-            var actual = await testSubject.GetSolutionNameAsync();
+            var actual = await testSubject.GetFullSolutionFilePathAsync();
 
             calls.Should().ContainInOrder("RunOnUIThread", "GetService", "GetSolutionName");
         }

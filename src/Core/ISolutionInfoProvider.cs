@@ -28,8 +28,8 @@ namespace SonarLint.VisualStudio.Core
     public interface ISolutionInfoProvider
     {
         /// <summary>
-        /// Returns the name of the current solution, or null if there is not a current solution
+        /// Returns the full file path for the current solution file, or null if there is not a current solution
         /// </summary>
-        Task<string> GetSolutionNameAsync();
+        Task<string> GetFullSolutionFilePathAsync();
     }
 }
