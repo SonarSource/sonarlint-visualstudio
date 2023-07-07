@@ -51,19 +51,19 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
         private readonly IThreadHandling threadHandling;
         private readonly IServerIssuesStore serverIssuesStore;
         private readonly IRoslynSettingsFileStorage roslynSettingsFileStorage;
-        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private readonly IConfigurationProvider configurationProvider;
         private readonly ISolutionInfoProvider solutionInfoProvider;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public RoslynSettingsFileSynchronizer(IServerIssuesStore serverIssuesStore,
             IRoslynSettingsFileStorage roslynSettingsFileStorage,
-            IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            IConfigurationProvider configurationProvider,
             ISolutionInfoProvider solutionInfoProvider,
             ILogger logger)
             : this(serverIssuesStore,
                 roslynSettingsFileStorage,
-                activeSolutionBoundTracker,
+                configurationProvider,
                 solutionInfoProvider,
                 logger,
                 ThreadHandling.Instance)
@@ -72,14 +72,14 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
 
         internal RoslynSettingsFileSynchronizer(IServerIssuesStore serverIssuesStore,
             IRoslynSettingsFileStorage roslynSettingsFileStorage,
-            IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            IConfigurationProvider configurationProvider,
             ISolutionInfoProvider solutionInfoProvider,
             ILogger logger,
             IThreadHandling threadHandling)
         {
             this.serverIssuesStore = serverIssuesStore;
             this.roslynSettingsFileStorage = roslynSettingsFileStorage;
-            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+            this.configurationProvider = configurationProvider;
             this.solutionInfoProvider = solutionInfoProvider;
             this.logger = logger;
             this.threadHandling = threadHandling;
@@ -115,7 +115,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
             {
                 await threadHandling.SwitchToBackgroundThread();
 
-                var sonarProjectKey = activeSolutionBoundTracker.CurrentConfiguration.Project?.ProjectKey;
+                var sonarProjectKey = configurationProvider.GetConfiguration().Project?.ProjectKey;
 
                 if (!string.IsNullOrEmpty(sonarProjectKey))
                 {

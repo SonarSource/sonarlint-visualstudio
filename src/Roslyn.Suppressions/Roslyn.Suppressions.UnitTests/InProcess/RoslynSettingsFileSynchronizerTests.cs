@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
             MefTestHelpers.CheckTypeCanBeImported<RoslynSettingsFileSynchronizer, IRoslynSettingsFileSynchronizer>(
                 MefTestHelpers.CreateExport<IServerIssuesStore>(),
                 MefTestHelpers.CreateExport<IRoslynSettingsFileStorage>(),
-                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
+                MefTestHelpers.CreateExport<IConfigurationProvider>(),
                 MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
@@ -93,15 +93,15 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
         {
             var serverIssuesStore = new Mock<IServerIssuesStore>();
             var roslynSettingsFileStorage = new Mock<IRoslynSettingsFileStorage>();
-            var activeSolutionBoundTracker = CreateActiveSolutionBoundTracker(BindingConfiguration.Standalone);
+            var configProvider = CreateConfigProvider(BindingConfiguration.Standalone);
             
             CreateTestSubject(serverIssuesStore: serverIssuesStore.Object,
-                activeSolutionBoundTracker: activeSolutionBoundTracker.Object,
+                configProvider: configProvider.Object,
                 roslynSettingsFileStorage: roslynSettingsFileStorage.Object);
 
             serverIssuesStore.Raise(x=> x.ServerIssuesChanged += null, EventArgs.Empty);
 
-            activeSolutionBoundTracker.Verify(x=> x.CurrentConfiguration, Times.Once);
+            configProvider.Verify(x=> x.GetConfiguration(), Times.Once);
             roslynSettingsFileStorage.Invocations.Count.Should().Be(0);
         }
 
@@ -113,14 +113,14 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
             var roslynSettingsFileStorage = new Mock<IRoslynSettingsFileStorage>();
 
             var configuration = CreateConnectedConfiguration("some project key");
-            var activeSolutionBoundTracker = CreateActiveSolutionBoundTracker(configuration);
+            var configProvider = CreateConfigProvider(configuration);
             var solutionInfo = CreateSolutionInfoProvider("c:\\aaa\\MySolution1.sln");
 
             var issues = hasIssues ? new[] { CreateSonarQubeIssue(), CreateSonarQubeIssue() } : Array.Empty<SonarQubeIssue>();
             var serverIssuesStore = CreateServerIssuesStore(issues);
 
             CreateTestSubject(serverIssuesStore: serverIssuesStore.Object,
-                activeSolutionBoundTracker: activeSolutionBoundTracker.Object,
+                configProvider: configProvider.Object,
                 roslynSettingsFileStorage: roslynSettingsFileStorage.Object,
                 solutionInfoProvider: solutionInfo.Object);
 
@@ -136,7 +136,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
             threadHandling.Setup(x => x.SwitchToBackgroundThread()).Returns(new NoOpThreadHandler.NoOpAwaitable());
 
             var configuration = CreateConnectedConfiguration("some project key");
-            var activeSolutionBoundTracker = CreateActiveSolutionBoundTracker(configuration);
+            var configProvider = CreateConfigProvider(configuration);
 
             var roslynSettingsFileStorage = new Mock<IRoslynSettingsFileStorage>();
 
@@ -147,14 +147,14 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
                 serverIssuesStore: serverIssuesStore.Object,
                 threadHandling: threadHandling.Object,
                 roslynSettingsFileStorage: roslynSettingsFileStorage.Object,
-                activeSolutionBoundTracker: activeSolutionBoundTracker.Object);
+                configProvider: configProvider.Object);
 
             await testSubject.UpdateFileStorageAsync();
 
             threadHandling.Verify(x => x.SwitchToBackgroundThread(), Times.Once);
 
             roslynSettingsFileStorage.Invocations.Count.Should().Be(1);
-            activeSolutionBoundTracker.Invocations.Count.Should().Be(1);
+            configProvider.Invocations.Count.Should().Be(1);
             roslynSettingsFileStorage.Verify(x => x.Update(It.IsAny<RoslynSettings>(), It.IsAny<string>()), Times.Once);
         }
 
@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
         public async Task UpdateFileStorage_IssuesAreConvertedAndFiltered()
         {
             var configuration = CreateConnectedConfiguration("some project key");
-            var activeSolutionBoundTracker = CreateActiveSolutionBoundTracker(configuration);
+            var configurationProvider = CreateConfigProvider(configuration);
 
             var sonarIssues = new []
             {
@@ -184,7 +184,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
             var testSubject = CreateTestSubject(
                 serverIssuesStore: serverIssuesStore.Object,
                 roslynSettingsFileStorage: roslynSettingsFileStorage.Object,
-                activeSolutionBoundTracker: activeSolutionBoundTracker.Object);
+                configProvider: configurationProvider.Object);
 
             await testSubject.UpdateFileStorageAsync();
 
@@ -204,7 +204,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
         public async Task UpdateFileStorage_OnlySuppressedIssuesAreInSettings()
         {
             var configuration = CreateConnectedConfiguration("some project key");
-            var activeSolutionBoundTracker = CreateActiveSolutionBoundTracker(configuration);
+            var configProvider = CreateConfigProvider(configuration);
 
             var sonarIssues = new[]
             {
@@ -224,7 +224,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
             var testSubject = CreateTestSubject(
                 serverIssuesStore: serverIssuesStore.Object,
                 roslynSettingsFileStorage: roslynSettingsFileStorage.Object,
-                activeSolutionBoundTracker: activeSolutionBoundTracker.Object);
+                configProvider: configProvider.Object);
 
             await testSubject.UpdateFileStorageAsync();
 
@@ -240,12 +240,12 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
             actualSuppressions[1].RoslynRuleId.Should().Be("S333");
         }
 
-        private static Mock<IActiveSolutionBoundTracker> CreateActiveSolutionBoundTracker(BindingConfiguration configuration)
+        private static Mock<IConfigurationProvider> CreateConfigProvider(BindingConfiguration configuration)
         {
-            var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
-            activeSolutionBoundTracker.Setup(x => x.CurrentConfiguration).Returns(configuration);
+            var configProvider = new Mock<IConfigurationProvider>();
+            configProvider.Setup(x => x.GetConfiguration()).Returns(configuration);
             
-            return activeSolutionBoundTracker;
+            return configProvider;
         }
 
         private static Mock<IServerIssuesStore> CreateServerIssuesStore(IEnumerable<SonarQubeIssue> issues = null)
@@ -272,21 +272,21 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
 
         private RoslynSettingsFileSynchronizer CreateTestSubject(IServerIssuesStore serverIssuesStore = null,
             IRoslynSettingsFileStorage roslynSettingsFileStorage = null,
-            IActiveSolutionBoundTracker activeSolutionBoundTracker = null,
+            IConfigurationProvider configProvider = null,
             ISolutionInfoProvider solutionInfoProvider = null,
             IThreadHandling threadHandling = null,
             ILogger logger = null)
         {
             serverIssuesStore ??= Mock.Of<IServerIssuesStore>();
             roslynSettingsFileStorage ??= Mock.Of<IRoslynSettingsFileStorage>();
-            activeSolutionBoundTracker ??= Mock.Of<IActiveSolutionBoundTracker>();
+            configProvider ??= Mock.Of<IConfigurationProvider>();
             solutionInfoProvider ??= CreateSolutionInfoProvider("c:\\any.sln").Object;
             threadHandling ??= new NoOpThreadHandler();
             logger ??= new TestLogger();
 
             return new RoslynSettingsFileSynchronizer(serverIssuesStore,
                 roslynSettingsFileStorage, 
-                activeSolutionBoundTracker,
+                configProvider,
                 solutionInfoProvider,
                 logger,
                 threadHandling);
