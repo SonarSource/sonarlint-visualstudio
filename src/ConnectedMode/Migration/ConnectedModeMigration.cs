@@ -139,11 +139,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             // i.e. update project files and delete .sonarlint folder
             await MakeLegacyFileChangesAsync(legacySettings, changedFiles, progress, token);
 
-            // Trigger an refetch of suppressions so the Roslyn settings are updated.
+            // Trigger a re-fetch of suppressions so the Roslyn settings are updated.
             await suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync();
 
             progress?.Report(new MigrationProgress(0, 1, "Migration finished successfully!", false));
-                logger.WriteLine(MigrationStrings.Process_Finished);
+            logger.WriteLine(MigrationStrings.Process_Finished);
         }
 
         private System.Threading.Tasks.Task<string> GetFileContentAsync(string filePath)
