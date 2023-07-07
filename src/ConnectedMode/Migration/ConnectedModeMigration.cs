@@ -25,6 +25,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
@@ -46,6 +47,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly IVsAwareFileSystem fileSystem;
         private readonly ISonarQubeService sonarQubeService;
         private readonly IUnintrusiveBindingController unintrusiveBindingController;
+        private readonly ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
 
@@ -59,6 +61,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             IVsAwareFileSystem fileSystem,
             ISonarQubeService sonarQubeService,
             IUnintrusiveBindingController unintrusiveBindingController,
+            ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
             ILogger logger,
             IThreadHandling threadHandling)
         {
@@ -68,6 +71,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             this.fileSystem = fileSystem;
             this.sonarQubeService = sonarQubeService;
             this.unintrusiveBindingController = unintrusiveBindingController;
+            this.suppressionIssueStoreUpdater = suppressionIssueStoreUpdater;
+
             this.logger = logger;
             this.threadHandling = threadHandling;
         }
@@ -134,8 +139,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             // i.e. update project files and delete .sonarlint folder
             await MakeLegacyFileChangesAsync(legacySettings, changedFiles, progress, token);
 
+            // Trigger an refetch of suppressions so the Roslyn settings are updated.
+            await suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync();
+
             progress?.Report(new MigrationProgress(0, 1, "Migration finished successfully!", false));
-            logger.WriteLine(MigrationStrings.Process_Finished);
+                logger.WriteLine(MigrationStrings.Process_Finished);
         }
 
         private System.Threading.Tasks.Task<string> GetFileContentAsync(string filePath)
