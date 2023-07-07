@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var actual = testSubject.Clean(input, settings, CancellationToken.None);
             CheckIsUnchanged(actual);
-            testLogger.OutputStrings.Single().Should().Contain("Could not load xml");
+            testLogger.OutputStrings.Single().Should().Contain("The file could not be loaded as XML");
         }
 
         [TestMethod]
