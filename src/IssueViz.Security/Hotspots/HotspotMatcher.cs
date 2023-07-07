@@ -42,9 +42,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
                 return false;
             }
 
-            if (!string.IsNullOrEmpty(serverHotspot.LineHash) && !string.IsNullOrEmpty(localHotspotVisualization.LineHash))
+            if (!string.IsNullOrEmpty(serverHotspot.LineHash)
+                && StringComparer.Ordinal.Equals(localHotspotVisualization.LineHash, serverHotspot.LineHash))
             {
-                return StringComparer.Ordinal.Equals(localHotspotVisualization.LineHash, serverHotspot.LineHash);
+                return true;
             }
 
             return localHotspotVisualization.StartLine == serverHotspot.TextRange.StartLine 

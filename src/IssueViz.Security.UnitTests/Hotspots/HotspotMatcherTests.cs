@@ -69,6 +69,20 @@ public class HotspotMatcherTests
     }
     
     [TestMethod]
+    public void IsMatch_SameIssueDifferentHash_ReturnsTrue()
+    {
+        const string ruleId = "rule1";
+        const string filePath = "A:\\ny\\p\\ath";
+        const string serverPath = "p\\ath";
+        var testSubject = CreateTestSubject();
+
+        testSubject.IsMatch(CreateLocalHotspot(ruleId, "message1", "abchash", filePath, 10),
+                CreateServerHotspot(ruleId, "message1", "defhash", serverPath, 10))
+            .Should()
+            .BeTrue();
+    }
+    
+    [TestMethod]
     public void IsMatch_SameFileAndRuleDifferentIssue_ReturnsFalse()
     {
         const string ruleId = "rule1";
