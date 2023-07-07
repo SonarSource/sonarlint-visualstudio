@@ -32,8 +32,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         /// Loads <see cref="XmlDocument"/> from <see cref="string"/> with preserved original formatting
         /// </summary>
         /// <param name="content">XML document contents</param>
-        /// <returns><see cref="XmlDocument"/> object representation</returns>
-        XmlDocument LoadFromString(string content);
+        /// <param name="document">XML object representation</param>
+        /// <returns>True if successfully loaded, False otherwise</returns>
+        bool TryLoadFromString(string content, out XmlDocument document);
         
         /// <summary>
         /// Saves <see cref="XmlDocument"/> to <see cref="string"/>
@@ -46,13 +47,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     
     internal class XmlDocumentHelper : IXmlDocumentHelper
     {
-        public XmlDocument LoadFromString(string content)
+        public bool TryLoadFromString(string content, out XmlDocument document)
         {
-            var xmlDocument = new XmlDocument { PreserveWhitespace = true };
-            xmlDocument.LoadXml(content);
-            return xmlDocument;
+            document = null;
+            
+            try
+            {
+                document = LoadFromString(content);
+                return true;
+            }
+            catch (XmlException)
+            {
+                return false;
+            }
         }
-
+        
         public string SaveToString(XmlDocument document)
         {
             using (var memoryStream = new MemoryStream())
@@ -65,6 +74,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                     return streamReader.ReadToEnd();
                 }
             }
+        }
+        private XmlDocument LoadFromString(string content)
+        {
+            var xmlDocument = new XmlDocument { PreserveWhitespace = true };
+            xmlDocument.LoadXml(content);
+            return xmlDocument;
         }
     }
 }
