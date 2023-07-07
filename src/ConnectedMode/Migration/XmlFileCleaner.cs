@@ -53,7 +53,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         public string Clean(string content, LegacySettings legacySettings, CancellationToken token)
         {
-            var document = xmlDocumentHelper.LoadFromString(content);
+            if (!xmlDocumentHelper.TryLoadFromString(content, out var document))
+            {
+                logger.WriteLine(MigrationStrings.Cleaner_NotXml);
+                return Unchanged;
+            }
 
             var nodesToRemove = new List<XmlNode>();
 
@@ -64,7 +68,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             if (!nodesToRemove.Any())
             {
-                logger.LogVerbose("    No settings to remove");
+                logger.WriteLine(MigrationStrings.Cleaner_Unchanged);
                 return Unchanged;
             }
 

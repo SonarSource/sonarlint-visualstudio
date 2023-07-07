@@ -26,7 +26,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration;
 public class XmlDocumentHelperTests
 {
     [TestMethod]
-    public void LoadFromString_SaveToString_NoModification_ReturnsEquivalentString()
+    public void TryLoadFromString_NotXml_ReturnsFalse()
+    {
+        var input = "{'json':'isnotsupported'}";
+
+        var testSubject = new XmlDocumentHelper();
+
+        testSubject.TryLoadFromString(input, out _).Should().BeFalse();
+    }
+    
+    [TestMethod]
+    public void TryLoadFromString_SaveToString_NoModification_ReturnsEquivalentString()
     {
         var input =
 @"<Project Sdk=""Microsoft.NET.Sdk"">
@@ -47,11 +57,12 @@ public class XmlDocumentHelperTests
 
         var testSubject = new XmlDocumentHelper();
 
-        testSubject.SaveToString(testSubject.LoadFromString(input)).Should().BeEquivalentTo(input);
+        testSubject.TryLoadFromString(input, out var document).Should().BeTrue();
+        testSubject.SaveToString(document).Should().BeEquivalentTo(input);
     }
     
     [TestMethod]
-    public void LoadFromString_SaveToString_NoModification_XmlHeaderPreserved()
+    public void TryLoadFromString_SaveToString_NoModification_XmlHeaderPreserved()
     {
         var input =
 @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -73,11 +84,12 @@ public class XmlDocumentHelperTests
 
         var testSubject = new XmlDocumentHelper();
 
-        testSubject.SaveToString(testSubject.LoadFromString(input)).Should().BeEquivalentTo(input);
+        testSubject.TryLoadFromString(input, out var document).Should().BeTrue();
+        testSubject.SaveToString(document).Should().BeEquivalentTo(input);
     }
     
     [TestMethod]
-    public void LoadFromString_SaveToString_Modification_SavesCorrectly()
+    public void TryLoadFromString_SaveToString_Modification_SavesCorrectly()
     {
         var input =
 @"<Project Sdk=""Microsoft.NET.Sdk"">
@@ -115,7 +127,7 @@ public class XmlDocumentHelperTests
 
         var testSubject = new XmlDocumentHelper();
 
-        var document = testSubject.LoadFromString(input);
+        testSubject.TryLoadFromString(input, out var document).Should().BeTrue();
         var xmlNode = document.GetElementsByTagName("CodeAnalysisRuleSet")[0];
         xmlNode.ParentNode.RemoveChild(xmlNode);
 

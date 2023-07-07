@@ -20,6 +20,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Integration;
@@ -119,6 +120,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         [TestMethod]
         public void Clean_RulesetIncludessExist_DifferentProjectKey_SettingsAreNotRemoved()
         {
+            
             var input = LoadEmbeddedTestCase("Ruleset_XX-project-key_Input.ruleset.xml");
 
             var settings = new LegacySettings("any",
@@ -131,6 +133,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var actual = testSubject.Clean(input, settings, CancellationToken.None);
             CheckIsUnchanged(actual);
+        }
+        
+        [TestMethod]
+        public void Clean_NonXmlInput_LogsAndReturnsUnchanged()
+        {
+            var input = "{'json':'isnotsupported'}";
+            var settings = new LegacySettings("any",
+                ".sonarlint\\some-other-keycsharp.ruleset",
+                "any",
+                ".sonarlint\\some-other-keyvb.ruleset",
+                "any");
+            var testLogger = new TestLogger();
+
+            var testSubject = CreateTestSubject(testLogger);
+
+            var actual = testSubject.Clean(input, settings, CancellationToken.None);
+            CheckIsUnchanged(actual);
+            testLogger.OutputStrings.Single().Should().Contain("The file could not be loaded as XML");
         }
 
         [TestMethod]

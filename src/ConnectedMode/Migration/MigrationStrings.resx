@@ -215,4 +215,10 @@
   <data name="VsFileSystem_Error_FailedToCheckOutFolderForDeletion" xml:space="preserve">
     <value>Failed to check out folder contents for deletion: {0}</value>
   </data>
+  <data name="Cleaner_NotXml" xml:space="preserve">
+    <value>[Migration] The file could not be loaded as XML</value>
+  </data>
+  <data name="Cleaner_Unchanged" xml:space="preserve">
+    <value>[Migration] No settings to remove from the file</value>
+  </data>
 </root>
