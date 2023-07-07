@@ -28,12 +28,13 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
         public static readonly string Directory = PathHelper.GetTempDirForTask(false, "Roslyn");
 
         /// <summary>
-        /// Returns the full file path for the given project key
+        /// Returns the full file path for the given solution name
         /// </summary>
+        /// <param name="solutionName">The solution name without the file extension e.g. "MySolution"</param>
         /// <remarks> File will be in a shared location and would be able to be accessed by multiple instances of VS simulateneously</remarks>
-        public static string GetSettingsFilePath(string sonarProjectKey)
+        public static string GetSettingsFilePath(string solutionName)
         {
-            var escapedName = PathHelper.EscapeFileName(NormalizeKey(sonarProjectKey));
+            var escapedName = PathHelper.EscapeFileName(NormalizeKey(solutionName));
 
             var fileName = escapedName + ".json";
 
@@ -49,9 +50,6 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
             return Path.GetFileNameWithoutExtension(filePath);
         }
 
-        private static string NormalizeKey(string key)
-        {
-            return key.ToLowerInvariant();
-        }
+        private static string NormalizeKey(string key) => key.ToLowerInvariant();
     }
 }
