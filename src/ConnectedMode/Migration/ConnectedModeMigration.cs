@@ -46,6 +46,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly IVsAwareFileSystem fileSystem;
         private readonly ISonarQubeService sonarQubeService;
         private readonly IUnintrusiveBindingController unintrusiveBindingController;
+        private readonly IRoslynSettingsFileSynchronizer roslynSettingsFileSynchronizer;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
 
@@ -59,6 +60,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             IVsAwareFileSystem fileSystem,
             ISonarQubeService sonarQubeService,
             IUnintrusiveBindingController unintrusiveBindingController,
+            IRoslynSettingsFileSynchronizer roslynSettingsFileSynchronizer,
             ILogger logger,
             IThreadHandling threadHandling)
         {
@@ -68,6 +70,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             this.fileSystem = fileSystem;
             this.sonarQubeService = sonarQubeService;
             this.unintrusiveBindingController = unintrusiveBindingController;
+            this.roslynSettingsFileSynchronizer = roslynSettingsFileSynchronizer;
             this.logger = logger;
             this.threadHandling = threadHandling;
         }
@@ -133,6 +136,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             // Now make all of the files changes required to remove the legacy settings
             // i.e. update project files and delete .sonarlint folder
             await MakeLegacyFileChangesAsync(legacySettings, changedFiles, progress, token);
+
+            // The location of the Roslyn suppressions file has changed so we need to re-save it
+            // in the new location
+            await roslynSettingsFileSynchronizer.UpdateFileStorageAsync();
 
             progress?.Report(new MigrationProgress(0, 1, "Migration finished successfully!", false));
             logger.WriteLine(MigrationStrings.Process_Finished);

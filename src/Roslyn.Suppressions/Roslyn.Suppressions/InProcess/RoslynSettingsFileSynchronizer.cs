@@ -23,6 +23,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -34,15 +35,6 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
 {
-    /// <summary>
-    /// Responsible for listening to <see cref="IServerIssuesStore.ServerIssuesChanged"/> and calling
-    /// <see cref="IRoslynSettingsFileStorage.Update"/> with the new suppressions.
-    /// </summary>
-    public interface IRoslynSettingsFileSynchronizer : IDisposable
-    {
-        Task UpdateFileStorageAsync();
-    }
-
     [Export(typeof(IRoslynSettingsFileSynchronizer))]
     internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchronizer
     {

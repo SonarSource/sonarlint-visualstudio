@@ -35,6 +35,7 @@ using SonarQube.Client.Models;
 using EventHandler = System.EventHandler;
 using static SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.TestHelper;
 using System.Linq;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
 {

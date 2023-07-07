@@ -55,6 +55,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 MefTestHelpers.CreateExport<IVsAwareFileSystem>(),
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IUnintrusiveBindingController>(),
+                MefTestHelpers.CreateExport<IRoslynSettingsFileSynchronizer>(),
                 MefTestHelpers.CreateExport<ILogger>(),
                 MefTestHelpers.CreateExport<IThreadHandling>());
         }
@@ -252,6 +253,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         }
 
         [TestMethod]
+        public async Task Migrate_RoslynSuppressionUpdateIsTriggered()
+        {
+            var roslynSettingsSynchronizer = new Mock<IRoslynSettingsFileSynchronizer>();
+
+            var testSubject = CreateTestSubject(roslynSettingsFileSynchronizer: roslynSettingsSynchronizer.Object);
+            await testSubject.MigrateAsync(AnyBoundProject, null, CancellationToken.None);
+
+            roslynSettingsSynchronizer.Verify(x => x.UpdateFileStorageAsync(), Times.Once);
+        }
+
+        [TestMethod]
         public async Task Migrate_SwitchToBackgroundThread()
         {
             var threadHandling = new Mock<IThreadHandling>();
@@ -271,6 +283,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             IMigrationSettingsProvider settingsProvider = null,
             ISonarQubeService sonarQubeService = null,
             IUnintrusiveBindingController unintrusiveBindingController = null,
+            IRoslynSettingsFileSynchronizer roslynSettingsFileSynchronizer = null,
             ILogger logger = null,
             IThreadHandling threadHandling = null)
         {
@@ -280,11 +293,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             sonarQubeService ??= Mock.Of<ISonarQubeService>();
             unintrusiveBindingController ??= Mock.Of<IUnintrusiveBindingController>();
             settingsProvider ??= CreateSettingsProvider(DefaultTestLegacySettings).Object;
+            roslynSettingsFileSynchronizer ??= Mock.Of<IRoslynSettingsFileSynchronizer>();
             
             logger ??= new TestLogger(logToConsole: true);
             threadHandling ??= new NoOpThreadHandler();
 
-            return new ConnectedModeMigration(settingsProvider, fileProvider, fileCleaner, fileSystem, sonarQubeService, unintrusiveBindingController, logger, threadHandling);
+            return new ConnectedModeMigration(settingsProvider, fileProvider, fileCleaner, fileSystem, sonarQubeService, unintrusiveBindingController, roslynSettingsFileSynchronizer, logger, threadHandling);
         }
 
         private static Mock<IFileProvider> CreateFileProvider(params string[] filesToReturn)
