@@ -25,13 +25,13 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarQube.Client.Models;
 using SonarQube.Client;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {
@@ -69,6 +69,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         }
 
         #region Tests
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<VsSessionHost, IHost>(
+                MefTestHelpers.CreateExport<Microsoft.VisualStudio.Shell.SVsServiceProvider>(),
+                MefTestHelpers.CreateExport<ISonarQubeService>(),
+                MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
+                MefTestHelpers.CreateExport<IProjectToLanguageMapper>(),
+                MefTestHelpers.CreateExport<IConfigurationProvider>(),
+                MefTestHelpers.CreateExport<ILogger>());
+        }
 
         [TestMethod]
         public void VsSessionHost_SetActiveSection()
@@ -338,13 +350,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         public void VsSessionHost_IServiceProvider_GetService()
         {
             // Arrange
-            var testSubject = new VsSessionHost(this.serviceProvider, this.sonarQubeServiceMock.Object,
-                new ConfigurableActiveSolutionTracker(), Mock.Of<ICredentialStoreService>(), Mock.Of<IProjectToLanguageMapper>(), Mock.Of<ILogger>());
-            ConfigurableVsShell shell = new ConfigurableVsShell();
+            var shell = new ConfigurableVsShell();
             shell.RegisterPropertyGetter((int)__VSSPROPID2.VSSPROPID_InstallRootDir, () => this.TestContext.TestRunDirectory);
             this.serviceProvider.RegisterService(typeof(SVsShell), shell);
             this.serviceProvider.RegisterService(typeof(SVsSolution), new Mock<IVsSolution>().Object);
-            this.serviceProvider.RegisterService(typeof(ICredentialStoreService), new Mock<ICredentialStoreService>().Object);
+
+            var testSubject = CreateTestSubject(new ConfigurableActiveSolutionTracker());
 
             // Local services
             // Act + Assert
@@ -368,7 +379,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
         #region Helpers
 
-        private VsSessionHost CreateTestSubject(ConfigurableActiveSolutionTracker tracker)
+        private VsSessionHost CreateTestSubject(ConfigurableActiveSolutionTracker tracker = null)
         {
             this.stateManager = new ConfigurableStateManager();
             var host = new VsSessionHost(this.serviceProvider,
@@ -376,14 +387,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 this.stepRunner,
                 this.sonarQubeServiceMock.Object,
                 tracker ?? new ConfigurableActiveSolutionTracker(),
-                Mock.Of<ICredentialStoreService>(),
                 Mock.Of<IProjectToLanguageMapper>(),
+                this.configProvider,
                 Mock.Of<ILogger>(),
                 Dispatcher.CurrentDispatcher);
 
             this.stateManager.Host = host;
-
-            host.ReplaceInternalServiceForTesting<IConfigurationProviderService>(this.configProvider);
 
             return host;
         }

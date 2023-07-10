@@ -21,7 +21,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Progress.Controller;
@@ -75,9 +75,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private ProgressStepDefinition[] CreateWorkflowSteps(IProgressController controller)
         {
-            const StepAttributes IndeterminateNonCancellableBackgroundStep = StepAttributes.Indeterminate | StepAttributes.NonCancellable | StepAttributes.BackgroundThread;
-            const StepAttributes IndeterminateNonCancellableUIStep = StepAttributes.Indeterminate | StepAttributes.NonCancellable;
-            const StepAttributes HiddenIndeterminateNonImpactingNonCancellableUIStep = IndeterminateNonCancellableUIStep | StepAttributes.Hidden | StepAttributes.NoProgressImpact;
             const StepAttributes HiddenNonImpactingBackgroundStep = StepAttributes.BackgroundThread | StepAttributes.Hidden | StepAttributes.NoProgressImpact;
 
             return new ProgressStepDefinition[]
@@ -89,51 +86,25 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 //*****************************************************************
                 // Initialization
                 //*****************************************************************
-                // Show an initial message and check the solution isn't dirty
+                // Show an initial message
                 new ProgressStepDefinition(null, HiddenNonImpactingBackgroundStep,
                         (token, notifications) => notifications.ProgressChanged(Strings.StartedSolutionBindingWorkflow)),
-
-                new ProgressStepDefinition(null, StepAttributes.Indeterminate | StepAttributes.Hidden,
-                        (token, notifications) => this.PromptSaveSolutionIfDirty(controller, token)),
 
                 //*****************************************************************
                 // Preparation
                 //*****************************************************************
-                // Check for eligible projects in the solution
-                new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.Indeterminate,
-                        (token, notifications) => this.DiscoverProjects(controller, notifications)),
-
                 // Fetch data from Sonar server and write shared ruleset file(s) to temporary location on disk
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
                         (token, notifications) => this.DownloadQualityProfileAsync(controller, notifications, token).GetAwaiter().GetResult()),
 
                 //*****************************************************************
-                // NuGet package handling
-                //*****************************************************************
-                // Initialize the VS NuGet installer service
-                new ProgressStepDefinition(null, HiddenIndeterminateNonImpactingNonCancellableUIStep,
-                        (token, notifications) => { this.PrepareToInstallPackages(); }),
-
-                // Install the appropriate package for each project
-                new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread,
-                        (token, notifications) => this.InstallPackages(notifications, token)),
-
-                //*****************************************************************
                 // Solution update phase
                 //*****************************************************************
-                // * copy shared ruleset to shared location
-                // * add files to solution
-                // * create/update per-project ruleset
-                // * set project-level properties
+                // * write config files to non-scc location
                 // Most of the work is delegated to SolutionBindingOperation
-                new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, IndeterminateNonCancellableBackgroundStep,
-                        (token, notifications) => this.InitializeSolutionBindingOnBackgroundThread(notifications)),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread | StepAttributes.Indeterminate,
-                        (token, notifications) => this.PrepareSolutionBinding(token)),
-
-                new ProgressStepDefinition(null, StepAttributes.Hidden | StepAttributes.Indeterminate,
-                        (token, notifications) => this.FinishSolutionBindingOnUIThread(controller, token)),
+                        (token, notifications) => this.SaveRuleConfiguration(token)),
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread | StepAttributes.Indeterminate,
                         (token, notifications) => this.SaveServerExclusionsAsync(controller, notifications, token).GetAwaiter().GetResult()),
@@ -141,10 +112,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 //*****************************************************************
                 // Finalization
                 //*****************************************************************
-                // Save solution and show message
-                new ProgressStepDefinition(null, HiddenIndeterminateNonImpactingNonCancellableUIStep,
-                        (token, notifications) => this.SilentSaveSolutionIfDirty()),
-
+                // Show final message
                 new ProgressStepDefinition(null, HiddenNonImpactingBackgroundStep,
                         (token, notifications) => this.EmitBindingCompleteMessage(notifications))
             };
@@ -153,26 +121,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #endregion
 
         #region Workflow steps
-
-        internal /*for testing purposes*/ void PromptSaveSolutionIfDirty(IProgressController controller, CancellationToken token)
-        {
-            if (!bindingProcess.PromptSaveSolutionIfDirty())
-            {
-                this.AbortWorkflow(controller, token);
-            }
-        }
-
-        internal /*for testing purposes*/ void DiscoverProjects(IProgressController controller, IProgressStepExecutionEvents notifications)
-        {
-            Debug.Assert(ThreadHelper.CheckAccess(), "Expected step to be run on the UI thread");
-
-            notifications.ProgressChanged(Strings.DiscoveringSolutionProjectsProgressMessage);
-
-            if (!bindingProcess.DiscoverBindableProjects())
-            {
-                AbortWorkflow(controller, CancellationToken.None);
-            }
-        }
 
         internal /*for testing purposes*/ async System.Threading.Tasks.Task DownloadQualityProfileAsync(
             IProgressController controller, IProgressStepExecutionEvents notificationEvents,
@@ -202,44 +150,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-
-        internal /* for testing */ void InitializeSolutionBindingOnBackgroundThread(IProgressStepExecutionEvents notificationEvents)
+        internal /* for testing */ void SaveRuleConfiguration(CancellationToken token)
         {
-
-            notificationEvents.ProgressChanged(Strings.RuleSetGenerationProgressMessage);
-
-            bindingProcess.InitializeSolutionBindingOnBackgroundThread();
-        }
-
-        internal /* for testing */ void PrepareSolutionBinding(CancellationToken token)
-        {
-            this.bindingProcess.PrepareSolutionBinding(token);
-        }
-
-        internal /* for testing */ void FinishSolutionBindingOnUIThread(IProgressController controller, CancellationToken token)
-        {
-            Debug.Assert(host.UIDispatcher.CheckAccess(), "Expected to run on UI thread");
-
-            if (!bindingProcess.FinishSolutionBindingOnUIThread())
-            {
-                AbortWorkflow(controller, token);
-            }
-        }
-
-        internal /*for testing purposes*/ void PrepareToInstallPackages()
-        {
-            bindingProcess.PrepareToInstallPackages();
-        }
-
-        internal /*for testing purposes*/ void InstallPackages(IProgressStepExecutionEvents notificationEvents, CancellationToken token)
-        {
-            var progressAdapter = new FixedStepsProgressAdapter(notificationEvents);
-            bindingProcess.InstallPackages(progressAdapter, token);
-        }
-
-        internal /*for testing purposes*/ void SilentSaveSolutionIfDirty()
-        {
-            bindingProcess.SilentSaveSolutionIfDirty();
+            this.bindingProcess.SaveRuleConfiguration(token);
         }
 
         internal /*for testing purposes*/ void EmitBindingCompleteMessage(IProgressStepExecutionEvents notifications)

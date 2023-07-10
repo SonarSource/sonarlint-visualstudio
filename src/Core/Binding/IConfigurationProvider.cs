@@ -22,6 +22,9 @@ namespace SonarLint.VisualStudio.Core.Binding
 {
     public interface IConfigurationProvider
     {
+        /// <summary>
+        /// Returns the binding configuration for the current solution
+        /// </summary>
         BindingConfiguration GetConfiguration();
     }
 }

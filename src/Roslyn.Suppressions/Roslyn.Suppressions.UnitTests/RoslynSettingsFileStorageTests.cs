@@ -58,9 +58,9 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
             var fileStorage = CreateTestSubject(logger, fileSystem.Object);
 
-            fileStorage.Update(settings);
+            fileStorage.Update(settings, "a solution name");
 
-            CheckFileWritten(file, settings);
+            CheckFileWritten(file, settings, "a solution name");
             logger.AssertNoOutputMessages();
         }
 
@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         }
 
         [TestMethod]
-        public void Update_ProjectKeyHasInvalidChars_InvalidCharsReplaced()
+        public void Update_SolutionNameHasInvalidChars_InvalidCharsReplaced()
         {
             var settings = new RoslynSettings { SonarProjectKey = "project:key" };
 
@@ -104,9 +104,9 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             Mock<IFileSystem> fileSystem = CreateFileSystem(file);
 
             var fileStorage = new RoslynSettingsFileStorage(logger, fileSystem.Object);
-            fileStorage.Update(settings);
+            fileStorage.Update(settings, "my:solution");
 
-            CheckFileWritten(file, settings);
+            CheckFileWritten(file, settings, "my_solution");
             logger.AssertNoOutputMessages();
         }
 
@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
             var fileStorage = CreateTestSubject(logger, fileSystem.Object);
 
-            fileStorage.Update(settings);
+            fileStorage.Update(settings, "any");
 
             logger.AssertOutputStrings("[Roslyn Suppressions] Error writing settings for project projectKey. Issues suppressed on the server may not be suppressed in the IDE. Error: Test Exception");
         }
@@ -159,9 +159,9 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 
             var fileStorage = CreateTestSubject(logger, fileSystem.Object);
 
-            fileStorage.Update(settings);
+            fileStorage.Update(settings, "mySolution1");
 
-            CheckFileWritten(file, settings);
+            CheckFileWritten(file, settings, "mySolution1");
             logger.AssertNoOutputMessages();
         }
 
@@ -224,7 +224,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             };
 
             // Act
-            testSubject.Update(original);
+            testSubject.Update(original, "any");
             var reloaded = testSubject.Get(projectKey);
 
             reloaded.SonarProjectKey.Should().Be(projectKey);
@@ -290,9 +290,9 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             return fileSystem;
         }
 
-        private static void CheckFileWritten(Mock<IFile> file, RoslynSettings settings)
+        private static void CheckFileWritten(Mock<IFile> file, RoslynSettings settings, string solutionName)
         {
-            var expectedFilePath = GetFilePath(settings.SonarProjectKey);
+            var expectedFilePath = GetFilePath(solutionName);
             var expectedContent = JsonConvert.SerializeObject(settings, Formatting.Indented);
 
             file.Verify(f => f.WriteAllText(expectedFilePath, expectedContent), Times.Once);

@@ -33,6 +33,12 @@ using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
+    // NB we need to use the ConfigurableServiceProvider for these tests because it correctly handles
+    // COM type equivalance for embedded interop types such as SVsInfoBarUIFactory.
+    // Otherwise, we can get unexpected failures such as tests passing in the VS2022 build but not in
+    // the VS2019 build
+    // See https://learn.microsoft.com/en-us/dotnet/framework/interop/type-equivalence-and-embedded-interop-types
+
     [TestClass]
     public class InfoBarManagerTests
     {
@@ -303,6 +309,60 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             eventHandler.VerifyNoOtherCalls();
         }
 
+        #region MainWindow tests
+        // The ToolWindow tests above cover the common implementation of gold bar functionality.
+        // These MainWindow tests just cover a few extra main window specific cases.
+
+        [TestMethod]
+        public void InfoBarManager_AttachInfoBarToMainWindowAndDetach_ArgChecks()
+        {
+            var testSubject = CreateTestSubject();
+
+            Action act = () => testSubject.AttachInfoBarToMainWindow(null, SonarLintImageMoniker.OfficialSonarLintMoniker);
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("message");
+
+            act = () => testSubject.AttachInfoBarToMainWindow("a message", SonarLintImageMoniker.OfficialSonarLintMoniker, null);
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("buttonTexts");
+        }
+
+        [TestMethod]
+        public void InfoBarManager_AttachInfoBarToMainWindowAndDetach_AttachesThenDetaches()
+        {
+            var sp = new ConfigurableServiceProvider();
+            sp.RegisterService(typeof(SVsInfoBarUIFactory), new ConfigurableVsInfoBarUIFactory());
+
+            var host = new ConfigurableVsInfoBarHost();
+            RegisterMainWindowHostWithShell(sp, host);
+
+            var testSubject = new InfoBarManager(sp);
+            host.AssertInfoBars(0);
+
+            var infoBar = testSubject.AttachInfoBarToMainWindow("message", default);
+            infoBar.Should().NotBeNull();
+
+            host.AssertInfoBars(1);
+
+            testSubject.DetachInfoBar(infoBar);
+            host.AssertInfoBars(0);
+        }
+
+        [TestMethod]
+        public void InfoBarManager_AttachInfoBarToMainWindow_HostIsNotAvailable_ReturnsNull()
+        {
+            var sp = new ConfigurableServiceProvider();
+            RegisterMainWindowHostWithShell(sp, null);
+
+            var testSubject = new InfoBarManager(sp);
+
+            // infoBarUIFactory not called
+            var actual = testSubject.AttachInfoBarToMainWindow("message", default);
+            actual.Should().BeNull();
+            sp.AssertServiceUsed(typeof(SVsShell));
+            sp.AssertServiceNotUsed(typeof(SVsInfoBarUIFactory));
+        }
+
+        #endregion
+
         #endregion Tests
 
         #region Test helpers
@@ -326,6 +386,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             frame.RegisterProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, host);
             return host;
         }
+
+        private static void RegisterMainWindowHostWithShell(ConfigurableServiceProvider serviceProvider, IVsInfoBarHost host)
+        {
+            var hostAsObject = (object)host;
+
+            var shellMock = new Mock<IVsShell>();
+            shellMock.Setup(x => x.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out hostAsObject));
+
+            serviceProvider.RegisterService(typeof(SVsShell), shellMock.Object);
+        }
+
 
         private class InvalidInfoBar : IInfoBar
         {

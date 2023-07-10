@@ -26,6 +26,7 @@ using System.Windows.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -146,90 +147,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void BindingWorkflow_InstallPackages_NoError()
-        {
-            // Arrange
-            var progressEvents = new ConfigurableProgressStepExecutionEvents();
-            var cts = new CancellationTokenSource();
-
-            // Act
-            testSubject.InstallPackages(progressEvents, cts.Token);
-
-            // Assert
-            mockBindingProcess.Verify(x => x.InstallPackages(It.IsAny<IProgress<FixedStepsProgress>>(), cts.Token), Times.Once);
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_InitializeSolutionBindingOnBackgroundThread_NoError()
-        {
-            // Arrange
-            var progressEvents = new ConfigurableProgressStepExecutionEvents();
-
-            // Act
-            testSubject.InitializeSolutionBindingOnBackgroundThread(progressEvents);
-
-            // Assert
-            mockBindingProcess.Verify(x => x.InitializeSolutionBindingOnBackgroundThread(), Times.Once);
-            progressEvents.AssertProgressMessages(Strings.RuleSetGenerationProgressMessage);
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_PrepareSolutionBinding_Passthrough()
+        public void BindingWorkflow_SaveConfiguration_Passthrough()
         {
             // Arrange
             var cts = new CancellationTokenSource();
 
             // Act
-            testSubject.PrepareSolutionBinding(cts.Token);
+            testSubject.SaveRuleConfiguration(cts.Token);
 
             // Assert
-            mockBindingProcess.Verify(x => x.PrepareSolutionBinding(cts.Token), Times.Once);
+            mockBindingProcess.Verify(x => x.SaveRuleConfiguration(cts.Token), Times.Once);
         }
 
-        [TestMethod]
-        public void BindingWorkflow_FinishSolutionBindingOnUIThread_Succeeds()
-        {
-            // Arrange
-            ConfigurableProgressController controller = new ConfigurableProgressController();
-            var cts = new CancellationTokenSource();
-
-            mockBindingProcess.Setup(x => x.FinishSolutionBindingOnUIThread()).Returns(true);
-
-            // Act
-            testSubject.FinishSolutionBindingOnUIThread(controller, cts.Token);
-
-            // Assert
-            mockBindingProcess.Verify(x => x.FinishSolutionBindingOnUIThread(), Times.Once);
-            controller.NumberOfAbortRequests.Should().Be(0);
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_FinishSolutionBindingOnUIThread_Fails()
-        {
-            // Arrange
-            ConfigurableProgressController controller = new ConfigurableProgressController();
-            var cts = new CancellationTokenSource();
-
-            mockBindingProcess.Setup(x => x.FinishSolutionBindingOnUIThread()).Returns(false);
-
-            // Act
-            testSubject.FinishSolutionBindingOnUIThread(controller, cts.Token);
-
-            // Assert
-            mockBindingProcess.Verify(x => x.FinishSolutionBindingOnUIThread(), Times.Once);
-            controller.NumberOfAbortRequests.Should().Be(1);
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_PrepareToInstallPackages_Passthrough()
-        {
-            // Arrange
-            // Act
-            testSubject.PrepareToInstallPackages();
-
-            // Assert
-            mockBindingProcess.Verify(x => x.PrepareToInstallPackages(), Times.Once);
-        }
 
         [TestMethod]
         public void BindingWorkflow_EmitBindingCompleteMessage()
@@ -256,74 +185,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             notificationsFail.AssertProgressMessages(string.Format(CultureInfo.CurrentCulture, Strings.FinishedSolutionBindingWorkflowNotAllPackagesInstalled));
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_PromptSaveSolutionIfDirty()
-        {
-            // Arrange
-            var controller = new ConfigurableProgressController();
-
-            // Case 1: Users saves the changes
-            mockBindingProcess.Setup(x => x.PromptSaveSolutionIfDirty()).Returns(true);
-
-            // Act
-            testSubject.PromptSaveSolutionIfDirty(controller, CancellationToken.None);
-            // Assert
-            controller.NumberOfAbortRequests.Should().Be(0);
-
-            // Case 2: Users cancels the save
-            mockBindingProcess.Setup(x => x.PromptSaveSolutionIfDirty()).Returns(false);
-            // Act
-            testSubject.PromptSaveSolutionIfDirty(controller, CancellationToken.None);
-            // Assert
-            controller.NumberOfAbortRequests.Should().Be(1);
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_SilentSaveSolutionIfDirty()
-        {
-            // Act
-            testSubject.SilentSaveSolutionIfDirty();
-
-            // Assert
-            mockBindingProcess.Verify(x => x.SilentSaveSolutionIfDirty(), Times.Once);
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_DiscoverProjects_Succeed_WorkflowNotAborted()
-        {
-            // Arrange
-            ThreadHelper.SetCurrentThreadAsUIThread();
-            var controller = new ConfigurableProgressController();
-            var progressEvents = new ConfigurableProgressStepExecutionEvents();
-
-            mockBindingProcess.Setup(x => x.DiscoverBindableProjects()).Returns(true);
-
-            // Act
-            testSubject.DiscoverProjects(controller, progressEvents);
-
-            // Assert
-            controller.NumberOfAbortRequests.Should().Be(0);
-            progressEvents.AssertProgressMessages(Strings.DiscoveringSolutionProjectsProgressMessage);
-        }
-
-        [TestMethod]
-        public void BindingWorkflow_DiscoverProjects_Fails_WorkflowAborted()
-        {
-            // Arrange
-            ThreadHelper.SetCurrentThreadAsUIThread();
-            var controller = new ConfigurableProgressController();
-            var progressEvents = new ConfigurableProgressStepExecutionEvents();
-
-            mockBindingProcess.Setup(x => x.DiscoverBindableProjects()).Returns(false);
-
-            // Act
-            testSubject.DiscoverProjects(controller, progressEvents);
-
-            // Assert
-            controller.NumberOfAbortRequests.Should().Be(1);
-            progressEvents.AssertProgressMessages(Strings.DiscoveringSolutionProjectsProgressMessage);
         }
 
         #endregion Tests
