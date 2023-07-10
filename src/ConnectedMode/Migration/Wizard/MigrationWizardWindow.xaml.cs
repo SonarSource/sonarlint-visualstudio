@@ -35,6 +35,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 {
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public sealed partial class MigrationWizardWindow : DialogWindow, IProgress<MigrationProgress>
     {
         private readonly BoundSonarQubeProject oldBinding;

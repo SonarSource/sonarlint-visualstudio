@@ -41,6 +41,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
     [Export(typeof(IMigrationWizardController))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     internal class MigrationWizardController : IMigrationWizardController
     {
         public event EventHandler MigrationWizardFinished;
