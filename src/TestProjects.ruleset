@@ -1,6 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <RuleSet Name="SLVSTestProjects" Description="SLVS - ruleset for test projects" ToolsVersion="17.0">
-  <Include Path="..\.sonarlint\sonarlint-visualstudiocsharp.ruleset" Action="Default" />
   <Rules AnalyzerId="Microsoft.VisualStudio.SDK.Analyzers" RuleNamespace="Microsoft.VisualStudio.SDK.Analyzers">
     <Rule Id="VSSDK001" Action="None" />
     <Rule Id="VSSDK002" Action="None" />
