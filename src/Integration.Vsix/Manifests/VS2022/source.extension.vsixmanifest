@@ -2,7 +2,7 @@
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
         <!-- Note: keep the version number in sync with AssemblyInfo.Shared.cs -->
-        <Identity Id="SonarLint.0DE19254-1DCA-4479-8EAF-58E5D677FF4D" Version="7.0.0.0" Language="en-US" Publisher="SonarSource" />
+        <Identity Id="SonarLint.0DE19254-1DCA-4479-8EAF-58E5D677FF4D" Version="7.1.0.0" Language="en-US" Publisher="SonarSource" />
         <DisplayName>SonarLint for Visual Studio 2022</DisplayName>
         <Preview>false</Preview>
       <Description xml:space="preserve">Linter to detect and fix coding issues locally in C#, VB.NET, C, C++, JS, TS and CSS code. Use with SonarQube and SonarCloud for optimal team performance.</Description>
@@ -20,7 +20,7 @@
     </Installation>
     <Dependencies>
         <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.7.2,)" />
-        <Dependency d:Source="Project" d:ProjectName="EmbeddedVsix" Version="[7.0.0.0]" d:InstallSource="Embed" d:VsixSubPath="EmbeddedVsix" Location="|EmbeddedVsix;VSIXContainerProjectOutputGroup|" DisplayName="|EmbeddedVsix;VSIXNameProjectOutputGroup|" Id="|EmbeddedVsix;VSIXIdentifierProjectOutputGroup|" />
+        <Dependency d:Source="Project" d:ProjectName="EmbeddedVsix" Version="[7.1.0.0]" d:InstallSource="Embed" d:VsixSubPath="EmbeddedVsix" Location="|EmbeddedVsix;VSIXContainerProjectOutputGroup|" DisplayName="|EmbeddedVsix;VSIXNameProjectOutputGroup|" Id="|EmbeddedVsix;VSIXIdentifierProjectOutputGroup|" />
     </Dependencies>
     <Assets>
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Integration" Path="|Integration|" />
