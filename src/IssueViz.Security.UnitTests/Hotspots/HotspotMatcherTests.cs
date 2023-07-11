@@ -38,91 +38,92 @@ public class HotspotMatcherTests
     {
         MefTestHelpers.CheckTypeCanBeImported<HotspotMatcher, IHotspotMatcher>();
     }
-    
+
     [TestMethod]
-    public void IsMatch_NoHashDifferentLineSameMessage_ReturnsTrue()
+    public void CheckIsSharedMefComponent()
+    {
+        MefTestHelpers.CheckIsSingletonMefComponent<HotspotMatcher>();
+    }
+
+    [TestMethod]
+    public void IsMatch_HotspotsDifferOnlyInHash_ReturnsTrue()
     {
         const string ruleId = "rule1";
         const string filePath = "A:\\ny\\p\\ath";
         const string serverPath = "p\\ath";
-        const string message = "message";
+        const string message1 = "message1";
+        const int startLine = 10;
         var testSubject = CreateTestSubject();
 
-        testSubject.IsMatch(CreateLocalHotspot(ruleId, message, "abchash", filePath, 10),
-                CreateServerHotspot(ruleId, message, null, serverPath, 20))
+        testSubject.IsMatch(CreateLocalHotspot(ruleId, message1, "abchash", filePath, startLine),
+                CreateServerHotspot(ruleId, message1, "defhash", serverPath, startLine))
             .Should()
             .BeTrue();
     }
-    
-    [TestMethod]
-    public void IsMatch_NoHashSameLine_ReturnsTrue()
+
+[DataTestMethod]
+    [DataRow(null, null, false)] // null server has -> no match
+    [DataRow(null, "any", false)] // null server hash -> no match
+    [DataRow("", "", false)] // empty server -> no match
+    [DataRow("", "any", false)] // empty server -> no match
+    [DataRow("aaa", "AAA", false)] // different case - no match
+    [DataRow("sameHash", "sameHash", true)]
+    public void IsMatch_SameFileAndRuleId_VaryLineHashes(string serverHash, string localHash, bool shouldMatch)
     {
+        // Different lines and messages.
+        // RuleIds and paths do match.
         const string ruleId = "rule1";
         const string filePath = "A:\\ny\\p\\ath";
         const string serverPath = "p\\ath";
+
         var testSubject = CreateTestSubject();
 
-        testSubject.IsMatch(CreateLocalHotspot(ruleId, "message1", "abchash", filePath, 10),
-                CreateServerHotspot(ruleId, "message2", null, serverPath, 10))
+        testSubject.IsMatch(CreateLocalHotspot(ruleId, "message 1", localHash, filePath, 10),
+        CreateServerHotspot(ruleId, "message 2", serverHash, serverPath, 20))
             .Should()
-            .BeTrue();
+            .Be(shouldMatch);
     }
-    
-    [TestMethod]
-    public void IsMatch_SameIssueDifferentHash_ReturnsTrue()
+
+    [DataTestMethod]
+    [DataRow(0, 1, false)]
+    [DataRow(1, 0, false)]
+    [DataRow(0, 0, true)]
+    [DataRow(1, 1, true)]
+    public void IsMatch_SameFileAndRuleId_VaryLineNumber(int serverLineNumber, int localLineNumber, bool shouldMatch)
     {
+        // Different hashes and messages.
+        // RuleIds and paths do match.
         const string ruleId = "rule1";
         const string filePath = "A:\\ny\\p\\ath";
         const string serverPath = "p\\ath";
+
         var testSubject = CreateTestSubject();
 
-        testSubject.IsMatch(CreateLocalHotspot(ruleId, "message1", "abchash", filePath, 10),
-                CreateServerHotspot(ruleId, "message1", "defhash", serverPath, 10))
+        testSubject.IsMatch(CreateLocalHotspot(ruleId, "message 1", "localHash", filePath, serverLineNumber),
+        CreateServerHotspot(ruleId, "message 2", "serverHash", serverPath, localLineNumber))
             .Should()
-            .BeTrue();
+            .Be(shouldMatch);
     }
-    
-    [TestMethod]
-    public void IsMatch_SameFileAndRuleDifferentIssue_ReturnsFalse()
+
+    [DataTestMethod]
+    [DataRow(null, null, true)]
+    [DataRow("", "", true)]
+    [DataRow("aaa", "AAA", false)] // different case -> no match
+    [DataRow("sameMessage", "sameMessage", true)]
+    public void IsMatch_SameFileAndRuleId_VaryMessages(string serverMessage, string localMessage, bool shouldMatch)
     {
+        // Different lines and hashes.
+        // RuleIds and paths do match.
         const string ruleId = "rule1";
         const string filePath = "A:\\ny\\p\\ath";
         const string serverPath = "p\\ath";
+
         var testSubject = CreateTestSubject();
 
-        testSubject.IsMatch(CreateLocalHotspot(ruleId, "message1", "abchash", filePath, 10),
-                CreateServerHotspot(ruleId, "message2", "defhash", serverPath, 20))
+        testSubject.IsMatch(CreateLocalHotspot(ruleId, localMessage, "localHash", filePath, 10),
+        CreateServerHotspot(ruleId, serverMessage, "serverHash", serverPath, 20))
             .Should()
-            .BeFalse();
-    }
-    
-    [TestMethod]
-    public void IsMatch_SameFileAndRuleNullHashDifferentIssue_ReturnsFalse()
-    {
-        const string ruleId = "rule1";
-        const string filePath = "A:\\ny\\p\\ath";
-        const string serverPath = "p\\ath";
-        var testSubject = CreateTestSubject();
-
-        testSubject.IsMatch(CreateLocalHotspot(ruleId, "message1", "hash", filePath, 10),
-                CreateServerHotspot(ruleId, "message2", null, serverPath, 20))
-            .Should()
-            .BeFalse();
-    }
-    
-    [TestMethod]
-    public void IsMatch_SameHashDifferentRest_ReturnsTrue()
-    {
-        const string ruleId = "rule1";
-        const string filePath = "A:\\ny\\p\\ath";
-        const string serverPath = "p\\ath";
-        const string lineHash = "abchash";
-        var testSubject = CreateTestSubject();
-
-        testSubject.IsMatch(CreateLocalHotspot(ruleId, "message1", lineHash, filePath, 10),
-                CreateServerHotspot(ruleId, "message2", lineHash, serverPath, 20))
-            .Should()
-            .BeTrue();
+            .Be(shouldMatch);
     }
 
     [TestMethod]

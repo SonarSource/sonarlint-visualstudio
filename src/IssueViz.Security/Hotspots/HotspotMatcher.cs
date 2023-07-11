@@ -32,6 +32,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     }
 
     [Export(typeof(IHotspotMatcher))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class HotspotMatcher : IHotspotMatcher
     {
         public bool IsMatch(IAnalysisIssueVisualization localHotspotVisualization, SonarQubeHotspot serverHotspot)
@@ -48,6 +49,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
                 return true;
             }
 
+            // Line hashes are missing from the server response at the moment this code is written,
+            // which is how I got the idea from other SL flavors to also compare issue message to reduce the amount of false-negative matches.
+            // However, there's nothing in principal stopping hashes from being adding to the server response later, so we also check them above.
             return localHotspotVisualization.StartLine == serverHotspot.TextRange.StartLine 
                    || StringComparer.Ordinal.Equals(localHotspotVisualization.Issue.PrimaryLocation.Message, serverHotspot.Message);
         }
