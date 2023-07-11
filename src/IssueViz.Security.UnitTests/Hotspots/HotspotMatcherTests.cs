@@ -61,7 +61,7 @@ public class HotspotMatcherTests
             .BeTrue();
     }
 
-[DataTestMethod]
+    [DataTestMethod]
     [DataRow(null, null, false)] // null server has -> no match
     [DataRow(null, "any", false)] // null server hash -> no match
     [DataRow("", "", false)] // empty server -> no match
