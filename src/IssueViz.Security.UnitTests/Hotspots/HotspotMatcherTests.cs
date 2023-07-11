@@ -53,10 +53,11 @@ public class HotspotMatcherTests
         const string serverPath = "p\\ath";
         const string message1 = "message1";
         const int startLine = 10;
+
         var testSubject = CreateTestSubject();
 
-        testSubject.IsMatch(CreateLocalHotspot(ruleId, message1, "abchash", filePath, startLine),
-                CreateServerHotspot(ruleId, message1, "defhash", serverPath, startLine))
+        testSubject.IsMatch(CreateLocalHotspot(ruleId, message1, "localHash", filePath, startLine),
+                CreateServerHotspot(ruleId, message1, "serverHash", serverPath, startLine))
             .Should()
             .BeTrue();
     }
@@ -134,6 +135,7 @@ public class HotspotMatcherTests
         const string serverPath = "p\\ath";
         const string lineHash = null;
         const int startLine = 1;
+
         var testSubject = CreateTestSubject();
 
         testSubject.IsMatch(CreateLocalHotspot("rule2", message, lineHash, filePath, startLine),
