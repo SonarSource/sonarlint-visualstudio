@@ -10,6 +10,45 @@
     <RequiresLibGit>true</RequiresLibGit>
   </PropertyGroup>
 
+  <PropertyGroup Label="Specify which external/VS-specific refs are required">
+    <RequiresAlmAuthentication>true</RequiresAlmAuthentication>
+  </PropertyGroup>
+  <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
+
+  <ItemGroup>
+    <None Remove="Migration\FileCleanerTestCases\AdditionalFiles_XprojectkeyY_NoneItemGroup_Cleaned.xml" />
+    <None Remove="Migration\FileCleanerTestCases\AdditionalFiles_XprojectkeyY_NoneItemGroup_Input.xml" />
+    <None Remove="Migration\FileCleanerTestCases\AdditionalFiles_my_project_key_Cleaned.xml" />
+    <None Remove="Migration\FileCleanerTestCases\AdditionalFiles_my_project_key_Input.xml" />
+    <None Remove="Migration\FileCleanerTestCases\Ruleset_IncludedTopLevel-project-key_Cleaned.ruleset.xml" />
+    <None Remove="Migration\FileCleanerTestCases\Ruleset_IncludedTopLevel-project-key_Input.ruleset.xml" />
+    <None Remove="Migration\FileCleanerTestCases\Ruleset_NoIncludedRulesets_Input.ruleset.xml" />
+    <None Remove="Migration\FileCleanerTestCases\Ruleset_XX-project-key_Cleaned.ruleset.xml" />
+    <None Remove="Migration\FileCleanerTestCases\Ruleset_XX-project-key_Input.ruleset.xml" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="Migration\FileCleanerTestCases\AdditionalFiles_XprojectkeyY_NoneItemGroup_Cleaned.xml" />
+    <EmbeddedResource Include="Migration\FileCleanerTestCases\AdditionalFiles_XprojectkeyY_NoneItemGroup_Input.xml" />
+    <EmbeddedResource Include="Migration\FileCleanerTestCases\Ruleset_IncludedTopLevel-project-key_Input.ruleset.xml">
+      <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="Migration\FileCleanerTestCases\AdditionalFiles_my_project_key_Cleaned.xml" />
+    <EmbeddedResource Include="Migration\FileCleanerTestCases\AdditionalFiles_my_project_key_Input.xml" />
+    <EmbeddedResource Include="Migration\FileCleanerTestCases\Ruleset_IncludedTopLevel-project-key_Cleaned.ruleset.xml">
+      <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migration\FileCleanerTestCases\Ruleset_XX-project-key_Cleaned.ruleset.xml" />
+    <EmbeddedResource Include="Migration\FileCleanerTestCases\Ruleset_XX-project-key_Input.ruleset.xml" />
+    <EmbeddedResource Include="Migration\FileCleanerTestCases\Ruleset_NoIncludedRulesets_Input.ruleset.xml" />
+
+    <EmbeddedResource Include="Migration\FileCleanerTestCases\RulesetProp-project_key_aaa_Cleaned.vbproj" />
+    <EmbeddedResource Include="Migration\FileCleanerTestCases\RulesetProp-project_key_aaa_Input.vbproj" />
+  </ItemGroup>
+
   <ItemGroup Label="Test framework">
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />

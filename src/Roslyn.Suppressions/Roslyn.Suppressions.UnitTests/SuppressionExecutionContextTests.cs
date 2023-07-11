@@ -32,17 +32,17 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
     public class SuppressionExecutionContextTests
     {
         [TestMethod]
-        [DataRow(@"C:\project\.sonarlint\projectKey1\CSharp\SonarLint.xml", "projectKey1")]
-        [DataRow(@"C:\project\.sonarlint\projectKey2\VB\SonarLint.xml", "projectKey2")]
-        [DataRow(@"C:\project\.sonarlint\projectKey3\VB\sonarlint.xml", "projectKey3")]
-        [DataRow(@"C:\project\.sonarlint\projectKey4\VB\SONARLINT.xml", "projectKey4")]
-        public void SonarProjectKey_PathIsValid_ReturnsKey(string path, string projectKey)
+        [DataRow(@"C:\project\SonarLint for Visual Studio\Bindings\solutionName1\CSharp\SonarLint.xml", "solutionName1")]
+        [DataRow(@"C:\project\SonarLint for Visual Studio\Bindings\solutionName2\VB\SonarLint.xml", "solutionName2")]
+        [DataRow(@"C:\project\SonarLint for Visual Studio\Bindings\solutionName3\VB\sonarlint.xml", "solutionName3")]
+        [DataRow(@"C:\project\SonarLint for Visual Studio\Bindings\solutionName4\VB\SONARLINT.xml", "solutionName4")]
+        public void SonarProjectKey_PathIsValid_ReturnsExpectedSolutionName(string path, string solutionName)
         {
             var additionalText = new ConcreteAdditionalText(path);
 
             var testSubject = CreateTestSubject(additionalText);
 
-            testSubject.SettingsKey.Should().Be(projectKey);
+            testSubject.SettingsKey.Should().Be(solutionName);
             testSubject.IsInConnectedMode.Should().BeTrue();
             testSubject.Mode.Should().Be("Connected");
         }
@@ -60,14 +60,14 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         }
 
         [TestMethod]
-        public void SonarProjectKey_HasMixedPaths_ReturnsKey()
+        public void SonarProjectKey_HasMixedPaths_ReturnsExpectedSolutionName()
         {
             var additionalText1 = new ConcreteAdditionalText(@"C:\project\projectKey1\CSharp\SonarLint.xml");
-            var additionalText2 = new ConcreteAdditionalText(@"C:\project\.sonarlint\projectKey2\CSharp\SonarLint.xml");            
+            var additionalText2 = new ConcreteAdditionalText(@"C:\project\SonarLint for Visual Studio\Bindings\expectedSlnName\CSharp\SonarLint.xml");            
 
             var testSubject = CreateTestSubject(additionalText1, additionalText2);
 
-            testSubject.SettingsKey.Should().Be("projectKey2");
+            testSubject.SettingsKey.Should().Be("expectedSlnName");
             testSubject.IsInConnectedMode.Should().BeTrue();
             testSubject.Mode.Should().Be("Connected");
         }

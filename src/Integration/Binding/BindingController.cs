@@ -22,11 +22,9 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.OLE.Interop;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.Exclusions;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
-using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -44,6 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IBindingWorkflowExecutor workflowExecutor;
         private readonly IProjectSystemHelper projectSystemHelper;
         private readonly IFolderWorkspaceService folderWorkspaceService;
+        private readonly IBindingProcessFactory bindingProcessFactory;
         private readonly IKnownUIContexts knownUIContexts;
 
         public BindingController(IHost host)
@@ -68,6 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.projectSystemHelper.AssertLocalServiceIsNotNull();
 
             folderWorkspaceService = host.GetMefService<IFolderWorkspaceService>();
+            bindingProcessFactory = host.GetMefService<IBindingProcessFactory>();
         }
 
         #region Commands
@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         void IBindingWorkflowExecutor.BindProject(BindCommandArgs bindingArgs)
         {
-            var bindingProcess = CreateBindingProcess(host, bindingArgs);
+            var bindingProcess = CreateBindingProcess(host, bindingArgs, bindingProcessFactory);
             var workflow = new BindingWorkflow(host, bindingProcess);
 
             IProgressEvents progressEvents = workflow.Run();
@@ -132,63 +132,24 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.SetBindingInProgress(progressEvents, bindingArgs);
         }
 
-        internal static /* for testing purposes */ IBindingProcess CreateBindingProcess(IHost host, BindCommandArgs bindingArgs)
+        internal static /* for testing purposes */ IBindingProcess CreateBindingProcess(IHost host, BindCommandArgs bindingArgs, IBindingProcessFactory bindingProcessFactory)
         {
             // Choose the type of binding
-            var configProvider = host.GetService<IConfigurationProviderService>();
-            configProvider.AssertLocalServiceIsNotNull();
+            var configProvider = host.GetMefService<IConfigurationProvider>();
+            Debug.Assert(configProvider != null, "Failed to fetch IConfigurationProvider");
 
             var currentConfiguration = configProvider.GetConfiguration();
-
-            SonarLintMode modeToBind;
-            INuGetBindingOperation nugetBindingOp;
 
             // If we are currently in standalone then the project is being bound for the first time.
             // Otherwise, we are updating an existing binding
             var isFirstBinding = currentConfiguration.Mode == SonarLintMode.Standalone;
 
-            if (currentConfiguration.Mode == SonarLintMode.LegacyConnected)
-            {
-                host.Logger.WriteLine(Strings.Bind_UpdatingLegacyBinding);
-                modeToBind = SonarLintMode.LegacyConnected;
-                nugetBindingOp = new NuGetBindingOperation(host, host.Logger);
-            }
-            else
-            {
-                host.Logger.WriteLine(
-                    isFirstBinding ?
-                        Strings.Bind_FirstTimeBinding :
-                        Strings.Bind_UpdatingNewStyleBinding);
+            host.Logger.WriteLine(
+                isFirstBinding ?
+                    Strings.Bind_FirstTimeBinding :
+                    Strings.Bind_UpdatingNewStyleBinding);
 
-                modeToBind = SonarLintMode.Connected;
-                nugetBindingOp = new NoOpNuGetBindingOperation(host.Logger);
-            }
-
-            var solutionBindingOp = new SolutionBindingOperation(
-                host,
-                modeToBind,
-                host.Logger);
-
-            var unboundProjectFinder = new UnboundProjectFinder(host, host.Logger);
-
-            var cSharpVBBindingConfigProvider = new CSharpVBBindingConfigProvider(host.SonarQubeService, nugetBindingOp, host.Logger);
-            var nonRoslynBindingConfigProvider = new NonRoslynBindingConfigProvider(
-                new[]
-                {
-                    Language.C,
-                    Language.Cpp,
-                    Language.Js,
-                    Language.Ts,
-                    Language.Secrets,
-                    Language.Css
-                }, host.SonarQubeService, host.Logger);
-
-            var ruleConfigProvider = new CompositeBindingConfigProvider(cSharpVBBindingConfigProvider, nonRoslynBindingConfigProvider);
-
-            var exclusionSettingsStorage = new ExclusionSettingsStorage(configProvider, host.Logger);
-
-            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, unboundProjectFinder, ruleConfigProvider, modeToBind, exclusionSettingsStorage, isFirstBinding);
-
+            var bindingProcess = bindingProcessFactory.Create(bindingArgs, isFirstBinding);
             return bindingProcess;
         }
 
@@ -222,22 +183,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 this.host.VisualStateManager.SetBoundProject(bindingArgs.Connection.ServerUri, bindingArgs.Connection.Organization?.Key, bindingArgs.ProjectKey);
 
-                // The conflicts controller is only applicable in legacy connected mode
-                // However, it is safe to call it regardless - in new connected mode it will
-                // not return any conflicts.
-                var conflictsController = this.host.GetService<IRuleSetConflictsController>();
-                conflictsController.AssertLocalServiceIsNotNull();
-
-                if (conflictsController.CheckForConflicts())
-                {
-                    // In some cases we will end up navigating to the solution explorer, this will make sure that
-                    // we're back in team explorer to view the conflicts
-                    this.host.GetMefService<ITeamExplorerController>()?.ShowSonarQubePage();
-                }
-                else
-                {
-                    VsShellUtils.ActivateSolutionExplorer(this.host);
-                }
+                VsShellUtils.ActivateSolutionExplorer(this.host);
             }
             else
             {

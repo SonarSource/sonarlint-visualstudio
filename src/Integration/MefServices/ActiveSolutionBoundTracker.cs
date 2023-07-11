@@ -26,10 +26,8 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.State;
 using SonarQube.Client;
-using SonarQube.Client.Api.V5_10;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -47,8 +45,7 @@ namespace SonarLint.VisualStudio.Integration
     {
         private readonly IHost extensionHost;
         private readonly IActiveSolutionTracker solutionTracker;
-        private readonly IErrorListInfoBarController errorListInfoBarController;
-        private readonly IConfigurationProviderService configurationProvider;
+        private readonly IConfigurationProvider configurationProvider;
         private readonly IVsMonitorSelection vsMonitorSelection;
         private readonly IBoundSolutionGitMonitor gitEventsMonitor;
         private readonly ILogger logger;
@@ -62,7 +59,11 @@ namespace SonarLint.VisualStudio.Integration
         public BindingConfiguration CurrentConfiguration { get; private set; }
 
         [ImportingConstructor]
-        public ActiveSolutionBoundTracker(IHost host, IActiveSolutionTracker activeSolutionTracker, ILogger logger, IBoundSolutionGitMonitor gitEventsMonitor)
+        public ActiveSolutionBoundTracker(IHost host,
+            IActiveSolutionTracker activeSolutionTracker,
+            ILogger logger,
+            IBoundSolutionGitMonitor gitEventsMonitor,
+            IConfigurationProvider configurationProvider)
         {
             extensionHost = host;
             solutionTracker = activeSolutionTracker;
@@ -72,11 +73,7 @@ namespace SonarLint.VisualStudio.Integration
             vsMonitorSelection = host.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
             vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
 
-            configurationProvider = extensionHost.GetService<IConfigurationProviderService>();
-            configurationProvider.AssertLocalServiceIsNotNull();
-
-            errorListInfoBarController = extensionHost.GetService<IErrorListInfoBarController>();
-            errorListInfoBarController.AssertLocalServiceIsNotNull();
+            this.configurationProvider = configurationProvider;
 
             // The user changed the binding through the Team Explorer
             extensionHost.VisualStateManager.BindingStateChanged += OnBindingStateChanged;
@@ -112,7 +109,6 @@ namespace SonarLint.VisualStudio.Integration
                 gitEventsMonitor.Refresh();
 
                 this.RaiseAnalyzersChangedIfBindingChanged();
-                this.errorListInfoBarController.Refresh();
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
@@ -196,7 +192,6 @@ namespace SonarLint.VisualStudio.Integration
         {
             if (disposing)
             {
-                this.errorListInfoBarController.Reset();
                 this.solutionTracker.ActiveSolutionChanged -= this.OnActiveSolutionChanged;
                 this.extensionHost.VisualStateManager.BindingStateChanged -= this.OnBindingStateChanged;
                 this.gitEventsMonitor.HeadChanged -= GitEventsMonitor_HeadChanged;

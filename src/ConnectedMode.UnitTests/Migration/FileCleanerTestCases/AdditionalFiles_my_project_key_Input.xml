@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup Label="Should be removed - CSharp">
+        <!-- simple reference -->
+		<AdditionalFiles Include="..\..\.sonarlint\my_project_key\CSharp\SonarLint.xml" />
+
+        <!-- with conditions -->
+		<AdditionalFiles Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " Include="..\..\.sonarlint\my_project_key\CSharp\SonarLint.xml" Link="SonarLint.xml" />
+	</ItemGroup>
+
+	<ItemGroup Label="Should be removed - VB">
+        <!-- different cases -->
+		<AdditionalFiles Include="..\..\.sonarlint\my_project_key\vb\SonarLint.xml" />
+		<AdditionalFiles Include="..\..\.sonarlint\my_project_key\VB\SONARLINT.XML" />
+	</ItemGroup>
+
+	<ItemGroup>
+    <!-- should not be removed - shouldn't match -->
+		<AdditionalFiles Include="..\..\.sonarlint\wrong_my_project_key\vb\SonarLint.xml" />
+		<AdditionalFiles Include="some other path`vb\SonarLint.xml" />
+
+    <!-- should not match - attribute name does not match -->
+    <AdditionalFiles Remove="..\..\.sonarlint\my_project_key\CSharp\SonarLint.xml" />
+
+    <!-- should not match - does not end with correct partial string -->
+    <AdditionalFiles Include="..\..\.sonarlint\my_project_key\vb\SonarLint.xmlXXX" />
+  </ItemGroup>
+</Project>

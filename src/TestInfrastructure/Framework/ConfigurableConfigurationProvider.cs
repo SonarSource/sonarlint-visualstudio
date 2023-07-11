@@ -21,14 +21,13 @@
 using System;
 using FluentAssertions;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
 {
     /// <summary>
     /// Configurable service provider used for testing
     /// </summary>
-    internal class ConfigurableConfigurationProvider : IConfigurationProviderService, IConfigurationPersister
+    public class ConfigurableConfigurationProvider : IConfigurationProvider
     {
         public BindingConfiguration GetConfiguration()
         {
@@ -39,14 +38,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
                 : BindingConfiguration.CreateBoundConfiguration(ProjectToReturn, ModeToReturn, FolderPathToReturn);
         }
 
-        public BindingConfiguration Persist(BoundSonarQubeProject project, SonarLintMode bindingMode)
-        {
-            project.Should().NotBeNull();
-            SavedProject = project;
-            SavedMode = bindingMode;
-
-            return GetConfiguration();
-        }
 
         #region Test helpers
 
@@ -58,7 +49,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         public bool WriteResultToReturn { get; set; }
         public BoundSonarQubeProject SavedProject { get; set; }
-        public SonarLintMode SavedMode { get; set; }
 
         #endregion Test helpers
     }

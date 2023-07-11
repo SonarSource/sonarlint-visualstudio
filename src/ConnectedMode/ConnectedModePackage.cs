@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
+using SonarLint.VisualStudio.ConnectedMode.Install;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
@@ -46,6 +47,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
         private BoundSolutionUpdateHandler boundSolutionUpdateHandler;
         private TimedUpdateHandler timedUpdateHandler;
         private LocalSuppressionsChangedHandler localSuppressionsChangedHandler;
+        private ImportBeforeInstallTrigger importBeforeInstallTrigger;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -65,6 +67,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
             boundSolutionUpdateHandler = componentModel.GetService<BoundSolutionUpdateHandler>();
             timedUpdateHandler = componentModel.GetService<TimedUpdateHandler>();
             localSuppressionsChangedHandler = componentModel.GetService<LocalSuppressionsChangedHandler>();
+            
+            importBeforeInstallTrigger = componentModel.GetService<ImportBeforeInstallTrigger>();
 
             // Trigger an initial update of suppressions (we might have missed the solution binding
             // event from the ActiveSolutionBoundTracker)
@@ -85,6 +89,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 boundSolutionUpdateHandler?.Dispose();
                 timedUpdateHandler?.Dispose();
                 localSuppressionsChangedHandler?.Dispose();
+                importBeforeInstallTrigger?.Dispose();
             }
 
             base.Dispose(disposing);

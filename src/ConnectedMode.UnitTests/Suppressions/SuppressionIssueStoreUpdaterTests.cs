@@ -169,6 +169,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         }
 
         [TestMethod]
+        [Ignore] // Flaky. See https://github.com/SonarSource/sonarlint-visualstudio/issues/4307
         public async Task UpdateAll_CallInProgress_CallIsCancelled()
         {
             var testTimeout = GetThreadedTestTimout();

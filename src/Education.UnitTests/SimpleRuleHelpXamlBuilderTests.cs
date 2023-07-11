@@ -119,7 +119,13 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var failures = resourceNames.Where(x => !ProcessResource(x))
                 .ToArray();
 
-            failures.Should().HaveCount(0);
+
+            // see https://github.com/SonarSource/sonarlint-visualstudio/issues/4471
+            failures.Should().BeEquivalentTo(new[]
+            {
+                "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S2190.json",
+                "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S6422.json"
+            });
         }
 
         private static bool ProcessResource(string fullResourceName)

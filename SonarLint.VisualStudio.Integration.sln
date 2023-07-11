@@ -34,13 +34,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		SonarLint.VsTargetVersion.props = SonarLint.VsTargetVersion.props
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".sonarlint", ".sonarlint", "{71E68181-C534-4C18-84AA-42A8C273414E}"
-	ProjectSection(SolutionItems) = preProject
-		src\SonarQube\SolutionBinding.sqconfig = src\SonarQube\SolutionBinding.sqconfig
-		src\SonarQube\sonarlint-visualstudioCSharp.ruleset = src\SonarQube\sonarlint-visualstudioCSharp.ruleset
-		src\SonarLint.xml = src\SonarLint.xml
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration.TeamExplorer", "src\Integration.TeamExplorer\Integration.TeamExplorer.csproj", "{9FCAEACD-EDEA-42D3-A8E4-16E42D1CF8F4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration.TeamExplorer.UnitTests", "src\Integration.TeamExplorer.UnitTests\Integration.TeamExplorer.UnitTests.csproj", "{115CC746-5181-485C-8707-346E8D55B1E5}"

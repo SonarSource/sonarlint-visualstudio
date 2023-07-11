@@ -118,32 +118,17 @@
         "resolved": "13.0.1",
         "contentHash": "ppPFpBcvxdsfUonNcvITKqLl3bqxWbDCZIzDWHzjpdAHRFfZe0Dw9HmA0+za13IdyrgJwpkDTDA9fHaxOrt20A=="
       },
-      "NuGet.Core": {
-        "type": "Direct",
-        "requested": "[2.12.0, )",
-        "resolved": "2.12.0",
-        "contentHash": "kSDD1VFIq7BBrimjMRk9HeeQlZteyknbHgz3AT4AUVUCZ8BZaCSzO1A5UTVPLLbSHryjozPcEmNYSds/IDAIjw==",
-        "dependencies": {
-          "Microsoft.Web.Xdt": "2.1.0"
-        }
-      },
-      "NuGet.VisualStudio": {
-        "type": "Direct",
-        "requested": "[3.3.0, )",
-        "resolved": "3.3.0",
-        "contentHash": "ZVBJ43/IxaAl5iX+OuuDLQ9tSNJaRlP85SUMAdiGoqEbyK/ZPfQmPfqSMZMFpucRlf8HgsEK/hR73DwpCmqcLA=="
-      },
       "SonarAnalyzer.CSharp": {
         "type": "Direct",
-        "requested": "[9.0.0.68202, )",
-        "resolved": "9.0.0.68202",
-        "contentHash": "CdkFID8hrFCwxZkB/xubADWO0zZoGxG8fv6MHUoreUQ6syLXCELDE9DZy68ktEX1DhsQeW8IUHMroUU2gh2Byw=="
+        "requested": "[9.4.0.72892, )",
+        "resolved": "9.4.0.72892",
+        "contentHash": "hSUQ8ddC56salRggZHY69hR51HU1HVSlmKuQ9+0kXGFa9NYUdJ3WI81LMbuXT4Ui0UCdGKeCEoJzZJlfBF8kqA=="
       },
       "SonarAnalyzer.VisualBasic": {
         "type": "Direct",
-        "requested": "[9.0.0.68202, )",
-        "resolved": "9.0.0.68202",
-        "contentHash": "hdAtv4+rShGQZT+HjZMrK/rRzEV3/5VwVzIPVwqyB49mVvG01hwWIOewmTVhhKZn+kniTIpMdBPKBl1xbyTvXw=="
+        "requested": "[9.4.0.72892, )",
+        "resolved": "9.4.0.72892",
+        "contentHash": "guOpDqiAogNteqOh8ZsUt3b+yMfy7a26CLy9cEsTrnGCyX1JN9TN7PVj8AVCVuzu9f205ZWnIbCkxB8AOPzFAA=="
       },
       "System.IO.Abstractions": {
         "type": "Direct",
@@ -1052,6 +1037,19 @@
           "System.Runtime.CompilerServices.Unsafe": "4.7.1"
         }
       },
+      "NuGet.Core": {
+        "type": "Transitive",
+        "resolved": "2.12.0",
+        "contentHash": "kSDD1VFIq7BBrimjMRk9HeeQlZteyknbHgz3AT4AUVUCZ8BZaCSzO1A5UTVPLLbSHryjozPcEmNYSds/IDAIjw==",
+        "dependencies": {
+          "Microsoft.Web.Xdt": "2.1.0"
+        }
+      },
+      "NuGet.VisualStudio": {
+        "type": "Transitive",
+        "resolved": "3.3.0",
+        "contentHash": "ZVBJ43/IxaAl5iX+OuuDLQ9tSNJaRlP85SUMAdiGoqEbyK/ZPfQmPfqSMZMFpucRlf8HgsEK/hR73DwpCmqcLA=="
+      },
       "Owin": {
         "type": "Transitive",
         "resolved": "1.0.0",
@@ -1551,9 +1549,13 @@
       "SonarLint.VisualStudio.ConnectedMode": {
         "type": "Project",
         "dependencies": {
+          "Microsoft.Alm.Authentication": "[4.0.0.1, )",
+          "Microsoft.VisualStudio.LanguageServices": "[1.3.2, )",
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
+          "Newtonsoft.Json": "[13.0.1, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
-          "SonarLint.VisualStudio.IssueVisualization": "[1.0.0, )"
+          "SonarLint.VisualStudio.IssueVisualization": "[1.0.0, )",
+          "StrongNamer": "[0.0.8, )"
         }
       },
       "SonarLint.VisualStudio.Core": {
@@ -1604,6 +1606,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
+          "SonarLint.VisualStudio.ConnectedMode": "[1.0.0, )",
           "SonarLint.VisualStudio.Integration": "[1.0.0, )",
           "SonarQube.Client": "[1.0.0, )"
         }

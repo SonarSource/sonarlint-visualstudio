@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
     public class WebServiceHelperTests
     {
         [TestMethod]
-        async public Task CallSucceeds()
+        public async Task CallSucceeds()
         {
             // Arrange
             var testLogger = new TestLogger();
@@ -46,102 +46,103 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
         }
 
         [TestMethod]
-        public void HttpRequestException_NoInnerException_IsHandledAndLogged()
+        public async Task HttpRequestException_NoInnerException_IsHandledAndLogged()
         {
             // Arrange
             var testLogger = new TestLogger();
 
             // Act
-            WebServiceHelper.SafeServiceCallAsync<bool>(() => throw new HttpRequestException("outer message"),
-                testLogger).Wait();
+            await WebServiceHelper.SafeServiceCallAsync<bool>(() => throw new HttpRequestException("outer message"),
+                testLogger);
 
             // Assert
             testLogger.AssertPartialOutputStringExists("outer message");
         }
 
         [TestMethod]
-        public void HttpRequestException_InnerWebException_IsHandledAndBothMessagesLogged()
+        public async Task HttpRequestException_InnerWebException_IsHandledAndBothMessagesLogged()
         {
             // Arrange
             var testLogger = new TestLogger();
 
             // Act
-            WebServiceHelper.SafeServiceCallAsync<bool>(() => 
+            await WebServiceHelper.SafeServiceCallAsync<bool>(() => 
                 throw new HttpRequestException("outer message", new System.Net.WebException("inner message")),
-                testLogger).Wait();
+                testLogger);
 
             // Assert
             testLogger.AssertPartialOutputStringExists("outer message", "inner message");
         }
 
         [TestMethod]
-        public void HttpRequestException_OtherInnerException_IsHandledAndOuterMessageLogged()
+        public async Task HttpRequestException_OtherInnerException_IsHandledAndOuterMessageLogged()
         {
             // Arrange
             var testLogger = new TestLogger();
 
             // Act
-            WebServiceHelper.SafeServiceCallAsync<bool>(() =>
+            await WebServiceHelper.SafeServiceCallAsync<bool>(() =>
                 throw new HttpRequestException("outer message", new ArgumentNullException("inner exception")),
-                testLogger).Wait();
+                testLogger);
 
             // Assert
             testLogger.AssertPartialOutputStringExists("outer message");
         }
 
         [TestMethod]
-        public void TaskIsCancelled_ExceptionIsSuppressed()
+        public async Task TaskIsCanceled_ExceptionIsNotSuppressed()
         {
             // Arrange
             var testLogger = new TestLogger();
+            Func<Task> operation = () => WebServiceHelper.SafeServiceCallAsync(
+                () => throw new TaskCanceledException("should not be suppressed"), testLogger);
 
             // Act
-            WebServiceHelper.SafeServiceCallAsync<bool>(() => throw new TaskCanceledException("dummy error message"),
-                testLogger).Wait();
+            await operation.Should().ThrowAsync<TaskCanceledException>();
 
             // Assert
             testLogger.AssertOutputStringExists(CoreStrings.SonarQubeRequestTimeoutOrCancelled);
         }
 
         [TestMethod]
-        public void OperationIsCancelled_ExceptionIsSuppressed()
+        public async Task OperationIsCanceled_ExceptionIsNotSuppressed()
         {
             // Arrange
             var testLogger = new TestLogger();
+            Func<Task> operation = () => WebServiceHelper.SafeServiceCallAsync(
+                () => throw new OperationCanceledException("should not be suppressed"), testLogger);
 
             // Act
-            WebServiceHelper.SafeServiceCallAsync<bool>(() => throw new OperationCanceledException("dummy error message"),
-                testLogger).Wait();
+            await operation.Should().ThrowAsync<OperationCanceledException>();
 
             // Assert
             testLogger.AssertOutputStringExists(CoreStrings.SonarQubeRequestTimeoutOrCancelled);
         }
 
         [TestMethod]
-        public void NonCriticalException_IsSuppressed()
+        public async Task NonCriticalException_IsSuppressed()
         {
             // Arrange
             var testLogger = new TestLogger();
 
             // Act
-            WebServiceHelper.SafeServiceCallAsync<bool>(() => throw new ArgumentNullException("dummy error message"),
-                testLogger).Wait();
+            await WebServiceHelper.SafeServiceCallAsync<bool>(() => throw new ArgumentNullException("dummy error message"),
+                testLogger);
 
             // Assert
             testLogger.AssertPartialOutputStringExists("dummy error message");
         }
 
         [TestMethod]
-        public void CriticalException_IsNotSuppressed()
+        public async Task CriticalException_IsNotSuppressed()
         {
             // Arrange
             var testLogger = new TestLogger();
-            Action act = () => WebServiceHelper.SafeServiceCallAsync(
-                () => throw new StackOverflowException("should be suppressed"), testLogger).Wait();
+            Func<Task> operation = () => WebServiceHelper.SafeServiceCallAsync(
+                () => throw new StackOverflowException("should not be suppressed"), testLogger);
 
             // Act
-            act.Should().ThrowExactly<AggregateException>()
-                .And.InnerException.Should().BeOfType<StackOverflowException>();
+            await operation.Should().ThrowAsync<StackOverflowException>();
 
             // Assert
             testLogger.AssertNoOutputMessages();

@@ -27,20 +27,21 @@ using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Core.Notifications
 {
+    /// <summary>
+    /// This service can be used to display any type of user visible notification. Each instance of this service
+    /// will only show one notification at a time i.e. showing a second notification will remove the first one.
+    /// </summary>
     public interface INotificationService : IDisposable
     {
         void ShowNotification(INotification notification);
+
+        void RemoveNotification();
     }
 
     [Export(typeof(INotificationService))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
+    [PartCreationPolicy(CreationPolicy.NonShared)]
     internal sealed class NotificationService : INotificationService
     {
-        /// <summary>
-        /// Taken from "ToolWindowGuids80.ErrorList"
-        /// </summary>
-        internal static readonly Guid ErrorListToolWindowGuid = new Guid("D78612C7-9962-4B83-95D9-268046DAD23A");
-
         private readonly IInfoBarManager infoBarManager;
         private readonly IDisabledNotificationsStorage notificationsStorage;
         private readonly IThreadHandling threadHandling;
@@ -49,6 +50,8 @@ namespace SonarLint.VisualStudio.Core.Notifications
         private readonly HashSet<string> oncePerSessionNotifications = new HashSet<string>();
 
         private Tuple<IInfoBar, INotification> activeNotification;
+
+        internal /* for testing */ bool HasActiveNotification => activeNotification != null;
 
         [ImportingConstructor]
         public NotificationService(IInfoBarManager infoBarManager, 
@@ -88,6 +91,8 @@ namespace SonarLint.VisualStudio.Core.Notifications
             });
         }
 
+        public void RemoveNotification() => RemoveExistingInfoBar();
+
         private void CurrentInfoBar_ButtonClick(object sender, InfoBarButtonClickedEventArgs e)
         {
             try
@@ -120,17 +125,20 @@ namespace SonarLint.VisualStudio.Core.Notifications
                 return;
             }
 
-            try
+            threadHandling.RunOnUIThread(() =>
             {
-                activeNotification.Item1.ButtonClick -= CurrentInfoBar_ButtonClick;
-                activeNotification.Item1.Closed -= CurrentInfoBar_Closed;
-                infoBarManager.DetachInfoBar(activeNotification.Item1);
-                activeNotification = null;
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(CoreStrings.Notifications_FailedToRemove, ex);
-            }
+                try
+                {
+                    activeNotification.Item1.ButtonClick -= CurrentInfoBar_ButtonClick;
+                    activeNotification.Item1.Closed -= CurrentInfoBar_Closed;
+                    infoBarManager.DetachInfoBar(activeNotification.Item1);
+                    activeNotification = null;
+                }
+                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+                {
+                    logger.WriteLine(CoreStrings.Notifications_FailedToRemove, ex);
+                }
+            });
         }
 
         private void ShowInfoBar(INotification notification)
@@ -139,10 +147,9 @@ namespace SonarLint.VisualStudio.Core.Notifications
             {
                 var buttonTexts = notification.Actions.Select(x => x.CommandText).ToArray();
 
-                var infoBar = infoBarManager.AttachInfoBarWithButtons(ErrorListToolWindowGuid,
-                    notification.Message,
-                    buttonTexts,
-                    SonarLintImageMoniker.OfficialSonarLintMoniker);
+                var infoBar = infoBarManager.AttachInfoBarToMainWindow(notification.Message,
+                    SonarLintImageMoniker.OfficialSonarLintMoniker,
+                    buttonTexts);
 
                 activeNotification = new Tuple<IInfoBar, INotification>(infoBar, notification);
                 activeNotification.Item1.ButtonClick += CurrentInfoBar_ButtonClick;

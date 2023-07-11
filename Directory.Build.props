@@ -6,16 +6,6 @@
 
   <Import Condition=" $(VsTargetVersionPropsImported) != 'true'" Project="SonarLint.VsTargetVersion.props" />
 
-  <PropertyGroup>
-    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory).sonarlint\sonarlint-visualstudioCsharp.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-
-  <ItemGroup Label="Common items">
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory).sonarlint\sonarlint-visualstudio\CSharp\SonarLint.xml">
-      <Link>Properties\SonarLint.xml</Link>
-    </AdditionalFiles>
-  </ItemGroup>
-
   <PropertyGroup Condition=" $(SignArtifacts) == 'true' ">
     <!-- Turn on strong-naming. -->
     <SignAssembly>true</SignAssembly>
@@ -41,7 +31,7 @@
    -->
   <PropertyGroup>
     <NewtonsoftVersion>8.0.3</NewtonsoftVersion>
-    <NewtonsoftVersion Condition=" $(VsTargetVersion) == '2022' " >13.0.1</NewtonsoftVersion>
+    <NewtonsoftVersion Condition=" $(VsTargetVersion) == '2022' ">13.0.1</NewtonsoftVersion>
   </PropertyGroup>
 
   <!-- ******************************************************************************* -->
@@ -52,7 +42,7 @@
     <PackageReference Include="Newtonsoft.Json" Condition=" $(RequiresNewtonsoft)=='true'" Version="$(NewtonsoftVersion)" />
     <PackageReference Include="System.IO.Abstractions" Condition=" $(RequiresSystemIOAbstractions)=='true'" Version="9.0.4" />
     <PackageReference Include="System.Threading.Channels" Condition=" $(RequiresChannels)=='true'" Version="7.0.0" />
-    <PackageReference Include="LibGit2Sharp" Version="0.26.2" Condition="$(RequiresLibGit)=='true'" GeneratePathProperty="true" PrivateAssets="all"  />  
+    <PackageReference Include="LibGit2Sharp" Version="0.26.2" Condition="$(RequiresLibGit)=='true'" GeneratePathProperty="true" PrivateAssets="all" />  
   </ItemGroup>
 
 </Project>

@@ -55,6 +55,15 @@ namespace SonarLint.VisualStudio.Core.InfoBar
         IInfoBar AttachInfoBarWithButtons(Guid toolWindowGuid, string message, IEnumerable<string> buttonTexts, SonarLintImageMoniker imageMoniker);
 
         /// <summary>
+        /// Attach an info bar with a message and multiple buttons to the main window
+        /// </summary>
+        /// <remarks>
+        /// If there is one buttonText it will be rendered as a button on the info bar.
+        /// If there are multiple buttonTexts they will all be rendered as hyperlinks.
+        /// </remarks>
+        IInfoBar AttachInfoBarToMainWindow(string message, SonarLintImageMoniker imageMoniker, params string[] buttonTexts);
+
+        /// <summary>
         /// Detaches an <see cref="IInfoBar"/> from its tool window
         /// </summary>
         /// <param name="currentInfoBar">Instance of <see cref="IInfoBar"/> created by <see cref="AttachInfoBar(Guid, string, SonarLintImageMoniker)"/></param>

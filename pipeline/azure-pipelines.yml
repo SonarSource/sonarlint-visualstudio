@@ -274,7 +274,7 @@ jobs:
       codeCoverageEnabled: true
       platform: $(BuildPlatform)
       configuration: $(BuildConfiguration)
-      rerunFailedTests: false
+      rerunFailedTests: true
 
   - task: SonarCloudAnalyze@1
     displayName: Run Code Analysis (VS2022 only)

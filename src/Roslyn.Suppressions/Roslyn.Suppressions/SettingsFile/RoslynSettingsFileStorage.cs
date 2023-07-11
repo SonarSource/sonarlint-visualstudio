@@ -31,7 +31,10 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
 {
     internal interface IRoslynSettingsFileStorage
     {
-        void Update(RoslynSettings settings);
+        /// <summary>
+        /// Updates the Roslyn settings file on disc for the specified solution
+        /// </summary>
+        void Update(RoslynSettings settings, string solutionNameWithoutExtension);
 
         /// <summary>
         /// Return the settings for the specific settings key, or null
@@ -87,15 +90,16 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
             return null;
         }
 
-        public void Update(RoslynSettings settings)
+        public void Update(RoslynSettings settings, string solutionNameWithoutExtension)
         {
             Debug.Assert(settings != null, "Not expecting settings to be null");
             Debug.Assert(!string.IsNullOrWhiteSpace(settings.SonarProjectKey), "Not expecting settings.SonarProjectKey to be null");
+            Debug.Assert(solutionNameWithoutExtension != null, "Not expecting solutionNameWithoutExtension to be null");
 
             try
             {
                 CodeMarkers.Instance.FileStorageUpdateStart();
-                var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(settings.SonarProjectKey);
+                var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(solutionNameWithoutExtension);
                 var fileContent = JsonConvert.SerializeObject(settings, Formatting.Indented);
                 fileSystem.File.WriteAllText(filePath, fileContent);
             }

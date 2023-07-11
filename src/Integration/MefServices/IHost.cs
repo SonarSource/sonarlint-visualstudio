@@ -19,12 +19,10 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Windows.Threading;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarQube.Client;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -65,8 +63,6 @@ namespace SonarLint.VisualStudio.Integration
         /// Clears the <see cref="ActiveSection"/>
         /// </summary>
         void ClearActiveSection();
-
-        ISet<Language> SupportedPluginLanguages { get; }
 
         ILogger Logger { get; }
     }

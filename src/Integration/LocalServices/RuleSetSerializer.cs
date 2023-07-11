@@ -27,6 +27,16 @@ using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration
 {
+    // TODO - CM cleanup - this class might be useful when cleaning up "old" Connected Mode settings.
+    // 
+    // The following classes are inter-related:
+    // * RuleSetReferenceChecker
+    // * SolutionRuleSetsInformationProvider
+    // * RuleSetSerializer
+    // They are not referenced from any other product code. If they are not needed for settings mode
+    // cleanup then they can deleted as a group.
+
+
     internal sealed class RuleSetSerializer : IRuleSetSerializer
     {
         private readonly ILogger logger;

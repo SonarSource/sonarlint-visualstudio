@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
     }
     internal class SuppressionExecutionContext : ISuppressionExecutionContext
     {
-        private const string Exp = @"\\.sonarlint\\(?<sonarkey>[^\\/]+)\\(CSharp|VB)\\SonarLint.xml$";
+        private const string Exp = @"\\SonarLint for Visual Studio\\Bindings\\(?<solutionName>[^\\/]+)\\(CSharp|VB)\\SonarLint.xml$";
         private static readonly Regex SonarLintFileRegEx = new Regex(Exp,
             RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.CultureInvariant,
             RegexConstants.DefaultTimeout);
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
                 var match = SonarLintFileRegEx.Match(item.Path);
                 if (match.Success)
                 {
-                    SettingsKey = match.Groups["sonarkey"].Value;
+                    SettingsKey = match.Groups["solutionName"].Value;
                     return;
                 }
             }
