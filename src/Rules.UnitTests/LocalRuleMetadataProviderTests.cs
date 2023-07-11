@@ -88,12 +88,18 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
                 Console.WriteLine("Checking " + fullResourceName);
 
                 SonarCompositeRuleId ruleId = GetCompositeRuleIdFromResourceName(fullResourceName);
-                var expectedDescription = GetEmbeddedRuleDescription(fullResourceName);
+                var expectedRuleInfo = GetEmbeddedRuleInfo(fullResourceName);
 
                 var actual = testSubject.GetRuleInfo(ruleId);
 
                 actual.FullRuleKey.Should().Be(ruleId.ToString());
-                actual.Description.Should().Be(expectedDescription);
+                actual.Description.Should().Be(expectedRuleInfo.Description);
+                actual.DescriptionSections.Should().BeEquivalentTo(expectedRuleInfo.DescriptionSections);
+                actual.DescriptionSections.All(section => !string.IsNullOrWhiteSpace(section.HtmlContent)).Should().BeTrue();
+
+                (!string.IsNullOrWhiteSpace(actual.Description) || actual.DescriptionSections.Count > 0)
+                    .Should()
+                    .BeTrue();
             }
         }
 
@@ -112,11 +118,11 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             return new SonarCompositeRuleId(repoKey, ruleKey);
         }
 
-        private static string GetEmbeddedRuleDescription(string fullResourceName)
+        private static IRuleInfo GetEmbeddedRuleInfo(string fullResourceName)
         {
             using var reader = new StreamReader(typeof(LocalRuleMetadataProvider).Assembly.GetManifestResourceStream(fullResourceName));
             var data = reader.ReadToEnd();
-            return LocalRuleMetadataProvider.RuleInfoJsonDeserializer.Deserialize(data).Description;
+            return LocalRuleMetadataProvider.RuleInfoJsonDeserializer.Deserialize(data);
         }
     }
 }
