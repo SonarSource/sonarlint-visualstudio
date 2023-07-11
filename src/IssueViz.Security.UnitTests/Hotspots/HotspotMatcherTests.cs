@@ -45,23 +45,6 @@ public class HotspotMatcherTests
         MefTestHelpers.CheckIsSingletonMefComponent<HotspotMatcher>();
     }
 
-    [TestMethod]
-    public void IsMatch_HotspotsDifferOnlyInHash_ReturnsTrue()
-    {
-        const string ruleId = "rule1";
-        const string filePath = "A:\\ny\\p\\ath";
-        const string serverPath = "p\\ath";
-        const string message1 = "message1";
-        const int startLine = 10;
-
-        var testSubject = CreateTestSubject();
-
-        testSubject.IsMatch(CreateLocalHotspot(ruleId, message1, "localHash", filePath, startLine),
-                CreateServerHotspot(ruleId, message1, "serverHash", serverPath, startLine))
-            .Should()
-            .BeTrue();
-    }
-
     [DataTestMethod]
     [DataRow(null, null, false)] // null server has -> no match
     [DataRow(null, "any", false)] // null server hash -> no match
