@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
                     Hotspots.Add(new HotspotViewModel(localHotspot.Visualization));
                 }
 
-                return Task.FromResult(true);
+                return System.Threading.Tasks.Task.FromResult(true);
             });
         }
 
