@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             }
         }
 
-        public async Task UpdateHotspotsListAsync()
+        public async System.Threading.Tasks.Task UpdateHotspotsListAsync()
         {
             await threadHandling.RunOnBackgroundThread( () =>
             {
