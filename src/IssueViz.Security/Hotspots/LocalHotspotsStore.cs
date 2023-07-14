@@ -78,7 +78,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 
         public IReadOnlyCollection<IAnalysisIssueVisualization> GetAll()
         {
-            threadHandling.ThrowIfOnUIThread();
+            // todo: fix threading
+            // threadHandling.ThrowIfOnUIThread();
             
             lock (lockObject)
             {
@@ -88,7 +89,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 
         public IReadOnlyCollection<LocalHotspot> GetAllLocalHotspots()
         {
-            threadHandling.ThrowIfOnUIThread();
+            // todo: fix threading
+            // threadHandling.ThrowIfOnUIThread();
 
             lock (lockObject)
             {

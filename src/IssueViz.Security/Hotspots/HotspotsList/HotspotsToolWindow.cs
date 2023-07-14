@@ -22,6 +22,8 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
@@ -40,11 +42,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
 
             var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
 
-            var store = componentModel.GetService<IHotspotsStore>();
+            var store = componentModel.GetService<ILocalHotspotsStore>();
             var locationNavigator = componentModel.GetService<ILocationNavigator>();
             var selectionService = componentModel.GetService<IIssueSelectionService>();
+            var threadHandling = componentModel.GetService<IThreadHandling>();
 
-            var viewModel = new HotspotsControlViewModel(store, locationNavigator, selectionService);
+            var viewModel = new HotspotsControlViewModel(store, locationNavigator, selectionService, threadHandling);
+            viewModel.UpdateHotspotsListAsync().Forget();
             var hotspotsControl = new HotspotsControl(viewModel);
 
             Content = hotspotsControl;

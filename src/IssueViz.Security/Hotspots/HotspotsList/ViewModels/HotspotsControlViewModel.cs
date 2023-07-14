@@ -23,10 +23,13 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
@@ -48,7 +51,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
     {
         private readonly object Lock = new object();
         private readonly IIssueSelectionService selectionService;
-        private readonly IHotspotsStore store;
+        private readonly IThreadHandling threadHandling;
+        private readonly ILocalHotspotsStore store;
         private IHotspotViewModel selectedHotspot;
 
         public ObservableCollection<IHotspotViewModel> Hotspots { get; } = new ObservableCollection<IHotspotViewModel>();
@@ -57,21 +61,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
 
         public ICommand RemoveCommand { get; private set; }
 
-        public HotspotsControlViewModel(IHotspotsStore hotspotsStore,
+        public HotspotsControlViewModel(ILocalHotspotsStore hotspotsStore,
             ILocationNavigator locationNavigator,
-            IIssueSelectionService selectionService)
+            IIssueSelectionService selectionService, 
+            IThreadHandling threadHandling)
         {
             AllowMultiThreadedAccessToHotspotsList();
 
             this.selectionService = selectionService;
+            this.threadHandling = threadHandling;
             selectionService.SelectedIssueChanged += SelectionService_SelectionChanged;
 
             this.store = hotspotsStore;
             store.IssuesChanged += Store_IssuesChanged;
 
-            UpdateHotspotsList();
-
-            SetCommands(hotspotsStore, locationNavigator);
+            SetCommands(locationNavigator);
         }
 
         public IHotspotViewModel SelectedHotspot
@@ -87,6 +91,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             }
         }
 
+        public async System.Threading.Tasks.Task UpdateHotspotsListAsync()
+        {
+            await threadHandling.RunOnBackgroundThread( () =>
+            {
+                Hotspots.Clear();
+                foreach (var localHotspot in store.GetAllLocalHotspots())
+                {
+                    Hotspots.Add(new HotspotViewModel(localHotspot.Visualization));
+                }
+
+                return System.Threading.Tasks.Task.FromResult(true);
+            });
+        }
+
         /// <summary>
         /// Allow the observable collection <see cref="Hotspots"/> to be modified from non-UI thread. 
         /// </summary>
@@ -96,7 +114,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             BindingOperations.EnableCollectionSynchronization(Hotspots, Lock);
         }
 
-        private void SetCommands(IHotspotsStore hotspotsStore, ILocationNavigator locationNavigator)
+        private void SetCommands(ILocationNavigator locationNavigator)
         {
             NavigateCommand = new DelegateCommand(parameter =>
             {
@@ -106,24 +124,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
 
             RemoveCommand = new DelegateCommand(parameter =>
             {
-                var hotspot = (IHotspotViewModel)parameter;
-                hotspotsStore.Remove(hotspot.Hotspot);
+                // todo fix in separate PR
             }, parameter => parameter is IHotspotViewModel);
-        }
-
-        private void UpdateHotspotsList()
-        {
-            Hotspots.Clear();
-
-            foreach (var issueViz in store.GetAll())
-            {
-                Hotspots.Add(new HotspotViewModel(issueViz));
-            }
         }
 
         private void Store_IssuesChanged(object sender, IssuesChangedEventArgs e)
         {
-            UpdateHotspotsList();
+            UpdateHotspotsListAsync().Forget();
         }
 
         private void SelectionService_SelectionChanged(object sender, EventArgs e)
