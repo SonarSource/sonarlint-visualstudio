@@ -415,7 +415,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             queryInfo ??= Mock.Of<IServerQueryInfoProvider>();
             logger ??= new TestLogger(logToConsole: true);
             threadHandling ??= new NoOpThreadHandler();
-            actionRunner ??= new SimpleCancellableActionRunner(logger);
+            actionRunner ??= new SynchronizedCancellableActionRunner(logger);
 
             return new SuppressionIssueStoreUpdater(server, queryInfo, writer, actionRunner, logger, threadHandling);
         }

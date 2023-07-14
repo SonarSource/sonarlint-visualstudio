@@ -202,8 +202,8 @@
   <data name="Store_UpdateIssue_UpdateRequired" xml:space="preserve">
     <value>[ServerIssueStore] Updating issue: {0}. Match found, update required. New IsResolved value: {1}</value>
   </data>
-  <data name="Suppressions_CancellingCurrentOperation" xml:space="preserve">
-    <value>[Suppressions] Cancelling current operation...</value>
+  <data name="ActionRunner_CancellingCurrentOperation" xml:space="preserve">
+    <value>[ActionRunner] Cancelling current operation...</value>
   </data>
   <data name="Suppressions_FetchError_Short" xml:space="preserve">
     <value>[Suppressions] Fetch operation failed: {0}</value>
