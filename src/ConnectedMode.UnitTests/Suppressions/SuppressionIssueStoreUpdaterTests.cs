@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
@@ -44,6 +45,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IServerQueryInfoProvider>(),
                 MefTestHelpers.CreateExport<IServerIssuesStoreWriter>(),
+                MefTestHelpers.CreateExport<ICancellableActionRunner>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
@@ -91,12 +93,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         }
 
         [TestMethod]
-        public async Task UpdateAll_RunOnBackgroundThread()
+        public async Task UpdateAll_RunOnBackgroundThreadInActionRunner()
         {
             var callSequence = new List<string>();
 
             var queryInfo = new Mock<IServerQueryInfoProvider>();
             var threadHandling = new Mock<IThreadHandling>();
+            var actionRunner = new Mock<ICancellableActionRunner>();
 
             queryInfo.Setup(x => x.GetProjectKeyAndBranchAsync(It.IsAny<CancellationToken>()))
                 .Callback<CancellationToken>(x => callSequence.Add("GetProjectKeyAndBranchAsync"));
@@ -105,15 +108,23 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
                 .Returns(new NoOpAwaitable())
                 .Callback(() => callSequence.Add("SwitchToBackgroundThread"));
 
+            actionRunner.Setup(x => x.RunAsync(It.IsAny<Func<CancellationToken, Task>>()))
+                .Returns((Func<CancellationToken, Task> action) =>
+                {
+                    callSequence.Add("RunAction");
+                    return action(CancellationToken.None);
+                });
+
             var testSubject = CreateTestSubject(queryInfo.Object,
-                threadHandling: threadHandling.Object);
+                threadHandling: threadHandling.Object,
+                actionRunner:actionRunner.Object);
 
             await testSubject.UpdateAllServerSuppressionsAsync();
 
             queryInfo.Invocations.Should().HaveCount(1);
             threadHandling.Invocations.Should().HaveCount(1);
 
-            callSequence.Should().ContainInOrder("SwitchToBackgroundThread", "GetProjectKeyAndBranchAsync");
+            callSequence.Should().ContainInOrder("SwitchToBackgroundThread", "RunAction", "GetProjectKeyAndBranchAsync");
         }
 
         [TestMethod]
@@ -396,6 +407,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             ISonarQubeService server = null,
             IServerIssuesStoreWriter writer = null,
             ILogger logger = null,
+            ICancellableActionRunner actionRunner = null,
             IThreadHandling threadHandling = null)
         {
             writer ??= Mock.Of<IServerIssuesStoreWriter>();
@@ -403,8 +415,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             queryInfo ??= Mock.Of<IServerQueryInfoProvider>();
             logger ??= new TestLogger(logToConsole: true);
             threadHandling ??= new NoOpThreadHandler();
+            actionRunner ??= new SimpleCancellableActionRunner(logger);
 
-            return new SuppressionIssueStoreUpdater(server, queryInfo, writer, logger, threadHandling);
+            return new SuppressionIssueStoreUpdater(server, queryInfo, writer, actionRunner, logger, threadHandling);
         }
 
         private static Mock<IServerQueryInfoProvider> CreateQueryInfoProvider(string projectKey, string branchName)

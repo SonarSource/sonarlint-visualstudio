@@ -24,6 +24,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using SonarQube.Client;
@@ -53,29 +54,31 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         private readonly ISonarQubeService server;
         private readonly IServerQueryInfoProvider serverQueryInfoProvider;
         private readonly IServerIssuesStoreWriter storeWriter;
+        private readonly ICancellableActionRunner actionRunner;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
-
-        private CancellationTokenSource updateAllCancellationTokenSource = new CancellationTokenSource();
 
         [ImportingConstructor]
         public SuppressionIssueStoreUpdater(ISonarQubeService server,
             IServerQueryInfoProvider serverQueryInfoProvider,
             IServerIssuesStoreWriter storeWriter,
+            ICancellableActionRunner actionRunner,
             ILogger logger)
-            : this(server, serverQueryInfoProvider, storeWriter, logger, ThreadHandling.Instance)
+            : this(server, serverQueryInfoProvider, storeWriter, actionRunner, logger, ThreadHandling.Instance)
         {
         }
 
         internal /* for testing */ SuppressionIssueStoreUpdater(ISonarQubeService server,
             IServerQueryInfoProvider serverQueryInfoProvider,
             IServerIssuesStoreWriter storeWriter,
+            ICancellableActionRunner actionRunner,
             ILogger logger,
             IThreadHandling threadHandling)
         {
             this.server = server;
             this.serverQueryInfoProvider = serverQueryInfoProvider;
             this.storeWriter = storeWriter;
+            this.actionRunner = actionRunner;
             this.logger = logger;
             this.threadHandling = threadHandling;
         }
@@ -85,41 +88,39 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         public async Task UpdateAllServerSuppressionsAsync()
         {
             await threadHandling.SwitchToBackgroundThread();
-
-            try
+            await actionRunner.RunAsync(async token =>
             {
-                logger.WriteLine(Resources.Suppressions_Fetch_AllIssues);
-
-                // TODO: fix the race condition here (two threads could both finish "CancelCurrentOperation" at
-                // the same time. The whole request operation should be atomic).
-                CancelCurrentOperation();
-                var localCopyOfCts = updateAllCancellationTokenSource = new CancellationTokenSource();
-                
-                (string projectKey, string serverBranch) queryInfo = await serverQueryInfoProvider.GetProjectKeyAndBranchAsync(localCopyOfCts.Token);
-
-                localCopyOfCts.Token.ThrowIfCancellationRequested();
-
-                if (queryInfo.projectKey == null || queryInfo.serverBranch == null)
+                try
                 {
-                    return;
+                    logger.WriteLine(Resources.Suppressions_Fetch_AllIssues);
+
+                    (string projectKey, string serverBranch) queryInfo =
+                        await serverQueryInfoProvider.GetProjectKeyAndBranchAsync(token);
+
+                    if (queryInfo.projectKey == null || queryInfo.serverBranch == null)
+                    {
+                        return;
+                    }
+
+                    token.ThrowIfCancellationRequested();
+
+                    var allSuppressedIssues =
+                        await server.GetSuppressedIssuesAsync(queryInfo.projectKey, queryInfo.serverBranch, null,
+                            token);
+                    storeWriter.AddIssues(allSuppressedIssues, clearAllExistingIssues: true);
+
+                    logger.WriteLine(Resources.Suppression_Fetch_AllIssues_Finished);
                 }
-
-                localCopyOfCts.Token.ThrowIfCancellationRequested();
-
-                var allSuppressedIssues = await server.GetSuppressedIssuesAsync(queryInfo.projectKey, queryInfo.serverBranch, null, localCopyOfCts.Token);
-                storeWriter.AddIssues(allSuppressedIssues, clearAllExistingIssues: true);
-
-                logger.WriteLine(Resources.Suppression_Fetch_AllIssues_Finished);
-            }
-            catch (OperationCanceledException)
-            {
-                logger.WriteLine(Resources.Suppressions_FetchOperationCancelled);
-            }
-            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.LogVerbose(Resources.Suppression_FetchError_Verbose, ex);
-                logger.WriteLine(Resources.Suppressions_FetchError_Short, ex.Message);
-            }
+                catch (OperationCanceledException)
+                {
+                    logger.WriteLine(Resources.Suppressions_FetchOperationCancelled);
+                }
+                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+                {
+                    logger.LogVerbose(Resources.Suppression_FetchError_Verbose, ex);
+                    logger.WriteLine(Resources.Suppressions_FetchError_Short, ex.Message);
+                }
+            });
         }
 
         public async Task UpdateSuppressedIssuesAsync(bool isResolved, string[] issueKeys, CancellationToken cancellationToken)
@@ -162,23 +163,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             }
         }
 
-        private void CancelCurrentOperation()
-        {
-            // We don't want multiple "fetch all" operations running at once (e.g. if the
-            // user opens a solution then clicks "update").
-            // If there is an operation in progress we'll cancel it.
-            var copy = updateAllCancellationTokenSource;
-
-            // If there is already a fetch operation in process then cancel it.
-            if (copy != null && !copy.IsCancellationRequested)
-            {
-                logger.LogVerbose(Resources.Suppressions_CancellingCurrentOperation);
-                copy.Cancel();
-            }
-        }
-
         #endregion
 
-        public void Dispose() => updateAllCancellationTokenSource?.Dispose();
+        public void Dispose() => actionRunner.Dispose();
     }
 }
