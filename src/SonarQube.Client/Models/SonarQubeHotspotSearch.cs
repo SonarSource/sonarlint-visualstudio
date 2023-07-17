@@ -42,5 +42,29 @@ namespace SonarQube.Client.Models
         public string Resolution { get; }
         public IssueTextRange TextRange { get; }
         public string RuleKey { get; }
+
+        public SonarQubeHotspot ToSonarQubeHotspot()
+        {
+            return new SonarQubeHotspot(HotspotKey,
+                null, // todo: this field exists in the server response and is needed, add in separate PR
+                null,
+                null, 
+                Status,
+                null, 
+                ProjectKey,
+                null,
+                ComponentKey,
+                FilePath,
+                default, // todo: this field exists in the server response and is needed, add in separate PR
+                default, // todo: this field exists in the server response and is needed, add in separate PR
+                new SonarQubeHotspotRule(RuleKey, 
+                    null,
+                    null, 
+                    null, 
+                    null, 
+                    null,
+                    null),
+                TextRange);
+        }
     }
 }
