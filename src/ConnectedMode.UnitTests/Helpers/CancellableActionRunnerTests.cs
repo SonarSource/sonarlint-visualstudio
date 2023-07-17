@@ -18,6 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -30,13 +35,91 @@ public class CancellableActionRunnerTests
     [TestMethod]
     public void MefCtor_CheckExports()
     {
-        MefTestHelpers.CheckTypeCanBeImported<SimpleCancellableActionRunner, ICancellableActionRunner>(
+        MefTestHelpers.CheckTypeCanBeImported<SynchronizedCancellableActionRunner, ICancellableActionRunner>(
             MefTestHelpers.CreateExport<ILogger>());
     }
 
     [TestMethod]
     public void CheckIsNonSharedMefComponent()
     {
-        MefTestHelpers.CheckIsNonSharedMefComponent<SimpleCancellableActionRunner>();
+        MefTestHelpers.CheckIsNonSharedMefComponent<SynchronizedCancellableActionRunner>();
+    }
+
+    [TestMethod]
+    public async Task RunAsync_InvokesAction()
+    {
+        var ran = false;
+        var testSubject = CreateTestSubject();
+        
+        await testSubject.RunAsync(async _ => ran = true);
+
+        ran.Should().BeTrue();
+    }
+    
+    [TestMethod]
+    public async Task RunAsync_CancelsPreviousAction()
+    {
+        CancellationToken actionToken;
+        var testSubject = CreateTestSubject();
+        
+        await testSubject.RunAsync(async token => actionToken = token);
+
+        actionToken.IsCancellationRequested.Should().BeFalse();
+
+        await testSubject.RunAsync(async _ => { });
+
+        actionToken.IsCancellationRequested.Should().BeTrue();
+    }
+    
+        
+    [TestMethod]
+    public async Task RunAsync_Run100Actions_CancelsAllTokensButLatest()
+    {
+        var tokens = new List<CancellationToken>(100);
+        var tasks = new List<Task>(100);
+        var testSubject = CreateTestSubject();
+
+        for (var i = 0; i < 100; i++)
+        {
+            tasks.Add(Task.Run(() => testSubject.RunAsync(async ct => tokens.Add(ct))));
+        }
+
+        await Task.WhenAll(tasks);
+        
+        var cacelled = tokens.Count(token => token.IsCancellationRequested);
+        cacelled.Should().Be(99);
+    }
+
+    [TestMethod]
+    public async Task Dispose_CancelsLastAction()
+    {
+        CancellationToken actionToken;
+        var testSubject = CreateTestSubject();
+        
+        await testSubject.RunAsync(async token => actionToken = token);
+
+        actionToken.IsCancellationRequested.Should().BeFalse();
+        
+        testSubject.Dispose();
+
+        actionToken.IsCancellationRequested.Should().BeTrue();
+    }
+    
+    [TestMethod]
+    public void Dispose_PreventsNewActionLaunch()
+    {
+        var ran = false;
+        var testSubject = CreateTestSubject();
+        
+        testSubject.Dispose();
+        Func<Task> action =() => testSubject.RunAsync(async _ => ran = true);
+
+        ran.Should().BeFalse();
+        action.Should().ThrowAsync<ObjectDisposedException>();
+    }
+
+    private ICancellableActionRunner CreateTestSubject()
+    {
+        return new SynchronizedCancellableActionRunner(new TestLogger());
     }
 }
