@@ -26,49 +26,73 @@ using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Helpers
 {
+    /// <summary>
+    /// Action runner that supports cancellation of previous actions.
+    /// <see cref="IDisposable"/> implementation cancels the last action and prevents new actions from being launched. 
+    /// </summary>
     public interface ICancellableActionRunner : IDisposable
     {
+        /// <summary>
+        /// Cancels any previous action and starts a new one
+        /// </summary>
+        /// <param name="newAction">New action to run. CancellationToken is supplied for cancellation</param>
+        /// <returns>Resulting Task of <paramref name="newAction"/></returns>
         Task RunAsync(Func<CancellationToken, Task> newAction);
     }
     
-    // todo: this class will be replaced with correct implementation in a later PR
     [Export(typeof(ICancellableActionRunner))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
-    public class SimpleCancellableActionRunner : ICancellableActionRunner
+    public sealed class SynchronizedCancellableActionRunner : ICancellableActionRunner
     {
+        private static readonly CancellationTokenSource DisposedCancellationTokenSource = null;
+
         private readonly ILogger logger;
-        private CancellationTokenSource updateAllCancellationTokenSource = new CancellationTokenSource();
+        private readonly object lockObject = new object();
+        
+        private CancellationTokenSource currentCancellationTokenSource = new CancellationTokenSource();
 
         [ImportingConstructor]
-        public SimpleCancellableActionRunner(ILogger logger)
+        public SynchronizedCancellableActionRunner(ILogger logger)
         {
             this.logger = logger;
         }
 
         public Task RunAsync(Func<CancellationToken, Task> newAction)
         {
-            CancelCurrentOperation();
-            var localCopy = updateAllCancellationTokenSource = new CancellationTokenSource();
-            return newAction(localCopy.Token);
-        }
+            CancellationTokenSource newCancellationTokenSource;
+            
+            lock (lockObject)
+            {
+                if (currentCancellationTokenSource == DisposedCancellationTokenSource)
+                {
+                    throw new ObjectDisposedException("Runner disposed");
+                }
+                
+                logger.LogVerbose(Resources.ActionRunner_CancellingCurrentOperation);
+                currentCancellationTokenSource.Cancel();
+                newCancellationTokenSource = currentCancellationTokenSource = new CancellationTokenSource();
+            }
 
-        public void Dispose()
-        {
-            updateAllCancellationTokenSource?.Dispose();
+            return newAction(newCancellationTokenSource.Token);
         }
         
-        private void CancelCurrentOperation()
+        public void Dispose()
         {
-            // We don't want multiple "fetch all" operations running at once (e.g. if the
-            // user opens a solution then clicks "update").
-            // If there is an operation in progress we'll cancel it.
-            var copy = updateAllCancellationTokenSource;
-
-            // If there is already a fetch operation in process then cancel it.
-            if (copy != null && !copy.IsCancellationRequested)
+            if (currentCancellationTokenSource == DisposedCancellationTokenSource)
             {
-                logger.LogVerbose(Resources.Suppressions_CancellingCurrentOperation);
-                copy.Cancel();
+                return;
+            }
+
+            lock (lockObject)
+            {
+                if (currentCancellationTokenSource == DisposedCancellationTokenSource)
+                {
+                    return;
+                }
+
+                logger.LogVerbose(Resources.ActionRunner_CancellingCurrentOperation);
+                currentCancellationTokenSource.Cancel();
+                currentCancellationTokenSource = DisposedCancellationTokenSource;
             }
         }
     }
