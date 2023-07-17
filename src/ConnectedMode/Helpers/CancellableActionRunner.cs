@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Helpers
     
     [Export(typeof(ICancellableActionRunner))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
-    public class SynchronizedCancellableActionRunner : ICancellableActionRunner
+    public sealed class SynchronizedCancellableActionRunner : ICancellableActionRunner
     {
         private static readonly CancellationTokenSource DisposedCancellationTokenSource = null;
 
