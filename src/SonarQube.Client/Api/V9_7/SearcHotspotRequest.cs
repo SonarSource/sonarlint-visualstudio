@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel;
 using System.Linq;
 using Newtonsoft.Json;
@@ -75,7 +76,11 @@ namespace SonarQube.Client.Api.V9_7
                 serverHotspotSearch.Status,
                 serverHotspotSearch.Resolution,
                 serverHotspotSearch.TextRange.ToIssueTextRange(),
-                serverHotspotSearch.RuleKey);
+                serverHotspotSearch.RuleKey,
+                serverHotspotSearch.Message,
+                serverHotspotSearch.VulnerabilityProbability,
+                serverHotspotSearch.CreationDate,
+                serverHotspotSearch.UpdateDate);
         }
 
         private sealed class ServerHotspotSearch
@@ -100,6 +105,18 @@ namespace SonarQube.Client.Api.V9_7
 
             [JsonProperty("ruleKey")]
             public string RuleKey { get; set; }
+
+            [JsonProperty("message")]
+            public string Message { get; set; }
+
+            [JsonProperty("vulnerabilityProbability")]
+            public string VulnerabilityProbability { get; set; }
+
+            [JsonProperty("creationDate")]
+            public DateTimeOffset CreationDate { get; set; }
+
+            [JsonProperty("updateDate")]
+            public DateTimeOffset UpdateDate { get; set; }
         }
     }
 }

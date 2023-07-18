@@ -237,6 +237,17 @@ public class ServerHotspotStoreUpdaterTests
 
         private static SonarQubeHotspotSearch CreateHotspot(string id)
         {
-            return new SonarQubeHotspotSearch(id, null, null, null, null, null, null, null);
+            return new SonarQubeHotspotSearch(id,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                default,
+                default);
         }
 }

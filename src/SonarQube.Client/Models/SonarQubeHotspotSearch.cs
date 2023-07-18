@@ -18,11 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+
 namespace SonarQube.Client.Models
 {
     public class SonarQubeHotspotSearch
     {
-        public SonarQubeHotspotSearch(string hotspotKey, string componentKey, string filePath, string projectKey, string status, string resolution, IssueTextRange textRange, string ruleKey)
+        public SonarQubeHotspotSearch(string hotspotKey,
+            string componentKey,
+            string filePath,
+            string projectKey,
+            string status,
+            string resolution,
+            IssueTextRange textRange,
+            string ruleKey,
+            string message,
+            string vulnerabilityProbability,
+            DateTimeOffset creationDate,
+            DateTimeOffset updateDate)
         {
             this.HotspotKey = hotspotKey;
             this.ComponentKey = componentKey;
@@ -32,6 +45,10 @@ namespace SonarQube.Client.Models
             this.Resolution = resolution;
             this.TextRange = textRange;
             this.RuleKey = ruleKey;
+            this.Message = message;
+            this.VulnerabilityProbability = vulnerabilityProbability;
+            this.CreationDate = creationDate;
+            this.UpdateDate = updateDate;
         }
 
         public string HotspotKey { get; }
@@ -42,11 +59,15 @@ namespace SonarQube.Client.Models
         public string Resolution { get; }
         public IssueTextRange TextRange { get; }
         public string RuleKey { get; }
+        public string Message { get; }
+        public string VulnerabilityProbability { get; }
+        public DateTimeOffset CreationDate { get; }
+        public DateTimeOffset UpdateDate { get; }
 
         public SonarQubeHotspot ToSonarQubeHotspot()
         {
             return new SonarQubeHotspot(HotspotKey,
-                null, // todo: this field exists in the server response and is needed, add in separate PR
+                Message,
                 null,
                 null, 
                 Status,
@@ -55,12 +76,12 @@ namespace SonarQube.Client.Models
                 null,
                 ComponentKey,
                 FilePath,
-                default, // todo: this field exists in the server response and is needed, add in separate PR
-                default, // todo: this field exists in the server response and is needed, add in separate PR
+                CreationDate,
+                UpdateDate,
                 new SonarQubeHotspotRule(RuleKey, 
                     null,
                     null, 
-                    null, 
+                    VulnerabilityProbability, 
                     null, 
                     null,
                     null),
