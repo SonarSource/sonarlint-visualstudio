@@ -52,7 +52,7 @@ namespace SonarQube.Client.Tests
             ""component"": ""ConsoleAppTest:oldproject/Program.cs"",
             ""project"": ""ConsoleAppTest"",
             ""securityCategory"": ""insecure-conf"",
-            ""vulnerabilityProbability"": ""LOW"",
+            ""vulnerabilityProbability"": ""MEDIUM"",
             ""status"": ""TO_REVIEW"",
             ""line"": 9,
             ""message"": ""Make sure creating this cookie without setting the 'Secure' property is safe here."",
@@ -159,6 +159,11 @@ namespace SonarQube.Client.Tests
             result[0].TextRange.StartOffset.Should().Be(34);
             result[0].TextRange.EndOffset.Should().Be(68);
             result[0].RuleKey.Should().Be("csharpsquid:S2092");
+            result[0].VulnerabilityProbability.Should().Be("MEDIUM");
+            result[0].Message.Should()
+                .Be("Make sure creating this cookie without setting the 'Secure' property is safe here.");
+            result[0].CreationDate.Day.Should().Be(14);
+            result[0].UpdateDate.Day.Should().Be(14);
 
             result[1].HotspotKey.Should().Be("AYgqCWBb8zNecLmhXpkj");
             result[1].ComponentKey.Should().Be("ConsoleAppTest:WebApplication1/Controllers/HomeController.cs");
@@ -170,6 +175,10 @@ namespace SonarQube.Client.Tests
             result[1].TextRange.StartOffset.Should().Be(21);
             result[1].TextRange.EndOffset.Should().Be(36);
             result[1].RuleKey.Should().Be("csharpsquid:S1313");
+            result[1].VulnerabilityProbability.Should().Be("LOW");
+            result[1].Message.Should().Be("Make sure using this hardcoded IP address '192.168.12.42' is safe here.");
+            result[1].CreationDate.Day.Should().Be(17);
+            result[1].UpdateDate.Day.Should().Be(1);
 
             result[2].HotspotKey.Should().Be("AYeAEDJo4iDoE9Luo7Y8");
             result[2].ComponentKey.Should().Be("ConsoleAppTest:oldproject/Program.cs");
@@ -181,6 +190,10 @@ namespace SonarQube.Client.Tests
             result[2].TextRange.StartOffset.Should().Be(34);
             result[2].TextRange.EndOffset.Should().Be(68);
             result[2].RuleKey.Should().Be("csharpsquid:S3330");
+            result[2].VulnerabilityProbability.Should().Be("LOW");
+            result[2].Message.Should().Be("Make sure creating this cookie without the \"HttpOnly\" flag is safe.");
+            result[2].CreationDate.Day.Should().Be(14);
+            result[2].UpdateDate.Day.Should().Be(14);
         }
 
         [TestMethod]
