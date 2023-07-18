@@ -43,24 +43,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
         [TestMethod]
         public void MefCtor_Check_SameInstanceExported()
-        {
-            // Importing via either exported interface should return the same store instance
-
-            var storeImporter = new SingleObjectImporter<IServerIssuesStore>();
-            var storeWriterImporter = new SingleObjectImporter<IServerIssuesStoreWriter>();
-            var importers = new object[] { storeImporter, storeWriterImporter };
-
-            var loggerExport = MefTestHelpers.CreateExport<ILogger>();
-
-            var typesToExport = new Type[] { typeof(ServerIssuesStore) };
-
-            MefTestHelpers.Compose(importers, typesToExport, loggerExport);
-
-            storeImporter.AssertImportIsNotNull();
-            storeWriterImporter.AssertImportIsNotNull();
-
-            storeImporter.Import.Should().BeSameAs(storeWriterImporter.Import);
-        }
+            => MefTestHelpers.CheckMultipleExportsReturnSameInstance<IServerIssuesStore, IServerIssuesStore>(
+                typeof(ServerIssuesStore), MefTestHelpers.CreateExport<ILogger>());
 
         [TestMethod]
         [DataRow(false)]

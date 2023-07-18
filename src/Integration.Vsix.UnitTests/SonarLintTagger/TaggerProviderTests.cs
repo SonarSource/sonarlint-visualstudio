@@ -137,22 +137,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         [TestMethod]
         public void MefCtor_Check_SameInstanceExported()
-        {
-            // Importing via either exported interface should return the same instance
-            var taggerProviderImporter = new SingleObjectImporter<ITaggerProvider>();
-            var docEventsImporter = new SingleObjectImporter<IDocumentEvents>();
-            var importers = new object[] { taggerProviderImporter, docEventsImporter };
-
-            var requiredExports = GetRequiredExports();
-            var typeToExport = new Type[] { typeof(TaggerProvider) };
-
-            MefTestHelpers.Compose(importers, typeToExport, requiredExports);
-
-            taggerProviderImporter.AssertImportIsNotNull();
-            docEventsImporter.AssertImportIsNotNull();
-
-            taggerProviderImporter.Import.Should().BeSameAs(docEventsImporter.Import);
-        }
+            => MefTestHelpers.CheckMultipleExportsReturnSameInstance<ITaggerProvider, IDocumentEvents>(
+                typeof(TaggerProvider), GetRequiredExports());
 
         private static Export[] GetRequiredExports() => new[]
         {
