@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
@@ -33,15 +34,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
         private readonly ITimer refreshTimer;
         private readonly ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater;
+        private readonly IServerHotspotStoreUpdater serverHotspotStoreUpdater;
 
         private bool disposed;
 
         [ImportingConstructor]
-        public TimedUpdateHandler(ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater) : this(suppressionIssueStoreUpdater, new TimerFactory()) { }
+        public TimedUpdateHandler(ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
+            IServerHotspotStoreUpdater serverHotspotStoreUpdater) 
+            : this(suppressionIssueStoreUpdater, serverHotspotStoreUpdater, new TimerFactory()) { }
 
-        internal /* for testing */ TimedUpdateHandler(ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater, ITimerFactory timerFactory)
+        internal /* for testing */ TimedUpdateHandler(ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
+            IServerHotspotStoreUpdater serverHotspotStoreUpdater, ITimerFactory timerFactory)
         {
             this.suppressionIssueStoreUpdater = suppressionIssueStoreUpdater;
+            this.serverHotspotStoreUpdater = serverHotspotStoreUpdater;
 
             refreshTimer = timerFactory.Create();
             refreshTimer.AutoReset = true;
@@ -54,6 +60,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         private void OnRefreshTimerElapsed(object sender, TimerEventArgs e)
         {
             suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync().Forget();
+            serverHotspotStoreUpdater.UpdateAllServerHotspotsAsync().Forget();
         }
 
         public void Dispose()
