@@ -20,7 +20,7 @@
 
 using System;
 
-namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
+namespace SonarLint.VisualStudio.Core
 {
     public class DocumentClosedEventArgs : EventArgs
     {
