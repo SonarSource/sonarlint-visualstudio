@@ -20,13 +20,11 @@
 
 using System;
 using System.Collections.Generic;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
+using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Hotspots
 {
     [TestClass]
     public class ServerHotspotStoreTests

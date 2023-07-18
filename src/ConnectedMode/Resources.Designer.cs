@@ -213,6 +213,51 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Hotpots] Fetch operation failed: {0}.
+        /// </summary>
+        internal static string Hotpots_FetchError_Short {
+            get {
+                return ResourceManager.GetString("Hotpots_FetchError_Short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Hotspots] Fetching all hotspots....
+        /// </summary>
+        internal static string Hotspots_Fetch_AllHotspots {
+            get {
+                return ResourceManager.GetString("Hotspots_Fetch_AllHotspots", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Hotspots] Finished fetching all hotspots.
+        /// </summary>
+        internal static string Hotspots_Fetch_AllHotspots_Finished {
+            get {
+                return ResourceManager.GetString("Hotspots_Fetch_AllHotspots_Finished", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Hotspots] Error fetching data: {0}.
+        /// </summary>
+        internal static string Hotspots_FetchError_Verbose {
+            get {
+                return ResourceManager.GetString("Hotspots_FetchError_Verbose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Hotspots] Fetch operation cancelled.
+        /// </summary>
+        internal static string Hotspots_FetchOperationCancelled {
+            get {
+                return ResourceManager.GetString("Hotspots_FetchOperationCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [ConnectedMode/ImportsBeforeFileGenerator] Checking if file SonarLint before imports targets file exists. File: {0}.
         /// </summary>
         internal static string ImportBeforeFileGenerator_CheckingIfFileExists {
@@ -452,15 +497,6 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         internal static string Suppressions_FetchOperationCancelled {
             get {
                 return ResourceManager.GetString("Suppressions_FetchOperationCancelled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Suppressions] Cannot fetch suppressions - not connected to a Sonar server..
-        /// </summary>
-        internal static string Suppressions_NotConnected {
-            get {
-                return ResourceManager.GetString("Suppressions_NotConnected", resourceCulture);
             }
         }
         

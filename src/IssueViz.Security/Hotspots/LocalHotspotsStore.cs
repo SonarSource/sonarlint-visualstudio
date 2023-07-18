@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
