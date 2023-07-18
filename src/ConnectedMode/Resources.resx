@@ -222,9 +222,6 @@
   <data name="Suppressions_Fetch_AllIssues" xml:space="preserve">
     <value>[Suppressions] Fetching all suppressions...</value>
   </data>
-  <data name="Suppressions_NotConnected" xml:space="preserve">
-    <value>[Suppressions] Cannot fetch suppressions - not connected to a Sonar server.</value>
-  </data>
   <data name="Suppression_FetchError_Verbose" xml:space="preserve">
     <value>[Suppressions] Error fetching data: {0}</value>
     <comment>0 = detailed error message</comment>
@@ -262,5 +259,22 @@
   </data>
   <data name="ImportBeforeFileGenerator_WritingTargetFileToDisk" xml:space="preserve">
     <value>[ConnectedMode/ImportsBeforeFileGenerator] Writing file to imports before directory</value>
+  </data>
+  <data name="Hotspots_Fetch_AllHotspots" xml:space="preserve">
+    <value>[Hotspots] Fetching all hotspots...</value>
+  </data>
+  <data name="Hotspots_FetchOperationCancelled" xml:space="preserve">
+    <value>[Hotspots] Fetch operation cancelled</value>
+  </data>
+  <data name="Hotpots_FetchError_Short" xml:space="preserve">
+    <value>[Hotpots] Fetch operation failed: {0}</value>
+    <comment>0 = short error message</comment>
+  </data>
+  <data name="Hotspots_FetchError_Verbose" xml:space="preserve">
+    <value>[Hotspots] Error fetching data: {0}</value>
+    <comment>0 = detailed error message</comment>
+  </data>
+  <data name="Hotspots_Fetch_AllHotspots_Finished" xml:space="preserve">
+    <value>[Hotspots] Finished fetching all hotspots</value>
   </data>
 </root>

@@ -23,9 +23,9 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
+namespace SonarLint.VisualStudio.ConnectedMode.Hotspots
 {
-    internal interface IServerHotspotStore
+    public interface IServerHotspotStore
     {
         void Refresh(IList<SonarQubeHotspot> serverHotspots);
 
