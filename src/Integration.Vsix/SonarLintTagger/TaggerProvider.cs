@@ -32,6 +32,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
@@ -47,10 +48,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// See the README.md in this folder for more information
     /// </remarks>
     [Export(typeof(ITaggerProvider))]
+    [Export(typeof(IDocumentEvents))]
     [TagType(typeof(IErrorTag))]
     [ContentType("text")]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal sealed class TaggerProvider : ITaggerProvider
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal sealed class TaggerProvider : ITaggerProvider, IDocumentEvents
     {
         internal static readonly Type SingletonManagerPropertyCollectionKey = typeof(SingletonDisposableTaggerManager<IErrorTag>);
 
@@ -244,7 +247,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             lock (issueTrackers)
             {
                 issueTrackers.Remove(issueTracker);
+
+                // The lifetime of an issue tracker is tied to a single document. A tracker is removed when
+                // it is no longer needed i.e. the document has been closed.
+                DocumentClosed?.Invoke(this, new DocumentClosedEventArgs(issueTracker.FilePath));
             }
         }
+
+        #region IDocumentEvents methods
+
+        public event EventHandler<DocumentClosedEventArgs> DocumentClosed;
+
+        #endregion IDocumentEvents methods
     }
 }

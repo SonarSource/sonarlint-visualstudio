@@ -20,12 +20,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition.Primitives;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using EnvDTE;
 using EnvDTE80;
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
@@ -34,6 +36,7 @@ using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
@@ -116,6 +119,57 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, mockAnalyzerController.Object, serviceProvider,
                 mockSonarLanguageRecognizer.Object, mockAnalysisRequester.Object, mockTaggableBufferIndicator.Object, issueConsumerFactory.Object, logger, mockAnalysisScheduler.Object, new NoOpThreadHandler());
         }
+
+
+        #region MEF tests
+
+        [TestMethod]
+        public void CheckIsSingletonMefComponent()
+            => MefTestHelpers.CheckIsSingletonMefComponent<TaggerProvider>();
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported_TaggerProvider()
+            => MefTestHelpers.CheckTypeCanBeImported<TaggerProvider, ITaggerProvider>(GetRequiredExports());
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported_DocumentEvents()
+            => MefTestHelpers.CheckTypeCanBeImported<TaggerProvider, IDocumentEvents>(GetRequiredExports());
+
+        [TestMethod]
+        public void MefCtor_Check_SameInstanceExported()
+        {
+            // Importing via either exported interface should return the same instance
+            var taggerProviderImporter = new SingleObjectImporter<ITaggerProvider>();
+            var docEventsImporter = new SingleObjectImporter<IDocumentEvents>();
+            var importers = new object[] { taggerProviderImporter, docEventsImporter };
+
+            var requiredExports = GetRequiredExports();
+            var typeToExport = new Type[] { typeof(TaggerProvider) };
+
+            MefTestHelpers.Compose(importers, typeToExport, requiredExports);
+
+            taggerProviderImporter.AssertImportIsNotNull();
+            docEventsImporter.AssertImportIsNotNull();
+
+            taggerProviderImporter.Import.Should().BeSameAs(docEventsImporter.Import);
+        }
+
+        private static Export[] GetRequiredExports() => new[]
+        {
+            MefTestHelpers.CreateExport<ISonarErrorListDataSource>(),
+            MefTestHelpers.CreateExport<ITextDocumentFactoryService>(),
+            MefTestHelpers.CreateExport<IAnalyzerController>(),
+            MefTestHelpers.CreateExport<SVsServiceProvider>(),
+            MefTestHelpers.CreateExport<ISonarLanguageRecognizer>(),
+            MefTestHelpers.CreateExport<IAnalysisRequester>(),
+            MefTestHelpers.CreateExport<ITaggableBufferIndicator>(),
+            MefTestHelpers.CreateExport<IIssueConsumerFactory>(),
+            MefTestHelpers.CreateExport<ILogger>(),
+            MefTestHelpers.CreateExport<IScheduler>(),
+            MefTestHelpers.CreateExport<IThreadHandling>()
+        };
+
+        #endregion MEF tests
 
         [TestMethod]
         public void CreateTagger_should_create_tracker_when_analysis_is_supported()
@@ -210,9 +264,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void CreateTagger_close_last_tagger_should_unregister_tracker()
+        public void CreateTagger_CloseLastTagger_ShouldUnregisterTrackerAndRaiseEvent()
         {
             var doc1 = CreateMockedDocument("doc1.js");
+
+            object actualSender = null;
+            DocumentClosedEventArgs actualEventArgs = null;
+            int eventCount = 0;
+            provider.DocumentClosed += OnDocumentClosed;
 
             var tracker1 = CreateTaggerForDocument(doc1);
             provider.ActiveTrackersForTesting.Count().Should().Be(1);
@@ -223,9 +282,33 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Remove one tagger -> tracker should still be registered
             ((IDisposable)tracker1).Dispose();
             provider.ActiveTrackersForTesting.Count().Should().Be(1);
+            eventCount.Should().Be(0); // no event yet...
 
             // Remove the last tagger -> tracker should be unregistered
             ((IDisposable)tracker2).Dispose();
+            provider.ActiveTrackersForTesting.Count().Should().Be(0);
+            eventCount.Should().Be(1);
+            actualSender.Should().BeSameAs(provider);
+            actualEventArgs.Should().NotBeNull();
+            actualEventArgs.FullPath.Should().Be("doc1.js");
+
+            void OnDocumentClosed(object sender, DocumentClosedEventArgs e)
+            {
+                eventCount++;
+                actualSender = sender;
+                actualEventArgs = e;
+            }
+        }
+
+        [TestMethod]
+        public void DocEvents_CloseLastTagger_NoListeners_NoError()
+        {
+            var doc1 = CreateMockedDocument("doc1.js");
+
+            var tracker1 = CreateTaggerForDocument(doc1);
+            provider.ActiveTrackersForTesting.Count().Should().Be(1);
+
+            ((IDisposable)tracker1).Dispose();
             provider.ActiveTrackersForTesting.Count().Should().Be(0);
         }
 
