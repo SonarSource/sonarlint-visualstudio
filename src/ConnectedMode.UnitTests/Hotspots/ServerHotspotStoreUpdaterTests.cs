@@ -111,9 +111,12 @@ public class ServerHotspotStoreUpdaterTests
         queryInfo.Setup(x => x.GetProjectKeyAndBranchAsync(It.IsAny<CancellationToken>()))
             .Callback<CancellationToken>(x => callSequence.Add("GetProjectKeyAndBranchAsync"));
 
-        threadHandling.Setup(x => x.SwitchToBackgroundThread())
-            .Returns(new NoOpThreadHandler.NoOpAwaitable())
-            .Callback(() => callSequence.Add("SwitchToBackgroundThread"));
+        threadHandling.Setup(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<bool>>>()))
+            .Returns((Func<Task<bool>> action) =>
+            {
+                callSequence.Add("RunOnBackgroundThread");
+                return action();
+            });
 
         actionRunner.Setup(x => x.RunAsync(It.IsAny<Func<CancellationToken, Task>>()))
             .Returns((Func<CancellationToken, Task> action) =>
@@ -128,10 +131,11 @@ public class ServerHotspotStoreUpdaterTests
 
         await testSubject.UpdateAllServerHotspotsAsync();
 
-        queryInfo.Invocations.Should().HaveCount(1);
         threadHandling.Invocations.Should().HaveCount(1);
+        actionRunner.Invocations.Should().HaveCount(1);
+        queryInfo.Invocations.Should().HaveCount(1);
 
-        callSequence.Should().ContainInOrder("SwitchToBackgroundThread", "RunAction", "GetProjectKeyAndBranchAsync");
+        callSequence.Should().ContainInOrder("RunOnBackgroundThread", "RunAction", "GetProjectKeyAndBranchAsync");
     }
 
     [TestMethod]

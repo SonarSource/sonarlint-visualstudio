@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.Core;
@@ -67,40 +68,45 @@ namespace SonarLint.VisualStudio.ConnectedMode.Hotspots
         private readonly IThreadHandling threadHandling;
         private readonly ILogger logger;
 
-        public async Task UpdateAllServerHotspotsAsync()
+        public Task UpdateAllServerHotspotsAsync()
         {
-            await threadHandling.SwitchToBackgroundThread();
-            await actionRunner.RunAsync(async token =>
+            return threadHandling.RunOnBackgroundThread(async () =>
             {
-                try
-                {
-                    logger.WriteLine(Resources.Hotspots_Fetch_AllHotspots);
-                    
-                    var (projectKey, branchName) = await serverQueryInfoProvider.GetProjectKeyAndBranchAsync(token);
-                    
-                    if (projectKey == null || branchName == null)
-                    {
-                        return;
-                    }
-                    
-                    token.ThrowIfCancellationRequested();
-                    
-                    serverHotspotStore.Refresh((await sonarQube.SearchHotspotsAsync(projectKey, branchName, token))
-                        .Select(x => x.ToSonarQubeHotspot())
-                        .ToArray());
-                    
-                    logger.WriteLine(Resources.Hotspots_Fetch_AllHotspots_Finished);
-                }
-                catch (OperationCanceledException)
-                {
-                    logger.WriteLine(Resources.Hotspots_FetchOperationCancelled);
-                }
-                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-                {
-                    logger.LogVerbose(Resources.Hotspots_FetchError_Verbose, ex);
-                    logger.WriteLine(Resources.Hotpots_FetchError_Short, ex.Message);
-                }
+                await actionRunner.RunAsync(UpdateHotspotsAsync);
+                return true;
             });
+        }
+
+        private async Task UpdateHotspotsAsync(CancellationToken token)
+        {
+            try
+            {
+                logger.WriteLine(Resources.Hotspots_Fetch_AllHotspots);
+
+                var (projectKey, branchName) = await serverQueryInfoProvider.GetProjectKeyAndBranchAsync(token);
+
+                if (projectKey == null || branchName == null)
+                {
+                    return;
+                }
+
+                token.ThrowIfCancellationRequested();
+
+                serverHotspotStore.Refresh((await sonarQube.SearchHotspotsAsync(projectKey, branchName, token))
+                    .Select(x => x.ToSonarQubeHotspot())
+                    .ToArray());
+
+                logger.WriteLine(Resources.Hotspots_Fetch_AllHotspots_Finished);
+            }
+            catch (OperationCanceledException)
+            {
+                logger.WriteLine(Resources.Hotspots_FetchOperationCancelled);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.LogVerbose(Resources.Hotspots_FetchError_Verbose, ex);
+                logger.WriteLine(Resources.Hotpots_FetchError_Short, ex.Message);
+            }
         }
 
         public void Dispose()
