@@ -25,6 +25,7 @@ using System.Threading;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
@@ -75,6 +76,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
             // See https://github.com/SonarSource/sonarlint-visualstudio/issues/3886
             var updater = componentModel.GetService<ISuppressionIssueStoreUpdater>();
             updater.UpdateAllServerSuppressionsAsync().Forget();
+            var hotspotsUpdater = componentModel.GetService<IServerHotspotStoreUpdater>();
+            hotspotsUpdater.UpdateAllServerHotspotsAsync().Forget();
 
             logger.WriteLine(Resources.Package_Initialized);
         }
