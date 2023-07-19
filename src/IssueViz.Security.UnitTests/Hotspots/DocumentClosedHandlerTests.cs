@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
         public void MefCtor_CheckIsExported()
             =>  MefTestHelpers.CheckTypeCanBeImported<DocumentClosedHandler, DocumentClosedHandler>(
                     MefTestHelpers.CreateExport<IDocumentEvents>(),
-                    MefTestHelpers.CreateExport<ILocalHotspotsStore>(),
+                    MefTestHelpers.CreateExport<ILocalHotspotsStoreUpdater>(),
                     MefTestHelpers.CreateExport<IThreadHandling>());
 
         [TestMethod]
@@ -48,14 +48,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
         public void DocumentIsClosed_StoreUpdateIsTriggered()
         {
             var docEvents = new Mock<IDocumentEvents>();
-            var store = new Mock<ILocalHotspotsStore>();
+            var updater = new Mock<ILocalHotspotsStoreUpdater>();
 
-            var testSubject = CreateTestSubject(docEvents.Object, store.Object);
-            store.Invocations.Should().BeEmpty();
+            var testSubject = CreateTestSubject(docEvents.Object, updater.Object);
+            updater.Invocations.Should().BeEmpty();
 
             // Act
             RaiseDocClosedEvent(docEvents, "c:\\a file.txt");
-            store.Verify(x => x.RemoveForFile("c:\\a file.txt"), Times.Once());
+            updater.Verify(x => x.RemoveForFile("c:\\a file.txt"), Times.Once());
         }
 
         [TestMethod]
@@ -64,10 +64,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
             var callSequence = new List<string>();
 
             var docEvents = new Mock<IDocumentEvents>();
-            var store = new Mock<ILocalHotspotsStore>();
+            var updater = new Mock<ILocalHotspotsStoreUpdater>();
             var threadHandling = new Mock<IThreadHandling>();
 
-            store.Setup(x => x.RemoveForFile(It.IsAny<string>()))
+            updater.Setup(x => x.RemoveForFile(It.IsAny<string>()))
                 .Callback<string>(x => callSequence.Add("RemoveForFile"));
 
             threadHandling.Setup(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<bool>>>()))
@@ -77,8 +77,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
                     return action();
                 });
             
-            var testSubject = CreateTestSubject(docEvents.Object, store.Object, threadHandling.Object);
-            store.Invocations.Should().BeEmpty();
+            var testSubject = CreateTestSubject(docEvents.Object, updater.Object, threadHandling.Object);
+            updater.Invocations.Should().BeEmpty();
 
             // Act
             RaiseDocClosedEvent(docEvents, "any");
@@ -90,9 +90,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
         public void Dispose_EventHandlerIsUnregistered()
         {
             var docEvents = new Mock<IDocumentEvents>();
-            var store = new Mock<ILocalHotspotsStore>();
+            var updater = new Mock<ILocalHotspotsStoreUpdater>();
 
-            var testSubject = CreateTestSubject(docEvents.Object, store.Object);
+            var testSubject = CreateTestSubject(docEvents.Object, updater.Object);
             docEvents.VerifyAdd(x => x.DocumentClosed += It.IsAny<EventHandler<DocumentClosedEventArgs>>(), Times.Once);
 
             testSubject.Dispose();
@@ -103,14 +103,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
             => docEvents.Raise(x => x.DocumentClosed += null, new DocumentClosedEventArgs(filePath));
 
         private DocumentClosedHandler CreateTestSubject(IDocumentEvents documentEvents = null,
-            ILocalHotspotsStore store = null,
+            ILocalHotspotsStoreUpdater updater = null,
             IThreadHandling threadHandling = null)
         {
             documentEvents ??= Mock.Of<IDocumentEvents>();
-            store ??= Mock.Of<ILocalHotspotsStore>();
+            updater ??= Mock.Of<ILocalHotspotsStoreUpdater>();
             threadHandling ??= new NoOpThreadHandler();
 
-            return new DocumentClosedHandler(documentEvents, store, threadHandling);
+            return new DocumentClosedHandler(documentEvents, updater, threadHandling);
         }
     }
 }
