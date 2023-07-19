@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Binding;
 
@@ -32,14 +33,18 @@ namespace SonarLint.VisualStudio.ConnectedMode
     {
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater;
+        private readonly IServerHotspotStoreUpdater serverHotspotStoreUpdater;
 
         private bool disposed;
 
         [ImportingConstructor]
-        public BoundSolutionUpdateHandler(IActiveSolutionBoundTracker activeSolutionBoundTracker, ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater)
+        public BoundSolutionUpdateHandler(IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
+            IServerHotspotStoreUpdater serverHotspotStoreUpdater)
         {
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.suppressionIssueStoreUpdater = suppressionIssueStoreUpdater;
+            this.serverHotspotStoreUpdater = serverHotspotStoreUpdater;
 
             this.activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
             this.activeSolutionBoundTracker.SolutionBindingUpdated += OnSolutionBindingUpdated;
@@ -49,7 +54,11 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
         private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e) => TriggerUpdate();
 
-        private void TriggerUpdate() => suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync().Forget();
+        private void TriggerUpdate()
+        {
+            suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync().Forget();
+            serverHotspotStoreUpdater.UpdateAllServerHotspotsAsync().Forget();
+        }
 
         public void Dispose()
         {
