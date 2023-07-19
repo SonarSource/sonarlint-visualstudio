@@ -31,16 +31,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     internal sealed class DocumentClosedHandler : IDisposable
     {
         private readonly IDocumentEvents documentEvents;
-        private readonly ILocalHotspotsStore localHotspotsStore;
+        private readonly ILocalHotspotsStoreUpdater localHotspotsStoreUpdater;
         private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
         public DocumentClosedHandler(IDocumentEvents documentEvents,
-            ILocalHotspotsStore localHotspotsStore,
+            ILocalHotspotsStoreUpdater localHotspotsStore,
             IThreadHandling threadHandling)
         {
             this.documentEvents = documentEvents;
-            this.localHotspotsStore = localHotspotsStore;
+            this.localHotspotsStoreUpdater = localHotspotsStore;
             this.threadHandling = threadHandling;
 
             this.documentEvents.DocumentClosed += OnDocumentClosed;
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
         {
             await threadHandling.RunOnBackgroundThread(() =>
             {
-                localHotspotsStore.RemoveForFile(closedFilePath);
+                localHotspotsStoreUpdater.RemoveForFile(closedFilePath);
                 return Task.FromResult(true);
             });
         }
