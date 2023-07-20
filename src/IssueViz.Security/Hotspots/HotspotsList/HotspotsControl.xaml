@@ -16,21 +16,10 @@
 
             <hotspotsList:PriorityToBackgroundConverter x:Key="PriorityToBackgroundConverter" />
             <core:NullableSelectedItemConverter x:Key="NullableSelectedItemConverter"/>
-
-            <ContextMenu x:Key="RowMenu" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                <MenuItem Header="Remove" 
-                    CommandParameter="{Binding}"
-                    Command="{Binding DataContext.RemoveCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}">
-                    <MenuItem.Icon>
-                        <vsImaging:CrispImage Moniker="{x:Static vsCatalog:KnownMonikers.DeleteTableRow}"/>
-                    </MenuItem.Icon>
-                </MenuItem>
-            </ContextMenu>
             
             <!-- Extend the shared data grid row style to add the context menu and navigability data bindings -->
             <Style BasedOn="{StaticResource BaseDataGridRow}"
                    TargetType="DataGridRow">
-                <Setter Property="ContextMenu" Value="{StaticResource RowMenu}" />
                 <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.BackgroundBrushKey}}"/>
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding Hotspot.Span, Converter={StaticResource SpanToNavigabilityConverter}}" Value="False">
@@ -66,10 +55,6 @@
                 <KeyBinding
                     Key="Enter"
                     Command="{Binding NavigateCommand}"
-                    CommandParameter="{Binding Hotspots/}"/>
-                <KeyBinding
-                    Key="Delete"
-                    Command="{Binding RemoveCommand}"
                     CommandParameter="{Binding Hotspots/}"/>
             </DataGrid.InputBindings>
             <DataGrid.Columns>
