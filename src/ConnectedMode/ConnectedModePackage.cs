@@ -32,6 +32,7 @@ using SonarLint.VisualStudio.ConnectedMode.Install;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
+using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 
 namespace SonarLint.VisualStudio.ConnectedMode
 {
@@ -48,6 +49,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
         private TimedUpdateHandler timedUpdateHandler;
         private LocalSuppressionsChangedHandler localSuppressionsChangedHandler;
         private ImportBeforeInstallTrigger importBeforeInstallTrigger;
+        private IHotspotDocumentClosedHandler hotspotDocumentClosedHandler;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -67,8 +69,10 @@ namespace SonarLint.VisualStudio.ConnectedMode
             boundSolutionUpdateHandler = componentModel.GetService<BoundSolutionUpdateHandler>();
             timedUpdateHandler = componentModel.GetService<TimedUpdateHandler>();
             localSuppressionsChangedHandler = componentModel.GetService<LocalSuppressionsChangedHandler>();
-            
+
             importBeforeInstallTrigger = componentModel.GetService<ImportBeforeInstallTrigger>();
+
+            hotspotDocumentClosedHandler = componentModel.GetService<IHotspotDocumentClosedHandler>();
 
             // Trigger an initial update of suppressions (we might have missed the solution binding
             // event from the ActiveSolutionBoundTracker)
