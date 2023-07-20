@@ -47,6 +47,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class HotspotReviewPriorityProvider : IHotspotReviewPriorityProvider
     {
+        // In order to save time and considering the fact that hotspots are no longer being updated, we decided to make a hardcoded list of priorities by rule key
         private static readonly Dictionary<string, HotspotPriority> KeyToPriorityMap = new Dictionary<string, HotspotPriority>
         {
             { "cpp:S5443", HotspotPriority.Low },
