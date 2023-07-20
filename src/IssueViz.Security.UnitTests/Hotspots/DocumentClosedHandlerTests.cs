@@ -42,8 +42,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
                     MefTestHelpers.CreateExport<IThreadHandling>());
 
         [TestMethod]
-        public void CheckIsNonSharedMefComponent()
-            => MefTestHelpers.CheckIsNonSharedMefComponent<DocumentClosedHandler>();
+        public void CheckIsSharedMefComponent()
+            => MefTestHelpers.CheckIsSingletonMefComponent<DocumentClosedHandler>();
 
         [TestMethod]
         public void DocumentIsClosed_StoreUpdateIsTriggered()
