@@ -62,7 +62,8 @@ namespace SonarQube.Client.Api.V8_6
                 serverResponse.CreationDate,
                 serverResponse.UpdateDate,
                 rule,
-                ToIssueTextRange(serverResponse.TextRange)
+                ToIssueTextRange(serverResponse.TextRange),
+                serverResponse.Resolution
             );
 
             return hotspot;
@@ -105,6 +106,9 @@ namespace SonarQube.Client.Api.V8_6
 
             [JsonProperty("textRange")]
             public ServerTextRange TextRange { get; set; }
+
+            [JsonProperty("resolution")]
+            public string Resolution { get; set; }
         }
 
         private sealed class ServerComponent
@@ -156,10 +160,13 @@ namespace SonarQube.Client.Api.V8_6
         {
             [JsonProperty("startLine")]
             public int StartLine { get; set; }
+
             [JsonProperty("endLine")]
             public int EndLine { get; set; }
+
             [JsonProperty("startOffset")]
             public int StartOffset { get; set; }
+
             [JsonProperty("endOffset")]
             public int EndOffset { get; set; }
         }
