@@ -61,6 +61,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Binding has changed. Open documents will be re-analysed..
+        /// </summary>
+        internal static string ConfigMonitor_BindingChanged {
+            get {
+                return ResourceManager.GetString("ConfigMonitor_BindingChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Suppressions have been updated. Open documents will be re-analysed..
         /// </summary>
         internal static string ConfigMonitor_SuppressionsUpdated {

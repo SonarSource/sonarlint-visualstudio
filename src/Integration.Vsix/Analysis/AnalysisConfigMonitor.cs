@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
@@ -38,6 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     {
         private readonly IAnalysisRequester analysisRequester;
         private readonly IUserSettingsProvider userSettingsProvider;
+        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
 
@@ -46,20 +48,30 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         [ImportingConstructor]
         public AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
             IUserSettingsProvider userSettingsProvider, // reports changes to user settings.json
-            ILogger logger) : this(analysisRequester, userSettingsProvider, logger, ThreadHandling.Instance)
+            IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            ILogger logger) : this(analysisRequester, userSettingsProvider, activeSolutionBoundTracker, logger, ThreadHandling.Instance)
         { }
 
         internal AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
             IUserSettingsProvider userSettingsProvider,
+            IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ILogger logger,
             IThreadHandling threadHandling)
         {
             this.analysisRequester = analysisRequester;
             this.userSettingsProvider = userSettingsProvider;
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.logger = logger;
             this.threadHandling = threadHandling;
 
             userSettingsProvider.SettingsChanged += OnUserSettingsChanged;
+            activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
+        }
+
+        private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
+        {
+            logger.WriteLine(AnalysisStrings.ConfigMonitor_BindingChanged);
+            OnSettingsChangedAsync().Forget();
         }
 
         private void OnUserSettingsChanged(object sender, EventArgs e)
@@ -93,6 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 if (disposing)
                 {
                     userSettingsProvider.SettingsChanged -= OnUserSettingsChanged;
+                    activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
                 }
                 disposedValue = true;
             }
