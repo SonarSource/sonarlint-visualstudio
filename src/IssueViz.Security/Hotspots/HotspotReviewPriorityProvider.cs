@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
@@ -216,9 +217,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
             { "typescript:S6350", HotspotPriority.High },
         };
 
-        public HotspotPriority? GetPriority(string hotspotKey)
-        {
-            return hotspotKey == null || !KeyToPriorityMap.TryGetValue(hotspotKey, out var priority) ? (HotspotPriority?)null : priority;
-        }
+        public HotspotPriority? GetPriority(string hotspotKey) => 
+            KeyToPriorityMap.TryGetValue(hotspotKey ?? throw new ArgumentNullException(nameof(hotspotKey)), out var priority) ? priority : (HotspotPriority?)null;
     }
 }
