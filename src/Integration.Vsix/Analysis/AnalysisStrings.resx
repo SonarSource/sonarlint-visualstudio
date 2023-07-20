@@ -184,4 +184,7 @@
   <data name="MSG_FoundIssues" xml:space="preserve">
     <value>Found {0} issue(s) for {1}</value>
   </data>
+  <data name="ConfigMonitor_BindingChanged" xml:space="preserve">
+    <value>Binding has changed. Open documents will be re-analysed.</value>
+  </data>
 </root>
