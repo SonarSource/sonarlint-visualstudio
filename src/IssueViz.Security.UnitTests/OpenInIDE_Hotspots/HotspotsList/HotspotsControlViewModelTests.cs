@@ -35,7 +35,7 @@ using SonarLint.VisualStudio.IssueVisualization.Selection;
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE_Hotspots.HotspotsList
 {
     [TestClass]
-    public class HotspotsControlViewModelTests
+    public class OpenInIDEHotspotsControlViewModelTests
     {
         [TestInitialize]
         public void TestInitialize()

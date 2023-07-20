@@ -23,9 +23,9 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList.ViewModels;
+using SharedProvider = SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE_Hotspots.HotspotsList
 {
@@ -158,7 +158,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.Issue).Returns(hotspot.Object);
 
-            var categoryDisplayNameProvider = new Mock<ISecurityCategoryDisplayNameProvider>();
+            var categoryDisplayNameProvider = new Mock<SharedProvider.ISecurityCategoryDisplayNameProvider>();
             categoryDisplayNameProvider.Setup(x => x.Get("some category")).Returns("some display name");
 
             var testSubject = CreateTestSubject(issueViz.Object, categoryDisplayNameProvider.Object);
@@ -179,19 +179,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             issueViz.Raise(x => x.PropertyChanged += null, new PropertyChangedEventArgs(nameof(IAnalysisIssueVisualization.CurrentFilePath)));
 
             eventHandler.Verify(x => x(testSubject,
-                    It.Is((PropertyChangedEventArgs args) => args.PropertyName == nameof(IHotspotViewModel.DisplayPath))),
+                    It.Is((PropertyChangedEventArgs args) => args.PropertyName == nameof(IOpenInIDEHotspotViewModel.DisplayPath))),
                 Times.Once);
 
             eventHandler.VerifyNoOtherCalls();
         }
 
-        private static HotspotViewModel CreateTestSubject(IAnalysisIssueVisualization issueViz,
-            ISecurityCategoryDisplayNameProvider securityCategoryDisplayNameProvider = null,
+        private static OpenInIDEHotspotViewModel CreateTestSubject(IAnalysisIssueVisualization issueViz,
+            SharedProvider.ISecurityCategoryDisplayNameProvider securityCategoryDisplayNameProvider = null,
             IIssueVizDisplayPositionCalculator positionCalculator = null)
         {
-            securityCategoryDisplayNameProvider ??= Mock.Of<ISecurityCategoryDisplayNameProvider>();
+            securityCategoryDisplayNameProvider ??= Mock.Of<SharedProvider.ISecurityCategoryDisplayNameProvider>();
             positionCalculator ??= Mock.Of<IIssueVizDisplayPositionCalculator>();
-            return new HotspotViewModel(issueViz, securityCategoryDisplayNameProvider, positionCalculator);
+            return new OpenInIDEHotspotViewModel(issueViz, securityCategoryDisplayNameProvider, positionCalculator);
         }
     }
 }
