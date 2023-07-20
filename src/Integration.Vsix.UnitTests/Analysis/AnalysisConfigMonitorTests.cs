@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 using static SonarLint.VisualStudio.TestInfrastructure.NoOpThreadHandler;
 
@@ -55,8 +56,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             builder.SimulateUserSettingsChanged();
             builder.AssertSwitchedToBackgroundThread();
 
-            eventHandler.Verify(x=> x(builder.TestSubject, EventArgs.Empty), Times.Once);
-            
+            eventHandler.Verify(x=> x(builder.TestSubject, EventArgs.Empty), Times.Once);            
+        }
+
+        [TestMethod]
+        public void WhenBindingChanges_AnalysisIsRequested()
+        {
+            var builder = new TestEnvironmentBuilder();
+
+            builder.SimulateBindingChanged();
+
+            // Should re-analyse
+            builder.AssertAnalysisIsRequested();
+            builder.AssertSwitchedToBackgroundThread();
+            builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_BindingChanged);
+        }
+
+        [TestMethod]
+        public void WhenBindingChanges_HasSubscribersToConfigChangedEvent_SubscribersNotified()
+        {
+            var builder = new TestEnvironmentBuilder();
+            var eventHandler = new Mock<EventHandler>();
+            builder.TestSubject.ConfigChanged += eventHandler.Object;
+
+            builder.SimulateBindingChanged();
+            builder.AssertSwitchedToBackgroundThread();
+
+            eventHandler.Verify(x => x(builder.TestSubject, EventArgs.Empty), Times.Once);
         }
 
         [TestMethod]
@@ -69,6 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             // Raise events and check they are ignored
             builder.SimulateUserSettingsChanged();
+            builder.SimulateBindingChanged();
             builder.AssertAnalysisIsNotRequested();
         }
 
@@ -76,13 +103,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         {
             private readonly Mock<IAnalysisRequester> analysisRequesterMock;
             private readonly Mock<IUserSettingsProvider> userSettingsProviderMock;
+            private readonly Mock<IActiveSolutionBoundTracker> activeSolutionBoundTracker;
             private readonly Mock<IThreadHandling> threadHandling;
-
 
             public TestEnvironmentBuilder()
             {
                 analysisRequesterMock = new Mock<IAnalysisRequester>();
                 userSettingsProviderMock = new Mock<IUserSettingsProvider>();
+                activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
                 threadHandling = new Mock<IThreadHandling>();
                 
                 threadHandling.Setup(th => th.SwitchToBackgroundThread()).Returns(new NoOpAwaitable());
@@ -90,7 +118,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
                 Logger = new TestLogger();
 
                 TestSubject = new AnalysisConfigMonitor(analysisRequesterMock.Object,
-                    userSettingsProviderMock.Object, Logger, threadHandling.Object);
+                    userSettingsProviderMock.Object, activeSolutionBoundTracker.Object, Logger, threadHandling.Object);
             }
 
             public TestLogger Logger { get; }
@@ -100,6 +128,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             public void SimulateUserSettingsChanged()
             {
                 userSettingsProviderMock.Raise(x => x.SettingsChanged += null, EventArgs.Empty);
+            }
+
+            public void SimulateBindingChanged(BindingConfiguration config = null)
+            {
+                activeSolutionBoundTracker.Raise(x => x.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(config));
             }
 
             public void AssertAnalysisIsRequested()
