@@ -43,8 +43,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
         [TestMethod]
         public void MefCtor_Check_SameInstanceExported()
-            => MefTestHelpers.CheckMultipleExportsReturnSameInstance<IServerIssuesStore, IServerIssuesStore>(
-                typeof(ServerIssuesStore), MefTestHelpers.CreateExport<ILogger>());
+            => MefTestHelpers.CheckMultipleExportsReturnSameInstance<ServerIssuesStore, IServerIssuesStore, IServerIssuesStore>(
+                MefTestHelpers.CreateExport<ILogger>());
 
         [TestMethod]
         [DataRow(false)]

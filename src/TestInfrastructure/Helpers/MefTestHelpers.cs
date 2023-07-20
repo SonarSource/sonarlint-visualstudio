@@ -205,7 +205,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
         /// </summary>
         /// <param name="exportingType">The type being tested</param>
         /// <param name="additionalExports">Any other exports that are required. Can be empty.</param>
-        public static void CheckMultipleExportsReturnSameInstance<TExport1, TExport2>(Type exportingType, params Export[] additionalExports)
+        public static void CheckMultipleExportsReturnSameInstance<TTypeToCheck, TExport1, TExport2>(params Export[] additionalExports)
             where TExport1 : class // the first expected MEF export
             where TExport2 : class // the second expected MEF export
         {
@@ -213,7 +213,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             var importer2 = new SingleObjectImporter<TExport2>();
             var importers = new object[] { importer1, importer2 };
 
-            Compose(importers, new[] { exportingType }, additionalExports);
+            Compose(importers, new[] { typeof(TTypeToCheck) }, additionalExports);
             importer1.Import.Should().NotBeNull();
             importer2.Import.Should().NotBeNull();
             importer1.Import.Should().BeSameAs(importer2.Import);

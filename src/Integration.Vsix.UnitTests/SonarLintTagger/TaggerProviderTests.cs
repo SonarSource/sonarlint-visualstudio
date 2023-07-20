@@ -137,8 +137,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         [TestMethod]
         public void MefCtor_Check_SameInstanceExported()
-            => MefTestHelpers.CheckMultipleExportsReturnSameInstance<ITaggerProvider, IDocumentEvents>(
-                typeof(TaggerProvider), GetRequiredExports());
+            => MefTestHelpers.CheckMultipleExportsReturnSameInstance<TaggerProvider, ITaggerProvider, IDocumentEvents>(GetRequiredExports());
 
         private static Export[] GetRequiredExports() => new[]
         {
