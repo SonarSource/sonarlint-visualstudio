@@ -22,13 +22,14 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 {
-    [Export(typeof(DocumentClosedHandler))]
+    [Export(typeof(IHotspotDocumentClosedHandler))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class DocumentClosedHandler : IDisposable
+    internal sealed class DocumentClosedHandler : IHotspotDocumentClosedHandler, IDisposable
     {
         private readonly IDocumentEvents documentEvents;
         private readonly ILocalHotspotsStoreUpdater localHotspotsStoreUpdater;

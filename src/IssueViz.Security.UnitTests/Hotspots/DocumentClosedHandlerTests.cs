@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -35,7 +36,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
-            =>  MefTestHelpers.CheckTypeCanBeImported<DocumentClosedHandler, DocumentClosedHandler>(
+            =>  MefTestHelpers.CheckTypeCanBeImported<DocumentClosedHandler, IHotspotDocumentClosedHandler>(
                     MefTestHelpers.CreateExport<IDocumentEvents>(),
                     MefTestHelpers.CreateExport<ILocalHotspotsStoreUpdater>(),
                     MefTestHelpers.CreateExport<IThreadHandling>());
