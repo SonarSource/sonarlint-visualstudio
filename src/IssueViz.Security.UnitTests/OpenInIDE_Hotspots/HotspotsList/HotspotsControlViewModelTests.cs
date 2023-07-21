@@ -22,23 +22,20 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.HotspotsList
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE_Hotspots.HotspotsList
 {
     [TestClass]
-    public class HotspotsControlViewModelTests
+    public class OpenInIDEHotspotsControlViewModelTests
     {
         [TestInitialize]
         public void TestInitialize()
@@ -50,7 +47,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         [TestMethod]
         public void Ctor_RegisterToStoreCollectionChanges()
         {
-            var store = new Mock<ILocalHotspotsStore>();
+            var store = new Mock<IOpenInIDEHotspotsStore>();
             var testSubject = CreateTestSubject(hotspotsStore: store);
 
             var issueViz1 = Mock.Of<IAnalysisIssueVisualization>();
@@ -61,77 +58,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
 
             testSubject.Hotspots.Count.Should().Be(1);
             testSubject.Hotspots[0].Hotspot.Should().Be(issueViz1);
-            testSubject.Hotspots[0].HotspotPriority.Should().Be(default(HotspotPriority));
 
-            store.Setup(x => x.GetAllLocalHotspots()).Returns(new[] { new LocalHotspot(issueViz1, HotspotPriority.Low), new LocalHotspot(issueViz2, HotspotPriority.Medium), new LocalHotspot(issueViz3, HotspotPriority.High) });
-            store.Raise(x => x.IssuesChanged += null, null, new IssuesStore.IssuesChangedEventArgs(null, null));
+            RaiseStoreIssuesChangedEvent(store, issueViz1, issueViz2, issueViz3);
 
             testSubject.Hotspots.Count.Should().Be(3);
             testSubject.Hotspots[0].Hotspot.Should().Be(issueViz1);
-            testSubject.Hotspots[0].HotspotPriority.Should().Be(HotspotPriority.Low);
             testSubject.Hotspots[1].Hotspot.Should().Be(issueViz2);
-            testSubject.Hotspots[1].HotspotPriority.Should().Be(HotspotPriority.Medium);
             testSubject.Hotspots[2].Hotspot.Should().Be(issueViz3);
-            testSubject.Hotspots[2].HotspotPriority.Should().Be(HotspotPriority.High);
+
+            RaiseStoreIssuesChangedEvent(store, issueViz1, issueViz3);
+
+            testSubject.Hotspots.Count.Should().Be(2);
+            testSubject.Hotspots[0].Hotspot.Should().Be(issueViz1);
+            testSubject.Hotspots[1].Hotspot.Should().Be(issueViz3);
         }
 
         [TestMethod]
-        public async Task UpdateHotspotsListAsync_UpdatesWhenManuallyTriggered()
+        public void Ctor_InitializeListWithHotspotsStoreCollection()
         {
-            var store = new Mock<ILocalHotspotsStore>();
-            var testSubject = CreateTestSubject(hotspotsStore: store);
-
             var issueViz1 = Mock.Of<IAnalysisIssueVisualization>();
             var issueViz2 = Mock.Of<IAnalysisIssueVisualization>();
-            var issueViz3 = Mock.Of<IAnalysisIssueVisualization>();
+            var storeHotspots = new ObservableCollection<IAnalysisIssueVisualization> { issueViz1, issueViz2 };
 
-            store.Setup(x => x.GetAllLocalHotspots()).Returns(new[] { new LocalHotspot(issueViz1, HotspotPriority.Medium) });
-            await testSubject.UpdateHotspotsListAsync();
+            var testSubject = CreateTestSubject(storeHotspots);
 
-            testSubject.Hotspots.Count.Should().Be(1);
-            testSubject.Hotspots[0].Hotspot.Should().Be(issueViz1);
-            testSubject.Hotspots[0].HotspotPriority.Should().Be(HotspotPriority.Medium);
-            
-            store.Setup(x => x.GetAllLocalHotspots()).Returns(new[] { new LocalHotspot(issueViz1, HotspotPriority.Low), new LocalHotspot(issueViz2, HotspotPriority.Medium), new LocalHotspot(issueViz3, HotspotPriority.High) });
-            await testSubject.UpdateHotspotsListAsync();
-
-            testSubject.Hotspots.Count.Should().Be(3);
-            testSubject.Hotspots[0].Hotspot.Should().Be(issueViz1);
-            testSubject.Hotspots[0].HotspotPriority.Should().Be(HotspotPriority.Low);
-            testSubject.Hotspots[1].Hotspot.Should().Be(issueViz2);
-            testSubject.Hotspots[1].HotspotPriority.Should().Be(HotspotPriority.Medium);
-            testSubject.Hotspots[2].Hotspot.Should().Be(issueViz3);
-            testSubject.Hotspots[2].HotspotPriority.Should().Be(HotspotPriority.High);
-        }
-
-        [TestMethod]
-        public async Task UpdateHotspotsListAsync_RunsOnBackgroundThread()
-        {
-            var store = new Mock<ILocalHotspotsStore>();
-            var threadHandling = new Mock<IThreadHandling>();
-            SetupGetAllOnBackgroundThreadForUpdate(threadHandling, store);
-
-            var testSubject = CreateTestSubject(hotspotsStore: store, threadHandling: threadHandling.Object);
-
-            await testSubject.UpdateHotspotsListAsync();
-            
-            threadHandling.Verify(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<bool>>>()), Times.Once);
-            store.Verify(x => x.GetAllLocalHotspots(), Times.Once);
-        }
-
-        [TestMethod]
-        public void IssueChangedEventRaised_RunsOnBackgroundThread()
-        {
-            var store = new Mock<ILocalHotspotsStore>();
-            var threadHandling = new Mock<IThreadHandling>();
-            SetupGetAllOnBackgroundThreadForUpdate(threadHandling, store);
-            
-            var testSubject = CreateTestSubject(hotspotsStore: store, threadHandling: threadHandling.Object);
-
-            RaiseStoreIssuesChangedEvent(store, Array.Empty<IAnalysisIssueVisualization>());
-            
-            threadHandling.Verify(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<bool>>>()), Times.Once);
-            store.Verify(x => x.GetAllLocalHotspots(), Times.Once);
+            testSubject.Hotspots.Count.Should().Be(2);
+            testSubject.Hotspots.First().Hotspot.Should().Be(issueViz1);
+            testSubject.Hotspots.Last().Hotspot.Should().Be(issueViz2);
         }
 
         [TestMethod]
@@ -179,12 +132,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         {
             var issueViz = Mock.Of<IAnalysisIssueVisualization>();
             var storeHotspots = new ObservableCollection<IAnalysisIssueVisualization> { issueViz };
-            var hotspotStore = new Mock<ILocalHotspotsStore>();
             var selectionService = new Mock<IIssueSelectionService>();
 
-            var testSubject = CreateTestSubject(storeHotspots, hotspotsStore:hotspotStore, selectionService: selectionService.Object);
-
-            RaiseStoreIssuesChangedEvent(hotspotStore, issueViz);
+            var testSubject = CreateTestSubject(storeHotspots, selectionService: selectionService.Object);
 
             testSubject.SelectedHotspot.Should().BeNull();
 
@@ -203,7 +153,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
 
             var testSubject = CreateTestSubject(selectionService: selectionService.Object);
 
-            var oldSelection = new HotspotViewModel(Mock.Of<IAnalysisIssueVisualization>(), default);
+            var oldSelection = new OpenInIDEHotspotViewModel(Mock.Of<IAnalysisIssueVisualization>());
             testSubject.SelectedHotspot = oldSelection;
             testSubject.SelectedHotspot.Should().Be(oldSelection);
 
@@ -232,7 +182,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
 
             eventHandler.Verify(x => x(testSubject,
                 It.Is((PropertyChangedEventArgs args) =>
-                    args.PropertyName == nameof(IHotspotsControlViewModel.SelectedHotspot))), Times.Once);
+                    args.PropertyName == nameof(IOpenInIDEHotspotsControlViewModel.SelectedHotspot))), Times.Once);
 
             eventHandler.VerifyNoOtherCalls();
         }
@@ -257,7 +207,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
 
             eventHandler.Verify(x => x(testSubject,
                 It.Is((PropertyChangedEventArgs args) =>
-                    args.PropertyName == nameof(IHotspotsControlViewModel.SelectedHotspot))), Times.Once);
+                    args.PropertyName == nameof(IOpenInIDEHotspotsControlViewModel.SelectedHotspot))), Times.Once);
 
             eventHandler.VerifyNoOtherCalls();
         }
@@ -307,7 +257,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             var locationNavigator = new Mock<ILocationNavigator>();
 
             var testSubject = CreateTestSubject(locationNavigator: locationNavigator.Object);
-            var result = testSubject.NavigateCommand.CanExecute(Mock.Of<IHotspotViewModel>());
+            var result = testSubject.NavigateCommand.CanExecute(Mock.Of<IOpenInIDEHotspotViewModel>());
             result.Should().BeTrue();
 
             locationNavigator.VerifyNoOtherCalls();
@@ -319,7 +269,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             var locationNavigator = new Mock<ILocationNavigator>();
 
             var hotspot = Mock.Of<IAnalysisIssueVisualization>();
-            var viewModel = new Mock<IHotspotViewModel>();
+            var viewModel = new Mock<IOpenInIDEHotspotViewModel>();
             viewModel.Setup(x => x.Hotspot).Returns(hotspot);
 
             var testSubject = CreateTestSubject(locationNavigator: locationNavigator.Object);
@@ -330,11 +280,62 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         }
 
         [TestMethod]
+        public void RemoveCommand_CanExecute_NullParameter_False()
+        {
+            var hotspotsStore = new Mock<IOpenInIDEHotspotsStore>();
+
+            var testSubject = CreateTestSubject(hotspotsStore: hotspotsStore);
+            var result = testSubject.RemoveCommand.CanExecute(null);
+            result.Should().BeFalse();
+
+            hotspotsStore.Verify(x => x.Remove(It.IsAny<IAnalysisIssueVisualization>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void RemoveCommand_CanExecute_ParameterIsNotHotspotViewModel_False()
+        {
+            var hotspotsStore = new Mock<IOpenInIDEHotspotsStore>();
+
+            var testSubject = CreateTestSubject(hotspotsStore: hotspotsStore);
+            var result = testSubject.RemoveCommand.CanExecute("something");
+            result.Should().BeFalse();
+
+            hotspotsStore.Verify(x => x.Remove(It.IsAny<IAnalysisIssueVisualization>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void RemoveCommand_CanExecute_ParameterIsHotspotViewModel_True()
+        {
+            var hotspotsStore = new Mock<IOpenInIDEHotspotsStore>();
+
+            var testSubject = CreateTestSubject(hotspotsStore: hotspotsStore);
+            var result = testSubject.RemoveCommand.CanExecute(Mock.Of<IOpenInIDEHotspotViewModel>());
+            result.Should().BeTrue();
+
+            hotspotsStore.Verify(x => x.Remove(It.IsAny<IAnalysisIssueVisualization>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void RemoveCommand_Execute_HotspotRemoved()
+        {
+            var hotspotsStore = new Mock<IOpenInIDEHotspotsStore>();
+
+            var hotspot = Mock.Of<IAnalysisIssueVisualization>();
+            var viewModel = new Mock<IOpenInIDEHotspotViewModel>();
+            viewModel.Setup(x => x.Hotspot).Returns(hotspot);
+
+            var testSubject = CreateTestSubject(hotspotsStore: hotspotsStore);
+            testSubject.RemoveCommand.Execute(viewModel.Object);
+
+            hotspotsStore.Verify(x => x.Remove(hotspot), Times.Once);
+        }
+
+        [TestMethod]
         public void SetSelectedHotspot_HotspotSet()
         {
             var testSubject = CreateTestSubject();
 
-            var selection = new HotspotViewModel(Mock.Of<IAnalysisIssueVisualization>(), default);
+            var selection = new OpenInIDEHotspotViewModel(Mock.Of<IAnalysisIssueVisualization>());
             testSubject.SelectedHotspot = selection;
 
             testSubject.SelectedHotspot.Should().Be(selection);
@@ -348,8 +349,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             var selectionService = new Mock<IIssueSelectionService>();
             var testSubject = CreateTestSubject(selectionService: selectionService.Object);
 
-            var oldSelection = isSelectedNull ? new HotspotViewModel(Mock.Of<IAnalysisIssueVisualization>(), default) : null;
-            var newSelection = isSelectedNull ? null : new HotspotViewModel(Mock.Of<IAnalysisIssueVisualization>(), default);
+            var oldSelection = isSelectedNull ? new OpenInIDEHotspotViewModel(Mock.Of<IAnalysisIssueVisualization>()) : null;
+            var newSelection = isSelectedNull ? null : new OpenInIDEHotspotViewModel(Mock.Of<IAnalysisIssueVisualization>());
 
             testSubject.SelectedHotspot = oldSelection;
 
@@ -367,7 +368,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             var selectionService = new Mock<IIssueSelectionService>();
             var testSubject = CreateTestSubject(selectionService: selectionService.Object);
 
-            var selection = new HotspotViewModel(Mock.Of<IAnalysisIssueVisualization>(), default);
+            var selection = new OpenInIDEHotspotViewModel(Mock.Of<IAnalysisIssueVisualization>());
             testSubject.SelectedHotspot = selection;
 
             selectionService.Reset();
@@ -377,27 +378,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             selectionService.VerifyNoOtherCalls();
         }
 
-        private static HotspotsControlViewModel CreateTestSubject(
-            ObservableCollection<IAnalysisIssueVisualization> originalCollection = null,
+        private static OpenInIDEHotspotsControlViewModel CreateTestSubject(ObservableCollection<IAnalysisIssueVisualization> originalCollection = null,
             ILocationNavigator locationNavigator = null,
-            Mock<ILocalHotspotsStore> hotspotsStore = null,
-            IIssueSelectionService selectionService = null,
-            IThreadHandling threadHandling = null)
+            Mock<IOpenInIDEHotspotsStore> hotspotsStore = null,
+            IIssueSelectionService selectionService = null)
         {
             originalCollection ??= new ObservableCollection<IAnalysisIssueVisualization>();
             var readOnlyWrapper = new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection);
 
-            hotspotsStore ??= new Mock<ILocalHotspotsStore>();
-            hotspotsStore.Setup(x => x.GetAllLocalHotspots()).Returns(readOnlyWrapper.Select(x => new LocalHotspot(x, default)).ToList());
+            hotspotsStore ??= new Mock<IOpenInIDEHotspotsStore>();
+            hotspotsStore.Setup(x => x.GetAll()).Returns(readOnlyWrapper);
 
             selectionService ??= Mock.Of<IIssueSelectionService>();
 
-            return new HotspotsControlViewModel(hotspotsStore.Object, locationNavigator, selectionService, threadHandling ?? new NoOpThreadHandler());
+            return new OpenInIDEHotspotsControlViewModel(hotspotsStore.Object, locationNavigator, selectionService);
         }
 
-        private static void RaiseStoreIssuesChangedEvent(Mock<ILocalHotspotsStore> store, params IAnalysisIssueVisualization[] issueVizs)
+        private static void RaiseStoreIssuesChangedEvent(Mock<IOpenInIDEHotspotsStore> store, params IAnalysisIssueVisualization[] issueVizs)
         {
-            store.Setup(x => x.GetAllLocalHotspots()).Returns(issueVizs.Select(x => new LocalHotspot(x, default)).ToList());
+            store.Setup(x => x.GetAll()).Returns(issueVizs);
             store.Raise(x => x.IssuesChanged += null, null, new IssuesStore.IssuesChangedEventArgs(null, null));
         }
 
@@ -405,19 +404,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         {
             selectionService.Setup(x => x.SelectedIssue).Returns(selectedIssue);
             selectionService.Raise(x => x.SelectedIssueChanged += null, EventArgs.Empty);
-        }
-        
-        private static void SetupGetAllOnBackgroundThreadForUpdate(Mock<IThreadHandling> threadHandling, Mock<ILocalHotspotsStore> store)
-        {
-            var callOrder = new MockSequence();
-            threadHandling
-                .InSequence(callOrder)
-                .Setup(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<bool>>>()))
-                .Callback((Func<Task<bool>> f) => f());
-            store
-                .InSequence(callOrder)
-                .Setup(x => x.GetAllLocalHotspots())
-                .Returns(Array.Empty<LocalHotspot>());
         }
     }
 }

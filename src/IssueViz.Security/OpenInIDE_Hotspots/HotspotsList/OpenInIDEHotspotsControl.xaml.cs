@@ -18,16 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Windows.Controls;
+using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList.ViewModels;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
+namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList
 {
-    internal static class Constants
+    internal sealed partial class OpenInIDEHotspotsControl : UserControl
     {
-        public static readonly Guid CommandSetGuid = new Guid("97856422-20A2-4DB5-A468-1BAA9B6EEC38");
+        public IOpenInIDEHotspotsControlViewModel ViewModel { get; }
 
-        public const int HotspotsToolWindowCommandId = 0x0100;
-        public const int TaintToolWindowCommandId = 0x0101;
-        public const int OpenInIDEHotspotsToolWindowCommandId = 0x0102;
+        public OpenInIDEHotspotsControl(IOpenInIDEHotspotsControlViewModel viewModel)
+        {
+            ViewModel = viewModel;
+
+            InitializeComponent();
+        }
     }
 }

@@ -27,53 +27,54 @@ using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels
+namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList.ViewModels
 {
-    internal interface IHotspotsControlViewModel : IDisposable
+    internal interface IOpenInIDEHotspotsControlViewModel : IDisposable
     {
-        ObservableCollection<IHotspotViewModel> Hotspots { get; }
+        ObservableCollection<IOpenInIDEHotspotViewModel> Hotspots { get; }
 
-        IHotspotViewModel SelectedHotspot { get; }
+        IOpenInIDEHotspotViewModel SelectedHotspot { get; }
 
         ICommand NavigateCommand { get; }
+
+        ICommand RemoveCommand { get; }
     }
 
-    internal sealed class HotspotsControlViewModel : IHotspotsControlViewModel, INotifyPropertyChanged
+    internal sealed class OpenInIDEHotspotsControlViewModel : IOpenInIDEHotspotsControlViewModel, INotifyPropertyChanged
     {
         private readonly object Lock = new object();
         private readonly IIssueSelectionService selectionService;
-        private readonly IThreadHandling threadHandling;
-        private readonly ILocalHotspotsStore store;
-        private IHotspotViewModel selectedHotspot;
+        private readonly IOpenInIDEHotspotsStore store;
+        private IOpenInIDEHotspotViewModel selectedHotspot;
 
-        public ObservableCollection<IHotspotViewModel> Hotspots { get; } = new ObservableCollection<IHotspotViewModel>();
+        public ObservableCollection<IOpenInIDEHotspotViewModel> Hotspots { get; } = new ObservableCollection<IOpenInIDEHotspotViewModel>();
 
         public ICommand NavigateCommand { get; private set; }
 
-        public HotspotsControlViewModel(ILocalHotspotsStore hotspotsStore,
+        public ICommand RemoveCommand { get; private set; }
+
+        public OpenInIDEHotspotsControlViewModel(IOpenInIDEHotspotsStore hotspotsStore,
             ILocationNavigator locationNavigator,
-            IIssueSelectionService selectionService, 
-            IThreadHandling threadHandling)
+            IIssueSelectionService selectionService)
         {
             AllowMultiThreadedAccessToHotspotsList();
 
             this.selectionService = selectionService;
-            this.threadHandling = threadHandling;
             selectionService.SelectedIssueChanged += SelectionService_SelectionChanged;
 
             this.store = hotspotsStore;
             store.IssuesChanged += Store_IssuesChanged;
 
-            SetCommands(locationNavigator);
+            UpdateHotspotsList();
+
+            SetCommands(hotspotsStore, locationNavigator);
         }
 
-        public IHotspotViewModel SelectedHotspot
+        public IOpenInIDEHotspotViewModel SelectedHotspot
         {
             get => selectedHotspot;
             set
@@ -86,20 +87,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             }
         }
 
-        public async System.Threading.Tasks.Task UpdateHotspotsListAsync()
-        {
-            await threadHandling.RunOnBackgroundThread( () =>
-            {
-                Hotspots.Clear();
-                foreach (var localHotspot in store.GetAllLocalHotspots())
-                {
-                    Hotspots.Add(new HotspotViewModel(localHotspot.Visualization, localHotspot.Priority));
-                }
-
-                return System.Threading.Tasks.Task.FromResult(true);
-            });
-        }
-
         /// <summary>
         /// Allow the observable collection <see cref="Hotspots"/> to be modified from non-UI thread. 
         /// </summary>
@@ -109,18 +96,34 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             BindingOperations.EnableCollectionSynchronization(Hotspots, Lock);
         }
 
-        private void SetCommands(ILocationNavigator locationNavigator)
+        private void SetCommands(IOpenInIDEHotspotsStore hotspotsStore, ILocationNavigator locationNavigator)
         {
             NavigateCommand = new DelegateCommand(parameter =>
             {
-                var hotspot = (IHotspotViewModel)parameter;
+                var hotspot = (IOpenInIDEHotspotViewModel)parameter;
                 locationNavigator.TryNavigate(hotspot.Hotspot);
-            }, parameter => parameter is IHotspotViewModel);
+            }, parameter => parameter is IOpenInIDEHotspotViewModel);
+
+            RemoveCommand = new DelegateCommand(parameter =>
+            {
+                var hotspot = (IOpenInIDEHotspotViewModel)parameter;
+                hotspotsStore.Remove(hotspot.Hotspot);
+            }, parameter => parameter is IOpenInIDEHotspotViewModel);
+        }
+
+        private void UpdateHotspotsList()
+        {
+            Hotspots.Clear();
+
+            foreach (var issueViz in store.GetAll())
+            {
+                Hotspots.Add(new OpenInIDEHotspotViewModel(issueViz));
+            }
         }
 
         private void Store_IssuesChanged(object sender, IssuesChangedEventArgs e)
         {
-            UpdateHotspotsListAsync().Forget();
+            UpdateHotspotsList();
         }
 
         private void SelectionService_SelectionChanged(object sender, EventArgs e)

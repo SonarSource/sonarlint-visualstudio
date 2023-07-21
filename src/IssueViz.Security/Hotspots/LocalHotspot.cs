@@ -20,6 +20,7 @@
 
 using System;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
@@ -27,15 +28,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     internal class LocalHotspot
     {
         /// <param name="visualization">Locally analyzed hotspot visualization</param>
+        /// <param name="priority">Hotspot review priority</param>
         /// <param name="serverHotspot">Matched server hotspot. Can be null</param>
         /// <exception cref="ArgumentNullException">Visualization can't be null</exception>
-        public LocalHotspot(IAnalysisIssueVisualization visualization, SonarQubeHotspot serverHotspot = null)
+        public LocalHotspot(IAnalysisIssueVisualization visualization, HotspotPriority priority, SonarQubeHotspot serverHotspot = null)
         {
             Visualization = visualization ?? throw new ArgumentNullException(nameof(visualization));
+            Priority = priority;
             ServerHotspot = serverHotspot;
         }
 
         public IAnalysisIssueVisualization Visualization { get; }
         public SonarQubeHotspot ServerHotspot { get;  }
+        public HotspotPriority Priority { get; }
     }
 }
