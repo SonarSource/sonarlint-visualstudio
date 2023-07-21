@@ -87,14 +87,15 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="CategoryDisplayName" Header="Category" Width="Auto"  MinWidth="74">
+                <!-- Category is not currently populated in the view model. See #4565. -->
+                <!--<DataGridTemplateColumn CanUserSort="True" SortMemberPath="CategoryDisplayName" Header="Category" Width="Auto"  MinWidth="74">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding CategoryDisplayName}" 
                                        Style="{StaticResource CellTextBlockStyle}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+                </DataGridTemplateColumn>-->
                 <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Hotspot.Issue.Rule.Priority" Header="Priority" Width="90"  MinWidth="64">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
