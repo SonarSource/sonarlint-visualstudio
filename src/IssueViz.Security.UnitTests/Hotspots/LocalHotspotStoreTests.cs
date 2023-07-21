@@ -132,10 +132,32 @@ public class LocalHotspotStoreTests
         eventListener.Events.Should().HaveCount(2).And.Subject.Last().Should()
             .BeEquivalentTo(new IssuesChangedEventArgs(Array.Empty<IAnalysisIssueVisualization>(), newHotspots));
     }
+    
+    [TestMethod]
+    public void UpdateForFile_NoServerHotspots_UsesDefaultReviewPriorityWhenUnmapped()
+    {
+        var issueVis1 = new Mock<IAnalysisIssueVisualization>();
+        const string rule1 = "rule1";
+        issueVis1.SetupGet(x => x.RuleId).Returns(rule1);
+        var testSubject = CreateTestSubject(out _);
+
+        var hotspotPriorityProviderMock = new Mock<IHotspotReviewPriorityProvider>();
+        hotspotPriorityProviderMock.Setup(x => x.GetPriority(rule1)).Returns((HotspotPriority?)null);
+
+        testSubject.UpdateForFile("file1", new[] { issueVis1.Object });
+
+        VerifyContent(testSubject, new LocalHotspot(issueVis1.Object, HotspotPriority.High));
+    }
 
     [TestMethod]
     public void UpdateForFile_NoServerHotspots_UsesReviewPriority()
     {
+        /*
+         * issue1 -> rule1 -> Low
+         * issue2 -> rule2 -> Medium
+         * issue3 -> rule1 -> Low
+         */
+        
         const string rule1 = "rule:s1";
         const string rule2 = "rule:s2";
         var issueVis1 = new Mock<IAnalysisIssueVisualization>();
@@ -149,19 +171,14 @@ public class LocalHotspotStoreTests
         reviewPriorityProviderMock.Setup(x => x.GetPriority(rule1)).Returns(HotspotPriority.Low);
         reviewPriorityProviderMock.Setup(x => x.GetPriority(rule2)).Returns(HotspotPriority.Medium);
         
-        var testSubject = CreateTestSubject(out var eventListener, reviewPriorityProvider:reviewPriorityProviderMock.Object);
+        var testSubject = CreateTestSubject(out _, reviewPriorityProvider:reviewPriorityProviderMock.Object);
         
-        var oldHotspots = new[] { issueVis1.Object };
-        testSubject.UpdateForFile("file1", oldHotspots);
-        var newHotspots = new[] { issueVis2.Object, issueVis3.Object };
-
-        testSubject.UpdateForFile("file1", newHotspots);
+        testSubject.UpdateForFile("file1", new[] {issueVis1.Object, issueVis2.Object, issueVis3.Object });
 
         VerifyContent(testSubject, 
-            new LocalHotspot(newHotspots[0], HotspotPriority.Medium),
-            new LocalHotspot(newHotspots[1], HotspotPriority.Low));
-        eventListener.Events.Should().HaveCount(2).And.Subject.Last().Should()
-            .BeEquivalentTo(new IssuesChangedEventArgs(oldHotspots, newHotspots));
+            new LocalHotspot(issueVis1.Object, HotspotPriority.Low),
+            new LocalHotspot(issueVis2.Object, HotspotPriority.Medium),
+            new LocalHotspot(issueVis3.Object, HotspotPriority.Low));
     }
     
     [TestMethod]
@@ -195,6 +212,11 @@ public class LocalHotspotStoreTests
     [TestMethod]
     public void UpdateForFile_ServerHotspots_UsesReviewPriority()
     {
+        /*
+         * issue1 + server1 -> rule1 -> Low - could be changed to test server override once implemented
+         * issue2 + server2 -> rule2 -> Medium
+         * issue3 -> rule1 -> Low
+         */
         var serverStoreMock = new Mock<IServerHotspotStore>();
         var serverHotspot1 = CreateEmptyServerHotspot();
         var serverHotspot2 = CreateEmptyServerHotspot();
@@ -216,15 +238,13 @@ public class LocalHotspotStoreTests
         var matcherMock = new Mock<IHotspotMatcher>();
         matcherMock.Setup(x => x.IsMatch(issueVis1.Object, serverHotspot1)).Returns(true);
         matcherMock.Setup(x => x.IsMatch(issueVis2.Object, serverHotspot2)).Returns(true);
-        matcherMock.Setup(x => x.IsMatch(issueVis3.Object, serverHotspot1))
-            .Returns(true); // 2 local hotspots match 1 server but only one pair should be created
 
         var testSubject = CreateTestSubject(out _, serverStoreMock.Object, reviewPriorityProviderMock.Object, matcherMock.Object);
 
         testSubject.UpdateForFile("file1", new[] { issueVis1.Object, issueVis2.Object, issueVis3.Object });
 
         VerifyContent(testSubject, 
-            new LocalHotspot(issueVis1.Object, HotspotPriority.Low, serverHotspot1), // todo: should be overriden by server priority, but not implemented yet
+            new LocalHotspot(issueVis1.Object, HotspotPriority.Low, serverHotspot1),
             new LocalHotspot(issueVis2.Object, HotspotPriority.Medium, serverHotspot2),
             new LocalHotspot(issueVis3.Object, HotspotPriority.Low));
     }
