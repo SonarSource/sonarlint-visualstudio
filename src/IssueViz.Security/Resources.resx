@@ -124,7 +124,10 @@
     <value>Finished initializing security package.</value>
   </data>
   <data name="HotspotsToolWindowCaption" xml:space="preserve">
-    <value>Sonar Security Hotspots</value>
+    <value>Sonar Local Security Hotspots</value>
+  </data>
+  <data name="OpenInIDEHotspotsToolWindowCaption" xml:space="preserve">
+    <value>Sonar Server Security Hotspots</value>
   </data>
   <data name="StartedPackageInitialization" xml:space="preserve">
     <value>Initializing security package...</value>
