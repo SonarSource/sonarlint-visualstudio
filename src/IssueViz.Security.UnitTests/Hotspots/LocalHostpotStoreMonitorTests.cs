@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
         {
             var monitorSelection = CreateMonitorSelection(222);
             var serviceProvider = CreateServiceProvider(monitorSelection.Object);
-            var store = CreateStore(new LocalHotspot(Mock.Of<IAnalysisIssueVisualization>()));
+            var store = CreateStore(new LocalHotspot(Mock.Of<IAnalysisIssueVisualization>(), Security.Hotspots.Models.HotspotPriority.Medium));
 
             _ = await CreateInitializedTestSubject(serviceProvider.Object, store.Object);
             monitorSelection.Invocations.Clear();
