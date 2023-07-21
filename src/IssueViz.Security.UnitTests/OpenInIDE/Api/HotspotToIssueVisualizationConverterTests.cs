@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                         hotspot.Flows.IsEmpty() &&
                         hotspot.RuleKey == "rule key" &&
                         hotspot.Rule.RuleKey == "rule key" &&
-                        hotspot.ServerFilePath== "some path" &&
+                        hotspot.ServerFilePath == "some path" &&
                         hotspot.PrimaryLocation.Message == "message" &&
                         hotspot.PrimaryLocation.FilePath == "some absolute path" &&
                         hotspot.PrimaryLocation.TextRange.LineHash == "hash-xxx" &&
@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             issueViz.Should().Be(expectedIssueViz);
 
             issueVizConverter.Verify(x => x.Convert(
-                    It.Is((IHotspot hotspot) => 
+                    It.Is((IHotspot hotspot) =>
                         hotspot.PrimaryLocation.FilePath == null &&
                         hotspot.ServerFilePath == originalPath),
                     It.IsAny<ITextSnapshot>()),
@@ -161,7 +161,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                 creationDate,
                 updateDate,
                 new SonarQubeHotspotRule(ruleKey, "rule name", "sec category", probability, "risk desc", "vuln desc", "fix req"),
-                textRange ?? new IssueTextRange(5, 10, 15, 20));
+                textRange ?? new IssueTextRange(5, 10, 15, 20), "resolution");
 
         private static Mock<IAnalysisIssueVisualizationConverter> SetupIssueVizConverter(IAnalysisIssueVisualization expectedIssueViz)
         {

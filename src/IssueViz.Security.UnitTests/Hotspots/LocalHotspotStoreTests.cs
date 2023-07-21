@@ -267,7 +267,6 @@ public class LocalHotspotStoreTests
         serverStoreMock.Verify(store => store.GetAll(), Times.Once);
     }
 
-
     [TestMethod]
     public void Refresh_NoLocalHotspots_NothingHappens()
     {
@@ -321,9 +320,9 @@ public class LocalHotspotStoreTests
     public void RemoveForFile_NoHotspots_NothingHappens()
     {
         var testSubject = CreateTestSubject(out var eventListener);
-        
+
         testSubject.RemoveForFile("file1");
-        
+
         eventListener.Events.Should().BeEmpty();
     }
 
@@ -333,8 +332,8 @@ public class LocalHotspotStoreTests
         var testSubject = CreateTestSubject(out var eventListener);
         var visToKeep = Mock.Of<IAnalysisIssueVisualization>();
         var visToRemove = Mock.Of<IAnalysisIssueVisualization>();
-        testSubject.UpdateForFile("file1", new [] { visToKeep });
-        testSubject.UpdateForFile("file2", new [] { visToRemove });
+        testSubject.UpdateForFile("file1", new[] { visToKeep });
+        testSubject.UpdateForFile("file2", new[] { visToRemove });
         eventListener.Events.Clear();
 
         testSubject.RemoveForFile("file2");
@@ -342,7 +341,7 @@ public class LocalHotspotStoreTests
         VerifyContent(testSubject, new LocalHotspot(visToKeep, default));
         eventListener.Events.Single()
             .Should()
-            .BeEquivalentTo(new IssuesChangedEventArgs(new[] { visToRemove }, 
+            .BeEquivalentTo(new IssuesChangedEventArgs(new[] { visToRemove },
                 Array.Empty<IAnalysisIssueVisualization>()));
     }
 
@@ -395,6 +394,7 @@ public class LocalHotspotStoreTests
             null,
             DateTimeOffset.Now,
             DateTimeOffset.Now,
+            null,
             null,
             null);
     }
