@@ -69,23 +69,24 @@ namespace SonarQube.Client.Models
             return new SonarQubeHotspot(HotspotKey,
                 Message,
                 null,
-                null, 
+                null,
                 Status,
-                null, 
+                null,
                 ProjectKey,
                 null,
                 ComponentKey,
                 FilePath,
                 CreationDate,
                 UpdateDate,
-                new SonarQubeHotspotRule(RuleKey, 
+                new SonarQubeHotspotRule(RuleKey,
                     null,
-                    null, 
-                    VulnerabilityProbability, 
-                    null, 
+                    null,
+                    VulnerabilityProbability,
+                    null,
                     null,
                     null),
-                TextRange);
+                TextRange,
+                Resolution);
         }
     }
 }

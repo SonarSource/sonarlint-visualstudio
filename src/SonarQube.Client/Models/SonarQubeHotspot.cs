@@ -30,13 +30,15 @@ namespace SonarQube.Client.Models
             string componentKey, string filePath,
             DateTimeOffset creationDate, DateTimeOffset updateDate,
             SonarQubeHotspotRule rule,
-            IssueTextRange textRange)
+            IssueTextRange textRange,
+            string resolution)
         {
             HotspotKey = hotspotKey;
             Message = message;
             LineHash = lineHash;
             Assignee = assignee;
             Status = status;
+            Resolution = resolution;
 
             Organization = organization;
             ProjectKey = projectKey;
@@ -58,7 +60,7 @@ namespace SonarQube.Client.Models
         public string Assignee { get; }
         public string Status { get; }
         public IssueTextRange TextRange { get; }
-        public string Organization { get; } 
+        public string Organization { get; }
         public string ComponentKey { get; }
 
         /// <summary>
@@ -69,10 +71,12 @@ namespace SonarQube.Client.Models
         /// The path is in Windows format i.e. the directory separators are backslashes
         /// </remarks>
         public string FilePath { get; }
+
         public SonarQubeHotspotRule Rule { get; }
         public string ProjectKey { get; }
         public string ProjectName { get; }
         public DateTimeOffset CreationTimestamp { get; }
         public DateTimeOffset LastUpdateTimestamp { get; }
+        public string Resolution { get; }
     }
 }
