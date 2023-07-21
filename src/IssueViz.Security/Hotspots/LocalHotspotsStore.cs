@@ -56,6 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     internal sealed class LocalHotspotsStore : ILocalHotspotsStore
     {
         private static readonly List<IAnalysisIssueVisualization> EmptyList = new List<IAnalysisIssueVisualization>();
+
         // on the off chance we can't map the RuleId to Priority, which shouldn't happen, it's better to raise it as High
         private static readonly HotspotPriority DefaultPriority = HotspotPriority.High;
 
@@ -91,7 +92,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 
             lock (lockObject)
             {
-                return FlattenMapping().Select(x => x.Visualization).ToList();
+                return GetOpenHotspots().Select(x => x.Visualization).ToList();
             }
         }
 
@@ -102,7 +103,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 
             lock (lockObject)
             {
-                return FlattenMapping().ToList();
+                return GetOpenHotspots().ToList();
             }
         }
 
@@ -174,7 +175,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 
                 var visualizations = GetAll();
 
-                if (!visualizations.Any())
+                if (!fileToHotspotsMapping.Any())
                 {
                     return;
                 }
@@ -215,7 +216,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
             return new LocalHotspot(visualization, hotspotReviewPriorityProvider.GetPriority(visualization.RuleId) ?? DefaultPriority);
         }
 
-        private IEnumerable<LocalHotspot> FlattenMapping() =>
+        private IEnumerable<LocalHotspot> GetOpenHotspots() =>
             fileToHotspotsMapping.SelectMany(kvp => kvp.Value).Where(hs => hs.ServerHotspot == null || hs.ServerHotspot.Status == "TO_REVIEW" || hs.ServerHotspot.Resolution == "ACKNOWLEDGED");
 
         private void NotifyIssuesChanged(IssuesChangedEventArgs args)
