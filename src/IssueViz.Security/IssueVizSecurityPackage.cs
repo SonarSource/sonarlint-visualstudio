@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Security.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList;
+using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList;
 using Task = System.Threading.Tasks.Task;
@@ -48,6 +49,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
     [Guid("D7D54E08-45E1-49A6-AA53-AF1CFAA6EBDC")]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideToolWindow(typeof(HotspotsToolWindow), MultiInstances = false, Transient = true, Style = VsDockStyle.Tabbed, Window = VsWindowKindErrorList, Width = 700, Height = 250)]
+    [ProvideToolWindow(typeof(OpenInIDEHotspotsToolWindow), MultiInstances = false, Transient = true, Style = VsDockStyle.Tabbed, Window = VsWindowKindErrorList, Width = 700, Height = 250)]
     [ProvideToolWindow(typeof(TaintToolWindow), MultiInstances = false, Transient = false, // Note: Transient must false when using ProvideToolWindowVisibility
         Style = VsDockStyle.Tabbed, Window = VsWindowKindErrorList, Width = 700, Height = 250)]
     [ProvideToolWindowVisibility(typeof(TaintToolWindow), TaintIssuesExistUIContext.GuidString)]
@@ -74,6 +76,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
                 HotspotsToolWindow.ToolWindowId);
 
             await ShowToolWindowCommand.CreateAsync(this,
+                new CommandID(Constants.CommandSetGuid, Constants.OpenInIDEHotspotsToolWindowCommandId),
+                OpenInIDEHotspotsToolWindow.ToolWindowId);
+
+            await ShowToolWindowCommand.CreateAsync(this,
                 new CommandID(Constants.CommandSetGuid, Constants.TaintToolWindowCommandId),
                 TaintToolWindow.ToolWindowId);
 
@@ -85,6 +91,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
             if (toolWindowType == typeof(HotspotsToolWindow))
             {
                 return new HotspotsToolWindow(this);
+            }
+
+            if (toolWindowType == typeof(OpenInIDEHotspotsToolWindow))
+            {
+                return new OpenInIDEHotspotsToolWindow(this);
             }
 
             if (toolWindowType == typeof(TaintToolWindow))

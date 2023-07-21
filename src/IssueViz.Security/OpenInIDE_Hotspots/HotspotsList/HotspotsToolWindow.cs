@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.
 
         public OpenInIDEHotspotsToolWindow(IServiceProvider serviceProvider)
         {
-            Caption = Resources.HotspotsToolWindowCaption;
+            Caption = Resources.OpenInIDEHotspotsToolWindowCaption;
 
             var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
 
