@@ -190,7 +190,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         {
             securityCategoryDisplayNameProvider ??= Mock.Of<ISecurityCategoryDisplayNameProvider>();
             positionCalculator ??= Mock.Of<IIssueVizDisplayPositionCalculator>();
-            return new HotspotViewModel(issueViz, securityCategoryDisplayNameProvider, positionCalculator);
+            return new HotspotViewModel(issueViz, default, securityCategoryDisplayNameProvider, positionCalculator);
         }
     }
 }

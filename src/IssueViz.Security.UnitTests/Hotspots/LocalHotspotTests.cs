@@ -33,6 +33,7 @@ public class LocalHotspotTests
     public void Ctor_VisualizationIsNull_Throws()
     {
         Action test = () => new LocalHotspot(null,
+            default,
             new SonarQubeHotspot(string.Empty,
                 string.Empty,
                 string.Empty,
