@@ -23,7 +23,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
@@ -43,8 +42,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         IHotspotViewModel SelectedHotspot { get; }
 
         ICommand NavigateCommand { get; }
-
-        ICommand RemoveCommand { get; }
     }
 
     internal sealed class HotspotsControlViewModel : IHotspotsControlViewModel, INotifyPropertyChanged
@@ -58,8 +55,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         public ObservableCollection<IHotspotViewModel> Hotspots { get; } = new ObservableCollection<IHotspotViewModel>();
 
         public ICommand NavigateCommand { get; private set; }
-
-        public ICommand RemoveCommand { get; private set; }
 
         public HotspotsControlViewModel(ILocalHotspotsStore hotspotsStore,
             ILocationNavigator locationNavigator,
@@ -120,11 +115,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             {
                 var hotspot = (IHotspotViewModel)parameter;
                 locationNavigator.TryNavigate(hotspot.Hotspot);
-            }, parameter => parameter is IHotspotViewModel);
-
-            RemoveCommand = new DelegateCommand(parameter =>
-            {
-                // todo fix in separate PR
             }, parameter => parameter is IHotspotViewModel);
         }
 
