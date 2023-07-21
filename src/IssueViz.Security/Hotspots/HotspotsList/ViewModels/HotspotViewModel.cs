@@ -38,6 +38,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         string DisplayPath { get; }
 
         string CategoryDisplayName { get; }
+        
+        HotspotPriority HotspotPriority { get; }
     }
 
     internal sealed class HotspotViewModel : IHotspotViewModel
@@ -45,20 +47,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         private readonly ISecurityCategoryDisplayNameProvider categoryDisplayNameProvider;
         private readonly IIssueVizDisplayPositionCalculator positionCalculator;
 
-        public HotspotViewModel(IAnalysisIssueVisualization hotspot)
-            : this(hotspot, new SecurityCategoryDisplayNameProvider(), new IssueVizDisplayPositionCalculator())
+        public HotspotViewModel(IAnalysisIssueVisualization hotspot, HotspotPriority hotspotPriority)
+            : this(hotspot, hotspotPriority, new SecurityCategoryDisplayNameProvider(), new IssueVizDisplayPositionCalculator())
         {
         }
 
-        internal HotspotViewModel(IAnalysisIssueVisualization hotspot, ISecurityCategoryDisplayNameProvider categoryDisplayNameProvider, IIssueVizDisplayPositionCalculator positionCalculator)
+        internal HotspotViewModel(IAnalysisIssueVisualization hotspot, 
+            HotspotPriority hotspotPriority,
+            ISecurityCategoryDisplayNameProvider categoryDisplayNameProvider,
+            IIssueVizDisplayPositionCalculator positionCalculator)
         {
             this.categoryDisplayNameProvider = categoryDisplayNameProvider;
             this.positionCalculator = positionCalculator;
             Hotspot = hotspot;
+            HotspotPriority = hotspotPriority;
             Hotspot.PropertyChanged += Hotspot_PropertyChanged;
         }
 
         public IAnalysisIssueVisualization Hotspot { get; }
+        
+        public HotspotPriority HotspotPriority { get; }
 
         public int Line => positionCalculator.GetLine(Hotspot);
 

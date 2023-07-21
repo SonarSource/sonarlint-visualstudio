@@ -25,6 +25,7 @@ using System.Linq;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarQube.Client.Models;
 
@@ -54,11 +55,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     internal sealed class LocalHotspotsStore : ILocalHotspotsStore
     {
         private static readonly List<IAnalysisIssueVisualization> EmptyList = new List<IAnalysisIssueVisualization>();
+        // on the off chance we can't map the RuleId to Priority, which shouldn't happen, it's better to raise it as High
+        private static readonly HotspotPriority DefaultPriority = HotspotPriority.High;
 
         private readonly object lockObject = new object();
         private readonly IHotspotMatcher hotspotMatcher;
         private readonly IThreadHandling threadHandling;
         private readonly IServerHotspotStore serverHotspotStore;
+        private readonly IHotspotReviewPriorityProvider hotspotReviewPriorityProvider;
+
         private Dictionary<string, List<LocalHotspot>> fileToHotspotsMapping =
             new Dictionary<string, List<LocalHotspot>>();
 
@@ -66,9 +71,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
         private HashSet<SonarQubeHotspot> unmatchedHotspots = new HashSet<SonarQubeHotspot>();
 
         [ImportingConstructor]
-        public LocalHotspotsStore(IServerHotspotStore serverHotspotStore, IHotspotMatcher hotspotMatcher, IThreadHandling threadHandling)
+        public LocalHotspotsStore(IServerHotspotStore serverHotspotStore, IHotspotReviewPriorityProvider hotspotReviewPriorityProvider, IHotspotMatcher hotspotMatcher, IThreadHandling threadHandling)
         {
             this.serverHotspotStore = serverHotspotStore;
+            this.hotspotReviewPriorityProvider = hotspotReviewPriorityProvider;
             this.hotspotMatcher = hotspotMatcher;
             this.threadHandling = threadHandling;
             InitializeServerHotspots(this.serverHotspotStore.GetAll());
@@ -200,10 +206,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
                 }
 
                 unmatchedHotspots.Remove(serverHotspot);
-                return new LocalHotspot(visualization, serverHotspot);
+                return new LocalHotspot(visualization,
+                    hotspotReviewPriorityProvider.GetPriority(visualization.RuleId) ?? DefaultPriority, // todo: override with server priority
+                    serverHotspot);
             }
 
-            return new LocalHotspot(visualization);
+            return new LocalHotspot(visualization, hotspotReviewPriorityProvider.GetPriority(visualization.RuleId) ?? DefaultPriority);
         }
 
         private IEnumerable<LocalHotspot> FlattenMapping() => 
