@@ -245,6 +245,35 @@ public class LocalHotspotStoreTests
     }
 
     [TestMethod]
+    public void GetAll_ReviewedServerHotspots_Filters()
+    {
+        var serverStoreMock = new Mock<IServerHotspotStore>();
+        var serverHotspot1 = CreateEmptyServerHotspot(status: "TO_REVIEW");
+        var serverHotspot2 = CreateEmptyServerHotspot(status: "REVIEWED", resolution: "ACKNOWLEDGED");
+        var serverHotspot3 = CreateEmptyServerHotspot(status: "REVIEWED", resolution: "FIXED"); //Expected to be filtered out
+        serverStoreMock.Setup(x => x.GetAll()).Returns(new[] { serverHotspot1, serverHotspot2, serverHotspot3 });
+
+        var issueVis1 = Mock.Of<IAnalysisIssueVisualization>();
+        var issueVis2 = Mock.Of<IAnalysisIssueVisualization>();
+        var issueVis3 = Mock.Of<IAnalysisIssueVisualization>();
+        var issueVis4 = Mock.Of<IAnalysisIssueVisualization>();
+        var issueVisualizations = new[] { issueVis1, issueVis2, issueVis3, issueVis4 };
+
+        var matcherMock = new Mock<IHotspotMatcher>();
+        matcherMock.Setup(x => x.IsMatch(It.IsAny<IAnalysisIssueVisualization>(), It.IsAny<SonarQubeHotspot>())).Returns(false);
+        matcherMock.Setup(x => x.IsMatch(issueVis1, serverHotspot1)).Returns(true);
+        matcherMock.Setup(x => x.IsMatch(issueVis2, serverHotspot2)).Returns(true);
+        matcherMock.Setup(x => x.IsMatch(issueVis3, serverHotspot3)).Returns(true);
+
+        var testSubject = CreateTestSubject(out var eventListener, serverStoreMock.Object, matcherMock.Object);
+        testSubject.UpdateForFile("file1", issueVisualizations);
+        VerifyContent(testSubject,
+            new LocalHotspot(issueVis1, serverHotspot1),
+            new LocalHotspot(issueVis2, serverHotspot2),
+            new LocalHotspot(issueVis4));
+    }
+
+    [TestMethod]
     public void RemoveForFile_NoHotspots_NothingHappens()
     {
         var testSubject = CreateTestSubject(out var eventListener);
@@ -308,13 +337,13 @@ public class LocalHotspotStoreTests
         store.GetAll().Should().BeEquivalentTo(expected.Select(x => x.Visualization));
     }
 
-    private static SonarQubeHotspot CreateEmptyServerHotspot()
+    private static SonarQubeHotspot CreateEmptyServerHotspot(string status = "TO_REVIEW", string resolution = null)
     {
         return new SonarQubeHotspot(null,
             null,
             null,
             null,
-            null,
+            status,
             null,
             null,
             null,
@@ -324,7 +353,7 @@ public class LocalHotspotStoreTests
             DateTimeOffset.Now,
             null,
             null,
-            null);
+            resolution);
     }
 
     private ILocalHotspotsStore CreateTestSubject(out TestEventListener eventListener,
