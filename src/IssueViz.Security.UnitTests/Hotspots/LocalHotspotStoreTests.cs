@@ -126,13 +126,13 @@ public class LocalHotspotStoreTests
 
         testSubject.UpdateForFile("file2", newHotspots);
 
-        VerifyContent(testSubject, 
+        VerifyContent(testSubject,
             new LocalHotspot(issueVis1, default),
             new LocalHotspot(issueVis2, default));
         eventListener.Events.Should().HaveCount(2).And.Subject.Last().Should()
             .BeEquivalentTo(new IssuesChangedEventArgs(Array.Empty<IAnalysisIssueVisualization>(), newHotspots));
     }
-    
+
     [TestMethod]
     public void UpdateForFile_NoServerHotspots_UsesDefaultReviewPriorityWhenUnmapped()
     {
@@ -157,7 +157,7 @@ public class LocalHotspotStoreTests
          * issue2 -> rule2 -> Medium
          * issue3 -> rule1 -> Low
          */
-        
+
         const string rule1 = "rule:s1";
         const string rule2 = "rule:s2";
         var issueVis1 = new Mock<IAnalysisIssueVisualization>();
@@ -170,17 +170,17 @@ public class LocalHotspotStoreTests
         var reviewPriorityProviderMock = new Mock<IHotspotReviewPriorityProvider>();
         reviewPriorityProviderMock.Setup(x => x.GetPriority(rule1)).Returns(HotspotPriority.Low);
         reviewPriorityProviderMock.Setup(x => x.GetPriority(rule2)).Returns(HotspotPriority.Medium);
-        
-        var testSubject = CreateTestSubject(out _, reviewPriorityProvider:reviewPriorityProviderMock.Object);
-        
-        testSubject.UpdateForFile("file1", new[] {issueVis1.Object, issueVis2.Object, issueVis3.Object });
 
-        VerifyContent(testSubject, 
+        var testSubject = CreateTestSubject(out _, reviewPriorityProvider: reviewPriorityProviderMock.Object);
+
+        testSubject.UpdateForFile("file1", new[] { issueVis1.Object, issueVis2.Object, issueVis3.Object });
+
+        VerifyContent(testSubject,
             new LocalHotspot(issueVis1.Object, HotspotPriority.Low),
             new LocalHotspot(issueVis2.Object, HotspotPriority.Medium),
             new LocalHotspot(issueVis3.Object, HotspotPriority.Low));
     }
-    
+
     [TestMethod]
     public void UpdateForFile_ServerHotspots_MatchesCorrectly()
     {
@@ -199,16 +199,16 @@ public class LocalHotspotStoreTests
         matcherMock.Setup(x => x.IsMatch(issueVis3, serverHotspot1))
             .Returns(true); // 2 local hotspots match 1 server but only one pair should be created
 
-        var testSubject = CreateTestSubject(out _, serverStoreMock.Object, hotspotMatcher:matcherMock.Object);
+        var testSubject = CreateTestSubject(out _, serverStoreMock.Object, hotspotMatcher: matcherMock.Object);
 
         testSubject.UpdateForFile("file1", new[] { issueVis1, issueVis2, issueVis3 });
 
-        VerifyContent(testSubject, 
+        VerifyContent(testSubject,
             new LocalHotspot(issueVis1, default, serverHotspot1),
             new LocalHotspot(issueVis2, default, serverHotspot2),
             new LocalHotspot(issueVis3, default));
     }
-    
+
     [TestMethod]
     public void UpdateForFile_ServerHotspots_UsesReviewPriority()
     {
@@ -243,7 +243,7 @@ public class LocalHotspotStoreTests
 
         testSubject.UpdateForFile("file1", new[] { issueVis1.Object, issueVis2.Object, issueVis3.Object });
 
-        VerifyContent(testSubject, 
+        VerifyContent(testSubject,
             new LocalHotspot(issueVis1.Object, HotspotPriority.Low, serverHotspot1),
             new LocalHotspot(issueVis2.Object, HotspotPriority.Medium, serverHotspot2),
             new LocalHotspot(issueVis3.Object, HotspotPriority.Low));
@@ -268,22 +268,22 @@ public class LocalHotspotStoreTests
         matcherMock.Setup(x => x.IsMatch(issueVis3, serverHotspot1)).Returns(true);
         matcherMock.Setup(x => x.IsMatch(issueVis4, serverHotspot2)).Returns(true);
 
-        var testSubject = CreateTestSubject(out _, serverStoreMock.Object, hotspotMatcher:matcherMock.Object);
+        var testSubject = CreateTestSubject(out _, serverStoreMock.Object, hotspotMatcher: matcherMock.Object);
 
         testSubject.UpdateForFile("file1", new[] { issueVis1, issueVis2 });
-        VerifyContent(testSubject, 
+        VerifyContent(testSubject,
             new LocalHotspot(issueVis1, default, serverHotspot1),
             new LocalHotspot(issueVis2, default, serverHotspot2));
-        
+
         testSubject.UpdateForFile("file1", new[] { issueVis3 });
-        VerifyContent(testSubject, 
+        VerifyContent(testSubject,
             new LocalHotspot(issueVis3, default, serverHotspot1));
-        
+
         testSubject.UpdateForFile("file1", new[] { issueVis3, issueVis4 });
-        VerifyContent(testSubject, 
+        VerifyContent(testSubject,
             new LocalHotspot(issueVis3, default, serverHotspot1),
             new LocalHotspot(issueVis4, default, serverHotspot2));
-        
+
         serverStoreMock.Verify(store => store.GetAll(), Times.Once);
     }
 
@@ -322,7 +322,7 @@ public class LocalHotspotStoreTests
         var issueVis2 = Mock.Of<IAnalysisIssueVisualization>();
         var issueVisualizations = new[] { issueVis1, issueVis2 };
 
-        var testSubject = CreateTestSubject(out var eventListener, serverStoreMock.Object, hotspotMatcher:matcherMock.Object);
+        var testSubject = CreateTestSubject(out var eventListener, serverStoreMock.Object, hotspotMatcher: matcherMock.Object);
 
         testSubject.UpdateForFile("file1", issueVisualizations);
         VerifyContent(testSubject, new LocalHotspot(issueVis1, default, serverHotspot1),
@@ -357,12 +357,12 @@ public class LocalHotspotStoreTests
         matcherMock.Setup(x => x.IsMatch(issueVis2, serverHotspot2)).Returns(true);
         matcherMock.Setup(x => x.IsMatch(issueVis3, serverHotspot3)).Returns(true);
 
-        var testSubject = CreateTestSubject(out var eventListener, serverStoreMock.Object, matcherMock.Object);
+        var testSubject = CreateTestSubject(out var eventListener, serverStoreMock.Object, hotspotMatcher: matcherMock.Object);
         testSubject.UpdateForFile("file1", issueVisualizations);
         VerifyContent(testSubject,
-            new LocalHotspot(issueVis1, serverHotspot1),
-            new LocalHotspot(issueVis2, serverHotspot2),
-            new LocalHotspot(issueVis4));
+            new LocalHotspot(issueVis1, default, serverHotspot1),
+            new LocalHotspot(issueVis2, default, serverHotspot2),
+            new LocalHotspot(issueVis4, default));
     }
 
     [TestMethod]
@@ -386,7 +386,7 @@ public class LocalHotspotStoreTests
         eventListener.Events.Clear();
 
         testSubject.RemoveForFile("file2");
-        
+
         VerifyContent(testSubject, new LocalHotspot(visToKeep, default));
         eventListener.Events.Single()
             .Should()
