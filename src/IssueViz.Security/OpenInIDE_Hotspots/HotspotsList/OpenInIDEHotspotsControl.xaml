@@ -1,0 +1,156 @@
+﻿<UserControl x:Class="SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList.OpenInIDEHotspotsControl"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vsCatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:vsImaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:converter="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList"
+             xmlns:core="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
+             DataContext="{Binding ViewModel, RelativeSource={RelativeSource Mode=Self}}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../../SharedUI/SharedResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <converter:PriorityToBackgroundConverter x:Key="PriorityToBackgroundConverter" />
+            <core:NullableSelectedItemConverter x:Key="NullableSelectedItemConverter"/>
+
+            <ContextMenu x:Key="RowMenu" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                <MenuItem Header="Remove" 
+                    CommandParameter="{Binding}"
+                    Command="{Binding DataContext.RemoveCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}">
+                    <MenuItem.Icon>
+                        <vsImaging:CrispImage Moniker="{x:Static vsCatalog:KnownMonikers.DeleteTableRow}"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </ContextMenu>
+            
+            <!-- Extend the shared data grid row style to add the context menu and navigability data bindings -->
+            <Style BasedOn="{StaticResource BaseDataGridRow}"
+                   TargetType="DataGridRow">
+                <Setter Property="ContextMenu" Value="{StaticResource RowMenu}" />
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.BackgroundBrushKey}}"/>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Hotspot.Span, Converter={StaticResource SpanToNavigabilityConverter}}" Value="False">
+                        <Setter Property="FontStyle" Value="Italic"/>
+                        <Setter Property="ToolTip" Value="Cannot navigate to location. The source code is different from the analyzed version."/>
+                        <Setter Property="ToolTipService.IsEnabled" Value="true"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="PriorityColumnCellTextBlockStyle" TargetType="TextBlock">
+                <Setter Property="TextWrapping" Value="Wrap"/>
+                <Setter Property="TextAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="1"/>
+                <Setter Property="Background" Value="{Binding Path=DataContext.Hotspot.Issue.Rule.Priority, RelativeSource={RelativeSource Self}, Converter={StaticResource PriorityToBackgroundConverter}}"/>
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid UseLayoutRounding="True">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Name="Table" Width="*"/>
+        </Grid.ColumnDefinitions>
+        <DataGrid Grid.Column="0" 
+                  SelectedItem="{Binding SelectedHotspot, Mode=TwoWay, Converter={StaticResource NullableSelectedItemConverter}}"
+                  ItemsSource="{Binding Hotspots}"
+                  >
+            <DataGrid.InputBindings>
+                <MouseBinding
+                    MouseAction="LeftDoubleClick"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding Hotspots/}"/>
+                <KeyBinding
+                    Key="Enter"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding Hotspots/}"/>
+                <KeyBinding
+                    Key="Delete"
+                    Command="{Binding RemoveCommand}"
+                    CommandParameter="{Binding Hotspots/}"/>
+            </DataGrid.InputBindings>
+            <DataGrid.Columns>
+                <DataGridTemplateColumn CanUserSort="False" CanUserResize="False" Width="30">
+                    <DataGridTemplateColumn.HeaderStyle>
+                        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                            <Setter Property="ToolTipService.ToolTip" Value="Location navigability status" />
+                        </Style>
+                    </DataGridTemplateColumn.HeaderStyle>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <vsImaging:CrispImage Height="16" Width="16"
+                                                      Moniker="{x:Static vsCatalog:KnownMonikers.DocumentWarning}" 
+                                                      Visibility="{Binding Hotspot.Span, Converter={StaticResource SpanToInvertedVisibilityConverter}, Mode=OneWay}"/>
+                                <vsImaging:CrispImage Height="16" Width="16"
+                                                      Margin="-5,0,0,0"
+                                                      ToolTipService.ToolTip="Location is navigable. Use double-click or Enter to open the document."
+                                                      Moniker="{x:Static vsCatalog:KnownMonikers.DocumentSource}" 
+                                                      Visibility="{Binding Hotspot.Span, Converter={StaticResource SpanToVisibilityConverter}, Mode=OneWay}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Hotspot.Issue.RuleKey" Header="Code" Width="130" MinWidth="54">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Hotspot.Issue.RuleKey}" 
+                                       Style="{StaticResource CellTextBlockStyle}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="CategoryDisplayName" Header="Category" Width="Auto"  MinWidth="74">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding CategoryDisplayName}" 
+                                       Style="{StaticResource CellTextBlockStyle}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Hotspot.Issue.Rule.Priority" Header="Priority" Width="90"  MinWidth="64">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Hotspot.Issue.Rule.Priority}" 
+                                       Style="{StaticResource PriorityColumnCellTextBlockStyle}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Hotspot.Issue.PrimaryLocation.Message" Header="Description" Width="*" MinWidth="150">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Hotspot.Issue.PrimaryLocation.Message}" 
+                                       Style="{StaticResource CellTextBlockStyle}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="DisplayPath" Header="File" Width="180"  MinWidth="80">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding DisplayPath}" 
+                                       Style="{StaticResource CellTextBlockStyle}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Line" Header="Line" Width="48"  MinWidth="48">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Line}" 
+                                       Style="{StaticResource CellTextBlockStyle}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Column" Header="Col" Width="44"  MinWidth="44">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Column}" 
+                                       Style="{StaticResource CellTextBlockStyle}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>
