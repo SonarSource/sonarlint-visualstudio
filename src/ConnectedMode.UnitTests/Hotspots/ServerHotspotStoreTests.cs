@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Hotspots
 
             foreach (var hotspotKey in hotspotKeys)
             {
-                result.Add(new SonarQubeHotspot(hotspotKey, null, null, null, null, null, null, null, null, null, DateTimeOffset.Now, DateTimeOffset.Now, null, null));
+                result.Add(new SonarQubeHotspot(hotspotKey, null, null, null, null, null, null, null, null, null, DateTimeOffset.Now, DateTimeOffset.Now, null, null, null));
             }
 
             return result;

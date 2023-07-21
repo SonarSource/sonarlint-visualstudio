@@ -46,6 +46,7 @@ public class LocalHotspotTests
                 DateTimeOffset.Now,
                 DateTimeOffset.Now,
                 null,
+                null,
                 null));
 
         test.Should().Throw<ArgumentNullException>().Which.Message.Should().Contain("visualization");

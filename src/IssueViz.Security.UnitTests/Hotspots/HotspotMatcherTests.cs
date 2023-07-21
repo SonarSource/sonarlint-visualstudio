@@ -126,7 +126,7 @@ public class HotspotMatcherTests
             .Should()
             .BeFalse();
     }
-    
+
     [DataTestMethod]
     // File issues
     [DataRow(@"same.txt", @"c:\same.txt", true)]
@@ -204,6 +204,7 @@ public class HotspotMatcherTests
             new IssueTextRange(startLine,
                 0,
                 0,
-                0));
+                0),
+            null);
     }
 }
