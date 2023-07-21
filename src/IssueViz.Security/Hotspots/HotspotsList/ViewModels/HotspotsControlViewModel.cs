@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
                 Hotspots.Clear();
                 foreach (var localHotspot in store.GetAllLocalHotspots())
                 {
-                    Hotspots.Add(new HotspotViewModel(localHotspot.Visualization));
+                    Hotspots.Add(new HotspotViewModel(localHotspot.Visualization, localHotspot.Priority));
                 }
 
                 return System.Threading.Tasks.Task.FromResult(true);
