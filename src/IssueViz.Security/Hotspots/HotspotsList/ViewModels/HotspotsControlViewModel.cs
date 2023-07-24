@@ -30,6 +30,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -42,6 +43,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         IHotspotViewModel SelectedHotspot { get; }
 
         ICommand NavigateCommand { get; }
+        
+        INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; }
     }
 
     internal sealed class HotspotsControlViewModel : IHotspotsControlViewModel, INotifyPropertyChanged
@@ -55,11 +58,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         public ObservableCollection<IHotspotViewModel> Hotspots { get; } = new ObservableCollection<IHotspotViewModel>();
 
         public ICommand NavigateCommand { get; private set; }
+        public INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; }
 
         public HotspotsControlViewModel(ILocalHotspotsStore hotspotsStore,
             ILocationNavigator locationNavigator,
             IIssueSelectionService selectionService, 
-            IThreadHandling threadHandling)
+            IThreadHandling threadHandling,
+            INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand)
         {
             AllowMultiThreadedAccessToHotspotsList();
 
@@ -70,6 +75,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             this.store = hotspotsStore;
             store.IssuesChanged += Store_IssuesChanged;
 
+            NavigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
             SetCommands(locationNavigator);
         }
 

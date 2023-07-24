@@ -29,6 +29,7 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
@@ -377,12 +378,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             selectionService.VerifyNoOtherCalls();
         }
 
+        [TestMethod]
+        public void NavigateToRuleDescriptionCommand_IsNotNull()
+        {
+            var navigateToRuleDescriptionCommand = Mock.Of<INavigateToRuleDescriptionCommand>();
+            var testSubject = CreateTestSubject(navigateToRuleDescriptionCommand: navigateToRuleDescriptionCommand);
+
+            testSubject.NavigateToRuleDescriptionCommand.Should()
+                .BeSameAs(navigateToRuleDescriptionCommand);
+        }
+
         private static HotspotsControlViewModel CreateTestSubject(
             ObservableCollection<IAnalysisIssueVisualization> originalCollection = null,
             ILocationNavigator locationNavigator = null,
             Mock<ILocalHotspotsStore> hotspotsStore = null,
             IIssueSelectionService selectionService = null,
-            IThreadHandling threadHandling = null)
+            IThreadHandling threadHandling = null,
+            INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand = null)
         {
             originalCollection ??= new ObservableCollection<IAnalysisIssueVisualization>();
             var readOnlyWrapper = new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection);
@@ -391,8 +403,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             hotspotsStore.Setup(x => x.GetAllLocalHotspots()).Returns(readOnlyWrapper.Select(x => new LocalHotspot(x, default)).ToList());
 
             selectionService ??= Mock.Of<IIssueSelectionService>();
+            navigateToRuleDescriptionCommand ??= Mock.Of<INavigateToRuleDescriptionCommand>();
 
-            return new HotspotsControlViewModel(hotspotsStore.Object, locationNavigator, selectionService, threadHandling ?? new NoOpThreadHandler());
+            return new HotspotsControlViewModel(hotspotsStore.Object,
+                locationNavigator,
+                selectionService,
+                threadHandling ?? new NoOpThreadHandler(), 
+                navigateToRuleDescriptionCommand);
         }
 
         private static void RaiseStoreIssuesChangedEvent(Mock<ILocalHotspotsStore> store, params IAnalysisIssueVisualization[] issueVizs)
