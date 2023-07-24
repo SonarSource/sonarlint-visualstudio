@@ -33,7 +33,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.Hots
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE_Hotspots.HotspotsList
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIde_Hotspots.HotspotsList
 {
     [TestClass]
     public class OpenInIDEHotspotsControlViewModelTests
