@@ -66,7 +66,7 @@ public class CancellableActionRunnerTests
 
         actionToken.IsCancellationRequested.Should().BeFalse();
 
-        await testSubject.RunAsync(_ => { { }; return Task.CompletedTask; });
+        await testSubject.RunAsync(_ => Task.CompletedTask );
 
         actionToken.IsCancellationRequested.Should().BeTrue();
     }
