@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
@@ -29,6 +28,10 @@ namespace SonarLint.VisualStudio.Rules
 {
     public interface IRuleMetaDataProvider
     {
+        /// <summary>
+        /// Returns rule information for the specified rule ID, or null if a rule description
+        /// could not be found.
+        /// </summary>
         Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, CancellationToken token);
     }
 
@@ -56,7 +59,11 @@ namespace SonarLint.VisualStudio.Rules
 
             //TODO: this does not seem to support taint.
             var language = Language.GetLanguageFromRepositoryKey(ruleId.RepoKey);
-            Debug.Assert(language != null, $"Unable to determine the language from the repo key. RepoKey: {ruleId.RepoKey}");
+
+            // It's possible we'll be asked for help for a language we don't handle locally, in which
+            // case we'll return null.
+            // See https://github.com/SonarSource/sonarlint-visualstudio/issues/4582
+            if (language == null) { return null; }
 
             ApplicableQualityProfile qualityProfile = null;
 

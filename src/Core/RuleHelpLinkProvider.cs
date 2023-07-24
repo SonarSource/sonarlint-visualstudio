@@ -37,7 +37,11 @@ namespace SonarLint.VisualStudio.Core
             { SonarRuleRepoKeys.CSharpRules, "csharp" },
 
             { SonarRuleRepoKeys.JsSecurityRules, "javascript" },
-            { SonarRuleRepoKeys.TsSecurityRules, "typescript" }
+            { SonarRuleRepoKeys.TsSecurityRules, "typescript" },
+
+            // TODO: there may be other repo keys that have different language names on rules.sonarsource.com
+            // See https://github.com/SonarSource/sonarlint-visualstudio/issues/4586.
+            { SonarRuleRepoKeys.HtmlRules, "html" }
         };
 
         public string GetHelpLink(string ruleKey)
