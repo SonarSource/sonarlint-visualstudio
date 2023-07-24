@@ -69,7 +69,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
         private Dictionary<string, List<LocalHotspot>> fileToHotspotsMapping =
             new Dictionary<string, List<LocalHotspot>>();
 
-        private List<SonarQubeHotspot> serverHotspots = new List<SonarQubeHotspot>();
         private HashSet<SonarQubeHotspot> unmatchedHotspots = new HashSet<SonarQubeHotspot>();
 
         [ImportingConstructor]
@@ -186,8 +185,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 
         private void InitializeServerHotspots(IList<SonarQubeHotspot> sonarQubeHotspots)
         {
-            serverHotspots = sonarQubeHotspots?.ToList() ?? new List<SonarQubeHotspot>();
-            unmatchedHotspots = serverHotspots.ToHashSet();
+            unmatchedHotspots = sonarQubeHotspots?.ToHashSet() ?? new HashSet<SonarQubeHotspot>();
         }
 
         private void UnmatchServerHotspots(List<LocalHotspot> oldHotspots)
