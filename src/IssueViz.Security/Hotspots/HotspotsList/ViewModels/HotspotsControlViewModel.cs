@@ -61,10 +61,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         public INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; }
 
         public HotspotsControlViewModel(ILocalHotspotsStore hotspotsStore,
+            INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
             ILocationNavigator locationNavigator,
-            IIssueSelectionService selectionService, 
-            IThreadHandling threadHandling,
-            INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand)
+            IIssueSelectionService selectionService,
+            IThreadHandling threadHandling)
         {
             AllowMultiThreadedAccessToHotspotsList();
 

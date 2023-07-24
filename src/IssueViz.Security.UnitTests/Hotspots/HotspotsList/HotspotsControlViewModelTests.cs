@@ -405,11 +405,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             selectionService ??= Mock.Of<IIssueSelectionService>();
             navigateToRuleDescriptionCommand ??= Mock.Of<INavigateToRuleDescriptionCommand>();
 
-            return new HotspotsControlViewModel(hotspotsStore.Object,
-                locationNavigator,
-                selectionService,
-                threadHandling ?? new NoOpThreadHandler(), 
-                navigateToRuleDescriptionCommand);
+            return new HotspotsControlViewModel(hotspotsStore.Object, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling ?? new NoOpThreadHandler());
         }
 
         private static void RaiseStoreIssuesChangedEvent(Mock<ILocalHotspotsStore> store, params IAnalysisIssueVisualization[] issueVizs)

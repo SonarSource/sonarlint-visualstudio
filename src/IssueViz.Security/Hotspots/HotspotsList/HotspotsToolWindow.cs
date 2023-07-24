@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             var threadHandling = componentModel.GetService<IThreadHandling>();
             var navigateToRuleDescriptionCommand = componentModel.GetService<INavigateToRuleDescriptionCommand>();
 
-            var viewModel = new HotspotsControlViewModel(store, locationNavigator, selectionService, threadHandling, navigateToRuleDescriptionCommand);
+            var viewModel = new HotspotsControlViewModel(store, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling);
             viewModel.UpdateHotspotsListAsync().Forget();
             var hotspotsControl = new HotspotsControl(viewModel);
 
