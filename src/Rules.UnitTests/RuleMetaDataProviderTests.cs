@@ -44,6 +44,27 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         }
 
         [TestMethod]
+        public async Task GetRuleInfoAsync_UnknownLanguage_ReturnsNull()
+        {
+            var ruleId = new SonarCompositeRuleId("unknown", "S1000");
+            var localMetaDataProvider = CreateLocalRuleMetaDataProvider(ruleId, null);
+
+            var serverMetaDataProvider = new Mock<IServerRuleMetadataProvider>();
+
+            var configurationProvider = CreateConfigurationProvider();
+
+            RuleMetaDataProvider testSubject = CreateTestSubject(localMetaDataProvider, serverMetaDataProvider, configurationProvider);
+
+            var result = await testSubject.GetRuleInfoAsync(ruleId, CancellationToken.None);
+
+            result.Should().Be(null);
+
+            localMetaDataProvider.Verify(l => l.GetRuleInfo(ruleId), Times.Once);
+            serverMetaDataProvider.Invocations.Should().BeEmpty();
+            configurationProvider.Verify(cp => cp.GetConfiguration(), Times.Once);
+        }
+
+        [TestMethod]
         public async Task GetRuleInfoAsync_NotInConnectedMode_ReturnsLocal()
         {
             var ruleId = new SonarCompositeRuleId("csharpsquid", "S1000");
