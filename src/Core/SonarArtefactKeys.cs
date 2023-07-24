@@ -80,6 +80,10 @@ namespace SonarLint.VisualStudio.Core
         public const string JsSecurityRules = "jssecurity";
         public const string TsSecurityRules = "tssecurity";
 
+        // The HTML plugin uses the repo key "Web".
+        // See https://github.com/SonarSource/sonar-html/blob/155f558546b4035165d1e4e2ba62f22e3cf7d0cc/sonar-html-plugin/src/main/java/org/sonar/plugins/html/rules/HtmlRulesDefinition.java#L31
+        public const string HtmlRules = "Web";
+
         public static readonly StringComparer RepoKeyComparer = StringComparer.Ordinal;
 
         public static bool AreEqual(string repoKey1, string repoKey2) =>
