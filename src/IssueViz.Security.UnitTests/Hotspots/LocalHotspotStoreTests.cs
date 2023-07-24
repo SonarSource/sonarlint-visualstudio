@@ -421,6 +421,27 @@ public class LocalHotspotStoreTests
         VerifyContent(testSubject, new LocalHotspot(newHotspot, default, serverHotspot));
     }
 
+    [TestMethod]
+    public void Clear_ClearsMapping()
+    {
+        var threadHandlingMock = new Mock<IThreadHandling>();
+
+        var testSubject = CreateTestSubject(out var eventListener, threadHandling:threadHandlingMock.Object);
+        
+        testSubject.UpdateForFile("fileA", new []{Mock.Of<IAnalysisIssueVisualization>(), Mock.Of<IAnalysisIssueVisualization>()});
+        testSubject.UpdateForFile("fileB", new []{Mock.Of<IAnalysisIssueVisualization>()});
+        threadHandlingMock.Invocations.Clear();
+        eventListener.Events.Clear();
+
+        testSubject.GetAll().Count.Should().Be(3);
+        
+        testSubject.Clear();
+
+        testSubject.GetAll().Count.Should().Be(0);
+        eventListener.Events.Single().RemovedIssues.Should().HaveCount(3);
+        threadHandlingMock.Verify(x => x.ThrowIfOnUIThread(), Times.Once);
+    }
+
     private static void RaiseRefreshedEvent(Mock<IServerHotspotStore> serverStoreMock)
     {
         serverStoreMock.Raise(x => x.Refreshed += null, EventArgs.Empty);

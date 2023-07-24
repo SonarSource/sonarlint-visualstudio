@@ -39,6 +39,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
         void UpdateForFile(string filePath, IEnumerable<IAnalysisIssueVisualization> hotspots);
 
         void RemoveForFile(string filePath);
+
+        void Clear();
     }
 
     /// <summary>
@@ -156,6 +158,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 
                 NotifyIssuesChanged(new IssuesChangedEventArgs(localHotspots.Select(x => x.Visualization).ToList(),
                     EmptyList));
+            }
+        }
+
+        public void Clear()
+        {
+            threadHandling.ThrowIfOnUIThread();
+
+            lock (lockObject)
+            {
+                var removedIssues = new IssuesChangedEventArgs(fileToHotspotsMapping
+                        .SelectMany(x => 
+                            x.Value.Select(y => y.Visualization))
+                        .ToList(),
+                    EmptyList);
+                
+                fileToHotspotsMapping.Clear();
+
+                NotifyIssuesChanged(removedIssues);
             }
         }
 

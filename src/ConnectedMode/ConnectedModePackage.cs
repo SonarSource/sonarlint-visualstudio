@@ -50,6 +50,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
         private LocalSuppressionsChangedHandler localSuppressionsChangedHandler;
         private ImportBeforeInstallTrigger importBeforeInstallTrigger;
         private IHotspotDocumentClosedHandler hotspotDocumentClosedHandler;
+        private IHotspotSolutionClosedHandler hotspotSolutionClosedHandler;
         private ILocalHotspotStoreMonitor hotspotStoreMonitor;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
@@ -74,6 +75,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
             importBeforeInstallTrigger = componentModel.GetService<ImportBeforeInstallTrigger>();
 
             hotspotDocumentClosedHandler = componentModel.GetService<IHotspotDocumentClosedHandler>();
+
+            hotspotSolutionClosedHandler = componentModel.GetService<IHotspotSolutionClosedHandler>();
 
             hotspotStoreMonitor = componentModel.GetService<ILocalHotspotStoreMonitor>();
             await hotspotStoreMonitor.InitializeAsync();
