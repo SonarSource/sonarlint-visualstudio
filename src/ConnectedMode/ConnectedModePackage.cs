@@ -26,14 +26,13 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
+using SonarLint.VisualStudio.ConnectedMode.Install;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
-using SonarLint.VisualStudio.ConnectedMode.Install;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
-using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 
 namespace SonarLint.VisualStudio.ConnectedMode
 {
@@ -51,6 +50,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
         private LocalSuppressionsChangedHandler localSuppressionsChangedHandler;
         private ImportBeforeInstallTrigger importBeforeInstallTrigger;
         private IHotspotDocumentClosedHandler hotspotDocumentClosedHandler;
+        private ILocalHotspotStoreMonitor hotspotStoreMonitor;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -74,6 +74,9 @@ namespace SonarLint.VisualStudio.ConnectedMode
             importBeforeInstallTrigger = componentModel.GetService<ImportBeforeInstallTrigger>();
 
             hotspotDocumentClosedHandler = componentModel.GetService<IHotspotDocumentClosedHandler>();
+
+            hotspotStoreMonitor = componentModel.GetService<ILocalHotspotStoreMonitor>();
+            await hotspotStoreMonitor.InitializeAsync();
 
             // Trigger an initial update of suppressions (we might have missed the solution binding
             // event from the ActiveSolutionBoundTracker)
