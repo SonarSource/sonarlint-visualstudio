@@ -23,6 +23,7 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -43,8 +44,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.
             var store = componentModel.GetService<IOpenInIDEHotspotsStore>();
             var locationNavigator = componentModel.GetService<ILocationNavigator>();
             var selectionService = componentModel.GetService<IIssueSelectionService>();
+            var navigateToRuleDescriptionCommand = componentModel.GetService<INavigateToRuleDescriptionCommand>();
 
-            var viewModel = new OpenInIDEHotspotsControlViewModel(store, locationNavigator, selectionService);
+            var viewModel = new OpenInIDEHotspotsControlViewModel(store, locationNavigator, selectionService, navigateToRuleDescriptionCommand);
             var hotspotsControl = new OpenInIDEHotspotsControl(viewModel);
 
             Content = hotspotsControl;

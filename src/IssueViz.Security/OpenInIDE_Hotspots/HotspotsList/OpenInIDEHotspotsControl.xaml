@@ -7,6 +7,7 @@
              xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:converter="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList"
              xmlns:core="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
+             xmlns:commands="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;assembly=SonarLint.VisualStudio.IssueVisualization"
              DataContext="{Binding ViewModel, RelativeSource={RelativeSource Mode=Self}}">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -16,7 +17,8 @@
 
             <converter:PriorityToBackgroundConverter x:Key="PriorityToBackgroundConverter" />
             <core:NullableSelectedItemConverter x:Key="NullableSelectedItemConverter"/>
-
+            <commands:NavigateToRuleDescriptionCommandConverter x:Key="NavigateToRuleDescriptionCommandConverter" />
+            
             <ContextMenu x:Key="RowMenu" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                 <MenuItem Header="Remove" 
                     CommandParameter="{Binding}"
@@ -47,6 +49,15 @@
                 <Setter Property="VerticalAlignment" Value="Center"/>
                 <Setter Property="Margin" Value="1"/>
                 <Setter Property="Background" Value="{Binding Path=DataContext.Hotspot.Issue.Rule.Priority, RelativeSource={RelativeSource Self}, Converter={StaticResource PriorityToBackgroundConverter}}"/>
+            </Style>
+
+            <Style x:Key="RuleKeyLinkStyle" TargetType="Hyperlink">
+                <Setter Property="TextDecorations" Value="None" />
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="TextDecorations" Value="Underline" />
+                    </Trigger>
+                </Style.Triggers>
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -97,8 +108,19 @@
                 <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Hotspot.Issue.RuleKey" Header="Code" Width="130" MinWidth="54">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Hotspot.Issue.RuleKey}" 
-                                       Style="{StaticResource CellTextBlockStyle}" />
+                            <TextBlock>
+                                <Hyperlink Style="{StaticResource RuleKeyLinkStyle}" 
+                                           Command="{Binding DataContext.NavigateToRuleDescriptionCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}">
+                                
+                                    <Hyperlink.CommandParameter>
+                                        <MultiBinding Converter="{StaticResource NavigateToRuleDescriptionCommandConverter}">
+                                            <Binding Path="Hotspot.Issue.RuleKey" />
+                                            <Binding Path="Hotspot.Issue.RuleDescriptionContextKey" />
+                                        </MultiBinding>
+                                    </Hyperlink.CommandParameter>
+                                    <TextBlock Text="{Binding Hotspot.Issue.RuleKey}" Style="{StaticResource CellTextBlockStyle}" />
+                                </Hyperlink>
+                            </TextBlock>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
