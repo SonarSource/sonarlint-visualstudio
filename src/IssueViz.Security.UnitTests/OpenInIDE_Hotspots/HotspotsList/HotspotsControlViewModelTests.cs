@@ -31,6 +31,7 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE_Hotspots.HotspotsList
 {
@@ -85,6 +86,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             testSubject.Hotspots.Count.Should().Be(2);
             testSubject.Hotspots.First().Hotspot.Should().Be(issueViz1);
             testSubject.Hotspots.Last().Hotspot.Should().Be(issueViz2);
+        }
+
+        [TestMethod]
+        public void NavigateToRuleDescriptionCommand_IsNotNull()
+        {
+            var navigateToRuleDescriptionCommand = Mock.Of<INavigateToRuleDescriptionCommand>();
+            var testSubject = CreateTestSubject(navigateToRuleDescriptionCommand: navigateToRuleDescriptionCommand);
+
+            testSubject.NavigateToRuleDescriptionCommand.Should()
+                .BeSameAs(navigateToRuleDescriptionCommand);
         }
 
         [TestMethod]
@@ -381,7 +392,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         private static OpenInIDEHotspotsControlViewModel CreateTestSubject(ObservableCollection<IAnalysisIssueVisualization> originalCollection = null,
             ILocationNavigator locationNavigator = null,
             Mock<IOpenInIDEHotspotsStore> hotspotsStore = null,
-            IIssueSelectionService selectionService = null)
+            IIssueSelectionService selectionService = null,
+            INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand = null)
         {
             originalCollection ??= new ObservableCollection<IAnalysisIssueVisualization>();
             var readOnlyWrapper = new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection);
@@ -390,8 +402,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             hotspotsStore.Setup(x => x.GetAll()).Returns(readOnlyWrapper);
 
             selectionService ??= Mock.Of<IIssueSelectionService>();
+            navigateToRuleDescriptionCommand ??= Mock.Of<INavigateToRuleDescriptionCommand>();
 
-            return new OpenInIDEHotspotsControlViewModel(hotspotsStore.Object, locationNavigator, selectionService);
+            return new OpenInIDEHotspotsControlViewModel(hotspotsStore.Object, locationNavigator, selectionService, navigateToRuleDescriptionCommand);
         }
 
         private static void RaiseStoreIssuesChangedEvent(Mock<IOpenInIDEHotspotsStore> store, params IAnalysisIssueVisualization[] issueVizs)

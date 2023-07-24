@@ -28,6 +28,7 @@ using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -42,6 +43,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.
         ICommand NavigateCommand { get; }
 
         ICommand RemoveCommand { get; }
+
+        INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; }
     }
 
     internal sealed class OpenInIDEHotspotsControlViewModel : IOpenInIDEHotspotsControlViewModel, INotifyPropertyChanged
@@ -57,9 +60,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.
 
         public ICommand RemoveCommand { get; private set; }
 
+        public INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; private set; }
+
+
         public OpenInIDEHotspotsControlViewModel(IOpenInIDEHotspotsStore hotspotsStore,
             ILocationNavigator locationNavigator,
-            IIssueSelectionService selectionService)
+            IIssueSelectionService selectionService,
+            INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand)
         {
             AllowMultiThreadedAccessToHotspotsList();
 
@@ -72,6 +79,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.
             UpdateHotspotsList();
 
             SetCommands(hotspotsStore, locationNavigator);
+            this.NavigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
         }
 
         public IOpenInIDEHotspotViewModel SelectedHotspot
