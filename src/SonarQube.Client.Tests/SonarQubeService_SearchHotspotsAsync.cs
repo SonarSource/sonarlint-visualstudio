@@ -147,7 +147,7 @@ namespace SonarQube.Client.Tests
 
             messageHandler.VerifyAll();
 
-            result.Count.Should().Be(3);
+            result.Should().HaveCount(3);
 
             result[0].HotspotKey.Should().Be("AYeAEDJo4iDoE9Luo7Y9");
             result[0].ComponentKey.Should().Be("ConsoleAppTest:oldproject/Program.cs");

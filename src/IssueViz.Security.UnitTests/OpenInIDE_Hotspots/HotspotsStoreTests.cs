@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             addedHotspot.Should().BeSameAs(hotspotToAdd);
 
             var hotspots = testSubject.GetAll().ToList();
-            hotspots.Count.Should().Be(2);
+            hotspots.Should().HaveCount(2);
             hotspots[0].Should().BeSameAs(someOtherHotspot);
             hotspots[1].Should().BeSameAs(hotspotToAdd);
         }
@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             secondAddedHotspot.Should().BeSameAs(firstHotspot);
             var hotspots = testSubject.GetAll().ToList();
-            hotspots.Count.Should().Be(1);
+            hotspots.Should().HaveCount(1);
             hotspots[0].Should().BeSameAs(firstHotspot);
         }
 
@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             testSubject.Remove(firstHotspot);
 
             var hotspots = testSubject.GetAll().ToList();
-            hotspots.Count.Should().Be(1);
+            hotspots.Should().HaveCount(1);
             hotspots[0].Should().BeSameAs(secondHotspot);
         }
 
