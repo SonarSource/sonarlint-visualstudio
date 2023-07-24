@@ -21,8 +21,8 @@
 namespace SonarLint.VisualStudio.ConnectedMode.Hotspots
 {
     /// <summary>
-    /// Marker interface for the component that listens for documents being closed
-    /// and triggers the removal of issues from the local hotspot store
+    /// Marker interface for the component that listens for solution being closed/unbound
+    /// and triggers the removal of all issues from the local hotspot store
     /// </summary>
-    public interface IHotspotDocumentClosedHandler { }
+    public interface IHotspotSolutionClosedHandler { }
 }
