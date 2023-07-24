@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
             if (sectionsByKey.TryGetValue(RootCauseSection.RuleInfoKey, out var rootCauseSectionContent))
             {
                 AssertExpectedNumberOfDescriptionSections(ruleInfo.FullRuleKey, RootCauseSection.RuleInfoKey, rootCauseSectionContent.Count);
-                yield return new RootCauseSection(GeneratePartialXaml(rootCauseSectionContent[0].HtmlContent), /*todo in future PR*/false);
+                yield return new RootCauseSection(GeneratePartialXaml(rootCauseSectionContent[0].HtmlContent), ruleInfo.IssueType == RuleIssueType.Hotspot);
             }
 
             if (sectionsByKey.TryGetValue(AssesTheProblemSection.RuleInfoKey, out var assessTheProblemContent))

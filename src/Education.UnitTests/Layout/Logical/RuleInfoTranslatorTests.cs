@@ -65,6 +65,28 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
             GetRuleDescriptionSections_CorrectlyFormsSimpleContentSection<RootCauseSection>("root_cause",
                 (section, xamlContent) => section.partialXamlContent.Should().Be(xamlContent));
         }
+        
+        [DataRow(RuleIssueType.Hotspot, "What's the risk?")]
+        [DataRow(RuleIssueType.Vulnerability, "Why is this an issue?")]
+        [DataRow(RuleIssueType.CodeSmell, "Why is this an issue?")]
+        [DataRow(RuleIssueType.Bug, "Why is this an issue?")]
+        [DataTestMethod]
+        public void GetRuleDescriptionSections_RootCauseSectionSetsCorrectTitle(RuleIssueType issueType, string expectedTitle)
+        {
+            var ruleHelpXamlTranslatorFactoryMock = new Mock<IRuleHelpXamlTranslatorFactory>();
+            var ruleHelpXamlTranslatorMock = new Mock<IRuleHelpXamlTranslator>();
+            ruleHelpXamlTranslatorFactoryMock.Setup(x => x.Create()).Returns(ruleHelpXamlTranslatorMock.Object);
+            var ruleInfoTranslator = new RuleInfoTranslator(ruleHelpXamlTranslatorFactoryMock.Object, new TestLogger());
+
+            var descriptionSections =
+                ruleInfoTranslator
+                    .GetRuleDescriptionSections(
+                        GetRuleInfo(new[] { new DescriptionSection("root_cause", null) }, issueType), null)
+                    .ToList();
+
+            descriptionSections.Should().HaveCount(1);
+            descriptionSections.Single().Should().BeOfType<RootCauseSection>().Which.Title.Should().Be(expectedTitle);
+        }
 
         [TestMethod]
         public void GetRuleDescriptionSections_CorrectlyFormsAssesTheProblemSection()
@@ -206,7 +228,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
             ruleHelpXamlTranslatorMock.Verify(x => x.TranslateHtmlToXaml(htmlContent), Times.Once);
         }
 
-        private IRuleInfo GetRuleInfo(IReadOnlyList<IDescriptionSection> sections)
+        private IRuleInfo GetRuleInfo(IReadOnlyList<IDescriptionSection> sections, RuleIssueType issueType = RuleIssueType.Vulnerability)
         {
             return new RuleInfo(
                 Language.CSharp.ServerLanguage.Key,
@@ -214,7 +236,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
                 "a description",
                 "the rule name",
                 RuleIssueSeverity.Blocker,
-                RuleIssueType.Vulnerability,
+                issueType,
                 isActiveByDefault: true,
                 new List<string> { "veryimportantissue" },
                 sections,
