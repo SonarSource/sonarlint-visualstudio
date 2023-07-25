@@ -34,6 +34,10 @@
     <Page Include="UI\*Images.xaml" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="DiffPlex" Version="1.7.1" />
+  </ItemGroup>
+
   <ItemGroup Label="Framework references">
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="PresentationCore" />
