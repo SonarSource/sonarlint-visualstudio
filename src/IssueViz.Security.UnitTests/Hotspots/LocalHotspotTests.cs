@@ -50,6 +50,6 @@ public class LocalHotspotTests
                 null,
                 null));
 
-        test.Should().Throw<ArgumentNullException>().Which.Message.Should().Contain("visualization");
+        test.Should().Throw<ArgumentNullException>().WithMessage("*visualization*");
     }
 }

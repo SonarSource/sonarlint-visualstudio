@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
                         GetRuleInfo(new[] { new DescriptionSection("root_cause", null) }, issueType), null)
                     .ToList();
 
-            descriptionSections.Should().HaveCount(1);
+            descriptionSections.Should().ContainSingle();
             descriptionSections.Single().Should().BeOfType<RootCauseSection>().Which.Title.Should().Be(expectedTitle);
         }
 
