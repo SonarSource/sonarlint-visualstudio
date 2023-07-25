@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Hotspots
 
         private void InvokeRefreshed()
         {
-            Refreshed.Invoke(this, null);
+            Refreshed.Invoke(this, EventArgs.Empty);
         }
     }
 }
