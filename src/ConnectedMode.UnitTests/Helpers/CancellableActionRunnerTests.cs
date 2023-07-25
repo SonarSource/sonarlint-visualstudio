@@ -51,7 +51,7 @@ public class CancellableActionRunnerTests
         var ran = false;
         var testSubject = CreateTestSubject();
         
-        await testSubject.RunAsync(async _ => ran = true);
+        await testSubject.RunAsync(_ => { ran = true; return Task.CompletedTask; });
 
         ran.Should().BeTrue();
     }
@@ -62,11 +62,11 @@ public class CancellableActionRunnerTests
         CancellationToken actionToken;
         var testSubject = CreateTestSubject();
         
-        await testSubject.RunAsync(async token => actionToken = token);
+        await testSubject.RunAsync(token => { actionToken = token; return Task.CompletedTask; });
 
         actionToken.IsCancellationRequested.Should().BeFalse();
 
-        await testSubject.RunAsync(async _ => { });
+        await testSubject.RunAsync(_ => Task.CompletedTask );
 
         actionToken.IsCancellationRequested.Should().BeTrue();
     }
@@ -81,7 +81,7 @@ public class CancellableActionRunnerTests
 
         for (var i = 0; i < 100; i++)
         {
-            tasks.Add(Task.Run(() => testSubject.RunAsync(async ct => tokens.Add(ct))));
+            tasks.Add(Task.Run(() => testSubject.RunAsync(ct => { tokens.Add(ct); return Task.CompletedTask; })));
         }
 
         await Task.WhenAll(tasks);
@@ -96,7 +96,7 @@ public class CancellableActionRunnerTests
         CancellationToken actionToken;
         var testSubject = CreateTestSubject();
         
-        await testSubject.RunAsync(async token => actionToken = token);
+        await testSubject.RunAsync(token => { actionToken = token; return Task.CompletedTask; });
 
         actionToken.IsCancellationRequested.Should().BeFalse();
         
@@ -112,7 +112,7 @@ public class CancellableActionRunnerTests
         var testSubject = CreateTestSubject();
         
         testSubject.Dispose();
-        Func<Task> action =() => testSubject.RunAsync(async _ => ran = true);
+        Func<Task> action =() => testSubject.RunAsync(_ => { ran = true; return Task.CompletedTask; });
 
         ran.Should().BeFalse();
         action.Should().ThrowAsync<ObjectDisposedException>();

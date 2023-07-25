@@ -234,7 +234,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
 
             var result = testSubject.Calculate().ToList();
 
-            result.Should().HaveCount(1);
+            result.Should().ContainSingle();
         }
 
         private static void CheckExpectedRuleKeys(IEnumerable<Rule> result, params string[] expected) =>
