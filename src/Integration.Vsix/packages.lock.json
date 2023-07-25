@@ -150,6 +150,11 @@
         "resolved": "1.8.9",
         "contentHash": "axnBgvdD5n+FnEG6efk/tfKuMFru7R/EoISH9zjh319yb3HD24TEHSAbNN/lTRT2ulOGRxDgOsCjkuk08iwWPg=="
       },
+      "DiffPlex": {
+        "type": "Transitive",
+        "resolved": "1.7.1",
+        "contentHash": "a0fSO2p8ykrcfzgG0sjpZAMZPthXXz4l6UIVuM9uyIYIh5yga4sq3aydSGt6n+MkdSBKvMurjjaKnxIqZtfG1g=="
+      },
       "envdte": {
         "type": "Transitive",
         "resolved": "17.0.31902.203",
@@ -1570,6 +1575,7 @@
       "SonarLint.VisualStudio.Education": {
         "type": "Project",
         "dependencies": {
+          "DiffPlex": "[1.7.1, )",
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
