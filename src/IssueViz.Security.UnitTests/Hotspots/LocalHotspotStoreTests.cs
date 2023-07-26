@@ -84,8 +84,8 @@ public class LocalHotspotStoreTests
     public void UpdateForFile_NoServerHotspots_AddsLocalHotspots()
     {
         var threadHandlingMock = new Mock<IThreadHandling>();
-        var issueVis1 = Mock.Of<IAnalysisIssueVisualization>();
-        var issueVis2 = Mock.Of<IAnalysisIssueVisualization>();
+        var issueVis1 = CreateUniqueIssueViz();
+        var issueVis2 = CreateUniqueIssueViz();
         var testSubject = CreateTestSubject(out var eventListener, threadHandling: threadHandlingMock.Object);
         var hotspots = new[] { issueVis1, issueVis2 };
 
@@ -100,9 +100,9 @@ public class LocalHotspotStoreTests
     [TestMethod]
     public void UpdateForFile_NoServerHotspots_UpdatesForSameFile()
     {
-        var issueVis1 = Mock.Of<IAnalysisIssueVisualization>();
-        var issueVis2 = Mock.Of<IAnalysisIssueVisualization>();
-        var issueVis3 = Mock.Of<IAnalysisIssueVisualization>();
+        var issueVis1 = CreateUniqueIssueViz();
+        var issueVis2 = CreateUniqueIssueViz();
+        var issueVis3 = CreateUniqueIssueViz();
         var testSubject = CreateTestSubject(out var eventListener);
         var oldHotspots = new[] { issueVis1 };
         testSubject.UpdateForFile("file1", oldHotspots);
@@ -118,8 +118,8 @@ public class LocalHotspotStoreTests
     [TestMethod]
     public void UpdateForFile_NoServerHotspots_AddsForDifferentFile()
     {
-        var issueVis1 = Mock.Of<IAnalysisIssueVisualization>();
-        var issueVis2 = Mock.Of<IAnalysisIssueVisualization>();
+        var issueVis1 = CreateUniqueIssueViz();
+        var issueVis2 = CreateUniqueIssueViz();
         var testSubject = CreateTestSubject(out var eventListener);
         testSubject.UpdateForFile("file1", new[] { issueVis1 });
         var newHotspots = new[] { issueVis2 };
@@ -189,9 +189,9 @@ public class LocalHotspotStoreTests
         var serverHotspot2 = CreateEmptyServerHotspot();
         serverStoreMock.Setup(x => x.GetAll()).Returns(new[] { serverHotspot1, serverHotspot2 });
 
-        var issueVis3 = Mock.Of<IAnalysisIssueVisualization>();
-        var issueVis1 = Mock.Of<IAnalysisIssueVisualization>();
-        var issueVis2 = Mock.Of<IAnalysisIssueVisualization>();
+        var issueVis3 = CreateUniqueIssueViz();
+        var issueVis1 = CreateUniqueIssueViz();
+        var issueVis2 = CreateUniqueIssueViz();
 
         var matcherMock = new Mock<IHotspotMatcher>();
         matcherMock.Setup(x => x.IsMatch(issueVis1, serverHotspot1)).Returns(true);
@@ -257,10 +257,10 @@ public class LocalHotspotStoreTests
         var serverHotspot2 = CreateEmptyServerHotspot();
         serverStoreMock.Setup(x => x.GetAll()).Returns(new[] { serverHotspot1, serverHotspot2 });
 
-        var issueVis1 = Mock.Of<IAnalysisIssueVisualization>();
-        var issueVis2 = Mock.Of<IAnalysisIssueVisualization>();
-        var issueVis3 = Mock.Of<IAnalysisIssueVisualization>();
-        var issueVis4 = Mock.Of<IAnalysisIssueVisualization>();
+        var issueVis1 = CreateUniqueIssueViz();
+        var issueVis2 = CreateUniqueIssueViz();
+        var issueVis3 = CreateUniqueIssueViz();
+        var issueVis4 = CreateUniqueIssueViz();
 
         var matcherMock = new Mock<IHotspotMatcher>();
         matcherMock.Setup(x => x.IsMatch(issueVis1, serverHotspot1)).Returns(true);
@@ -318,8 +318,8 @@ public class LocalHotspotStoreTests
         matcherMock.Setup(x => x.IsMatch(It.IsAny<IAnalysisIssueVisualization>(), It.IsAny<SonarQubeHotspot>()))
             .Returns(true);
 
-        var issueVis1 = Mock.Of<IAnalysisIssueVisualization>();
-        var issueVis2 = Mock.Of<IAnalysisIssueVisualization>();
+        var issueVis1 = CreateUniqueIssueViz();
+        var issueVis2 = CreateUniqueIssueViz();
         var issueVisualizations = new[] { issueVis1, issueVis2 };
 
         var testSubject = CreateTestSubject(out var eventListener, serverStoreMock.Object, hotspotMatcher: matcherMock.Object);
@@ -344,14 +344,14 @@ public class LocalHotspotStoreTests
         var serverHotspot2 = CreateEmptyServerHotspot(status: "REVIEWED", resolution: "ACKNOWLEDGED");
         var serverHotspot3 = CreateEmptyServerHotspot(status: "REVIEWED", resolution: "FIXED"); //Expected to be filtered out
         var serverHotspot4 = CreateEmptyServerHotspot(status: "REVIEWED", resolution: "SAFE"); //Expected to be filtered out
-        serverStoreMock.Setup(x => x.GetAll()).Returns(new[] { serverHotspot1, serverHotspot2, serverHotspot3 });
+        serverStoreMock.Setup(x => x.GetAll()).Returns(new[] { serverHotspot1, serverHotspot2, serverHotspot3, serverHotspot4 });
 
-        var issueVis1 = Mock.Of<IAnalysisIssueVisualization>();
-        var issueVis2 = Mock.Of<IAnalysisIssueVisualization>();
-        var issueVis3 = Mock.Of<IAnalysisIssueVisualization>();
-        var issueVis4 = Mock.Of<IAnalysisIssueVisualization>();
-        var issueVis5 = Mock.Of<IAnalysisIssueVisualization>();
-        var issueVisualizations = new[] { issueVis1, issueVis2, issueVis3, issueVis4 };
+        var issueVis1 = CreateUniqueIssueViz();
+        var issueVis2 = CreateUniqueIssueViz();
+        var issueVis3 = CreateUniqueIssueViz();
+        var issueVis4 = CreateUniqueIssueViz();
+        var issueVis5 = CreateUniqueIssueViz();
+        var issueVisualizations = new[] { issueVis1, issueVis2, issueVis3, issueVis4, issueVis5 };
 
         var matcherMock = new Mock<IHotspotMatcher>();
         matcherMock.Setup(x => x.IsMatch(It.IsAny<IAnalysisIssueVisualization>(), It.IsAny<SonarQubeHotspot>())).Returns(false);
@@ -382,8 +382,8 @@ public class LocalHotspotStoreTests
     public void RemoveForFile_RemovesForCorrectFile()
     {
         var testSubject = CreateTestSubject(out var eventListener);
-        var visToKeep = Mock.Of<IAnalysisIssueVisualization>();
-        var visToRemove = Mock.Of<IAnalysisIssueVisualization>();
+        var visToKeep = CreateUniqueIssueViz();
+        var visToRemove = CreateUniqueIssueViz();
         testSubject.UpdateForFile("file1", new[] { visToKeep });
         testSubject.UpdateForFile("file2", new[] { visToRemove });
         eventListener.Events.Clear();
@@ -408,8 +408,8 @@ public class LocalHotspotStoreTests
         matcherMock.Setup(x => x.IsMatch(It.IsAny<IAnalysisIssueVisualization>(), It.IsAny<SonarQubeHotspot>()))
             .Returns(true);
 
-        var oldHotspot = Mock.Of<IAnalysisIssueVisualization>();
-        var newHotspot = Mock.Of<IAnalysisIssueVisualization>();
+        var oldHotspot = CreateUniqueIssueViz();
+        var newHotspot = CreateUniqueIssueViz();
 
         var testSubject = CreateTestSubject(out _, serverStoreMock.Object, hotspotMatcher: matcherMock.Object);
         testSubject.UpdateForFile("file1", new[] { oldHotspot });
@@ -428,8 +428,8 @@ public class LocalHotspotStoreTests
 
         var testSubject = CreateTestSubject(out var eventListener, threadHandling:threadHandlingMock.Object);
         
-        testSubject.UpdateForFile("fileA", new []{Mock.Of<IAnalysisIssueVisualization>(), Mock.Of<IAnalysisIssueVisualization>()});
-        testSubject.UpdateForFile("fileB", new []{Mock.Of<IAnalysisIssueVisualization>()});
+        testSubject.UpdateForFile("fileA", new []{CreateUniqueIssueViz(), CreateUniqueIssueViz()});
+        testSubject.UpdateForFile("fileB", new []{CreateUniqueIssueViz()});
         threadHandlingMock.Invocations.Clear();
         eventListener.Events.Clear();
 
@@ -453,9 +453,18 @@ public class LocalHotspotStoreTests
         store.GetAll().Should().BeEquivalentTo(expected.Select(x => x.Visualization));
     }
 
-    private static SonarQubeHotspot CreateEmptyServerHotspot(string status = "TO_REVIEW", string resolution = null)
+    private static IAnalysisIssueVisualization CreateUniqueIssueViz()
     {
-        return new SonarQubeHotspot(null,
+        var issueViz = new Mock<IAnalysisIssueVisualization>();
+        issueViz.Setup(x => x.LineHash).Returns(Guid.NewGuid().ToString());
+        return issueViz.Object;
+    }
+
+    private static SonarQubeHotspot CreateEmptyServerHotspot(string status = "TO_REVIEW",
+        string resolution = null,
+        string hotspotKey = null)
+    {
+        return new SonarQubeHotspot(hotspotKey,
             null,
             null,
             null,
