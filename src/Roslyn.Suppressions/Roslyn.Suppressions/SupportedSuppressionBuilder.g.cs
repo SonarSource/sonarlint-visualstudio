@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
                 // If the number of diagnostic ids changes significantly or decreases when the analysers are updated,
                 // investigate! There may be a problem with code generator.
                 // *************************************************************************************************
-                // Number of unique diagnostic ids (C# and VB.NET): 462
+                // Number of unique diagnostic ids (C# and VB.NET): 473
                 CreateDescriptor("S100"),
                 CreateDescriptor("S1006"),
                 CreateDescriptor("S101"),
@@ -90,6 +90,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
                 CreateDescriptor("S1172"),
                 CreateDescriptor("S1185"),
                 CreateDescriptor("S1186"),
+                CreateDescriptor("S119"),
                 CreateDescriptor("S1192"),
                 CreateDescriptor("S1197"),
                 CreateDescriptor("S1199"),
@@ -304,6 +305,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
                 CreateDescriptor("S3346"),
                 CreateDescriptor("S3353"),
                 CreateDescriptor("S3358"),
+                CreateDescriptor("S3363"),
                 CreateDescriptor("S3366"),
                 CreateDescriptor("S3376"),
                 CreateDescriptor("S3385"),
@@ -496,6 +498,14 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
                 CreateDescriptor("S6444"),
                 CreateDescriptor("S6507"),
                 CreateDescriptor("S6513"),
+                CreateDescriptor("S6561"),
+                CreateDescriptor("S6562"),
+                CreateDescriptor("S6563"),
+                CreateDescriptor("S6566"),
+                CreateDescriptor("S6575"),
+                CreateDescriptor("S6580"),
+                CreateDescriptor("S6585"),
+                CreateDescriptor("S6588"),
                 CreateDescriptor("S6602"),
                 CreateDescriptor("S6603"),
                 CreateDescriptor("S6605"),
@@ -507,6 +517,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
                 CreateDescriptor("S6613"),
                 CreateDescriptor("S6617"),
                 CreateDescriptor("S6618"),
+                CreateDescriptor("S6640"),
                 CreateDescriptor("S818"),
                 CreateDescriptor("S881"),
                 CreateDescriptor("S907"),
