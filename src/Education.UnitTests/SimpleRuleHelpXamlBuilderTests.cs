@@ -124,7 +124,10 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             failures.Should().BeEquivalentTo(new[]
             {
                 "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S2190.json",
-                "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S6422.json"
+                "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S6422.json",
+                // introduced in dotnet analyzer 9.5
+                "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S2995.json",
+                "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S4433.json"
             });
         }
 
