@@ -40,7 +40,10 @@ namespace SonarLint.VisualStudio.CFamily.Rules
         {
             var rulesList = LoadCFamilyJsonFile<List<string>>("RulesList.json");
             Debug.Assert(rulesList != null, "The CFamily RulesList.json should exist and not be empty");
+            var misraRulesList = LoadCFamilyJsonFile<List<string>>("MisraRulesList.json");
+            Debug.Assert(rulesList != null, "The CFamily Misra RulesList.json should exist and not be empty");
 
+            rulesList.AddRange(misraRulesList);
             return rulesList;
         }
 

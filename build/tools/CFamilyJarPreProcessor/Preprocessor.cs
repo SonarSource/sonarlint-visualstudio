@@ -36,6 +36,7 @@ namespace CFamilyJarPreProcessor
         {
                 "Sonar_way_profile.json",
                 "RulesList.json",
+                "MisraRulesList.json",
                 TarUnzipSubFolder + @"\subprocess.exe",
                 TarUnzipSubFolder + @"\LICENSE_THIRD_PARTY.txt"
         };
@@ -44,7 +45,8 @@ namespace CFamilyJarPreProcessor
         private readonly string[] MultipleFilesPatterns = new string[]
         {
             @"org\sonar\l10n\cpp\rules\params\*_params.json",
-            @"org\sonar\l10n\cpp\rules\cpp\*.json"
+            @"org\sonar\l10n\cpp\rules\cpp\*.json",
+            @"org\sonar\l10n\cpp\rules\misra23\*.json",
         };
 
         private readonly ILogger logger;
