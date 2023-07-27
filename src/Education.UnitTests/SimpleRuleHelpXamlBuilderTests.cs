@@ -127,7 +127,10 @@ namespace SonarLint.VisualStudio.Education.UnitTests
                 "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S6422.json",
                 // introduced in dotnet analyzer 9.5
                 "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S2995.json",
-                "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S4433.json"
+                "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S4433.json",
+                // introduced in sonarjs analyzer 10.3, https://github.com/SonarSource/sonarlint-visualstudio/issues/4603
+                "SonarLint.VisualStudio.Rules.Embedded.javascript.S6534.json",
+                "SonarLint.VisualStudio.Rules.Embedded.typescript.S6534.json"
             });
         }
 
@@ -148,7 +151,6 @@ namespace SonarLint.VisualStudio.Education.UnitTests
                     // Note: this is a quick way of getting the size of the document. Serializing the doc to a string
                     // and checking the length takes much longer (around 25 seconds)
                     var docLength = doc.ContentStart.DocumentStart.GetOffsetToPosition(doc.ContentEnd.DocumentEnd);
-                    Console.WriteLine($"{jsonRuleInfo.FullRuleKey}: size = {docLength}");
                     docLength.Should().BeGreaterThan(30);
                 }
                 return true;
