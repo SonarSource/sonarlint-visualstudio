@@ -151,7 +151,6 @@ namespace SonarLint.VisualStudio.Education.UnitTests
                     // Note: this is a quick way of getting the size of the document. Serializing the doc to a string
                     // and checking the length takes much longer (around 25 seconds)
                     var docLength = doc.ContentStart.DocumentStart.GetOffsetToPosition(doc.ContentEnd.DocumentEnd);
-                    // Console.WriteLine($"{jsonRuleInfo.FullRuleKey}: size = {docLength}");
                     docLength.Should().BeGreaterThan(30);
                 }
                 return true;
