@@ -288,6 +288,91 @@ public class LocalHotspotStoreTests
     }
 
     [TestMethod]
+    // Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/4602
+    public void UpdateForFile_ServerHotspots_SameFileUpdate_ServerHotspotMatchingIsDeterministic()
+    {
+        // Note: the original bug was caused because *in some cases* removing items from a HashSet<>
+        // then adding them back in again in a different order changes the order in which the
+        // items in the HashSet<> are enumerated -> we get different matches next time.
+
+        var serverStoreMock = new Mock<IServerHotspotStore>();
+        var unusedButEssential = CreateEmptyServerHotspot(hotspotKey: "unused1");
+        var matchingServerHotspot1 = CreateEmptyServerHotspot(status: "REVIEWED", resolution: "SAFE", hotspotKey: "111");
+        var matchingServerHotspot2 = CreateEmptyServerHotspot(status: "TO_REVIEW", hotspotKey: "222");
+
+        serverStoreMock.Setup(x => x.GetAll()).Returns(new[] {
+            unusedButEssential, // if this element is omitted then the bug doesn't repro
+            matchingServerHotspot2,
+            matchingServerHotspot1 });
+
+        var issueVis1 = CreateUniqueIssueViz();
+        var issueVis2 = CreateUniqueIssueViz();
+
+        // The server hotspots can match both local hotspots
+        var matcherMock = new Mock<IHotspotMatcher>();
+
+        matcherMock.Setup(x => x.IsMatch(It.IsAny<IAnalysisIssueVisualization>(), matchingServerHotspot1)).Returns(true);
+        matcherMock.Setup(x => x.IsMatch(It.IsAny<IAnalysisIssueVisualization>(), matchingServerHotspot2)).Returns(true);
+
+        var testSubject = CreateTestSubject(out _, serverStoreMock.Object, hotspotMatcher: matcherMock.Object);
+
+        // 1. Initial analysis
+        testSubject.UpdateForFile("file1", Enumerable.Empty<IAnalysisIssueVisualization>());
+        VerifyContent(testSubject /* empty */ );
+
+        testSubject.UpdateForFile("file1", new[] { issueVis1, issueVis2 });
+        VerifyContent(testSubject,
+            new LocalHotspot(issueVis1, default, matchingServerHotspot2));
+
+        // Simulate what happens when an analysis is run 
+        // 2a. Update with no issues
+        testSubject.UpdateForFile("file1", Enumerable.Empty<IAnalysisIssueVisualization>());
+        VerifyContent(testSubject /* empty */ );
+
+        // 2b. Update with issues again
+        // Expecting the issues to be matched deterministically i.e. same active issue returned
+        testSubject.UpdateForFile("file1", new[] { issueVis1, issueVis2 });
+        VerifyContent(testSubject,
+            new LocalHotspot(issueVis1, default, matchingServerHotspot2));
+
+        serverStoreMock.Verify(store => store.GetAll(), Times.Once);
+    }
+
+    [TestMethod]
+    public void UpdateForFile_MatchingDoesNotDependOnOrderServerHotspotsAreReturnedByTheServer()
+    {
+        var issueVis1 = CreateUniqueIssueViz();
+
+        var serverHotspot1 = CreateEmptyServerHotspot(hotspotKey: "111", startLine: 10, startLineOffset: 11);
+        var serverHotspot2 = CreateEmptyServerHotspot(hotspotKey: "222", startLine: 20, startLineOffset: 22);
+
+        var testSubject = CreateAndUpdateForFile(serverHotspot1, serverHotspot2);
+        VerifyContent(testSubject,
+            new LocalHotspot(issueVis1, default, serverHotspot1));
+
+        // Should match the issue to the same server hotspot, even if the server hotspots
+        // are returned in the reverse order
+        testSubject = CreateAndUpdateForFile(serverHotspot2, serverHotspot1);
+        VerifyContent(testSubject,
+            new LocalHotspot(issueVis1, default, serverHotspot1));
+
+        ILocalHotspotsStore CreateAndUpdateForFile(params SonarQubeHotspot[] serverHotpotsInOrder)
+        {
+            var serverStoreMock = new Mock<IServerHotspotStore>();
+
+            serverStoreMock.Setup(x => x.GetAll()).Returns(serverHotpotsInOrder);
+
+            var matcherMock = new Mock<IHotspotMatcher>();
+            matcherMock.Setup(x => x.IsMatch(It.IsAny<IAnalysisIssueVisualization>(), It.IsAny<SonarQubeHotspot>())).Returns(true);
+
+            var testSubject = CreateTestSubject(out _, serverStoreMock.Object, hotspotMatcher: matcherMock.Object);
+
+            testSubject.UpdateForFile("file1", new[] { issueVis1 });
+            return testSubject;
+        }
+    }
+
+    [TestMethod]
     public void Refresh_NoLocalHotspots_NothingHappens()
     {
         var serverStoreMock = new Mock<IServerHotspotStore>();
@@ -460,10 +545,16 @@ public class LocalHotspotStoreTests
         return issueViz.Object;
     }
 
-    private static SonarQubeHotspot CreateEmptyServerHotspot(string status = "TO_REVIEW", string resolution = null)
+   private static SonarQubeHotspot CreateEmptyServerHotspot(string status = "TO_REVIEW",
+        string resolution = null,
+        string hotspotKey = null,
+        int startLine = 0,
+        int startLineOffset = 0)
     {
-        return new SonarQubeHotspot(null,
-            null,
+        var textRange = new IssueTextRange(startLine, startLine + 1, startLineOffset, startLineOffset + 1);
+
+        return new SonarQubeHotspot(hotspotKey,
+             null,
             null,
             null,
             status,
@@ -475,7 +566,7 @@ public class LocalHotspotStoreTests
             DateTimeOffset.Now,
             DateTimeOffset.Now,
             null,
-            null,
+            textRange,
             resolution);
     }
 
