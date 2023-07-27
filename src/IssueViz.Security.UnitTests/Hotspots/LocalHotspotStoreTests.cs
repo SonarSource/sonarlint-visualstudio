@@ -297,8 +297,8 @@ public class LocalHotspotStoreTests
 
         var serverStoreMock = new Mock<IServerHotspotStore>();
         var unusedButEssential = CreateEmptyServerHotspot(hotspotKey: "unused1");
-        var matchingServerHotspot1 = CreateEmptyServerHotspot(status: "REVIEWED", resolution: "SAFE", hotspotKey: "111");
-        var matchingServerHotspot2 = CreateEmptyServerHotspot(status: "TO_REVIEW", hotspotKey: "222");
+        var matchingServerHotspot1 = CreateEmptyServerHotspot(status: "REVIEWED", resolution: "SAFE", hotspotKey: "ZZZ");
+        var matchingServerHotspot2 = CreateEmptyServerHotspot(status: "TO_REVIEW", hotspotKey: "AAA");
 
         serverStoreMock.Setup(x => x.GetAll()).Returns(new[] {
             unusedButEssential, // if this element is omitted then the bug doesn't repro
@@ -551,6 +551,9 @@ public class LocalHotspotStoreTests
         int startLine = 0,
         int startLineOffset = 0)
     {
+        // Need a unique value for the hotspot key otherwise the comparer will treat
+        // different hotspots as being equal.
+        hotspotKey ??= Guid.NewGuid().ToString();
         var textRange = new IssueTextRange(startLine, startLine + 1, startLineOffset, startLineOffset + 1);
 
         return new SonarQubeHotspot(hotspotKey,

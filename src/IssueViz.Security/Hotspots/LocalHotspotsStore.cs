@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.Core;
@@ -71,7 +72,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
         private Dictionary<string, List<LocalHotspot>> fileToHotspotsMapping =
             new Dictionary<string, List<LocalHotspot>>();
 
-        private HashSet<SonarQubeHotspot> unmatchedHotspots = new HashSet<SonarQubeHotspot>();
+        private ISet<SonarQubeHotspot> unmatchedHotspots = CreateServerHotspotSet();
 
         [ImportingConstructor]
         public LocalHotspotsStore(IServerHotspotStore serverHotspotStore, IHotspotReviewPriorityProvider hotspotReviewPriorityProvider, IHotspotMatcher hotspotMatcher, IThreadHandling threadHandling)
@@ -199,7 +200,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 
         private void InitializeServerHotspots(IList<SonarQubeHotspot> sonarQubeHotspots)
         {
-            unmatchedHotspots = sonarQubeHotspots?.ToHashSet() ?? new HashSet<SonarQubeHotspot>();
+            unmatchedHotspots = CreateServerHotspotSet(sonarQubeHotspots);
         }
 
         private void UnmatchServerHotspots(List<LocalHotspot> oldHotspots)
@@ -234,6 +235,39 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
         private void NotifyIssuesChanged(IssuesChangedEventArgs args)
         {
             IssuesChanged?.Invoke(this, args);
+        }
+
+        private static ISet<SonarQubeHotspot> CreateServerHotspotSet(IEnumerable<SonarQubeHotspot> serverHotspots = null)
+        {
+            return new SortedSet<SonarQubeHotspot>(
+                serverHotspots ?? Enumerable.Empty<SonarQubeHotspot>(),
+                new ServerHotspotComparer());
+        }
+
+        /// <summary>
+        /// Comparer to return server hotspots in a deterministic order.
+        /// Ordered by: StartLine, StartLineOffset, HotspotKey
+        /// </summary>
+        internal /* for testing */ class ServerHotspotComparer : IComparer<SonarQubeHotspot>
+        {
+            private static IssueTextRange EmptyTextRange = new IssueTextRange(0, 0, 0, 0);
+            public int Compare(SonarQubeHotspot x, SonarQubeHotspot y)
+            {
+                Debug.Assert(x != null && y != null, "Not expecting either server hotspot to be null");
+
+                var textRange1 = x.TextRange ?? EmptyTextRange;
+                var textRange2 = y.TextRange ?? EmptyTextRange;
+
+                int result = textRange1.StartLine.CompareTo(textRange2.StartLine);
+                if (result != 0) { return result; }
+
+                result = textRange1.StartOffset.CompareTo(textRange2.StartOffset);
+                if (result != 0) { return result; }
+
+                var key1 = x.HotspotKey ?? string.Empty;
+                var key2 = y.HotspotKey ?? string.Empty;
+                return key1.CompareTo(key2);
+            }
         }
     }
 }
