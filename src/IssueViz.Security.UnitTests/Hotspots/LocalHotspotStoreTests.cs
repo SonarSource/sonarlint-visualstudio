@@ -460,11 +460,9 @@ public class LocalHotspotStoreTests
         return issueViz.Object;
     }
 
-    private static SonarQubeHotspot CreateEmptyServerHotspot(string status = "TO_REVIEW",
-        string resolution = null,
-        string hotspotKey = null)
+    private static SonarQubeHotspot CreateEmptyServerHotspot(string status = "TO_REVIEW", string resolution = null)
     {
-        return new SonarQubeHotspot(hotspotKey,
+        return new SonarQubeHotspot(null,
             null,
             null,
             null,
