@@ -288,54 +288,58 @@ public class LocalHotspotStoreTests
     }
 
     [TestMethod]
-    // Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/4602
     public void UpdateForFile_ServerHotspots_SameFileUpdate_ServerHotspotMatchingIsDeterministic()
     {
-        // Note: the original bug was caused because *in some cases* removing items from a HashSet<>
-        // then adding them back in again in a different order changes the order in which the
-        // items in the HashSet<> are enumerated -> we get different matches next time.
+        // Demonstrates what happens when a changing set of local issues are matched against a 
+        // fixed set of server issues.
+        // * the order of the local issues matters i.e. they will be match
 
-        var serverStoreMock = new Mock<IServerHotspotStore>();
-        var unusedButEssential = CreateEmptyServerHotspot(hotspotKey: "unused1");
-        var matchingServerHotspot1 = CreateEmptyServerHotspot(status: "REVIEWED", resolution: "SAFE", hotspotKey: "ZZZ");
-        var matchingServerHotspot2 = CreateEmptyServerHotspot(status: "TO_REVIEW", hotspotKey: "AAA");
-
-        serverStoreMock.Setup(x => x.GetAll()).Returns(new[] {
-            unusedButEssential, // if this element is omitted then the bug doesn't repro
-            matchingServerHotspot2,
-            matchingServerHotspot1 });
+        var serverHotspot1 = CreateEmptyServerHotspot(hotspotKey: "AAA");
+        var serverHotspot2 = CreateEmptyServerHotspot(hotspotKey: "ZZZ");
 
         var issueVis1 = CreateUniqueIssueViz();
         var issueVis2 = CreateUniqueIssueViz();
+        var issueVis3 = CreateUniqueIssueViz();
 
-        // The server hotspots can match both local hotspots
-        var matcherMock = new Mock<IHotspotMatcher>();
-
-        matcherMock.Setup(x => x.IsMatch(It.IsAny<IAnalysisIssueVisualization>(), matchingServerHotspot1)).Returns(true);
-        matcherMock.Setup(x => x.IsMatch(It.IsAny<IAnalysisIssueVisualization>(), matchingServerHotspot2)).Returns(true);
-
-        var testSubject = CreateTestSubject(out _, serverStoreMock.Object, hotspotMatcher: matcherMock.Object);
-
-        // 1. Initial analysis
-        testSubject.UpdateForFile("file1", Enumerable.Empty<IAnalysisIssueVisualization>());
-        VerifyContent(testSubject /* empty */ );
-
-        testSubject.UpdateForFile("file1", new[] { issueVis1, issueVis2 });
+        // 1. One local issue - will match the lowest-order server hotspot (i.e. AAA)
+        var testSubject = CreateAndUpdateForFile(issueVis1);
         VerifyContent(testSubject,
-            new LocalHotspot(issueVis1, default, matchingServerHotspot2));
+            new LocalHotspot(issueVis1, default, serverHotspot1));
 
-        // Simulate what happens when an analysis is run 
-        // 2a. Update with no issues
-        testSubject.UpdateForFile("file1", Enumerable.Empty<IAnalysisIssueVisualization>());
-        VerifyContent(testSubject /* empty */ );
-
-        // 2b. Update with issues again
-        // Expecting the issues to be matched deterministically i.e. same active issue returned
-        testSubject.UpdateForFile("file1", new[] { issueVis1, issueVis2 });
+        // 2. Two local issues - will match the lowest-order server hotspot (i.e. AAA, ZZZ)
+        testSubject = CreateAndUpdateForFile(issueVis1, issueVis2);
         VerifyContent(testSubject,
-            new LocalHotspot(issueVis1, default, matchingServerHotspot2));
+            new LocalHotspot(issueVis1, default, serverHotspot1),
+            new LocalHotspot(issueVis2, default, serverHotspot2));
 
-        serverStoreMock.Verify(store => store.GetAll(), Times.Once);
+        // 3. Three local issues - first two will be matched to the server hotspots in order  (i.e. AAA, ZZZ)
+        testSubject = CreateAndUpdateForFile(issueVis1, issueVis2, issueVis3);
+        VerifyContent(testSubject,
+            new LocalHotspot(issueVis1, default, serverHotspot1),
+            new LocalHotspot(issueVis2, default, serverHotspot2),
+            new LocalHotspot(issueVis3, default, null));
+
+        // 4. Three local issues in a different order- first two will be matched to the server hotspots in order  (i.e. AAA, ZZZ)
+        testSubject = CreateAndUpdateForFile(issueVis3, issueVis1, issueVis2);
+        VerifyContent(testSubject,
+            new LocalHotspot(issueVis3, default, serverHotspot1),
+            new LocalHotspot(issueVis1, default, serverHotspot2),
+            new LocalHotspot(issueVis2, default, null));
+
+        ILocalHotspotsStore CreateAndUpdateForFile(params IAnalysisIssueVisualization[] localIssuesInOrder)
+        {
+            var serverStoreMock = new Mock<IServerHotspotStore>();
+
+            serverStoreMock.Setup(x => x.GetAll()).Returns(new[] { serverHotspot1, serverHotspot2 });
+
+            var matcherMock = new Mock<IHotspotMatcher>();
+            matcherMock.Setup(x => x.IsMatch(It.IsAny<IAnalysisIssueVisualization>(), It.IsAny<SonarQubeHotspot>())).Returns(true);
+
+            var testSubject = CreateTestSubject(out _, serverStoreMock.Object, hotspotMatcher: matcherMock.Object);
+
+            testSubject.UpdateForFile("file1", localIssuesInOrder);
+            return testSubject;
+        }
     }
 
     [TestMethod]
