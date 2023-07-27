@@ -292,8 +292,10 @@ public class LocalHotspotStoreTests
     {
         // Demonstrates what happens when a changing set of local issues are matched against a 
         // fixed set of server issues.
-        // * the order of the local issues matters i.e. they will be match
-
+        // - the order of the local issues matters i.e. they will be matched in the order in which
+        //   they are reported.
+        
+        // Our custom comparer will return the server hotspots in a consistent order i.e. AAA, ZZZ
         var serverHotspot1 = CreateEmptyServerHotspot(hotspotKey: "AAA");
         var serverHotspot2 = CreateEmptyServerHotspot(hotspotKey: "ZZZ");
 
@@ -301,7 +303,7 @@ public class LocalHotspotStoreTests
         var issueVis2 = CreateUniqueIssueViz();
         var issueVis3 = CreateUniqueIssueViz();
 
-        // 1. One local issue - will match the lowest-order server hotspot (i.e. AAA)
+        // 1. One local issue - will match the first server hotspot in order (i.e. AAA)
         var testSubject = CreateAndUpdateForFile(issueVis1);
         VerifyContent(testSubject,
             new LocalHotspot(issueVis1, default, serverHotspot1));
@@ -312,14 +314,14 @@ public class LocalHotspotStoreTests
             new LocalHotspot(issueVis1, default, serverHotspot1),
             new LocalHotspot(issueVis2, default, serverHotspot2));
 
-        // 3. Three local issues - first two will be matched to the server hotspots in order  (i.e. AAA, ZZZ)
+        // 3. Three local issues - first two will be matched to the server hotspots in order (i.e. AAA, ZZZ)
         testSubject = CreateAndUpdateForFile(issueVis1, issueVis2, issueVis3);
         VerifyContent(testSubject,
             new LocalHotspot(issueVis1, default, serverHotspot1),
             new LocalHotspot(issueVis2, default, serverHotspot2),
             new LocalHotspot(issueVis3, default, null));
 
-        // 4. Three local issues in a different order- first two will be matched to the server hotspots in order  (i.e. AAA, ZZZ)
+        // 4. Three local issues in a different order - first two will be matched to the server hotspots in order (i.e. AAA, ZZZ)
         testSubject = CreateAndUpdateForFile(issueVis3, issueVis1, issueVis2);
         VerifyContent(testSubject,
             new LocalHotspot(issueVis3, default, serverHotspot1),
