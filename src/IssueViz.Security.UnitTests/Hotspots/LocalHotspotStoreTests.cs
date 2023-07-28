@@ -394,9 +394,12 @@ public class LocalHotspotStoreTests
     public void Refresh_NewServerHotspots_ExistingHotspotsRematched()
     {
         var serverStoreMock = new Mock<IServerHotspotStore>();
-        var serverHotspot1 = CreateEmptyServerHotspot();
-        var serverHotspot2 = CreateEmptyServerHotspot();
-        var serverHotspot3 = CreateEmptyServerHotspot();
+
+        // The order in which the server hotspots are matched matters, so we need
+        // provide data so that are returned in a predictable order. See #4615
+        var serverHotspot1 = CreateEmptyServerHotspot(hotspotKey: "1");
+        var serverHotspot2 = CreateEmptyServerHotspot(hotspotKey: "2");
+        var serverHotspot3 = CreateEmptyServerHotspot(hotspotKey: "3");
         serverStoreMock.Setup(x => x.GetAll()).Returns(new[] { serverHotspot1, serverHotspot2 });
 
         var matcherMock = new Mock<IHotspotMatcher>();
