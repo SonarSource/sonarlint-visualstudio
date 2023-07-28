@@ -32,9 +32,13 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
         // Rule data for files in Rules\TestResources\RulesMetadataCache
         private const int Active_C_Rules = 3;
         private const int Inactive_C_Rules = 3;
+        private const int Active_Misra_C_Rules = 1;
+        private const int Inactive_Misra_C_Rules = 1;
 
         private const int Active_CPP_Rules = 4;
         private const int Inactive_CPP_Rules = 2;
+        private const int Active_Misra_Cpp_Rules = 1;
+        private const int Inactive_Misra_Cpp_Rules = 1;
 
         private CFamilySonarWayRulesConfigProvider sonarWayProvider = CreateTestSubject();
 
@@ -51,8 +55,8 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
         [TestMethod]
         public void Read_Rules()
         {
-            sonarWayProvider.GetRulesConfiguration("c").AllPartialRuleKeys.Should().HaveCount(Active_C_Rules + Inactive_C_Rules);
-            sonarWayProvider.GetRulesConfiguration("cpp").AllPartialRuleKeys.Should().HaveCount(Active_CPP_Rules + Inactive_CPP_Rules);
+            sonarWayProvider.GetRulesConfiguration("c").AllPartialRuleKeys.Should().HaveCount(Active_C_Rules + Inactive_C_Rules + Active_Misra_C_Rules + Inactive_Misra_C_Rules);
+            sonarWayProvider.GetRulesConfiguration("cpp").AllPartialRuleKeys.Should().HaveCount(Active_CPP_Rules + Inactive_CPP_Rules + Active_Misra_Cpp_Rules + Inactive_Misra_Cpp_Rules);
 
             // We don't currently support ObjC rules in VS
             sonarWayProvider.GetRulesConfiguration("objc").Should().BeNull();
@@ -61,8 +65,8 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
         [TestMethod]
         public void Read_Active_Rules()
         {
-            sonarWayProvider.GetRulesConfiguration("c").ActivePartialRuleKeys.Should().HaveCount(Active_C_Rules);
-            sonarWayProvider.GetRulesConfiguration("cpp").ActivePartialRuleKeys.Should().HaveCount(Active_CPP_Rules);
+            sonarWayProvider.GetRulesConfiguration("c").ActivePartialRuleKeys.Should().HaveCount(Active_C_Rules + Active_Misra_C_Rules);
+            sonarWayProvider.GetRulesConfiguration("cpp").ActivePartialRuleKeys.Should().HaveCount(Active_CPP_Rules + Active_Misra_Cpp_Rules);
 
             // We don't currently support ObjC rules in VS
             sonarWayProvider.GetRulesConfiguration("objc").Should().BeNull();
