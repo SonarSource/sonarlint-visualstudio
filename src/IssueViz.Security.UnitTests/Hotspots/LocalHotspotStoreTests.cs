@@ -186,7 +186,7 @@ public class LocalHotspotStoreTests
     {
         var serverStoreMock = new Mock<IServerHotspotStore>();
         var serverHotspot1 = CreateEmptyServerHotspot("a");
-        var serverHotspot2 = CreateEmptyServerHotspot("b");
+        var serverHotspot2 = CreateEmptyServerHotspot("z");
         serverStoreMock.Setup(x => x.GetAll()).Returns(new[] { serverHotspot1, serverHotspot2 });
 
         var issueVis3 = CreateUniqueIssueViz();
