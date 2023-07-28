@@ -185,8 +185,8 @@ public class LocalHotspotStoreTests
     public void UpdateForFile_ServerHotspots_MatchesCorrectly()
     {
         var serverStoreMock = new Mock<IServerHotspotStore>();
-        var serverHotspot1 = CreateEmptyServerHotspot();
-        var serverHotspot2 = CreateEmptyServerHotspot();
+        var serverHotspot1 = CreateEmptyServerHotspot("a");
+        var serverHotspot2 = CreateEmptyServerHotspot("z");
         serverStoreMock.Setup(x => x.GetAll()).Returns(new[] { serverHotspot1, serverHotspot2 });
 
         var issueVis3 = CreateUniqueIssueViz();
@@ -218,8 +218,8 @@ public class LocalHotspotStoreTests
          * issue3 -> rule1 -> Low
          */
         var serverStoreMock = new Mock<IServerHotspotStore>();
-        var serverHotspot1 = CreateEmptyServerHotspot();
-        var serverHotspot2 = CreateEmptyServerHotspot();
+        var serverHotspot1 = CreateEmptyServerHotspot("a");
+        var serverHotspot2 = CreateEmptyServerHotspot("z");
         serverStoreMock.Setup(x => x.GetAll()).Returns(new[] { serverHotspot1, serverHotspot2 });
 
         const string rule1 = "rule:s1";
@@ -253,8 +253,8 @@ public class LocalHotspotStoreTests
     public void UpdateForFile_ServerHotspots_SameFileUpdate_MakesUnmatchedServerHotspotsAvailable()
     {
         var serverStoreMock = new Mock<IServerHotspotStore>();
-        var serverHotspot1 = CreateEmptyServerHotspot();
-        var serverHotspot2 = CreateEmptyServerHotspot();
+        var serverHotspot1 = CreateEmptyServerHotspot("a");
+        var serverHotspot2 = CreateEmptyServerHotspot("z");
         serverStoreMock.Setup(x => x.GetAll()).Returns(new[] { serverHotspot1, serverHotspot2 });
 
         var issueVis1 = CreateUniqueIssueViz();
@@ -382,8 +382,8 @@ public class LocalHotspotStoreTests
     public void Refresh_NoLocalHotspots_NothingHappens()
     {
         var serverStoreMock = new Mock<IServerHotspotStore>();
-        var serverHotspot1 = CreateEmptyServerHotspot();
-        var serverHotspot2 = CreateEmptyServerHotspot();
+        var serverHotspot1 = CreateEmptyServerHotspot("a");
+        var serverHotspot2 = CreateEmptyServerHotspot("z");
         serverStoreMock.Setup(x => x.GetAll()).Returns(new[] { serverHotspot1, serverHotspot2 });
         var matcherMock = new Mock<IHotspotMatcher>();
         matcherMock.Setup(x => x.IsMatch(It.IsAny<IAnalysisIssueVisualization>(), It.IsAny<SonarQubeHotspot>()))
@@ -400,9 +400,12 @@ public class LocalHotspotStoreTests
     public void Refresh_NewServerHotspots_ExistingHotspotsRematched()
     {
         var serverStoreMock = new Mock<IServerHotspotStore>();
-        var serverHotspot1 = CreateEmptyServerHotspot();
-        var serverHotspot2 = CreateEmptyServerHotspot();
-        var serverHotspot3 = CreateEmptyServerHotspot();
+
+        // The order in which the server hotspots are matched matters, so we need
+        // provide data so that are returned in a predictable order. See #4615
+        var serverHotspot1 = CreateEmptyServerHotspot(hotspotKey: "1");
+        var serverHotspot2 = CreateEmptyServerHotspot(hotspotKey: "2");
+        var serverHotspot3 = CreateEmptyServerHotspot(hotspotKey: "3");
         serverStoreMock.Setup(x => x.GetAll()).Returns(new[] { serverHotspot1, serverHotspot2 });
 
         var matcherMock = new Mock<IHotspotMatcher>();
@@ -431,10 +434,10 @@ public class LocalHotspotStoreTests
     public void GetAll_ReviewedServerHotspots_Filters()
     {
         var serverStoreMock = new Mock<IServerHotspotStore>();
-        var serverHotspot1 = CreateEmptyServerHotspot(status: "TO_REVIEW");
-        var serverHotspot2 = CreateEmptyServerHotspot(status: "REVIEWED", resolution: "ACKNOWLEDGED");
-        var serverHotspot3 = CreateEmptyServerHotspot(status: "REVIEWED", resolution: "FIXED"); //Expected to be filtered out
-        var serverHotspot4 = CreateEmptyServerHotspot(status: "REVIEWED", resolution: "SAFE"); //Expected to be filtered out
+        var serverHotspot1 = CreateEmptyServerHotspot("a", status: "TO_REVIEW");
+        var serverHotspot2 = CreateEmptyServerHotspot("b", status: "REVIEWED", resolution: "ACKNOWLEDGED");
+        var serverHotspot3 = CreateEmptyServerHotspot("c", status: "REVIEWED", resolution: "FIXED"); //Expected to be filtered out
+        var serverHotspot4 = CreateEmptyServerHotspot("d", status: "REVIEWED", resolution: "SAFE"); //Expected to be filtered out
         serverStoreMock.Setup(x => x.GetAll()).Returns(new[] { serverHotspot1, serverHotspot2, serverHotspot3, serverHotspot4 });
 
         var issueVis1 = CreateUniqueIssueViz();
@@ -492,7 +495,7 @@ public class LocalHotspotStoreTests
     public void RemoveForFile_MakesUnmatchedServerHotspotsAvailable()
     {
         var serverStoreMock = new Mock<IServerHotspotStore>();
-        var serverHotspot = CreateEmptyServerHotspot();
+        var serverHotspot = CreateEmptyServerHotspot("any");
         serverStoreMock.Setup(x => x.GetAll()).Returns(new[] { serverHotspot });
 
         var matcherMock = new Mock<IHotspotMatcher>();
@@ -517,15 +520,15 @@ public class LocalHotspotStoreTests
     {
         var threadHandlingMock = new Mock<IThreadHandling>();
 
-        var testSubject = CreateTestSubject(out var eventListener, threadHandling:threadHandlingMock.Object);
-        
-        testSubject.UpdateForFile("fileA", new []{CreateUniqueIssueViz(), CreateUniqueIssueViz()});
-        testSubject.UpdateForFile("fileB", new []{CreateUniqueIssueViz()});
+        var testSubject = CreateTestSubject(out var eventListener, threadHandling: threadHandlingMock.Object);
+
+        testSubject.UpdateForFile("fileA", new[] { CreateUniqueIssueViz(), CreateUniqueIssueViz() });
+        testSubject.UpdateForFile("fileB", new[] { CreateUniqueIssueViz() });
         threadHandlingMock.Invocations.Clear();
         eventListener.Events.Clear();
 
         testSubject.GetAll().Count.Should().Be(3);
-        
+
         testSubject.Clear();
 
         testSubject.GetAll().Count.Should().Be(0);
@@ -551,9 +554,22 @@ public class LocalHotspotStoreTests
         return issueViz.Object;
     }
 
-   private static SonarQubeHotspot CreateEmptyServerHotspot(string status = "TO_REVIEW",
+    /// <summary>
+    /// Creates and returns a new server hotspot.
+    /// 
+    /// NB the hotspot key, start line and line offset are used to order server hotspots
+    /// (in the order [startline]->[line offset]->[hotspotkey].
+    /// 
+    /// If a test depends on the order in which server hotspots are processed it should
+    /// set the data for the hotspot appropriately.
+    /// 
+    /// If the rest of the data in the hotspot isn't important then the simplest way to
+    /// control the order is to set the hotspotKey (sorted alpha-numerically).
+    /// </summary>
+    private static SonarQubeHotspot CreateEmptyServerHotspot(
+        string hotspotKey,
+        string status = "TO_REVIEW",
         string resolution = null,
-        string hotspotKey = null,
         int startLine = 0,
         int startLineOffset = 0)
     {
