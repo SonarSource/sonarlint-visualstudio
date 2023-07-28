@@ -36,7 +36,8 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
         public void Read_Rules()
         {
             var rulesLoader = CreateTestSubject();
-            rulesLoader.ReadRulesList().Should().HaveCount(410);
+            // 410 in RulesList.json + 2 in MisraRulesList.json
+            rulesLoader.ReadRulesList().Should().HaveCount(410 + 2);
         }
 
         [TestMethod]

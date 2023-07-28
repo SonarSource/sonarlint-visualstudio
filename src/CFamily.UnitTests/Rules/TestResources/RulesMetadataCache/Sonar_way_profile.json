@@ -5,6 +5,8 @@
     "All_ActiveWithParams_1",
     "C_Active_1",
     "Cpp_Active_1",
-    "Cpp_Active_2"
+    "Cpp_Active_2",
+    "C_Misra_Active_1",
+    "Cpp_Misra_Active_1"
   ]
 }
