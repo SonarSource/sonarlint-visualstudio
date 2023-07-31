@@ -23,12 +23,6 @@ variables:
 
 name: $(Build.BuildId)
 
-trigger:
-  branches:
-    include:
-    - master
-  batch: False
-
 jobs:
 - job: Phase_1
   strategy:
