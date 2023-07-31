@@ -169,9 +169,13 @@ jobs:
       TargetFolder: $(Build.ArtifactStagingDirectory)
     condition: failed()     # we're only interested if the build failed (in case the build failed because of a mismatch in the asmref files)
 
+
+### Mend/WhiteSource scanning ###
+# Run if: previous builds succeeded AND (building master or ForceWhiteSourceScan=true) UNLESS (SkipwWhiteSourceScan=true)
+
   - task: UniversalPackages@0
     displayName: Download WhiteSource agent
-    condition: and(succeeded(), or(eq(variables['ForceWhiteSourceScan'], 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
+    condition: and(succeeded(), ne(variables['SkipWhiteSourceScan'], 'true'), or(eq(variables['ForceWhiteSourceScan'], 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
     inputs:
       downloadDirectory: $(System.DefaultWorkingDirectory)\Whitesource
       feedsToUse: 'internal'
@@ -181,12 +185,14 @@ jobs:
 
   - task: PowerShell@2
     displayName: Run WhiteSource (Mend) scan
-    condition: and(succeeded(), or(eq(variables['ForceWhiteSourceScan'], 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
+    # Run if: previous builds succeeded AND (building master or ForceWhiteSourceScan=true) UNLESS (SkipwWhiteSourceScan=true)
+    condition: and(succeeded(), ne(variables['SkipWhiteSourceScan'], 'true'), or(eq(variables['ForceWhiteSourceScan'], 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
     env:
       WS_APIKEY: $(MEND_APIKEY)
     inputs:
       targetType: inline
       script: java -jar  "${env:SYSTEM_DEFAULTWORKINGDIRECTORY}\Whitesource\wss-unified-agent.jar" -c "${env:BUILD_SOURCESDIRECTORY}\build\whitesource\wss-unified-agent.config" -product "SonarLint/VisualStudio"  -project "SonarSource/sonarlint-visualstudio VS$(vsTargetVersion) ${env:SONAR_PROJECT_VERSION}" -projectversion ${env:SONAR_PROJECT_VERSION}  -scanComment "buildNumber:${env:BUILD_BUILDID};gitSha:${env:BUILD_SOURCEVERSION}" -offline false
+### Mend/WhiteSource scanning end ###
 
 
 ### SBOM generation start ###
