@@ -1,0 +1,321 @@
+### Cut-down pipeline for SLVS - just enough to run a Mend scan
+### Doesn't build or test the binaries
+### 
+### Added as an attempted workaround for https://github.com/SonarSource/sonarlint-visualstudio/issues/4612
+### as described below:
+###
+### Workaround for #4612:
+### 1) build the release artefacts on the MS-hosted VMs as normal, but disable the Mend step by setting the
+###   variable "SkipWhiteSourceScan=true" when triggering the build pipeline manually.
+###   -> binaries should be built and signed as normal
+###
+### 2) run this pipeline on a locally-hosted Azure DevOps build agent (i.e. set up build agent on a local dev machine)
+###   -> this should do an up-to-date Mend analysis corresponding to the artefacts used in the release.
+### 
+### NOTE: the build ID of the Mend analysis will be different from that of the released artefact. However, the Mend
+###       analysis will be as close in time to the release and run on the same source code, so any relevant issues
+###       will be visible.
+
+variables:
+- group: sonarsource-build-variables
+- name: BuildParameters.solution
+  value: SonarLint.VisualStudio.Integration.sln
+
+name: $(Build.BuildId)
+
+trigger:
+  branches:
+    include:
+    - master
+  batch: False
+
+jobs:
+- job: Phase_1
+  strategy:
+    maxParallel: 2
+    matrix:
+      2019:
+        vsTargetVersion: 2019
+      2022:
+        vsTargetVersion: 2022
+  displayName: "Build:"
+  cancelTimeoutInMinutes: 1
+
+### *** TODO - change the pool to a non-MS hosted pool ***
+#  pool: myPoolName
+  pool:
+    vmImage: windows-2022
+
+  steps:
+  - checkout: self
+    submodules: recursive
+    fetchTags: false
+    persistCredentials: True
+
+  #- task: PowerShell@2
+  #  displayName: Calculate if should sign Vsix
+  #  inputs:
+  #    targetType: filePath
+  #    filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\should-sign-vsix.ps1
+
+  - task: NuGetToolInstaller@0
+    displayName: Use NuGet 6.3.x
+    inputs:
+      versionSpec: 6.3.x
+
+  - task: NuGetCommand@2
+    displayName: NuGet restore with LockedMode check (VS2022 only)
+    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+    inputs:
+      command: custom
+      solution: $(BuildParameters.solution)
+      feedRestore: 399fb241-ecc7-4802-8697-dcdd01fbb832/423b576f-2263-43a1-93bd-69f4def19102
+      includeNuGetOrg: false
+      nugetConfigPath: nuget.config
+      arguments: restore -LockedMode -Verbosity detailed
+
+  - task: NuGetCommand@2
+    displayName: NuGet restore without LockedMode check (VS2019)
+    condition: and(succeeded(), ne(variables['vsTargetVersion'], '2022'))
+    inputs:
+      solution: $(BuildParameters.solution)
+      selectOrConfig: config
+
+  - task: PowerShell@2
+    displayName: 'Read Sonar project version from the versions.props file '
+    inputs:
+      targetType: filePath
+      filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\read-versions.props.ps1
+
+  #- task: PowerShell@2
+  #  displayName: Locate signtool.exe
+  #  inputs:
+  #    targetType: filePath
+  #    filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\locate-signtool.ps1
+
+  #- task: PowerShell@2
+  #  displayName: (VS2022 only) Set VsixVersion as a build property for the release pipeline to use
+  #  env:
+  #    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+  #  condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+  #  inputs:
+  #    targetType: filePath
+  #    filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\set-vsix-version.ps1
+
+  - task: PowerShell@2
+    displayName: (VS2022 only) Sanity check - fetch VsixVersion build property
+    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+    inputs:
+      targetType: filePath
+      filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\fetch-vsix-version.ps1
+
+  #- task: VSBuild@1
+  #  displayName: Set BranchName, Sha1 and BuildNumber properties from Azdo pipeline variables
+  #  inputs:
+  #    solution: build/ChangeVersion.proj
+  #    msbuildArgs: /p:Sha1=$(Build.SourceVersion) /p:BranchName=$(Build.SourceBranchName) /p:BuildNumber=$(Build.BuildId)  /p:BuildConfiguration=$(BuildConfiguration)
+
+  #- task: DownloadSecureFile@1
+  #  name: snk
+  #  displayName: Download snk file
+  #  inputs:
+  #    secureFile: SonarSourceSecret.snk
+  #    retryCount: 5
+
+  #- task: DownloadSecureFile@1
+  #  name: pfx
+  #  displayName: Download pfx file
+  #  inputs:
+  #    secureFile: SonarSource-2021-2023.pfx
+  #    retryCount: 5
+
+  ### WORKAROUND - NOTE: we can't use "jdkSourceOption: PreInstalled" - need to have an appropriate Java version installed on the local agent
+
+  # Specify the version of Java to use.
+  # See https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/java-tool-installer-v0?view=azure-pipelines
+  #- task: JavaToolInstaller@0
+  #  inputs:
+  #    versionSpec: '11'
+  #    jdkArchitectureOption: 'x64'
+  #    jdkSourceOption: PreInstalled
+
+  ##*********************************************************
+  ## HACK - explicitly build the projects that download and process the jar files
+  ##
+  ## Building the VS2019 version from the command line does not work correctly (CI or locally).
+  ## For some reason, the Rules.csproj build does not embed any files.
+  ## See #3584 - https://github.com/SonarSource/sonarlint-visualstudio/issues/3584
+  #- task: VSBuild@1
+  #  displayName: Build rule description extractor
+  #  inputs:
+  #    solution: build\tools\ExtractRuleDescFromJson\ExtractRuleDescFromJson.csproj
+  #    vsVersion: 17.0
+
+  #- task: VSBuild@1
+  #  displayName: Pre-process jar files
+  #  inputs:
+  #    solution: build\ProcessJarFiles\ProcessJarFiles.proj
+  #    vsVersion: 17.0
+
+  ## End of hack
+  ##*********************************************************
+  
+  #- task: SonarCloudPrepare@1
+  #  displayName: Prepare analysis on SonarCloud (VS2022 only)
+  #  condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+  #  inputs:
+  #    SonarCloud: SonarCloud
+  #    organization: sonarsource
+  #    projectKey: sonarlint-visualstudio
+  #    projectName: SonarLint for Visual Studio
+  #    projectVersion: $(SONAR_PROJECT_VERSION)
+
+  #- task: VSBuild@1
+  #  displayName: Build solution SonarLint.VisualStudio.Integration.sln
+  #  inputs:
+  #    solution: $(BuildParameters.solution)
+  #    vsVersion: 17.0
+  #    msbuildArgs: /p:VsTargetVersion=$(vsTargetVersion) /p:DeployExtension=false /p:SignArtifacts=$(SHOULD_SIGN) /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)" /p:pfxCertificatePath="$(pfx.secureFilePath)" /p:pfxPassword="$(pfxPassword2021-2023)" /p:pfxSha1=$(pfxSha1-2021-2023) /p:Sha1=$(Build.SourceVersion) /p:BuildNumber=$(Build.BuildId)  $(AdditionalMSBuildArgs)
+  #    platform: $(BuildPlatform)
+  #    configuration: $(BuildConfiguration)
+  #    maximumCpuCount: true
+  #    logFileVerbosity: diagnostic
+
+  #- task: CopyFiles@2
+  #  displayName: 'Copy asmref files to: $(Build.ArtifactStagingDirectory) in the event of a build failure' 
+  #  inputs:
+  #    SourceFolder: $(Build.SourcesDirectory)\src\Integration.Vsix
+  #    Contents: |
+  #      **\AsmRef_*.txt
+  #    flattenFolders: true
+  #    TargetFolder: $(Build.ArtifactStagingDirectory)
+  #  condition: failed()     # we're only interested if the build failed (in case the build failed because of a mismatch in the asmref files)
+
+
+### Mend/WhiteSource scanning ###
+# Run if: previous builds succeeded AND (building master or ForceWhiteSourceScan=true) UNLESS (SkipwWhiteSourceScan=true)
+
+  - task: UniversalPackages@0
+    displayName: Download WhiteSource agent
+    condition: and(succeeded(), ne(variables['SkipWhiteSourceScan'], 'true'), or(eq(variables['ForceWhiteSourceScan'], 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
+    inputs:
+      downloadDirectory: $(System.DefaultWorkingDirectory)\Whitesource
+      feedsToUse: 'internal'
+      vstsFeed: '399fb241-ecc7-4802-8697-dcdd01fbb832/9e67fb30-4d6b-42ce-93f1-82d875c48b3b'
+      vstsFeedPackage: '1b87817a-74ba-44b2-952f-cb80bf4c6aa6'
+      versionListDownload: '*'
+
+  - task: PowerShell@2
+    displayName: Run WhiteSource (Mend) scan
+    # Run if: previous builds succeeded AND (building master or ForceWhiteSourceScan=true) UNLESS (SkipwWhiteSourceScan=true)
+    condition: and(succeeded(), ne(variables['SkipWhiteSourceScan'], 'true'), or(eq(variables['ForceWhiteSourceScan'], 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
+    env:
+      WS_APIKEY: $(MEND_APIKEY)
+    inputs:
+      targetType: inline
+      script: java -jar  "${env:SYSTEM_DEFAULTWORKINGDIRECTORY}\Whitesource\wss-unified-agent.jar" -c "${env:BUILD_SOURCESDIRECTORY}\build\whitesource\wss-unified-agent.config" -product "SonarLint/VisualStudio"  -project "SonarSource/sonarlint-visualstudio VS$(vsTargetVersion) ${env:SONAR_PROJECT_VERSION}" -projectversion ${env:SONAR_PROJECT_VERSION}  -scanComment "buildNumber:${env:BUILD_BUILDID};gitSha:${env:BUILD_SOURCEVERSION}" -offline false
+### Mend/WhiteSource scanning end ###
+
+
+#### SBOM generation start ###
+#  - task: DotNetCoreCLI@2
+#    displayName: Install cycloneDX tool
+#    condition: and(succeeded(), or(eq(variables['ForceSbomGeneration'], 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
+#    inputs:
+#      command: custom
+#      custom: tool
+#      arguments: install --global CycloneDX
+
+#  - task: DotNetCoreCLI@2
+#    displayName: Generate cycloneDX sbom file
+#    condition: and(succeeded(), or(eq(variables['ForceSbomGeneration'], 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
+#    inputs:
+#      command: custom
+#      projects: SonarLint.VisualStudio.Integration.sln
+#      custom: CycloneDX
+#      arguments: -t -j -o binaries
+
+#  - task: DownloadSecureFile@1
+#    name: signKey
+#    displayName: Download sign key
+#    condition: and(succeeded(), or(eq(variables['ForceSbomGeneration'], 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
+#    inputs:
+#      secureFile: sign-key.asc
+
+#  - task: PowerShell@2
+#    displayName: Rename and sign SBOM file
+#    condition: and(succeeded(), or(eq(variables['ForceSbomGeneration'], 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
+#    env:
+#      PGP_PASSPHRASE: $(PGP_PASSPHRASE)
+#    inputs:
+#      targetType: filePath
+#      filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\sbom.ps1
+#### SBOM generation end ###
+
+
+#  - task: CopyFiles@2
+#    displayName: 'Copy VSIX to: $(Build.ArtifactStagingDirectory)'
+#    inputs:
+#      SourceFolder: $(Build.SourcesDirectory)\binaries
+#      Contents: |
+#        **\*.vsix
+#        **\SonarLint.visualstudio.sbom*.*
+#      TargetFolder: $(Build.ArtifactStagingDirectory)
+#    condition: succeededOrFailed()
+
+#  - task: CopyFiles@2
+#    displayName: 'Copy any MSBuild binary logs to: $(Build.ArtifactStagingDirectory)'
+#    inputs:
+#      SourceFolder: $(Build.SourcesDirectory)
+#      Contents: '**\*.binlog'
+#      TargetFolder: $(Build.ArtifactStagingDirectory)
+#    condition: succeededOrFailed()
+
+#  - task: CopyFiles@2
+#    displayName: 'Copy marketplace files to:  $(Build.ArtifactStagingDirectory) (VS2022 only)'
+#    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+#    inputs:
+#      SourceFolder: $(Build.SourcesDirectory)\MarketPlaceFiles\VS2022
+#      TargetFolder: $(Build.ArtifactStagingDirectory)
+
+#  - task: CopyFiles@2
+#    displayName: 'Copy marketplace files to:  $(Build.ArtifactStagingDirectory) (VS2019 only)'
+#    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2019'))
+#    inputs:
+#      SourceFolder: $(Build.SourcesDirectory)\MarketPlaceFiles\VS2019
+#      TargetFolder: $(Build.ArtifactStagingDirectory)
+
+#  - task: PublishBuildArtifacts@1
+#    displayName: 'Publish Artifact: vsix'
+#    inputs:
+#      ArtifactName: vsix
+#    condition: succeededOrFailed()  # always publish artefacts - helps with diagnosing failures
+  
+#  - task: VSTest@2
+#    displayName: VsTest - testAssemblies
+#    inputs:
+#      testAssemblyVer2: |
+#        **\bin\**\$(BuildConfiguration)\**\sonar*.*tests.dll
+#        !**\obj\**
+#      runInParallel: false
+#      runTestsInIsolation: false
+#      codeCoverageEnabled: true
+#      platform: $(BuildPlatform)
+#      configuration: $(BuildConfiguration)
+#      rerunFailedTests: true
+
+#  - task: SonarCloudAnalyze@1
+#    displayName: Run Code Analysis (VS2022 only)
+#    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+
+#  - task: SonarCloudPublish@1
+#    displayName: Publish Quality Gate Result (VS2022 only)
+#    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+
+#  - task: PowerShell@2
+#    displayName: Set trigger dogfood VSIX build tag (VS2022 only)
+#    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+#    inputs:
+#      targetType: filePath
+#      filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\trigger-dogfood.ps1
+...
