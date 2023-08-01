@@ -23,6 +23,9 @@ variables:
 
 name: $(Build.BuildId)
 
+# Disable CI triggers
+trigger: none
+
 jobs:
 - job: Phase_1
   strategy:
