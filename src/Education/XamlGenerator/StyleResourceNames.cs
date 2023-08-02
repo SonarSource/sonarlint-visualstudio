@@ -49,6 +49,8 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         Code_Span,                  // html <code>, rendered is a XAML <Span>
         Title_Paragraph,            // rule title (name) - <paragraph>
         SubtitleElement_Span,       // element under the title e.g. issue type, severity, rule id
-        SubtitleElement_Image       // image in a subtitle element
+        SubtitleElement_Image,      // image in a subtitle element
+        NonCompliant_Diff,          // non compliant element for diff highlighting
+        Compliant_Diff              // compliant element for diff highlighting
     }
 }
