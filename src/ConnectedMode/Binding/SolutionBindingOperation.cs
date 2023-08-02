@@ -20,12 +20,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Abstractions;
 using System.Threading;
 using IFileSystem = System.IO.Abstractions.IFileSystem;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
@@ -34,7 +32,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     /// </summary>
     internal class SolutionBindingOperation : ISolutionBindingOperation
     {
-        private readonly IDictionary<Language, IBindingConfig> bindingConfigInformationMap = new Dictionary<Language, IBindingConfig>();
         private readonly IFileSystem fileSystem;
 
         public SolutionBindingOperation()
@@ -46,13 +43,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         {
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
-
-        #region State
-
-        internal /*for testing purposes*/ IReadOnlyDictionary<Language, IBindingConfig> RuleSetsInformationMap => 
-            new ReadOnlyDictionary<Language, IBindingConfig>(bindingConfigInformationMap);
-
-        #endregion
 
         #region Public API
 
