@@ -74,6 +74,8 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
         private sealed class RuleHelpXamlTranslator : IRuleHelpXamlTranslator
         {
+            Dictionary<string, string> diffCodes = new Dictionary<string, string>();
+            private readonly IDiffTranslator diffTranslator;
             private readonly IXamlWriterFactory xamlWriterFactory;
             private XmlWriter writer;
             private XmlReader reader;
@@ -93,6 +95,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             public RuleHelpXamlTranslator(IXamlWriterFactory xamlWriterFactory)
             {
                 this.xamlWriterFactory = xamlWriterFactory;
+                //TODO: Initialize diffTranslator
             }
 
             public string TranslateHtmlToXaml(string htmlContent)
@@ -164,6 +167,8 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     reader.Close();
                     writer.Close();
                 }
+
+                ReplaceDiffs(sb);
 
                 return sb.ToString();
             }
@@ -274,6 +279,10 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                         writer.ApplyStyleToElement(StyleResourceNames.Pre_Section);
 
                         PushOutputElementInfo("pre", false);
+                        if (reader.AttributeCount > 0)
+                        {
+                            ProcessDiffCode();
+                        }
                         break;
 
                     case "strong":
@@ -546,6 +555,36 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 if (current.SupportsInlines)
                 {
                     throw new InvalidOperationException("Invalid state: can't find an element that supports blocks");
+                }
+            }
+
+            private void ProcessDiffCode()
+            {
+                var diffType = reader.GetAttribute("data-diff-type");
+                var diffId = reader.GetAttribute("data-diff-id");
+
+                var diffTag = $"[{diffType}:{diffId}]";
+
+                reader.Read();
+
+                var code = reader.Value;
+
+                diffCodes.Add(diffTag, code);
+
+                WriteText(diffTag);
+            }
+
+            private void ReplaceDiffs(StringBuilder sb)
+            {
+                for (int i = 1; i <= (diffCodes.Count / 2); i++)
+                {
+                    var noncompliantKey = $"[noncompliant:{i}]";
+                    var compliantKey = $"[compliant:{i}]";
+
+                    var diffXaml = diffTranslator.GetDiffXaml(diffCodes[noncompliantKey], diffCodes[compliantKey]);
+
+                    sb.Replace(noncompliantKey, diffXaml.noncompliantXaml);
+                    sb.Replace(compliantKey, diffXaml.compliantXaml);
                 }
             }
         }
