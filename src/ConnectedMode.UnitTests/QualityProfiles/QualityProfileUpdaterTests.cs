@@ -18,17 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading;
-using Task = System.Threading.Tasks.Task;
+using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
 {
-    internal interface IQualityProfileUpdater
+    [TestClass]
+    public class QualityProfileUpdaterTests
     {
-        /// <summary>
-        /// When in Connected Mode, ensures that all of the Quality Profiles
-        /// are up to date
-        /// </summary>
-        Task UpdateAsync(CancellationToken cancellationToken);
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+            => MefTestHelpers.CheckTypeCanBeImported<QualityProfileUpdater, IQualityProfileUpdater>();
+     
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+            => MefTestHelpers.CheckIsSingletonMefComponent<QualityProfileUpdater>();
     }
 }
