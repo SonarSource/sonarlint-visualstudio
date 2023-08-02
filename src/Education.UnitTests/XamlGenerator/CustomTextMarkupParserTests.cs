@@ -21,9 +21,9 @@
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Education.XamlGenerator;
 
-namespace SonarLint.VisualStudio.Education.UnitTests
+
+namespace SonarLint.VisualStudio.Education.XamlGenerator.UnitTests
 {
     [TestClass]
     public class CustomTextMarkupParserTests
