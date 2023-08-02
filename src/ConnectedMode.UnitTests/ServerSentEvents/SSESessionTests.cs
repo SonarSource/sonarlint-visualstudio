@@ -33,6 +33,7 @@ using SonarQube.Client.Models.ServerSentEvents;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Taint;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
+using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents;
 
@@ -63,9 +64,11 @@ public class SSESessionTests
         {
             Mock.Of<IIssueChangedServerEvent>(),
             Mock.Of<ITaintVulnerabilityRaisedServerEvent>(),
+            Mock.Of<IQualityProfileEvent>(),
             Mock.Of<IIssueChangedServerEvent>(),
             Mock.Of<ITaintVulnerabilityClosedServerEvent>(),
             Mock.Of<ITaintVulnerabilityClosedServerEvent>(),
+            Mock.Of<IQualityProfileEvent>(),
             Mock.Of<IIssueChangedServerEvent>(),
             Mock.Of<ITaintVulnerabilityRaisedServerEvent>()
         };
@@ -77,6 +80,7 @@ public class SSESessionTests
 
         CheckEventsSequence<ITaintServerEvent>(testScope.TaintPublisherMock.Invocations);
         CheckEventsSequence<IIssueChangedServerEvent>(testScope.IssuePublisherMock.Invocations);
+        CheckEventsSequence<IQualityProfileEvent>(testScope.QualityProfilePublisherMock.Invocations);
 
         // note: can't pass Mock<IServerSentEventSourcePublisher<T>> because Mock's generic type is not covariant and we use the publisher interface through inheritor interfaces
         void CheckEventsSequence<T>(IEnumerable<IInvocation> publisherMockInvocations) where T : class, IServerEvent
@@ -98,9 +102,11 @@ public class SSESessionTests
             new IServerEvent[]
             {
                 Mock.Of<ITaintVulnerabilityRaisedServerEvent>(),
+                Mock.Of<IQualityProfileEvent>(),
                 null,
                 Mock.Of<ITaintVulnerabilityRaisedServerEvent>(),
                 Mock.Of<IIssueChangedServerEvent>(),
+                Mock.Of<IQualityProfileEvent>(),
                 Mock.Of<IIssueChangedServerEvent>()
             });
 
@@ -108,6 +114,7 @@ public class SSESessionTests
 
         testScope.TaintPublisherMock.Verify(publisher => publisher.Publish(It.IsAny<ITaintServerEvent>()), Times.Exactly(2));
         testScope.IssuePublisherMock.Verify(publisher => publisher.Publish(It.IsAny<IIssueChangedServerEvent>()), Times.Exactly(2));
+        testScope.QualityProfilePublisherMock.Verify(publisher => publisher.Publish(It.IsAny<IQualityProfileEvent>()), Times.Exactly(2));
     }
 
     [TestMethod]
@@ -121,6 +128,7 @@ public class SSESessionTests
             new IServerEvent[]
             {
                 Mock.Of<ITaintVulnerabilityRaisedServerEvent>(),
+                Mock.Of<IQualityProfileEvent>(),
                 Mock.Of<IDummyServerEvent>(),
                 Mock.Of<ITaintVulnerabilityRaisedServerEvent>(),
                 Mock.Of<IIssueChangedServerEvent>()
@@ -130,6 +138,7 @@ public class SSESessionTests
 
         testScope.TaintPublisherMock.Verify(publisher => publisher.Publish(It.IsAny<ITaintServerEvent>()), Times.Exactly(2));
         testScope.IssuePublisherMock.Verify(publisher => publisher.Publish(It.IsAny<IIssueChangedServerEvent>()), Times.Exactly(1));
+        testScope.QualityProfilePublisherMock.Verify(publisher => publisher.Publish(It.IsAny<IQualityProfileEvent>()), Times.Exactly(1));
     }
 
     [TestMethod]
@@ -226,6 +235,7 @@ public class SSESessionTests
             SonarQubeServiceMock = mockRepository.Create<ISonarQubeService>();
             TaintPublisherMock = mockRepository.Create<ITaintServerEventSourcePublisher>(MockBehavior.Loose);
             IssuePublisherMock = mockRepository.Create<IIssueServerEventSourcePublisher>(MockBehavior.Loose);
+            QualityProfilePublisherMock = mockRepository.Create<IQualityProfileServerEventSourcePublisher>(MockBehavior.Loose);
             ThreadHandlingMock = mockRepository.Create<IThreadHandling>();
             LoggerMock = new Mock<ILogger>();
             OnSessionFailedAsyncMock = GetOnSessionFailedAsyncMock();
@@ -234,6 +244,7 @@ public class SSESessionTests
                 SonarQubeServiceMock.Object,
                 TaintPublisherMock.Object,
                 IssuePublisherMock.Object,
+                QualityProfilePublisherMock.Object,
                 ThreadHandlingMock.Object,
                 LoggerMock.Object);
 
@@ -244,6 +255,7 @@ public class SSESessionTests
         public Mock<ISonarQubeService> SonarQubeServiceMock { get; }
         public Mock<ITaintServerEventSourcePublisher> TaintPublisherMock { get; }
         public Mock<IIssueServerEventSourcePublisher> IssuePublisherMock { get; }
+        public Mock<IQualityProfileServerEventSourcePublisher> QualityProfilePublisherMock { get; }
         public Mock<ILogger> LoggerMock { get; }
         public CancellationToken? CapturedSessionToken { get; private set; }
         public MockSequence CallOrder { get; } = new MockSequence();
