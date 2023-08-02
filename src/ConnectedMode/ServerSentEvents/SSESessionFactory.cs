@@ -24,6 +24,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
+using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Taint;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ServerSentEvents;
@@ -60,6 +61,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
         private readonly ISonarQubeService sonarQubeClient;
         private readonly ITaintServerEventSourcePublisher taintServerEventSourcePublisher;
         private readonly IIssueServerEventSourcePublisher issueServerEventSourcePublisher;
+        private readonly IQualityProfileServerEventSourcePublisher qualityProfileServerEventSourcePublisher;
         private readonly IThreadHandling threadHandling;
 
         private bool disposed;
@@ -69,12 +71,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
         public SSESessionFactory(ISonarQubeService sonarQubeClient,
             ITaintServerEventSourcePublisher taintServerEventSourcePublisher,
             IIssueServerEventSourcePublisher issueServerEventSourcePublisher,
+            IQualityProfileServerEventSourcePublisher qualityProfileServerEventSourcePublisher, 
             IThreadHandling threadHandling, 
             ILogger logger)
         {
             this.sonarQubeClient = sonarQubeClient;
             this.taintServerEventSourcePublisher = taintServerEventSourcePublisher;
             this.issueServerEventSourcePublisher = issueServerEventSourcePublisher;
+            this.qualityProfileServerEventSourcePublisher = qualityProfileServerEventSourcePublisher;
             this.threadHandling = threadHandling;
             this.logger = logger;
         }
@@ -88,6 +92,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
             var session = new SSESession(taintServerEventSourcePublisher,
                 issueServerEventSourcePublisher,
+                qualityProfileServerEventSourcePublisher,
                 projectKey,
                 threadHandling,
                 sonarQubeClient,
@@ -113,6 +118,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
         {
             private readonly ITaintServerEventSourcePublisher taintServerEventSourcePublisher;
             private readonly IIssueServerEventSourcePublisher issueServerEventSourcePublisher;
+            private readonly IQualityProfileServerEventSourcePublisher qualityProfileServerEventSourcePublisher;
             private readonly string projectKey;
             private readonly IThreadHandling threadHandling;
             private readonly ISonarQubeService sonarQubeService;
@@ -124,6 +130,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
             internal SSESession(ITaintServerEventSourcePublisher taintServerEventSourcePublisher,
                 IIssueServerEventSourcePublisher issueServerEventSourcePublisher,
+                IQualityProfileServerEventSourcePublisher qualityProfileServerEventSourcePublisher,
                 string projectKey,
                 IThreadHandling threadHandling,
                 ISonarQubeService sonarQubeService,
@@ -132,6 +139,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             {
                 this.taintServerEventSourcePublisher = taintServerEventSourcePublisher;
                 this.issueServerEventSourcePublisher = issueServerEventSourcePublisher;
+                this.qualityProfileServerEventSourcePublisher = qualityProfileServerEventSourcePublisher;
                 this.projectKey = projectKey;
                 this.threadHandling = threadHandling;
                 this.sonarQubeService = sonarQubeService;
@@ -183,6 +191,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
                             {
                                 logger.LogVerbose("[SSESession] Publishing issue changed event...");
                                 issueServerEventSourcePublisher.Publish(issueChangedServerEvent);
+                                break;
+                            }
+                            case IQualityProfileEvent qualityProfileEvent:
+                            {
+                                logger.LogVerbose("[SSESession] Publishing quality profile event...");
+                                qualityProfileServerEventSourcePublisher.Publish(qualityProfileEvent);
                                 break;
                             }
                         }

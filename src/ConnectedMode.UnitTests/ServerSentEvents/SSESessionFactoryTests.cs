@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Taint;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
+using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
 {
@@ -40,6 +41,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<ITaintServerEventSourcePublisher>(),
                 MefTestHelpers.CreateExport<IIssueServerEventSourcePublisher>(),
+                MefTestHelpers.CreateExport<IQualityProfileServerEventSourcePublisher>(),
                 MefTestHelpers.CreateExport<ILogger>(),
                 MefTestHelpers.CreateExport<IThreadHandling>());
         }
@@ -83,7 +85,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
             return new SSESessionFactory(Mock.Of<ISonarQubeService>(),
                 taintPublisher ?.Object ?? Mock.Of<ITaintServerEventSourcePublisher>(),
                 Mock.Of<IIssueServerEventSourcePublisher>(),
-                Mock.Of<IThreadHandling>(),
+                Mock.Of<IQualityProfileServerEventSourcePublisher>(),
+            Mock.Of<IThreadHandling>(),
                 Mock.Of<ILogger>());
         }
     }
