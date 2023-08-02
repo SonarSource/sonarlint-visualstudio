@@ -222,6 +222,37 @@ namespace SonarQube.Client.Tests.Models.ServerSentEvents
                     },
                     ruleDescriptionContextKey: "ContextKey"));
         }
+        
+        [TestMethod]
+        public async Task ReadAsync_QualityProfileEventType_DeserializedEvent()
+        {
+            const string serializedQualityProfileEvent = """
+                {
+                  "projects": [
+                    "ABC"
+                  ],
+                  "activatedRules": [
+                    {
+                      "key": "javascript:S4139",
+                      "language": "js",
+                      "severity": "MAJOR",
+                      "params": []
+                    }
+                  ],
+                  "deactivatedRules": []
+                }
+                """;
+            
+            var sqSSEStreamReader = CreateSqStreamReader(new SqServerEvent("RuleSetChanged", serializedQualityProfileEvent));
+
+            var testSubject = CreateTestSubject(sqSSEStreamReader);
+
+            var result = await testSubject.ReadAsync();
+
+            result.Should().NotBeNull();
+            result.Should().BeOfType<QualityProfileEvent>();
+            // note: event implementation is empty, no test for data validity here either
+        }
 
         private ISqSSEStreamReader CreateSqStreamReader(params ISqServerEvent[] events)
         {

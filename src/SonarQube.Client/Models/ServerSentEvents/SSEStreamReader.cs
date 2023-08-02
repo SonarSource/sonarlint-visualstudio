@@ -53,7 +53,8 @@ namespace SonarQube.Client.Models.ServerSentEvents
         {
             {"IssueChanged", typeof(IssueChangedServerEvent)},
             {"TaintVulnerabilityClosed", typeof(TaintVulnerabilityClosedServerEvent)},
-            {"TaintVulnerabilityRaised", typeof(TaintVulnerabilityRaisedServerEvent)}
+            {"TaintVulnerabilityRaised", typeof(TaintVulnerabilityRaisedServerEvent)},
+            {"RuleSetChanged", typeof(QualityProfileEvent)},
         };
 
         public SSEStreamReader(ISqSSEStreamReader sqSSEStreamReader, ILogger logger)
