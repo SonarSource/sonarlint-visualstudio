@@ -233,6 +233,12 @@
                 <Setter Property="FontFamily" Value="Courier New" />
                 <Setter Property="FontSize" Value="{DynamicResource {x:Static vsshell:VsFonts.Environment90PercentFontSizeKey}}"/>
             </Style>
+            <Style x:Key="NonCompliant_Diff" TargetType="Span">
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.VizSurfaceRedLightKey}}" />
+            </Style>
+            <Style x:Key="Compliant_Diff" TargetType="Span">
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.VizSurfaceGreenLightKey}}" />
+            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
     <controls:NestingFlowDocumentScrollViewer>
