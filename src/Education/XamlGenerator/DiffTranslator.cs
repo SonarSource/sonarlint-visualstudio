@@ -18,10 +18,81 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.Text;
+using DiffPlex.DiffBuilder;
+using DiffPlex.DiffBuilder.Model;
+
 namespace SonarLint.VisualStudio.Education.XamlGenerator
 {
-    internal interface IDiffTranslator
+    public interface IDiffTranslator
     {
+        /// <summary>
+        /// Gets the difference between to strings in the format:
+        ///     Regular text one
+        ///     <Span Style="style">Text that is different</Span>
+        ///     Regular Text two
+        /// </summary>
         (string noncompliantXaml, string compliantXaml) GetDiffXaml(string noncompliantHtml, string compliantHtml);
+    }
+
+    [Export(typeof(IDiffTranslator))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class DiffTranslator : IDiffTranslator
+    {
+        private readonly IXamlWriterFactory xamlWriterFactory;
+
+        [ImportingConstructor]
+        public DiffTranslator(IXamlWriterFactory xamlWriterFactory)
+        {
+            this.xamlWriterFactory = xamlWriterFactory;
+        }
+
+        public (string noncompliantXaml, string compliantXaml) GetDiffXaml(string noncompliantHtml, string compliantHtml)
+        {
+            var resultDiff = SideBySideDiffBuilder.Diff(oldText: noncompliantHtml, newText: compliantHtml);
+
+            var highlightedNonCompliant = HighlightLines(resultDiff.OldText.Lines, StyleResourceNames.NonCompliant_Diff);
+            var highlightedCompliant = HighlightLines(resultDiff.NewText.Lines, StyleResourceNames.Compliant_Diff);
+
+            return (highlightedNonCompliant, highlightedCompliant);
+        }
+
+        private string HighlightLines(List<DiffPiece> lines, StyleResourceNames style)
+        {
+            var sb = new StringBuilder();
+            var writer = xamlWriterFactory.Create(sb);
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                var line = lines[i];
+
+                if (line.Type != ChangeType.Unchanged)
+                {
+                    writer.WriteStartElement("Span");
+                    writer.ApplyStyleToElement(style);
+                    writer.WriteString(line.Text);
+                    writer.WriteEndElement();
+                }
+                else
+                {
+                    writer.WriteString(line.Text);
+                }
+
+                // The differ removes the next line element as it returns a list of lines.
+                // It needs to be added back for the xaml to render as intended.
+                if (i < lines.Count - 1)
+                {
+                    writer.WriteRaw("\n");
+                }
+            }
+
+            writer.Close();
+
+            // The xml writer converts \n to \r\n which is not needed here.
+            sb.Replace("\r\n", "\n");
+            return sb.ToString();
+        }
     }
 }
