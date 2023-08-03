@@ -352,6 +352,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             testSubject.InternalState.BindingOperationSucceeded.Should().BeTrue($"Initial state of {nameof(BindingProcessImpl.InternalState.BindingOperationSucceeded)} should be true");
         }
 
+        [TestMethod]
+        public void SaveRuleConfiguration_CallsSolutionBindingOperation()
+        {
+            var solutionBindingOperation = new Mock<ISolutionBindingOperation>();
+
+            var testSubject = CreateTestSubject(solutionBindingOperation: solutionBindingOperation.Object);
+
+            testSubject.SaveRuleConfiguration(CancellationToken.None);
+
+            solutionBindingOperation.Verify(x => x.SaveRuleConfiguration(testSubject.InternalState.BindingConfigs.Values, It.IsAny<CancellationToken>()),
+                Times.Once());
+        }
+
         #endregion Tests
 
         #region Helpers
@@ -362,7 +375,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             IConfigurationPersister configurationPersister = null,
             ISonarQubeService sonarQubeService = null,
             ILogger logger = null,
-            IEnumerable<Language> languagesToBind = null)
+            IEnumerable<Language> languagesToBind = null,
+            ISolutionBindingOperation solutionBindingOperation = null)
         {
             bindingArgs = bindingArgs ?? CreateBindCommandArgs();
             bindingConfigProvider ??= new Mock<IBindingConfigProvider>().Object;
@@ -371,10 +385,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             exclusionSettingsStorage ??= Mock.Of<IExclusionSettingsStorage>();
             logger ??= new TestLogger(logToConsole: true);
             languagesToBind ??= Language.KnownLanguages;
+            solutionBindingOperation ??= Mock.Of<ISolutionBindingOperation>();
 
-            var slnBindOperation = new SolutionBindingOperation();
-
-            return new BindingProcessImpl(bindingArgs, slnBindOperation, bindingConfigProvider,
+            return new BindingProcessImpl(bindingArgs, solutionBindingOperation, bindingConfigProvider,
                 exclusionSettingsStorage, configurationPersister, sonarQubeService, logger, false, languagesToBind);
         }
 
