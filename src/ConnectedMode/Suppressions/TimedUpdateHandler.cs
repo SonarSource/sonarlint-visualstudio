@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         {
             suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync().Forget();
             serverHotspotStoreUpdater.UpdateAllServerHotspotsAsync().Forget();
-            qualityProfileUpdater.UpdateAsync(CancellationToken.None).Forget();
+            qualityProfileUpdater.UpdateAsync().Forget();
         }
 
         public void Dispose()

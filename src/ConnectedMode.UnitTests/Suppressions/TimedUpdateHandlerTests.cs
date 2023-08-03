@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             suppressionIssueStoreUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Once);
             serverHotspotStoreUpdater.Verify(x => x.UpdateAllServerHotspotsAsync(), Times.Once);
-            qualityProfileUpdater.Verify(x => x.UpdateAsync(It.IsAny<CancellationToken>()), Times.Once);
+            qualityProfileUpdater.Verify(x => x.UpdateAsync(), Times.Once);
         }
 
         [TestMethod]
@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             suppressionIssueStoreUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Never);
             serverHotspotStoreUpdater.Verify(x => x.UpdateAllServerHotspotsAsync(), Times.Never);
-            qualityProfileUpdater.Verify(x => x.UpdateAsync(It.IsAny<CancellationToken>()), Times.Never);
+            qualityProfileUpdater.Verify(x => x.UpdateAsync(), Times.Never);
         }
 
         private static ITimerFactory CreateTimerFactory(ITimer timer)
