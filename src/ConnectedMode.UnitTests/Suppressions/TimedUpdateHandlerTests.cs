@@ -19,7 +19,9 @@
  */
 
 using System;
+using System.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
+using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -34,7 +36,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         {
             MefTestHelpers.CheckTypeCanBeImported<TimedUpdateHandler, TimedUpdateHandler>(
                 MefTestHelpers.CreateExport<ISuppressionIssueStoreUpdater>(),
-                MefTestHelpers.CreateExport<IServerHotspotStoreUpdater>());
+                MefTestHelpers.CreateExport<IServerHotspotStoreUpdater>(),
+                MefTestHelpers.CreateExport<IQualityProfileUpdater>());
         }
 
         [TestMethod]
@@ -52,7 +55,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             var timerFactory = CreateTimerFactory(refreshTimer.Object);
 
-            _ = new TimedUpdateHandler(Mock.Of<ISuppressionIssueStoreUpdater>(), Mock.Of<IServerHotspotStoreUpdater>(), timerFactory);
+            _ = new TimedUpdateHandler(Mock.Of<ISuppressionIssueStoreUpdater>(), Mock.Of<IServerHotspotStoreUpdater>(), Mock.Of<IQualityProfileUpdater>(), timerFactory);
 
             refreshTimer.Object.AutoReset.Should().BeTrue();
             refreshTimer.Object.Interval.Should().Be(1000 * 60 * 10);
@@ -67,13 +70,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var timerFactory = CreateTimerFactory(refreshTimer.Object);
             var suppressionIssueStoreUpdater = new Mock<ISuppressionIssueStoreUpdater>();
             var serverHotspotStoreUpdater = new Mock<IServerHotspotStoreUpdater>();
+            var qualityProfileUpdater = new Mock<IQualityProfileUpdater>();
 
-            _ = new TimedUpdateHandler(suppressionIssueStoreUpdater.Object, serverHotspotStoreUpdater.Object, timerFactory);
+            _ = new TimedUpdateHandler(suppressionIssueStoreUpdater.Object, serverHotspotStoreUpdater.Object, qualityProfileUpdater.Object, timerFactory);
 
             refreshTimer.Raise(x => x.Elapsed += null, new TimerEventArgs(DateTime.UtcNow));
 
             suppressionIssueStoreUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Once);
             serverHotspotStoreUpdater.Verify(x => x.UpdateAllServerHotspotsAsync(), Times.Once);
+            qualityProfileUpdater.Verify(x => x.UpdateAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [TestMethod]
@@ -83,8 +88,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var timerFactory = CreateTimerFactory(refreshTimer.Object);
             var suppressionIssueStoreUpdater = new Mock<ISuppressionIssueStoreUpdater>();
             var serverHotspotStoreUpdater = new Mock<IServerHotspotStoreUpdater>();
+            var qualityProfileUpdater = new Mock<IQualityProfileUpdater>();
 
-            var testSubject = new TimedUpdateHandler(suppressionIssueStoreUpdater.Object, serverHotspotStoreUpdater.Object, timerFactory);
+            var testSubject = new TimedUpdateHandler(suppressionIssueStoreUpdater.Object, serverHotspotStoreUpdater.Object, qualityProfileUpdater.Object, timerFactory);
 
             testSubject.Dispose();
 
@@ -93,6 +99,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             suppressionIssueStoreUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Never);
             serverHotspotStoreUpdater.Verify(x => x.UpdateAllServerHotspotsAsync(), Times.Never);
+            qualityProfileUpdater.Verify(x => x.UpdateAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 
         private static ITimerFactory CreateTimerFactory(ITimer timer)

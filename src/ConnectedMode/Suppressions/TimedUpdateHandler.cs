@@ -20,8 +20,10 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
+using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
@@ -35,19 +37,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         private readonly ITimer refreshTimer;
         private readonly ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater;
         private readonly IServerHotspotStoreUpdater serverHotspotStoreUpdater;
+        private readonly IQualityProfileUpdater qualityProfileUpdater;
 
         private bool disposed;
 
         [ImportingConstructor]
         public TimedUpdateHandler(ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
-            IServerHotspotStoreUpdater serverHotspotStoreUpdater) 
-            : this(suppressionIssueStoreUpdater, serverHotspotStoreUpdater, new TimerFactory()) { }
+            IServerHotspotStoreUpdater serverHotspotStoreUpdater,
+            IQualityProfileUpdater qualityProfileUpdater) 
+            : this(suppressionIssueStoreUpdater, serverHotspotStoreUpdater, qualityProfileUpdater, new TimerFactory()) { }
 
         internal /* for testing */ TimedUpdateHandler(ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
-            IServerHotspotStoreUpdater serverHotspotStoreUpdater, ITimerFactory timerFactory)
+            IServerHotspotStoreUpdater serverHotspotStoreUpdater, 
+            IQualityProfileUpdater qualityProfileUpdater,
+            ITimerFactory timerFactory)
         {
             this.suppressionIssueStoreUpdater = suppressionIssueStoreUpdater;
             this.serverHotspotStoreUpdater = serverHotspotStoreUpdater;
+            this.qualityProfileUpdater = qualityProfileUpdater;
 
             refreshTimer = timerFactory.Create();
             refreshTimer.AutoReset = true;
@@ -61,6 +68,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         {
             suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync().Forget();
             serverHotspotStoreUpdater.UpdateAllServerHotspotsAsync().Forget();
+            qualityProfileUpdater.UpdateAsync(CancellationToken.None).Forget();
         }
 
         public void Dispose()
