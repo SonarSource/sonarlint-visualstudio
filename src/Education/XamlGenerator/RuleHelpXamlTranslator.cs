@@ -76,9 +76,9 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
         private sealed class RuleHelpXamlTranslator : IRuleHelpXamlTranslator
         {
-            private Dictionary<string, string> diffCodes = new Dictionary<string, string>();
-            private List<string> invalidIds = new List<string>();
-            private List<string> ids = new List<string>();
+            private readonly Dictionary<string, string> diffCodes = new Dictionary<string, string>();
+            private readonly List<string> invalidIds = new List<string>();
+            private readonly List<string> ids = new List<string>();
             private readonly IDiffTranslator diffTranslator;
             private readonly IXamlWriterFactory xamlWriterFactory;
             private XmlWriter writer;
@@ -108,6 +108,8 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 writer = xamlWriterFactory.Create(sb);
                 reader = CreateXmlReader(htmlContent);
                 outputXamlElementStack = new Stack<XamlOutputElementInfo>();
+
+                ClearDiffCache();
 
                 //We are putting this to simulate the root which will accept only Blocks. So we can add paragraph to inline elements to make them compatible.
                 outputXamlElementStack.Push(new XamlOutputElementInfo("xaml root", false));
@@ -616,6 +618,13 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 {
                     sb.Replace(noncompliantKey, noncompliantHtml);
                 }
+            }
+
+            private void ClearDiffCache()
+            {
+                invalidIds.Clear();
+                ids.Clear();
+                diffCodes.Clear();
             }
         }
     }

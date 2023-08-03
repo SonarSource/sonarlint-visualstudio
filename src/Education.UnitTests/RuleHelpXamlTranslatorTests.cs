@@ -211,6 +211,92 @@ same text 2</Paragraph></Section>";
             result.Replace("\r\n", "\n").Should().Be(expectedText.Replace("\r\n", "\n"));
         }
 
+        [TestMethod]
+        public void TranslateHtmlToXaml_TwoDiffs_HighlightsCodeCorrectly()
+        {
+            IRuleHelpXamlTranslator testSubject = CreateTestSubject();
+
+            var compliantText1 = @"Same text 1
+diff 1";
+
+            var noncompliantText1 = @"Same text 1
+diff 2";
+
+            var compliantText2 = @"diff 1
+same 1";
+
+            var noncompliantText2 = @"diff 2
+same 1";
+
+            var htmlText = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText1}</pre><pre data-diff-type=\"compliant\" data-diff-id=\"2\">{compliantText2}</pre><pre data-diff-type=\"noncompliant\" data-diff-id=\"1\">{noncompliantText1}</pre><pre data-diff-type=\"noncompliant\" data-diff-id=\"2\">{noncompliantText2}</pre>";
+
+            var expectedText = @"<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
+  <Paragraph>Same text 1
+<Span Style=""{DynamicResource Compliant_Diff}"">diff 1</Span></Paragraph>
+</Section>
+<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
+  <Paragraph><Span Style=""{DynamicResource Compliant_Diff}"">diff 1</Span>
+same 1</Paragraph>
+</Section>
+<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
+  <Paragraph>Same text 1
+<Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span></Paragraph>
+</Section>
+<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
+  <Paragraph><Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span>
+same 1</Paragraph>
+</Section>";
+
+            var result = testSubject.TranslateHtmlToXaml(htmlText);
+
+            result.Replace("\r\n", "\n").Should().Be(expectedText.Replace("\r\n", "\n"));
+        }
+
+        [TestMethod]
+        public void TranslateHtmlToXaml_SequentialCalls_HighlightsCorrectly()
+        {
+            IRuleHelpXamlTranslator testSubject = CreateTestSubject();
+
+            var compliantText1 = @"Same text 1
+diff 1";
+
+            var noncompliantText1 = @"Same text 1
+diff 2";
+
+            var compliantText2 = @"diff 1
+same 1";
+
+            var noncompliantText2 = @"diff 2
+same 1";
+
+            var htmlText1 = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText1}</pre><pre data-diff-type=\"noncompliant\" data-diff-id=\"1\">{noncompliantText1}</pre>";
+            var htmlText2 = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText2}</pre><pre data-diff-type=\"noncompliant\" data-diff-id=\"1\">{noncompliantText2}</pre>";
+
+            var expectedText1 = @"<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
+  <Paragraph>Same text 1
+<Span Style=""{DynamicResource Compliant_Diff}"">diff 1</Span></Paragraph>
+</Section>
+<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
+  <Paragraph>Same text 1
+<Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span></Paragraph>
+</Section>";
+
+            var expectedText2 = @"<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
+  <Paragraph><Span Style=""{DynamicResource Compliant_Diff}"">diff 1</Span>
+same 1</Paragraph>
+</Section>
+<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
+  <Paragraph><Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span>
+same 1</Paragraph>
+</Section>";
+
+            var result1 = testSubject.TranslateHtmlToXaml(htmlText1);
+            var result2 = testSubject.TranslateHtmlToXaml(htmlText2);
+
+            result1.Replace("\r\n", "\n").Should().Be(expectedText1.Replace("\r\n", "\n"));
+            result2.Replace("\r\n", "\n").Should().Be(expectedText2.Replace("\r\n", "\n"));
+        }
+
         private static IRuleHelpXamlTranslator CreateTestSubject(IXamlWriterFactory xamlWriterFactory = null, IDiffTranslator diffTranslator = null)
         {
             xamlWriterFactory ??= new XamlWriterFactory();
