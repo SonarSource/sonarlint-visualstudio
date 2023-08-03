@@ -71,21 +71,27 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
         public void Dispose_IdempotentAndDisposesPublishers()
         {
             var taintPublisherMock = new Mock<ITaintServerEventSourcePublisher>();
-            var testSubject = CreateTestSubject(taintPublisherMock);
+            var issuesPublisherMock = new Mock<IIssueServerEventSourcePublisher>();
+            var qualityProfilePublisherMock = new Mock<IQualityProfileServerEventSourcePublisher>();
+            var testSubject = CreateTestSubject(taintPublisherMock, issuesPublisherMock, qualityProfilePublisherMock);
 
             testSubject.Dispose();
             testSubject.Dispose();
             testSubject.Dispose();
 
             taintPublisherMock.Verify(p => p.Dispose(), Times.Once);
+            issuesPublisherMock.Verify(p => p.Dispose(), Times.Once);
+            qualityProfilePublisherMock.Verify(p => p.Dispose(), Times.Once);
         }
 
-        private SSESessionFactory CreateTestSubject(Mock<ITaintServerEventSourcePublisher> taintPublisher = null)
+        private SSESessionFactory CreateTestSubject(Mock<ITaintServerEventSourcePublisher> taintPublisher = null,
+            Mock<IIssueServerEventSourcePublisher> issuePublisher = null,
+            Mock<IQualityProfileServerEventSourcePublisher> qualityProfileServerEventSourcePublisher = null)
         {
             return new SSESessionFactory(Mock.Of<ISonarQubeService>(),
-                taintPublisher ?.Object ?? Mock.Of<ITaintServerEventSourcePublisher>(),
-                Mock.Of<IIssueServerEventSourcePublisher>(),
-                Mock.Of<IQualityProfileServerEventSourcePublisher>(),
+                taintPublisher?.Object ?? Mock.Of<ITaintServerEventSourcePublisher>(), 
+                issuePublisher?.Object ?? Mock.Of<IIssueServerEventSourcePublisher>(),
+                qualityProfileServerEventSourcePublisher?.Object ?? Mock.Of<IQualityProfileServerEventSourcePublisher>(),
             Mock.Of<IThreadHandling>(),
                 Mock.Of<ILogger>());
         }

@@ -111,6 +111,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
             taintServerEventSourcePublisher.Dispose();
             issueServerEventSourcePublisher.Dispose();
+            qualityProfileServerEventSourcePublisher.Dispose();
             disposed = true;
         }
 
