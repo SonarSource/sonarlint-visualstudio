@@ -29,6 +29,7 @@ using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.ConnectedMode.Install;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
+using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
@@ -44,6 +45,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
     {
         private ISSESessionManager sseSessionManager;
         private IIssueServerEventsListener issueServerEventsListener;
+        private IQualityProfileServerEventsListener qualityProfileServerEventsListener;
         private ServerSuppressionsChangedHandler serverSuppressionsChangedHandler;
         private BoundSolutionUpdateHandler boundSolutionUpdateHandler;
         private TimedUpdateHandler timedUpdateHandler;
@@ -66,6 +68,9 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
             issueServerEventsListener = componentModel.GetService<IIssueServerEventsListener>();
             issueServerEventsListener.ListenAsync().Forget();
+
+            qualityProfileServerEventsListener = componentModel.GetService<IQualityProfileServerEventsListener>();
+            qualityProfileServerEventsListener.ListenAsync().Forget();
 
             serverSuppressionsChangedHandler = componentModel.GetService<ServerSuppressionsChangedHandler>();
             boundSolutionUpdateHandler = componentModel.GetService<BoundSolutionUpdateHandler>();
