@@ -48,6 +48,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile
 
         public async Task ListenAsync()
         {
+            // when event source is disposed, it returns null
             while (await eventSource.GetNextEventOrNullAsync() != null)
             {
                 await updater.UpdateAsync();
