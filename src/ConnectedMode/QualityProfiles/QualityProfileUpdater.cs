@@ -30,14 +30,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
         /// When in Connected Mode, ensures that all of the Quality Profiles
         /// are up to date
         /// </summary>
-        Task UpdateAsync(CancellationToken cancellationToken);
+        Task UpdateAsync();
     }
 
     [Export(typeof(IQualityProfileUpdater))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class QualityProfileUpdater : IQualityProfileUpdater
     {
-        public Task UpdateAsync(CancellationToken cancellationToken)
+        public Task UpdateAsync()
         {
             // TODO - implement
             return Task.CompletedTask;
