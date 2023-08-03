@@ -23,6 +23,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
@@ -36,7 +37,8 @@ public class QualityProfileServerEventsListenerTests
     {
         MefTestHelpers.CheckTypeCanBeImported<QualityProfileServerEventsListener, IQualityProfileServerEventsListener>(
             MefTestHelpers.CreateExport<IQualityProfileServerEventSource>(),
-            MefTestHelpers.CreateExport<IQualityProfileUpdater>());
+            MefTestHelpers.CreateExport<IQualityProfileUpdater>(),
+            MefTestHelpers.CreateExport<IThreadHandling>());
     }
 
     [TestMethod]
@@ -55,27 +57,37 @@ public class QualityProfileServerEventsListenerTests
             Mock.Of<IQualityProfileEvent>(),
             null
         };
-
-        var tcs = Enumerable.Range(0, events.Length).Select(_ => new TaskCompletionSource<IQualityProfileEvent>()).ToArray();
-
-        var eventSourceMock = new Mock<IQualityProfileServerEventSource>();
-        eventSourceMock.Setup(x => x.GetNextEventOrNullAsync()).Returns(new Queue<Task<IQualityProfileEvent>>(tcs.Select(x => x.Task)).Dequeue);
-        
+        var eventWaiters = Enumerable.Range(0, events.Length).Select(_ => new TaskCompletionSource<IQualityProfileEvent>()).ToArray();
+        var eventSourceMock = SetUpEventSourceSequence(eventWaiters);
+        var threadHandlingMock = SetUpThreadHandlingSwitchToBackgroundThread();
         var updaterMock = new Mock<IQualityProfileUpdater>();
 
-        var testSubject = new QualityProfileServerEventsListener(eventSourceMock.Object, updaterMock.Object);
-        var task = testSubject.ListenAsync();
+        var testSubject = new QualityProfileServerEventsListener(eventSourceMock.Object, updaterMock.Object, threadHandlingMock.Object);
 
-        for (var index = 0; index < tcs.Length; index++)
+        var longRunningTask = testSubject.ListenAsync();
+        
+        for (var index = 0; index < eventWaiters.Length; index++)
         {
-            var taskCompletionSource = tcs[index];
-            taskCompletionSource.SetResult(events[index]);
-            task.IsCompleted.Should().Be(index == tcs.Length - 1);
-        }
-        
-        task.GetAwaiter().GetResult();
-        
+            eventWaiters[index].SetResult(events[index]);
+            (longRunningTask.Status == TaskStatus.RanToCompletion).Should().Be(events[index] == null); // only completes on null event
+        } 
         eventSourceMock.Verify(x => x.GetNextEventOrNullAsync(), Times.Exactly(events.Length));
         updaterMock.Verify(x => x.UpdateAsync(), Times.Exactly(events.Length - 1));
+        threadHandlingMock.Verify(th => th.SwitchToBackgroundThread(), Times.Once);
+    }
+
+    private static Mock<IThreadHandling> SetUpThreadHandlingSwitchToBackgroundThread()
+    {
+        var threadHandlingMock = new Mock<IThreadHandling>();
+        threadHandlingMock.Setup(th => th.SwitchToBackgroundThread()).Returns(new NoOpThreadHandler.NoOpAwaitable());
+        return threadHandlingMock;
+    }
+
+    private static Mock<IQualityProfileServerEventSource> SetUpEventSourceSequence(TaskCompletionSource<IQualityProfileEvent>[] eventWaiters)
+    {
+        var currentEventIndex = 0;
+        var eventSourceMock = new Mock<IQualityProfileServerEventSource>();
+        eventSourceMock.Setup(x => x.GetNextEventOrNullAsync()).Returns(() => eventWaiters[currentEventIndex++].Task);
+        return eventSourceMock;
     }
 }

@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile
 {
@@ -38,16 +39,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile
     {
         private readonly IQualityProfileServerEventSource eventSource;
         private readonly IQualityProfileUpdater updater;
+        private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
-        public QualityProfileServerEventsListener(IQualityProfileServerEventSource eventSource, IQualityProfileUpdater updater)
+        public QualityProfileServerEventsListener(IQualityProfileServerEventSource eventSource, IQualityProfileUpdater updater, IThreadHandling threadHandling)
         {
             this.eventSource = eventSource;
             this.updater = updater;
+            this.threadHandling = threadHandling;
         }
 
         public async Task ListenAsync()
         {
+            await threadHandling.SwitchToBackgroundThread();
+
             // when event source is disposed, it returns null
             while (await eventSource.GetNextEventOrNullAsync() != null)
             {
