@@ -60,21 +60,25 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
     internal class RuleHelpXamlTranslatorFactory : IRuleHelpXamlTranslatorFactory
     {
         private readonly IXamlWriterFactory xamlWriterFactory;
+        private readonly IDiffTranslator diffTranslator;
 
         [ImportingConstructor]
-        public RuleHelpXamlTranslatorFactory(IXamlWriterFactory xamlWriterFactory)
+        public RuleHelpXamlTranslatorFactory(IXamlWriterFactory xamlWriterFactory, IDiffTranslator diffTranslator)
         {
             this.xamlWriterFactory = xamlWriterFactory;
+            this.diffTranslator = diffTranslator;
         }
 
         public IRuleHelpXamlTranslator Create()
         {
-            return new RuleHelpXamlTranslator(xamlWriterFactory);
+            return new RuleHelpXamlTranslator(xamlWriterFactory, diffTranslator);
         }
 
         private sealed class RuleHelpXamlTranslator : IRuleHelpXamlTranslator
         {
-            Dictionary<string, string> diffCodes = new Dictionary<string, string>();
+            private Dictionary<string, string> diffCodes = new Dictionary<string, string>();
+            private List<string> invalidIds = new List<string>();
+            private List<string> ids = new List<string>();
             private readonly IDiffTranslator diffTranslator;
             private readonly IXamlWriterFactory xamlWriterFactory;
             private XmlWriter writer;
@@ -92,10 +96,10 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             /// </summary>
             private bool tableAlternateRow;
 
-            public RuleHelpXamlTranslator(IXamlWriterFactory xamlWriterFactory)
+            public RuleHelpXamlTranslator(IXamlWriterFactory xamlWriterFactory, IDiffTranslator diffTranslator)
             {
                 this.xamlWriterFactory = xamlWriterFactory;
-                //TODO: Initialize diffTranslator
+                this.diffTranslator = diffTranslator;
             }
 
             public string TranslateHtmlToXaml(string htmlContent)
@@ -377,7 +381,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 var settings = new XmlReaderSettings
                 {
                     ConformanceLevel = ConformanceLevel.Fragment,
-                    IgnoreWhitespace = false,
+                    IgnoreWhitespace = false
                 };
 
                 var stream = new StringReader(data);
@@ -565,6 +569,14 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 var diffTag = $"[{diffType}:{diffId}]";
 
+                if (diffCodes.ContainsKey(diffTag))
+                {
+                    invalidIds.Add(diffId);
+                    return;
+                }
+
+                if (!ids.Contains(diffId)) { ids.Add(diffId); }
+
                 reader.Read();
 
                 var code = reader.Value;
@@ -576,15 +588,33 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
             private void ReplaceDiffs(StringBuilder sb)
             {
-                for (int i = 1; i <= (diffCodes.Count / 2); i++)
+                foreach (var id in ids)
                 {
-                    var noncompliantKey = $"[noncompliant:{i}]";
-                    var compliantKey = $"[compliant:{i}]";
+                    var noncompliantKey = $"[noncompliant:{id}]";
+                    var compliantKey = $"[compliant:{id}]";
+
+                    if (invalidIds.Contains(id))
+                    {
+                        ProcessInvalidDiffId(sb, compliantKey, noncompliantKey);
+                        continue;
+                    }
 
                     var diffXaml = diffTranslator.GetDiffXaml(diffCodes[noncompliantKey], diffCodes[compliantKey]);
 
                     sb.Replace(noncompliantKey, diffXaml.noncompliantXaml);
                     sb.Replace(compliantKey, diffXaml.compliantXaml);
+                }
+            }
+
+            private void ProcessInvalidDiffId(StringBuilder sb, string compliantKey, string noncompliantKey)
+            {
+                if (diffCodes.TryGetValue(compliantKey, out string compliantHtml))
+                {
+                    sb.Replace(compliantKey, compliantHtml);
+                }
+                if (diffCodes.TryGetValue(noncompliantKey, out string noncompliantHtml))
+                {
+                    sb.Replace(noncompliantKey, noncompliantHtml);
                 }
             }
         }

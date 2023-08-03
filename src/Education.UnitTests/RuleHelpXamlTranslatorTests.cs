@@ -33,14 +33,16 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void Factory_MefCtor_CheckExports()
         {
-            MefTestHelpers.CheckTypeCanBeImported<RuleHelpXamlTranslatorFactory, IRuleHelpXamlTranslatorFactory>(MefTestHelpers.CreateExport<IXamlWriterFactory>());
+            MefTestHelpers.CheckTypeCanBeImported<RuleHelpXamlTranslatorFactory, IRuleHelpXamlTranslatorFactory>
+                (MefTestHelpers.CreateExport<IXamlWriterFactory>(),
+                MefTestHelpers.CreateExport<IDiffTranslator>());
         }
 
         [TestMethod]
         public void Factory_Create_NewInstanceEachTime()
         {
             var xamlWriterFactoryMock = new Mock<IXamlWriterFactory>();
-            var testSubject = new RuleHelpXamlTranslatorFactory(xamlWriterFactoryMock.Object);
+            var testSubject = new RuleHelpXamlTranslatorFactory(xamlWriterFactoryMock.Object, Mock.Of<IDiffTranslator>());
 
             var o1 = testSubject.Create();
             var o2 = testSubject.Create();
@@ -56,7 +58,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var xamlWriterFactoryMock = new Mock<IXamlWriterFactory>();
             xamlWriterFactoryMock.Setup(x => x.Create(It.IsAny<StringBuilder>()))
                 .Returns((StringBuilder sb) => xamlWriterFactoryActual.Create(sb));
-            var testSubject = new RuleHelpXamlTranslatorFactory(xamlWriterFactoryMock.Object).Create();
+            var testSubject = new RuleHelpXamlTranslatorFactory(xamlWriterFactoryMock.Object, Mock.Of<IDiffTranslator>()).Create();
 
             for (int i = 0; i < 5; i++)
             {
@@ -147,11 +149,74 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             result.Should().Be(expectedText);
         }
 
-        private static IRuleHelpXamlTranslator CreateTestSubject(IXamlWriterFactory xamlWriterFactory = null)
+        [TestMethod]
+        public void TranslateHtmlToXaml_DataDiffExists_HighlightsCode()
+        {
+            IRuleHelpXamlTranslator testSubject = CreateTestSubject();
+
+            var compliantText = @"Same text 1
+diff 1
+same text 2";
+            var nonCompliantText = @"Same text 1
+diff 2
+same text 2";
+
+            var htmlText = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText}</pre>";
+
+            var expectedText = @"<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
+  <Paragraph>Same text 1
+<Span Style=""{DynamicResource Compliant_Diff}"">diff 1</Span>
+same text 2</Paragraph>
+</Section>
+<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}""><Paragraph>Same text 1
+<Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span>
+same text 2</Paragraph></Section>";
+
+            var result = testSubject.TranslateHtmlToXaml(htmlText);
+
+            result.Replace("\r\n", "\n").Should().Be(expectedText.Replace("\r\n", "\n"));
+        }
+
+        [TestMethod]
+        public void TranslateHtmlToXaml_TwoCompliantCode_DoesNotHighlightCode()
+        {
+            IRuleHelpXamlTranslator testSubject = CreateTestSubject();
+
+            var compliantText = @"Same text 1
+diff 1
+same text 2";
+            var nonCompliantText1 = @"Same text 1
+diff 2
+same text 2";
+            var nonCompliantText2 = @"Same text 1
+diff 3
+same text 2";
+
+            var htmlText = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText1}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText2}</pre>";
+
+            var expectedText = @"<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
+  <Paragraph>Same text 1
+diff 1
+same text 2</Paragraph>
+</Section>
+<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}""><Paragraph>Same text 1
+diff 2
+same text 2</Paragraph></Section>
+<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}""><Paragraph>Same text 1
+diff 3
+same text 2</Paragraph></Section>";
+
+            var result = testSubject.TranslateHtmlToXaml(htmlText);
+
+            result.Replace("\r\n", "\n").Should().Be(expectedText.Replace("\r\n", "\n"));
+        }
+
+        private static IRuleHelpXamlTranslator CreateTestSubject(IXamlWriterFactory xamlWriterFactory = null, IDiffTranslator diffTranslator = null)
         {
             xamlWriterFactory ??= new XamlWriterFactory();
+            diffTranslator ??= new DiffTranslator(new XamlWriterFactory());
 
-            return new RuleHelpXamlTranslatorFactory(xamlWriterFactory).Create();
+            return new RuleHelpXamlTranslatorFactory(xamlWriterFactory, diffTranslator).Create();
         }
     }
 }

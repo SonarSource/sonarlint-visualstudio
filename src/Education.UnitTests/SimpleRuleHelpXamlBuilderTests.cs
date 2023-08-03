@@ -28,7 +28,6 @@ using System.Xml;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.Rules;
@@ -107,7 +106,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
         [TestMethod]
         public void Create_CheckAllEmbedded()
-        {            
+        {
             // Performance: this test is loading nearly 2000 files and creating
             // XAML document for them, but it still only takes a around 3 seconds
             // to run.
@@ -121,7 +120,6 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var failures = resourceNames.Where(x => !ProcessResource(x))
                 .ToArray();
 
-
             // see https://github.com/SonarSource/sonarlint-visualstudio/issues/4471
             failures.Should().BeEquivalentTo(new[]
             {
@@ -132,7 +130,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
         private static bool ProcessResource(string fullResourceName)
         {
-            var testSubject = new SimpleRuleHelpXamlBuilder(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()), new XamlGeneratorHelperFactory(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory())), new XamlWriterFactory());
+            var testSubject = new SimpleRuleHelpXamlBuilder(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory(), new DiffTranslator(new XamlWriterFactory())), new XamlGeneratorHelperFactory(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory(), new DiffTranslator(new XamlWriterFactory()))), new XamlWriterFactory());
 
             try
             {
