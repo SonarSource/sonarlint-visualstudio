@@ -48,31 +48,26 @@ public class QualityProfileServerEventsListenerTests
     }
 
     [TestMethod]
-    public void ListenAsync_CallsUpdaterForEachEventUntilNullEvent()
+    public async Task ListenAsync_CallsUpdaterForEachEventUntilNullEvent()
     {
         var events = new[]
         {
-            Mock.Of<IQualityProfileEvent>(),
-            Mock.Of<IQualityProfileEvent>(),
-            Mock.Of<IQualityProfileEvent>(),
-            null
+            Task.FromResult(Mock.Of<IQualityProfileEvent>()),
+            Task.FromResult(Mock.Of<IQualityProfileEvent>()),
+            Task.FromResult(Mock.Of<IQualityProfileEvent>()),
+            Task.FromResult<IQualityProfileEvent>(null), // should stop on null no matter what
+            Task.FromResult(Mock.Of<IQualityProfileEvent>()),
         };
-        var eventWaiters = Enumerable.Range(0, events.Length).Select(_ => new TaskCompletionSource<IQualityProfileEvent>()).ToArray();
-        var eventSourceMock = SetUpEventSourceSequence(eventWaiters);
+        var eventSourceMock = SetUpEventSourceSequence(events);
         var threadHandlingMock = SetUpThreadHandlingSwitchToBackgroundThread();
         var updaterMock = new Mock<IQualityProfileUpdater>();
 
         var testSubject = new QualityProfileServerEventsListener(eventSourceMock.Object, updaterMock.Object, threadHandlingMock.Object);
 
-        var longRunningTask = testSubject.ListenAsync();
+        await testSubject.ListenAsync();
         
-        for (var index = 0; index < eventWaiters.Length; index++)
-        {
-            eventWaiters[index].SetResult(events[index]);
-            (longRunningTask.Status == TaskStatus.RanToCompletion).Should().Be(events[index] == null); // only completes on null event
-        } 
-        eventSourceMock.Verify(x => x.GetNextEventOrNullAsync(), Times.Exactly(events.Length));
-        updaterMock.Verify(x => x.UpdateAsync(), Times.Exactly(events.Length - 1));
+        eventSourceMock.Verify(x => x.GetNextEventOrNullAsync(), Times.Exactly(events.Length - 1 /* the event after null is ignored */));
+        updaterMock.Verify(x => x.UpdateAsync(), Times.Exactly(events.Length - 1/* null doesn't trigger an update */ - 1/* the event after null is ignored */));
         threadHandlingMock.Verify(th => th.SwitchToBackgroundThread(), Times.Once);
     }
 
@@ -83,11 +78,11 @@ public class QualityProfileServerEventsListenerTests
         return threadHandlingMock;
     }
 
-    private static Mock<IQualityProfileServerEventSource> SetUpEventSourceSequence(TaskCompletionSource<IQualityProfileEvent>[] eventWaiters)
+    private static Mock<IQualityProfileServerEventSource> SetUpEventSourceSequence(Task<IQualityProfileEvent>[] events)
     {
         var currentEventIndex = 0;
         var eventSourceMock = new Mock<IQualityProfileServerEventSource>();
-        eventSourceMock.Setup(x => x.GetNextEventOrNullAsync()).Returns(() => eventWaiters[currentEventIndex++].Task);
+        eventSourceMock.Setup(x => x.GetNextEventOrNullAsync()).Returns(() => events[currentEventIndex++]);
         return eventSourceMock;
     }
 }

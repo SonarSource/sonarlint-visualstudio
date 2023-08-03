@@ -56,6 +56,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile
             // when event source is disposed, it returns null
             while (await eventSource.GetNextEventOrNullAsync() != null)
             {
+                // the update is cancelled via it's own Dispose, managed elsewhere
                 await updater.UpdateAsync();
             }
         }
