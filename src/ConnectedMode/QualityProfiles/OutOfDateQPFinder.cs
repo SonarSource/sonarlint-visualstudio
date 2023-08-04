@@ -65,15 +65,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             var config = configProvider.GetConfiguration();
             foreach (var profile in config.Project.Profiles)
             {
-                LogQPVerbose(profile.Key, "Checking if Quality Profile has changed");
+                logger.LogQPVerbose(profile.Key, "Checking if Quality Profile has changed");
                 if (await IsUpdateRequiredAsync(config, profile, cancellationToken))
                 {
                     languagesToUpdate.Add(profile.Key);
-                    LogQPVerbose(profile.Key, "Quality profile update is required");
+                    logger.LogQPVerbose(profile.Key, "Quality profile update is required");
                 }
                 else
                 {
-                    LogQPVerbose(profile.Key, "Quality profile is up-to-date");
+                    logger.LogQPVerbose(profile.Key, "Quality profile is up-to-date");
                 }
             }
 
@@ -95,21 +95,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
         {
             if (!SonarQubeQualityProfile.KeyComparer.Equals(oldProfileInfo.ProfileKey, newProfileInfo.Key))
             {
-                LogQPVerbose($"A different Quality Profile is being used: old: {oldProfileInfo.ProfileKey}, new: {oldProfileInfo.ProfileKey}");
+                logger.LogQPVerbose($"A different Quality Profile is being used: old: {oldProfileInfo.ProfileKey}, new: {oldProfileInfo.ProfileKey}");
                 return true;
             }
 
             if (oldProfileInfo.ProfileTimestamp != newProfileInfo.TimeStamp)
             {
-                LogQPVerbose($"Quality Profile has been updated: old: {oldProfileInfo.ProfileKey}, new: {oldProfileInfo.ProfileKey}");
+                logger.LogQPVerbose($"Quality Profile has been updated: old: {oldProfileInfo.ProfileKey}, new: {oldProfileInfo.ProfileKey}");
                 return true;
             }
 
             return false;
         }
-
-        private void LogQPVerbose(Language language, string text) => logger.LogVerbose($"[QualityProfile][{language.Name}] {text}");
-
-        private void LogQPVerbose(string text) => logger.LogVerbose("[QualityProfile] " + text);
     }
 }
