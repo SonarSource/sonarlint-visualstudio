@@ -152,14 +152,22 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void TranslateHtmlToXaml_DataDiffExists_HighlightsCode()
         {
-            IRuleHelpXamlTranslator testSubject = CreateTestSubject();
+            var diffTranslator = new Mock<IDiffTranslator>();
 
-            var compliantText = @"Same text 1
-diff 1
+            IRuleHelpXamlTranslator testSubject = CreateTestSubject(diffTranslator: diffTranslator.Object);
+
+            var compliantText = "Same text 1\ndiff 1\nsame text 2";
+            var nonCompliantText = "Same text 1\ndiff 2\nsame text 2";
+
+            var compliantXaml = @"Same text 1
+<Span Style=""{DynamicResource Compliant_Diff}"">diff 1</Span>
 same text 2";
-            var nonCompliantText = @"Same text 1
-diff 2
+
+            var noncompliantXaml = @"Same text 1
+<Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span>
 same text 2";
+
+            diffTranslator.Setup(d => d.GetDiffXaml(nonCompliantText, compliantText)).Returns((noncompliantXaml, compliantXaml));
 
             var htmlText = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText}</pre>";
 
@@ -180,17 +188,23 @@ same text 2</Paragraph></Section>";
         [TestMethod]
         public void TranslateHtmlToXaml_TwoCompliantCode_DoesNotHighlightCode()
         {
-            IRuleHelpXamlTranslator testSubject = CreateTestSubject();
+            var diffTranslator = new Mock<IDiffTranslator>();
 
-            var compliantText = @"Same text 1
-diff 1
+            IRuleHelpXamlTranslator testSubject = CreateTestSubject(diffTranslator: diffTranslator.Object);
+
+            var compliantText = "Same text 1\ndiff 1\nsame text 2";
+            var nonCompliantText1 = "Same text 1\ndiff 2\nsame text 2";
+            var nonCompliantText2 = "Same text 1\ndiff 3\nsame text 2";
+
+            var compliantXaml = @"Same text 1
+<Span Style=""{DynamicResource Compliant_Diff}"">diff 1</Span>
 same text 2";
-            var nonCompliantText1 = @"Same text 1
-diff 2
+
+            var noncompliantXaml = @"Same text 1
+<Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span>
 same text 2";
-            var nonCompliantText2 = @"Same text 1
-diff 3
-same text 2";
+
+            diffTranslator.Setup(d => d.GetDiffXaml(nonCompliantText1, compliantText)).Returns((noncompliantXaml, compliantXaml));
 
             var htmlText = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText1}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText2}</pre>";
 
@@ -209,24 +223,38 @@ same text 2</Paragraph></Section>";
             var result = testSubject.TranslateHtmlToXaml(htmlText);
 
             result.Replace("\r\n", "\n").Should().Be(expectedText.Replace("\r\n", "\n"));
+
+            diffTranslator.Verify(d => d.GetDiffXaml(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
         public void TranslateHtmlToXaml_TwoDiffs_HighlightsCodeCorrectly()
         {
-            IRuleHelpXamlTranslator testSubject = CreateTestSubject();
+            var diffTranslator = new Mock<IDiffTranslator>();
+            IRuleHelpXamlTranslator testSubject = CreateTestSubject(diffTranslator: diffTranslator.Object);
 
-            var compliantText1 = @"Same text 1
-diff 1";
+            var compliantText1 = "Same text 1\ndiff 1";
 
-            var noncompliantText1 = @"Same text 1
-diff 2";
+            var noncompliantText1 = "Same text 1\ndiff 2";
 
-            var compliantText2 = @"diff 1
+            var compliantText2 = "diff 1\nsame 1";
+
+            var noncompliantText2 = "diff 2\nsame 1";
+
+            var compliantXaml1 = @"Same text 1
+<Span Style=""{DynamicResource Compliant_Diff}"">diff 1</Span>";
+
+            var noncompliantXaml1 = @"Same text 1
+<Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span>";
+
+            var compliantXaml2 = @"<Span Style=""{DynamicResource Compliant_Diff}"">diff 1</Span>
 same 1";
 
-            var noncompliantText2 = @"diff 2
+            var noncompliantXaml2 = @"<Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span>
 same 1";
+
+            diffTranslator.Setup(d => d.GetDiffXaml(noncompliantText1, compliantText1)).Returns((noncompliantXaml1, compliantXaml1));
+            diffTranslator.Setup(d => d.GetDiffXaml(noncompliantText2, compliantText2)).Returns((noncompliantXaml2, compliantXaml2));
 
             var htmlText = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText1}</pre><pre data-diff-type=\"compliant\" data-diff-id=\"2\">{compliantText2}</pre><pre data-diff-type=\"noncompliant\" data-diff-id=\"1\">{noncompliantText1}</pre><pre data-diff-type=\"noncompliant\" data-diff-id=\"2\">{noncompliantText2}</pre>";
 
@@ -255,19 +283,31 @@ same 1</Paragraph>
         [TestMethod]
         public void TranslateHtmlToXaml_SequentialCalls_HighlightsCorrectly()
         {
-            IRuleHelpXamlTranslator testSubject = CreateTestSubject();
+            var diffTranslator = new Mock<IDiffTranslator>();
+            IRuleHelpXamlTranslator testSubject = CreateTestSubject(diffTranslator: diffTranslator.Object);
 
-            var compliantText1 = @"Same text 1
-diff 1";
+            var compliantText1 = "Same text 1\ndiff 1";
 
-            var noncompliantText1 = @"Same text 1
-diff 2";
+            var noncompliantText1 = "Same text 1\ndiff 2";
 
-            var compliantText2 = @"diff 1
+            var compliantText2 = "diff 1\nsame 1";
+
+            var noncompliantText2 = "diff 2\nsame 1";
+
+            var compliantXaml1 = @"Same text 1
+<Span Style=""{DynamicResource Compliant_Diff}"">diff 1</Span>";
+
+            var noncompliantXaml1 = @"Same text 1
+<Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span>";
+
+            var compliantXaml2 = @"<Span Style=""{DynamicResource Compliant_Diff}"">diff 1</Span>
 same 1";
 
-            var noncompliantText2 = @"diff 2
+            var noncompliantXaml2 = @"<Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span>
 same 1";
+
+            diffTranslator.Setup(d => d.GetDiffXaml(noncompliantText1, compliantText1)).Returns((noncompliantXaml1, compliantXaml1));
+            diffTranslator.Setup(d => d.GetDiffXaml(noncompliantText2, compliantText2)).Returns((noncompliantXaml2, compliantXaml2));
 
             var htmlText1 = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText1}</pre><pre data-diff-type=\"noncompliant\" data-diff-id=\"1\">{noncompliantText1}</pre>";
             var htmlText2 = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText2}</pre><pre data-diff-type=\"noncompliant\" data-diff-id=\"1\">{noncompliantText2}</pre>";
