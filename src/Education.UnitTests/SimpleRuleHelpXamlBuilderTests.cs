@@ -119,7 +119,6 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var failures = resourceNames.Where(x => !ProcessResource(x))
                 .ToArray();
 
-
             // see https://github.com/SonarSource/sonarlint-visualstudio/issues/4471
             failures.Should().BeEquivalentTo(new[]
             {
@@ -136,7 +135,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
         private static bool ProcessResource(string fullResourceName)
         {
-            var testSubject = new SimpleRuleHelpXamlBuilder(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()), new XamlGeneratorHelperFactory(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory())), new XamlWriterFactory());
+            var testSubject = new SimpleRuleHelpXamlBuilder(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory(), new DiffTranslator(new XamlWriterFactory())), new XamlGeneratorHelperFactory(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory(), new DiffTranslator(new XamlWriterFactory()))), new XamlWriterFactory());
 
             try
             {
