@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
             var partialXaml = "<Paragraph>please read coding 101</Paragraph>";
             var testSubject = new ResourcesSection(partialXaml,
                 emptyOrNull ? new List<string>() : null);
-            var staticXamlStorage = new StaticXamlStorage(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()));
+            var staticXamlStorage = CreateStaticXamlStorage();
 
             var visualizationTreeNode = testSubject.GetVisualizationTreeNode(staticXamlStorage);
 
@@ -64,8 +64,8 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
         {
             var partialXaml = "<Paragraph>please read coding 101</Paragraph>";
             var testSubject = new ResourcesSection(partialXaml,
-                new List<string>{ "defense_in_depth", "unknown_section_to_be_ignored", "never_trust_user_input" });
-            var staticXamlStorage = new StaticXamlStorage(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()));
+                new List<string> { "defense_in_depth", "unknown_section_to_be_ignored", "never_trust_user_input" });
+            var staticXamlStorage = CreateStaticXamlStorage();
 
             var visualizationTreeNode = testSubject.GetVisualizationTreeNode(staticXamlStorage);
 
@@ -79,6 +79,11 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
             multiBlockSection.blocks[4].Should().BeOfType<BorderedSection>()
                 .Which.content.Should().BeOfType<ContentSection>()
                 .Which.xamlContent.Should().Be(staticXamlStorage.EducationPrinciplesNeverTrustUserInput);
+        }
+
+        private static StaticXamlStorage CreateStaticXamlStorage()
+        {
+            return new StaticXamlStorage(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory(), new DiffTranslator(new XamlWriterFactory())));
         }
     }
 }

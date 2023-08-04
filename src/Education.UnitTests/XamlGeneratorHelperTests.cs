@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
                 RuleIssueType.Vulnerability, true, new List<string>(), new List<IDescriptionSection>(),
                 new List<string>(), "<p>fix this pls</p>");
 
-            var testSubject = (new XamlGeneratorHelperFactory(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()))).Create(xmlWriter);
+            var testSubject = CreateTestSubject(xmlWriter);
 
             testSubject.WriteDocumentHeader(ruleInfo);
             xmlWriter.WriteStartElement("LineBreak");
@@ -84,8 +84,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var ruleInfo = new RuleInfo("cs", "cs:123", "<p>Hi</p>", "Hi", RuleIssueSeverity.Critical,
                 RuleIssueType.Vulnerability, true, new List<string>(), new List<IDescriptionSection>(),
                 new List<string>(), null);
-
-            var testSubject = (new XamlGeneratorHelperFactory(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()))).Create(xmlWriter);
+            IXamlGeneratorHelper testSubject = CreateTestSubject(xmlWriter);
 
             testSubject.WriteDocumentHeader(ruleInfo);
             xmlWriter.WriteStartElement("Section");
@@ -108,6 +107,11 @@ namespace SonarLint.VisualStudio.Education.UnitTests
   </Paragraph>
   <Section />
 </FlowDocument>".Replace("\r\n", "\n").Replace("\n", "\r\n"));
+        }
+
+        private static IXamlGeneratorHelper CreateTestSubject(XmlWriter xmlWriter)
+        {
+            return (new XamlGeneratorHelperFactory(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory(), new DiffTranslator(new XamlWriterFactory())))).Create(xmlWriter);
         }
     }
 }

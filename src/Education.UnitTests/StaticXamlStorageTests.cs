@@ -45,8 +45,8 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             translatorFactoryMock.Setup(x => x.Create()).Returns(translatorMock.Object);
             var testSubject = new StaticXamlStorage(translatorFactoryMock.Object);
 
-            _  = testSubject.EducationPrinciplesHeader;
-            _  = testSubject.EducationPrinciplesHeader;
+            _ = testSubject.EducationPrinciplesHeader;
+            _ = testSubject.EducationPrinciplesHeader;
 
             translatorMock.Verify(x => x.TranslateHtmlToXaml(StaticHtmlSnippets.EducationPrinciplesHeader), Times.Once);
         }
@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void EducationPrinciplesHeader_DoesNotThrow()
         {
-            var testSubject = new StaticXamlStorage(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()));
+            var testSubject = CreateTestSubject();
 
             Action act = () =>
             {
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void EducationPrinciplesDefenseInDepth_DoesNotThrow()
         {
-            var testSubject = new StaticXamlStorage(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()));
+            var testSubject = CreateTestSubject();
 
             Action act = () =>
             {
@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void EducationPrinciplesNeverTrustUserInput_DoesNotThrow()
         {
-            var testSubject = new StaticXamlStorage(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()));
+            var testSubject = CreateTestSubject();
 
             Action act = () =>
             {
@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         [TestMethod]
         public void HowToFixItFallbackContext_DoesNotThrow()
         {
-            var testSubject = new StaticXamlStorage(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()));
+            var testSubject = CreateTestSubject();
 
             Action act = () =>
             {
@@ -143,6 +143,11 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             };
 
             act.Should().NotThrow();
+        }
+
+        private StaticXamlStorage CreateTestSubject()
+        {
+            return new StaticXamlStorage(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory(), new DiffTranslator(new XamlWriterFactory())));
         }
     }
 }
