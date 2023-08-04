@@ -18,23 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
+namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
 {
-    [TestClass]
-    public class QualityProfileUpdaterTests
+    internal static class QualityProfileExtensions
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-            => MefTestHelpers.CheckTypeCanBeImported<QualityProfileUpdater, IQualityProfileUpdater>(
-                MefTestHelpers.CreateExport<IOutOfDateQPFinder>(),
-                MefTestHelpers.CreateExport<ILogger>());
-     
-        [TestMethod]
-        public void MefCtor_CheckIsSingleton()
-            => MefTestHelpers.CheckIsSingletonMefComponent<QualityProfileUpdater>();
+        public static void LogQPVerbose(this ILogger logger, Language language, string text) => logger.LogVerbose($"[QualityProfile][{language.Name}] {text}");
+
+        public static void LogQPVerbose(this ILogger logger, string text) => logger.LogVerbose("[QualityProfile] " + text);
     }
 }

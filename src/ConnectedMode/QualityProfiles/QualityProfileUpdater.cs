@@ -19,7 +19,9 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
+using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
@@ -37,10 +39,27 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class QualityProfileUpdater : IQualityProfileUpdater
     {
-        public Task UpdateAsync()
+        private readonly IOutOfDateQPFinder outOfDateQPFinder;
+        private readonly ILogger logger;
+
+        [ImportingConstructor]
+        public QualityProfileUpdater(IOutOfDateQPFinder outOfDateQPFinder,
+            ILogger logger)
         {
-            // TODO - implement
-            return Task.CompletedTask;
+            this.outOfDateQPFinder = outOfDateQPFinder;
+            this.logger = logger;
+        }
+
+        public async Task UpdateAsync()
+        {
+            var languagesToUpdate = await outOfDateQPFinder.GetAsync(CancellationToken.None);
+
+            if (!languagesToUpdate.Any())
+            {
+                logger.LogQPVerbose("No updates required");
+            }
+
+            // TODO - update and save changed profiles
         }
     }
 }
