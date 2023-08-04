@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
@@ -62,21 +61,20 @@ public class HowToFixSectionTests
             new HowToFixItSectionContext("aspnetcore","asp net core", "<Paragraph>nothing to worry about, unless...</Paragraph>"),
         };
         var testSubject = new HowToFixItSection(contexts, null);
-        var staticXamlStorage = new StaticXamlStorage(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()));
-        
+        var staticXamlStorage = new StaticXamlStorage(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory(), new DiffTranslator(new XamlWriterFactory())));
+
         var visualizationTreeNode = testSubject.GetVisualizationTreeNode(staticXamlStorage);
-        
+
         var multiBlockSection = visualizationTreeNode.Should().BeOfType<MultiBlockSection>().Subject;
         multiBlockSection.blocks.Should().HaveCount(2);
-        
+
         multiBlockSection.blocks[0].Should().BeOfType<ContentSection>()
             .Which.xamlContent.Should().Be(staticXamlStorage.HowToFixItHeader);
-        
+
         var tabGroup = multiBlockSection.blocks[1].Should().BeOfType<TabGroup>().Subject;
         tabGroup.tabs.Should().HaveCount(contexts.Count + 1);
 
         tabGroup.selectedTabIndex.Should().Be(0);
-
 
         for (var i = 0; i < contexts.Count; i++)
         {
@@ -99,9 +97,9 @@ public class HowToFixSectionTests
             new HowToFixItSectionContext("aspnetcore","asp net core", "<Paragraph>nothing to worry about, unless...</Paragraph>"),
         };
         var testSubject = new HowToFixItSection(contexts, selectedContext);
-        var staticXamlStorage = new StaticXamlStorage(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory()));
+        var staticXamlStorage = new StaticXamlStorage(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory(), new DiffTranslator(new XamlWriterFactory())));
 
-         var visualizationTreeNode = testSubject.GetVisualizationTreeNode(staticXamlStorage);
+        var visualizationTreeNode = testSubject.GetVisualizationTreeNode(staticXamlStorage);
 
         visualizationTreeNode
             .Should().BeOfType<MultiBlockSection>()

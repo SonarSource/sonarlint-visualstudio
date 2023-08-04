@@ -60,20 +60,26 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
     internal class RuleHelpXamlTranslatorFactory : IRuleHelpXamlTranslatorFactory
     {
         private readonly IXamlWriterFactory xamlWriterFactory;
+        private readonly IDiffTranslator diffTranslator;
 
         [ImportingConstructor]
-        public RuleHelpXamlTranslatorFactory(IXamlWriterFactory xamlWriterFactory)
+        public RuleHelpXamlTranslatorFactory(IXamlWriterFactory xamlWriterFactory, IDiffTranslator diffTranslator)
         {
             this.xamlWriterFactory = xamlWriterFactory;
+            this.diffTranslator = diffTranslator;
         }
 
         public IRuleHelpXamlTranslator Create()
         {
-            return new RuleHelpXamlTranslator(xamlWriterFactory);
+            return new RuleHelpXamlTranslator(xamlWriterFactory, diffTranslator);
         }
 
         private sealed class RuleHelpXamlTranslator : IRuleHelpXamlTranslator
         {
+            private readonly Dictionary<string, string> diffCodes = new Dictionary<string, string>();
+            private readonly List<string> invalidIds = new List<string>();
+            private readonly List<string> ids = new List<string>();
+            private readonly IDiffTranslator diffTranslator;
             private readonly IXamlWriterFactory xamlWriterFactory;
             private XmlWriter writer;
             private XmlReader reader;
@@ -90,9 +96,10 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             /// </summary>
             private bool tableAlternateRow;
 
-            public RuleHelpXamlTranslator(IXamlWriterFactory xamlWriterFactory)
+            public RuleHelpXamlTranslator(IXamlWriterFactory xamlWriterFactory, IDiffTranslator diffTranslator)
             {
                 this.xamlWriterFactory = xamlWriterFactory;
+                this.diffTranslator = diffTranslator;
             }
 
             public string TranslateHtmlToXaml(string htmlContent)
@@ -101,6 +108,8 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 writer = xamlWriterFactory.Create(sb);
                 reader = CreateXmlReader(htmlContent);
                 outputXamlElementStack = new Stack<XamlOutputElementInfo>();
+
+                ClearDiffCache();
 
                 //We are putting this to simulate the root which will accept only Blocks. So we can add paragraph to inline elements to make them compatible.
                 outputXamlElementStack.Push(new XamlOutputElementInfo("xaml root", false));
@@ -164,6 +173,8 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     reader.Close();
                     writer.Close();
                 }
+
+                ReplaceDiffs(sb);
 
                 return sb.ToString();
             }
@@ -274,6 +285,10 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                         writer.ApplyStyleToElement(StyleResourceNames.Pre_Section);
 
                         PushOutputElementInfo("pre", false);
+                        if (reader.AttributeCount > 0)
+                        {
+                            ProcessDiffCode();
+                        }
                         break;
 
                     case "strong":
@@ -368,7 +383,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 var settings = new XmlReaderSettings
                 {
                     ConformanceLevel = ConformanceLevel.Fragment,
-                    IgnoreWhitespace = false,
+                    IgnoreWhitespace = false
                 };
 
                 var stream = new StringReader(data);
@@ -547,6 +562,69 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 {
                     throw new InvalidOperationException("Invalid state: can't find an element that supports blocks");
                 }
+            }
+
+            private void ProcessDiffCode()
+            {
+                var diffType = reader.GetAttribute("data-diff-type");
+                var diffId = reader.GetAttribute("data-diff-id");
+
+                var diffTag = $"[{diffType}:{diffId}]";
+
+                if (diffCodes.ContainsKey(diffTag))
+                {
+                    invalidIds.Add(diffId);
+                    return;
+                }
+
+                if (!ids.Contains(diffId)) { ids.Add(diffId); }
+
+                reader.Read();
+
+                var code = reader.Value;
+
+                diffCodes.Add(diffTag, code);
+
+                WriteText(diffTag);
+            }
+
+            private void ReplaceDiffs(StringBuilder sb)
+            {
+                foreach (var id in ids)
+                {
+                    var noncompliantKey = $"[noncompliant:{id}]";
+                    var compliantKey = $"[compliant:{id}]";
+
+                    if (invalidIds.Contains(id))
+                    {
+                        ProcessInvalidDiffId(sb, compliantKey, noncompliantKey);
+                        continue;
+                    }
+
+                    var diffXaml = diffTranslator.GetDiffXaml(diffCodes[noncompliantKey], diffCodes[compliantKey]);
+
+                    sb.Replace(noncompliantKey, diffXaml.noncompliantXaml);
+                    sb.Replace(compliantKey, diffXaml.compliantXaml);
+                }
+            }
+
+            private void ProcessInvalidDiffId(StringBuilder sb, string compliantKey, string noncompliantKey)
+            {
+                if (diffCodes.TryGetValue(compliantKey, out string compliantHtml))
+                {
+                    sb.Replace(compliantKey, compliantHtml);
+                }
+                if (diffCodes.TryGetValue(noncompliantKey, out string noncompliantHtml))
+                {
+                    sb.Replace(noncompliantKey, noncompliantHtml);
+                }
+            }
+
+            private void ClearDiffCache()
+            {
+                invalidIds.Clear();
+                ids.Clear();
+                diffCodes.Clear();
             }
         }
     }
