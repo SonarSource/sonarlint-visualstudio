@@ -285,6 +285,8 @@ jobs:
   - task: SonarCloudAnalyze@1
     displayName: Run Code Analysis (VS2022 only)
     condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+    env:
+      JAVA_HOME: $(JAVA_HOME_17_X64)
 
   - task: SonarCloudPublish@1
     displayName: Publish Quality Gate Result (VS2022 only)
