@@ -234,10 +234,16 @@
                 <Setter Property="FontSize" Value="{DynamicResource {x:Static vsshell:VsFonts.Environment90PercentFontSizeKey}}"/>
             </Style>
             <Style x:Key="NonCompliant_Diff" TargetType="Span">
-                <Setter Property="Background" Value="#25FE2D00" />
+                <Setter Property="Background" Value="#15FE2D00" />
             </Style>
             <Style x:Key="Compliant_Diff" TargetType="Span">
-                <Setter Property="Background" Value="#2500FE2D" />
+                <Setter Property="Background" Value="#1500FE2D" />
+            </Style>
+            <Style x:Key="Sub_NonCompliant_Diff" TargetType="Span">
+                <Setter Property="Background" Value="#40FE2D00" />
+            </Style>
+            <Style x:Key="Sub_Compliant_Diff" TargetType="Span">
+                <Setter Property="Background" Value="#4000FE2D" />
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>
