@@ -104,9 +104,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 // Most of the work is delegated to SolutionBindingOperation
 
                 new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread | StepAttributes.Indeterminate,
-                        (token, notifications) => this.SaveRuleConfiguration(token)),
-
-                new ProgressStepDefinition(Strings.BindingProjectsDisplayMessage, StepAttributes.BackgroundThread | StepAttributes.Indeterminate,
                         (token, notifications) => this.SaveServerExclusionsAsync(controller, notifications, token).GetAwaiter().GetResult()),
 
                 //*****************************************************************
@@ -148,11 +145,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 this.AbortWorkflow(controller, cancellationToken);
             }
-        }
-
-        internal /* for testing */ void SaveRuleConfiguration(CancellationToken token)
-        {
-            this.bindingProcess.SaveRuleConfiguration(token);
         }
 
         internal /*for testing purposes*/ void EmitBindingCompleteMessage(IProgressStepExecutionEvents notifications)
