@@ -42,8 +42,15 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
 
             (string result1, string result2) = testSubject.GetDiffXaml("input1", "input2");
 
-            result1.Should().BeEquivalentTo("<Span Style=\"{DynamicResource NonCompliant_Diff}\">input1</Span>");
-            result2.Should().BeEquivalentTo("<Span Style=\"{DynamicResource Compliant_Diff}\">input2</Span>");
+            var expectedResult1 = @"<Span Style=""{DynamicResource NonCompliant_Diff}"">
+  <Span Style=""{DynamicResource Sub_NonCompliant_Diff}"">input1</Span>
+</Span>";
+            var expectedResult2 = @"<Span Style=""{DynamicResource Compliant_Diff}"">
+  <Span Style=""{DynamicResource Sub_Compliant_Diff}"">input2</Span>
+</Span>";
+
+            result1.Replace("\r\n", "\n").Should().Be(expectedResult1.Replace("\r\n", "\n"));
+            result2.Replace("\r\n", "\n").Should().Be(expectedResult2.Replace("\r\n", "\n"));
         }
 
         [TestMethod]
@@ -64,15 +71,14 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
 
             result1.Should().BeEquivalentTo(
                 "same\n" +
-                "<Span Style=\"{DynamicResource NonCompliant_Diff}\">same one</Span>\n" +
+                "<Span Style=\"{DynamicResource NonCompliant_Diff}\">same <Span Style=\"{DynamicResource Sub_NonCompliant_Diff}\">one</Span></Span>\n" +
                 "same same \n" +
-                "<Span Style=\"{DynamicResource NonCompliant_Diff}\">one</Span>");
+                "<Span Style=\"{DynamicResource NonCompliant_Diff}\"><Span Style=\"{DynamicResource Sub_NonCompliant_Diff}\">one</Span></Span>");
             result2.Should().BeEquivalentTo(
                 "same\n" +
-                "<Span Style=\"{DynamicResource Compliant_Diff}\">same two</Span>\n" +
+                "<Span Style=\"{DynamicResource Compliant_Diff}\">same <Span Style=\"{DynamicResource Sub_Compliant_Diff}\">two</Span></Span>\n" +
                 "same same \n" +
-                "<Span Style=\"{DynamicResource Compliant_Diff}\">two</Span>");
-
+                "<Span Style=\"{DynamicResource Compliant_Diff}\"><Span Style=\"{DynamicResource Sub_Compliant_Diff}\">two</Span></Span>");
         }
 
         [TestMethod]
