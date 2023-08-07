@@ -22,12 +22,17 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
+using SonarQube.Client.Helpers;
+using System.Security;
+using System.Reflection;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 {
@@ -35,6 +40,36 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
     public class BindingProcessImplTests
     {
         #region Tests
+
+        [TestMethod]
+        public void Ctor_ArgChecks()
+        {
+            var bindingArgs = CreateBindCommandArgs(connection: new ConnectionInformation(new Uri("http://server")));
+            var exclusionSettingsStorage = Mock.Of<IExclusionSettingsStorage>();
+            var qpDownloader = Mock.Of<IQualityProfileDownloader>();
+            var sonarQubeService = Mock.Of<ISonarQubeService>();
+            var logger = Mock.Of<ILogger>();
+
+            // 1. Null binding args
+            Action act = () => new BindingProcessImpl(null, exclusionSettingsStorage, sonarQubeService, qpDownloader, logger);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingArgs");
+
+            // 2. Null exclusion settings storage
+            act = () => new BindingProcessImpl(bindingArgs, null, sonarQubeService, qpDownloader, logger);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("exclusionSettingsStorage");
+
+            // 3. Null SonarQube service
+            act = () => new BindingProcessImpl(bindingArgs, exclusionSettingsStorage, null, qpDownloader, logger);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
+
+            // 4. Null QP downloader
+            act = () => new BindingProcessImpl(bindingArgs, exclusionSettingsStorage, sonarQubeService, null, logger);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("qualityProfileDownloader");
+
+            // 5. Null logger
+            act = () => new BindingProcessImpl(bindingArgs, exclusionSettingsStorage, sonarQubeService, qpDownloader, null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
 
         [TestMethod]
         public async Task SaveServerExclusionsAsync_ReturnsTrue()
@@ -113,18 +148,72 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         [TestMethod]
         public async Task DownloadQualityProfile_CreatesBoundProjectAndCallsQPDownloader()
         {
-            // TODO duncanp
+            var qpDownloader = new Mock<IQualityProfileDownloader>();
+            var progress = Mock.Of<IProgress<FixedStepsProgress>>();
 
-            //var bindingArgs = CreateBindCommandArgs("key", ProjectName, new ConnectionInformation(new Uri("http://connected")));
-            //var testSubject = CreateTestSubject(bindingArgs,
-            //    configProviderMock.Object,
-            //    sonarQubeService: sonarQubeService.Object,
-            //    configurationPersister: configPersister,
-            //    languagesToBind: new []{ language });
+            var connectionInfo = new ConnectionInformation(new Uri("http://theServer"));
+            connectionInfo.Organization = new SonarQubeOrganization("the org key", "the org name");
+            var bindingArgs = CreateBindCommandArgs("the project key", "the project name", connectionInfo);
 
-            //// Act
-            //await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
+            var testSubject = CreateTestSubject(bindingArgs,
+                qpDownloader: qpDownloader.Object);
 
+            // Act
+            await testSubject.DownloadQualityProfileAsync(progress, CancellationToken.None);
+
+            qpDownloader.Verify(x => x.UpdateAsync(It.IsAny<BoundSonarQubeProject>(), progress, It.IsAny<CancellationToken>()),
+                Times.Once);
+
+            var actualProject = (BoundSonarQubeProject)qpDownloader.Invocations[0].Arguments[0];
+
+            // Check the bound project was correctly constructed from the BindCommandArgs
+            actualProject.Should().NotBeNull();
+            actualProject.ServerUri.Should().Be("http://theServer");
+            actualProject.ProjectKey.Should().Be("the project key");
+            actualProject.ProjectName.Should().Be("the project name");
+            actualProject.Organization.Key.Should().Be("the org key");
+            actualProject.Organization.Name.Should().Be("the org name");
+        }
+
+        [TestMethod]
+        [DataRow("the user name", null)]
+        [DataRow("the user name", "a password")]
+        [DataRow(null, null)]
+        [DataRow(null, "should be ignored")]
+        public async Task DownloadQualityProfile_HandlesBoundProjectCredentialsCorrectly(string userName, string rawPassword)
+        {
+            var qpDownloader = new Mock<IQualityProfileDownloader>();
+            var password = rawPassword == null ?  null : rawPassword.ToSecureString();
+
+            var connectionInfo = new ConnectionInformation(new Uri("http://any"), userName, password);
+            var bindingArgs = CreateBindCommandArgs(connection: connectionInfo);
+
+            var testSubject = CreateTestSubject(bindingArgs,
+                qpDownloader: qpDownloader.Object);
+
+            // Act
+            await testSubject.DownloadQualityProfileAsync(Mock.Of<IProgress<FixedStepsProgress>>(), CancellationToken.None);
+
+            qpDownloader.Verify(x => x.UpdateAsync(It.IsAny<BoundSonarQubeProject>(),
+                It.IsAny<IProgress<FixedStepsProgress>>(),
+                It.IsAny<CancellationToken>()),
+                Times.Once);
+
+            var actualProject = (BoundSonarQubeProject)qpDownloader.Invocations[0].Arguments[0];
+
+            // Check the credentials were handled correctly
+            if (userName == null)
+            {
+                actualProject.Credentials.Should().BeNull();
+            }
+            else
+            {
+                actualProject.Credentials.Should().BeOfType<BasicAuthCredentials>();
+                var actualCreds = (BasicAuthCredentials)actualProject.Credentials;
+
+                actualCreds.UserName.Should().Be(userName);
+                CheckIsExpectedPassword(rawPassword, actualCreds.Password);
+            }
         }
 
         [TestMethod]
@@ -144,19 +233,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         private BindingProcessImpl CreateTestSubject(BindCommandArgs bindingArgs = null,
             IExclusionSettingsStorage exclusionSettingsStorage = null,
             ISonarQubeService sonarQubeService = null,
-            IQualityProfileDownloader qpUpdater = null,
+            IQualityProfileDownloader qpDownloader = null,
             ILogger logger = null)
         {
             bindingArgs = bindingArgs ?? CreateBindCommandArgs();
             sonarQubeService ??= Mock.Of<ISonarQubeService>();
             exclusionSettingsStorage ??= Mock.Of<IExclusionSettingsStorage>();
-            qpUpdater ??= Mock.Of<IQualityProfileDownloader>();
+            qpDownloader ??= Mock.Of<IQualityProfileDownloader>();
             logger ??= new TestLogger(logToConsole: true);
 
             return new BindingProcessImpl(bindingArgs,
                 exclusionSettingsStorage,
                 sonarQubeService,
-                qpUpdater,
+                qpDownloader,
                 logger,
                 false);
         }
@@ -167,6 +256,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             return new BindCommandArgs(projectKey, projectName, connection);
         }
 
+        private static void CheckIsExpectedPassword(string expectedRawPassword, SecureString actualPassword)
+        {
+            // The SecureString extension methods in SonarQube.Client.Helpers.SecureStringHelper throw for
+            // nulls
+            if (expectedRawPassword == null)
+            {
+                actualPassword.Should().BeNull();
+            }
+            else
+            {
+                actualPassword.ToUnsecureString().Should().Be(expectedRawPassword);
+            }
+        }
         #endregion Helpers
     }
 }

@@ -42,27 +42,25 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
         [TestMethod]
         public async Task UpdateAsync_AllSupportedLanguageAreChecked()
         {
-            var languagesToBind = new[] {
-                Language.Cpp,
-                Language.CSharp,
-                Language.Secrets,
-                Language.VBNET
-            };
             var boundProject = CreateBoundProject();
 
             var sonarQubeService = new Mock<ISonarQubeService>();
 
-            var testSubject = CreateTestSubject(
-                sonarQubeService: sonarQubeService.Object,
-                languagesToBind: languagesToBind);
-
+            // Note: calling the public constructor here to check that it uses
+            // the expected set of languages
+            var testSubject = new QualityProfileDownloader(sonarQubeService.Object,
+                Mock.Of<IBindingConfigProvider>(),
+                Mock.Of<IConfigurationPersister>(),
+                Mock.Of<ISolutionBindingOperation>(),
+                new TestLogger(logToConsole: true));
+            
             await testSubject.UpdateAsync(boundProject, null, CancellationToken.None);
 
-            sonarQubeService.Invocations.Count().Should().Be(4);
-            foreach (var langauge in languagesToBind)
+            foreach (var langauge in Language.KnownLanguages)
             {
                 CheckLanguageQpRequested(sonarQubeService, langauge);
             }
+            sonarQubeService.Invocations.Should().HaveCount(Language.KnownLanguages.Count());
         }
 
         [TestMethod]

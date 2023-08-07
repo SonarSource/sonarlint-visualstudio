@@ -52,7 +52,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
 
         private readonly IEnumerable<Language> languagesToBind;
 
-        [ImportingConstructor]
         public QualityProfileDownloader(
             ISonarQubeService sonarQubeService,
             IBindingConfigProvider bindingConfigProvider,

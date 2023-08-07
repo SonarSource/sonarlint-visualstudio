@@ -40,22 +40,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         private readonly BindCommandArgs bindingArgs;
         private readonly IExclusionSettingsStorage exclusionSettingsStorage;
         private readonly ISonarQubeService sonarQubeService;
-        private readonly IQualityProfileDownloader qualityProfileUpdater;
+        private readonly IQualityProfileDownloader qualityProfileDownloader;
         private readonly ILogger logger;
 
         public BindingProcessImpl(
             BindCommandArgs bindingArgs,
             IExclusionSettingsStorage exclusionSettingsStorage,
             ISonarQubeService sonarQubeService,
-            IQualityProfileDownloader qualityProfileUpdater,
+            IQualityProfileDownloader qualityProfileDownloader,
             ILogger logger,
             bool isFirstBinding = false)
         {
-            this.bindingArgs = bindingArgs;
-            this.exclusionSettingsStorage = exclusionSettingsStorage;
-            this.sonarQubeService = sonarQubeService;
-            this.qualityProfileUpdater = qualityProfileUpdater;
-            this.logger = logger;
+            this.bindingArgs = bindingArgs ?? throw new ArgumentNullException(nameof(bindingArgs));
+            this.exclusionSettingsStorage = exclusionSettingsStorage ?? throw new ArgumentNullException(nameof(exclusionSettingsStorage));
+            this.sonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
+            this.qualityProfileDownloader = qualityProfileDownloader ?? throw new ArgumentNullException(nameof(qualityProfileDownloader));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             Debug.Assert(bindingArgs.ProjectKey != null);
             Debug.Assert(bindingArgs.ProjectName != null);
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         public async Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)
         {
             var boundProject = CreateNewBindingConfig();
-            var result = await qualityProfileUpdater.UpdateAsync(boundProject, progress, cancellationToken);
+            var result = await qualityProfileDownloader.UpdateAsync(boundProject, progress, cancellationToken);
 
             return result;
         }
