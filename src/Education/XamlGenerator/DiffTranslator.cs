@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         /// <summary>
         /// Gets the difference between to strings in the format:
         ///     Regular text one
-        ///     <Span Style="style">Text that is different</Span>
+        ///     <Span Style="style">Text that <Span Style="SubStyle">is</Span> different</Span>
         ///     Regular Text two
         /// </summary>
         (string noncompliantXaml, string compliantXaml) GetDiffXaml(string noncompliantHtml, string compliantHtml);
@@ -51,15 +51,15 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
         public (string noncompliantXaml, string compliantXaml) GetDiffXaml(string noncompliantHtml, string compliantHtml)
         {
-            var resultDiff = SideBySideDiffBuilder.Diff(oldText: noncompliantHtml, newText: compliantHtml);
+            var resultDiff = SideBySideDiffBuilder.Diff(oldText: noncompliantHtml, newText: compliantHtml, ignoreWhiteSpace: false);
 
-            var highlightedNonCompliant = HighlightLines(resultDiff.OldText.Lines, StyleResourceNames.NonCompliant_Diff);
-            var highlightedCompliant = HighlightLines(resultDiff.NewText.Lines, StyleResourceNames.Compliant_Diff);
+            var highlightedNonCompliant = HighlightLines(resultDiff.OldText.Lines, StyleResourceNames.NonCompliant_Diff, StyleResourceNames.Sub_NonCompliant_Diff);
+            var highlightedCompliant = HighlightLines(resultDiff.NewText.Lines, StyleResourceNames.Compliant_Diff, StyleResourceNames.Sub_Compliant_Diff);
 
             return (highlightedNonCompliant, highlightedCompliant);
         }
 
-        private string HighlightLines(List<DiffPiece> lines, StyleResourceNames style)
+        private string HighlightLines(List<DiffPiece> lines, StyleResourceNames style, StyleResourceNames subStyle)
         {
             var sb = new StringBuilder();
             var writer = xamlWriterFactory.Create(sb);
@@ -72,7 +72,22 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 {
                     writer.WriteStartElement("Span");
                     writer.ApplyStyleToElement(style);
-                    writer.WriteString(line.Text);
+
+                    foreach (var subPiece in line.SubPieces)
+                    {
+                        if (subPiece.Type != ChangeType.Unchanged)
+                        {
+                            writer.WriteStartElement("Span");
+                            writer.ApplyStyleToElement(subStyle);
+                            writer.WriteString(subPiece.Text);
+                            writer.WriteEndElement();
+                        }
+                        else
+                        {
+                            writer.WriteString(subPiece.Text);
+                        }
+                    }
+
                     writer.WriteEndElement();
                 }
                 else
