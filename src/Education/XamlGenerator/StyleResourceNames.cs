@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         SubtitleElement_Image,      // image in a subtitle element
         NonCompliant_Diff,          // non compliant element for diff highlighting
         Compliant_Diff,             // compliant element for diff highlighting
-        Sub_NonCompliant_Diff,          // non compliant element for diff highlighting
-        Sub_Compliant_Diff              // compliant element for diff highlighting
+        Sub_NonCompliant_Diff,      // non compliant element for diff highlighting
+        Sub_Compliant_Diff          // compliant element for diff highlighting
     }
 }
