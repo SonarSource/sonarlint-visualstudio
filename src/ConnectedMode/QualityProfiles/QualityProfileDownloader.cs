@@ -35,6 +35,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
 {
     internal interface IQualityProfileDownloader
     {
+        /// <summary>
+        /// Ensures that the Quality Profiles for all supported languages are to date
+        /// </summary>
         Task<bool> UpdateAsync(BoundSonarQubeProject boundProject, IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken);
     }
 
@@ -84,7 +87,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
 
         public async Task<bool> UpdateAsync(BoundSonarQubeProject boundProject, IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)
         {
-            EnsureBoundProjectProfilesAreComplete(boundProject);
+            // TODO - CancellableJobRunner
+            // TODO - threading
+            // TODO - skip downloading up to date QPs
+
+            EnsureProfilesExistForAllSupportedLanguages(boundProject);
 
             var bindingConfigs = new List<IBindingConfig>();
 
@@ -128,14 +135,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             return true;
         }
 
-        private static void EnsureBoundProjectProfilesAreComplete(BoundSonarQubeProject boundProject)
+        /// <summary>
+        /// Ensures that the bound project has a profile entry for every supported language
+        /// </summary>
+        /// <remarks>If we add support for new language in the future, this method will make sure it's
+        /// Quality Profile is fetched next time an update is triggered</remarks>
+        private void EnsureProfilesExistForAllSupportedLanguages(BoundSonarQubeProject boundProject)
         {
             if (boundProject.Profiles == null)
             {
                 boundProject.Profiles = new Dictionary<Language, ApplicableQualityProfile>();
             }
 
-            foreach (var language in Language.KnownLanguages)
+            foreach (var language in languagesToBind)
             {
                 if (!boundProject.Profiles.ContainsKey(language))
                 {

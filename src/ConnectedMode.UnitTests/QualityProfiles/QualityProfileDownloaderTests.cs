@@ -36,55 +36,81 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
 {
-    // TODO duncan - QP timestamp is updated
-    // TODO expected languages are bound?
-
-    internal class QualityProfileDownloaderTests
+    [TestClass]
+    public class QualityProfileDownloaderTests
     {
         [TestMethod]
-        public async Task DownloadQualityProfile_SavesConfiguration()
+        public async Task UpdateAsync_AllSupportedLanguageAreChecked()
         {
-            var configPersister = new DummyConfigPersister();
+            var languagesToBind = new[] {
+                Language.Cpp,
+                Language.CSharp,
+                Language.Secrets,
+                Language.VBNET
+            };
+            var boundProject = CreateBoundProject();
 
-            // Arrange
-            const string QualityProfileName = "SQQualityProfileName";
-            const string ProjectName = "SQProjectName";
-
-            var progressAdapter = Mock.Of<IProgress<FixedStepsProgress>>();
-
-            var bindingConfig = new Mock<IBindingConfig>().Object;
-
-            var language = Language.VBNET;
             var sonarQubeService = new Mock<ISonarQubeService>();
-            SonarQubeQualityProfile profile = ConfigureQualityProfile(sonarQubeService, language, QualityProfileName);
-
-            var configProviderMock = new Mock<IBindingConfigProvider>();
-            configProviderMock.Setup(x => x.GetConfigurationAsync(profile, language, It.IsAny<BindingConfiguration>(), CancellationToken.None))
-                .ReturnsAsync(bindingConfig);
-
-            var boundProject = CreateBoundProject("key", ProjectName, new Uri("http://myserver"));
 
             var testSubject = CreateTestSubject(
-                configProviderMock.Object,
                 sonarQubeService: sonarQubeService.Object,
-                configurationPersister: configPersister,
-                languagesToBind: new[] { language });
+                languagesToBind: languagesToBind);
 
-            // Act
-            await testSubject.UpdateAsync(boundProject, progressAdapter, CancellationToken.None);
+            await testSubject.UpdateAsync(boundProject, null, CancellationToken.None);
 
-            // Assert
-            configPersister.SavedProject.Should().NotBeNull();
-
-            var savedProject = configPersister.SavedProject;
-            savedProject.ServerUri.Should().Be(boundProject.ServerUri);
-            savedProject.Profiles.Should().HaveCount(1);
-            savedProject.Profiles[Language.VBNET].ProfileKey.Should().Be(profile.Key);
-            savedProject.Profiles[Language.VBNET].ProfileTimestamp.Should().Be(profile.TimeStamp);
+            sonarQubeService.Invocations.Count().Should().Be(4);
+            foreach (var langauge in languagesToBind)
+            {
+                CheckLanguageQpRequested(sonarQubeService, langauge);
+            }
         }
 
         [TestMethod]
-        public async Task DownloadQualityProfile_WhenQualityProfileIsNotAvailable_OtherLanguagesDownloadedSucceessfully()
+        public async Task UpdateAsync_MultipleQPs_ProgressEventsAreRaised()
+        {
+            // Arrange
+            var logger = new TestLogger(logToConsole: true);
+            var boundProject = CreateBoundProject();
+
+            var languagesToBind = new[] {
+                Language.Cpp,
+                Language.CSharp,
+                Language.Secrets,
+                Language.VBNET
+            };
+
+            var testSubject = CreateTestSubject(
+                languagesToBind: languagesToBind,
+                logger: logger);
+
+            var notifications = new ConfigurableProgressStepExecutionEvents();
+            var progressAdapter = new Mock<IProgress<FixedStepsProgress>>();
+            progressAdapter.Setup(x => x.Report(It.IsAny<FixedStepsProgress>()))
+                .Callback<FixedStepsProgress>(x => ((IProgressStepExecutionEvents)notifications).ProgressChanged(x.Message, x.CurrentStep));
+
+
+            // Act
+            var result = await testSubject.UpdateAsync(boundProject, progressAdapter.Object, CancellationToken.None);
+
+            // Assert
+            result.Should().BeTrue();
+
+            // Progess notifications - percentage complete and messages
+            notifications.AssertProgress(1.0, 2.0, 3.0, 4.0);
+            CheckProgressMessages(languagesToBind);
+
+            void CheckProgressMessages(params Language[] languages)
+            {
+                var expected = languages.Select(GetDownloadProgressMessages).ToArray();
+                notifications.AssertProgressMessages(expected);
+            }
+
+            static string GetDownloadProgressMessages(Language language)
+                => string.Format(BindingStrings.DownloadingQualityProfileProgressMessage, language.Name);
+        }
+
+        [TestMethod]
+        public async Task UpdateAsync_WhenQualityProfileIsNotAvailable_OtherLanguagesDownloadedSuccessfully()
         {
             // Arrange
             var logger = new TestLogger(logToConsole: true);
@@ -137,10 +163,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
 
             savedConfigs.Should().BeEquivalentTo(csharpConfig, vbnetConfig);
 
-            // Progess notifications - percentage complete and messages
-            notifications.AssertProgress(1.0, 2.0, 3.0, 4.0);
-            CheckProgressMessages(languagesToBind);
-
             // Check output messages
             var missingPluginMessageCFamily = string.Format(Strings.SubTextPaddingFormat,
                 string.Format(BindingStrings.CannotDownloadQualityProfileForLanguage, Language.Cpp.Name));
@@ -150,44 +172,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             logger.AssertOutputStringExists(missingPluginMessageCFamily);
             logger.AssertOutputStringExists(missingPluginMessageSecrets);
             logger.AssertPartialOutputStringDoesNotExist(Language.Css.Name);
-
-            void CheckProgressMessages(params Language[] languages)
-            {
-                var expected = languages.Select(GetDownloadProgressMessages).ToArray();
-                notifications.AssertProgressMessages(expected);
-            }
-
-            static string GetDownloadProgressMessages(Language language)
-                => string.Format(BindingStrings.DownloadingQualityProfileProgressMessage, language.Name);
         }
 
         [TestMethod]
-        public async Task DownloadQualityProfile_WhenBindingConfigIsNull_Fails()
+        public async Task UpdateAsync_WhenBindingConfigIsNull_Fails()
         {
             // Arrange
             var logger = new TestLogger(logToConsole: true);
-            var configPersister = new DummyConfigPersister();
-            const string QualityProfileName = "SQQualityProfileName";
-            const string ProjectName = "SQProjectName";
-
-            var progressAdapter = Mock.Of<IProgress<FixedStepsProgress>>();
 
             var language = Language.VBNET;
             var sonarQubeService = new Mock<ISonarQubeService>();
-            SonarQubeQualityProfile profile = ConfigureQualityProfile(sonarQubeService, language, QualityProfileName);
+            SonarQubeQualityProfile profile = ConfigureQualityProfile(sonarQubeService, language);
 
-            var configProviderMock = new Mock<IBindingConfigProvider>();
             var solutionBindingOperation = new Mock<ISolutionBindingOperation>();
-            var boundProject = CreateBoundProject("key", ProjectName, new Uri("http://connected"));
-            var testSubject = CreateTestSubject(configProviderMock.Object,
-                configurationPersister: configPersister,
+            var boundProject = CreateBoundProject("key", "any project name", new Uri("http://connected"));
+            var testSubject = CreateTestSubject(
                 languagesToBind: new[] { language },
                 sonarQubeService: sonarQubeService.Object,
                 solutionBindingOperation: solutionBindingOperation.Object,
                 logger: logger);
 
             // Act
-            var result = await testSubject.UpdateAsync(boundProject, progressAdapter, CancellationToken.None);
+            var result = await testSubject.UpdateAsync(boundProject, null, CancellationToken.None);
 
             // Assert
             result.Should().BeFalse();
@@ -197,6 +203,45 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
                 string.Format(BindingStrings.FailedToCreateBindingConfigForLanguage, language.Name));
             logger.AssertOutputStrings(expectedOutput);
+        }
+
+        [TestMethod]
+        public async Task UpdateAsync_SavesConfiguration()
+        {
+            var configPersister = new DummyConfigPersister();
+
+            // Arrange
+            var bindingConfig = new Mock<IBindingConfig>().Object;
+
+            var language = Language.VBNET;
+            var serverQpTimestamp = DateTime.UtcNow.AddHours(-2);
+            var sonarQubeService = new Mock<ISonarQubeService>();
+            SonarQubeQualityProfile profile = ConfigureQualityProfile(sonarQubeService, language,
+                "my profile key", serverQpTimestamp);
+
+            var configProviderMock = new Mock<IBindingConfigProvider>();
+            configProviderMock.Setup(x => x.GetConfigurationAsync(profile, language, It.IsAny<BindingConfiguration>(), CancellationToken.None))
+                .ReturnsAsync(bindingConfig);
+
+            var boundProject = CreateBoundProject("key", "any", new Uri("http://myserver"));
+
+            var testSubject = CreateTestSubject(
+                configProviderMock.Object,
+                sonarQubeService: sonarQubeService.Object,
+                configurationPersister: configPersister,
+                languagesToBind: new[] { language });
+
+            // Act
+            await testSubject.UpdateAsync(boundProject, null, CancellationToken.None);
+
+            // Assert
+            configPersister.SavedProject.Should().NotBeNull();
+
+            var savedProject = configPersister.SavedProject;
+            savedProject.ServerUri.Should().Be(boundProject.ServerUri);
+            savedProject.Profiles.Should().HaveCount(1);
+            savedProject.Profiles[Language.VBNET].ProfileKey.Should().Be("my profile key");
+            savedProject.Profiles[Language.VBNET].ProfileTimestamp.Should().Be(serverQpTimestamp);
         }
 
         #region Helpers
@@ -244,15 +289,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
                 null,
                 null);
 
-        private static SonarQubeQualityProfile ConfigureQualityProfile(Mock<ISonarQubeService> sonarQubeService, Language language, string profileName)
+        private static SonarQubeQualityProfile ConfigureQualityProfile(Mock<ISonarQubeService> sonarQubeService, Language language,
+            string profileKey = null,
+            DateTime? serverQPTimestamp = null)
         {
-            var profile = new SonarQubeQualityProfile("", profileName, "", false, DateTime.Now);
+            var profile = new SonarQubeQualityProfile(profileKey, "any profile name", "", false, serverQPTimestamp ?? DateTime.Now);
             sonarQubeService
                 .Setup(x => x.GetQualityProfileAsync(It.IsAny<string>(), It.IsAny<string>(), language.ServerLanguage, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(profile);
 
             return profile;
         }
+
+        private static void CheckLanguageQpRequested(Mock<ISonarQubeService> sonarQubeService, Language language)
+            => sonarQubeService.Verify(x => x.GetQualityProfileAsync(
+                It.IsAny<string>(), It.IsAny<string>(), language.ServerLanguage, It.IsAny<CancellationToken>()),
+                Times.Once);
 
         private class DummyConfigPersister : IConfigurationPersister
         {
