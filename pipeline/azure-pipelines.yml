@@ -113,7 +113,7 @@ jobs:
   # See https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/java-tool-installer-v0?view=azure-pipelines
   - task: JavaToolInstaller@0
     inputs:
-      versionSpec: '17'
+      versionSpec: '11'
       jdkArchitectureOption: 'x64'
       jdkSourceOption: PreInstalled
 
@@ -147,6 +147,7 @@ jobs:
       projectKey: sonarlint-visualstudio
       projectName: SonarLint for Visual Studio
       projectVersion: $(SONAR_PROJECT_VERSION)
+      jdkversion: JAVA_HOME_17_X64
 
   - task: VSBuild@1
     displayName: Build solution SonarLint.VisualStudio.Integration.sln
@@ -285,8 +286,6 @@ jobs:
   - task: SonarCloudAnalyze@1
     displayName: Run Code Analysis (VS2022 only)
     condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
-    env:
-      JAVA_HOME: $(JAVA_HOME_17_X64)
 
   - task: SonarCloudPublish@1
     displayName: Publish Quality Gate Result (VS2022 only)
