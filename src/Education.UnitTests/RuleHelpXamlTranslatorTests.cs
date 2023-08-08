@@ -337,6 +337,34 @@ same 1</Paragraph>
             result2.Replace("\r\n", "\n").Should().Be(expectedText2.Replace("\r\n", "\n"));
         }
 
+        [TestMethod]
+        public void TranslateHtmlToXaml_DataDiffWithAngleBracket_XMLParsable()
+        {
+            var diffTranslator = new Mock<IDiffTranslator>();
+
+            IRuleHelpXamlTranslator testSubject = CreateTestSubject(diffTranslator: diffTranslator.Object);
+
+            var compliantText = "#include &lt;vector&gt;";
+            var nonCompliantText = "#include &lt;vector&gt;";
+
+            var compliantXaml = @"#include <vector>";
+
+            var noncompliantXaml = @"#include <vector>";
+
+            diffTranslator.Setup(d => d.GetDiffXaml("#include <vector>", "#include <vector>")).Returns((noncompliantXaml, compliantXaml));
+
+            var htmlText = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText}</pre>";
+
+            var expectedText = @"<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
+  <Paragraph>#include &lt;vector&gt;</Paragraph>
+</Section>
+<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}""><Paragraph>#include &lt;vector&gt;</Paragraph></Section>";
+
+            var result = testSubject.TranslateHtmlToXaml(htmlText);
+
+            result.Replace("\r\n", "\n").Should().Be(expectedText.Replace("\r\n", "\n"));
+        }
+
         private static IRuleHelpXamlTranslator CreateTestSubject(IXamlWriterFactory xamlWriterFactory = null, IDiffTranslator diffTranslator = null)
         {
             xamlWriterFactory ??= new XamlWriterFactory();
