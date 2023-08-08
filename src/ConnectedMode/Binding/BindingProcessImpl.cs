@@ -21,10 +21,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
@@ -38,53 +38,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     internal class BindingProcessImpl : IBindingProcess
     {
         private readonly BindCommandArgs bindingArgs;
-        private readonly ISolutionBindingOperation solutionBindingOperation;
-        private readonly IBindingConfigProvider bindingConfigProvider;
-        private readonly ISonarQubeService sonarQubeService;
-        private readonly IConfigurationPersister configurationPersister;
         private readonly IExclusionSettingsStorage exclusionSettingsStorage;
-        private readonly IEnumerable<Language> languagesToBind;
+        private readonly ISonarQubeService sonarQubeService;
+        private readonly IQualityProfileDownloader qualityProfileDownloader;
         private readonly ILogger logger;
 
         public BindingProcessImpl(
             BindCommandArgs bindingArgs,
-            ISolutionBindingOperation solutionBindingOperation,
-            IBindingConfigProvider bindingConfigProvider,
             IExclusionSettingsStorage exclusionSettingsStorage,
-            IConfigurationPersister configurationPersister,
             ISonarQubeService sonarQubeService,
+            IQualityProfileDownloader qualityProfileDownloader,
             ILogger logger,
             bool isFirstBinding = false)
-            : this(bindingArgs,
-                  solutionBindingOperation,
-                  bindingConfigProvider,
-                  exclusionSettingsStorage,
-                  configurationPersister,
-                  sonarQubeService,
-                  logger,
-                  isFirstBinding,
-                  languagesToBind: Language.KnownLanguages)
-        { }
-
-        internal /* for testing */ BindingProcessImpl(
-            BindCommandArgs bindingArgs,
-            ISolutionBindingOperation solutionBindingOperation,
-            IBindingConfigProvider bindingConfigProvider,
-            IExclusionSettingsStorage exclusionSettingsStorage,
-            IConfigurationPersister configurationPersister,
-            ISonarQubeService sonarQubeService,
-            ILogger logger,
-            bool isFirstBinding,
-            IEnumerable<Language> languagesToBind)
         {
             this.bindingArgs = bindingArgs ?? throw new ArgumentNullException(nameof(bindingArgs));
-            this.solutionBindingOperation = solutionBindingOperation ?? throw new ArgumentNullException(nameof(solutionBindingOperation));
-            this.bindingConfigProvider = bindingConfigProvider ?? throw new ArgumentNullException(nameof(bindingConfigProvider));
             this.exclusionSettingsStorage = exclusionSettingsStorage ?? throw new ArgumentNullException(nameof(exclusionSettingsStorage));
-            this.configurationPersister = configurationPersister ?? throw new ArgumentNullException(nameof(configurationPersister));
             this.sonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
+            this.qualityProfileDownloader = qualityProfileDownloader ?? throw new ArgumentNullException(nameof(qualityProfileDownloader));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.languagesToBind = languagesToBind ?? throw new ArgumentNullException(nameof(languagesToBind));
 
             Debug.Assert(bindingArgs.ProjectKey != null);
             Debug.Assert(bindingArgs.ProjectName != null);
@@ -100,108 +71,23 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
         public async Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)
         {
-            var languageList = GetBindingLanguages();
+            var boundProject = CreateNewBindingConfig();
+            var result = await qualityProfileDownloader.UpdateAsync(boundProject, progress, cancellationToken);
 
-            var languageCount = languageList.Count();
-            int currentLanguage = 0;
-
-            foreach (var language in languageList)
-            {
-                currentLanguage++;
-
-                var progressMessage = string.Format(BindingStrings.DownloadingQualityProfileProgressMessage, language.Name);
-                progress?.Report(new FixedStepsProgress(progressMessage, currentLanguage, languageCount));
-
-                var qualityProfileInfo = await TryDownloadQualityProfileAsync(language, cancellationToken);
-                
-                if (qualityProfileInfo == null)
-                {
-                    continue; // skip to the next language
-                }
-
-                InternalState.QualityProfiles[language] = qualityProfileInfo;
-
-                var bindingConfiguration = QueueWriteBindingInformation();
-
-                // Create the binding configuration for the language
-                var bindingConfig = await bindingConfigProvider.GetConfigurationAsync(qualityProfileInfo, language, bindingConfiguration, cancellationToken);
-                if (bindingConfig == null)
-                {
-                    logger.WriteLine(string.Format(BindingStrings.SubTextPaddingFormat,
-                        string.Format(BindingStrings.FailedToCreateBindingConfigForLanguage, language.Name)));
-                    return false;
-                }
-
-                // TODO - CM: we don't need the dictionary, just the list of configs.
-                InternalState.BindingConfigs[language] = bindingConfig;
-
-                logger.WriteLine(string.Format(BindingStrings.SubTextPaddingFormat,
-                    string.Format(BindingStrings.QualityProfileDownloadSuccessfulMessageFormat, qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name)));
-            }
-
-            return true;
+            return result;
         }
 
-        /// <summary>
-        /// Attempts to fetch the QP for the specified language.
-        /// </summary>
-        /// <returns>The QP, or null if the language plugin is not available on the server</returns>
-        private async Task<SonarQubeQualityProfile> TryDownloadQualityProfileAsync(Language language, CancellationToken cancellationToken)
+        private BoundSonarQubeProject CreateNewBindingConfig()
         {
-            // There are valid scenarios in which a language plugin will not be available on the server:
-            // 1) the CFamily plugin does not ship in Community edition (nor do any other commerical plugins)
-            // 2) a recently added language will not be available in older-but-still-supported SQ versions
-            //      e.g. the "secrets" language
-            // The unavailability of a language should not prevent binding from succeeding.
-
-            // Note: the historical check that plugins meet a minimum version was removed. 
-            // See https://github.com/SonarSource/sonarlint-visualstudio/issues/4272
-
-            var qualityProfileInfo = await WebServiceHelper.SafeServiceCallAsync(() =>
-    
-            sonarQubeService.GetQualityProfileAsync(
-                bindingArgs.ProjectKey, bindingArgs.Connection.Organization?.Key, language.ServerLanguage, cancellationToken),
-                logger);
-
-            if (qualityProfileInfo == null)
-            {
-                logger.WriteLine(string.Format(BindingStrings.SubTextPaddingFormat,
-                   string.Format(BindingStrings.CannotDownloadQualityProfileForLanguage, language.Name)));
-                return null;
-            }
-            
-            return qualityProfileInfo;
-        }
-
-        /// <summary>
-        /// Will add/edit the binding information for next time usage
-        /// </summary>
-        private BindingConfiguration QueueWriteBindingInformation()
-        {
-            Debug.Assert(InternalState.QualityProfiles != null, "Initialize was expected to be called first");
-
             BasicAuthCredentials credentials = bindingArgs.Connection.UserName == null ? null : new BasicAuthCredentials(bindingArgs.Connection.UserName, bindingArgs.Connection.Password);
 
-            Dictionary<Language, ApplicableQualityProfile> map = new Dictionary<Language, ApplicableQualityProfile>();
-
-            foreach (var keyValue in InternalState.QualityProfiles)
-            {
-                map[keyValue.Key] = new ApplicableQualityProfile
-                {
-                    ProfileKey = keyValue.Value.Key,
-                    ProfileTimestamp = keyValue.Value.TimeStamp
-                };
-            }
-
-            var bound = new BoundSonarQubeProject(bindingArgs.Connection.ServerUri,
+            var boundProject = new BoundSonarQubeProject(bindingArgs.Connection.ServerUri,
                 bindingArgs.ProjectKey,
                 bindingArgs.ProjectName,
                 credentials,
                 bindingArgs.Connection.Organization);
 
-            bound.Profiles = map;
-
-            return configurationPersister.Persist(bound);
+            return boundProject;
         }
 
         public async Task<bool> SaveServerExclusionsAsync(CancellationToken cancellationToken)
@@ -221,7 +107,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
         public void SaveRuleConfiguration(CancellationToken cancellationToken)
         {
-            solutionBindingOperation.SaveRuleConfiguration(this.InternalState.BindingConfigs.Values, cancellationToken);
+            // TODO - remove. See #4662
         }
 
         public bool BindOperationSucceeded => InternalState.BindingOperationSucceeded;
@@ -230,12 +116,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
         #region Private methods
 
-        internal /* for testing */ IEnumerable<Language> GetBindingLanguages()
-            => languagesToBind;
-
         #endregion
 
-            #region Workflow state
+        #region Workflow state
 
         internal class BindingProcessState
         {
