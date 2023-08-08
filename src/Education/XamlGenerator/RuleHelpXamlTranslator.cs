@@ -602,10 +602,10 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                         continue;
                     }
 
-                    var diffXaml = diffTranslator.GetDiffXaml(diffCodes[noncompliantKey], diffCodes[compliantKey]);
+                    var diffXaml = diffTranslator.GetDiffXaml(HttpUtility.HtmlEncode(diffCodes[noncompliantKey]), HttpUtility.HtmlEncode(diffCodes[compliantKey]));
 
-                    ReplaceXaml(sb, noncompliantKey, diffXaml.noncompliantXaml);
-                    ReplaceXaml(sb, compliantKey, diffXaml.compliantXaml);
+                    sb.Replace(noncompliantKey, diffXaml.noncompliantXaml);
+                    sb.Replace(compliantKey, diffXaml.compliantXaml);
                 }
             }
 
