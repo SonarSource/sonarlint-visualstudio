@@ -20,6 +20,8 @@
 
 using System.ComponentModel.Composition;
 using System.Threading;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
@@ -27,8 +29,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
     internal interface IQualityProfileUpdater
     {
         /// <summary>
-        /// When in Connected Mode, ensures that all of the Quality Profiles
-        /// are up to date
+        /// When in Connected Mode, ensures that all of the Quality Profiles are up to date
         /// </summary>
         Task UpdateAsync();
     }
@@ -37,10 +38,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class QualityProfileUpdater : IQualityProfileUpdater
     {
-        public Task UpdateAsync()
+        private readonly IConfigurationProvider configProvider;
+        private readonly IQualityProfileDownloader qualityProfileDownloader;
+        private readonly ILogger logger;
+
+        [ImportingConstructor]
+        public QualityProfileUpdater(IConfigurationProvider configProvider, IQualityProfileDownloader qualityProfileDownloader, ILogger logger)
         {
-            // TODO - implement
-            return Task.CompletedTask;
+            this.configProvider = configProvider;
+            this.qualityProfileDownloader = qualityProfileDownloader;
+            this.logger = logger;
+        }
+
+        public async Task UpdateAsync()
+        {
+            var config = configProvider.GetConfiguration();
+            if (config.Mode != SonarLintMode.Connected)
+            {
+                logger.LogVerbose($"[QualityProfiles] Skipping Quality Profile update. Solution is not bound. Mode: {config.Mode}");
+                return;
+            }
+
+            await qualityProfileDownloader.UpdateAsync(config.Project, null, CancellationToken.None);
         }
     }
 }
