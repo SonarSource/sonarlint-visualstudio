@@ -49,7 +49,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             var bindingProcess = CreateBindingProcess(project);
 
             await bindingProcess.DownloadQualityProfileAsync(progress, token);
-            bindingProcess.SaveRuleConfiguration(token);
             await bindingProcess.SaveServerExclusionsAsync(token);
         }
 

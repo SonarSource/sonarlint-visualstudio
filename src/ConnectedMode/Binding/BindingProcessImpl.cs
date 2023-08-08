@@ -105,11 +105,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             return true;
         }
 
-        public void SaveRuleConfiguration(CancellationToken cancellationToken)
-        {
-            // TODO - remove. See #4662
-        }
-
         public bool BindOperationSucceeded => InternalState.BindingOperationSucceeded;
 
         #endregion
