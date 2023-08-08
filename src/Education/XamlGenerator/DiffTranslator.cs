@@ -21,6 +21,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Text;
+using System.Xml;
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
 
@@ -75,22 +76,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     writer.WriteStartElement("Span");
                     writer.ApplyStyleToElement(style);
 
-                    foreach (var subPiece in line.SubPieces)
-                    {
-                        if (string.IsNullOrEmpty(subPiece.Text)) continue;
-
-                        if (subPiece.Type != ChangeType.Unchanged)
-                        {
-                            writer.WriteStartElement("Span");
-                            writer.ApplyStyleToElement(subStyle);
-                            writer.WriteString(subPiece.Text);
-                            writer.WriteEndElement();
-                        }
-                        else
-                        {
-                            writer.WriteString(subPiece.Text);
-                        }
-                    }
+                    WriteSubPieces(writer, subStyle, line);
 
                     writer.WriteEndElement();
                 }
@@ -112,6 +98,32 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             // The xml writer converts \n to \r\n which is not needed here.
             sb.Replace("\r\n", "\n");
             return sb.ToString();
+        }
+
+        private void WriteSubPieces(XmlWriter writer, StyleResourceNames style, DiffPiece line)
+        {
+            if (line.SubPieces.Count == 0)
+            {
+                writer.WriteString(line.Text);
+                return;
+            }
+           
+            foreach (var subPiece in line.SubPieces)
+            {
+                if (string.IsNullOrEmpty(subPiece.Text)) continue;
+
+                if (subPiece.Type != ChangeType.Unchanged)
+                {
+                    writer.WriteStartElement("Span");
+                    writer.ApplyStyleToElement(style);
+                    writer.WriteString(subPiece.Text);
+                    writer.WriteEndElement();
+                }
+                else
+                {
+                    writer.WriteString(subPiece.Text);
+                }
+            }
         }
     }
 }
