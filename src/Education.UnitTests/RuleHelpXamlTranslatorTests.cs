@@ -347,11 +347,11 @@ same 1</Paragraph>
             var compliantText = "#include &lt;vector&gt;";
             var nonCompliantText = "#include &lt;vector&gt;";
 
-            var compliantXaml = @"#include <vector>";
+            var compliantXaml = @"#include &lt;vector&gt;";
 
-            var noncompliantXaml = @"#include <vector>";
+            var noncompliantXaml = @"#include &lt;vector&gt;";
 
-            diffTranslator.Setup(d => d.GetDiffXaml("#include <vector>", "#include <vector>")).Returns((noncompliantXaml, compliantXaml));
+            diffTranslator.Setup(d => d.GetDiffXaml(compliantText, nonCompliantText)).Returns((noncompliantXaml, compliantXaml));
 
             var htmlText = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText}</pre>";
 
