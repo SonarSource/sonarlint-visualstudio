@@ -82,6 +82,25 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         }
 
         [TestMethod]
+        public void GetDiffXaml_IgnoreNullOrEmptyStrings()
+        {
+            // This specific input can cause Diffplex to return DiffPieces that are null or empty strings.
+            // Without correction in the DiffTranslator the result would add two extra spans after the first line break 
+            // which would look like this:
+            // "// ...\n<Span Style=\"{DynamicResource Compliant_Diff}\"><Span Style=\"{DynamicResource Sub_Compliant_Diff}\">}}</Span><Span Style=\"{DynamicResource Sub_Compliant_Diff}\" /></Span>"
+            // This test is to ensure the DiffTranslator takes care of not adding these extra spans.
+            var input1 = "// ...\r\n}";
+            var input2 = "// ...\r\n}}";
+
+            var testSubject = CreateTestSubject();
+
+            (string result1, string result2) = testSubject.GetDiffXaml(input1, input2);
+
+            result1.Should().BeEquivalentTo("// ...\n<Span Style=\"{DynamicResource NonCompliant_Diff}\"><Span Style=\"{DynamicResource Sub_NonCompliant_Diff}\">}</Span></Span>");
+            result2.Should().BeEquivalentTo("// ...\n<Span Style=\"{DynamicResource Compliant_Diff}\"><Span Style=\"{DynamicResource Sub_Compliant_Diff}\">}}</Span></Span>");
+        }
+
+        [TestMethod]
         public void GetDiffXaml_TextIsSame_ResultIsSame()
         {
             var input = "same\nsame";
