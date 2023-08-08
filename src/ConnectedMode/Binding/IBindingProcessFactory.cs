@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration;
@@ -61,12 +62,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             var bindingConfigProvider = CreateBindingConfigProvider();
             var solutionBindingOp = new SolutionBindingOperation();
 
-            return new BindingProcessImpl(bindingArgs,
-                solutionBindingOp,
+            var qpUpdater = new QualityProfileDownloader(sonarQubeService,
                 bindingConfigProvider,
-                exclusionSettingsStorage,
                 configurationPersister,
+                solutionBindingOp,
+                logger);
+
+            return new BindingProcessImpl(bindingArgs,
+                exclusionSettingsStorage,
                 sonarQubeService,
+                qpUpdater,
                 logger,
                 isFirstBinding);
         }
