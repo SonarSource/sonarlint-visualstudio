@@ -24,6 +24,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Web;
 using System.Xml;
 using SonarLint.VisualStudio.Core;
 
@@ -603,8 +604,8 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                     var diffXaml = diffTranslator.GetDiffXaml(diffCodes[noncompliantKey], diffCodes[compliantKey]);
 
-                    sb.Replace(noncompliantKey, diffXaml.noncompliantXaml);
-                    sb.Replace(compliantKey, diffXaml.compliantXaml);
+                    ReplaceXaml(sb, noncompliantKey, diffXaml.noncompliantXaml);
+                    ReplaceXaml(sb, compliantKey, diffXaml.compliantXaml);
                 }
             }
 
@@ -612,11 +613,11 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             {
                 if (diffCodes.TryGetValue(compliantKey, out string compliantHtml))
                 {
-                    sb.Replace(compliantKey, compliantHtml);
+                    ReplaceXaml(sb, compliantKey, compliantHtml);
                 }
                 if (diffCodes.TryGetValue(noncompliantKey, out string noncompliantHtml))
                 {
-                    sb.Replace(noncompliantKey, noncompliantHtml);
+                    ReplaceXaml(sb, noncompliantKey, noncompliantHtml);
                 }
             }
 
@@ -625,6 +626,12 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 invalidIds.Clear();
                 ids.Clear();
                 diffCodes.Clear();
+            }
+
+            private void ReplaceXaml(StringBuilder sb, string oldValue, string newValue)
+            {
+                var formattedValue = HttpUtility.HtmlEncode(newValue);
+                sb.Replace(oldValue, formattedValue);
             }
         }
     }
