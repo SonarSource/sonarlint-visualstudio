@@ -604,8 +604,8 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                     var diffXaml = diffTranslator.GetDiffXaml(HttpUtility.HtmlEncode(diffCodes[noncompliantKey]), HttpUtility.HtmlEncode(diffCodes[compliantKey]));
 
-                    sb.Replace(noncompliantKey, diffXaml.noncompliantXaml);
-                    sb.Replace(compliantKey, diffXaml.compliantXaml);
+                    ReplaceXaml(sb, noncompliantKey, diffXaml.noncompliantXaml);
+                    ReplaceXaml(sb, compliantKey, diffXaml.compliantXaml);
                 }
             }
 
