@@ -87,7 +87,7 @@ namespace SonarQube.Client.Api.V5_20
             [JsonProperty("isDefault")]
             public bool IsDefault { get; set; }
 
-            [JsonProperty("ruleUpdatedAt")]
+            [JsonProperty("rulesUpdatedAt")]
             public DateTime LastRuleChange { get; set; }
         }
     }

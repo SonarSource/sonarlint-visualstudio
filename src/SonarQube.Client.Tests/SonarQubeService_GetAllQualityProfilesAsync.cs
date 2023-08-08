@@ -51,7 +51,7 @@ public class SonarQubeService_GetAllQualityProfilesAsync : SonarQubeService_Test
       ""activeRuleCount"": 3,
       ""activeDeprecatedRuleCount"": 0,
       ""isDefault"": true,
-      ""ruleUpdatedAt"": ""2016-12-22T19:10:03+0100"",
+      ""rulesUpdatedAt"": ""2016-12-22T19:10:03+0100"",
       ""lastUsed"": ""2016-12-01T19:10:03+0100"",
       ""actions"": {
         ""edit"": false,
@@ -72,7 +72,7 @@ public class SonarQubeService_GetAllQualityProfilesAsync : SonarQubeService_Test
       ""activeDeprecatedRuleCount"": 5,
       ""isDefault"": false,
       ""projectCount"": 7,
-      ""ruleUpdatedAt"": ""2016-12-20T19:10:03+0100"",
+      ""rulesUpdatedAt"": ""2016-12-20T19:10:03+0100"",
       ""lastUsed"": ""2016-12-21T16:10:03+0100"",
       ""userUpdatedAt"": ""2016-06-28T21:57:01+0200"",
       ""actions"": {
@@ -91,7 +91,7 @@ public class SonarQubeService_GetAllQualityProfilesAsync : SonarQubeService_Test
       ""activeRuleCount"": 2,
       ""activeDeprecatedRuleCount"": 0,
       ""isDefault"": true,
-      ""ruleUpdatedAt"": ""2014-12-22T19:10:03+0100"",
+      ""rulesUpdatedAt"": ""2014-12-22T19:10:03+0100"",
       ""actions"": {
         ""edit"": false,
         ""setAsDefault"": false,
@@ -136,7 +136,7 @@ public class SonarQubeService_GetAllQualityProfilesAsync : SonarQubeService_Test
       ""activeRuleCount"": 3,
       ""activeDeprecatedRuleCount"": 0,
       ""isDefault"": true,
-      ""ruleUpdatedAt"": ""2016-12-22T19:10:03+0100"",
+      ""rulesUpdatedAt"": ""2016-12-22T19:10:03+0100"",
       ""lastUsed"": ""2016-12-01T19:10:03+0100"",
       ""actions"": {
         ""edit"": false,
@@ -199,7 +199,7 @@ public class SonarQubeService_GetAllQualityProfilesAsync : SonarQubeService_Test
       ""activeRuleCount"": 3,
       ""activeDeprecatedRuleCount"": 0,
       ""isDefault"": true,
-      ""ruleUpdatedAt"": ""2016-12-22T19:10:03+0100"",
+      ""rulesUpdatedAt"": ""2016-12-22T19:10:03+0100"",
       ""lastUsed"": ""2016-12-01T19:10:03+0100"",
       ""actions"": {
         ""edit"": false,
@@ -220,7 +220,7 @@ public class SonarQubeService_GetAllQualityProfilesAsync : SonarQubeService_Test
       ""activeDeprecatedRuleCount"": 5,
       ""isDefault"": false,
       ""projectCount"": 7,
-      ""ruleUpdatedAt"": ""2016-12-20T19:10:03+0100"",
+      ""rulesUpdatedAt"": ""2016-12-20T19:10:03+0100"",
       ""lastUsed"": ""2016-12-21T16:10:03+0100"",
       ""userUpdatedAt"": ""2016-06-28T21:57:01+0200"",
       ""actions"": {
@@ -239,7 +239,7 @@ public class SonarQubeService_GetAllQualityProfilesAsync : SonarQubeService_Test
       ""activeRuleCount"": 2,
       ""activeDeprecatedRuleCount"": 0,
       ""isDefault"": true,
-      ""ruleUpdatedAt"": ""2014-12-22T19:10:03+0100"",
+      ""rulesUpdatedAt"": ""2014-12-22T19:10:03+0100"",
       ""actions"": {
         ""edit"": false,
         ""setAsDefault"": false,
@@ -288,7 +288,7 @@ public class SonarQubeService_GetAllQualityProfilesAsync : SonarQubeService_Test
       ""activeRuleCount"": 3,
       ""activeDeprecatedRuleCount"": 0,
       ""isDefault"": true,
-      ""ruleUpdatedAt"": ""2016-12-22T19:10:03+0100"",
+      ""rulesUpdatedAt"": ""2016-12-22T19:10:03+0100"",
       ""lastUsed"": ""2016-12-01T19:10:03+0100"",
       ""actions"": {
         ""edit"": false,

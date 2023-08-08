@@ -49,7 +49,7 @@ namespace SonarQube.Client.Tests
       ""activeRuleCount"": 3,
       ""activeDeprecatedRuleCount"": 0,
       ""isDefault"": true,
-      ""ruleUpdatedAt"": ""2016-12-22T19:10:03+0100"",
+      ""rulesUpdatedAt"": ""2016-12-22T19:10:03+0100"",
       ""lastUsed"": ""2016-12-01T19:10:03+0100"",
       ""actions"": {
         ""edit"": false,
@@ -70,7 +70,7 @@ namespace SonarQube.Client.Tests
       ""activeDeprecatedRuleCount"": 5,
       ""isDefault"": false,
       ""projectCount"": 7,
-      ""ruleUpdatedAt"": ""2016-12-20T19:10:03+0100"",
+      ""rulesUpdatedAt"": ""2016-12-20T19:10:03+0100"",
       ""lastUsed"": ""2016-12-21T16:10:03+0100"",
       ""userUpdatedAt"": ""2016-06-28T21:57:01+0200"",
       ""actions"": {
@@ -89,7 +89,7 @@ namespace SonarQube.Client.Tests
       ""isBuiltIn"": false,
       ""activeRuleCount"": 9,
       ""activeDeprecatedRuleCount"": 2,
-      ""ruleUpdatedAt"": ""2016-12-22T19:10:03+0100"",
+      ""rulesUpdatedAt"": ""2016-12-22T19:10:03+0100"",
       ""userUpdatedAt"": ""2016-06-29T21:57:01+0200"",
       ""actions"": {
         ""edit"": true,
@@ -107,7 +107,7 @@ namespace SonarQube.Client.Tests
       ""activeRuleCount"": 2,
       ""activeDeprecatedRuleCount"": 0,
       ""isDefault"": true,
-      ""ruleUpdatedAt"": ""2014-12-22T19:10:03+0100"",
+      ""rulesUpdatedAt"": ""2014-12-22T19:10:03+0100"",
       ""actions"": {
         ""edit"": false,
         ""setAsDefault"": false,
@@ -172,7 +172,7 @@ namespace SonarQube.Client.Tests
       ""activeRuleCount"": 3,
       ""activeDeprecatedRuleCount"": 0,
       ""isDefault"": true,
-      ""ruleUpdatedAt"": ""2016-12-22T19:10:03+0100"",
+      ""rulesUpdatedAt"": ""2016-12-22T19:10:03+0100"",
       ""lastUsed"": ""2016-12-01T19:10:03+0100"",
       ""actions"": {
         ""edit"": false,
@@ -252,7 +252,7 @@ namespace SonarQube.Client.Tests
       ""activeRuleCount"": 3,
       ""activeDeprecatedRuleCount"": 0,
       ""isDefault"": true,
-      ""ruleUpdatedAt"": ""2016-12-22T19:10:03+0100"",
+      ""rulesUpdatedAt"": ""2016-12-22T19:10:03+0100"",
       ""lastUsed"": ""2016-12-01T19:10:03+0100"",
       ""actions"": {
         ""edit"": false,
@@ -273,7 +273,7 @@ namespace SonarQube.Client.Tests
       ""activeDeprecatedRuleCount"": 5,
       ""isDefault"": false,
       ""projectCount"": 7,
-      ""ruleUpdatedAt"": ""2016-12-20T19:10:03+0100"",
+      ""rulesUpdatedAt"": ""2016-12-20T19:10:03+0100"",
       ""lastUsed"": ""2016-12-21T16:10:03+0100"",
       ""userUpdatedAt"": ""2016-06-28T21:57:01+0200"",
       ""actions"": {
@@ -292,7 +292,7 @@ namespace SonarQube.Client.Tests
       ""isBuiltIn"": false,
       ""activeRuleCount"": 9,
       ""activeDeprecatedRuleCount"": 2,
-      ""ruleUpdatedAt"": ""2016-12-22T19:10:03+0100"",
+      ""rulesUpdatedAt"": ""2016-12-22T19:10:03+0100"",
       ""userUpdatedAt"": ""2016-06-29T21:57:01+0200"",
       ""actions"": {
         ""edit"": true,
@@ -310,7 +310,7 @@ namespace SonarQube.Client.Tests
       ""activeRuleCount"": 2,
       ""activeDeprecatedRuleCount"": 0,
       ""isDefault"": true,
-      ""ruleUpdatedAt"": ""2014-12-22T19:10:03+0100"",
+      ""rulesUpdatedAt"": ""2014-12-22T19:10:03+0100"",
       ""actions"": {
         ""edit"": false,
         ""setAsDefault"": false,
@@ -379,7 +379,7 @@ namespace SonarQube.Client.Tests
       ""activeRuleCount"": 3,
       ""activeDeprecatedRuleCount"": 0,
       ""isDefault"": true,
-      ""ruleUpdatedAt"": ""2016-12-22T19:10:03+0100"",
+      ""rulesUpdatedAt"": ""2016-12-22T19:10:03+0100"",
       ""lastUsed"": ""2016-12-01T19:10:03+0100"",
       ""actions"": {
         ""edit"": false,
@@ -446,7 +446,7 @@ namespace SonarQube.Client.Tests
       ""activeDeprecatedRuleCount"": 5,
       ""isDefault"": false,
       ""projectCount"": 7,
-      ""ruleUpdatedAt"": ""2016-12-20T19:10:03+0100"",
+      ""rulesUpdatedAt"": ""2016-12-20T19:10:03+0100"",
       ""lastUsed"": ""2016-12-21T16:10:03+0100"",
       ""userUpdatedAt"": ""2016-06-28T21:57:01+0200"",
       ""actions"": {
@@ -491,7 +491,7 @@ namespace SonarQube.Client.Tests
       ""activeDeprecatedRuleCount"": 5,
       ""isDefault"": false,
       ""projectCount"": 7,
-      ""ruleUpdatedAt"": ""2016-12-20T19:10:03+0100"",
+      ""rulesUpdatedAt"": ""2016-12-20T19:10:03+0100"",
       ""lastUsed"": ""2016-12-21T16:10:03+0100"",
       ""userUpdatedAt"": ""2016-06-28T21:57:01+0200"",
       ""actions"": {
