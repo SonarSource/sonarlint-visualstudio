@@ -173,11 +173,11 @@ same text 2";
 
             var expectedText = @"<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
   <Paragraph>Same text 1
-<Span Style=""{DynamicResource Compliant_Diff}"">diff 1</Span>
+&lt;Span Style=&quot;{DynamicResource Compliant_Diff}&quot;&gt;diff 1&lt;/Span&gt;
 same text 2</Paragraph>
 </Section>
 <Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}""><Paragraph>Same text 1
-<Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span>
+&lt;Span Style=&quot;{DynamicResource NonCompliant_Diff}&quot;&gt;diff 2&lt;/Span&gt;
 same text 2</Paragraph></Section>";
 
             var result = testSubject.TranslateHtmlToXaml(htmlText);
@@ -260,18 +260,18 @@ same 1";
 
             var expectedText = @"<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
   <Paragraph>Same text 1
-<Span Style=""{DynamicResource Compliant_Diff}"">diff 1</Span></Paragraph>
+&lt;Span Style=&quot;{DynamicResource Compliant_Diff}&quot;&gt;diff 1&lt;/Span&gt;</Paragraph>
 </Section>
 <Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
-  <Paragraph><Span Style=""{DynamicResource Compliant_Diff}"">diff 1</Span>
+  <Paragraph>&lt;Span Style=&quot;{DynamicResource Compliant_Diff}&quot;&gt;diff 1&lt;/Span&gt;
 same 1</Paragraph>
 </Section>
 <Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
   <Paragraph>Same text 1
-<Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span></Paragraph>
+&lt;Span Style=&quot;{DynamicResource NonCompliant_Diff}&quot;&gt;diff 2&lt;/Span&gt;</Paragraph>
 </Section>
 <Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
-  <Paragraph><Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span>
+  <Paragraph>&lt;Span Style=&quot;{DynamicResource NonCompliant_Diff}&quot;&gt;diff 2&lt;/Span&gt;
 same 1</Paragraph>
 </Section>";
 
@@ -314,19 +314,19 @@ same 1";
 
             var expectedText1 = @"<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
   <Paragraph>Same text 1
-<Span Style=""{DynamicResource Compliant_Diff}"">diff 1</Span></Paragraph>
+&lt;Span Style=&quot;{DynamicResource Compliant_Diff}&quot;&gt;diff 1&lt;/Span&gt;</Paragraph>
 </Section>
 <Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
   <Paragraph>Same text 1
-<Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span></Paragraph>
+&lt;Span Style=&quot;{DynamicResource NonCompliant_Diff}&quot;&gt;diff 2&lt;/Span&gt;</Paragraph>
 </Section>";
 
             var expectedText2 = @"<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
-  <Paragraph><Span Style=""{DynamicResource Compliant_Diff}"">diff 1</Span>
+  <Paragraph>&lt;Span Style=&quot;{DynamicResource Compliant_Diff}&quot;&gt;diff 1&lt;/Span&gt;
 same 1</Paragraph>
 </Section>
 <Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
-  <Paragraph><Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span>
+  <Paragraph>&lt;Span Style=&quot;{DynamicResource NonCompliant_Diff}&quot;&gt;diff 2&lt;/Span&gt;
 same 1</Paragraph>
 </Section>";
 
