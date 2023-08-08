@@ -27,8 +27,10 @@ using IFileSystem = System.IO.Abstractions.IFileSystem;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
+    // TODO - rename. The current name is misleading. IBindingConfigWriter?
+
     /// <summary>
-    /// Handles writing solution-level files
+    /// Handles writing language-specific rule configuration files to disc
     /// </summary>
     internal class SolutionBindingOperation : ISolutionBindingOperation
     {

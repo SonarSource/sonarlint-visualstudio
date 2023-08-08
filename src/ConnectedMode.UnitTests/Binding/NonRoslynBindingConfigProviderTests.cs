@@ -38,17 +38,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
         private static readonly Language[] SupportedLanguages = { Language.C, Language.Cpp };
 
         [TestMethod]
-        public void Ctor_NullSupportedLanguages_ArgumentNullException()
-        {
-            Action act = () => new NonRoslynBindingConfigProvider(null, Mock.Of<ISonarQubeService>(), Mock.Of<ILogger>());
-
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("supportedLanguages");
-        }
-
-        [TestMethod]
         public void Ctor_NullService_ArgumentNullException()
         {
-            Action act = () => new NonRoslynBindingConfigProvider(SupportedLanguages, null, Mock.Of<ILogger>());
+            Action act = () => new NonRoslynBindingConfigProvider(null, Mock.Of<ILogger>());
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
         }
@@ -56,7 +48,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
         [TestMethod]
         public void Ctor_NullLogger_ArgumentNullException()
         {
-            Action act = () => new NonRoslynBindingConfigProvider(SupportedLanguages, Mock.Of<ISonarQubeService>(), null);
+            Action act = () => new NonRoslynBindingConfigProvider(Mock.Of<ISonarQubeService>(), null);
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
@@ -266,7 +258,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
 
         private static NonRoslynBindingConfigProvider CreateTestSubject(Mock<ISonarQubeService> serviceMock, TestLogger testLogger)
         {
-            return new NonRoslynBindingConfigProvider(SupportedLanguages, serviceMock.Object, testLogger);
+            return new NonRoslynBindingConfigProvider(serviceMock.Object, testLogger, SupportedLanguages);
         }
     }
 }

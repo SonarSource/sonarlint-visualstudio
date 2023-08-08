@@ -20,7 +20,6 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration;
 using SonarQube.Client;
@@ -40,57 +39,31 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     internal class BindingProcessFactory : IBindingProcessFactory
     {
         private readonly ISonarQubeService sonarQubeService;
-        private readonly IConfigurationPersister configurationPersister;
         private readonly IExclusionSettingsStorage exclusionSettingsStorage;
+        private readonly IQualityProfileDownloader qualityProfileDownloader;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public BindingProcessFactory(
             ISonarQubeService sonarQubeService,
             IExclusionSettingsStorage exclusionSettingsStorage,
-            IConfigurationPersister configurationPersister,
+            IQualityProfileDownloader qualityProfileDownloader,
             ILogger logger)
         {
             this.sonarQubeService = sonarQubeService;
-            this.configurationPersister = configurationPersister;
             this.exclusionSettingsStorage = exclusionSettingsStorage;
+            this.qualityProfileDownloader = qualityProfileDownloader;
             this.logger = logger;
         }
 
         public IBindingProcess Create(BindCommandArgs bindingArgs, bool isFirstBinding)
         {
-            var bindingConfigProvider = CreateBindingConfigProvider();
-            var solutionBindingOp = new SolutionBindingOperation();
-
-            var qpUpdater = new QualityProfileDownloader(sonarQubeService,
-                bindingConfigProvider,
-                configurationPersister,
-                solutionBindingOp,
-                logger);
-
             return new BindingProcessImpl(bindingArgs,
                 exclusionSettingsStorage,
                 sonarQubeService,
-                qpUpdater,
+                qualityProfileDownloader,
                 logger,
                 isFirstBinding);
-        }
-
-        private IBindingConfigProvider CreateBindingConfigProvider()
-        {
-            var cSharpVBBindingConfigProvider = new CSharpVBBindingConfigProvider(sonarQubeService, logger);
-            var nonRoslynBindingConfigProvider = new NonRoslynBindingConfigProvider(
-                new[]
-                {
-                    Language.C,
-                    Language.Cpp,
-                    Language.Js,
-                    Language.Ts,
-                    Language.Secrets,
-                    Language.Css
-                }, sonarQubeService, logger);
-
-            return new CompositeBindingConfigProvider(cSharpVBBindingConfigProvider, nonRoslynBindingConfigProvider);
         }
     }
 }
