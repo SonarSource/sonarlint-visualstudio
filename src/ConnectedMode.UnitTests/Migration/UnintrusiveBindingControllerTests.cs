@@ -70,13 +70,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var bindingProcess = new Mock<IBindingProcess>();
             bindingProcess.Setup(x => x.DownloadQualityProfileAsync(null, cancellationToken)).Callback(() => calls.Add("DownloadQualityProfiles"));
-            bindingProcess.Setup(x => x.SaveRuleConfiguration(cancellationToken)).Callback(() => calls.Add("SaveRuleConfiguration"));
             bindingProcess.Setup(x => x.SaveServerExclusionsAsync(cancellationToken)).Callback(() => calls.Add("SaveServerExclusionsAsync"));
 
             var testSubject = CreateTestSubject(bindingProcessFactory: CreateBindingProcessFactory(bindingProcess.Object).Object);
             await testSubject.BindAsync(AnyBoundProject, null, cancellationToken);
 
-            calls.Should().ContainInOrder("DownloadQualityProfiles", "SaveRuleConfiguration", "SaveServerExclusionsAsync");
+            calls.Should().ContainInOrder("DownloadQualityProfiles", "SaveServerExclusionsAsync");
         }
 
         private UnintrusiveBindingController CreateTestSubject(IBindingProcessFactory bindingProcessFactory = null)

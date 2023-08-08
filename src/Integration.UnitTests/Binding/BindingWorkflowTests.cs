@@ -147,20 +147,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void BindingWorkflow_SaveConfiguration_Passthrough()
-        {
-            // Arrange
-            var cts = new CancellationTokenSource();
-
-            // Act
-            testSubject.SaveRuleConfiguration(cts.Token);
-
-            // Assert
-            mockBindingProcess.Verify(x => x.SaveRuleConfiguration(cts.Token), Times.Once);
-        }
-
-
-        [TestMethod]
         public void BindingWorkflow_EmitBindingCompleteMessage()
         {
             // Arrange
