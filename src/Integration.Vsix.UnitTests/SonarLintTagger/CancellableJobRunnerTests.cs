@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.Integration.Vsix.CancellableJob;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
@@ -31,6 +31,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
     [TestClass]
     public class CancellableJobRunnerTests
     {
+        [TestMethod]
+        public void StaticInstance_ReturnsSameProperty()
+        {
+            var instance1 = CancellableJobRunner.Instance;
+            var instance2 = CancellableJobRunner.Instance;
+
+            instance1.Should().BeSameAs(instance2);
+        }
+
         [TestMethod]
         public void NoOperations_NoErrors()
         {
@@ -40,15 +49,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var progressRecorder = new ProgressNotificationRecorder(testLogger);
 
             // Act
-            var testSubject = CancellableJobRunner.Start("my job", new Action[] { }, progressRecorder, testLogger);
+            var testSubject = StartJob("my job", new Action[] { }, progressRecorder, testLogger);
             WaitForRunnerToFinish(testSubject, testLogger);
 
             // Assert
-            testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Finished);
+            testSubject.State.Should().Be(RunnerState.Finished);
 
             progressRecorder.Notifications.Count.Should().Be(2);
-            CheckExpectedNotification(progressRecorder.Notifications[0], CancellableJobRunner.RunnerState.Running, 0, 0);
-            CheckExpectedNotification(progressRecorder.Notifications[1], CancellableJobRunner.RunnerState.Finished, 0, 0);
+            CheckExpectedNotification(progressRecorder.Notifications[0], RunnerState.Running, 0, 0);
+            CheckExpectedNotification(progressRecorder.Notifications[1], RunnerState.Finished, 0, 0);
         }
 
         [TestMethod]
@@ -59,13 +68,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             testLogger.WriteLine("[Test] Executing test");
 
             // Act
-            var testSubject = CancellableJobRunner.Start("my job", new Action[] { },
+            var testSubject = StartJob("my job", new Action[] { },
                 null /* should be ok to pass null here */,
                 testLogger);
             WaitForRunnerToFinish(testSubject, testLogger);
 
             // Assert
-            testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Finished);
+            testSubject.State.Should().Be(RunnerState.Finished);
         }
 
         [TestMethod]
@@ -80,12 +89,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             bool op1Executed = false, op2Executed = false;
             int operationThreadId = -1;
             
-            CancellableJobRunner testSubject = null;
+            CancellableJobRunner.CancellableJob testSubject = null;
 
             Action op1 = () =>
             {
                 testLogger.WriteLine("[Test] Executing op1");
-                testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Running);
+                testSubject.State.Should().Be(RunnerState.Running);
 
                 op1Executed = true;
                 operationThreadId = Thread.CurrentThread.ManagedThreadId;
@@ -94,11 +103,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             Action op2 = () => op2Executed = true;
 
             // Act
-            testSubject = CancellableJobRunner.Start("my job", new[] { op1, op2 }, progressRecorder, testLogger);
+            testSubject = StartJob("my job", new[] { op1, op2 }, progressRecorder, testLogger);
             WaitForRunnerToFinish(testSubject, testLogger);
             
             // Assert
-            testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Finished);
+            testSubject.State.Should().Be(RunnerState.Finished);
 
             op1Executed.Should().BeTrue();
             op2Executed.Should().BeTrue();
@@ -106,10 +115,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             operationThreadId.Should().NotBe(Thread.CurrentThread.ManagedThreadId);
 
             progressRecorder.Notifications.Count.Should().Be(4);
-            CheckExpectedNotification(progressRecorder.Notifications[0], CancellableJobRunner.RunnerState.Running, 0, 2);
-            CheckExpectedNotification(progressRecorder.Notifications[1], CancellableJobRunner.RunnerState.Running, 1, 2);
-            CheckExpectedNotification(progressRecorder.Notifications[2], CancellableJobRunner.RunnerState.Running, 2, 2);
-            CheckExpectedNotification(progressRecorder.Notifications[3], CancellableJobRunner.RunnerState.Finished, 2, 2);
+            CheckExpectedNotification(progressRecorder.Notifications[0], RunnerState.Running, 0, 2);
+            CheckExpectedNotification(progressRecorder.Notifications[1], RunnerState.Running, 1, 2);
+            CheckExpectedNotification(progressRecorder.Notifications[2], RunnerState.Running, 2, 2);
+            CheckExpectedNotification(progressRecorder.Notifications[3], RunnerState.Finished, 2, 2);
         }
 
         [TestMethod]
@@ -121,14 +130,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var progressRecorder = new ProgressNotificationRecorder(testLogger);
 
             bool op1Executed = false, op2Executed = false;
-            CancellableJobRunner testSubject = null;
+            CancellableJobRunner.CancellableJob testSubject = null;
 
             Action op1 = () =>
             {
                 testLogger.WriteLine("[Test] Executing op1");
                 op1Executed = true;
 
-                testSubject.Cancel();
+                ((ICancellableJob)testSubject).Cancel();
             };
 
             Action op2 = () =>
@@ -138,7 +147,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             };
 
             // Act
-            testSubject = CancellableJobRunner.Start("my job", new[] { op1, op2 }, progressRecorder, testLogger);
+            testSubject = StartJob("my job", new[] { op1, op2 }, progressRecorder, testLogger);
 
 
             WaitForRunnerToFinish(testSubject, testLogger);
@@ -146,13 +155,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             Thread.Sleep(200);
 
             // Other checks
-            testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Cancelled);
+            testSubject.State.Should().Be(RunnerState.Cancelled);
             op1Executed.Should().BeTrue();
             op2Executed.Should().BeFalse();
 
             progressRecorder.Notifications.Count.Should().Be(2);
-            CheckExpectedNotification(progressRecorder.Notifications[0], CancellableJobRunner.RunnerState.Running, 0, 2);
-            CheckExpectedNotification(progressRecorder.Notifications[1], CancellableJobRunner.RunnerState.Cancelled, 0, 2);
+            CheckExpectedNotification(progressRecorder.Notifications[0], RunnerState.Running, 0, 2);
+            CheckExpectedNotification(progressRecorder.Notifications[1], RunnerState.Cancelled, 0, 2);
         }
 
         [TestMethod]
@@ -179,22 +188,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             };
 
             // Act
-            var testSubject = CancellableJobRunner.Start("my job", new[] { op1, op2 }, progressRecorder, testLogger);
+            var testSubject = StartJob("my job", new[] { op1, op2 }, progressRecorder, testLogger);
             WaitForRunnerToFinish(testSubject, testLogger);
 
             // Other checks
-            testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Faulted);
+            testSubject.State.Should().Be(RunnerState.Faulted);
             testLogger.AssertPartialOutputStringExists("XXX YYY");
 
             op1Executed.Should().BeTrue();
             op2Executed.Should().BeFalse();
 
             progressRecorder.Notifications.Count.Should().Be(2);
-            CheckExpectedNotification(progressRecorder.Notifications[0], CancellableJobRunner.RunnerState.Running, 0, 2);
-            CheckExpectedNotification(progressRecorder.Notifications[1], CancellableJobRunner.RunnerState.Faulted, 0, 2);
+            CheckExpectedNotification(progressRecorder.Notifications[0], RunnerState.Running, 0, 2);
+            CheckExpectedNotification(progressRecorder.Notifications[1], RunnerState.Faulted, 0, 2);
         }
 
-        private static void WaitForRunnerToFinish(CancellableJobRunner runner, ILogger logger)
+        private static CancellableJobRunner.CancellableJob StartJob(string jobDescription, IEnumerable<Action> operations, IProgress<JobRunnerProgress> progress, ILogger logger)
+            // Cast the return to a CancellableJob so we can access its test properties
+            => (CancellableJobRunner.CancellableJob)CancellableJobRunner.Instance.Start(jobDescription, operations, progress, logger);
+
+        private static void WaitForRunnerToFinish(CancellableJobRunner.CancellableJob runner, ILogger logger)
         {
             int timeout = System.Diagnostics.Debugger.IsAttached ? 20000 : 3000;
             bool signalled = false;
@@ -218,15 +231,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             }
         }
 
-        private static void CheckExpectedNotification(CancellableJobRunner.JobRunnerProgress actual,
-            CancellableJobRunner.RunnerState expectedState, int expectedCompleted, int expectedTotal)
+        private static void CheckExpectedNotification(JobRunnerProgress actual,
+            RunnerState expectedState, int expectedCompleted, int expectedTotal)
         {
             actual.CurrentState.Should().Be(expectedState);
             actual.CompletedOperations.Should().Be(expectedCompleted);
             actual.TotalOperations.Should().Be(expectedTotal);
         }
 
-        private class ProgressNotificationRecorder : IProgress<CancellableJobRunner.JobRunnerProgress>
+        private class ProgressNotificationRecorder : IProgress<JobRunnerProgress>
         {
             private readonly ILogger logger;
             public ProgressNotificationRecorder(ILogger logger)
@@ -234,9 +247,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 this.logger = logger;
             }
 
-            public IList<CancellableJobRunner.JobRunnerProgress> Notifications { get; } = new List<CancellableJobRunner.JobRunnerProgress>();
+            public IList<JobRunnerProgress> Notifications { get; } = new List<JobRunnerProgress>();
 
-            public void Report(CancellableJobRunner.JobRunnerProgress value)
+            public void Report(JobRunnerProgress value)
             {
                 logger.WriteLine($"[Test] In progress reporter. State: {value.CurrentState}");
                 Notifications.Add(value);

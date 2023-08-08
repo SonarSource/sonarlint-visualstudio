@@ -32,8 +32,8 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
+using SonarLint.VisualStudio.Integration.Vsix.CancellableJob;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         private readonly object reanalysisLockObject = new object();
-        private CancellableJobRunner reanalysisJob;
+        private ICancellableJob reanalysisJob;
         private StatusBarReanalysisProgressHandler reanalysisProgressHandler;
 
         private void OnAnalysisRequested(object sender, AnalysisRequestEventArgs args)
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 reanalysisProgressHandler = new StatusBarReanalysisProgressHandler(vsStatusBar, logger);
 
                 var message = string.Format(CultureInfo.CurrentCulture, Strings.JobRunner_JobDescription_ReaanalyzeDocs, operations.Length);
-                reanalysisJob = CancellableJobRunner.Start(message, operations,
+                reanalysisJob = CancellableJobRunner.Instance.Start(message, operations,
                     reanalysisProgressHandler, logger);
             }
         }
