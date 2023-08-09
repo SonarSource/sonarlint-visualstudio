@@ -18,7 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Threading;
+using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
@@ -28,10 +32,60 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
-            => MefTestHelpers.CheckTypeCanBeImported<QualityProfileUpdater, IQualityProfileUpdater>();
-     
+            => MefTestHelpers.CheckTypeCanBeImported<QualityProfileUpdater, IQualityProfileUpdater>(
+                MefTestHelpers.CreateExport<IConfigurationProvider>(),
+                MefTestHelpers.CreateExport<IQualityProfileDownloader>(),
+                MefTestHelpers.CreateExport<ILogger>());
+
         [TestMethod]
         public void MefCtor_CheckIsSingleton()
             => MefTestHelpers.CheckIsSingletonMefComponent<QualityProfileUpdater>();
+
+        [TestMethod]
+        [DataRow(SonarLintMode.Standalone)]
+        [DataRow(SonarLintMode.LegacyConnected)]
+        public async Task UpdateBoundSolutionAsync_NotNewConnectedMode_DoesNotCallDownloader(SonarLintMode mode)
+        {
+            var configProvider = CreateConfigProvider(mode);
+            var qpDownloader = new Mock<IQualityProfileDownloader>();
+
+            var testSubject = CreateTestSubject(configProvider.Object, qpDownloader.Object);
+
+            await testSubject.UpdateAsync();
+
+            configProvider.Verify(x => x.GetConfiguration(), Times.Once);
+            qpDownloader.Invocations.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public async Task UpdateBoundSolutionAsync_IsNewConnectedMode_CallsDownloader()
+        {
+            var boundProject = new BoundSonarQubeProject();
+            var configProvider = CreateConfigProvider(SonarLintMode.Connected, boundProject);
+            var qpDownloader = new Mock<IQualityProfileDownloader>();
+
+            var testSubject = CreateTestSubject(configProvider.Object, qpDownloader.Object);
+
+            await testSubject.UpdateAsync();
+
+            configProvider.Verify(x => x.GetConfiguration(), Times.Once);
+            qpDownloader.Verify(x => x.UpdateAsync(boundProject, null, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        private Mock<IConfigurationProvider> CreateConfigProvider(SonarLintMode mode, BoundSonarQubeProject boundProject = null)
+        {
+            var config = new BindingConfiguration(boundProject ?? new BoundSonarQubeProject(), mode, "any directory");
+
+            var configProvider = new Mock<IConfigurationProvider>();
+            configProvider.Setup(x => x.GetConfiguration()).Returns(config);
+
+            return configProvider;
+        }
+
+        private static QualityProfileUpdater CreateTestSubject(
+            IConfigurationProvider configProvider = null,
+            IQualityProfileDownloader qpDownloader = null)
+            => new QualityProfileUpdater(
+                configProvider, qpDownloader, new TestLogger(logToConsole: true));
     }
 }
