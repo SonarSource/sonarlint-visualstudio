@@ -258,6 +258,17 @@ namespace SonarQube.Client
             return new Uri(httpClient.BaseAddress, string.Format(urlFormat, projectKey));
         }
 
+        public async Task<IList<SonarQubeQualityProfile>> GetAllQualityProfilesAsync(string project, string organizationKey, CancellationToken token)
+        {
+            return await InvokeCheckedRequestAsync<IGetQualityProfilesRequest, SonarQubeQualityProfile[]>(
+                request =>
+                {
+                    request.ProjectKey = project;
+                    request.OrganizationKey = GetOrganizationKeyForWebApiCalls(organizationKey, logger);
+                },
+                token);
+        }
+
         public async Task<SonarQubeQualityProfile> GetQualityProfileAsync(string projectKey, string organizationKey, SonarQubeLanguage language, CancellationToken token)
         {
             var qualityProfiles = await InvokeCheckedRequestAsync<IGetQualityProfilesRequest, SonarQubeQualityProfile[]>(
