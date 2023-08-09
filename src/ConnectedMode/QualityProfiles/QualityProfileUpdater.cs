@@ -18,8 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.Threading;
+using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
@@ -36,17 +38,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
 
     [Export(typeof(IQualityProfileUpdater))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class QualityProfileUpdater : IQualityProfileUpdater
+    internal sealed class QualityProfileUpdater : IQualityProfileUpdater, IDisposable
     {
         private readonly IConfigurationProvider configProvider;
         private readonly IQualityProfileDownloader qualityProfileDownloader;
+        private readonly ICancellableActionRunner runner;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public QualityProfileUpdater(IConfigurationProvider configProvider, IQualityProfileDownloader qualityProfileDownloader, ILogger logger)
+        public QualityProfileUpdater(IConfigurationProvider configProvider,
+            IQualityProfileDownloader qualityProfileDownloader,
+            ICancellableActionRunner runner,
+            ILogger logger)
         {
             this.configProvider = configProvider;
             this.qualityProfileDownloader = qualityProfileDownloader;
+            this.runner = runner;
             this.logger = logger;
         }
 
@@ -58,8 +65,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
                 logger.LogVerbose($"[QualityProfiles] Skipping Quality Profile update. Solution is not bound. Mode: {config.Mode}");
                 return;
             }
-
-            await qualityProfileDownloader.UpdateAsync(config.Project, null, CancellationToken.None);
+            
+            await runner.RunAsync(token => qualityProfileDownloader.UpdateAsync(config.Project, null, CancellationToken.None));
         }
+
+        public void Dispose() => runner.Dispose();
     }
 }

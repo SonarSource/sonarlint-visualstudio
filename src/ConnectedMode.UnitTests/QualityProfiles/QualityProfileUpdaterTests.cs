@@ -18,8 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
@@ -35,6 +37,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             => MefTestHelpers.CheckTypeCanBeImported<QualityProfileUpdater, IQualityProfileUpdater>(
                 MefTestHelpers.CreateExport<IConfigurationProvider>(),
                 MefTestHelpers.CreateExport<IQualityProfileDownloader>(),
+                MefTestHelpers.CreateExport<ICancellableActionRunner>(),
                 MefTestHelpers.CreateExport<ILogger>());
 
         [TestMethod]
@@ -44,32 +47,70 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
         [TestMethod]
         [DataRow(SonarLintMode.Standalone)]
         [DataRow(SonarLintMode.LegacyConnected)]
-        public async Task UpdateBoundSolutionAsync_NotNewConnectedMode_DoesNotCallDownloader(SonarLintMode mode)
+        public async Task UpdateBoundSolutionAsync_NotNewConnectedMode_DoesNotUpdateQP(SonarLintMode mode)
         {
             var configProvider = CreateConfigProvider(mode);
             var qpDownloader = new Mock<IQualityProfileDownloader>();
+            var runner = CreatePassthroughRunner();
 
-            var testSubject = CreateTestSubject(configProvider.Object, qpDownloader.Object);
+            var testSubject = CreateTestSubject(configProvider.Object, qpDownloader.Object, runner.Object);
 
             await testSubject.UpdateAsync();
 
             configProvider.Verify(x => x.GetConfiguration(), Times.Once);
+            runner.Invocations.Should().BeEmpty();
             qpDownloader.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
-        public async Task UpdateBoundSolutionAsync_IsNewConnectedMode_CallsDownloader()
+        public async Task UpdateBoundSolutionAsync_IsNewConnectedMode_UpdateIsDoneThroughRunner()
         {
             var boundProject = new BoundSonarQubeProject();
             var configProvider = CreateConfigProvider(SonarLintMode.Connected, boundProject);
             var qpDownloader = new Mock<IQualityProfileDownloader>();
+            // Using a pass-through runner so we can test the action passed to the runner
+            var runner = CreatePassthroughRunner();
 
-            var testSubject = CreateTestSubject(configProvider.Object, qpDownloader.Object);
+            var testSubject = CreateTestSubject(configProvider.Object, qpDownloader.Object, runner.Object);
 
             await testSubject.UpdateAsync();
 
             configProvider.Verify(x => x.GetConfiguration(), Times.Once);
+            runner.Verify(x => x.RunAsync(It.IsAny<Func<CancellationToken, Task>>()), Times.Once);
             qpDownloader.Verify(x => x.UpdateAsync(boundProject, null, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task UpdateBoundSolutionAsync_IsNewConnectedMode_UpdaterDoesNotCallDownloaderDirectly()
+        {
+            var boundProject = new BoundSonarQubeProject();
+            var configProvider = CreateConfigProvider(SonarLintMode.Connected, boundProject);
+            var qpDownloader = new Mock<IQualityProfileDownloader>();
+            // Here, we're not using a pass-through runner, so we're not expecting the 
+            // downloader to be invoked
+            var runner = new Mock<ICancellableActionRunner>();
+
+            var testSubject = CreateTestSubject(configProvider.Object, qpDownloader.Object, runner.Object);
+
+            await testSubject.UpdateAsync();
+
+            configProvider.Verify(x => x.GetConfiguration(), Times.Once);
+            runner.Verify(x => x.RunAsync(It.IsAny<Func<CancellationToken, Task>>()), Times.Once);
+
+            // The updater should not be calling the downloader directly, only via the runner
+            qpDownloader.Invocations.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void Dispose_RunnerIsDisposed()
+        {
+            var runner = new Mock<ICancellableActionRunner>();
+            var testSubject = CreateTestSubject(runner: runner.Object);
+            runner.Invocations.Should().BeEmpty();
+
+            testSubject.Dispose();
+
+            runner.Verify(x => x.Dispose(), Times.Once);
         }
 
         private Mock<IConfigurationProvider> CreateConfigProvider(SonarLintMode mode, BoundSonarQubeProject boundProject = null)
@@ -82,10 +123,26 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             return configProvider;
         }
 
+        private static Mock<ICancellableActionRunner> CreatePassthroughRunner(CancellationToken? token = null)
+        {
+            // If we want to test any of the code in the action passed to the runner we need
+            // to configure the runner to call it
+            var runner = new Mock<ICancellableActionRunner>();
+            runner
+                .Setup(x => x.RunAsync(It.IsAny<Func<CancellationToken, Task>>()))
+                .Callback((Func<CancellationToken, Task> callback) => callback(token ?? CancellationToken.None));
+
+            return runner;
+        }
+
         private static QualityProfileUpdater CreateTestSubject(
             IConfigurationProvider configProvider = null,
-            IQualityProfileDownloader qpDownloader = null)
+            IQualityProfileDownloader qpDownloader = null,
+            ICancellableActionRunner runner = null)
             => new QualityProfileUpdater(
-                configProvider, qpDownloader, new TestLogger(logToConsole: true));
+                configProvider,
+                qpDownloader,
+                runner ?? CreatePassthroughRunner().Object,
+                new TestLogger(logToConsole: true));
     }
 }
