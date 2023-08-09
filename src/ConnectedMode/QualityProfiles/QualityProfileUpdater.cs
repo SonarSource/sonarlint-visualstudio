@@ -20,6 +20,8 @@
 
 using System.ComponentModel.Composition;
 using System.Threading;
+using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
@@ -38,28 +40,40 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class QualityProfileUpdater : IQualityProfileUpdater
     {
+        internal const string QPUpdateJobId = "update-qp";
+        internal static readonly int QPUpdateJobTimeoutInMilliseconds = -1 /* no timeout */;
+
         private readonly IConfigurationProvider configProvider;
         private readonly IQualityProfileDownloader qualityProfileDownloader;
+        private readonly IScheduler scheduler;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public QualityProfileUpdater(IConfigurationProvider configProvider, IQualityProfileDownloader qualityProfileDownloader, ILogger logger)
+        public QualityProfileUpdater(IConfigurationProvider configProvider,
+            IQualityProfileDownloader qualityProfileDownloader,
+            IScheduler scheduler,
+            ILogger logger)
         {
             this.configProvider = configProvider;
             this.qualityProfileDownloader = qualityProfileDownloader;
+            this.scheduler = scheduler;
             this.logger = logger;
         }
 
-        public async Task UpdateAsync()
+        public Task UpdateAsync()
         {
             var config = configProvider.GetConfiguration();
             if (config.Mode != SonarLintMode.Connected)
             {
                 logger.LogVerbose($"[QualityProfiles] Skipping Quality Profile update. Solution is not bound. Mode: {config.Mode}");
-                return;
             }
-
-            await qualityProfileDownloader.UpdateAsync(config.Project, null, CancellationToken.None);
+            else
+            {
+                scheduler.Schedule(QPUpdateJobId,
+                    token => qualityProfileDownloader.UpdateAsync(config.Project, null, CancellationToken.None).Forget(),
+                    QPUpdateJobTimeoutInMilliseconds);
+            }
+            return Task.CompletedTask;
         }
     }
 }
