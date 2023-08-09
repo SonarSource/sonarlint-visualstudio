@@ -20,7 +20,6 @@
 
 using System.ComponentModel.Composition;
 using System.Threading;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
@@ -57,7 +56,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             this.logger = logger;
         }
 
-        public Task UpdateAsync()
+        public async Task UpdateAsync()
         {
             var config = configProvider.GetConfiguration();
             if (config.Mode != SonarLintMode.Connected)
@@ -66,10 +65,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             }
             else
             {
-                runner.RunAsync(token => qualityProfileDownloader.UpdateAsync(config.Project, null, CancellationToken.None))
-                    .Forget();
+                await runner.RunAsync(token => qualityProfileDownloader.UpdateAsync(config.Project, null, CancellationToken.None));
             }
-            return Task.CompletedTask;
         }
     }
 }
