@@ -40,6 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private readonly IAnalysisRequester analysisRequester;
         private readonly IUserSettingsProvider userSettingsProvider;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private readonly INotifyQualityProfilesChanged notifyQualityProfilesUpdated;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
 
@@ -49,24 +50,36 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         public AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
             IUserSettingsProvider userSettingsProvider, // reports changes to user settings.json
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
-            ILogger logger) : this(analysisRequester, userSettingsProvider, activeSolutionBoundTracker, logger, ThreadHandling.Instance)
+            INotifyQualityProfilesChanged notifyQualityProfilesUpdated,
+            ILogger logger)
+            : this(analysisRequester,
+                  userSettingsProvider,
+                  activeSolutionBoundTracker,
+                  notifyQualityProfilesUpdated,
+                  logger,
+                  ThreadHandling.Instance)
         { }
 
         internal AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
             IUserSettingsProvider userSettingsProvider,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            INotifyQualityProfilesChanged notifyQualityProfilesUpdated,
             ILogger logger,
             IThreadHandling threadHandling)
         {
             this.analysisRequester = analysisRequester;
             this.userSettingsProvider = userSettingsProvider;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+            this.notifyQualityProfilesUpdated = notifyQualityProfilesUpdated;
             this.logger = logger;
             this.threadHandling = threadHandling;
 
             userSettingsProvider.SettingsChanged += OnUserSettingsChanged;
             activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
+            notifyQualityProfilesUpdated.QualityProfilesChanged += OnQualityProfilesUpdated;
         }
+
+        #region Incoming notifications
 
         private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
         {
@@ -80,6 +93,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
             OnSettingsChangedAsync().Forget();
         }
+
+        private void OnQualityProfilesUpdated(object sender, EventArgs e)
+        {
+            logger.WriteLine(AnalysisStrings.ConfigMonitor_QualityProfilesChanged);
+            OnSettingsChangedAsync().Forget();
+        }
+
+        #endregion Incoming notifications
 
         private async Task OnSettingsChangedAsync()
         {
@@ -106,6 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 {
                     userSettingsProvider.SettingsChanged -= OnUserSettingsChanged;
                     activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
+                    notifyQualityProfilesUpdated.QualityProfilesChanged -= OnQualityProfilesUpdated;
                 }
                 disposedValue = true;
             }

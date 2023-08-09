@@ -54,12 +54,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             var runner = CreatePassthroughRunner();
 
             var testSubject = CreateTestSubject(configProvider.Object, qpDownloader.Object, runner.Object);
+            var eventListener = new QPUpdatedEventListener(testSubject);
 
             await testSubject.UpdateAsync();
 
             configProvider.Verify(x => x.GetConfiguration(), Times.Once);
             runner.Invocations.Should().BeEmpty();
             qpDownloader.Invocations.Should().BeEmpty();
+            eventListener.EventCount.Should().Be(0);
         }
 
         [TestMethod]
@@ -72,12 +74,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             var runner = CreatePassthroughRunner();
 
             var testSubject = CreateTestSubject(configProvider.Object, qpDownloader.Object, runner.Object);
+            var eventListener = new QPUpdatedEventListener(testSubject);
 
             await testSubject.UpdateAsync();
 
             configProvider.Verify(x => x.GetConfiguration(), Times.Once);
             runner.Verify(x => x.RunAsync(It.IsAny<Func<CancellationToken, Task>>()), Times.Once);
             qpDownloader.Verify(x => x.UpdateAsync(boundProject, null, It.IsAny<CancellationToken>()), Times.Once);
+            eventListener.EventCount.Should().Be(1);
         }
 
         [TestMethod]
@@ -113,6 +117,30 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             runner.Verify(x => x.Dispose(), Times.Once);
         }
 
+        [TestMethod]
+        public async Task UpdateBoundSolutionAsync_JobIsCancelled_EventIsNotRaised()
+        {
+            // Simulate the runner cancelling a task
+            var cts = new CancellationTokenSource();
+            cts.Cancel();
+            var runner = new Mock<ICancellableActionRunner>();
+            runner.Setup(x => x.RunAsync(It.IsAny<Func<CancellationToken, Task>>()))
+                .Callback<Func<CancellationToken, Task>>(func => cts.Token.ThrowIfCancellationRequested());
+
+            var boundProject = new BoundSonarQubeProject();
+            var configProvider = CreateConfigProvider(SonarLintMode.Connected, boundProject);
+            var qpDownloader = new Mock<IQualityProfileDownloader>();
+
+            var testSubject = CreateTestSubject(configProvider.Object, qpDownloader.Object, runner.Object);
+            var eventListener = new QPUpdatedEventListener(testSubject);
+
+            await testSubject.UpdateAsync();
+
+            configProvider.Verify(x => x.GetConfiguration(), Times.Once);
+            runner.Verify(x => x.RunAsync(It.IsAny<Func<CancellationToken, Task>>()), Times.Once);
+            eventListener.EventCount.Should().Be(0);
+        }
+
         private Mock<IConfigurationProvider> CreateConfigProvider(SonarLintMode mode, BoundSonarQubeProject boundProject = null)
         {
             var config = new BindingConfiguration(boundProject ?? new BoundSonarQubeProject(), mode, "any directory");
@@ -144,5 +172,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
                 qpDownloader,
                 runner ?? CreatePassthroughRunner().Object,
                 new TestLogger(logToConsole: true));
+
+        private class QPUpdatedEventListener
+        {
+            public QPUpdatedEventListener(IQualityProfileUpdater qpUpdater)
+                => qpUpdater.QualityProfilesChanged += (sender, args) => EventCount++;
+
+            public int EventCount { get; private set; }
+        }
     }
 }
