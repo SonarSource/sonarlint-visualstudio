@@ -76,6 +76,13 @@ namespace SonarQube.Client
 
         Uri GetProjectDashboardUrl(string projectKey);
 
+        /// <summary>
+        /// Wrapper for GET api/qualityprofiles/search
+        /// </summary>
+        /// <returns></returns>
+        Task<IList<SonarQubeQualityProfile>> GetAllQualityProfilesAsync(string project, string organizationKey,
+            CancellationToken token);
+
         Task<SonarQubeQualityProfile> GetQualityProfileAsync(string projectKey, string organizationKey,
             SonarQubeLanguage language, CancellationToken token);
 
