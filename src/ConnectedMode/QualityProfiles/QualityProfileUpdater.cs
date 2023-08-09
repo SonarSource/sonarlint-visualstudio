@@ -62,11 +62,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             if (config.Mode != SonarLintMode.Connected)
             {
                 logger.LogVerbose($"[QualityProfiles] Skipping Quality Profile update. Solution is not bound. Mode: {config.Mode}");
+                return;
             }
-            else
-            {
-                await runner.RunAsync(token => qualityProfileDownloader.UpdateAsync(config.Project, null, CancellationToken.None));
-            }
+            
+            await runner.RunAsync(token => qualityProfileDownloader.UpdateAsync(config.Project, null, CancellationToken.None));
         }
     }
 }
