@@ -101,6 +101,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             qpDownloader.Invocations.Should().BeEmpty();
         }
 
+        [TestMethod]
+        public void Dispose_RunnerIsDisposed()
+        {
+            var runner = new Mock<ICancellableActionRunner>();
+            var testSubject = CreateTestSubject(runner: runner.Object);
+            runner.Invocations.Should().BeEmpty();
+
+            testSubject.Dispose();
+
+            runner.Verify(x => x.Dispose(), Times.Once);
+        }
+
         private Mock<IConfigurationProvider> CreateConfigProvider(SonarLintMode mode, BoundSonarQubeProject boundProject = null)
         {
             var config = new BindingConfiguration(boundProject ?? new BoundSonarQubeProject(), mode, "any directory");

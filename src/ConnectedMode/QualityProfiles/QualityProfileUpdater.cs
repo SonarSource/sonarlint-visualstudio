@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Helpers;
@@ -37,7 +38,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
 
     [Export(typeof(IQualityProfileUpdater))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class QualityProfileUpdater : IQualityProfileUpdater
+    internal sealed class QualityProfileUpdater : IQualityProfileUpdater, IDisposable
     {
         private readonly IConfigurationProvider configProvider;
         private readonly IQualityProfileDownloader qualityProfileDownloader;
@@ -67,5 +68,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             
             await runner.RunAsync(token => qualityProfileDownloader.UpdateAsync(config.Project, null, CancellationToken.None));
         }
+
+        public void Dispose() => runner.Dispose();
     }
 }
