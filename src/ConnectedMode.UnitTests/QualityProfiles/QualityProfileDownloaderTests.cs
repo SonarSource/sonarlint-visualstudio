@@ -51,7 +51,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             var testSubject = new QualityProfileDownloader(sonarQubeService.Object,
                 Mock.Of<IBindingConfigProvider>(),
                 Mock.Of<IConfigurationPersister>(),
-                Mock.Of<ISolutionBindingOperation>(),
                 new TestLogger(logToConsole: true));
             
             await testSubject.UpdateAsync(boundProject, null, CancellationToken.None);
@@ -255,8 +254,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
                 sonarQubeService ?? Mock.Of<ISonarQubeService>(),
                 bindingConfigProvider ?? Mock.Of<IBindingConfigProvider>(),
                 configurationPersister ?? new DummyConfigPersister(),
-                solutionBindingOperation ?? Mock.Of<ISolutionBindingOperation>(),
                 logger ?? new TestLogger(logToConsole: true),
+                solutionBindingOperation ?? Mock.Of<ISolutionBindingOperation>(),
                 languagesToBind ?? Language.KnownLanguages);
         }
 

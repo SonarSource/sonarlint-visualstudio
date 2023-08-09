@@ -41,6 +41,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
         Task<bool> UpdateAsync(BoundSonarQubeProject boundProject, IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken);
     }
 
+    [Export(typeof(IQualityProfileDownloader))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class QualityProfileDownloader : IQualityProfileDownloader
     {
         private readonly IBindingConfigProvider bindingConfigProvider;
@@ -52,18 +54,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
 
         private readonly IEnumerable<Language> languagesToBind;
 
+        [ImportingConstructor]
         public QualityProfileDownloader(
             ISonarQubeService sonarQubeService,
             IBindingConfigProvider bindingConfigProvider,
             IConfigurationPersister configurationPersister,
-            ISolutionBindingOperation solutionBindingOperation,
             ILogger logger) :
             this(
                 sonarQubeService,
                 bindingConfigProvider,
                 configurationPersister,
-                solutionBindingOperation,
                 logger,
+                new SolutionBindingOperation(),
                 languagesToBind: Language.KnownLanguages
                 )
         { }
@@ -72,8 +74,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             ISonarQubeService sonarQubeService,
             IBindingConfigProvider bindingConfigProvider,
             IConfigurationPersister configurationPersister,
-            ISolutionBindingOperation solutionBindingOperation,
             ILogger logger,
+            ISolutionBindingOperation solutionBindingOperation,
             IEnumerable<Language> languagesToBind)
         {
             this.bindingConfigProvider = bindingConfigProvider;

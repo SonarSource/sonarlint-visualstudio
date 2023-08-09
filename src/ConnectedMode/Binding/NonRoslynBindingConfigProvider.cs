@@ -31,13 +31,28 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
-    public class NonRoslynBindingConfigProvider : IBindingConfigProvider
+    internal class NonRoslynBindingConfigProvider : IBindingConfigProvider
     {
+        // List of languages that use this type of configuration file (all non-Roslyn languages)
+        internal static readonly IEnumerable<Language> SupportedLanguages = new []
+        {
+            Language.C,
+            Language.Cpp,
+            Language.Js,
+            Language.Ts,
+            Language.Secrets,
+            Language.Css
+        };
+
         private readonly IEnumerable<Language> supportedLanguages;
         private readonly ISonarQubeService sonarQubeService;
         private readonly ILogger logger;
 
-        public NonRoslynBindingConfigProvider(IEnumerable<Language> supportedLanguages, ISonarQubeService sonarQubeService, ILogger logger)
+        public NonRoslynBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger)
+            : this(sonarQubeService, logger, SupportedLanguages)
+        { }
+
+        public NonRoslynBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger, IEnumerable<Language> supportedLanguages)
         {
             this.supportedLanguages = supportedLanguages ?? throw new ArgumentNullException(nameof(supportedLanguages));
             this.sonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));

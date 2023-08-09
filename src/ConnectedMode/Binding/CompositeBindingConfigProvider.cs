@@ -20,31 +20,39 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration;
+using SonarQube.Client;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
-    public class CompositeBindingConfigProvider : IBindingConfigProvider
+    /// <summary>
+    /// Composite that coordinates turning server Quality Profile information into a set of config files
+    /// for a particular language
+    /// </summary>
+    [Export(typeof(IBindingConfigProvider))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class CompositeBindingConfigProvider : IBindingConfigProvider
     {
         private readonly HashSet<IBindingConfigProvider> providers;
 
-        public CompositeBindingConfigProvider(params IBindingConfigProvider[] providers)
-        {
-            // params args can't be null - will be an empty array
-            if (providers.Length == 0)
-            {
-                throw new ArgumentNullException(nameof(providers));
-            }
-            if (providers.Any(p => p == null))
-            {
-                throw new ArgumentNullException(nameof(providers));
-            }
+        [ImportingConstructor]
+        public CompositeBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger)
+            : this(
+                  new CSharpVBBindingConfigProvider(sonarQubeService, logger),
+                  new NonRoslynBindingConfigProvider(sonarQubeService, logger))
+        { }
 
+        internal /* for testing */ CompositeBindingConfigProvider(params IBindingConfigProvider[] providers)
+        {
+            Debug.Assert(providers != null && providers.Length > 0);
             this.providers = new HashSet<IBindingConfigProvider>(providers);
         }
 

@@ -26,6 +26,9 @@ using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.TestInfrastructure;
+using SonarQube.Client;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
@@ -34,34 +37,27 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
     public class CompositeBindingConfigProviderTests
     {
         [TestMethod]
-        public void Ctor_InvalidArgs()
-        {
-            // 1. No config providers supplied
-            Action act = () => new CompositeBindingConfigProvider();
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("providers");
+        public void MefCtor_CheckIsExported()
+            => MefTestHelpers.CheckTypeCanBeImported<CompositeBindingConfigProvider, IBindingConfigProvider>(
+                MefTestHelpers.CreateExport<ISonarQubeService>(),
+                MefTestHelpers.CreateExport<ILogger>());
 
-            // 2. Null provider supplied
-            var providerMock = new Mock<IBindingConfigProvider>();
-            act = () => new CompositeBindingConfigProvider(providerMock.Object, null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("providers");
-        }
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+            => MefTestHelpers.CheckIsSingletonMefComponent<CompositeBindingConfigProvider>();
 
 
         [TestMethod]
-        public void Ctor_ValidArgs()
+        public void Ctor_PublicConstructor_ContainsExpectedBindingConfigProviders()
         {
-            // Arrange
-            var providerMock1 = new Mock<IBindingConfigProvider>();
-            var providerMock2 = new Mock<IBindingConfigProvider>();
-
             // Act
-            var testSubject = new CompositeBindingConfigProvider(
-                providerMock1.Object,
-                providerMock2.Object, providerMock2.Object); // duplicate should be ignored
+            var testSubject = new CompositeBindingConfigProvider(Mock.Of<ISonarQubeService>(), Mock.Of<ILogger>());
 
             // Assert
             testSubject.Providers.Count().Should().Be(2);
-            testSubject.Providers.Should().BeEquivalentTo(providerMock1.Object, providerMock2.Object);
+            testSubject.Providers.Select(x => x.GetType()).Should().BeEquivalentTo(
+                typeof(NonRoslynBindingConfigProvider),
+                typeof(CSharpVBBindingConfigProvider));
         }
 
         [TestMethod]
