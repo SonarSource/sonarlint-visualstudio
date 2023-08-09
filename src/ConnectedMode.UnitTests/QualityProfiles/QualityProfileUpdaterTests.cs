@@ -18,9 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -35,6 +37,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             => MefTestHelpers.CheckTypeCanBeImported<QualityProfileUpdater, IQualityProfileUpdater>(
                 MefTestHelpers.CreateExport<IConfigurationProvider>(),
                 MefTestHelpers.CreateExport<IQualityProfileDownloader>(),
+                MefTestHelpers.CreateExport<IScheduler>(),
                 MefTestHelpers.CreateExport<ILogger>());
 
         [TestMethod]
@@ -44,32 +47,62 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
         [TestMethod]
         [DataRow(SonarLintMode.Standalone)]
         [DataRow(SonarLintMode.LegacyConnected)]
-        public async Task UpdateBoundSolutionAsync_NotNewConnectedMode_DoesNotCallDownloader(SonarLintMode mode)
+        public async Task UpdateBoundSolutionAsync_NotNewConnectedMode_DoesNotUpdateQP(SonarLintMode mode)
         {
             var configProvider = CreateConfigProvider(mode);
             var qpDownloader = new Mock<IQualityProfileDownloader>();
+            var scheduler = CreatePassthroughScheduler();
 
-            var testSubject = CreateTestSubject(configProvider.Object, qpDownloader.Object);
+            var testSubject = CreateTestSubject(configProvider.Object, qpDownloader.Object, scheduler.Object);
 
             await testSubject.UpdateAsync();
 
             configProvider.Verify(x => x.GetConfiguration(), Times.Once);
+            scheduler.Invocations.Should().BeEmpty();
             qpDownloader.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
-        public async Task UpdateBoundSolutionAsync_IsNewConnectedMode_CallsDownloader()
+        public async Task UpdateBoundSolutionAsync_IsNewConnectedMode_UpdateIsDoneByScheduler()
         {
             var boundProject = new BoundSonarQubeProject();
             var configProvider = CreateConfigProvider(SonarLintMode.Connected, boundProject);
             var qpDownloader = new Mock<IQualityProfileDownloader>();
+            // Using a pass-through scheduler so we can test the action passed to the scheduler
+            var scheduler = CreatePassthroughScheduler();
 
-            var testSubject = CreateTestSubject(configProvider.Object, qpDownloader.Object);
+            var testSubject = CreateTestSubject(configProvider.Object, qpDownloader.Object, scheduler.Object);
 
             await testSubject.UpdateAsync();
 
             configProvider.Verify(x => x.GetConfiguration(), Times.Once);
+            scheduler.Verify(x => x.Schedule(QualityProfileUpdater.QPUpdateJobId,
+                It.IsAny<Action<CancellationToken>>(),
+                QualityProfileUpdater.QPUpdateJobTimeoutInMilliseconds), Times.Once);
             qpDownloader.Verify(x => x.UpdateAsync(boundProject, null, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task UpdateBoundSolutionAsync_IsNewConnectedMode_UpdaterDoesNotCallDownloaderDirectly()
+        {
+            var boundProject = new BoundSonarQubeProject();
+            var configProvider = CreateConfigProvider(SonarLintMode.Connected, boundProject);
+            var qpDownloader = new Mock<IQualityProfileDownloader>();
+            // Here, we're not using a pass-through scheduler, so we're not expecting the 
+            // downloader to be invoked
+            var scheduler = new Mock<IScheduler>();
+
+            var testSubject = CreateTestSubject(configProvider.Object, qpDownloader.Object, scheduler.Object);
+
+            await testSubject.UpdateAsync();
+
+            configProvider.Verify(x => x.GetConfiguration(), Times.Once);
+            scheduler.Verify(x => x.Schedule(QualityProfileUpdater.QPUpdateJobId,
+                It.IsAny<Action<CancellationToken>>(),
+                QualityProfileUpdater.QPUpdateJobTimeoutInMilliseconds), Times.Once);
+
+            // The updater should not be calling the downloader directly, only via the scheduler
+            qpDownloader.Invocations.Should().BeEmpty();
         }
 
         private Mock<IConfigurationProvider> CreateConfigProvider(SonarLintMode mode, BoundSonarQubeProject boundProject = null)
@@ -82,10 +115,26 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             return configProvider;
         }
 
+        private static Mock<IScheduler> CreatePassthroughScheduler(CancellationToken? token = null)
+        {
+            // If we want to test any of the code in the action passed to the scheduler we need
+            // to configure the scheduler to call it
+            var schedulerMock = new Mock<IScheduler>();
+            schedulerMock
+                .Setup(x => x.Schedule(It.IsAny<string>(), It.IsAny<Action<CancellationToken>>(), It.IsAny<int>()))
+                .Callback((string jobId, Action<CancellationToken> action, int timeout) => action(token ?? CancellationToken.None));
+
+            return schedulerMock;
+        }
+
         private static QualityProfileUpdater CreateTestSubject(
             IConfigurationProvider configProvider = null,
-            IQualityProfileDownloader qpDownloader = null)
+            IQualityProfileDownloader qpDownloader = null,
+            IScheduler scheduler = null)
             => new QualityProfileUpdater(
-                configProvider, qpDownloader, new TestLogger(logToConsole: true));
+                configProvider,
+                qpDownloader,
+                scheduler ?? CreatePassthroughScheduler().Object,
+                new TestLogger(logToConsole: true));
     }
 }

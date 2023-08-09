@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class TimedUpdateHandler : IDisposable
     {
-        private const double MillisecondsToWaitBetweenRefresh = 1000 * 60 * 10; // 10 minutes
+        private const double MillisecondsToWaitBetweenRefresh = 1000 * 60 * 1; // 10 minutes
 
         private readonly ITimer refreshTimer;
         private readonly ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater;
@@ -68,6 +68,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         {
             suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync().Forget();
             serverHotspotStoreUpdater.UpdateAllServerHotspotsAsync().Forget();
+            qualityProfileUpdater.UpdateAsync().Forget();
             qualityProfileUpdater.UpdateAsync().Forget();
         }
 
