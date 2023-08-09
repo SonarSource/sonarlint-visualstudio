@@ -44,11 +44,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         [ImportingConstructor]
         public TimedUpdateHandler(ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
             IServerHotspotStoreUpdater serverHotspotStoreUpdater,
-            IQualityProfileUpdater qualityProfileUpdater) 
+            IQualityProfileUpdater qualityProfileUpdater)
             : this(suppressionIssueStoreUpdater, serverHotspotStoreUpdater, qualityProfileUpdater, new TimerFactory()) { }
 
         internal /* for testing */ TimedUpdateHandler(ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
-            IServerHotspotStoreUpdater serverHotspotStoreUpdater, 
+            IServerHotspotStoreUpdater serverHotspotStoreUpdater,
             IQualityProfileUpdater qualityProfileUpdater,
             ITimerFactory timerFactory)
         {
