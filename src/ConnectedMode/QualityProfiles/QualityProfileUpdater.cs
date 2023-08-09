@@ -21,7 +21,7 @@
 using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
@@ -40,23 +40,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class QualityProfileUpdater : IQualityProfileUpdater
     {
-        internal const string QPUpdateJobId = "update-qp";
-        internal static readonly int QPUpdateJobTimeoutInMilliseconds = -1 /* no timeout */;
-
         private readonly IConfigurationProvider configProvider;
         private readonly IQualityProfileDownloader qualityProfileDownloader;
-        private readonly IScheduler scheduler;
+        private readonly ICancellableActionRunner runner;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public QualityProfileUpdater(IConfigurationProvider configProvider,
             IQualityProfileDownloader qualityProfileDownloader,
-            IScheduler scheduler,
+            ICancellableActionRunner runner,
             ILogger logger)
         {
             this.configProvider = configProvider;
             this.qualityProfileDownloader = qualityProfileDownloader;
-            this.scheduler = scheduler;
+            this.runner = runner;
             this.logger = logger;
         }
 
@@ -69,9 +66,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             }
             else
             {
-                scheduler.Schedule(QPUpdateJobId,
-                    token => qualityProfileDownloader.UpdateAsync(config.Project, null, CancellationToken.None).Forget(),
-                    QPUpdateJobTimeoutInMilliseconds);
+                runner.RunAsync(token => qualityProfileDownloader.UpdateAsync(config.Project, null, CancellationToken.None))
+                    .Forget();
             }
             return Task.CompletedTask;
         }
