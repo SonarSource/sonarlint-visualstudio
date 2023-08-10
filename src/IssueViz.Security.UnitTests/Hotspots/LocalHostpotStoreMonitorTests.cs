@@ -125,7 +125,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
 
             var threadHandling = new Mock<IThreadHandling>();
             threadHandling
-                .Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
+                .Setup(x => x.RunOnUIThreadAsync(It.IsAny<Action>()))
                 .Callback((Action callbackAction) =>
                 {
                     callSequence.Add("RunOnUIThread");
@@ -158,7 +158,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
 
             var threadHandling = new Mock<IThreadHandling>();
             threadHandling
-                .Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
+                .Setup(x => x.RunOnUIThreadAsync(It.IsAny<Action>()))
                 .Callback((Action callbackAction) =>
                 {
                     callSequence.Add("RunOnUIThread");

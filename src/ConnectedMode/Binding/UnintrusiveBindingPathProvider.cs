@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             SLVSRootBindingFolder = Path.Combine(environmentVariables.GetSLVSAppDataRootPath(), "Bindings");
 
             IVsSolution slnService = null;
-            threadHandling.RunOnUIThreadSync(() => slnService = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution);
+            threadHandling.RunOnUIThread(() => slnService = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution);
             solution = slnService;
         }
 

@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         {
             this.oldBinding = oldBinding;
 
-            await threadHandling.RunOnUIThread(() =>
+            await threadHandling.RunOnUIThreadAsync(() =>
             {
                 // The id contains the solution path so that each opened solution
                 // per session has its own notification.

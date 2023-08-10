@@ -192,7 +192,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                      x.AttachInfoBarWithButton(ValidToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default)).Returns(Mock.Of<IInfoBar>());
 
             var threadHandling = new Mock<IThreadHandling>();
-            threadHandling.Setup(x => x.RunOnUIThread(It.IsAny<Action>())).Callback<Action>(op =>
+            threadHandling.Setup(x => x.RunOnUIThreadAsync(It.IsAny<Action>())).Callback<Action>(op =>
             {
                 infoBarManager.Verify(x
                     => x.AttachInfoBarWithButton(ValidToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default), Times.Never);
@@ -204,7 +204,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var testSubject = new OpenInIDEFailureInfoBar(infoBarManager.Object, Mock.Of<IOutputWindowService>(), threadHandling.Object);
 
             await testSubject.ShowAsync(ValidToolWindowId);
-            threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
+            threadHandling.Verify(x => x.RunOnUIThreadAsync(It.IsAny<Action>()), Times.Once);
         }
 
         [TestMethod]
@@ -216,7 +216,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             await testSubject.ClearAsync();
 
-            threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
+            threadHandling.Verify(x => x.RunOnUIThreadAsync(It.IsAny<Action>()), Times.Once);
         }
 
         private async static Task<OpenInIDEFailureInfoBar> CreateTestSubjectWithPreviousInfoBar(
