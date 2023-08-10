@@ -89,8 +89,12 @@
   <Import Project="..\EmbeddedSonarAnalyzer.props" />
   <ItemGroup Label="Embedded SonarLint analyzers">
     <!-- Reference the packages we want to import, but don't include them as analyzers for this project -->
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" />
-    <PackageReference Include="SonarAnalyzer.VisualBasic" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="9.7.0.75501" ExcludeAssets="all" PrivateAssets="all">
+      <IncludeAssets>none</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="SonarAnalyzer.VisualBasic" Version="9.7.0.75501" ExcludeAssets="all" PrivateAssets="all">
+      <IncludeAssets>none</IncludeAssets>
+    </PackageReference>
 
     <!-- Include all of the analyzer binaries including third-party binaries in the VSIX -->
     <AllSonarAnalyzerAssemblies Include="$(NuGetPackageRoot)SonarAnalyzer.CSharp\$(EmbeddedSonarAnalyzerVersion)\analyzers\*.dll" />
