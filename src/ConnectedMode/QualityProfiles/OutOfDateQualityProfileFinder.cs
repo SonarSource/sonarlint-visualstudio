@@ -21,6 +21,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
@@ -61,33 +62,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
                 await sonarQubeService.GetAllQualityProfilesAsync(sonarQubeProject.ProjectKey,
                     sonarQubeProject.Organization.Key,
                     cancellationToken);
-            return GetChangedQualityProfiles(sonarQubeProject, sonarQubeQualityProfiles);
-        }
 
-        private static IEnumerable<(Language language, SonarQubeQualityProfile qualityProfile)> GetChangedQualityProfiles(
-            BoundSonarQubeProject sonarQubeProject,
-            IEnumerable<SonarQubeQualityProfile> sonarQubeQualityProfiles)
-        {
-            foreach (var serverQualityProfile in sonarQubeQualityProfiles)
-            {
-                var language = Language.GetLanguageFromLanguageKey(serverQualityProfile.Language);
-                
-                if (language == default)
+            return sonarQubeQualityProfiles
+                .Select(serverQualityProfile => 
+                    (language: Language.GetLanguageFromLanguageKey(serverQualityProfile.Language),
+                    qualityProfile: serverQualityProfile))
+                .Where(languageAndQp =>
                 {
-                    continue;
-                }
-                
-                // if we know the language, it's in the dictionary
-                Debug.Assert(sonarQubeProject.Profiles.ContainsKey(language));
+                    var (language, serverQualityProfile) = languageAndQp;
 
-                var localQualityProfile = sonarQubeProject.Profiles[language];
-                
-                if (!serverQualityProfile.Key.Equals(localQualityProfile.ProfileKey) 
-                    || serverQualityProfile.TimeStamp > localQualityProfile.ProfileTimestamp)
-                {
-                    yield return (language, serverQualityProfile);
-                }
-            }
+                    if (language == default)
+                    {
+                        return false;
+                    }
+
+                    // if we know the language, it's in the dictionary
+                    Debug.Assert(sonarQubeProject.Profiles.ContainsKey(language));
+
+                    var localQualityProfile = sonarQubeProject.Profiles[language];
+
+                    return !serverQualityProfile.Key.Equals(localQualityProfile.ProfileKey)
+                           || serverQualityProfile.TimeStamp > localQualityProfile.ProfileTimestamp;
+                });
         }
     }
 }
