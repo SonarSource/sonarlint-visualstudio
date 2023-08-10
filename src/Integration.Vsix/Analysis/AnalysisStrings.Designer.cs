@@ -70,6 +70,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Quality Profiles have changed. Open documents will be re-analyzed..
+        /// </summary>
+        internal static string ConfigMonitor_QualityProfilesChanged {
+            get {
+                return ResourceManager.GetString("ConfigMonitor_QualityProfilesChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Suppressions have been updated. Open documents will be re-analysed..
         /// </summary>
         internal static string ConfigMonitor_SuppressionsUpdated {
