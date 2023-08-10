@@ -68,22 +68,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
                     (language: Language.GetLanguageFromLanguageKey(serverQualityProfile.Language),
                     qualityProfile: serverQualityProfile))
                 .Where(languageAndQp =>
-                {
-                    var (language, serverQualityProfile) = languageAndQp;
+                    IsLocalQPOutOfDate(sonarQubeProject, languageAndQp.language, languageAndQp.qualityProfile));
+        }
 
-                    if (language == default)
-                    {
-                        return false;
-                    }
+        private static bool IsLocalQPOutOfDate(BoundSonarQubeProject sonarQubeProject, Language language,
+            SonarQubeQualityProfile serverQualityProfile)
+        {
+            if (language == default)
+            {
+                return false;
+            }
 
-                    // if we know the language, it's in the dictionary
-                    Debug.Assert(sonarQubeProject.Profiles.ContainsKey(language));
+            // if we know the language, it's in the dictionary
+            Debug.Assert(sonarQubeProject.Profiles.ContainsKey(language));
 
-                    var localQualityProfile = sonarQubeProject.Profiles[language];
+            var localQualityProfile = sonarQubeProject.Profiles[language];
 
-                    return !serverQualityProfile.Key.Equals(localQualityProfile.ProfileKey)
-                           || serverQualityProfile.TimeStamp > localQualityProfile.ProfileTimestamp;
-                });
+            return !serverQualityProfile.Key.Equals(localQualityProfile.ProfileKey)
+                   || serverQualityProfile.TimeStamp > localQualityProfile.ProfileTimestamp;
         }
     }
 }
