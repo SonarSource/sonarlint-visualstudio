@@ -22,13 +22,14 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Helpers;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
 {
-    internal interface IQualityProfileUpdater
+    internal interface IQualityProfileUpdater : INotifyQualityProfilesChanged
     {
         /// <summary>
         /// When in Connected Mode, ensures that all of the Quality Profiles are up to date
@@ -37,6 +38,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
     }
 
     [Export(typeof(IQualityProfileUpdater))]
+    [Export(typeof(INotifyQualityProfilesChanged))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class QualityProfileUpdater : IQualityProfileUpdater, IDisposable
     {
@@ -44,6 +46,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
         private readonly IQualityProfileDownloader qualityProfileDownloader;
         private readonly ICancellableActionRunner runner;
         private readonly ILogger logger;
+
+        public event EventHandler QualityProfilesChanged;
 
         [ImportingConstructor]
         public QualityProfileUpdater(IConfigurationProvider configProvider,
@@ -65,8 +69,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
                 logger.LogVerbose($"[QualityProfiles] Skipping Quality Profile update. Solution is not bound. Mode: {config.Mode}");
                 return;
             }
-            
-            await runner.RunAsync(token => qualityProfileDownloader.UpdateAsync(config.Project, null, CancellationToken.None));
+
+            try
+            {
+                // TODO: only raise the event if at least one QP actually changed...
+                await runner.RunAsync(token => qualityProfileDownloader.UpdateAsync(config.Project, null, CancellationToken.None));
+                QualityProfilesChanged?.Invoke(this, EventArgs.Empty);
+            }
+            catch (OperationCanceledException)
+            {
+                // no-op - job was cancelled
+            }
         }
 
         public void Dispose() => runner.Dispose();
