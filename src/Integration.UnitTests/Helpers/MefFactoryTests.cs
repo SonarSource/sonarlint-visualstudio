@@ -58,13 +58,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             var threadHandling = new Mock<IThreadHandling>();
             Action runOnUiAction = null;
             threadHandling
-                .Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
+                .Setup(x => x.RunOnUIThreadAsync(It.IsAny<Action>()))
                 .Callback((Action callbackAction) => runOnUiAction = callbackAction);
 
             var testSubject = new MefFactory(serviceProvider.Object, threadHandling.Object);
             await testSubject.CreateAsync<NonSharedEmptyTestMefImplementation>();
 
-            threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
+            threadHandling.Verify(x => x.RunOnUIThreadAsync(It.IsAny<Action>()), Times.Once);
 
             serviceProvider.Invocations.Should().HaveCount(0);
 

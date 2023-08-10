@@ -38,15 +38,15 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         public Task RunAsync<T>(Func<Task<T>> asyncMethod) => asyncMethod();
 
-        public Task RunOnUIThread(Action op)
+        public Task RunOnUIThreadAsync(Action op)
         {
             op();
             return Task.CompletedTask;
         }
 
-        public void RunOnUIThreadSync(Action op) => op();
+        public void RunOnUIThread(Action op) => op();
 
-        public void RunOnUIThreadSync2(Action op) => op();
+        public void RunOnUIThread2(Action op) => op();
 
         public Task<T> RunOnBackgroundThread<T>(Func<Task<T>> asyncMethod) => asyncMethod();
 

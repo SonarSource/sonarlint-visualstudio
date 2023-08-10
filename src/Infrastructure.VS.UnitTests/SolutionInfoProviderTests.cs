@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         private static Mock<IThreadHandling> CreateThreadHandlingWithRunOnUICallback(Action testOperation)
         {
             var threadHandling = new Mock<IThreadHandling>();
-            threadHandling.Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
+            threadHandling.Setup(x => x.RunOnUIThreadAsync(It.IsAny<Action>()))
                 .Callback<Action>(productOperation =>
                 {
                     testOperation();

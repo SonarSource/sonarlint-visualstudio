@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
         public async Task ShowAsync(Guid toolWindowId)
         {
-            await threadHandling.RunOnUIThread(() =>
+            await threadHandling.RunOnUIThreadAsync(() =>
             {
                 RemoveExistingInfoBar();
                 AddInfoBar(toolWindowId);
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
         public async Task ClearAsync()
         {
-            await threadHandling.RunOnUIThread(() =>
+            await threadHandling.RunOnUIThreadAsync(() =>
             {
                 RemoveExistingInfoBar();
             });

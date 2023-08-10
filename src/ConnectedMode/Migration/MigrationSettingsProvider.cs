@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         {
             string solutionDir = null;
 
-            await threadHandling.RunOnUIThread(() => {
+            await threadHandling.RunOnUIThreadAsync(() => {
                 var solution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
                 // If there isn't an open solution the returned hresult will indicate an error
                 // and the returned solution name will be null. We'll just ignore the hresult.

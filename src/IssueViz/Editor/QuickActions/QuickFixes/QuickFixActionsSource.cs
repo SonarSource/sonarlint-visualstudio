@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
             var hasActions = false;
             try
             {
-                await threadHandling.RunOnUIThread(() => hasActions = IsOnIssueWithApplicableQuickFixes(range, out _));
+                await threadHandling.RunOnUIThreadAsync(() => hasActions = IsOnIssueWithApplicableQuickFixes(range, out _));
             }
             catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -149,7 +149,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
         {
             try
             {
-                await threadHandling.RunOnUIThread(() => lightBulbBroker.DismissSession(textView));
+                await threadHandling.RunOnUIThreadAsync(() => lightBulbBroker.DismissSession(textView));
 
                 SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
             }

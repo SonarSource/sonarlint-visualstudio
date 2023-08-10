@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
         {
             localHotspotsStore.IssuesChanged += OnIssuesChanged;
 
-            await threadHandling.RunOnUIThread(() =>
+            await threadHandling.RunOnUIThreadAsync(() =>
             {
                 vsMonitorSelection = (IVsMonitorSelection)serviceProvider.GetService(typeof(SVsShellMonitorSelection));
                 Guid localGuid = LocalHotspotIssuesExistUIContext.Guid;
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 
         private async Task UpdateLocalHotpotIssuesUIContextAsync(bool hasIssues)
         {
-            await threadHandling.RunOnUIThread(() =>
+            await threadHandling.RunOnUIThreadAsync(() =>
             {
                 vsMonitorSelection.SetCmdUIContext(contextCookie, hasIssues ? 1 : 0);
             });

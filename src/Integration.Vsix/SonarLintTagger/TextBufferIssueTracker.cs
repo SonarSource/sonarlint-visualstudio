@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 string projectName = null;
                 Guid projectGuid = Guid.Empty;
 
-                await threadHandling.RunOnUIThread(() =>
+                await threadHandling.RunOnUIThreadAsync(() =>
                 {
                     projectName = GetProjectName();
                     projectGuid = GetProjectGuid();

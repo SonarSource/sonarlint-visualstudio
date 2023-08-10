@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         public async Task<string> GetFullSolutionFilePathAsync()
         {
             string fullSolutionName = null;
-            await threadHandling.RunOnUIThread(() => fullSolutionName = GetSolutionFilePath());
+            await threadHandling.RunOnUIThreadAsync(() => fullSolutionName = GetSolutionFilePath());
             return fullSolutionName;
         }
 
