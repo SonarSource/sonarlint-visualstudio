@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Education
 
             var ruleInfo = await ruleMetadataProvider.GetRuleInfoAsync(ruleId, token);
 
-            await threadHandling.RunOnUIThread(() =>
+            await threadHandling.RunOnUIThreadAsync(() =>
             {
                 if (ruleInfo == null)
                 {

@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
                 IFileConfig fileConfig = null;
 
-                await threadHandling.RunOnUIThread(() =>
+                await threadHandling.RunOnUIThreadAsync(() =>
                 {
                     fileConfig = GetFileConfigSync(analyzedFilePath, analyzerOptions);
                 });

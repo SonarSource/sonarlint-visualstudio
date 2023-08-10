@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var threadHandling = new Mock<IThreadHandling>();
             Action runOnUiAction = null;
             threadHandling
-                .Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
+                .Setup(x => x.RunOnUIThreadAsync(It.IsAny<Action>()))
                 .Callback((Action callbackAction) => runOnUiAction = callbackAction);
 
             var serviceProvider = SetUpServiceProviderWithSolution();
@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject(serviceProvider: serviceProvider, notificationService: notificationService.Object, threadHandling: threadHandling.Object);
             await testSubject.ShowAsync(AnyBoundProject, false);
 
-            threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
+            threadHandling.Verify(x => x.RunOnUIThreadAsync(It.IsAny<Action>()), Times.Once);
 
             notificationService.Invocations.Should().HaveCount(0);
 

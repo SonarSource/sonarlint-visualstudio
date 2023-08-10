@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Helpers
         {
             T instance = null;
 
-            await threadHandling.RunOnUIThread(() =>
+            await threadHandling.RunOnUIThreadAsync(() =>
                 {
                     var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
                     instance = componentModel.GetService<T>();

@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private async Task<IVsQueryEditQuerySave2> GetSccServiceAsync()
         {
             IVsQueryEditQuerySave2 service = null;
-            await threadHandling.RunOnUIThread(() =>
+            await threadHandling.RunOnUIThreadAsync(() =>
             {
                 service = serviceProvider.GetService(typeof(SVsQueryEditQuerySave)) as IVsQueryEditQuerySave2;
             });
@@ -165,7 +165,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             uint verdict = 0;
             uint moreInfo = 0;
 
-            await threadHandling.RunOnUIThread(() =>
+            await threadHandling.RunOnUIThreadAsync(() =>
             {
                 Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(sccService.QueryEditFiles((uint)flags, fileNames.Length, fileNames, null, null, out verdict, out moreInfo));
             });
@@ -182,7 +182,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         {
             bool result = false;
 
-            await threadHandling.RunOnUIThread(() =>
+            await threadHandling.RunOnUIThreadAsync(() =>
                 result = DoCheckoutForSave(fileNames));
 
             return result;

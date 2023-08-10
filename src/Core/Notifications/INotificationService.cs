@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
                 return;
             }
 
-            threadHandling.RunOnUIThread(() =>
+            threadHandling.RunOnUIThreadAsync(() =>
             {
                 RemoveExistingInfoBar();
                 ShowInfoBar(notification);
@@ -125,7 +125,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
                 return;
             }
 
-            threadHandling.RunOnUIThread(() =>
+            threadHandling.RunOnUIThreadAsync(() =>
             {
                 try
                 {
