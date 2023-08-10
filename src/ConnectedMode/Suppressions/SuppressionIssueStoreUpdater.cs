@@ -87,39 +87,43 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
         public async Task UpdateAllServerSuppressionsAsync()
         {
-            await threadHandling.SwitchToBackgroundThread();
-            await actionRunner.RunAsync(async token =>
+            await threadHandling.RunOnBackgroundThread(async () =>
             {
-                try
+                await actionRunner.RunAsync(async token =>
                 {
-                    logger.WriteLine(Resources.Suppressions_Fetch_AllIssues);
-
-                    (string projectKey, string serverBranch) queryInfo =
-                        await serverQueryInfoProvider.GetProjectKeyAndBranchAsync(token);
-
-                    if (queryInfo.projectKey == null || queryInfo.serverBranch == null)
+                    try
                     {
-                        return;
+                        logger.WriteLine(Resources.Suppressions_Fetch_AllIssues);
+
+                        (string projectKey, string serverBranch) queryInfo =
+                            await serverQueryInfoProvider.GetProjectKeyAndBranchAsync(token);
+
+                        if (queryInfo.projectKey == null || queryInfo.serverBranch == null)
+                        {
+                            return;
+                        }
+
+                        token.ThrowIfCancellationRequested();
+
+                        var allSuppressedIssues =
+                            await server.GetSuppressedIssuesAsync(queryInfo.projectKey, queryInfo.serverBranch, null,
+                                token);
+                        storeWriter.AddIssues(allSuppressedIssues, clearAllExistingIssues: true);
+
+                        logger.WriteLine(Resources.Suppression_Fetch_AllIssues_Finished);
                     }
+                    catch (OperationCanceledException)
+                    {
+                        logger.WriteLine(Resources.Suppressions_FetchOperationCancelled);
+                    }
+                    catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+                    {
+                        logger.LogVerbose(Resources.Suppression_FetchError_Verbose, ex);
+                        logger.WriteLine(Resources.Suppressions_FetchError_Short, ex.Message);
+                    }
+                });
 
-                    token.ThrowIfCancellationRequested();
-
-                    var allSuppressedIssues =
-                        await server.GetSuppressedIssuesAsync(queryInfo.projectKey, queryInfo.serverBranch, null,
-                            token);
-                    storeWriter.AddIssues(allSuppressedIssues, clearAllExistingIssues: true);
-
-                    logger.WriteLine(Resources.Suppression_Fetch_AllIssues_Finished);
-                }
-                catch (OperationCanceledException)
-                {
-                    logger.WriteLine(Resources.Suppressions_FetchOperationCancelled);
-                }
-                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-                {
-                    logger.LogVerbose(Resources.Suppression_FetchError_Verbose, ex);
-                    logger.WriteLine(Resources.Suppressions_FetchError_Short, ex.Message);
-                }
+                return true;
             });
         }
 
