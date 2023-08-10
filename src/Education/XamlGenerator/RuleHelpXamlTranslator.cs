@@ -371,6 +371,12 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                         break;
 
+                    case "sup":
+                        WriteInlineElementStart("Span");
+                        writer.WriteAttributeString("BaselineAlignment", "Superscript");
+
+                        break;
+
                     default:
                         Debug.Fail("Unexpected element type: " + reader.Name);
                         writer.WriteStartElement(reader.Name);

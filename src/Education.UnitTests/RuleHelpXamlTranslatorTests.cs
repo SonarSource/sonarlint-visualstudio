@@ -150,6 +150,20 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         }
 
         [TestMethod]
+        public void TranslateHtmlToXaml_Sup_AddsSuperscriptBaselineAlignment()
+        {
+            IRuleHelpXamlTranslator testSubject = CreateTestSubject();
+
+            var htmlText = "2<sup>53</sup>";
+
+            var expectedText = @"<Paragraph>2<Span BaselineAlignment=""Superscript"">53</Span></Paragraph>";
+
+            var result = testSubject.TranslateHtmlToXaml(htmlText);
+
+            result.Should().Be(expectedText);
+        }
+
+        [TestMethod]
         public void TranslateHtmlToXaml_DataDiffExists_HighlightsCode()
         {
             var diffTranslator = new Mock<IDiffTranslator>();
