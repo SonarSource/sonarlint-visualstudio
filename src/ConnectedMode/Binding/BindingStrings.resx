@@ -117,10 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="CannotDownloadQualityProfileForLanguage" xml:space="preserve">
-    <value>Cannot download the quality profile for language {0}</value>
-    <comment>Output window message displayed when the application failed to download the quality profile associated to a language. {0} the language name.</comment>
-  </data>
   <data name="DownloadingQualityProfileProgressMessage" xml:space="preserve">
     <value>Downloading quality profile: {0}</value>
     <comment>A progress notification message e.g. "Downloading quality profile: C#"</comment>
