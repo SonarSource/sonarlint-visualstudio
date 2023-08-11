@@ -20,8 +20,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO.Abstractions;
-using System.Linq;
+using System.IO.Abstractions.TestingHelpers;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 
@@ -56,15 +55,6 @@ namespace SSonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
         }
 
         [TestMethod]
-        public void GetSolutionLevelFilePaths_ReturnPathToSettingsFile()
-        {
-            var settings = new RulesSettings();
-            var testSubject = new NonRoslynBindingConfigFile(settings, "c:\\test");
-            testSubject.SolutionLevelFilePaths.Count().Should().Be(1);
-            testSubject.SolutionLevelFilePaths.First().Should().Be(testSubject.FilePath);
-        }
-
-        [TestMethod]
         public void Save_SettingsAreSerializedAndSaved()
         {
             // Arrange
@@ -85,21 +75,28 @@ namespace SSonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
                 }
             };
 
-            string actualPath = null;
-            string actualText = null;
+            string filePath = "c:\\full\\path\\file.txt";
 
-            var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.File.WriteAllText(It.IsAny<string>(), It.IsAny<string>()))
-                .Callback<string, string>((p, t) => { actualPath = p; actualText = t; });
+            var fileSystem = new MockFileSystem();
 
-            var testSubject = new NonRoslynBindingConfigFile(settings, "c:\\full\\path\\file.txt", fileSystemMock.Object);
+            var testSubject = new NonRoslynBindingConfigFile(settings, filePath, fileSystem);
 
             // Act
             testSubject.Save();
 
             // Assert
-            actualPath.Should().Be("c:\\full\\path\\file.txt");
-            actualText.Should().Be(@"{
+            // Assert
+            fileSystem.AllDirectories.Should().BeEquivalentTo(new[]
+            {
+                "C:\\",             // note: the MockFileSystem capitalises the drive
+                "c:\\full",
+                "c:\\full\\path",
+            });
+
+            fileSystem.AllFiles.Should().BeEquivalentTo(filePath);
+
+            var savedText = fileSystem.File.ReadAllText(filePath);
+            savedText.Should().Be(@"{
   ""sonarlint.rules"": {
     ""key"": {
       ""level"": ""On"",

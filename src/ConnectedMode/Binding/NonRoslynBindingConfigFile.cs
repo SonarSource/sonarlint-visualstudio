@@ -19,7 +19,7 @@
  */
 
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
@@ -51,12 +51,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         internal /* for testing */ RulesSettings RuleSettings { get; }
         internal /* for testing */ string FilePath { get; }
 
-        public IEnumerable<string> SolutionLevelFilePaths => new List<string> { FilePath };
-
         public void Save()
         {
             var dataAsText = JsonConvert.SerializeObject(RuleSettings, Formatting.Indented);
+            EnsureParentDirectoryExists(FilePath);
             fileSystem.File.WriteAllText(FilePath, dataAsText);
+        }
+
+        private void EnsureParentDirectoryExists(string filePath)
+        {
+            var parentDirectory = Path.GetDirectoryName(filePath);
+            fileSystem.Directory.CreateDirectory(parentDirectory); // will no-op if exists
         }
     }
 }
