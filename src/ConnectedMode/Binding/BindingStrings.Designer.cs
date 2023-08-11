@@ -70,6 +70,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to All quality profiles are up to date.
+        /// </summary>
+        internal static string DownloadingQualityProfilesNotNeeded {
+            get {
+                return ResourceManager.GetString("DownloadingQualityProfilesNotNeeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to create the configuration for language {0}.
         /// </summary>
         internal static string FailedToCreateBindingConfigForLanguage {
