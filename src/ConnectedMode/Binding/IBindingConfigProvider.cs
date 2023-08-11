@@ -48,13 +48,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     public interface IBindingConfig
     {
         /// <summary>
-        /// Returns a list of all of the solution-level files that should exist if the solution is correctly bound. The files might not exist on disk. List cannot be null or empty.
-        /// </summary>
-        IEnumerable<string> SolutionLevelFilePaths { get; }
-
-        /// <summary>
         /// Saves the file, replacing any existing file
         /// </summary>
+        /// <remarks>The component is responsible for ensuring that any necessary sub-directories exist</remarks>
         void Save();
     }
 }

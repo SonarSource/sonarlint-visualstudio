@@ -19,7 +19,7 @@
  */
 
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core.CSharpVB;
 
@@ -32,8 +32,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         public FilePathAndContent<SonarLintConfiguration> AdditionalFile { get; }
 
         public FilePathAndContent<string> GlobalConfig { get; }
-
-        public IEnumerable<string> SolutionLevelFilePaths => new List<string> { GlobalConfig.Path, AdditionalFile.Path };
 
         public CSharpVBBindingConfig(FilePathAndContent<string> globalConfig, FilePathAndContent<SonarLintConfiguration> additionalFile)
             : this(globalConfig, additionalFile, new FileSystem())
@@ -49,10 +47,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
         public void Save()
         {
+            EnsureParentDirectoryExists(GlobalConfig.Path);
             fileSystem.File.WriteAllText(GlobalConfig.Path, GlobalConfig.Content);
 
             var serializedAdditionalFile = Serializer.ToString(AdditionalFile.Content);
+            EnsureParentDirectoryExists(AdditionalFile.Path);
             fileSystem.File.WriteAllText(AdditionalFile.Path, serializedAdditionalFile);
+        }
+
+        private void EnsureParentDirectoryExists(string filePath)
+        {
+            var parentDirectory = Path.GetDirectoryName(filePath);
+            fileSystem.Directory.CreateDirectory(parentDirectory); // will no-op if exists
         }
     }
 }

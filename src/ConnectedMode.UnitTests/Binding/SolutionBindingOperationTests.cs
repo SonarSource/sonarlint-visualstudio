@@ -32,8 +32,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
         public void SaveConfiguration_SolutionLevelFilesAreSaved()
         {
             // Arrange
-            var config1 = CreateBindingConfig("c:\\csharp.txt");
-            var config2 = CreateBindingConfig("c:\\vb.txt");
+            var config1 = new Mock<IBindingConfig>();
+            var config2 = new Mock<IBindingConfig>();
 
             var testSubject = CreateTestSubject();
 
@@ -51,41 +51,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             CheckConfigWasSaved(config2);
         }
 
-        [TestMethod]
-        public void SaveConfiguration_DirectoryiesAreCreated()
-        {
-            // Arrange
-            var config1 = CreateBindingConfig("c:\\x.txt");
-            var config2 = CreateBindingConfig("c:\\XXX\\any.txt", "D:\\YYY\\any.txt");
-            var config3 = CreateBindingConfig("c:\\aaa\\bbb\\any.txt");
-
-            var fileSystem = new MockFileSystem();
-
-            var testSubject = CreateTestSubject(fileSystem);
-
-            var bindingConfigs = new IBindingConfig[]
-            {
-                config1.Object,
-                config2.Object,
-                config3.Object
-            };
-
-            // Act
-            testSubject.SaveRuleConfiguration(bindingConfigs, CancellationToken.None);
-
-            // Assert
-            fileSystem.AllDirectories.Should().BeEquivalentTo(new string[]
-                {
-                    "C:\\",             // note: the MockFileSystem capitalises the drive
-                    "c:\\aaa",          // note: the MockFileSystem lists the parent directory separately
-                    "c:\\aaa\\bbb",
-                    "c:\\XXX",
-
-                    "D:\\",
-                    "D:\\YYY"
-                });
-        }
-
         #endregion Tests
 
         #region Helpers
@@ -94,14 +59,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
         {
             fileSystem ??= new MockFileSystem();
             return new SolutionBindingOperation(fileSystem);
-        }
-
-        private Mock<IBindingConfig> CreateBindingConfig(params string[] slnLevelFilePaths)
-        {
-            var config = new Mock<IBindingConfig>();
-            config.SetupGet(x => x.SolutionLevelFilePaths).Returns(slnLevelFilePaths);
-
-            return config;
         }
 
         private static void CheckConfigWasSaved(Mock<IBindingConfig> config)

@@ -27,7 +27,7 @@ using IFileSystem = System.IO.Abstractions.IFileSystem;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
-    // TODO - rename. The current name is misleading. IBindingConfigWriter?
+    // TODO - remove. See #4707.
 
     /// <summary>
     /// Handles writing language-specific rule configuration files to disc
@@ -55,12 +55,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
                 if (token.IsCancellationRequested)
                 {
                     return;
-                }
-
-                foreach (var solutionItem in config.SolutionLevelFilePaths)
-                {
-                    var ruleSetDirectoryPath = Path.GetDirectoryName(solutionItem);
-                    fileSystem.Directory.CreateDirectory(ruleSetDirectoryPath); // will no-op if exists
                 }
 
                 config.Save();
