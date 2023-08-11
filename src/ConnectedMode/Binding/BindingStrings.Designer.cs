@@ -61,15 +61,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot download the quality profile for language {0}.
-        /// </summary>
-        internal static string CannotDownloadQualityProfileForLanguage {
-            get {
-                return ResourceManager.GetString("CannotDownloadQualityProfileForLanguage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Downloading quality profile: {0}.
         /// </summary>
         internal static string DownloadingQualityProfileProgressMessage {

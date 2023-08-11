@@ -40,15 +40,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
         /// </summary>
         Task<bool> UpdateAsync(BoundSonarQubeProject boundProject, IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken);
     }
-
+    
     [Export(typeof(IQualityProfileDownloader))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class QualityProfileDownloader : IQualityProfileDownloader
     {
         private readonly IBindingConfigProvider bindingConfigProvider;
-        private readonly ISonarQubeService sonarQubeService;
         private readonly IConfigurationPersister configurationPersister;
         private readonly ISolutionBindingOperation solutionBindingOperation;
+        private readonly IOutOfDateQualityProfileFinder outOfDateQualityProfileFinder;
 
         private readonly ILogger logger;
 
@@ -56,34 +56,33 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
 
         [ImportingConstructor]
         public QualityProfileDownloader(
-            ISonarQubeService sonarQubeService,
             IBindingConfigProvider bindingConfigProvider,
             IConfigurationPersister configurationPersister,
+            IOutOfDateQualityProfileFinder outOfDateQualityProfileFinder,
             ILogger logger) :
             this(
-                sonarQubeService,
                 bindingConfigProvider,
                 configurationPersister,
+                outOfDateQualityProfileFinder, 
                 logger,
                 new SolutionBindingOperation(),
-                languagesToBind: Language.KnownLanguages
-                )
+                Language.KnownLanguages)
         { }
 
         internal /* for testing */ QualityProfileDownloader(
-            ISonarQubeService sonarQubeService,
             IBindingConfigProvider bindingConfigProvider,
             IConfigurationPersister configurationPersister,
+            IOutOfDateQualityProfileFinder outOfDateQualityProfileFinder,
             ILogger logger,
             ISolutionBindingOperation solutionBindingOperation,
             IEnumerable<Language> languagesToBind)
         {
             this.bindingConfigProvider = bindingConfigProvider;
-            this.sonarQubeService = sonarQubeService;
             this.configurationPersister = configurationPersister;
             this.solutionBindingOperation = solutionBindingOperation;
             this.logger = logger;
             this.languagesToBind = languagesToBind;
+            this.outOfDateQualityProfileFinder = outOfDateQualityProfileFinder;
         }
 
         public async Task<bool> UpdateAsync(BoundSonarQubeProject boundProject, IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)
@@ -94,24 +93,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
 
             EnsureProfilesExistForAllSupportedLanguages(boundProject);
 
+            var outOfDateProfiles = await outOfDateQualityProfileFinder.GetAsync(boundProject, cancellationToken);
+            
             var bindingConfigs = new List<IBindingConfig>();
 
-            var languageCount = languagesToBind.Count();
             int currentLanguage = 0;
+            var totalLanguages = outOfDateProfiles.Count;
 
-            foreach (var language in languagesToBind)
+            foreach (var (language, qualityProfileInfo) in outOfDateProfiles)
             {
                 currentLanguage++;
 
                 var progressMessage = string.Format(BindingStrings.DownloadingQualityProfileProgressMessage, language.Name);
-                progress?.Report(new FixedStepsProgress(progressMessage, currentLanguage, languageCount));
+                progress?.Report(new FixedStepsProgress(progressMessage, currentLanguage, totalLanguages));
 
-                var qualityProfileInfo = await TryDownloadQualityProfileAsync(boundProject, language, cancellationToken);
-
-                if (qualityProfileInfo == null)
-                {
-                    continue; // skip to the next language
-                }
                 UpdateProfile(boundProject, language, qualityProfileInfo);
 
                 var bindingConfiguration = configurationPersister.Persist(boundProject);
@@ -167,37 +162,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             {
                 ProfileKey = serverProfile.Key, ProfileTimestamp = serverProfile.TimeStamp
             };
-        }
-
-        /// <summary>
-        /// Attempts to fetch the QP for the specified language.
-        /// </summary>
-        /// <returns>The QP, or null if the language plugin is not available on the server</returns>
-        private async Task<SonarQubeQualityProfile> TryDownloadQualityProfileAsync(BoundSonarQubeProject boundProject, Language language, CancellationToken cancellationToken)
-        {
-            // There are valid scenarios in which a language plugin will not be available on the server:
-            // 1) the CFamily plugin does not ship in Community edition (nor do any other commerical plugins)
-            // 2) a recently added language will not be available in older-but-still-supported SQ versions
-            //      e.g. the "secrets" language
-            // The unavailability of a language should not prevent binding from succeeding.
-
-            // Note: the historical check that plugins meet a minimum version was removed. 
-            // See https://github.com/SonarSource/sonarlint-visualstudio/issues/4272
-
-            var qualityProfileInfo = await WebServiceHelper.SafeServiceCallAsync(() =>
-
-            sonarQubeService.GetQualityProfileAsync(
-                boundProject.ProjectKey, boundProject.Organization?.Key, language.ServerLanguage, cancellationToken),
-                logger);
-
-            if (qualityProfileInfo == null)
-            {
-                logger.WriteLine(string.Format(BindingStrings.SubTextPaddingFormat,
-                   string.Format(BindingStrings.CannotDownloadQualityProfileForLanguage, language.Name)));
-                return null;
-            }
-
-            return qualityProfileInfo;
         }
     }
 }
