@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             }
             catch (InvalidOperationException e)
             {
-                logger.LogVerbose(e.ToString());
+                logger.LogVerbose($"[{nameof(BindingProcessImpl)}] {e}");
             }
 
             return false;

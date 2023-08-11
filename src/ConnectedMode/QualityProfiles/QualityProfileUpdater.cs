@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             var config = configProvider.GetConfiguration();
             if (config.Mode != SonarLintMode.Connected)
             {
-                logger.LogVerbose($"[QualityProfiles] Skipping Quality Profile update. Solution is not bound. Mode: {config.Mode}");
+                logger.LogVerbose($"[{nameof(QualityProfileUpdater)}] Skipping Quality Profile update. Solution is not bound. Mode: {config.Mode}");
                 return;
             }
 
@@ -82,8 +82,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             }
             catch (Exception e) when (e is OperationCanceledException || e is InvalidOperationException)
             {
-                // no-op - job was cancelled
-                logger.LogVerbose(e.ToString());
+                logger.LogVerbose($"[{nameof(QualityProfileUpdater)}] {e}");
             }
         }
 
