@@ -38,6 +38,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
         /// <summary>
         /// Ensures that the Quality Profiles for all supported languages are to date
         /// </summary>
+        /// <returns>true if there were changes updated, false if everything is up to date</returns>
+        /// <exception cref="InvalidOperationException">If binding failed for one of the languages</exception>
         Task<bool> UpdateAsync(BoundSonarQubeProject boundProject, IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken);
     }
     
