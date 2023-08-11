@@ -61,20 +61,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
                 boundSonarQubeProject,
                 Array.Empty<Language>());
             var logger = new TestLogger();
-            var solutionBindingOperationMock = new Mock<ISolutionBindingOperation>();
+
+            var bindingConfigProvider = new Mock<IBindingConfigProvider>();
 
             var testSubject = CreateTestSubject(outOfDateQualityProfileFinderMock.Object,
+                bindingConfigProvider.Object,
                 logger: logger,
-                solutionBindingOperation: solutionBindingOperationMock.Object,
                 languagesToBind: Language.KnownLanguages.ToArray());
 
             var result = await testSubject.UpdateAsync(boundSonarQubeProject, null, CancellationToken.None);
 
             result.Should().BeFalse();
-            solutionBindingOperationMock.Verify(
-                x =>
-                    x.SaveRuleConfiguration(It.IsAny<IEnumerable<IBindingConfig>>(), It.IsAny<CancellationToken>()),
-                Times.Never);
+            bindingConfigProvider.Invocations.Should().BeEmpty();
+
             logger.AssertOutputStringExists(string.Format(BindingStrings.SubTextPaddingFormat, BindingStrings.DownloadingQualityProfilesNotNeeded));
         }
         
@@ -164,14 +163,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             var vbnetConfig = SetupConfigProvider(configProvider, Language.VBNET);
 
             var configPersister = new DummyConfigPersister();
-            var solutionBindingOperation = new Mock<ISolutionBindingOperation>();
 
             var testSubject = CreateTestSubject(
                 bindingConfigProvider: configProvider.Object,
                 configurationPersister: configPersister,
                 languagesToBind: languagesToBind,
                 outOfDateQualityProfileFinder: outOfDateQualityProfileFinderMock.Object,
-                solutionBindingOperation: solutionBindingOperation.Object,
                 logger: logger);
 
             var notifications = new ConfigurableProgressStepExecutionEvents();
@@ -186,10 +183,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             // Assert
             result.Should().BeTrue();
 
-            solutionBindingOperation.Invocations.Count().Should().Be(1);
-            var savedConfigs = solutionBindingOperation.Invocations[0].Arguments[0] as IEnumerable<IBindingConfig>;
-
-            savedConfigs.Should().BeEquivalentTo(csharpConfig, vbnetConfig);
+            CheckRuleConfigSaved(csharpConfig);
+            CheckRuleConfigSaved(vbnetConfig);
+            CheckRuleConfigNotSaved(cppConfig);
+            CheckRuleConfigNotSaved(secretsConfig);
 
             boundProject.Profiles.Count().Should().Be(4);
             boundProject.Profiles[Language.VBNET].ProfileKey.Should().NotBeNull();
@@ -210,11 +207,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
                 boundProject,
                 (language, CreateQualityProfile()));
 
-            var solutionBindingOperation = new Mock<ISolutionBindingOperation>();
+            var bindingConfigProvider = new Mock<IBindingConfigProvider>();
             var testSubject = CreateTestSubject(
+                bindingConfigProvider: bindingConfigProvider.Object, 
                 languagesToBind: new[] { language },
                 outOfDateQualityProfileFinder: outOfDateQualityProfileFinderMock.Object,
-                solutionBindingOperation: solutionBindingOperation.Object,
                 logger: logger);
 
             // Act
@@ -223,7 +220,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             // Assert
             var expectedMessage = string.Format(BindingStrings.FailedToCreateBindingConfigForLanguage, language.Name);
             (await act.Should().ThrowAsync<InvalidOperationException>()).Which.Message.Should().Be(expectedMessage);
-            solutionBindingOperation.Invocations.Should().BeEmpty();
+            bindingConfigProvider.Invocations.Should().HaveCount(1);
         }
 
         [TestMethod]
@@ -274,7 +271,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             IOutOfDateQualityProfileFinder outOfDateQualityProfileFinder = null,
             IBindingConfigProvider bindingConfigProvider = null,
             DummyConfigPersister configurationPersister = null,
-            ISolutionBindingOperation solutionBindingOperation = null,
             ILogger logger = null,
             Language[] languagesToBind = null)
         {
@@ -283,7 +279,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
                 configurationPersister ?? new DummyConfigPersister(),
                 outOfDateQualityProfileFinder ?? Mock.Of<IOutOfDateQualityProfileFinder>(),
                 logger ?? new TestLogger(logToConsole: true),
-                solutionBindingOperation ?? Mock.Of<ISolutionBindingOperation>(),
                 languagesToBind ?? Language.KnownLanguages);
         }
 
@@ -314,17 +309,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
                 .ReturnsAsync(qps);
         }
 
-        private static IBindingConfig SetupConfigProvider(Mock<IBindingConfigProvider> bindingConfigProvider,
+        private static Mock<IBindingConfig> SetupConfigProvider(Mock<IBindingConfigProvider> bindingConfigProvider,
             Language language)
         {
-            var bindingConfig = Mock.Of<IBindingConfig>();
+            var bindingConfig = new Mock<IBindingConfig>();
 
             bindingConfigProvider.Setup(x => x.GetConfigurationAsync(
                     It.IsAny<SonarQubeQualityProfile>(),
                     language, 
                     It.IsAny<BindingConfiguration>(), 
                     CancellationToken.None))
-                .ReturnsAsync(bindingConfig);
+                .ReturnsAsync(bindingConfig.Object);
             return bindingConfig;
         }
 
@@ -336,6 +331,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
                 projectName,
                 null,
                 null);
+
+        private static void CheckRuleConfigSaved(Mock<IBindingConfig> bindingConfig)
+            => bindingConfig.Verify(x => x.Save(), Times.Once);
+
+        private static void CheckRuleConfigNotSaved(Mock<IBindingConfig> bindingConfig)
+            => bindingConfig.Verify(x => x.Save(), Times.Never);
 
         private class DummyConfigPersister : IConfigurationPersister
         {
