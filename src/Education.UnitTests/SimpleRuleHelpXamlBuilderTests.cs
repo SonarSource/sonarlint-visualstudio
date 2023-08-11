@@ -122,14 +122,9 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             // see https://github.com/SonarSource/sonarlint-visualstudio/issues/4471
             failures.Should().BeEquivalentTo(new[]
             {
-                "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S2190.json",
-                "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S6422.json",
                 // introduced in dotnet analyzer 9.5
-                "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S2995.json",
                 "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S4433.json",
-                // introduced in sonarjs analyzer 10.3, https://github.com/SonarSource/sonarlint-visualstudio/issues/4603
-                "SonarLint.VisualStudio.Rules.Embedded.javascript.S6534.json",
-                "SonarLint.VisualStudio.Rules.Embedded.typescript.S6534.json",
+
                 // Diff-specific errors
                 "SonarLint.VisualStudio.Rules.Embedded.vbnet.S3466.json",
                 "SonarLint.VisualStudio.Rules.Embedded.javascript.S6643.json",
