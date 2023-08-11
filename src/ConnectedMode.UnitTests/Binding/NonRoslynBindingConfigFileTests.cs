@@ -55,7 +55,7 @@ namespace SSonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
         }
 
         [TestMethod]
-        public void Save_SettingsAreSerializedAndSaved()
+        public void Save_DirectoryCreatedAndFileSaved()
         {
             // Arrange
             var settings = new RulesSettings
