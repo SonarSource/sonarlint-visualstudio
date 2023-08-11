@@ -21,6 +21,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core.Binding;
@@ -67,9 +68,32 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
         [TestMethod]
         public async Task UpdateBoundSolutionAsync_IsNewConnectedMode_UpdateIsDoneThroughRunner()
         {
+            var cancellationToken = new CancellationToken();
             var boundProject = new BoundSonarQubeProject();
             var configProvider = CreateConfigProvider(SonarLintMode.Connected, boundProject);
             var qpDownloader = new Mock<IQualityProfileDownloader>();
+            SetUpDownloader(qpDownloader);
+            // Using a pass-through runner so we can test the action passed to the runner
+            var runner = CreatePassthroughRunner(cancellationToken);
+
+            var testSubject = CreateTestSubject(configProvider.Object, qpDownloader.Object, runner.Object);
+            var eventListener = new QPUpdatedEventListener(testSubject);
+
+            await testSubject.UpdateAsync();
+
+            configProvider.Verify(x => x.GetConfiguration(), Times.Once);
+            runner.Verify(x => x.RunAsync(It.IsAny<Func<CancellationToken, Task>>()), Times.Once);
+            qpDownloader.Verify(x => x.UpdateAsync(boundProject, null, cancellationToken), Times.Once);
+            eventListener.EventCount.Should().Be(1);
+        }
+
+        [TestMethod]
+        public async Task UpdateBoundSolutionAsync_IsNewConnectedMode_NoUpdates_EventIsNotRaised()
+        {
+            var boundProject = new BoundSonarQubeProject();
+            var configProvider = CreateConfigProvider(SonarLintMode.Connected, boundProject);
+            var qpDownloader = new Mock<IQualityProfileDownloader>();
+            SetUpDownloader(qpDownloader, false);
             // Using a pass-through runner so we can test the action passed to the runner
             var runner = CreatePassthroughRunner();
 
@@ -81,9 +105,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             configProvider.Verify(x => x.GetConfiguration(), Times.Once);
             runner.Verify(x => x.RunAsync(It.IsAny<Func<CancellationToken, Task>>()), Times.Once);
             qpDownloader.Verify(x => x.UpdateAsync(boundProject, null, It.IsAny<CancellationToken>()), Times.Once);
-            eventListener.EventCount.Should().Be(1);
+            eventListener.EventCount.Should().Be(0);
         }
-
+        
         [TestMethod]
         public async Task UpdateBoundSolutionAsync_IsNewConnectedMode_UpdaterDoesNotCallDownloaderDirectly()
         {
@@ -139,6 +163,38 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             configProvider.Verify(x => x.GetConfiguration(), Times.Once);
             runner.Verify(x => x.RunAsync(It.IsAny<Func<CancellationToken, Task>>()), Times.Once);
             eventListener.EventCount.Should().Be(0);
+        }
+        
+        [TestMethod]
+        public async Task UpdateBoundSolutionAsync_InvalidOperationException_EventIsNotRaised()
+        {
+            var runner = new Mock<ICancellableActionRunner>();
+            runner
+                .Setup(x =>
+                    x.RunAsync(It.IsAny<Func<CancellationToken, Task>>()))
+                .Throws(new InvalidOperationException());
+
+            var boundProject = new BoundSonarQubeProject();
+            var configProvider = CreateConfigProvider(SonarLintMode.Connected, boundProject);
+
+            var testSubject = CreateTestSubject(configProvider.Object, runner: runner.Object);
+            var eventListener = new QPUpdatedEventListener(testSubject);
+
+            await testSubject.UpdateAsync();
+
+            configProvider.Verify(x => x.GetConfiguration(), Times.Once);
+            runner.Verify(x => x.RunAsync(It.IsAny<Func<CancellationToken, Task>>()), Times.Once);
+            eventListener.EventCount.Should().Be(0);
+        }
+
+        private static void SetUpDownloader(Mock<IQualityProfileDownloader> qpDownloader, bool result = true)
+        {
+            qpDownloader
+                .Setup(x =>
+                    x.UpdateAsync(It.IsAny<BoundSonarQubeProject>(),
+                        It.IsAny<IProgress<FixedStepsProgress>>(),
+                        It.IsAny<CancellationToken>()))
+                .ReturnsAsync(result);
         }
 
         private Mock<IConfigurationProvider> CreateConfigProvider(SonarLintMode mode, BoundSonarQubeProject boundProject = null)

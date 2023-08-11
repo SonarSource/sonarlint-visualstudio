@@ -38,6 +38,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
         /// <summary>
         /// Ensures that the Quality Profiles for all supported languages are to date
         /// </summary>
+        /// <returns>true if there were changes updated, false if everything is up to date</returns>
+        /// <exception cref="InvalidOperationException">If binding failed for one of the languages</exception>
         Task<bool> UpdateAsync(BoundSonarQubeProject boundProject, IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken);
     }
     
@@ -91,6 +93,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             // TODO - threading
             // TODO - skip downloading up to date QPs
 
+            var isChanged = false;
+
             EnsureProfilesExistForAllSupportedLanguages(boundProject);
 
             var outOfDateProfiles = await outOfDateQualityProfileFinder.GetAsync(boundProject, cancellationToken);
@@ -115,20 +119,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
                 var bindingConfig = await bindingConfigProvider.GetConfigurationAsync(qualityProfileInfo, language, bindingConfiguration, cancellationToken);
                 if (bindingConfig == null)
                 {
-                    logger.WriteLine(string.Format(BindingStrings.SubTextPaddingFormat,
-                        string.Format(BindingStrings.FailedToCreateBindingConfigForLanguage, language.Name)));
-                    return false;
+                    // NOTE: this should never happen, binding config should be present for every supported language
+                    throw new InvalidOperationException(
+                        string.Format(BindingStrings.FailedToCreateBindingConfigForLanguage, language.Name));
                 }
 
                 bindingConfigs.Add(bindingConfig);
+                isChanged = true;
 
                 logger.WriteLine(string.Format(BindingStrings.SubTextPaddingFormat,
                     string.Format(BindingStrings.QualityProfileDownloadSuccessfulMessageFormat, qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name)));
             }
 
-            solutionBindingOperation.SaveRuleConfiguration(bindingConfigs, cancellationToken);
-
-            return true;
+            if (isChanged)
+            {
+                solutionBindingOperation.SaveRuleConfiguration(bindingConfigs, cancellationToken);
+            }
+            else
+            {
+                logger.WriteLine(string.Format(BindingStrings.SubTextPaddingFormat, BindingStrings.DownloadingQualityProfilesNotNeeded));
+            }
+            
+            return isChanged;
         }
 
         /// <summary>

@@ -66,19 +66,23 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             var config = configProvider.GetConfiguration();
             if (config.Mode != SonarLintMode.Connected)
             {
-                logger.LogVerbose($"[QualityProfiles] Skipping Quality Profile update. Solution is not bound. Mode: {config.Mode}");
+                logger.LogVerbose($"[{nameof(QualityProfileUpdater)}] Skipping Quality Profile update. Solution is not bound. Mode: {config.Mode}");
                 return;
             }
 
             try
             {
-                // TODO: only raise the event if at least one QP actually changed...
-                await runner.RunAsync(token => qualityProfileDownloader.UpdateAsync(config.Project, null, CancellationToken.None));
-                QualityProfilesChanged?.Invoke(this, EventArgs.Empty);
+                await runner.RunAsync(async token =>
+                {
+                    if (await qualityProfileDownloader.UpdateAsync(config.Project, null, token))
+                    {
+                        QualityProfilesChanged?.Invoke(this, EventArgs.Empty);
+                    }
+                });
             }
-            catch (OperationCanceledException)
+            catch (Exception e) when (e is OperationCanceledException || e is InvalidOperationException)
             {
-                // no-op - job was cancelled
+                logger.LogVerbose($"[{nameof(QualityProfileUpdater)}] {e}");
             }
         }
 
