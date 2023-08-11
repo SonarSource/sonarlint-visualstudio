@@ -49,7 +49,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
     {
         private readonly IBindingConfigProvider bindingConfigProvider;
         private readonly IConfigurationPersister configurationPersister;
-        private readonly ISolutionBindingOperation solutionBindingOperation;
         private readonly IOutOfDateQualityProfileFinder outOfDateQualityProfileFinder;
 
         private readonly ILogger logger;
@@ -67,7 +66,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
                 configurationPersister,
                 outOfDateQualityProfileFinder, 
                 logger,
-                new SolutionBindingOperation(),
                 Language.KnownLanguages)
         { }
 
@@ -76,12 +74,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             IConfigurationPersister configurationPersister,
             IOutOfDateQualityProfileFinder outOfDateQualityProfileFinder,
             ILogger logger,
-            ISolutionBindingOperation solutionBindingOperation,
             IEnumerable<Language> languagesToBind)
         {
             this.bindingConfigProvider = bindingConfigProvider;
             this.configurationPersister = configurationPersister;
-            this.solutionBindingOperation = solutionBindingOperation;
             this.logger = logger;
             this.languagesToBind = languagesToBind;
             this.outOfDateQualityProfileFinder = outOfDateQualityProfileFinder;
@@ -89,18 +85,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
 
         public async Task<bool> UpdateAsync(BoundSonarQubeProject boundProject, IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)
         {
-            // TODO - CancellableJobRunner
-            // TODO - threading
-            // TODO - skip downloading up to date QPs
-
             var isChanged = false;
 
             EnsureProfilesExistForAllSupportedLanguages(boundProject);
 
             var outOfDateProfiles = await outOfDateQualityProfileFinder.GetAsync(boundProject, cancellationToken);
             
-            var bindingConfigs = new List<IBindingConfig>();
-
             int currentLanguage = 0;
             var totalLanguages = outOfDateProfiles.Count;
 
@@ -113,6 +103,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
 
                 UpdateProfile(boundProject, language, qualityProfileInfo);
 
+                // (1) Save the top-level binding.config file that contains the QP timestamp
                 var bindingConfiguration = configurationPersister.Persist(boundProject);
 
                 // Create the binding configuration for the language
@@ -124,18 +115,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
                         string.Format(BindingStrings.FailedToCreateBindingConfigForLanguage, language.Name));
                 }
 
-                bindingConfigs.Add(bindingConfig);
+                // (2) Save the language-specific rules config.
+                // Note: we've already saved the updated timestamp for the current language in the binding.config file at step (1) above
+                // If there is an error between (1) and (2) then the timestamp in the binding.config will show this language
+                // is up to date when it is not.
+                bindingConfig.Save();
                 isChanged = true;
 
                 logger.WriteLine(string.Format(BindingStrings.SubTextPaddingFormat,
                     string.Format(BindingStrings.QualityProfileDownloadSuccessfulMessageFormat, qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name)));
             }
 
-            if (isChanged)
-            {
-                solutionBindingOperation.SaveRuleConfiguration(bindingConfigs, cancellationToken);
-            }
-            else
+            if (!isChanged)
             {
                 logger.WriteLine(string.Format(BindingStrings.SubTextPaddingFormat, BindingStrings.DownloadingQualityProfilesNotNeeded));
             }
