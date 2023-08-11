@@ -20,7 +20,7 @@
 
 using System;
 using System.IO;
-using System.Linq;
+using System.IO.Abstractions.TestingHelpers;
 using SonarLint.VisualStudio.Core.CSharpVB;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
@@ -28,8 +28,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
     [TestClass]
     public class CSharpVbBindingConfigTests
     {
-        public TestContext TestContext { get; set; }
-
         [TestMethod]
         public void Ctor_InvalidArgs()
         {
@@ -47,42 +45,38 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
         }
 
         [TestMethod]
-        public void GetSolutionLevelFilePaths_ReturnFilePaths()
+        public void Save_DirectoriesCreatedAndFilesSaved()
         {
-            var globalConfig = new FilePathAndContent<string>("globalconfig dummy", "dummy");
-            var additionalFile = new FilePathAndContent<SonarLintConfiguration>("additional file dummy", new SonarLintConfiguration());
-
-            var testSubject = new CSharpVBBindingConfig(globalConfig, additionalFile);
-            testSubject.SolutionLevelFilePaths.Count().Should().Be(2);
-            testSubject.SolutionLevelFilePaths.First().Should().Be(globalConfig.Path);
-            testSubject.SolutionLevelFilePaths.Last().Should().Be(additionalFile.Path);
-        }
-
-        [TestMethod]
-        public void Save_FilesSaved()
-        {
-            // We can't mock the RuleSet class so we're testing Save by actually
-            // writing to disk.
             // Arrange
-            var testDir = Path.Combine(TestContext.DeploymentDirectory, TestContext.TestName);
-            Directory.CreateDirectory(testDir);
+            var fileSystem = new MockFileSystem();
 
-            var globalConfigFullPath = Path.Combine(testDir, "savedRuleSet.txt");
-            var additionalFileFullPath = Path.Combine(testDir, "additionalFile.txt");
+            var globalConfigFullPath = Path.Combine("c:\\parentDir", "savedRuleSet.txt");
+            var additionalFileFullPath = Path.Combine("c:\\anotherParentDir\\ChildDir\\", "additionalFile.txt");
 
             var globalConfig = new FilePathAndContent<string>(globalConfigFullPath, "dummy");
             var additionalFile = new FilePathAndContent<SonarLintConfiguration>(additionalFileFullPath, new SonarLintConfiguration());
 
-            var testSubject = new CSharpVBBindingConfig(globalConfig, additionalFile);
+            var testSubject = new CSharpVBBindingConfig(globalConfig, additionalFile, fileSystem);
 
             // Act
             testSubject.Save();
 
             // Assert
-            File.Exists(globalConfigFullPath).Should().BeTrue();
-            File.Exists(additionalFileFullPath).Should().BeTrue();
+            fileSystem.AllDirectories.Should().BeEquivalentTo(new[]
+            {
+                "C:\\",             // note: the MockFileSystem capitalises the drive
+                "c:\\parentDir",
+                "c:\\anotherParentDir",
+                "c:\\anotherParentDir\\ChildDir",
+            });
 
-            var savedAdditionalFile = File.ReadAllText(additionalFileFullPath);
+            fileSystem.AllFiles.Should().BeEquivalentTo(new[]
+            {
+                globalConfigFullPath,
+                additionalFileFullPath
+            });
+
+            var savedAdditionalFile = fileSystem.File.ReadAllText(additionalFileFullPath);
             savedAdditionalFile.Should().Be(@"<?xml version=""1.0"" encoding=""utf-8""?>
 <AnalysisInput xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">
   <Settings />
