@@ -93,24 +93,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
 
             EnsureProfilesExistForAllSupportedLanguages(boundProject);
 
-            var qpToUpdate = await outOfDateQualityProfileFinder.GetAsync(boundProject, cancellationToken);
+            var outOfDateProfiles = await outOfDateQualityProfileFinder.GetAsync(boundProject, cancellationToken);
             
             var bindingConfigs = new List<IBindingConfig>();
 
             int currentLanguage = 0;
-            var totalLanguages = languagesToBind.Count();
+            var totalLanguages = outOfDateProfiles.Count;
 
-            foreach (var (language, qualityProfileInfo) in qpToUpdate)
+            foreach (var (language, qualityProfileInfo) in outOfDateProfiles)
             {
                 currentLanguage++;
 
                 var progressMessage = string.Format(BindingStrings.DownloadingQualityProfileProgressMessage, language.Name);
                 progress?.Report(new FixedStepsProgress(progressMessage, currentLanguage, totalLanguages));
 
-                if (qualityProfileInfo == null)
-                {
-                    continue; // skip to the next language
-                }
                 UpdateProfile(boundProject, language, qualityProfileInfo);
 
                 var bindingConfiguration = configurationPersister.Persist(boundProject);

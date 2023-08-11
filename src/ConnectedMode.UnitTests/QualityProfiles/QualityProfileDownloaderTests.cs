@@ -71,9 +71,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
 
             SetupAvailableLanguages(out var outOfDateQualityProfileFinderMock,
                 boundProject,
-                languagesToBind
-                    .Select(x => (x, CreateQualityProfile()))
-                    .ToArray());
+                languagesToBind);
 
             var bindingConfigProviderMock = new Mock<IBindingConfigProvider>();
             bindingConfigProviderMock.Setup(x =>
@@ -131,10 +129,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
 
             // Configure available languages on the server
             SetupAvailableLanguages(out var outOfDateQualityProfileFinderMock,
-                boundProject,
-                new[] { Language.CSharp, Language.VBNET }
-                    .Select(x => (x, CreateQualityProfile()))
-                    .ToArray());
+                boundProject, 
+                Language.CSharp,
+                Language.VBNET);
 
             var configProvider = new Mock<IBindingConfigProvider>();
             var cppConfig = SetupConfigProvider(configProvider, Language.Cpp);
@@ -273,6 +270,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
         private static SonarQubeQualityProfile CreateQualityProfile(string key = "key", DateTime timestamp = default)
         {
             return new SonarQubeQualityProfile(key, default, default, default, timestamp);
+        }
+
+        private static void SetupAvailableLanguages(
+            out Mock<IOutOfDateQualityProfileFinder> outOfDateQualityProfileFinderMock,
+            BoundSonarQubeProject boundProject,
+            params Language[] languages)
+        {
+            SetupAvailableLanguages(out outOfDateQualityProfileFinderMock, 
+                boundProject,
+                languages.Select(x => (x, CreateQualityProfile())).ToArray());
         }
 
         private static void SetupAvailableLanguages(
