@@ -159,8 +159,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
                 qpDownloader: qpDownloader.Object);
 
             // Act
-            await testSubject.DownloadQualityProfileAsync(progress, CancellationToken.None);
+            var result = await testSubject.DownloadQualityProfileAsync(progress, CancellationToken.None);
 
+            result.Should().BeTrue();
+            
             qpDownloader.Verify(x => x.UpdateAsync(It.IsAny<BoundSonarQubeProject>(), progress, It.IsAny<CancellationToken>()),
                 Times.Once);
 
@@ -192,8 +194,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
                 qpDownloader: qpDownloader.Object);
 
             // Act
-            await testSubject.DownloadQualityProfileAsync(Mock.Of<IProgress<FixedStepsProgress>>(), CancellationToken.None);
+            var result = await testSubject.DownloadQualityProfileAsync(Mock.Of<IProgress<FixedStepsProgress>>(), CancellationToken.None);
 
+            result.Should().BeTrue();
+            
             qpDownloader.Verify(x => x.UpdateAsync(It.IsAny<BoundSonarQubeProject>(),
                 It.IsAny<IProgress<FixedStepsProgress>>(),
                 It.IsAny<CancellationToken>()),
@@ -214,6 +218,31 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
                 actualCreds.UserName.Should().Be(userName);
                 CheckIsExpectedPassword(rawPassword, actualCreds.Password);
             }
+        }
+
+        [TestMethod] 
+        public async Task DownloadQualityProfile_HandlesInvalidOperationException()
+        {
+            var qpDownloader = new Mock<IQualityProfileDownloader>();
+            qpDownloader
+                .Setup(x =>
+                    x.UpdateAsync(It.IsAny<BoundSonarQubeProject>(),
+                        It.IsAny<IProgress<FixedStepsProgress>>(),
+                        It.IsAny<CancellationToken>()))
+                .Throws(new InvalidOperationException());
+
+            var testSubject = CreateTestSubject(
+                qpDownloader: qpDownloader.Object);
+
+            // Act
+            var result =
+                await testSubject.DownloadQualityProfileAsync(Mock.Of<IProgress<FixedStepsProgress>>(), CancellationToken.None);
+
+            result.Should().BeFalse();
+            qpDownloader.Verify(x => x.UpdateAsync(It.IsAny<BoundSonarQubeProject>(),
+                    It.IsAny<IProgress<FixedStepsProgress>>(),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         [TestMethod]

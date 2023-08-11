@@ -72,9 +72,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         public async Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)
         {
             var boundProject = CreateNewBindingConfig();
-            var result = await qualityProfileDownloader.UpdateAsync(boundProject, progress, cancellationToken);
 
-            return result;
+            try
+            {
+                await qualityProfileDownloader.UpdateAsync(boundProject, progress, cancellationToken);
+                // ignore the UpdateAsync result, as the return value of false indicates error, rather than lack of changes
+                return true;
+            }
+            catch (InvalidOperationException e)
+            {
+                logger.LogVerbose(e.ToString());
+            }
+
+            return false;
         }
 
         private BoundSonarQubeProject CreateNewBindingConfig()
@@ -106,10 +116,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         }
 
         public bool BindOperationSucceeded => InternalState.BindingOperationSucceeded;
-
-        #endregion
-
-        #region Private methods
 
         #endregion
 
