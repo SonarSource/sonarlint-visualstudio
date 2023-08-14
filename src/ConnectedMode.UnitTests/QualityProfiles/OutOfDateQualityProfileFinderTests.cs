@@ -155,6 +155,24 @@ public class OutOfDateQualityProfileFinderTests
     }
     
     [TestMethod]
+    public async Task GetAsync_NullOrganization_DoesNotThrow()
+    {
+        var testSubject = CreateTestSubject(out var sonarQubeServiceMock, Project, null);
+
+        var act = () => testSubject.GetAsync(
+            CreateArgument(Project,
+                null, 
+                new Dictionary<Language, ApplicableQualityProfile>()),
+            CancellationToken.None);
+
+        await act.Should().NotThrowAsync();
+        sonarQubeServiceMock.Verify(
+            x =>
+                x.GetAllQualityProfilesAsync(Project, null, CancellationToken.None),
+            Times.Once);
+    }
+    
+    [TestMethod]
     public async Task GetAsync_MultipleQualityProfiles_ReturnsQP()
     {
         var serverKey = "key";
@@ -191,7 +209,7 @@ public class OutOfDateQualityProfileFinderTests
             project,
             null, 
             null,
-            new(organization, null))
+            organization == null ? null : new(organization, null))
         {
             Profiles = profiles
         };
