@@ -277,4 +277,7 @@
   <data name="Hotspots_Fetch_AllHotspots_Finished" xml:space="preserve">
     <value>[Hotspots] Finished fetching all hotspots</value>
   </data>
+  <data name="TimedUpdateTriggered" xml:space="preserve">
+    <value>[ConnectedMode/TimedUpdate] Triggering refresh of server settings...</value>
+  </data>
 </root>
