@@ -117,16 +117,32 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="NoSonarAnalyzerActiveRulesForQualityProfile" xml:space="preserve">
-    <value>There are no active rules on the selected Quality Profile '{0}' for Language {1} (rules from the SonarAnalyzer repository). Connected mode requires at least one active rule.
-   Note that third party rules are excluded from SonarLint</value>
-    <comment>Output window message displayed when the result from the API export call returns no active rule from the SonarAnalyzer repository. {0} The name of the Quality Profile. {1} the language.</comment>
+  <data name="DownloadingQualityProfileProgressMessage" xml:space="preserve">
+    <value>Downloading quality profile: {0}</value>
+    <comment>A progress notification message e.g. "Downloading quality profile: C#"</comment>
   </data>
-  <data name="SaveExclusionsFailed" xml:space="preserve">
-    <value>Failed to retrieve/process server settings. Error: {0}</value>
+  <data name="FailedToCreateBindingConfigForLanguage" xml:space="preserve">
+    <value>Failed to create the configuration for language {0}</value>
+    <comment>Output window message displayed when the application failed to fetch and create the binding configuration associated with a language. {0} the language name.</comment>
+  </data>
+  <data name="QualityProfileDownloadSuccessfulMessageFormat" xml:space="preserve">
+    <value>Successfully downloaded quality profile. Name: '{0}', Key: '{1}', Language: '{2}'</value>
+    <comment>Output window message indicating the quality profile file was successfully downloaded. {0} quality profile name, {1} quality profile key, {2} language name.</comment>
   </data>
   <data name="SubTextPaddingFormat" xml:space="preserve">
     <value>   {0}</value>
     <comment>Output window message format. Used whenever the message should be displayed as a sub-message from a step message so the user can clearly identify the grouping. {0} the actual message to display.</comment>
+  </data>
+  <data name="DownloadingQualityProfilesNotNeeded" xml:space="preserve">
+    <value>All quality profiles are up to date</value>
+  </data>
+  <data name="QPMessagePrefix" xml:space="preserve">
+    <value>[ConnectedMode/QualityProfiles] </value>
+  </data>
+  <data name="OutOfDateQPsFound" xml:space="preserve">
+    <value>Number of out of date Quality Profiles: {0}</value>
+  </data>
+  <data name="UpdatingQualityProfiles" xml:space="preserve">
+    <value>Updating quality profiles...</value>
   </data>
 </root>
