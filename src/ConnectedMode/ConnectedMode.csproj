@@ -74,6 +74,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>PersistenceStrings.resx</DependentUpon>
     </Compile>
+    <Compile Update="QualityProfiles\QualityProfilesStrings.Designer.cs">
+      <DependentUpon>QualityProfilesStrings.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
     <Compile Update="Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -93,6 +98,11 @@
     <EmbeddedResource Update="Persistence\PersistenceStrings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>PersistenceStrings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="QualityProfiles\QualityProfilesStrings.resx">
+      <SubType>Designer</SubType>
+      <LastGenOutput>QualityProfilesStrings.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
     </EmbeddedResource>
     <EmbeddedResource Update="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

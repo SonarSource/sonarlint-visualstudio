@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SonarLint.VisualStudio.ConnectedMode.Binding {
+namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles {
     using System;
     
     
@@ -22,14 +22,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class BindingStrings {
+    internal class QualityProfilesStrings {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal BindingStrings() {
+        internal QualityProfilesStrings() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarLint.VisualStudio.ConnectedMode.Binding.BindingStrings", typeof(BindingStrings).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarLint.VisualStudio.ConnectedMode.QualityProfiles.QualityProfilesStrings", typeof(QualityProfilesStrings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,21 +61,56 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There are no active rules on the selected Quality Profile &apos;{0}&apos; for Language {1} (rules from the SonarAnalyzer repository). Connected mode requires at least one active rule.
-        ///   Note that third party rules are excluded from SonarLint.
+        ///   Looks up a localized string similar to Downloading quality profile: {0}.
         /// </summary>
-        internal static string NoSonarAnalyzerActiveRulesForQualityProfile {
+        internal static string DownloadingQualityProfileProgressMessage {
             get {
-                return ResourceManager.GetString("NoSonarAnalyzerActiveRulesForQualityProfile", resourceCulture);
+                return ResourceManager.GetString("DownloadingQualityProfileProgressMessage", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to retrieve/process server settings. Error: {0}.
+        ///   Looks up a localized string similar to All quality profiles are up to date.
         /// </summary>
-        internal static string SaveExclusionsFailed {
+        internal static string DownloadingQualityProfilesNotNeeded {
             get {
-                return ResourceManager.GetString("SaveExclusionsFailed", resourceCulture);
+                return ResourceManager.GetString("DownloadingQualityProfilesNotNeeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to create the configuration for language {0}.
+        /// </summary>
+        internal static string FailedToCreateBindingConfigForLanguage {
+            get {
+                return ResourceManager.GetString("FailedToCreateBindingConfigForLanguage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Number of out of date Quality Profiles: {0}.
+        /// </summary>
+        internal static string OutOfDateQPsFound {
+            get {
+                return ResourceManager.GetString("OutOfDateQPsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode/QualityProfiles] .
+        /// </summary>
+        internal static string QPMessagePrefix {
+            get {
+                return ResourceManager.GetString("QPMessagePrefix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully downloaded quality profile. Name: &apos;{0}&apos;, Key: &apos;{1}&apos;, Language: &apos;{2}&apos;.
+        /// </summary>
+        internal static string QualityProfileDownloadSuccessfulMessageFormat {
+            get {
+                return ResourceManager.GetString("QualityProfileDownloadSuccessfulMessageFormat", resourceCulture);
             }
         }
         
@@ -85,6 +120,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding {
         internal static string SubTextPaddingFormat {
             get {
                 return ResourceManager.GetString("SubTextPaddingFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating quality profiles....
+        /// </summary>
+        internal static string UpdatingQualityProfiles {
+            get {
+                return ResourceManager.GetString("UpdatingQualityProfiles", resourceCulture);
             }
         }
     }
