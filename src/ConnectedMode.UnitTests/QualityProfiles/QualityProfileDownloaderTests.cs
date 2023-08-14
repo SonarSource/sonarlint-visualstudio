@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             result.Should().BeFalse();
             bindingConfigProvider.Invocations.Should().BeEmpty();
 
-            logger.AssertOutputStringExists(string.Format(BindingStrings.SubTextPaddingFormat, BindingStrings.DownloadingQualityProfilesNotNeeded));
+            logger.AssertPartialOutputStringExists(string.Format(QualityProfilesStrings.SubTextPaddingFormat, QualityProfilesStrings.DownloadingQualityProfilesNotNeeded));
         }
         
         [TestMethod]
@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             }
 
             static string GetDownloadProgressMessages(Language language)
-                => string.Format(BindingStrings.DownloadingQualityProfileProgressMessage, language.Name);
+                => string.Format(QualityProfilesStrings.DownloadingQualityProfileProgressMessage, language.Name);
         }
 
         [TestMethod]
@@ -218,7 +218,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             var act = () => testSubject.UpdateAsync(boundProject, null, CancellationToken.None);
 
             // Assert
-            var expectedMessage = string.Format(BindingStrings.FailedToCreateBindingConfigForLanguage, language.Name);
+            var expectedMessage = string.Format(QualityProfilesStrings.FailedToCreateBindingConfigForLanguage, language.Name);
             (await act.Should().ThrowAsync<InvalidOperationException>()).Which.Message.Should().Be(expectedMessage);
             bindingConfigProvider.Invocations.Should().HaveCount(1);
         }

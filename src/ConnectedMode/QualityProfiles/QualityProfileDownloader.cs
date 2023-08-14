@@ -21,14 +21,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
-using SonarQube.Client;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
@@ -87,6 +85,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
         {
             var isChanged = false;
 
+            LogWithBindingPrefix(QualityProfilesStrings.UpdatingQualityProfiles);
+
             EnsureProfilesExistForAllSupportedLanguages(boundProject);
 
             var outOfDateProfiles = await outOfDateQualityProfileFinder.GetAsync(boundProject, cancellationToken);
@@ -94,11 +94,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             int currentLanguage = 0;
             var totalLanguages = outOfDateProfiles.Count;
 
+            LogWithBindingPrefix(string.Format(QualityProfilesStrings.OutOfDateQPsFound, totalLanguages));
+
             foreach (var (language, qualityProfileInfo) in outOfDateProfiles)
             {
                 currentLanguage++;
 
-                var progressMessage = string.Format(BindingStrings.DownloadingQualityProfileProgressMessage, language.Name);
+                var progressMessage = string.Format(QualityProfilesStrings.DownloadingQualityProfileProgressMessage, language.Name);
                 progress?.Report(new FixedStepsProgress(progressMessage, currentLanguage, totalLanguages));
 
                 UpdateProfile(boundProject, language, qualityProfileInfo);
@@ -112,7 +114,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
                 {
                     // NOTE: this should never happen, binding config should be present for every supported language
                     throw new InvalidOperationException(
-                        string.Format(BindingStrings.FailedToCreateBindingConfigForLanguage, language.Name));
+                        string.Format(QualityProfilesStrings.FailedToCreateBindingConfigForLanguage, language.Name));
                 }
 
                 // (2) Save the language-specific rules config.
@@ -122,13 +124,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
                 bindingConfig.Save();
                 isChanged = true;
 
-                logger.WriteLine(string.Format(BindingStrings.SubTextPaddingFormat,
-                    string.Format(BindingStrings.QualityProfileDownloadSuccessfulMessageFormat, qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name)));
+                LogWithBindingPrefix(string.Format(BindingStrings.SubTextPaddingFormat,
+                    string.Format(QualityProfilesStrings.QualityProfileDownloadSuccessfulMessageFormat, qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name)));
             }
 
             if (!isChanged)
             {
-                logger.WriteLine(string.Format(BindingStrings.SubTextPaddingFormat, BindingStrings.DownloadingQualityProfilesNotNeeded));
+                LogWithBindingPrefix(string.Format(QualityProfilesStrings.SubTextPaddingFormat, QualityProfilesStrings.DownloadingQualityProfilesNotNeeded));
             }
             
             return isChanged;
@@ -166,5 +168,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
                 ProfileKey = serverProfile.Key, ProfileTimestamp = serverProfile.TimeStamp
             };
         }
+
+        private void LogWithBindingPrefix(string text)
+            => logger.WriteLine(QualityProfilesStrings.QPMessagePrefix + text);
     }
 }
