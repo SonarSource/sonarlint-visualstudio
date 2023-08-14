@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
         {
             var sonarQubeQualityProfiles =
                 await sonarQubeService.GetAllQualityProfilesAsync(sonarQubeProject.ProjectKey,
-                    sonarQubeProject.Organization.Key,
+                    sonarQubeProject.Organization?.Key,
                     cancellationToken);
 
             return sonarQubeQualityProfiles
