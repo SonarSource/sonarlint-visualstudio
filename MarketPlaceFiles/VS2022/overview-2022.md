@@ -33,7 +33,7 @@ SonarLint provides Visual Studio developers a comprehensive in-IDE solution for 
 
 After you download SonarLint, simply open a project, start coding and SonarLint will start analyzing your issues.
 
-You can also check out the [SonarLint documentation here](https://github.com/SonarSource/sonarlint-visualstudio). 
+You can also check out the [SonarLint documentation here](https://docs.sonarsource.com/sonarlint/visual-studio/). 
 
 ![sonarlint-installation](https://raw.githubusercontent.com/wiki/SonarSource/sonarlint-visualstudio/images/Marketplace/2022-install.PNG)
 
