@@ -20,11 +20,11 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Threading;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
@@ -38,23 +38,27 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         private readonly ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater;
         private readonly IServerHotspotStoreUpdater serverHotspotStoreUpdater;
         private readonly IQualityProfileUpdater qualityProfileUpdater;
+        private readonly ILogger logger;
 
         private bool disposed;
 
         [ImportingConstructor]
         public TimedUpdateHandler(ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
             IServerHotspotStoreUpdater serverHotspotStoreUpdater,
-            IQualityProfileUpdater qualityProfileUpdater)
-            : this(suppressionIssueStoreUpdater, serverHotspotStoreUpdater, qualityProfileUpdater, new TimerFactory()) { }
+            IQualityProfileUpdater qualityProfileUpdater,
+            ILogger logger)
+            : this(suppressionIssueStoreUpdater, serverHotspotStoreUpdater, qualityProfileUpdater, logger, new TimerFactory()) { }
 
         internal /* for testing */ TimedUpdateHandler(ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
             IServerHotspotStoreUpdater serverHotspotStoreUpdater,
             IQualityProfileUpdater qualityProfileUpdater,
+            ILogger logger,
             ITimerFactory timerFactory)
         {
             this.suppressionIssueStoreUpdater = suppressionIssueStoreUpdater;
             this.serverHotspotStoreUpdater = serverHotspotStoreUpdater;
             this.qualityProfileUpdater = qualityProfileUpdater;
+            this.logger = logger;
 
             refreshTimer = timerFactory.Create();
             refreshTimer.AutoReset = true;
@@ -66,6 +70,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
         private void OnRefreshTimerElapsed(object sender, TimerEventArgs e)
         {
+            logger.WriteLine(Resources.TimedUpdateTriggered);
             suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync().Forget();
             serverHotspotStoreUpdater.UpdateAllServerHotspotsAsync().Forget();
             qualityProfileUpdater.UpdateAsync().Forget();
