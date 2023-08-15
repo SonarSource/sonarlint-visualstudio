@@ -33,7 +33,7 @@ namespace SonarQube.Client.Api.V9_7
     public class SearchHotspotRequest : PagedRequestBase<SonarQubeHotspotSearch>, ISearchHotspotRequest
     {
         [JsonProperty("projectKey")]
-        public string ProjectKey { get; set; }
+        public virtual string ProjectKey { get; set; }
 
         // Notes:
         // 1) Branch support is not available in SQ Community edition. SQ will just ignore it.
