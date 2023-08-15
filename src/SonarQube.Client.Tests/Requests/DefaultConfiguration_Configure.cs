@@ -70,7 +70,8 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Api.V9_5.GetRulesWithDescriptionSectionsRequest for 9.5",
                     "Registered SonarQube.Client.Api.V9_6.GetRulesWithEducationPrinciplesRequest for 9.6",
                     "Registered SonarQube.Client.Api.V9_6.GetTaintVulnerabilitiesWithContextRequest for 9.6",
-                    "Registered SonarQube.Client.Api.V9_7.SearchHotspotRequest for 9.7"
+                    "Registered SonarQube.Client.Api.V9_7.SearchHotspotRequest for 9.7",
+                    "Registered SonarQube.Client.Api.V10_2.SearchHotspotRequest for 10.2"
                 };
 
             DefaultConfiguration.ConfigureSonarQube(new RequestFactory(logger));
