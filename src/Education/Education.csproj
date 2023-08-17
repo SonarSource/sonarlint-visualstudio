@@ -23,8 +23,8 @@
     
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Commands\RuleHelpUserControl.xaml" />
-    <Page Include="Commands\RuleHelpUserControl.xaml">
+    <None Remove="Controls\RuleHelpUserControl.xaml" />
+    <Page Include="Controls\RuleHelpUserControl.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
