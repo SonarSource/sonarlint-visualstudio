@@ -23,9 +23,10 @@ using System.Runtime.InteropServices;
 using System.Windows.Documents;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Education.Controls;
 using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.Education.Commands
+namespace SonarLint.VisualStudio.Education
 {
     public interface IRuleHelpToolWindow
     {

@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using EducationResx = SonarLint.VisualStudio.Education.Resources;
 
-namespace SonarLint.VisualStudio.Education.Commands
+namespace SonarLint.VisualStudio.Education.Controls
 {
     public sealed partial class RuleHelpUserControl : UserControl
     {
