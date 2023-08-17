@@ -25,7 +25,7 @@ using Moq;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Education.UnitTests
+namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
 {
     [TestClass]
     public class StaticXamlStorageTests

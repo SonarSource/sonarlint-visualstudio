@@ -27,7 +27,7 @@ using Moq;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.Rules;
 
-namespace SonarLint.VisualStudio.Education.UnitTests
+namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
 {
     [TestClass]
     public class XamlGeneratorHelperTests
