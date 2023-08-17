@@ -23,8 +23,8 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.VsVersion;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.VsVersion
 {

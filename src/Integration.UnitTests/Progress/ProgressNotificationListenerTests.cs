@@ -21,6 +21,7 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.TestInfrastructure;
 

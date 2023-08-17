@@ -23,7 +23,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration

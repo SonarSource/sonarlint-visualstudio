@@ -19,7 +19,6 @@
  */
 
 
-using System.Collections.Generic;
 using LibGit2Sharp;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.LibGit2SharpWrappers

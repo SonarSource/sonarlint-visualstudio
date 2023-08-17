@@ -20,7 +20,7 @@
 
 using System;
 using System.Collections.Concurrent;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 using static SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile.RoslynSettingsFileInfo;
 

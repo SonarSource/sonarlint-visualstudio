@@ -23,7 +23,6 @@ using System.Runtime.InteropServices;
 using System.Windows.Documents;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Education.Commands
 {

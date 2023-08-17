@@ -24,7 +24,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
 {

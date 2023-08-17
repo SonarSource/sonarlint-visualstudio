@@ -27,7 +27,6 @@ using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Resources;
 using SonarLint.VisualStudio.Core.VsVersion;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Core.Notifications
 {

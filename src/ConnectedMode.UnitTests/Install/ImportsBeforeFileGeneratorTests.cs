@@ -23,7 +23,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Xml;
 using SonarLint.VisualStudio.ConnectedMode.Install;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Install;

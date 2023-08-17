@@ -20,7 +20,7 @@
 
 using System;
 using System.Collections.Generic;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator.LocationProviders
 {

@@ -20,8 +20,8 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Integration;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding

@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;
 using ErrorHandler = SonarLint.VisualStudio.Core.ErrorHandler;
 using Task = System.Threading.Tasks.Task;

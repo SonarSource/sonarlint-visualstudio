@@ -20,11 +20,10 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Helpers;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles

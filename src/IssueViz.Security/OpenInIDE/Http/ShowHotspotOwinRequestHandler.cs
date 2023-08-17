@@ -23,7 +23,7 @@ using System.ComponentModel.Composition;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Owin;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http

@@ -22,7 +22,9 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
-using Microsoft.VisualStudio;
+using SonarLint.VisualStudio.Core;
+
+using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {

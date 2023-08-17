@@ -20,6 +20,7 @@
 
 using System;
 using System.Windows.Threading;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarQube.Client;

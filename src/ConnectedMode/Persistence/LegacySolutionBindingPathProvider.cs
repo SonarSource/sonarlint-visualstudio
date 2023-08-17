@@ -21,7 +21,6 @@
 using System;
 using System.IO;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.ConnectedMode.Persistence;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 {

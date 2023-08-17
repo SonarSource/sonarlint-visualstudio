@@ -22,6 +22,7 @@ using System;
 using System.Linq;
 using System.Windows.Threading;
 using FluentAssertions;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;

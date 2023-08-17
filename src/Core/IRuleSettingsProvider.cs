@@ -19,7 +19,6 @@
  */
 
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Core
 {

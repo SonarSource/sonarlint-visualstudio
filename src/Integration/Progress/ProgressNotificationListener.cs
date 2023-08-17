@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -19,6 +19,7 @@
  */
 
 using System;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Integration.Progress

@@ -25,7 +25,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Hotspots

@@ -28,7 +28,6 @@ using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Taint;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ServerSentEvents;
-using SonarLint.VisualStudio.Integration;
 using SonarQube.Client;
 using SonarQube.Client.Models.ServerSentEvents;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;

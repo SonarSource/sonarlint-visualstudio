@@ -24,7 +24,6 @@ using System.IO;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Rules
 {

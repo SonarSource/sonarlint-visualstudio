@@ -22,7 +22,6 @@ using System;
 using System.Windows.Controls;
 using System.Windows.Navigation;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration;
 using EducationResx = SonarLint.VisualStudio.Education.Resources;
 
 namespace SonarLint.VisualStudio.Education.Commands

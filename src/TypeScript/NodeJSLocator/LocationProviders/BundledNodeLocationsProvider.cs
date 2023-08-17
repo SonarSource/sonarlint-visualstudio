@@ -21,9 +21,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core;
+
+using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator.LocationProviders
 {

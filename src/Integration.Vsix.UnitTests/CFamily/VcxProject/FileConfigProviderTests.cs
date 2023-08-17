@@ -23,6 +23,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.VCProjectEngine;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 using SonarLint.VisualStudio.TestInfrastructure;

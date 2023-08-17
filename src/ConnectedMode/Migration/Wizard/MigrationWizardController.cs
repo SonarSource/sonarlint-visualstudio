@@ -20,7 +20,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core;
 

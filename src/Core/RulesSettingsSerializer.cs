@@ -21,7 +21,6 @@
 using System;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Core
 {

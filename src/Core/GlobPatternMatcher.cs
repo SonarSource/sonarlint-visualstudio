@@ -21,7 +21,6 @@
 using System.Collections.Concurrent;
 using System.Text;
 using System.Text.RegularExpressions;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Core
 {

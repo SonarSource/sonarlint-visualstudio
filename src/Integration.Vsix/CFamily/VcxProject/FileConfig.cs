@@ -21,6 +21,7 @@
 using System.IO;
 using EnvDTE;
 using Microsoft.VisualStudio.VCProjectEngine;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 {

@@ -22,10 +22,13 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio;
+using SonarLint.VisualStudio.Core;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.CFamily.PreCompiledHeaders;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+
+using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {

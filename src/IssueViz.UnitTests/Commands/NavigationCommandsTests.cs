@@ -23,7 +23,7 @@ using System.ComponentModel.Design;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 using Constants = SonarLint.VisualStudio.IssueVisualization.Commands.Constants;

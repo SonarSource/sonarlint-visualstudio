@@ -24,7 +24,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 {

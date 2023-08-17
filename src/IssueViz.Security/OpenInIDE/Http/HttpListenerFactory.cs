@@ -24,7 +24,6 @@ using System.ComponentModel.Composition;
 using Microsoft.Owin.BuilderProperties;
 using Microsoft.Owin.Host.HttpListener;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
 {
