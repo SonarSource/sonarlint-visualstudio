@@ -21,9 +21,9 @@
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Education.XamlGenerator;
 
-
-namespace SonarLint.VisualStudio.Education.XamlGenerator.UnitTests
+namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
 {
     [TestClass]
     public class CustomTextMarkupParserTests
@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator.UnitTests
                           "\n Implements a check " +
                           "\non";
 
-            var result = XamlGenerator.CustomTextMarkupParser.Parse(text).ToArray();
+            var result = CustomTextMarkupParser.Parse(text).ToArray();
 
             result.Should().HaveCount(3);
 
@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator.UnitTests
         {
             string text = " {rule:javascript:S1656} - Implements a check on";
 
-            var result = XamlGenerator.CustomTextMarkupParser.Parse(text).ToArray();
+            var result = CustomTextMarkupParser.Parse(text).ToArray();
 
             result.Should().HaveCount(3);
 
@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator.UnitTests
         {
             string text = "{rule:cpp:S165}";
 
-            var result = XamlGenerator.CustomTextMarkupParser.Parse(text).ToArray();
+            var result = CustomTextMarkupParser.Parse(text).ToArray();
 
             result.Should().HaveCount(1);
 
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator.UnitTests
         {
             string text = "also found {rule:cpp:S165} hello this is a test {rule:c:S1111}";
 
-            var result = XamlGenerator.CustomTextMarkupParser.Parse(text).ToArray();
+            var result = CustomTextMarkupParser.Parse(text).ToArray();
 
             result.Should().HaveCount(4);
 
@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator.UnitTests
         {
             string text = "this is a text without any cross references";
 
-            var result = XamlGenerator.CustomTextMarkupParser.Parse(text).ToArray();
+            var result = CustomTextMarkupParser.Parse(text).ToArray();
 
             result.Should().HaveCount(1);
 
@@ -156,7 +156,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator.UnitTests
         {
             string text = "";
 
-            var result = XamlGenerator.CustomTextMarkupParser.Parse(text);
+            var result = CustomTextMarkupParser.Parse(text);
 
             result.Should().HaveCount(0);
         }
