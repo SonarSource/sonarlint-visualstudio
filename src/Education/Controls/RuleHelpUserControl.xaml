@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="SonarLint.VisualStudio.Education.Commands.RuleHelpUserControl"
+﻿<UserControl x:Class="SonarLint.VisualStudio.Education.Controls.RuleHelpUserControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"

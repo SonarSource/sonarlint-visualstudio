@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.Education.Commands;
 
 using ThreadHelper = SonarLint.VisualStudio.TestInfrastructure.ThreadHelper;
+using SonarLint.VisualStudio.Education;
 
 namespace Education.UnitTests.Commands
 {
