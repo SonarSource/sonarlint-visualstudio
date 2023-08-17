@@ -21,7 +21,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.CFamily.CMake
 {

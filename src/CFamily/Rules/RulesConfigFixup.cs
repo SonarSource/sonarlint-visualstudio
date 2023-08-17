@@ -22,7 +22,6 @@ using System.Collections.Generic;
 using System.Linq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Hotspots;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.CFamily.Rules
 {

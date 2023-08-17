@@ -24,7 +24,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;

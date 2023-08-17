@@ -21,10 +21,10 @@
 using System.Linq;
 using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.CFamily.Rules;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.ETW;
 using SonarLint.VisualStudio.Core.Helpers;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.CFamily.SubProcess
 {

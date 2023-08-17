@@ -26,7 +26,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models.ServerSentEvents;

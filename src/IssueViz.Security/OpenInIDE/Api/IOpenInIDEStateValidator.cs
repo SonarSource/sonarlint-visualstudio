@@ -20,8 +20,8 @@
 
 using System;
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration;
 using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api

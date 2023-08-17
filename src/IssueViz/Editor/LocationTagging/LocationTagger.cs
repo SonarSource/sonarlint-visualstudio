@@ -22,11 +22,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+
+using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
 {

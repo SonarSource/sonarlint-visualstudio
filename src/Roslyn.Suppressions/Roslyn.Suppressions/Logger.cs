@@ -19,7 +19,7 @@
  */
 
 using System.Diagnostics;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions
 {

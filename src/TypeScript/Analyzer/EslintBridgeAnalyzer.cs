@@ -26,7 +26,6 @@ using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 using SonarLint.VisualStudio.TypeScript.Rules;

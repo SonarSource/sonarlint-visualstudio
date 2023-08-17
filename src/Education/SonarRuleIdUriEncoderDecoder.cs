@@ -20,7 +20,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Runtime.Remoting.Messaging;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Education

@@ -27,11 +27,11 @@ using System.IO.Abstractions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration;
 using IThreadHandling = SonarLint.VisualStudio.Core.IThreadHandling;
+using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.CFamily.CMake
 {

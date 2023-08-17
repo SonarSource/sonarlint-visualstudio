@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration
 {

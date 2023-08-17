@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TypeScript.NodeJSLocator.LocationProviders;
 
 namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator

@@ -22,8 +22,8 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 {

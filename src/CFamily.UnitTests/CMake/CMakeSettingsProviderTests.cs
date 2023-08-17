@@ -26,8 +26,8 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.CFamily.CMake;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake

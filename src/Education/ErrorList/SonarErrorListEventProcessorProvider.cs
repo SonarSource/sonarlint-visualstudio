@@ -23,14 +23,13 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Education
 {
     namespace SonarLint.VisualStudio.Education.ErrorList
     {
         // Notifies VS that we want to handle events from the Error List
-        
+
         [Export(typeof(ITableControlEventProcessorProvider))]
         [Name("SonarLint ErrorList Event Processor")]
 

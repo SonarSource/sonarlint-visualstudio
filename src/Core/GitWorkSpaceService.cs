@@ -21,7 +21,6 @@
 using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Core
 {

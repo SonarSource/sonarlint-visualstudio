@@ -21,8 +21,8 @@
 using System;
 using System.IO;
 using System.IO.Abstractions;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ETW;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Resources;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache;
 

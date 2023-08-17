@@ -22,6 +22,7 @@ using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 {

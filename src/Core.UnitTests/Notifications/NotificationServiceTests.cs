@@ -26,7 +26,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Core.Notifications;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Core.UnitTests.Notifications

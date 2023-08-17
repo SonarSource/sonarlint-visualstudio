@@ -23,8 +23,8 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ETW;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Resources;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile

@@ -26,7 +26,6 @@ using Moq;
 using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Hotspots;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests

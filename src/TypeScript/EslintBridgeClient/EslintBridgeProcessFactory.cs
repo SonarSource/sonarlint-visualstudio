@@ -19,8 +19,8 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.JsTs;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 {

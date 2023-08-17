@@ -25,7 +25,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
 {

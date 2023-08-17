@@ -21,7 +21,6 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 using SonarLint.VisualStudio.TypeScript.Rules;
 

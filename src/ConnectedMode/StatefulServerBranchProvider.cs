@@ -24,7 +24,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode
 {

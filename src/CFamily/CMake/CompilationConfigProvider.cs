@@ -25,11 +25,12 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
-using Microsoft.VisualStudio;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.Helpers;
-using SonarLint.VisualStudio.Integration;
+
+using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.CFamily.CMake
 {

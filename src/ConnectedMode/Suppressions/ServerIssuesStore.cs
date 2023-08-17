@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions

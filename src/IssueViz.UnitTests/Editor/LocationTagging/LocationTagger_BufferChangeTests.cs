@@ -19,13 +19,12 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;

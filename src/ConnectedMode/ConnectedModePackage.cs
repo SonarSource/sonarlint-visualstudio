@@ -31,8 +31,8 @@ using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode

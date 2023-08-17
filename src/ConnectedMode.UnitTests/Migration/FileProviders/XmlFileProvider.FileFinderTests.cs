@@ -21,7 +21,7 @@
 using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders

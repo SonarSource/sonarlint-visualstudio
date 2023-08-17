@@ -23,7 +23,6 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor

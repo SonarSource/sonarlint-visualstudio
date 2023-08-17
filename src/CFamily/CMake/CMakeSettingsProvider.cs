@@ -23,7 +23,6 @@ using System.IO;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.CFamily.CMake
 {

@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS;

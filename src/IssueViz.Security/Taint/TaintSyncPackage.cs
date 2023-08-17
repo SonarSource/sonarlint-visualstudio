@@ -25,9 +25,9 @@ using System.Threading;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEvents;
 using Task = System.Threading.Tasks.Task;
 

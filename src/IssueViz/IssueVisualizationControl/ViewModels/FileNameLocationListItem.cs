@@ -25,7 +25,6 @@ using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels

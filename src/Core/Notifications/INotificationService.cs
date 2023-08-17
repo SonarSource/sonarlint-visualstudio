@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using SonarLint.VisualStudio.Core.InfoBar;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Core.Notifications
 {

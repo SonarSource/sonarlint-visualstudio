@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.TestInfrastructure;
 

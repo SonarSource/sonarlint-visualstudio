@@ -21,6 +21,7 @@
 using System;
 using System.IO;
 using System.IO.Abstractions;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {

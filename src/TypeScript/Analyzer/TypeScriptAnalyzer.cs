@@ -29,7 +29,6 @@ using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Telemetry;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 using SonarLint.VisualStudio.TypeScript.Rules;
 using SonarLint.VisualStudio.TypeScript.TsConfig;

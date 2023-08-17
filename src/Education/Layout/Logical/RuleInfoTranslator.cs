@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using System.Linq;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education.Layout.Logical

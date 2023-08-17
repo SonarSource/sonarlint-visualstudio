@@ -27,7 +27,6 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Education.Layout.Logical;
 using SonarLint.VisualStudio.Education.XamlGenerator;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Rules;
 using SonarLint.VisualStudio.TestInfrastructure;
 

@@ -27,8 +27,6 @@ using Moq;
 using SonarLint.VisualStudio.CFamily.CMake;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 using static SonarLint.VisualStudio.TestInfrastructure.Extensions.FileSystemExtensions;
 

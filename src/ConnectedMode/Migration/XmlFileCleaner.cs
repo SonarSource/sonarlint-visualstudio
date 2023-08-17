@@ -24,7 +24,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Xml;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {

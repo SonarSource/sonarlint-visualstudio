@@ -24,7 +24,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 
 namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient

@@ -25,7 +25,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;

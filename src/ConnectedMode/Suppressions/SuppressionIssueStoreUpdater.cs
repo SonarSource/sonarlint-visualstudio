@@ -26,7 +26,6 @@ using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions

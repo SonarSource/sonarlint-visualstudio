@@ -26,7 +26,6 @@ using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles

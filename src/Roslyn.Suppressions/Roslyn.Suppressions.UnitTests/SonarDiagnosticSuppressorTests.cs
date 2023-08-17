@@ -25,7 +25,7 @@ using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 {

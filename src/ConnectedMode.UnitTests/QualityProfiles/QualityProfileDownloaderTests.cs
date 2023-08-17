@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +26,6 @@ using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;

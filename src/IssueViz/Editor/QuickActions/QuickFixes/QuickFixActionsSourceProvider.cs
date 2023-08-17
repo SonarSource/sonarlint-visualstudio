@@ -24,8 +24,8 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes
 {

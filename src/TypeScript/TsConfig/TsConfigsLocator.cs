@@ -29,7 +29,6 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.TypeScript.TsConfig
 {

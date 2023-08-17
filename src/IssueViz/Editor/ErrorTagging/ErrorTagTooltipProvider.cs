@@ -26,9 +26,9 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging

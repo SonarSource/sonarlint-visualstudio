@@ -30,7 +30,6 @@ using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard

@@ -27,11 +27,9 @@ using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
-using static SonarLint.VisualStudio.TestInfrastructure.NoOpThreadHandler;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 {

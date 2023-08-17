@@ -25,8 +25,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using LibGit2Sharp;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ETW;
-using SonarLint.VisualStudio.Integration;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode

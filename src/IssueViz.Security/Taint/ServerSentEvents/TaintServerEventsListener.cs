@@ -22,7 +22,6 @@ using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using System.Threading;
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.Integration;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 using System;
 

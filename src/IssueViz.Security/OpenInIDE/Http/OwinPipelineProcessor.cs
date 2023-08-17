@@ -25,7 +25,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Owin;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
 {

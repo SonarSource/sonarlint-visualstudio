@@ -25,6 +25,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Progress.Controller;
