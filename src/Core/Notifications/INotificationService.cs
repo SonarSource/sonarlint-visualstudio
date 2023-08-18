@@ -30,6 +30,10 @@ namespace SonarLint.VisualStudio.Core.Notifications
     /// This service can be used to display any type of user visible notification. Each instance of this service
     /// will only show one notification at a time i.e. showing a second notification will remove the first one.
     /// </summary>
+    /// <remarks>The caller can assume that the component follows VS threading rules
+    /// i.e. the implementing class is responsible for switching to the UI thread if necessary.
+    /// The caller doesn't need to worry about it.
+    /// </remarks>
     public interface INotificationService : IDisposable
     {
         void ShowNotification(INotification notification);
