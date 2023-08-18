@@ -21,13 +21,11 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 using Task = System.Threading.Tasks.Task;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
+namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
 {
     [TestClass]
     public class UnintrusiveBindingControllerTests
