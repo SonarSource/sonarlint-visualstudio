@@ -21,11 +21,10 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core.Binding;
 using Task = System.Threading.Tasks.Task;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Migration
+namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     internal interface IUnintrusiveBindingController
     {
