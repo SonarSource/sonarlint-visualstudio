@@ -20,36 +20,36 @@
 
 using System;
 using System.IO;
-using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 {
     internal class LegacySolutionBindingPathProvider : ISolutionBindingPathProvider
     {
-        private readonly IVsSolution vsSolution;
+        private readonly ISolutionInfoProvider solutionInfoProvider;
         public const string LegacyBindingConfigurationFileName = "SolutionBinding.sqconfig";
 
-        public LegacySolutionBindingPathProvider(IServiceProvider serviceProvider)
+        public LegacySolutionBindingPathProvider(ISolutionInfoProvider solutionInfoProvider)
         {
-            if (serviceProvider == null)
+            if (solutionInfoProvider == null)
             {
-                throw new ArgumentNullException(nameof(serviceProvider));
+                throw new ArgumentNullException(nameof(solutionInfoProvider));
             }
-
-            vsSolution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
+            this.solutionInfoProvider = solutionInfoProvider;
         }
 
         public string Get()
         {
-            vsSolution.GetSolutionInfo(out var solutionDirectory, out _, out _);
+            var fullSolutionFilePath = solutionInfoProvider.GetFullSolutionFilePath();
 
             // Solution closed?
-            if (string.IsNullOrWhiteSpace(solutionDirectory))
+            if (string.IsNullOrWhiteSpace(fullSolutionFilePath))
             {
                 return null;
             }
 
-            return Path.Combine(solutionDirectory, PersistenceConstants.LegacySonarQubeManagedFolderName, LegacyBindingConfigurationFileName);
+            return Path.Combine(Path.GetDirectoryName(fullSolutionFilePath), 
+                PersistenceConstants.LegacySonarQubeManagedFolderName, LegacyBindingConfigurationFileName);
         }
     }
 }
