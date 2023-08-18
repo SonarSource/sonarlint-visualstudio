@@ -21,7 +21,6 @@
 using System;
 using System.Linq;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.ConnectedMode.Migration.Wizard;
@@ -42,11 +41,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<MigrationPrompt, IMigrationPrompt>(
-                MefTestHelpers.CreateExport<SVsServiceProvider>(),
+                MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
                 MefTestHelpers.CreateExport<INotificationService>(),
                 MefTestHelpers.CreateExport<IMigrationWizardController>(),
-                MefTestHelpers.CreateExport<IBrowserService>(),
-                MefTestHelpers.CreateExport<IThreadHandling>());
+                MefTestHelpers.CreateExport<IBrowserService>());
         }
 
         [TestMethod]
@@ -75,9 +73,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 .Setup(x => x.ShowNotification(It.IsAny<INotification>()))
                 .Callback((INotification n) => notification = n);
 
-            var serviceProvider = SetUpServiceProviderWithSolution("path_to_solution");
+            var solutionInfoProvider = CreateSolutionInfoProvider("path_to_solution");
 
-            var testSubject = CreateTestSubject(serviceProvider: serviceProvider, notificationService: notificationService.Object);
+            var testSubject = CreateTestSubject(solutionInfoProvider: solutionInfoProvider, notificationService: notificationService.Object);
             await testSubject.ShowAsync(AnyBoundProject, hasNewBindingFiles);
 
             notificationService.Verify(x => x.ShowNotification(notification), Times.Once);
@@ -87,31 +85,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             notification.Actions.First().CommandText.Should().Be(MigrationStrings.MigrationPrompt_MigrateButton);
             notification.Actions.Last().CommandText.Should().Be(MigrationStrings.MigrationPrompt_LearnMoreButton);
-        }
-
-        [TestMethod]
-        public async Task ShowAsync_ShowNotificationIsCalledOnMainThread()
-        {
-            var notificationService = new Mock<INotificationService>();
-            var threadHandling = new Mock<IThreadHandling>();
-            Action runOnUiAction = null;
-            threadHandling
-                .Setup(x => x.RunOnUIThreadAsync(It.IsAny<Action>()))
-                .Callback((Action callbackAction) => runOnUiAction = callbackAction);
-
-            var serviceProvider = SetUpServiceProviderWithSolution();
-
-            var testSubject = CreateTestSubject(serviceProvider: serviceProvider, notificationService: notificationService.Object, threadHandling: threadHandling.Object);
-            await testSubject.ShowAsync(AnyBoundProject, false);
-
-            threadHandling.Verify(x => x.RunOnUIThreadAsync(It.IsAny<Action>()), Times.Once);
-
-            notificationService.Invocations.Should().HaveCount(0);
-
-            runOnUiAction.Should().NotBeNull();
-            runOnUiAction();
-
-            notificationService.Verify(x => x.ShowNotification(It.IsAny<INotification>()), Times.Once);
         }
 
         [TestMethod]
@@ -125,11 +98,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var migrationWizardController = new Mock<IMigrationWizardController>();
 
-            var serviceProvider = SetUpServiceProviderWithSolution();
-
             var boundProject = new BoundSonarQubeProject(new Uri("http://any"), "my-key", "my-name");
 
-            var testSubject = CreateTestSubject(serviceProvider: serviceProvider, notificationService: notificationService.Object, migrationWizardController: migrationWizardController.Object);
+            var testSubject = CreateTestSubject(notificationService: notificationService.Object, migrationWizardController: migrationWizardController.Object);
 
             await testSubject.ShowAsync(boundProject, false);
 
@@ -150,9 +121,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var browserService = new Mock<IBrowserService>();
 
-            var serviceProvider = SetUpServiceProviderWithSolution();
-
-            var testSubject = CreateTestSubject(serviceProvider: serviceProvider, notificationService: notificationService.Object, browserService: browserService.Object);
+            var testSubject = CreateTestSubject(notificationService: notificationService.Object, browserService: browserService.Object);
 
             await testSubject.ShowAsync(AnyBoundProject, false);
 
@@ -169,9 +138,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var migrationWizardController = new Mock<IMigrationWizardController>();
 
-            var serviceProvider = SetUpServiceProviderWithSolution();
-
-            _ = CreateTestSubject(serviceProvider: serviceProvider, notificationService: notificationService.Object, migrationWizardController: migrationWizardController.Object);
+            _ = CreateTestSubject(notificationService: notificationService.Object, migrationWizardController: migrationWizardController.Object);
 
             migrationWizardController.Raise(x => x.MigrationWizardFinished += null, EventArgs.Empty);
             notificationService.Verify(x => x.RemoveNotification(), Times.Once);
@@ -203,32 +170,25 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             notificationService.Verify(x => x.RemoveNotification(), Times.Never);
         }
 
-        private IServiceProvider SetUpServiceProviderWithSolution(string pathToSolution = "")
+        private ISolutionInfoProvider CreateSolutionInfoProvider(string pathToSolution = "")
         {
-            var serviceProvider = new Mock<IServiceProvider>();
+            var solutionInfoProvider = new Mock<ISolutionInfoProvider>();
+            solutionInfoProvider.Setup(x => x.GetFullSolutionFilePathAsync()).ReturnsAsync(pathToSolution);
 
-            var solution = new Mock<IVsSolution>();
-            object path = pathToSolution as object;
-            solution.Setup(x => x.GetProperty((int)__VSPROPID.VSPROPID_SolutionFileName, out path));
-
-            serviceProvider.Setup(x => x.GetService(typeof(SVsSolution))).Returns(solution.Object);
-
-            return serviceProvider.Object;
+            return solutionInfoProvider.Object;
         }
 
-        private MigrationPrompt CreateTestSubject(IServiceProvider serviceProvider = null,
+        private MigrationPrompt CreateTestSubject(ISolutionInfoProvider solutionInfoProvider = null,
             INotificationService notificationService = null,
             IMigrationWizardController migrationWizardController = null,
-            IBrowserService browserService = null,
-            IThreadHandling threadHandling = null)
+            IBrowserService browserService = null)
         {
-            serviceProvider ??= Mock.Of<IServiceProvider>();
+            solutionInfoProvider ??= Mock.Of<ISolutionInfoProvider>();
             notificationService ??= Mock.Of<INotificationService>();
             migrationWizardController ??= Mock.Of<IMigrationWizardController>();
             browserService ??= Mock.Of<IBrowserService>();
-            threadHandling ??= new NoOpThreadHandler();
 
-            var migrationPrompt = new MigrationPrompt(serviceProvider, notificationService, migrationWizardController, browserService, threadHandling);
+            var migrationPrompt = new MigrationPrompt(solutionInfoProvider, notificationService, migrationWizardController, browserService);
 
             return migrationPrompt;
         }
