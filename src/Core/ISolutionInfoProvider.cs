@@ -25,6 +25,10 @@ namespace SonarLint.VisualStudio.Core
     /// <summary>
     /// Returns information about the current solution if there is one
     /// </summary>
+    /// <remarks>The caller can assume that the component follows VS threading rules
+    /// i.e. the implementing class is responsible for switching to the UI thread if necessary.
+    /// The caller doesn't need to worry about it.
+    /// </remarks>
     public interface ISolutionInfoProvider
     {
         /// <summary>

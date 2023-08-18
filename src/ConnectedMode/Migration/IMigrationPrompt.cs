@@ -20,8 +20,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.ConnectedMode.Migration.Wizard;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -34,6 +32,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     /// <summary>
     /// In charge of showing users a prompt to migrate to a new connected mode.
     /// </summary>
+    /// <remarks>The caller can assume that the component follows VS threading rules
+    /// i.e. the implementing class is responsible for switching to the UI thread if necessary.
+    /// The caller doesn't need to worry about it.
+    /// </remarks>
     internal interface IMigrationPrompt : IDisposable
     {
         /// <summary>
@@ -49,27 +51,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     internal sealed class MigrationPrompt : IMigrationPrompt
     {
         private readonly INotificationService notificationService;
-        private readonly IServiceProvider serviceProvider;
+        private readonly ISolutionInfoProvider solutionInfoProvider;
         private readonly IMigrationWizardController migrationWizardController;
         private readonly IBrowserService browserService;
-        private readonly IThreadHandling threadHandling;
 
         private BoundSonarQubeProject oldBinding;
 
         private const string idPrefix = "ConnectedModeMigration_";
 
         [ImportingConstructor]
-        internal MigrationPrompt([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+        internal MigrationPrompt(ISolutionInfoProvider solutionInfoProvider,
             INotificationService notificationService,
             IMigrationWizardController migrationWizardController,
-            IBrowserService browserService,
-            IThreadHandling threadHandling)
+            IBrowserService browserService)
         {
             this.notificationService = notificationService;
-            this.serviceProvider = serviceProvider;
+            this.solutionInfoProvider = solutionInfoProvider;
             this.migrationWizardController = migrationWizardController;
             this.browserService = browserService;
-            this.threadHandling = threadHandling;
 
             migrationWizardController.MigrationWizardFinished += OnMigrationWizardFinished;
         }
@@ -78,25 +77,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         {
             this.oldBinding = oldBinding;
 
-            await threadHandling.RunOnUIThreadAsync(() =>
-            {
-                // The id contains the solution path so that each opened solution
-                // per session has its own notification.
-                var id = idPrefix + GetSolutionPath();
+            var solutionFileName = await solutionInfoProvider.GetFullSolutionFilePathAsync();
 
-                var message = hasNewBindingFiles ? MigrationStrings.MigrationPrompt_AlreadyConnected_Message : MigrationStrings.MigrationPrompt_Message;
+            // The id contains the solution path so that each opened solution
+            // per session has its own notification.
+            var id = idPrefix + solutionFileName;
 
-                var notification = new Notification(
-                    id: id,
-                    message: message,
-                    actions: new INotificationAction[]
-                    {
+            var message = hasNewBindingFiles ? MigrationStrings.MigrationPrompt_AlreadyConnected_Message : MigrationStrings.MigrationPrompt_Message;
+
+            var notification = new Notification(
+                id: id,
+                message: message,
+                actions: new INotificationAction[]
+                {
                     new NotificationAction(MigrationStrings.MigrationPrompt_MigrateButton, _ => OnMigrate(), false),
                     new NotificationAction(MigrationStrings.MigrationPrompt_LearnMoreButton, _ => OnLearnMore(), false),
-                    });
+                });
 
-                notificationService.ShowNotification(notification);
-            });
+            notificationService.ShowNotification(notification);
         }
 
         private void OnMigrationWizardFinished(object sender, EventArgs e) => Clear();
@@ -114,14 +112,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private void OnLearnMore()
         {
             browserService.Navigate(MigrationStrings.Url_LearnMoreUrl);
-        }
-
-        private string GetSolutionPath()
-        {
-            var solution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
-            solution.GetProperty((int)__VSPROPID.VSPROPID_SolutionFileName, out var fullSolutionName);
-
-            return fullSolutionName as string;
         }
 
         public void Dispose()
