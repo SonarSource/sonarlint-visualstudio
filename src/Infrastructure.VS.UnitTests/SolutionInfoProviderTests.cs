@@ -102,7 +102,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             threadHandling.Setup(x => x.RunOnUIThreadAsync(It.IsAny<Action>()))
                 .Callback<Action>(productOperation =>
                 {
-                    calls.Add("RunOnUIThreadAsync");
+                    calls.Add("switch to UI thread");
                     productOperation.Invoke();
                 });
 
@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             var actual = await testSubject.GetFullSolutionFilePathAsync();
 
-            calls.Should().ContainInOrder("RunOnUIThreadAsync", "GetService", "GetSolutionName");
+            calls.Should().ContainInOrder("switch to UI thread", "GetService", "GetSolutionName");
         }
 
         [TestMethod]
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             threadHandling.Setup(x => x.RunOnUIThread2(It.IsAny<Action>()))
                 .Callback<Action>(productOperation =>
                 {
-                    calls.Add("RunOnUIThread2");
+                    calls.Add("switch to UI thread");
                     productOperation.Invoke();
                 });
 
@@ -134,7 +134,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             var actual = testSubject.GetFullSolutionFilePath();
 
-            calls.Should().ContainInOrder("RunOnUIThread2", "GetService", "GetSolutionName");
+            calls.Should().ContainInOrder("switch to UI thread", "GetService", "GetSolutionName");
         }
 
         private static SolutionInfoProvider CreateTestSubject(IServiceProvider serviceProvider,
