@@ -49,6 +49,13 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
             return fullSolutionName;
         }
 
+        public string GetFullSolutionFilePath()
+        {
+            string fullSolutionName = null;
+            threadHandling.RunOnUIThread2(() => fullSolutionName = GetSolutionFilePath());
+            return fullSolutionName;
+        }
+
         private string GetSolutionFilePath()
         {
             // If there isn't an open solution the returned hresult will indicate an error

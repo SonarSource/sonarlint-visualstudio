@@ -35,5 +35,13 @@ namespace SonarLint.VisualStudio.Core
         /// Returns the full file path for the current solution file, or null if there is not a current solution
         /// </summary>
         Task<string> GetFullSolutionFilePathAsync();
+
+        /// <summary>
+        /// Returns the full file path for the current solution file, or null if there is not a current solution
+        /// </summary>
+        /// <remarks>If possible, use the asynchronous version of this method. This synchronous version was added
+        /// to be used only by existing non-thread-aware code that cannot easily be refactored.</remarks>
+        string GetFullSolutionFilePath();
+
     }
 }
