@@ -50,9 +50,22 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
+        public void Ctor_DoesNotCallServices()
+        {
+            // The MEF constructor needs to be free-threaded, so it shouldn't switch threads or
+            // call any components that switch threads.
+            // In this case, we're not expecting it to call anything.
+
+            var serviceProvider = new Mock<IServiceProvider>();
+            _ = CreateTestSubject(serviceProvider.Object);
+
+            serviceProvider.Invocations.Should().BeEmpty();
+        }
+
+        [TestMethod]
         [DataRow(null)]
         [DataRow("a value")]
-        public async Task Get_ReturnsExpectedValue(string solutionNameToReturn)
+        public async Task GetAsync_ReturnsExpectedValue(string solutionNameToReturn)
         {
             var solution = CreateIVsSolution(solutionNameToReturn);
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
@@ -64,19 +77,64 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
-        public async Task Get_ServiceCalledOnBackgroundThread()
+        [DataRow(null)]
+        [DataRow("a value")]
+        public void Get_ReturnsExpectedValue(string solutionNameToReturn)
+        {
+            var solution = CreateIVsSolution(solutionNameToReturn);
+            var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
+
+            var testSubject = CreateTestSubject(serviceProvider.Object);
+
+            var actual = testSubject.GetFullSolutionFilePath();
+            actual.Should().Be(solutionNameToReturn);
+        }
+
+        [TestMethod]
+        public async Task GetAsync_ServiceCalledOnUIThread()
         {
             var calls = new List<string>();
 
             var solution = CreateIVsSolution("any", () => calls.Add("GetSolutionName"));
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object, () => calls.Add("GetService"));
-            var threadHandling = CreateThreadHandlingWithRunOnUICallback(() => calls.Add("RunOnUIThread"));
+
+            var threadHandling = new Mock<IThreadHandling>();
+            threadHandling.Setup(x => x.RunOnUIThreadAsync(It.IsAny<Action>()))
+                .Callback<Action>(productOperation =>
+                {
+                    calls.Add("RunOnUIThreadAsync");
+                    productOperation.Invoke();
+                });
+
 
             var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object);
 
             var actual = await testSubject.GetFullSolutionFilePathAsync();
 
-            calls.Should().ContainInOrder("RunOnUIThread", "GetService", "GetSolutionName");
+            calls.Should().ContainInOrder("RunOnUIThreadAsync", "GetService", "GetSolutionName");
+        }
+
+        [TestMethod]
+        public void Get_ServiceCalledOnUIThread()
+        {
+            var calls = new List<string>();
+
+            var solution = CreateIVsSolution("any", () => calls.Add("GetSolutionName"));
+            var serviceProvider = CreateServiceProviderWithSolution(solution.Object, () => calls.Add("GetService"));
+
+            var threadHandling = new Mock<IThreadHandling>();
+            threadHandling.Setup(x => x.RunOnUIThread2(It.IsAny<Action>()))
+                .Callback<Action>(productOperation =>
+                {
+                    calls.Add("RunOnUIThread2");
+                    productOperation.Invoke();
+                });
+
+            var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object);
+
+            var actual = testSubject.GetFullSolutionFilePath();
+
+            calls.Should().ContainInOrder("RunOnUIThread2", "GetService", "GetSolutionName");
         }
 
         private static SolutionInfoProvider CreateTestSubject(IServiceProvider serviceProvider,
