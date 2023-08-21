@@ -18,11 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using System.IO;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
@@ -38,35 +35,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     [Export(typeof(IUnintrusiveBindingPathProvider))]
     internal class UnintrusiveBindingPathProvider : IUnintrusiveBindingPathProvider
     {
-        private readonly IVsSolution solution;
+        private readonly ISolutionInfoProvider solutionInfoProvider;
 
         private readonly string SLVSRootBindingFolder;
 
         [ImportingConstructor]
-        public UnintrusiveBindingPathProvider([Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider,
-            IThreadHandling threadHandling)
-            : this(serviceProvider, threadHandling, EnvironmentVariableProvider.Instance)
+        public UnintrusiveBindingPathProvider(ISolutionInfoProvider solutionInfoProvider)
+            : this(solutionInfoProvider, EnvironmentVariableProvider.Instance)
         {
         }
 
-        internal /* for testing */ UnintrusiveBindingPathProvider(IServiceProvider serviceProvider,
-            IThreadHandling threadHandling,
+        internal /* for testing */ UnintrusiveBindingPathProvider(ISolutionInfoProvider solutionInfoProvider,
             IEnvironmentVariableProvider environmentVariables)
         {
             SLVSRootBindingFolder = Path.Combine(environmentVariables.GetSLVSAppDataRootPath(), "Bindings");
-
-            IVsSolution slnService = null;
-            threadHandling.RunOnUIThread(() => slnService = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution);
-            solution = slnService;
+            this.solutionInfoProvider = solutionInfoProvider;
         }
 
         public string Get()
         {
-            // If there isn't an open solution the returned hresult will indicate an error
-            // and the returned solution name will be null. We'll just ignore the hresult.
-            solution.GetProperty((int)__VSPROPID.VSPROPID_SolutionFileName, out var fullSolutionName);
+            var fullSolutionName = solutionInfoProvider.GetFullSolutionFilePath();
+            return GetConnectionFilePath(fullSolutionName);
 
-            return GetConnectionFilePath(fullSolutionName as string);
         }
 
         private string GetConnectionFilePath(string solutionFilePath)

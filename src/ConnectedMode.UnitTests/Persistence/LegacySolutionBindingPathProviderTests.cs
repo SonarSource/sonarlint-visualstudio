@@ -19,67 +19,58 @@
  */
 
 using System;
-using System.IO;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 {
     [TestClass]
     public class LegacySolutionBindingPathProviderTests
     {
-        private Mock<IVsSolution> solution;
-        private LegacySolutionBindingPathProvider testSubject;
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            solution = new Mock<IVsSolution>();
-
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(x => x.GetService(typeof(SVsSolution))).Returns(solution.Object);
-
-            testSubject = new LegacySolutionBindingPathProvider(serviceProvider.Object);
-        }
-
         [TestMethod]
         public void Ctor_NullArgument_Exception()
         {
             Action act = () => new LegacySolutionBindingPathProvider(null);
 
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionInfoProvider");
         }
 
         [TestMethod]
-        public void Get_SolutionFolderIsNull_Null()
+        public void Ctor_DoesNotCallServices()
         {
-            SetupSolutionInfoResult(null);
+            // The constructor should be free-threaded i.e. run entirely on the calling thread
+            // -> should not call services that swtich threads
+            var solutionInfoProvider = new Mock<ISolutionInfoProvider>();
 
-            var actual = testSubject.Get();
+            _ = CreateTestSubject(solutionInfoProvider.Object);
 
-            actual.Should().Be(null);
+            solutionInfoProvider.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
-        public void Get_SolutionFolderIsNotNull_FilePathUnderSolutionFolder()
+        [DataRow(null, null)] // null solution -> solution not open -> return null
+        [DataRow(@"c:\test\any.sln", @"c:\test\SonarQube\SolutionBinding.sqconfig")]
+        [DataRow(@"c:\aaa\bbb\x.y.x.any.sln", @"c:\aaa\bbb\SonarQube\SolutionBinding.sqconfig")]
+        public void Get_ReturnsExpectedValue(string solutionPathToReturn, string expectedResult)
         {
-            SetupSolutionInfoResult("c:\\test");
+            var solutionInfoProvider = CreateSolutionInfoProvider(solutionPathToReturn);
+            var testSubject = CreateTestSubject(solutionInfoProvider.Object);
 
             var actual = testSubject.Get();
-
-            var expected = Path.Combine("c:\\test", PersistenceConstants.LegacySonarQubeManagedFolderName, LegacySolutionBindingPathProvider.LegacyBindingConfigurationFileName);
-
-            actual.Should().Be(expected);
+            actual.Should().Be(expectedResult);
         }
 
-        private void SetupSolutionInfoResult(string solutionDirectory)
+        private static Mock<ISolutionInfoProvider> CreateSolutionInfoProvider(string solutionFilePathToReturn)
         {
-            var solutionName = "test";
-            var userOptionsFile = "dummy";
+            var solutionInfoProvider = new Mock<ISolutionInfoProvider>();
+            solutionInfoProvider.Setup(x => x.GetFullSolutionFilePath()).Returns(solutionFilePathToReturn);
+            return solutionInfoProvider;
+        }
 
-            solution
-                .Setup(x => x.GetSolutionInfo(out solutionDirectory, out solutionName, out userOptionsFile))
-                .Returns(0);
+        private static LegacySolutionBindingPathProvider CreateTestSubject(ISolutionInfoProvider solutionInfoProvider)
+        {
+            var testSubject = new LegacySolutionBindingPathProvider(solutionInfoProvider ?? Mock.Of<ISolutionInfoProvider>());
+            return testSubject;
         }
     }
 }

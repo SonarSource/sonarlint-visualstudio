@@ -20,8 +20,8 @@
 
 using System;
 using System.IO;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
@@ -31,28 +31,26 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     /// </summary>
     internal class ObsoleteConnectedModeSolutionBindingPathProvider : ISolutionBindingPathProvider
     {
-        private readonly IVsSolution solution;
+        private readonly ISolutionInfoProvider solutionInfoProvider;
 
-        public ObsoleteConnectedModeSolutionBindingPathProvider(IServiceProvider serviceProvider)
+        public ObsoleteConnectedModeSolutionBindingPathProvider(ISolutionInfoProvider solutionInfoProvider)
         {
-            if (serviceProvider == null)
+            if (solutionInfoProvider == null)
             {
-                throw new ArgumentNullException(nameof(serviceProvider));
+                throw new ArgumentNullException(nameof(solutionInfoProvider));
             }
 
-            solution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
+            this.solutionInfoProvider = solutionInfoProvider;
         }
 
         public string Get()
         {
-            // If there isn't an open solution the returned hresult will indicate an error
-            // and the returned solution name will be null. We'll just ignore the hresult.
-            solution.GetProperty((int)__VSPROPID.VSPROPID_SolutionFileName, out var fullSolutionName);
+            var fullSolutionName = solutionInfoProvider.GetFullSolutionFilePath();
 
-            return GetConnectionFilePath(fullSolutionName as string);
+            return GetConnectionFilePath(fullSolutionName);
         }
 
-        internal static string GetConnectionFilePath(string solutionFilePath)
+        private static string GetConnectionFilePath(string solutionFilePath)
         {
             if (solutionFilePath == null)
             {
