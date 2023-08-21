@@ -49,21 +49,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 
         [TestMethod]
         [DataRow(null, null)] // null solution -> solution not open -> return null
-        [DataRow(@"c:\test\any.sln", @"c:\test\SonarQube\SolutionBinding.sqconfig")]
-        [DataRow(@"c:\aaa\bbb\x.y.x.any.sln", @"c:\aaa\bbb\SonarQube\SolutionBinding.sqconfig")]
-        public void Get_ReturnsExpectedValue(string solutionPathToReturn, string expectedResult)
+        [DataRow(@"c:\test", @"c:\test\SonarQube\SolutionBinding.sqconfig")]
+        [DataRow(@"c:\aaa\bbb", @"c:\aaa\bbb\SonarQube\SolutionBinding.sqconfig")]
+        public void Get_ReturnsExpectedValue(string solutionDirectoryToReturn, string expectedResult)
         {
-            var solutionInfoProvider = CreateSolutionInfoProvider(solutionPathToReturn);
+            var solutionInfoProvider = CreateSolutionInfoProvider(solutionDirectoryToReturn);
             var testSubject = CreateTestSubject(solutionInfoProvider.Object);
 
             var actual = testSubject.Get();
             actual.Should().Be(expectedResult);
         }
 
-        private static Mock<ISolutionInfoProvider> CreateSolutionInfoProvider(string solutionFilePathToReturn)
+        private static Mock<ISolutionInfoProvider> CreateSolutionInfoProvider(string solutionDirectoryToReturn)
         {
             var solutionInfoProvider = new Mock<ISolutionInfoProvider>();
-            solutionInfoProvider.Setup(x => x.GetFullSolutionFilePath()).Returns(solutionFilePathToReturn);
+            solutionInfoProvider.Setup(x => x.GetSolutionDirectory()).Returns(solutionDirectoryToReturn);
             return solutionInfoProvider;
         }
 
