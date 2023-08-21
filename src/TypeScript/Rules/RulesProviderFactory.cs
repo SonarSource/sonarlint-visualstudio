@@ -27,7 +27,7 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Hotspots;
+using SonarLint.VisualStudio.Core.Configuration;
 
 namespace SonarLint.VisualStudio.TypeScript.Rules
 {
@@ -48,16 +48,16 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
 
         private readonly string ruleMetadataFilePath;
         private readonly IRuleSettingsProviderFactory ruleSettingsProviderFactory;
-        private readonly IHotspotAnalysisConfiguration hotspotAnalysisConfiguration;
+        private readonly IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration;
 
         [ImportingConstructor]
         public RulesProviderFactory([Import(RuleDefinitionsFilePathContractName)] string ruleMetadataFilePath,
             IRuleSettingsProviderFactory ruleSettingsProviderFactory,
-            IHotspotAnalysisConfiguration hotspotAnalysisConfiguration)
+            IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration)
         {
             this.ruleMetadataFilePath = ruleMetadataFilePath;
             this.ruleSettingsProviderFactory = ruleSettingsProviderFactory;
-            this.hotspotAnalysisConfiguration = hotspotAnalysisConfiguration;
+            this.connectedModeFeaturesConfiguration = connectedModeFeaturesConfiguration;
         }
 
         public IRulesProvider Create(string repoKey, Language language)
@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
 
             var ruleSettingsProvider = ruleSettingsProviderFactory.Get(language);
 
-            return new RulesProvider(filteredRules, new ActiveRulesCalculator(filteredRules, ruleSettingsProvider, hotspotAnalysisConfiguration));
+            return new RulesProvider(filteredRules, new ActiveRulesCalculator(filteredRules, ruleSettingsProvider, connectedModeFeaturesConfiguration));
         }
 
         private static List<RuleDefinition> Load(string filePath) =>

@@ -25,7 +25,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Hotspots;
+using SonarLint.VisualStudio.Core.Configuration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 using SonarLint.VisualStudio.TypeScript.Rules;
 
@@ -205,8 +205,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         [DataTestMethod]
         public void Get_RespectsHotspotAnalysisConfiguration(bool hotspotsEnabled, int expectedCount)
         {
-            var hotspotConfigurationMock = new Mock<IHotspotAnalysisConfiguration>();
-            hotspotConfigurationMock.Setup(x => x.IsEnabled()).Returns(hotspotsEnabled);
+            var hotspotConfigurationMock = new Mock<IConnectedModeFeaturesConfiguration>();
+            hotspotConfigurationMock.Setup(x => x.IsHotspotsAnalysisEnabled()).Returns(hotspotsEnabled);
             var ruleDefns = new RuleDefinitionsBuilder()
                 .AddRule(ruleKey: "javascript:hotspot1", eslintKey: "hotspot1", ruleType: RuleType.SECURITY_HOTSPOT)
                 .AddRule(ruleKey: "javascript:hotspot2", eslintKey: "hotspot2", ruleType: RuleType.SECURITY_HOTSPOT);
@@ -221,8 +221,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         [TestMethod]
         public void Get_HotspotsEnabled_OverridesApplied()
         {
-            var hotspotConfigurationMock = new Mock<IHotspotAnalysisConfiguration>();
-            hotspotConfigurationMock.Setup(x => x.IsEnabled()).Returns(true);
+            var hotspotConfigurationMock = new Mock<IConnectedModeFeaturesConfiguration>();
+            hotspotConfigurationMock.Setup(x => x.IsHotspotsAnalysisEnabled()).Returns(true);
             var ruleDefns = new RuleDefinitionsBuilder()
                 .AddRule(ruleKey: "javascript:hotspot1", activeByDefault: false, eslintKey: "hotspot1",
                     ruleType: RuleType.SECURITY_HOTSPOT);
@@ -243,8 +243,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         private static void CheckConfigurationsAreEmpty(IEnumerable<Rule> result) =>
             result.All(x => x.Configurations.Length == 0).Should().BeTrue();
 
-        private static ActiveRulesCalculator CreateTestSubject(RuleDefinitionsBuilder ruleDefinitionsBuilder, IRuleSettingsProvider ruleSettingsProvider, IHotspotAnalysisConfiguration hotspotAnalysisConfiguration = null) =>
-            new(ruleDefinitionsBuilder.GetDefinitions(), ruleSettingsProvider, hotspotAnalysisConfiguration ?? new Mock<IHotspotAnalysisConfiguration>().Object);
+        private static ActiveRulesCalculator CreateTestSubject(RuleDefinitionsBuilder ruleDefinitionsBuilder, IRuleSettingsProvider ruleSettingsProvider, IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration = null) =>
+            new(ruleDefinitionsBuilder.GetDefinitions(), ruleSettingsProvider, connectedModeFeaturesConfiguration ?? new Mock<IConnectedModeFeaturesConfiguration>().Object);
 
         private class RuleDefinitionsBuilder
         {

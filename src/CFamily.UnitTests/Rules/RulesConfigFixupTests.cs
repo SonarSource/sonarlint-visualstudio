@@ -24,7 +24,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Hotspots;
+using SonarLint.VisualStudio.Core.Configuration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
@@ -195,10 +195,10 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             result.Rules[excludedKey3].Level.Should().Be(RuleLevel.Off);
         }
 
-        private static IHotspotAnalysisConfiguration CreateHotspotAnalysisConfig(bool isEnabled = false)
+        private static IConnectedModeFeaturesConfiguration CreateHotspotAnalysisConfig(bool isEnabled = false)
         {
-            var mock = new Mock<IHotspotAnalysisConfiguration>();
-            mock.Setup(x => x.IsEnabled()).Returns(isEnabled);
+            var mock = new Mock<IConnectedModeFeaturesConfiguration>();
+            mock.Setup(x => x.IsHotspotsAnalysisEnabled()).Returns(isEnabled);
             return mock.Object;
         }
 

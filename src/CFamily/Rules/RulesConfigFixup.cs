@@ -21,7 +21,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Hotspots;
+using SonarLint.VisualStudio.Core.Configuration;
 
 namespace SonarLint.VisualStudio.CFamily.Rules
 {
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules
     /// </remarks>
     internal interface IRulesConfigFixup
     {
-        RulesSettings Apply(RulesSettings input, IHotspotAnalysisConfiguration hotspotAnalysisConfiguration);
+        RulesSettings Apply(RulesSettings input, IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration);
     }
 
     internal class RulesConfigFixup : IRulesConfigFixup
@@ -179,7 +179,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules
         /// <summary>
         /// Translates any legacy rule keys in the input to new Sxxx rule keys
         /// </summary>
-        public RulesSettings Apply(RulesSettings input, IHotspotAnalysisConfiguration hotspotAnalysisConfiguration)
+        public RulesSettings Apply(RulesSettings input, IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration)
         {
             /*
 
@@ -209,7 +209,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules
             };
 
             TranslateLegacyRuleKeys(modifiedSettings);
-            DisableExcludedRules(modifiedSettings, hotspotAnalysisConfiguration.IsEnabled());
+            DisableExcludedRules(modifiedSettings, connectedModeFeaturesConfiguration.IsHotspotsAnalysisEnabled());
 
             return modifiedSettings;
         }

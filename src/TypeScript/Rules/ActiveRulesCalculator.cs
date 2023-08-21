@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Hotspots;
+using SonarLint.VisualStudio.Core.Configuration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 
 namespace SonarLint.VisualStudio.TypeScript.Rules
@@ -41,26 +41,26 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
     {
         private readonly IEnumerable<RuleDefinition> ruleDefinitions;
         private readonly IRuleSettingsProvider ruleSettingsProvider;
-        private readonly IHotspotAnalysisConfiguration hotspotAnalysisConfiguration;
+        private readonly IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration;
 
         /// <summary>
         /// Ctor
         /// </summary>
         /// <param name="rulesDefinitions">The set of applicable rule definitions</param>
         /// <param name="ruleSettingsProvider">Rule configurations specified in connected mode or by the user</param>
-        /// <param name="hotspotAnalysisConfiguration">Hotspots analysis configuration that includes/excludes hotspots from analysis</param>
+        /// <param name="connectedModeFeaturesConfiguration">Hotspots analysis configuration that includes/excludes hotspots from analysis</param>
         public ActiveRulesCalculator(IEnumerable<RuleDefinition> rulesDefinitions,
             IRuleSettingsProvider ruleSettingsProvider,
-            IHotspotAnalysisConfiguration hotspotAnalysisConfiguration)
+            IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration)
         {
             this.ruleSettingsProvider = ruleSettingsProvider;
-            this.hotspotAnalysisConfiguration = hotspotAnalysisConfiguration;
+            this.connectedModeFeaturesConfiguration = connectedModeFeaturesConfiguration;
             this.ruleDefinitions = rulesDefinitions?.ToArray() ?? Array.Empty<RuleDefinition>();
         }
 
         public IEnumerable<Rule> Calculate()
         {
-            var hotspotsEnabled = hotspotAnalysisConfiguration.IsEnabled();
+            var hotspotsEnabled = connectedModeFeaturesConfiguration.IsHotspotsAnalysisEnabled();
 
             var settings = ruleSettingsProvider.Get();
 
