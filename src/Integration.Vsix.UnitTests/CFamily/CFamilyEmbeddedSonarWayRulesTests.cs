@@ -44,9 +44,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         // The QP filter has "active/inactive" tabs. The number of rules is shown in the top-right of the screen.
         // 5. Repeat for C++.
 
-        // Rule data for C-Family plugin v6.47.0.62356
+        // Rule data for C-Family plugin v6.48.0.62520
 
-        // Note: does not include MISRA rules - see #4604
         private const int Active_C_Rules = 210;
         private const int Inactive_C_Rules = 123;
 
