@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Hotspots;
+using SonarLint.VisualStudio.Core.Configuration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
@@ -41,21 +41,21 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             // 1. Default rules config
             Action act = () => new DynamicCFamilyRulesConfig(null,
                 settings,
-                Mock.Of<IHotspotAnalysisConfiguration>(),
+                Mock.Of<IConnectedModeFeaturesConfiguration>(),
                 new TestLogger());
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("defaultRulesConfig");
 
             // 2. Custom settings
             act = () => new DynamicCFamilyRulesConfig(new DummyCFamilyRulesConfig("anyLanguage"),
                 null,
-                Mock.Of<IHotspotAnalysisConfiguration>(),
+                Mock.Of<IConnectedModeFeaturesConfiguration>(),
                 new TestLogger());
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("customRulesSettings");
 
             // 3. Logger
             act = () => new DynamicCFamilyRulesConfig(new DummyCFamilyRulesConfig("anyLanguage"),
                 settings,
-                Mock.Of<IHotspotAnalysisConfiguration>(),
+                Mock.Of<IConnectedModeFeaturesConfiguration>(),
                 null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
             
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
 
             var inputSettings = new RulesSettings();
 
-            var hotspotAnalysisConfigurationMock = Mock.Of<IHotspotAnalysisConfiguration>();
+            var hotspotAnalysisConfigurationMock = Mock.Of<IConnectedModeFeaturesConfiguration>();
 
             // Fixup that should disable rule1
             var fixedUpSettings = new RulesSettings
@@ -342,17 +342,17 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
         private static DynamicCFamilyRulesConfig CreateTestSubject(ICFamilyRulesConfig defaultConfig,
             RulesSettings customSettings,
             IRulesConfigFixup fixup = null,
-            IHotspotAnalysisConfiguration hotspotAnalysisConfiguration = null)
+            IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration = null)
         {
             fixup ??= new NoOpRulesConfigFixup();
             return new DynamicCFamilyRulesConfig(defaultConfig, customSettings,
-                hotspotAnalysisConfiguration ?? Mock.Of<IHotspotAnalysisConfiguration>(), new TestLogger(), fixup);
+                connectedModeFeaturesConfiguration ?? Mock.Of<IConnectedModeFeaturesConfiguration>(), new TestLogger(), fixup);
         }
 
         private class NoOpRulesConfigFixup : IRulesConfigFixup
         {
             public RulesSettings Apply(RulesSettings input,
-                IHotspotAnalysisConfiguration hotspotAnalysisConfiguration) => input;
+                IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration) => input;
         }
 
     }
