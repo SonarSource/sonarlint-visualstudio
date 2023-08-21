@@ -18,10 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -36,8 +33,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<MigrationSettingsProvider, IMigrationSettingsProvider>(
-                MefTestHelpers.CreateExport<SVsServiceProvider>(),
-                MefTestHelpers.CreateExport<IThreadHandling>());
+                MefTestHelpers.CreateExport<ISolutionInfoProvider>());
         }
 
         [TestMethod]
@@ -47,10 +43,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         [TestMethod]
         public async Task Get_ReturnsExpectedValue()
         {
-            var solution = CreateIVsSolution("c:\\rootfolder");
-            var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
+            var solutionInfoProvider = CreateSolutionInfoProvider("c:\\rootfolder");
 
-            var testSubject = CreateTestSubject(serviceProvider.Object);
+            var testSubject = CreateTestSubject(solutionInfoProvider.Object);
 
             var actual = await testSubject.GetAsync("slvs_samples_bound_vs2019");
             actual.Should().NotBeNull();
@@ -61,33 +56,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             actual.PartialVBSonarLintXmlPath.Should().Be(".sonarlint\\slvs_samples_bound_vs2019\\VB\\SonarLint.xml");
         }
 
-        private static MigrationSettingsProvider CreateTestSubject(IServiceProvider serviceProvider = null,
-            IThreadHandling threadHandling = null)
+        private static MigrationSettingsProvider CreateTestSubject(ISolutionInfoProvider solutionInfoProvider = null)
         {
-            serviceProvider ??= Mock.Of<IServiceProvider>();
-            threadHandling ??= new NoOpThreadHandler();
-
-            return new MigrationSettingsProvider(serviceProvider, threadHandling);
+            solutionInfoProvider ??= Mock.Of<ISolutionInfoProvider>();
+            return new MigrationSettingsProvider(solutionInfoProvider);
         }
 
-        private static Mock<IServiceProvider> CreateServiceProviderWithSolution(IVsSolution solution)
+        private static Mock<ISolutionInfoProvider> CreateSolutionInfoProvider(string solutionDirectoryToReturn)
         {
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(x => x.GetService(typeof(SVsSolution))).Returns(solution);
-
-            return serviceProvider;
-        }
-
-        private static Mock<IVsSolution> CreateIVsSolution(string pathToReturn)
-        {
-            var solution = new Mock<IVsSolution>();
-
-            object solutionDirectory = pathToReturn;
-            solution
-                .Setup(x => x.GetProperty((int)__VSPROPID.VSPROPID_SolutionDirectory, out solutionDirectory))
-                .Returns(VSConstants.S_OK);
-
-            return solution;
+            var solutionInfoProvider = new Mock<ISolutionInfoProvider>();
+            solutionInfoProvider.Setup(x => x.GetSolutionDirectoryAsync()).ReturnsAsync(solutionDirectoryToReturn);
+            return solutionInfoProvider;
         }
     }
 }
