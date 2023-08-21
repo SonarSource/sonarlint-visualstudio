@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core;
@@ -63,6 +64,9 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             var descriptionSections = new[] { descriptionSection1, descriptionSection2 };
 
             var educationPrinciples = new[] { "defense_in_depth", "never_trust_user_input" };
+            var defaultImpacts = new Dictionary<SoftwareQuality, SoftwareQualitySeverity>();
+            defaultImpacts.Add(SoftwareQuality.Maintainability, SoftwareQualitySeverity.Medium);
+            defaultImpacts.Add(SoftwareQuality.Reliability, SoftwareQualitySeverity.Low);
 
             var tags = new string[] { "convention", "bad-practice" };
 
@@ -77,7 +81,9 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
                 tags,
                 descriptionSections,
                 educationPrinciples,
-                "some user note");
+                "some user note",
+                CleanCodeAttribute.Respectful,
+                defaultImpacts);
 
             testSubject.LanguageKey.Should().Be(Language.CSharp.ServerLanguage.Key);
             testSubject.FullRuleKey.Should().Be("xxx:S123");
@@ -90,6 +96,8 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             testSubject.DescriptionSections.Should().BeEquivalentTo(descriptionSections);
             testSubject.EducationPrinciples.Should().BeEquivalentTo(educationPrinciples);
             testSubject.HtmlNote.Should().Be("some user note");
+            testSubject.CleanCodeAttribute.Should().Be(CleanCodeAttribute.Respectful);
+            testSubject.DefaultImpacts.Should().BeEquivalentTo(defaultImpacts);
         }
 
         [TestMethod]
@@ -106,7 +114,9 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
                null,
                null,
                null,
-               "some user note");
+               "some user note",
+               null,
+               null);
 
             var result = testSubject.WithServerOverride(RuleIssueSeverity.Major, "new Note");
 

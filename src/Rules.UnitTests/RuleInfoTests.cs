@@ -40,7 +40,9 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
                 tags: null,
                 descriptionSections: null,
                 educationPrinciples: null,
-                htmlNote: null);
+                htmlNote: null,
+                cleanCodeAttribute: null,
+                defaultImpacts: null);
 
             testSubject.Tags.Should().NotBeNull();
             testSubject.DescriptionSections.Should().NotBeNull();

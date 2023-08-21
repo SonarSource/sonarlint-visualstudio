@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
             GetRuleDescriptionSections_CorrectlyFormsSimpleContentSection<RootCauseSection>("root_cause",
                 (section, xamlContent) => section.partialXamlContent.Should().Be(xamlContent));
         }
-        
+
         [DataRow(RuleIssueType.Hotspot, "What's the risk?")]
         [DataRow(RuleIssueType.Vulnerability, "Why is this an issue?")]
         [DataRow(RuleIssueType.CodeSmell, "Why is this an issue?")]
@@ -240,6 +240,8 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical
                 new List<string> { "veryimportantissue" },
                 sections,
                 new List<string> { "think before you do something", "think again" },
+                null,
+                null,
                 null);
         }
     }
