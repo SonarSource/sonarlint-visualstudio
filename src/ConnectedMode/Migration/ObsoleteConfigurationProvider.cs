@@ -21,8 +21,8 @@
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
-using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
@@ -37,27 +37,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         [ImportingConstructor]
         public ObsoleteConfigurationProvider(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            ISolutionInfoProvider solutionInfoProvider,
             ISolutionBindingDataReader solutionBindingDataReader)
             : this(
-                new LegacySolutionBindingPathProvider(serviceProvider),
-                new ObsoleteConnectedModeSolutionBindingPathProvider(serviceProvider),
+                new LegacySolutionBindingPathProvider(solutionInfoProvider),
+                new ObsoleteConnectedModeSolutionBindingPathProvider(solutionInfoProvider),
                 solutionBindingDataReader)
         {
         }
 
-        internal ObsoleteConfigurationProvider(ISolutionBindingPathProvider legacyPathProvider,
+        internal /* for testing */ ObsoleteConfigurationProvider(ISolutionBindingPathProvider legacyPathProvider,
             ISolutionBindingPathProvider connectedModePathProvider,
             ISolutionBindingDataReader solutionBindingDataReader)
         {
-            this.legacyPathProvider = legacyPathProvider ??
-                                      throw new ArgumentNullException(nameof(legacyPathProvider));
-
-            this.connectedModePathProvider = connectedModePathProvider ??
-                                             throw new ArgumentNullException(nameof(connectedModePathProvider));
-
-            this.solutionBindingDataReader = solutionBindingDataReader ??
-                                             throw new ArgumentNullException(nameof(solutionBindingDataReader));
+            this.legacyPathProvider = legacyPathProvider ?? throw new ArgumentNullException(nameof(legacyPathProvider));
+            this.connectedModePathProvider = connectedModePathProvider ?? throw new ArgumentNullException(nameof(connectedModePathProvider));
+            this.solutionBindingDataReader = solutionBindingDataReader ?? throw new ArgumentNullException(nameof(solutionBindingDataReader));
         }
 
         public BindingConfiguration GetConfiguration()

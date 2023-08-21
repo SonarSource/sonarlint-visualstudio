@@ -20,8 +20,6 @@
 
 using System;
 using System.IO;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -32,31 +30,30 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
-        {
-            var serviceProvider = CreateConfiguredServiceProvider("");
+            =>  MefTestHelpers.CheckTypeCanBeImported<UnintrusiveBindingPathProvider, IUnintrusiveBindingPathProvider>(
+                    MefTestHelpers.CreateExport<ISolutionInfoProvider>());
 
-            MefTestHelpers.CheckTypeCanBeImported<UnintrusiveBindingPathProvider, IUnintrusiveBindingPathProvider>(
-                MefTestHelpers.CreateExport<SVsServiceProvider>(serviceProvider.Object),
-                MefTestHelpers.CreateExport<IThreadHandling>());
-        }
 
         [TestMethod]
-        public void Ctor_RunsOnUIThreadSync()
+        public void MefCtor_CheckIsNonSharedMefComponent()
+            => MefTestHelpers.CheckIsNonSharedMefComponent<UnintrusiveBindingController>();
+
+        [TestMethod]
+        public void Ctor_DoesNotCallServices()
         {
-            var serviceProvider = CreateConfiguredServiceProvider(null);
-            var threadHandling = new Mock<IThreadHandling>();
+            // The constructor should be free-threaded i.e. run entirely on the calling thread
+            // -> should not call services that swtich threads
+            var solutionInfoProvider = new Mock<ISolutionInfoProvider>();
 
-            var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling: threadHandling.Object);
+            _ = CreateTestSubject(solutionInfoProvider.Object);
 
-#pragma warning disable CS0618 // Type or member is obsolete
-            threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
-#pragma warning restore CS0618 // Type or member is obsolete
+            solutionInfoProvider.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
         public void Get_NoOpenSolution_ReturnsNull()
         {
-            var serviceProvider = CreateConfiguredServiceProvider(null);
+            var serviceProvider = CreateSolutionInfoProvider(null);
             var testSubject = CreateTestSubject(serviceProvider.Object);
 
             var actual = testSubject.Get();
@@ -72,35 +69,29 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
 
             var fullPathSlnPath = Path.Combine(solutionPath, solutionName + ".sln");
 
-            var serviceProvider = CreateConfiguredServiceProvider(fullPathSlnPath);
+            var solutionInfoProvider = CreateSolutionInfoProvider(fullPathSlnPath);
             var envVars = CreateEnvVars(rootFolderName);
 
-            var testSubject = CreateTestSubject(serviceProvider.Object, envVars);
+            var testSubject = CreateTestSubject(solutionInfoProvider.Object, envVars);
 
             var actual = testSubject.Get();
 
             actual.Should().Be($@"{rootFolderName}SonarLint for Visual Studio\Bindings\{solutionName}\binding.config");
         }
 
-        private static UnintrusiveBindingPathProvider CreateTestSubject(IServiceProvider serviceProvider,
-            IEnvironmentVariableProvider envVars = null,
-            IThreadHandling threadHandling = null)
+        private static UnintrusiveBindingPathProvider CreateTestSubject(ISolutionInfoProvider solutionInfoProvider,
+            IEnvironmentVariableProvider envVars = null)
         {
             envVars ??= CreateEnvVars("any");
-            threadHandling ??= new NoOpThreadHandler();
-            return new UnintrusiveBindingPathProvider(serviceProvider, threadHandling, envVars);
+            return new UnintrusiveBindingPathProvider(solutionInfoProvider, envVars);
         }
 
-        private Mock<IServiceProvider> CreateConfiguredServiceProvider(string fullSolutionFilePath = null)
+        private Mock<ISolutionInfoProvider> CreateSolutionInfoProvider(string fullSolutionFilePath = null)
         {
-            var solution = new Mock<IVsSolution>();
-            object objFilePath = fullSolutionFilePath;
-            solution.Setup(x => x.GetProperty((int)__VSPROPID.VSPROPID_SolutionFileName, out objFilePath));
+            var solutionInfoProvider = new Mock<ISolutionInfoProvider>();
+            solutionInfoProvider.Setup(x => x.GetFullSolutionFilePath()).Returns(fullSolutionFilePath);
 
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(x => x.GetService(typeof(SVsSolution))).Returns(solution.Object);
-
-            return serviceProvider;
+            return solutionInfoProvider;
         }
 
         private static IEnvironmentVariableProvider CreateEnvVars(string rootInstallPath)
