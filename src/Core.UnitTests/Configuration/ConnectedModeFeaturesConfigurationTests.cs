@@ -39,7 +39,7 @@ public class ConnectedModeFeaturesConfigurationTests
     }
     
     [TestMethod]
-    public void IsNewCctAvailable_NoServerInfo_ReturnsFalse()
+    public void IsNewCctAvailable_NoServerInfo_ReturnsTrue()
     {
         var testSubject = CreateTestSubject(null);
 
