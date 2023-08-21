@@ -24,8 +24,9 @@ Note: SonarLint for Visual Studio 2017 has been deprecated. New versions will no
 [Connected Mode](https://github.com/SonarSource/sonarlint-visualstudio/wiki/Connected-Mode) provides suppression of issues marked as **False Positive** or **Won't Fix** on SonarQube and SonarCloud. Follow the link for more information.
 
 ## Useful links
+* [SonarLint for Visual Studio documentation](https://docs.sonarsource.com/sonarlint/visual-studio/)
 * [Community Forum](https://community.sonarsource.com/)
-* [SonarLint overview](https://redirect.sonarsource.com/doc/sonar-visualstudio.html)
+* [SonarLint overview](https://www.sonarsource.com/products/sonarlint/)
 * [Issue tracking](https://github.com/SonarSource/sonarlint-visualstudio/issues)
 
 ## Have question or feedback?
