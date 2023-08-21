@@ -1,0 +1,57 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+>
+    
+    <!-- ***********************************************************************************
+         Auto-generated from the SVG files by SvgToXaml. See Readme.txt for more information.    
+         *********************************************************************************** -->
+    
+    <DrawingImage x:Key="HighSoftwareQualitySeverity">
+        <DrawingImage.Drawing>
+            <DrawingGroup ClipGeometry="M0,0 V16 H16 V0 H0 Z">
+                <GeometryDrawing Brush="#FFB42318">
+                    <GeometryDrawing.Geometry>
+                        <EllipseGeometry RadiusX="7" RadiusY="7" Center="8,8" />
+                    </GeometryDrawing.Geometry>
+                </GeometryDrawing>
+                <GeometryDrawing Brush="#FFFFFFFF" Geometry="F1 M16,16z M0,0z M5,6.67113C5,6.56986,5.05583,6.47727,5.14421,6.43198L7.88334,5.02823C7.95678,4.99059,8.04322,4.99059,8.11666,5.02823L10.8558,6.43198C10.9442,6.47727,11,6.56986,11,6.67113L11,10.7324C11,10.9191,10.8181,11.0483,10.6475,10.9827L8.0916,10.0003C8.03254,9.97763,7.96746,9.97763,7.9084,10.0003L5.35247,10.9827C5.18192,11.0483,5,10.9191,5,10.7324L5,6.67113z" />
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+    
+    <DrawingImage x:Key="MediumSoftwareQualitySeverity">
+        <DrawingImage.Drawing>
+            <DrawingGroup ClipGeometry="M0,0 V16 H16 V0 H0 Z">
+                <GeometryDrawing Brush="#FFAE7A29">
+                    <GeometryDrawing.Geometry>
+                        <EllipseGeometry RadiusX="7" RadiusY="7" Center="8,8" />
+                    </GeometryDrawing.Geometry>
+                </GeometryDrawing>
+                <GeometryDrawing Geometry="F1 M16,16z M0,0z M10.7678,9.50001L8,6.73224 5.23223,9.50001">
+                    <GeometryDrawing.Pen>
+                        <Pen Brush="#FFFFFFFF" Thickness="1.5" StartLineCap="Round" EndLineCap="Round" LineJoin="Round" MiterLimit="1" />
+                    </GeometryDrawing.Pen>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+    
+    <DrawingImage x:Key="LowSoftwareQualitySeverity">
+        <DrawingImage.Drawing>
+            <DrawingGroup ClipGeometry="M0,0 V16 H16 V0 H0 Z">
+                <GeometryDrawing Brush="#FF316C92">
+                    <GeometryDrawing.Geometry>
+                        <EllipseGeometry RadiusX="7" RadiusY="7" Center="8,8" />
+                    </GeometryDrawing.Geometry>
+                </GeometryDrawing>
+                <GeometryDrawing Geometry="F1 M16,16z M0,0z M5.23223,6.93225L8,9.70001 10.7678,6.93224">
+                    <GeometryDrawing.Pen>
+                        <Pen Brush="#FFFFFFFF" Thickness="1.5" StartLineCap="Round" EndLineCap="Round" LineJoin="Round" MiterLimit="1" />
+                    </GeometryDrawing.Pen>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+    
+</ResourceDictionary>

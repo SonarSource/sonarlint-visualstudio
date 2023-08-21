@@ -14,6 +14,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="../UI/SeverityImages.xaml" />
                 <ResourceDictionary Source="../UI/TypeImages.xaml" />
+                <ResourceDictionary Source="../UI/SoftwareQualitySeverityImages.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Defines the standard set of style used by the document elements -->
@@ -270,6 +271,10 @@
                     <Image Source="{StaticResource hotspotHighDrawingImage}" Style="{DynamicResource SubtitleElement_Image}" />
                     <Image Source="{StaticResource hotspotLowDrawingImage}" Style="{DynamicResource SubtitleElement_Image}" />
                     <Image Source="{StaticResource hotspotMediumDrawingImage}" Style="{DynamicResource SubtitleElement_Image}" />
+                    
+                    <Image Source="{StaticResource HighSoftwareQualitySeverity}" Style="{DynamicResource SubtitleElement_Image}" />
+                    <Image Source="{StaticResource MediumSoftwareQualitySeverity}" Style="{DynamicResource SubtitleElement_Image}" />
+                    <Image Source="{StaticResource LowSoftwareQualitySeverity}" Style="{DynamicResource SubtitleElement_Image}" />
                 </StackPanel>
             </d:BlockUIContainer>
             
