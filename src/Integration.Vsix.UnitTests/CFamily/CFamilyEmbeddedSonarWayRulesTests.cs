@@ -44,13 +44,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         // The QP filter has "active/inactive" tabs. The number of rules is shown in the top-right of the screen.
         // 5. Repeat for C++.
 
+        // You can check the version of the plugin that is installed on the appropriate web API:
+        // e.g. https://next.sonarqube.com/sonarqube/api/plugins/installed and https://sonarcloud.io/api/plugins/installed
+        // Note - you need to be logged in.
+
         // Rule data for C-Family plugin v6.48.0.62520
 
         private const int Active_C_Rules = 210;
-        private const int Inactive_C_Rules = 123;
+        private const int Inactive_C_Rules = 122;
 
         private const int Active_CPP_Rules = 436;
-        private const int Inactive_CPP_Rules = 207;
+        private const int Inactive_CPP_Rules = 203;
 
         private readonly CFamilySonarWayRulesConfigProvider rulesMetadataCache = new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory);
 
@@ -77,19 +81,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void Read_Rules_Params()
         {
-            rulesMetadataCache.GetRulesConfiguration("cpp").RulesParameters.TryGetValue("S1311", out var parameters);
+            // The choice of rule ID here is arbitrary - any rule that has parameters will do.
+            rulesMetadataCache.GetRulesConfiguration("cpp").RulesParameters.TryGetValue("S100", out var parameters);
             parameters.Should()
-                .Contain(new System.Collections.Generic.KeyValuePair<string, string>("maximumClassComplexityThreshold", "80"));
+                .Contain(new System.Collections.Generic.KeyValuePair<string, string>("format", "^[a-z][a-zA-Z0-9]*$"));
         }
 
         [TestMethod]
         public void Read_Rules_Metadata()
         {
-            rulesMetadataCache.GetRulesConfiguration("cpp").RulesMetadata.TryGetValue("S1311", out var metadata);
+            // The choice of rule ID here is arbitrary - any rule will do
+            rulesMetadataCache.GetRulesConfiguration("cpp").RulesMetadata.TryGetValue("S100", out var metadata);
             using (new AssertionScope())
             {
                 metadata.Type.Should().Be(IssueType.CodeSmell);
-                metadata.DefaultSeverity.Should().Be(IssueSeverity.Critical);
+                metadata.DefaultSeverity.Should().Be(IssueSeverity.Minor);
             }
         }
 
@@ -98,6 +104,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [DataRow("S5536", "cpp")]
         public void CheckProjectLevelRule_IsDisabledByDefault(string ruleKey, string languageKey)
         {
+            // The choice of rule ID here is arbitrary - any rule will do
             rulesMetadataCache.GetRulesConfiguration(languageKey).AllPartialRuleKeys.Contains(ruleKey).Should().BeTrue();
             rulesMetadataCache.GetRulesConfiguration(languageKey).ActivePartialRuleKeys.Contains(ruleKey).Should().BeFalse();
         }
