@@ -122,6 +122,8 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
             // see https://github.com/SonarSource/sonarlint-visualstudio/issues/4471
             failures.Should().BeEquivalentTo(new[]
             {
+                // introduced in sonar-cpp 6.48
+                "SonarLint.VisualStudio.Rules.Embedded.cpp.S1232.json",
                 // introduced in dotnet analyzer 9.5
                 "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S4433.json",
                 // Diff-specific errors
