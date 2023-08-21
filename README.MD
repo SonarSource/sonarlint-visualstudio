@@ -26,7 +26,7 @@ Note: SonarLint for Visual Studio 2017 has been deprecated. New versions will no
 ## Useful links
 * [SonarLint for Visual Studio documentation](https://docs.sonarsource.com/sonarlint/visual-studio/)
 * [Community Forum](https://community.sonarsource.com/)
-* [SonarLint overview](https://www.sonarsource.com/products/sonarlint/)
+* [SonarLint overview](https://www.sonarsource.com/products/sonarlint/features/visual-studio/)
 * [Issue tracking](https://github.com/SonarSource/sonarlint-visualstudio/issues)
 
 ## Have question or feedback?
