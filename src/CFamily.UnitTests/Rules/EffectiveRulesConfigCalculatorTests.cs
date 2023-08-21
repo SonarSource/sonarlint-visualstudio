@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Hotspots;
+using SonarLint.VisualStudio.Core.Configuration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
         public void TestInitialize()
         {
             testLogger = new TestLogger();
-            testSubject = new EffectiveRulesConfigCalculator(Mock.Of<IHotspotAnalysisConfiguration>(), testLogger);
+            testSubject = new EffectiveRulesConfigCalculator(Mock.Of<IConnectedModeFeaturesConfiguration>(), testLogger);
         }
 
         [TestMethod]
@@ -89,8 +89,8 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
                 .AddRule(RulesConfigFixup.HotspotRulesKeys[0].Split(':')[1], true)
                 .AddRule("12345678", true);
             var sourcesSettings = new RulesSettings();
-            var hotspotAnalysisConfigurationMock = new Mock<IHotspotAnalysisConfiguration>();
-            hotspotAnalysisConfigurationMock.Setup(x => x.IsEnabled()).Returns(analyzeHotspots);
+            var hotspotAnalysisConfigurationMock = new Mock<IConnectedModeFeaturesConfiguration>();
+            hotspotAnalysisConfigurationMock.Setup(x => x.IsHotspotsAnalysisEnabled()).Returns(analyzeHotspots);
 
             var testSubject1 =
                 new EffectiveRulesConfigCalculator(hotspotAnalysisConfigurationMock.Object, testLogger);

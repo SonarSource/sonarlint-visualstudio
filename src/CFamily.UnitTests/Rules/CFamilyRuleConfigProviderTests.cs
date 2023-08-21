@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Hotspots;
+using SonarLint.VisualStudio.Core.Configuration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
         {
             MefTestHelpers.CheckTypeCanBeImported<CFamilyRuleConfigProvider, ICFamilyRulesConfigProvider>(
                 MefTestHelpers.CreateExport<IRuleSettingsProviderFactory>(),
-                MefTestHelpers.CreateExport<IHotspotAnalysisConfiguration>(),
+                MefTestHelpers.CreateExport<IConnectedModeFeaturesConfiguration>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
         
@@ -118,8 +118,8 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             sonarWayProviderMock.Setup(x => x.GetRulesConfiguration(It.IsAny<string>()))
                 .Returns(sonarWayConfig);
 
-            var hotspotAnalysisConfigurationMock = new Mock<IHotspotAnalysisConfiguration>();
-            hotspotAnalysisConfigurationMock.Setup(x => x.IsEnabled()).Returns(enableHotspots);
+            var hotspotAnalysisConfigurationMock = new Mock<IConnectedModeFeaturesConfiguration>();
+            hotspotAnalysisConfigurationMock.Setup(x => x.IsHotspotsAnalysisEnabled()).Returns(enableHotspots);
 
             var testSubject = new CFamilyRuleConfigProvider(ruleSettingsProviderFactory.Object,
                 sonarWayProviderMock.Object,
