@@ -137,6 +137,10 @@ namespace SonarLint.VisualStudio.Rules
 
         string HtmlNote { get; }
 
+        CleanCodeAttribute? CleanCodeAttribute { get; }
+
+        Dictionary<SoftwareQuality, SoftwareQualitySeverity> DefaultImpacts { get; }
+
         IRuleInfo WithServerOverride(RuleIssueSeverity newSeverity, string newHtmlNote);
     }
 
@@ -144,7 +148,8 @@ namespace SonarLint.VisualStudio.Rules
     {
         public RuleInfo(string languageKey, string fullRuleKey, string description, string name,
             RuleIssueSeverity severity, RuleIssueType issueType, bool isActiveByDefault,
-            IReadOnlyList<string> tags, IReadOnlyList<IDescriptionSection> descriptionSections, IReadOnlyList<string> educationPrinciples, string htmlNote)
+            IReadOnlyList<string> tags, IReadOnlyList<IDescriptionSection> descriptionSections, IReadOnlyList<string> educationPrinciples, string htmlNote,
+            CleanCodeAttribute? cleanCodeAttribute, Dictionary<SoftwareQuality, SoftwareQualitySeverity> defaultImpacts)
         {
             LanguageKey = languageKey;
             FullRuleKey = fullRuleKey;
@@ -156,7 +161,9 @@ namespace SonarLint.VisualStudio.Rules
             Tags = tags ?? Array.Empty<string>();
             DescriptionSections = descriptionSections ?? Array.Empty<IDescriptionSection>();
             EducationPrinciples = educationPrinciples ?? Array.Empty<string>();
-            HtmlNote = htmlNote ;
+            HtmlNote = htmlNote;
+            CleanCodeAttribute = cleanCodeAttribute;
+            DefaultImpacts = defaultImpacts ?? new Dictionary<SoftwareQuality, SoftwareQualitySeverity>();
         }
 
         public string FullRuleKey { get; private set; }
@@ -179,11 +186,15 @@ namespace SonarLint.VisualStudio.Rules
 
         public IReadOnlyList<string> EducationPrinciples { get; }
 
-        public string HtmlNote { get; set; }
+        public string HtmlNote { get; }
+
+        public CleanCodeAttribute? CleanCodeAttribute { get; }
+
+        public Dictionary<SoftwareQuality, SoftwareQualitySeverity> DefaultImpacts { get; }
 
         public IRuleInfo WithServerOverride(RuleIssueSeverity newSeverity, string newHtmlNote)
         {
-            return new RuleInfo(LanguageKey, FullRuleKey, Description, Name, newSeverity, IssueType, IsActiveByDefault, Tags, DescriptionSections, EducationPrinciples, newHtmlNote);
+            return new RuleInfo(LanguageKey, FullRuleKey, Description, Name, newSeverity, IssueType, IsActiveByDefault, Tags, DescriptionSections, EducationPrinciples, newHtmlNote, CleanCodeAttribute, DefaultImpacts);
         }
     }
 }

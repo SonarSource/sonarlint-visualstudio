@@ -19,7 +19,6 @@
  */
 
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using SonarLint.VisualStudio.Rules;
 
 namespace ExtractRuleDescFromJson;
@@ -118,6 +117,8 @@ internal class RuleDescExtractor
                         ? new SonarLint.VisualStudio.Rules.Context(x.Context.Key, x.Context.DisplayName)
                         : null)).ToList(),
                 pluginRule.EducationPrinciples,
+                null,
+                null,
                 null
                 );
 

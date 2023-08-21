@@ -25,7 +25,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarQube.Client;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Rules
 {
@@ -78,7 +77,9 @@ namespace SonarLint.VisualStudio.Rules
                     sqRule.Tags,
                     descriptionSections,
                     sqRule.EducationPrinciples,
-                    HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(sqRule.HtmlNote));
+                    HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(sqRule.HtmlNote),
+                    null,
+                    null);
             }
             catch (Exception ex)
             {

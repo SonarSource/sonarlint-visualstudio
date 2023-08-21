@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
             var xmlWriter = new XamlWriterFactory().Create(sb);
             var ruleInfo = new RuleInfo("cs", "cs:123", "<p>Hi</p>", "Hi", RuleIssueSeverity.Critical,
                 RuleIssueType.Vulnerability, true, new List<string>(), new List<IDescriptionSection>(),
-                new List<string>(), "<p>fix this pls</p>");
+                new List<string>(), "<p>fix this pls</p>", null, null);
 
             var testSubject = CreateTestSubject(xmlWriter);
 
@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
             var xmlWriter = new XamlWriterFactory().Create(sb);
             var ruleInfo = new RuleInfo("cs", "cs:123", "<p>Hi</p>", "Hi", RuleIssueSeverity.Critical,
                 RuleIssueType.Vulnerability, true, new List<string>(), new List<IDescriptionSection>(),
-                new List<string>(), null);
+                new List<string>(), null, null, null);
             IXamlGeneratorHelper testSubject = CreateTestSubject(xmlWriter);
 
             testSubject.WriteDocumentHeader(ruleInfo);
