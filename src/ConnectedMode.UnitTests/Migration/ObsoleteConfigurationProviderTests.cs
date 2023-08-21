@@ -18,10 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -30,67 +29,40 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
     [TestClass]
     public class ObsoleteConfigurationProviderTests
     {
-        private Mock<ISolutionBindingPathProvider> legacyPathProvider;
-        private Mock<ISolutionBindingPathProvider> newPathProvider;
-        private Mock<ISolutionBindingDataReader> solutionBindingDataReader;
-        private ObsoleteConfigurationProvider testSubject;
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            legacyPathProvider = new Mock<ISolutionBindingPathProvider>();
-            newPathProvider = new Mock<ISolutionBindingPathProvider>();
-            solutionBindingDataReader = new Mock<ISolutionBindingDataReader>();
-
-            testSubject = new ObsoleteConfigurationProvider(legacyPathProvider.Object,
-                newPathProvider.Object,
-                solutionBindingDataReader.Object);
-        }
-
         [TestMethod]
         public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<ObsoleteConfigurationProvider, IObsoleteConfigurationProvider>(
+            => MefTestHelpers.CheckTypeCanBeImported<ObsoleteConfigurationProvider, IObsoleteConfigurationProvider>(
                 MefTestHelpers.CreateExport<ISolutionBindingDataReader>(),
-                MefTestHelpers.CreateExport<SVsServiceProvider>());
-        }
+                MefTestHelpers.CreateExport<ISolutionInfoProvider>());
 
         [TestMethod]
-        public void Ctor_InvalidArgs_NullLegacySerializer_Throws()
-        {
-            // Arrange
-            Action act = () => new ObsoleteConfigurationProvider(null, newPathProvider.Object, null);
-
-            // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyPathProvider");
-        }
+        public void MefCtor_CheckIsSingleton()
+            => MefTestHelpers.CheckIsSingletonMefComponent<ObsoleteConfigurationProvider>();
 
         [TestMethod]
-        public void Ctor_InvalidArgs_NullConnectedModeSerializer_Throws()
+        public void Ctor_DoesNotCallServices()
         {
-            // Arrange
-            Action act = () => new ObsoleteConfigurationProvider(legacyPathProvider.Object, null, null);
+            // The constructor should be free-threaded i.e. run entirely on the calling thread
+            // -> should not call services that swtich threads
+            var legacyProvider = new Mock<ISolutionBindingPathProvider>();
+            var connectedProvider = new Mock<ISolutionBindingPathProvider>();
+            var slnDataReader = new Mock<ISolutionBindingDataReader>();
 
-            // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("connectedModePathProvider");
-        }
+            _ = CreateTestSubject(legacyProvider.Object, connectedProvider.Object, slnDataReader.Object);
 
-        [TestMethod]
-        public void Ctor_InvalidArgs_NullSolutionBindingSerializer_Throws()
-        {
-            // Arrange
-            Action act = () => new ObsoleteConfigurationProvider(legacyPathProvider.Object, newPathProvider.Object, null);
-
-            // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingDataReader");
+            legacyProvider.Invocations.Should().BeEmpty();
+            connectedProvider.Invocations.Should().BeEmpty();
+            slnDataReader.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
         public void GetConfig_NoConfig_ReturnsStandalone()
         {
             // Arrange
-            legacyPathProvider.Setup(x => x.Get()).Returns(null as string);
-            newPathProvider.Setup(x => x.Get()).Returns(null as string);
+            var legacyPathProvider = CreatePathProvider(null);
+            var newPathProvider = CreatePathProvider(null);
+
+            var testSubject = CreateTestSubject(legacyPathProvider, newPathProvider);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -101,16 +73,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             actual.Mode.Should().Be(SonarLintMode.Standalone);
         }
 
-
         [TestMethod]
         public void GetConfig_NewConfigOnly_ReturnsConnected()
         {
             // Arrange
-            legacyPathProvider.Setup(x => x.Get()).Returns(null as string);
-            newPathProvider.Setup(x => x.Get()).Returns("c:\\new");
-
+            var legacyPathProvider = CreatePathProvider(null);
+            var newPathProvider = CreatePathProvider("c:\\new");
+            
             var expectedProject = new BoundSonarQubeProject();
-            solutionBindingDataReader.Setup(x => x.Read("c:\\new")).Returns(expectedProject);
+            var reader = CreateReader("c:\\new", expectedProject);
+
+            var testSubject = CreateTestSubject(legacyPathProvider, newPathProvider, reader);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -126,10 +99,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         public void GetConfig_LegacyConfigOnly_ReturnsLegacy()
         {
             // Arrange
-            legacyPathProvider.Setup(x => x.Get()).Returns("c:\\old");
+            var legacyPathProvider = CreatePathProvider("c:\\old");
 
             var expectedProject = new BoundSonarQubeProject();
-            solutionBindingDataReader.Setup(x => x.Read("c:\\old")).Returns(expectedProject);
+            var reader = CreateReader("c:\\old", expectedProject);
+
+            var testSubject = CreateTestSubject(legacyPathProvider, null, reader);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -145,11 +120,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         public void GetConfig_NoLegacyProjectAtFileLocation_NoConnectedProjectAtFileLocation_ReturnsStandalone()
         {
             // Arrange
-            legacyPathProvider.Setup(x => x.Get()).Returns("c:\\legacy");
-            solutionBindingDataReader.Setup(x => x.Read("c:\\legacy")).Returns(null as BoundSonarQubeProject);
+            var legacyPathProvider = CreatePathProvider("c:\\legacy");
+            var newPathProvider = CreatePathProvider("c:\\new");
 
-            newPathProvider.Setup(x => x.Get()).Returns("c:\\new");
-            solutionBindingDataReader.Setup(x => x.Read("c:\\new")).Returns(null as BoundSonarQubeProject);
+            var reader = new Mock<ISolutionBindingDataReader>();
+            reader.Setup(x => x.Read("c:\\legacy")).Returns(null as BoundSonarQubeProject);
+            reader.Setup(x => x.Read("c:\\new")).Returns(null as BoundSonarQubeProject);
+
+            var testSubject = CreateTestSubject(legacyPathProvider, newPathProvider, reader.Object);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -164,12 +142,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         public void GetConfig_NoLegacyProjectAtFileLocation_ConnectedProjectAtFileLocation_ReturnsConnected()
         {
             // Arrange
-            legacyPathProvider.Setup(x => x.Get()).Returns("c:\\legacy");
-            solutionBindingDataReader.Setup(x => x.Read("c:\\legacy")).Returns(null as BoundSonarQubeProject);
+            var legacyPathProvider = CreatePathProvider("c:\\legacy");
+            var newPathProvider = CreatePathProvider("c:\\new");
 
+            var reader = new Mock<ISolutionBindingDataReader>();
             var expectedProject = new BoundSonarQubeProject();
-            newPathProvider.Setup(x => x.Get()).Returns("c:\\new");
-            solutionBindingDataReader.Setup(x => x.Read("c:\\new")).Returns(expectedProject);
+            reader.Setup(x => x.Read("c:\\legacy")).Returns(null as BoundSonarQubeProject);
+            reader.Setup(x => x.Read("c:\\new")).Returns(expectedProject);
+
+            var testSubject = CreateTestSubject(legacyPathProvider, newPathProvider, reader.Object);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -187,19 +168,49 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             // or new bindings to present. However, the legacy should take priority.
 
             // Arrange
-            legacyPathProvider.Setup(x => x.Get()).Returns("c:\\legacy");
-            newPathProvider.Setup(x => x.Get()).Returns("c:\\new");
+            var legacyPathProvider = CreatePathProvider("c:\\legacy");
+            var newPathProvider = CreatePathProvider("c:\\new");
 
-            var expectedProject = new BoundSonarQubeProject();
-            solutionBindingDataReader.Setup(x => x.Read("c:\\legacy")).Returns(expectedProject);
+            var reader = new Mock<ISolutionBindingDataReader>();
+            var legacyProject = new BoundSonarQubeProject();
+            var newProject = new BoundSonarQubeProject();
+            reader.Setup(x => x.Read("c:\\legacy")).Returns(legacyProject);
+            reader.Setup(x => x.Read("c:\\new")).Returns(newProject);
+
+            var testSubject = CreateTestSubject(legacyPathProvider, newPathProvider, reader.Object);
 
             // Act
             var actual = testSubject.GetConfiguration();
 
             // Assert
             actual.Should().NotBeNull();
-            actual.Project.Should().BeSameAs(expectedProject);
+            actual.Project.Should().BeSameAs(legacyProject);
             actual.Mode.Should().Be(SonarLintMode.LegacyConnected);
+        }
+
+        private static ISolutionBindingPathProvider CreatePathProvider(string pathToReturn)
+        {
+            var provider = new Mock<ISolutionBindingPathProvider>();
+            provider.Setup(x => x.Get()).Returns((string)pathToReturn);
+            return provider.Object;
+        }
+
+        private static ISolutionBindingDataReader CreateReader(string inputPath, BoundSonarQubeProject projectToReturn)
+        {
+            var reader = new Mock<ISolutionBindingDataReader>();
+            reader.Setup(x => x.Read(inputPath)).Returns(projectToReturn);
+            return reader.Object;
+        }
+
+        private static ObsoleteConfigurationProvider CreateTestSubject(ISolutionBindingPathProvider legacyProvider = null,
+            ISolutionBindingPathProvider connectedModePathProvider = null,
+            ISolutionBindingDataReader slnDataReader = null)
+        {
+            var testSubject = new ObsoleteConfigurationProvider(
+                legacyProvider ?? Mock.Of<ISolutionBindingPathProvider>(),
+                connectedModePathProvider ?? Mock.Of<ISolutionBindingPathProvider>(),
+                slnDataReader ?? Mock.Of<ISolutionBindingDataReader>());
+            return testSubject;
         }
     }
 }

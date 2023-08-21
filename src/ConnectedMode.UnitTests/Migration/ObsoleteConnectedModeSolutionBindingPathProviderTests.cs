@@ -19,29 +19,14 @@
  */
 
 using System;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 {
     [TestClass]
     public class ObsoleteConnectedModeSolutionBindingPathProviderTests
     {
-        private Mock<IVsSolution> solution;
-        private ObsoleteConnectedModeSolutionBindingPathProvider testSubject;
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            solution = new Mock<IVsSolution>();
-
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(x => x.GetService(typeof(SVsSolution))).Returns(solution.Object);
-
-            testSubject = new ObsoleteConnectedModeSolutionBindingPathProvider(serviceProvider.Object);
-
-        }
-
         [TestMethod]
         public void Ctor_InvalidArgs_Throws()
         {
@@ -49,61 +34,45 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             Action act = () => new ObsoleteConnectedModeSolutionBindingPathProvider(null);
 
             // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionInfoProvider");
         }
 
         [TestMethod]
-        public void Get_NoOpenSolution_ReturnsNull()
+        public void Ctor_DoesNotCallServices()
         {
-            object fullSolutionFilePath = null;
-            solution.Setup(x => x.GetProperty((int) __VSPROPID.VSPROPID_SolutionFileName, out fullSolutionFilePath));
+            // The constructor should be free-threaded i.e. run entirely on the calling thread
+            // -> should not call services that swtich threads
+            var solutionInfoProvider = new Mock<ISolutionInfoProvider>();
+
+            _ = CreateTestSubject(solutionInfoProvider.Object);
+
+            solutionInfoProvider.Invocations.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        [DataRow(null, null)] // null solution -> solution not open -> return null
+        [DataRow(@"c:\aaa\bbbb\C C\mysolutionName.sln", @"c:\aaa\bbbb\C C\.sonarlint\mysolutionName.slconfig")]
+        [DataRow(@"c:\aaa\bbbb\C C\mysolutionName.foo.xxx", @"c:\aaa\bbbb\C C\.sonarlint\mysolutionName.foo.slconfig")]
+        public void Get_ReturnsExpectedValue(string solutionPathToReturn, string expectedResult)
+        {
+            var solutionInfoProvider = CreateSolutionInfoProvider(solutionPathToReturn);
+            var testSubject = CreateTestSubject(solutionInfoProvider.Object);
 
             var actual = testSubject.Get();
-            actual.Should().BeNull();
+            actual.Should().Be(expectedResult);
         }
 
-        [TestMethod]
-        public void Get_HasOpenSolution_ReturnsNull()
+        private static Mock<ISolutionInfoProvider> CreateSolutionInfoProvider(string solutionFilePathToReturn)
         {
-            object fullSolutionFilePath = @"c:\aaa\bbbb\C C\mysolutionName.sln";
-            solution.Setup(x => x.GetProperty((int) __VSPROPID.VSPROPID_SolutionFileName, out fullSolutionFilePath));
-
-            var actual = testSubject.Get();
-            
-            actual.Should().Be(@"c:\aaa\bbbb\C C\.sonarlint\mysolutionName.slconfig");
+            var solutionInfoProvider = new Mock<ISolutionInfoProvider>();
+            solutionInfoProvider.Setup(x => x.GetFullSolutionFilePath()).Returns(solutionFilePathToReturn);
+            return solutionInfoProvider;
         }
 
-        [TestMethod]
-        public void Get_NullPath_ReturnsNull()
+        private static ObsoleteConnectedModeSolutionBindingPathProvider CreateTestSubject(ISolutionInfoProvider solutionInfoProvider)
         {
-            // Arrange & Act & Assert
-            ObsoleteConnectedModeSolutionBindingPathProvider.GetConnectionFilePath(null).Should().BeNull();
-        }
-
-        [TestMethod]
-        public void Get_SolutionFilePath_ValidFilePath()
-        {
-            // Arrange
-            var fullSolutionFilePath = @"c:\aaa\bbbb\C C\mysolutionName.sln";
-
-            // Act
-            string actual = ObsoleteConnectedModeSolutionBindingPathProvider.GetConnectionFilePath(fullSolutionFilePath);
-
-            // Assert
-            actual.Should().Be(@"c:\aaa\bbbb\C C\.sonarlint\mysolutionName.slconfig");
-        }
-
-        [TestMethod]
-        public void Get_FilePath_ValidFilePath()
-        {
-            // Arrange
-            var fullSolutionFilePath = @"c:\aaa\bbbb\C C\mysolutionName.foo.xxx";
-
-            // Act
-            string actual = ObsoleteConnectedModeSolutionBindingPathProvider.GetConnectionFilePath(fullSolutionFilePath);
-
-            // Assert
-            actual.Should().Be(@"c:\aaa\bbbb\C C\.sonarlint\mysolutionName.foo.slconfig");
+            var testSubject = new ObsoleteConnectedModeSolutionBindingPathProvider(solutionInfoProvider ?? Mock.Of<ISolutionInfoProvider>());
+            return testSubject;
         }
     }
 }
