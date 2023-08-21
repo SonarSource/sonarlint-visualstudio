@@ -21,6 +21,7 @@
     <Compile Include="..\..\..\src\Core\RegexConstants.cs" Link="SLVS_LinkedProductCode\RegexConstants.cs" />
     <Compile Include="..\..\..\src\Rules\IRuleInfo.cs" Link="SLVS_LinkedProductCode\IRuleHelp.cs" />
     <Compile Include="..\..\..\src\Rules\HtmlXmlCompatibilityHelper.cs" Link="SLVS_LinkedProductCode\HtmlXmlCompatibilityHelper.cs" />
+    <Compile Include="..\..\..\src\Rules\CleanCodeTaxonomy.cs" Link="SLVS_LinkedProductCode\CleanCodeTaxonomy.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />

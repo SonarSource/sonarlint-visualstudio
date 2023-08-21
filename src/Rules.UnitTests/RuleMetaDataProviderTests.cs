@@ -218,7 +218,7 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             IReadOnlyList<string> educationPrinciples = null,
             string htmlNote = null)
         {
-            return new RuleInfo(languageKey, fullRuleKey, description, name, defaultSeverity, issueType, isActiveByDefault, tags, descriptionSections, educationPrinciples, htmlNote);
+            return new RuleInfo(languageKey, fullRuleKey, description, name, defaultSeverity, issueType, isActiveByDefault, tags, descriptionSections, educationPrinciples, htmlNote, null, null);
         }
 
         #endregion
