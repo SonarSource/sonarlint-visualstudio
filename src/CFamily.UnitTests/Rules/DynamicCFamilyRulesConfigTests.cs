@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
                 settings,
                 null,
                 new TestLogger());
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("hotspotAnalysisConfiguration");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("connectedModeFeaturesConfiguration");
         }
 
         [TestMethod]
