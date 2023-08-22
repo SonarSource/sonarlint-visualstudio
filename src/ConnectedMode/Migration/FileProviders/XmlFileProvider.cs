@@ -25,8 +25,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using Task = System.Threading.Tasks.Task;
 
@@ -36,7 +34,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
     [PartCreationPolicy(CreationPolicy.NonShared)]
     internal partial class XmlFileProvider : IFileProvider
     {
-        private readonly IServiceProvider serviceProvider;
+        private readonly ISolutionInfoProvider solutionInfoProvider;
         private readonly IRoslynProjectProvider projectProvider;
         private readonly ILogger logger;    
         private readonly IThreadHandling threadHandling;
@@ -54,22 +52,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
 
         [ImportingConstructor]
         public XmlFileProvider(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            ISolutionInfoProvider solutionInfoProvider,
             IRoslynProjectProvider projectProvider,
             ILogger logger,
             IThreadHandling threadHandling)
-            : this(serviceProvider, projectProvider, logger, threadHandling, new FileFinder(logger))
+            : this(solutionInfoProvider, projectProvider, logger, threadHandling, new FileFinder(logger))
         {
         }
 
         internal /* for testing */ XmlFileProvider(
-            IServiceProvider serviceProvider,
+            ISolutionInfoProvider solutionInfoProvider,
             IRoslynProjectProvider projectProvider,
             ILogger logger,
             IThreadHandling threadHandling,
             IFileFinder fileFinder)
         {
-            this.serviceProvider = serviceProvider;
+            this.solutionInfoProvider = solutionInfoProvider;
             this.projectProvider = projectProvider;
             this.logger = logger;
             this.threadHandling = threadHandling;
@@ -105,7 +103,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
 
         private async Task AddFilesUnderSolutionFolderAsync(HashSet<string> allFiles)
         {
-            var solutionDir = await GetSolutionDirectoryAsync();
+            var solutionDir = await solutionInfoProvider.GetSolutionDirectoryAsync();
             if (solutionDir == null)
             {
                 logger.LogMigrationVerbose("Unable to locate the solution folder.");
@@ -128,22 +126,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders
                 var files = fileFinder.GetFiles(projectDirectorynfo.FullName, SearchOption.TopDirectoryOnly, FileSearchPatterns);
                 AddToResults(allFiles, files);
             }
-        }
-
-        private async Task<string> GetSolutionDirectoryAsync()
-        {
-            string solutionDir = null;
-
-            await threadHandling.RunOnUIThreadAsync(() => {
-                var solution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
-                // If there isn't an open solution the returned hresult will indicate an error
-                // and the returned solution name will be null. We'll just ignore the hresult.
-                solution.GetProperty((int)__VSPROPID.VSPROPID_SolutionDirectory, out var solutionDirAsObject);
-
-                solutionDir = solutionDirAsObject as string;
-
-            });
-            return solutionDir;
         }
 
         private static void AddToResults(HashSet<string> results, IEnumerable<string> newFiles)
