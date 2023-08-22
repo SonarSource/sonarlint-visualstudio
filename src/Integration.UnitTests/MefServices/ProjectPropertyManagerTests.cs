@@ -32,13 +32,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class ProjectPropertyManagerTests
     {
-        #region Test boilerplate
-
         private const string TestPropertyName = "MyTestProperty";
 
-        #endregion Test boilerplate
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+            => MefTestHelpers.CheckTypeCanBeImported<ProjectPropertyManager, IProjectPropertyManager>(
+                MefTestHelpers.CreateExport<IProjectSystemHelper>());
 
-        #region Tests
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+            => MefTestHelpers.CheckIsSingletonMefComponent<ProjectPropertyManager>();
 
         [TestMethod]
         public void ProjectPropertyManager_GetSelectedProject_NoSelectedProjects_ReturnsEmpty()
@@ -168,10 +171,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Exceptions.Expect<ArgumentNullException>(() => testSubject.SetBooleanProperty(project, null, true));
         }
 
-        #endregion Tests
-
-        #region Test helpers
-
         private static ConfigurableVsProjectSystemHelper CreateProjectSystem(params ProjectMock[] selectedProjects)
         {
             var projectSystem = new ConfigurableVsProjectSystemHelper(new ConfigurableServiceProvider());
@@ -181,7 +180,5 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private ProjectPropertyManager CreateTestSubject(IProjectSystemHelper projectSystemHelper = null)
             => new ProjectPropertyManager(projectSystemHelper ?? Mock.Of<IProjectSystemHelper>());
-
-        #endregion Test helpers
     }
 }
