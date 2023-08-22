@@ -55,11 +55,6 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         public const int E_XML_ATTRIBUTE_NOT_FOUND = unchecked((int)0x8004C738);
 
-        // This constant is necessary to find the name of the "Solution Items" folder
-        // for the CurrentUICulture. They correspond to a resource string in the satellite DLL
-        // for the msenv.dll package. The ID is the resource ID, and the guid is the package guid.
-        internal const uint SolutionItemResourceId = 13450;
-
         private readonly IServiceProvider serviceProvider;
         private readonly IProjectToLanguageMapper projectToLanguageMapper;
 
@@ -129,177 +124,6 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             return null;
-        }
-
-        public bool IsFileInProject(Project project, string file)
-        {
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            if (string.IsNullOrWhiteSpace(file))
-            {
-                throw new ArgumentNullException(nameof(file));
-            }
-
-            var projectHierarchy = GetIVsHierarchy(project);
-            return FindProjectItemId(projectHierarchy, file) != (uint)VSConstants.VSITEMID.Nil;
-        }
-
-        public ProjectItem FindFileInProject(Project project, string file)
-        {
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            if (string.IsNullOrWhiteSpace(file))
-            {
-                throw new ArgumentNullException(nameof(file));
-            }
-
-            var projectHierarchy = GetIVsHierarchy(project);
-            var itemId = FindProjectItemId(projectHierarchy, file);
-
-            object extObj;
-            if (itemId != (uint)VSConstants.VSITEMID.Nil &&
-                ErrorHandler.Succeeded(projectHierarchy.GetProperty(itemId, (int)__VSHPROPID.VSHPROPID_ExtObject, out extObj)))
-            {
-                return extObj as ProjectItem;
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Returns the VSItemId of the project item with the specified path in the given
-        /// hierarchy, or VSITEMID.Nil if the file is not in the project
-        /// </summary>
-        private uint FindProjectItemId(IVsHierarchy vsHierarchy, string filePath)
-        {
-            var vsProject = vsHierarchy as IVsProject;
-            int pfFound;
-            uint itemId;
-            VSDOCUMENTPRIORITY[] pdwPriority = new VSDOCUMENTPRIORITY[1];
-            if (ErrorHandler.Succeeded(vsProject.IsDocumentInProject(filePath, out pfFound, pdwPriority, out itemId)) && pfFound != 0)
-            {
-                return itemId;
-            }
-            return (uint)VSConstants.VSITEMID.Nil;
-        }
-
-        public void AddFileToProject(Project project, string file)
-        {
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            if (string.IsNullOrWhiteSpace(file))
-            {
-                throw new ArgumentNullException(nameof(file));
-            }
-
-            if (!this.IsFileInProject(project, file))
-            {
-                project.ProjectItems.AddFromFile(file);
-            }
-        }
-
-        public void AddFileToProject(Project project, string file, string itemType)
-        {
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            if (string.IsNullOrWhiteSpace(file))
-            {
-                throw new ArgumentNullException(nameof(file));
-            }
-
-            if (string.IsNullOrWhiteSpace(itemType))
-            {
-                throw new ArgumentNullException(nameof(itemType));
-            }
-
-            if (!this.IsFileInProject(project, file))
-            {
-                ProjectItem item = project.ProjectItems.AddFromFile(file);
-                Property itemTypeProperty = VsShellUtils.FindProperty(item.Properties, Constants.ItemTypePropertyKey);
-                if (itemTypeProperty != null)
-                {
-                    itemTypeProperty.Value = itemType;
-                }
-                else
-                {
-                    Debug.Fail("Failed to set the ItemType of the project item");
-                }
-            }
-        }
-
-        public void RemoveFileFromProject(Project project, string fileName)
-        {
-            foreach (ProjectItem projectItem in project.ProjectItems)
-            {
-                if (projectItem.Name == fileName)
-                {
-                    projectItem.Remove(); // We only want to remove from project not from disk
-                    break;
-                }
-            }
-
-            // If the project is an empty solution folder, then remove it
-            if (project.ProjectItems.Count == 0 && project.Kind == ProjectSystemHelper.VsProjectItemKindSolutionFolder)
-            {
-                Solution2 solution = this.GetCurrentActiveSolution();
-                solution.Remove(project);
-            }
-        }
-
-        public Solution2 GetCurrentActiveSolution()
-        {
-            var dte = serviceProvider.GetService<SDTE, DTE2>();
-            Debug.Assert(dte != null, "Could not find the DTE service");
-
-            Solution2 solution = (Solution2)dte?.Solution;
-
-            return solution;
-        }
-
-        public Project GetSolutionItemsProject(bool createOnNull)
-        {
-            string solutionItemsFolderName = this.GetSolutionItemsFolderName();
-
-            return this.GetSolutionFolderProject(solutionItemsFolderName, createOnNull);
-        }
-
-        public Project GetSolutionFolderProject(string solutionFolderName, bool createOnNull)
-        {
-            Solution2 solution = this.GetCurrentActiveSolution();
-
-            Project solutionItemsProject = null;
-            // Enumerating instead of using OfType<Project> due to a bug in
-            // install shield projects that will throw an exception
-            foreach (Project project in solution.Projects)
-            {
-                // Check if SonarQube solution folder already exists
-                if (project.Name == solutionFolderName
-                    && project.Kind == ProjectSystemHelper.VsProjectItemKindSolutionFolder)
-                {
-                    solutionItemsProject = project;
-                    break;
-                }
-            }
-
-            // Create Solution Items folder if it does not exist
-            if (solutionItemsProject == null && createOnNull)
-            {
-                solutionItemsProject = solution.AddSolutionFolder(solutionFolderName);
-            }
-
-            return solutionItemsProject;
         }
 
         public IEnumerable<Project> GetSelectedProjects()
@@ -443,19 +267,6 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private string GetSolutionItemsFolderName()
-        {
-            string solutionItemsFolderName;
-            Guid guid = VSConstants.CLSID.VsEnvironmentPackage_guid;
-
-            IVsShell shell = this.serviceProvider.GetService<SVsShell, IVsShell>();
-            Debug.Assert(shell != null, "Could not find the SVsShell service");
-
-            ErrorHandler.ThrowOnFailure(shell.LoadPackageString(ref guid, SolutionItemResourceId, out solutionItemsFolderName));
-            Debug.Assert(!string.IsNullOrEmpty(solutionItemsFolderName));
-            return solutionItemsFolderName;
-        }
-
         private static IEnumerable<IVsHierarchy> EnumerateProjects(IVsSolution solution)
         {
             Guid empty = Guid.Empty;
@@ -482,26 +293,6 @@ namespace SonarLint.VisualStudio.Integration
                 return (bool)isLoaded;
             }
             return false;
-        }
-
-        public bool IsLegacyProjectSystem(Project dteProject)
-        {
-            // We can't rely on the project type guid to differentiate between the old
-            // and C#/VB project systems as they can both return the legacy guids: see
-            // https://github.com/dotnet/project-system/blob/master/docs/opening-with-new-project-system.md.
-
-            // There doesn't seem to be a documented way to determine which project system
-            // is being used, and I couldn't find a suitable property or capability.
-
-            // Instead, we'll look for an interface we know is implemented by the old
-            // project system but not the new project system. This isn't perfect, but
-            // it's very unlikely that the new project system will ever implement this
-            // interface since the interface-based project aggregation mechanism has
-            // been replaced by a newer MEF-based/capability extensibility mechanism.
-
-            var hierarchy = GetIVsHierarchy(dteProject);
-
-            return hierarchy is IVsAggregatableProjectCorrected;
         }
     }
 }
