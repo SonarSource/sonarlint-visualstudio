@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
         // TODO - cleanup. These unit tests are supposed to be testing
         // ProjectExcludePropertyToggleCommand, so they don't need a real
-        // instance of ProjectPropertyManager.
+        // instance of ProjectPropertyManager. See #4770.
         private ProjectPropertyManager propertyManager;
         private Mock<IProjectToLanguageMapper> projectToLanguageMapper;
 
