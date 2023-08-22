@@ -40,16 +40,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 
         public string Get()
         {
-            var fullSolutionFilePath = solutionInfoProvider.GetFullSolutionFilePath();
+            var fullSolutionDirectory = solutionInfoProvider.GetSolutionDirectory();
 
             // Solution closed?
-            if (string.IsNullOrWhiteSpace(fullSolutionFilePath))
+            if (string.IsNullOrWhiteSpace(fullSolutionDirectory))
             {
                 return null;
             }
 
-            return Path.Combine(Path.GetDirectoryName(fullSolutionFilePath), 
-                PersistenceConstants.LegacySonarQubeManagedFolderName, LegacyBindingConfigurationFileName);
+            return Path.Combine(fullSolutionDirectory, PersistenceConstants.LegacySonarQubeManagedFolderName, LegacyBindingConfigurationFileName);
         }
     }
 }

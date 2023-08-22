@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -40,6 +41,22 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         {
             this.serviceProvider = serviceProvider;
             this.threadHandling = threadHandling;
+        }
+
+        public async Task<string> GetSolutionDirectoryAsync()
+        {
+            var slnFilePath = await GetFullSolutionFilePathAsync();
+            if (slnFilePath == null) { return null; }
+
+            return Path.GetDirectoryName(slnFilePath);
+        }
+
+        public string GetSolutionDirectory()
+        {
+            var slnFilePath = GetFullSolutionFilePath();
+            if (slnFilePath == null) { return null; }
+
+            return Path.GetDirectoryName(slnFilePath);
         }
 
         public async Task<string> GetFullSolutionFilePathAsync()
