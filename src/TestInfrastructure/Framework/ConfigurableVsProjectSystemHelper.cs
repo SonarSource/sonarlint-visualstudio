@@ -22,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using EnvDTE;
-using EnvDTE80;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration;
 
@@ -46,67 +45,9 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             throw new NotImplementedException();
         }
 
-        Project IProjectSystemHelper.GetSolutionItemsProject(bool createOnNull)
-        {
-            return this.SolutionItemsProject;
-        }
-
-        public Project GetSolutionFolderProject(string solutionFolderName, bool createOnNull)
-        {
-            return this.SolutionItemsProject;
-        }
-
-        public ProjectItem FindFileInProject(Project project, string fileName)
-        {
-            var item = project.ProjectItems.OfType<ProjectItem>().FirstOrDefault(pi => StringComparer.OrdinalIgnoreCase.Equals(pi.Name, fileName));
-            return item;
-        }
-
         IEnumerable<Project> IProjectSystemHelper.GetSolutionProjects()
         {
             return this.Projects ?? Enumerable.Empty<Project>();
-        }
-
-        bool IProjectSystemHelper.IsFileInProject(Project project, string file)
-        {
-            return this.IsFileInProjectAction?.Invoke(project, file) ?? false;
-        }
-
-        void IProjectSystemHelper.AddFileToProject(Project project, string file)
-        {
-            bool addFileToProject = !project.ProjectItems.OfType<ProjectItem>().Any(pi => StringComparer.OrdinalIgnoreCase.Equals(pi.Name, file));
-            if (addFileToProject)
-            {
-                project.ProjectItems.AddFromFile(file);
-            }
-        }
-
-        void IProjectSystemHelper.AddFileToProject(Project project, string file, string itemType)
-        {
-            bool addFileToProject = !project.ProjectItems.OfType<ProjectItem>().Any(pi => StringComparer.OrdinalIgnoreCase.Equals(pi.Name, file));
-            if (addFileToProject)
-            {
-                var item = project.ProjectItems.AddFromFile(file);
-                Property itemTypeProperty = VsShellUtils.FindProperty(item.Properties, Integration.Constants.ItemTypePropertyKey);
-                if (itemTypeProperty != null)
-                {
-                    itemTypeProperty.Value = itemType;
-                }
-            }
-        }
-
-        public void RemoveFileFromProject(Project project, string fileName)
-        {
-            var projectItem = project.ProjectItems.OfType<ProjectItem>().FirstOrDefault(pi => StringComparer.OrdinalIgnoreCase.Equals(pi.Name, fileName));
-            if (projectItem != null)
-            {
-                projectItem.Remove();
-            }
-        }
-
-        Solution2 IProjectSystemHelper.GetCurrentActiveSolution()
-        {
-            return this.CurrentActiveSolution;
         }
 
         public Project GetProject(IVsHierarchy projectHierarchy)
@@ -193,37 +134,19 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             return this.isSolutionFullyOpened;
         }
 
-        public bool IsLegacyProjectSystem(Project dteProject)
-        {
-            return this.isLegacyProjectSystem;
-        }
-
         #endregion IVsProjectSystemHelper
 
         #region Test helpers
 
-        public Project SolutionItemsProject { get; set; }
-
         public IEnumerable<Project> Projects { get; set; }
 
-        public IEnumerable<Project> FilteredProjects { get; set; }
-
         public IEnumerable<Project> SelectedProjects { get; set; }
-
-        public Func<Project, string, bool> IsFileInProjectAction { get; set; }
-
-        public Solution2 CurrentActiveSolution { get; set; }
 
         public bool SimulateIVsHierarchyFailure { get; set; }
 
         public void SetIsSolutionFullyOpened(bool isFullyOpened)
         {
             this.isSolutionFullyOpened = isFullyOpened;
-        }
-
-        public void SetIsLegacyProjectSystem(bool isLegacyProjectSystem)
-        {
-            this.isLegacyProjectSystem = isLegacyProjectSystem;
         }
 
         #endregion Test helpers

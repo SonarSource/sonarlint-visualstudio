@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using EnvDTE;
-using EnvDTE80;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Infrastructure.VS;
 
@@ -32,46 +31,6 @@ namespace SonarLint.VisualStudio.Integration
     /// </summary>
     public interface IProjectSystemHelper : ILocalService, IVsHierarchyLocator
     {
-        /// <summary>
-        /// Returns the current active solution
-        /// </summary>
-        Solution2 GetCurrentActiveSolution();
-
-        /// <summary>
-        /// Return the 'Solution Items' folder which internally treated as project
-        /// </summary>
-        Project GetSolutionItemsProject(bool createOnNull);
-
-        /// <summary>
-        /// Returns the solution folder matching the given name.
-        /// </summary>
-        Project GetSolutionFolderProject(string solutionFolderName, bool createOnNull);
-
-        /// <summary>
-        /// Checks whether a file is in the project
-        /// </summary>
-        bool IsFileInProject(Project project, string file);
-
-        /// <summary>
-        /// Adds a file to project
-        /// </summary>
-        void AddFileToProject(Project project, string file);
-
-        /// <summary>
-        /// Adds a file with specific item type to the project
-        /// </summary>
-        void AddFileToProject(Project project, string file, string itemType);
-
-        /// <summary>
-        /// Removes a file from the given project.
-        /// </summary>
-        void RemoveFileFromProject(Project project, string fileName);
-
-        /// <summary>
-        /// Retrieves a file from the given project. Returns null if item does not exist.
-        /// </summary>
-        ProjectItem FindFileInProject(Project project, string fileName);
-
         /// <summary>
         /// Returns all what VS considers as a projects in a solution
         /// </summary>
@@ -130,14 +89,5 @@ namespace SonarLint.VisualStudio.Integration
         /// Returns a flag indicating whether there is fully-opened solution or not.
         /// </summary>
         bool IsSolutionFullyOpened();
-
-        /// <summary>
-        /// Returns true if the project is implemented by the legacy C#/VB project system, otherwise false
-        /// </summary>
-        /// <returns>There are occasions when we need to code around differences between the legacy and new
-        /// project systems. The new project system is the one from https://github.com/dotnet/project-system
-        /// that handles MSBuild SDK-style projects; the legacy project system is the closed-source one that
-        /// preceeded it that only handles old-style MSBuild projects.</returns>
-        bool IsLegacyProjectSystem(Project dteProject);
     }
 }
