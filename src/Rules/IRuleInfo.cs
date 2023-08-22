@@ -142,6 +142,8 @@ namespace SonarLint.VisualStudio.Rules
         Dictionary<SoftwareQuality, SoftwareQualitySeverity> DefaultImpacts { get; }
 
         IRuleInfo WithServerOverride(RuleIssueSeverity newSeverity, string newHtmlNote);
+
+        IRuleInfo WithCleanCodeTaxonomyDisabled();
     }
 
     public class RuleInfo : IRuleInfo
@@ -192,9 +194,34 @@ namespace SonarLint.VisualStudio.Rules
 
         public Dictionary<SoftwareQuality, SoftwareQualitySeverity> DefaultImpacts { get; }
 
-        public IRuleInfo WithServerOverride(RuleIssueSeverity newSeverity, string newHtmlNote)
-        {
-            return new RuleInfo(LanguageKey, FullRuleKey, Description, Name, newSeverity, IssueType, IsActiveByDefault, Tags, DescriptionSections, EducationPrinciples, newHtmlNote, CleanCodeAttribute, DefaultImpacts);
-        }
+        public IRuleInfo WithServerOverride(RuleIssueSeverity newSeverity, string newHtmlNote) =>
+            new RuleInfo(LanguageKey,
+                FullRuleKey,
+                Description,
+                Name,
+                newSeverity,
+                IssueType,
+                IsActiveByDefault,
+                Tags,
+                DescriptionSections,
+                EducationPrinciples,
+                newHtmlNote,
+                CleanCodeAttribute,
+                DefaultImpacts);
+
+        public IRuleInfo WithCleanCodeTaxonomyDisabled() =>
+            new RuleInfo(LanguageKey,
+                FullRuleKey,
+                Description,
+                Name,
+                Severity,
+                IssueType,
+                IsActiveByDefault,
+                Tags,
+                DescriptionSections,
+                EducationPrinciples,
+                HtmlNote,
+                null,
+                null);
     }
 }
