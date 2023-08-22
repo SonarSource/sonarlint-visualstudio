@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -51,6 +53,56 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             testSubject.Tags.Should().HaveCount(0);
             testSubject.DescriptionSections.Should().HaveCount(0);
             testSubject.EducationPrinciples.Should().HaveCount(0);
+        }
+
+        [TestMethod]
+        public void WithCleanCodeTaxonomyDisabled_SetsCctPropertiesToNull()
+        {
+            var languageKey = "any";
+            var fullRuleKey = "any";
+            var description = "any";
+            var name = "any";
+            var ruleIssueSeverity = RuleIssueSeverity.Critical;
+            var ruleIssueType = RuleIssueType.Bug;
+            var isActiveByDefault = true;
+            IReadOnlyList<string> tags = new []{ "any"};
+            IReadOnlyList<IDescriptionSection> descriptionSections = Array.Empty<IDescriptionSection>();
+            IReadOnlyList<string> educationPrinciples = Array.Empty<string>();
+            var htmlNote = "any";
+            CleanCodeAttribute? cleanCodeAttribute = CleanCodeAttribute.Focused;
+            Dictionary<SoftwareQuality,SoftwareQualitySeverity> defaultImpacts = new Dictionary<SoftwareQuality, SoftwareQualitySeverity>();
+            
+            var testSubject = new RuleInfo(
+                languageKey,
+                fullRuleKey,
+                description,
+                name,
+                ruleIssueSeverity,
+                ruleIssueType,
+                isActiveByDefault,
+                tags,
+                descriptionSections,
+                educationPrinciples,
+                htmlNote,
+                cleanCodeAttribute,
+                defaultImpacts);
+
+            var expected = new RuleInfo(
+                languageKey,
+                fullRuleKey,
+                description,
+                name,
+                ruleIssueSeverity,
+                ruleIssueType,
+                isActiveByDefault,
+                tags,
+                descriptionSections,
+                educationPrinciples,
+                htmlNote,
+                null,
+                null);
+            
+            testSubject.WithCleanCodeTaxonomyDisabled().Should().BeEquivalentTo(expected);
         }
     }
 }

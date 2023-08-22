@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Configuration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Rules.UnitTests
@@ -39,8 +40,8 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             MefTestHelpers.CheckTypeCanBeImported<RuleMetaDataProvider, IRuleMetaDataProvider>(
                 MefTestHelpers.CreateExport<ILocalRuleMetadataProvider>(),
                 MefTestHelpers.CreateExport<IServerRuleMetadataProvider>(),
-                MefTestHelpers.CreateExport<IConfigurationProvider>()
-                );
+                MefTestHelpers.CreateExport<IConfigurationProvider>(),
+                MefTestHelpers.CreateExport<IConnectedModeFeaturesConfiguration>());
         }
 
         [TestMethod]
@@ -165,9 +166,35 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             configurationProvider.Verify(cp => cp.GetConfiguration(), Times.Once);
         }
 
+        [DataRow(true)]
+        [DataRow(false)]
+        [DataTestMethod]
+        public async Task GetRuleInfoAsync_DisablesCCT_BasedOnFeatureConfiguration(bool isEnabled)
+        {
+            var ruleId = new SonarCompositeRuleId("csharpsquid", "S1000");
+            var ruleInfoMock = new Mock<IRuleInfo>();
+            var metadataProviderMock = new Mock<ILocalRuleMetadataProvider>();
+            metadataProviderMock
+                .Setup(x => x.GetRuleInfo(It.IsAny<SonarCompositeRuleId>()))
+                .Returns(ruleInfoMock.Object);
+            var connectedModeFeaturesConfiguration = CreateFeatureConfigurationMock(isEnabled);
+
+            var testSubject = CreateTestSubject(metadataProviderMock,
+                Mock.Of<Mock<IServerRuleMetadataProvider>>(),
+                CreateConfigurationProvider(),
+                connectedModeFeaturesConfiguration);
+
+            await testSubject.GetRuleInfoAsync(ruleId, CancellationToken.None);
+            
+            connectedModeFeaturesConfiguration.Verify(x => x.IsNewCctAvailable(), Times.Once);
+            ruleInfoMock.Verify(x => x.WithCleanCodeTaxonomyDisabled(), Times.Exactly(!isEnabled ? 1 : 0));
+        }
+
         #region Helper Methods
 
-        private static Mock<IServerRuleMetadataProvider> CreateServerRuleMetaDataProvider(SonarCompositeRuleId ruleId = null, IRuleInfo serverRule = null, string qualityProfile = null)
+        private static Mock<IServerRuleMetadataProvider> CreateServerRuleMetaDataProvider(SonarCompositeRuleId ruleId = null,
+            IRuleInfo serverRule = null,
+            string qualityProfile = null)
         {
             var serverMetaDataProvider = new Mock<IServerRuleMetadataProvider>();
             serverMetaDataProvider.Setup(s => s.GetRuleInfoAsync(It.IsAny<SonarCompositeRuleId>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((IRuleInfo)null);
@@ -192,9 +219,24 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             return configurationProvider;
         }
 
-        private static RuleMetaDataProvider CreateTestSubject(Mock<ILocalRuleMetadataProvider> localMetaDataProvider, Mock<IServerRuleMetadataProvider> serverMetaDataProvider, Mock<IConfigurationProvider> configurationProvider)
+        private static RuleMetaDataProvider CreateTestSubject(Mock<ILocalRuleMetadataProvider> localMetaDataProvider,
+            Mock<IServerRuleMetadataProvider> serverMetaDataProvider,
+            Mock<IConfigurationProvider> configurationProvider,
+            Mock<IConnectedModeFeaturesConfiguration> connectedModeFeaturesConfiguration = null)
         {
-            return new RuleMetaDataProvider(localMetaDataProvider.Object, serverMetaDataProvider.Object, configurationProvider.Object);
+            var defaultCctConfig = CreateFeatureConfigurationMock(true);
+
+            return new RuleMetaDataProvider(localMetaDataProvider.Object,
+                serverMetaDataProvider.Object,
+                configurationProvider.Object,
+                (connectedModeFeaturesConfiguration ?? defaultCctConfig).Object);
+        }
+
+        private static Mock<IConnectedModeFeaturesConfiguration> CreateFeatureConfigurationMock(bool isEnabled)
+        {
+            var defaultCctConfig = new Mock<IConnectedModeFeaturesConfiguration>();
+            defaultCctConfig.Setup(x => x.IsNewCctAvailable()).Returns(isEnabled);
+            return defaultCctConfig;
         }
 
         private static Mock<ILocalRuleMetadataProvider> CreateLocalRuleMetaDataProvider(SonarCompositeRuleId ruleId = null, IRuleInfo localRule = null)
