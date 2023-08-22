@@ -26,7 +26,7 @@ namespace ExtractRuleDescFromJson;
 public class PluginRule
 {
     public string? Key { get; set; }
-    
+
     public string? Name { get; set; }
 
     public string? DefaultSeverity { get; set; }
@@ -44,6 +44,10 @@ public class PluginRule
     public DescriptionSection[]? DescriptionSections { get; set; }
 
     public string[]? EducationPrinciples { get; set; }
+
+    public string? CleanCodeAttribute { get; set; }
+
+    public Dictionary<string, string>? DefaultImpacts { get; set; }
 }
 
 public class DescriptionSection

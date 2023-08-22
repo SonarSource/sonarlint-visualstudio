@@ -118,8 +118,8 @@ internal class RuleDescExtractor
                         : null)).ToList(),
                 pluginRule.EducationPrinciples,
                 null,
-                null,
-                null
+                ConvertCleanCodeAttribute(pluginRule.CleanCodeAttribute),
+                ConvertDefaultImpacts(pluginRule.DefaultImpacts)
                 );
 
             SaveRuleFile(slvsRule);
@@ -128,6 +128,35 @@ internal class RuleDescExtractor
         {
             Logger.LogError($"Error processing rule. Rule key: {pluginRule.Key}, file: {context.RuleJsonFilePath}, {ex.Message}");
         }
+    }
+
+    private static Dictionary<SoftwareQuality, SoftwareQualitySeverity> ConvertDefaultImpacts(Dictionary<string, string>? defaultImpacts)
+    {
+        if (defaultImpacts != null)
+        {
+            return defaultImpacts.ToDictionary(d => ConvertSoftwareQuality(d.Key), d => ConvertSoftwareQualitySeverity(d.Value));
+        }
+
+        return null;
+    }
+
+    private static SoftwareQuality ConvertSoftwareQuality(string softwareQuality)
+    {
+        return Enum.Parse<SoftwareQuality>(softwareQuality, true);
+    }
+
+    private static SoftwareQualitySeverity ConvertSoftwareQualitySeverity(string softwareQualitySeverity)
+    {
+        return Enum.Parse<SoftwareQualitySeverity>(softwareQualitySeverity, true);
+    }
+
+    private static CleanCodeAttribute? ConvertCleanCodeAttribute(string? cleanCodeAttribute)
+    {
+        if (Enum.TryParse(cleanCodeAttribute, true, out CleanCodeAttribute result))
+        {
+            return result;
+        }
+        return null;
     }
 
     private static RuleIssueSeverity ConvertPluginSeverity(string? pluginSeverity)
