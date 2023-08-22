@@ -55,17 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.stepRunner = new ConfigurableProgressStepRunner();
             this.configProvider = new ConfigurableConfigurationProvider();
 
-            var projectSystem = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
-            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystem);
-
             var host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
-
-            var propertyManager = new ProjectPropertyManager(host);
-            var mefExport1 = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
-            var mefExport2 = MefTestHelpers.CreateExport<ILogger>(new TestLogger());
-            var mefExport3 = MefTestHelpers.CreateExport<IProjectToLanguageMapper>(Mock.Of<IProjectToLanguageMapper>());
-            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExport1, mefExport2, mefExport3);
-            this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
         }
 
         #region Tests
@@ -77,7 +67,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 MefTestHelpers.CreateExport<Microsoft.VisualStudio.Shell.SVsServiceProvider>(),
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
-                MefTestHelpers.CreateExport<IProjectToLanguageMapper>(),
                 MefTestHelpers.CreateExport<IConfigurationProvider>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
@@ -387,7 +376,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 this.stepRunner,
                 this.sonarQubeServiceMock.Object,
                 tracker ?? new ConfigurableActiveSolutionTracker(),
-                Mock.Of<IProjectToLanguageMapper>(),
                 this.configProvider,
                 Mock.Of<ILogger>(),
                 Dispatcher.CurrentDispatcher);

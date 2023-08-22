@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration
     /// <summary>
     /// Wrapper service to abstract the VS related API handling
     /// </summary>
-    public interface IProjectSystemHelper : ILocalService, IVsHierarchyLocator
+    public interface IProjectSystemHelper : IVsHierarchyLocator
     {
         /// <summary>
         /// Returns all what VS considers as a projects in a solution

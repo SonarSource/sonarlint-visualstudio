@@ -22,9 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Linq;
-using System.Windows.Threading;
 using FluentAssertions;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
@@ -38,32 +36,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class PackageCommandManagerTests
     {
-        private ConfigurableServiceProvider serviceProvider;
-        private ConfigurableMenuCommandService menuService;
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            this.serviceProvider = new ConfigurableServiceProvider();
-
-            this.menuService = new ConfigurableMenuCommandService();
-            this.serviceProvider.RegisterService(typeof(IMenuCommandService), this.menuService);
-
-            var projectSystem = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
-            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystem);
-
-            var host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
-
-            var propManager = new ProjectPropertyManager(host);
-            var propManagerExport = MefTestHelpers.CreateExport<IProjectPropertyManager>(propManager);
-
-            var teController = new ConfigurableTeamExplorerController();
-            var teExport = MefTestHelpers.CreateExport<ITeamExplorerController>(teController);
-
-            var mefModel = ConfigurableComponentModel.CreateWithExports(teExport, propManagerExport);
-            this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
-        }
-
         #region Tests
 
         [TestMethod]
@@ -76,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void PackageCommandManager_Initialize()
         {
             // Arrange
-            var testSubject = new PackageCommandManager(this.menuService);
+            var testSubject = CreateTestSubject(out var menuService);
 
             var cmdSet = new Guid(CommonGuids.SonarLintMenuCommandSet);
             IList<CommandID> allCommands = Enum.GetValues(typeof(PackageCommandId))
@@ -85,8 +57,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                                                .ToList();
 
             // Act
-            testSubject.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
-                serviceProvider.GetMefService<IProjectPropertyManager>(),
+            testSubject.Initialize(Mock.Of<ITeamExplorerController>(),
+                Mock.Of<IProjectPropertyManager>(),
                 Mock.Of<IProjectToLanguageMapper>(),
                 Mock.Of<IOutputWindowService>(),
                 Mock.Of<IShowInBrowserService>(),
@@ -112,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             CommandID commandIdObject = new CommandID(cmdSetGuid, cmdId);
             var command = new ConfigurableVsCommand();
 
-            var testSubject = new PackageCommandManager(this.menuService);
+            var testSubject = CreateTestSubject(out var menuService);
 
             // Act
             testSubject.RegisterCommand(cmdSet, cmdId, command);
@@ -131,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             CommandID commandIdObject = new CommandID(cmdSetGuid, cmdId);
             var command = new ConfigurableVsCommand();
 
-            var testSubject = new PackageCommandManager(this.menuService);
+            var testSubject = CreateTestSubject(out var menuService);
 
             // Act
             testSubject.RegisterCommand(cmdId, command);
@@ -142,5 +114,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #endregion Tests
+
+        private static PackageCommandManager CreateTestSubject(out ConfigurableMenuCommandService menuService)
+        {
+            menuService = new ConfigurableMenuCommandService();
+            return new PackageCommandManager(menuService);
+        }
     }
 }

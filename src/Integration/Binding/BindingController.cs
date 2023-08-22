@@ -63,9 +63,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.BindCommand = new RelayCommand<BindCommandArgs>(this.OnBind, this.OnBindStatus);
             this.workflowExecutor = workflowExecutor ?? this;
             this.knownUIContexts = knownUIContexts;
-            this.projectSystemHelper = this.host.GetService<IProjectSystemHelper>();
-            this.projectSystemHelper.AssertLocalServiceIsNotNull();
 
+            projectSystemHelper = this.host.GetMefService<IProjectSystemHelper>();
             folderWorkspaceService = host.GetMefService<IFolderWorkspaceService>();
             bindingProcessFactory = host.GetMefService<IBindingProcessFactory>();
         }
