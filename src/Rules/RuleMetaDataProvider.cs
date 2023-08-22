@@ -23,6 +23,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Configuration;
 
 namespace SonarLint.VisualStudio.Rules
 {
@@ -42,18 +43,28 @@ namespace SonarLint.VisualStudio.Rules
         private readonly ILocalRuleMetadataProvider localRuleMetadataProvider;
         private readonly IServerRuleMetadataProvider serverRuleMetadataProvider;
         private readonly IConfigurationProvider configurationProvider;
+        private readonly IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration;
 
         [ImportingConstructor]
-        public RuleMetaDataProvider(ILocalRuleMetadataProvider localRuleMetadataProvider, IServerRuleMetadataProvider serverRuleMetadataProvider, IConfigurationProvider configurationProvider)
+        public RuleMetaDataProvider(ILocalRuleMetadataProvider localRuleMetadataProvider,
+            IServerRuleMetadataProvider serverRuleMetadataProvider,
+            IConfigurationProvider configurationProvider,
+            IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration)
         {
             this.localRuleMetadataProvider = localRuleMetadataProvider;
             this.serverRuleMetadataProvider = serverRuleMetadataProvider;
             this.configurationProvider = configurationProvider;
+            this.connectedModeFeaturesConfiguration = connectedModeFeaturesConfiguration;
         }
 
         public async Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, CancellationToken token)
         {
             var localMetaData = localRuleMetadataProvider.GetRuleInfo(ruleId);
+
+            if (!connectedModeFeaturesConfiguration.IsNewCctAvailable())
+            {
+                localMetaData = localMetaData.WithCleanCodeTaxonomyDisabled();
+            }
 
             var configuration = configurationProvider.GetConfiguration();
 
@@ -78,9 +89,10 @@ namespace SonarLint.VisualStudio.Rules
             {
                 return serverMetaData;
             }
-
+  
             if (serverMetaData != null)
             {
+                // todo: server overrides for CCT
                 return localMetaData.WithServerOverride(serverMetaData.Severity, serverMetaData.HtmlNote);
             }
 
