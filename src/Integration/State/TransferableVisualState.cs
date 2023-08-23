@@ -20,7 +20,8 @@
 
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 
@@ -29,14 +30,24 @@ namespace SonarLint.VisualStudio.Integration.State
     internal class TransferableVisualState : ViewModelBase
     {
         private readonly ObservableCollection<ServerViewModel> connectedServers = new ObservableCollection<ServerViewModel>();
+        private readonly IThreadHandling threadHandling;
         private ProjectViewModel boundProject;
         private bool isBusy;
+
+        public TransferableVisualState()
+            : this(ThreadHandling.Instance)
+        { }
+
+        internal /* for testing */ TransferableVisualState(IThreadHandling threadHandling)
+        {
+            this.threadHandling = threadHandling;
+        }
 
         public ObservableCollection<ServerViewModel> ConnectedServers
         {
             get
             {
-                Debug.Assert(ThreadHelper.CheckAccess(), $"{nameof(ConnectedServers)} should only be accessed from the UI thread");
+                Debug.Assert(threadHandling.CheckAccess(), $"{nameof(ConnectedServers)} should only be accessed from the UI thread");
                 return this.connectedServers;
             }
         }
@@ -45,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.State
         {
             get
             {
-                Debug.Assert(ThreadHelper.CheckAccess(), $"{nameof(HasBoundProject)} should only be accessed from the UI thread");
+                Debug.Assert(threadHandling.CheckAccess(), $"{nameof(HasBoundProject)} should only be accessed from the UI thread");
                 return this.boundProject != null;
             }
         }
@@ -54,19 +65,19 @@ namespace SonarLint.VisualStudio.Integration.State
         {
             get
             {
-                Debug.Assert(ThreadHelper.CheckAccess(), $"{nameof(IsBusy)} should only be accessed from the UI thread");
+                Debug.Assert(threadHandling.CheckAccess(), $"{nameof(IsBusy)} should only be accessed from the UI thread");
                 return this.isBusy;
             }
             set
             {
-                Debug.Assert(ThreadHelper.CheckAccess(), $"{nameof(IsBusy)} should only be set from the UI thread");
+                Debug.Assert(threadHandling.CheckAccess(), $"{nameof(IsBusy)} should only be set from the UI thread");
                 this.SetAndRaisePropertyChanged(ref this.isBusy, value);
             }
         }
 
         public void SetBoundProject(ProjectViewModel project)
         {
-            Debug.Assert(ThreadHelper.CheckAccess(), $"{nameof(SetBoundProject)} should only be accessed from the UI thread");
+            Debug.Assert(threadHandling.CheckAccess(), $"{nameof(SetBoundProject)} should only be accessed from the UI thread");
             this.ClearBoundProject();
 
             this.boundProject = project;
@@ -78,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.State
 
         public void ClearBoundProject()
         {
-            Debug.Assert(ThreadHelper.CheckAccess(), $"{nameof(ClearBoundProject)} should only be accessed from the UI thread");
+            Debug.Assert(threadHandling.CheckAccess(), $"{nameof(ClearBoundProject)} should only be accessed from the UI thread");
             if (this.boundProject != null)
             {
                 this.boundProject.IsBound = false;
