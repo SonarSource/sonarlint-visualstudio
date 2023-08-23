@@ -52,7 +52,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private ConfigurableHost host;
         private ConfigurableSonarLintSettings settings;
         private Mock<ICredentialStoreService> credentialStoreMock;
-        private Mock<ITestProjectRegexSetter> testProjectRegexSetter;
         private Mock<IFolderWorkspaceService> folderWorkspaceService;
         private TestLogger logger;
 
@@ -79,10 +78,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 MefTestHelpers.CreateExport<ICredentialStoreService>(credentialStoreMock.Object));
 
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
-
-
-            this.testProjectRegexSetter = new Mock<ITestProjectRegexSetter>();
-            this.serviceProvider.RegisterService(typeof(ITestProjectRegexSetter), testProjectRegexSetter.Object);
 
             logger = new TestLogger();
             host.Logger = logger;
