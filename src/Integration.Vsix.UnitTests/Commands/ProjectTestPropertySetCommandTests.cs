@@ -21,9 +21,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Windows.Threading;
 using FluentAssertions;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -38,25 +36,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         #region Test boilerplate
 
         private ConfigurableVsProjectSystemHelper projectSystem;
-        private IServiceProvider serviceProvider;
+
+        // TODO - cleanup. These unit tests are supposed to be testing
+        // ProjectExcludePropertyToggleCommand, so they don't need a real
+        // instance of ProjectPropertyManager. See #4770.
         private ProjectPropertyManager propertyManager;
         private Mock<IProjectToLanguageMapper> projectToLanguageMapper;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            var provider = new ConfigurableServiceProvider();
-            this.projectSystem = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
-            provider.RegisterService(typeof(IProjectSystemHelper), this.projectSystem);
-
-            var host = new ConfigurableHost(provider, Dispatcher.CurrentDispatcher);
-            propertyManager = new ProjectPropertyManager(host);
-            var mefExports = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
-            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
-            provider.RegisterService(typeof(SComponentModel), mefModel);
-
-            this.serviceProvider = provider;
-
+            projectSystem = new ConfigurableVsProjectSystemHelper(new ConfigurableServiceProvider());
+            propertyManager = new ProjectPropertyManager(projectSystem);
             projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
         }
 

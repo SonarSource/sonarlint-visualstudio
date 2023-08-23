@@ -69,10 +69,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             IComponentModel componentModel = ConfigurableComponentModel.CreateWithExports(
                 new []
                 {
+                    MefTestHelpers.CreateExport<IProjectSystemHelper>(projectSystemHelper),
                     MefTestHelpers.CreateExport<ISonarLintSettings>(settings)
                 });
             this.serviceProvider.RegisterService(typeof(SComponentModel), componentModel);
-            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper);
         }
 
         #region Tests

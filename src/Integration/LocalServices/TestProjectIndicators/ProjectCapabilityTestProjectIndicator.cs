@@ -35,8 +35,7 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
-            projectSystem.AssertLocalServiceIsNotNull();
+            projectSystem = serviceProvider.GetMefService<IProjectSystemHelper>();
         }
 
         public bool? IsTestProject(Project project)

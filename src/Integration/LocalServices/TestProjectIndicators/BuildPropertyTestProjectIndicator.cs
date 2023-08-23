@@ -37,9 +37,7 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
-            projectSystem.AssertLocalServiceIsNotNull();
-
+            projectSystem = serviceProvider.GetMefService<IProjectSystemHelper>();
             propertyManager = serviceProvider.GetMefService<IProjectPropertyManager>();
             Debug.Assert(propertyManager != null, $"Failed to get {nameof(IProjectPropertyManager)}");
         }
