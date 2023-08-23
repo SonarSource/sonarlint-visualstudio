@@ -140,7 +140,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // Otherwise, we are updating an existing binding
             var isFirstBinding = currentConfiguration.Mode == SonarLintMode.Standalone;
 
-            logger?.WriteLine(
+            logger.WriteLine(
                 isFirstBinding ?
                     Strings.Bind_FirstTimeBinding :
                     Strings.Bind_UpdatingNewStyleBinding);

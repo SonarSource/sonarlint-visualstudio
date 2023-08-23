@@ -71,8 +71,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             this.VisualStateManager.SyncCommandFromActiveSection();
         }
 
-        public object GetService(Type serviceType) => serviceProvider.GetService(serviceType);
-
         public void SetActiveSection(ISectionController section)
         {
             section.Should().NotBeNull();
