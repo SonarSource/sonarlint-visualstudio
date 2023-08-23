@@ -21,11 +21,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Threading;
 using EnvDTE;
 using FluentAssertions;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -33,47 +32,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class ProjectPropertyManagerTests
     {
-        #region Test boilerplate
-
         private const string TestPropertyName = "MyTestProperty";
 
-        private ConfigurableVsProjectSystemHelper projectSystem;
-        private IHost host;
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            var provider = new ConfigurableServiceProvider();
-            this.projectSystem = new ConfigurableVsProjectSystemHelper(provider);
-
-            provider.RegisterService(typeof(IProjectSystemHelper), projectSystem);
-            this.host = new ConfigurableHost(provider, Dispatcher.CurrentDispatcher);
-            var propertyManager = new ProjectPropertyManager(host);
-            var mefModel = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
-
-            provider.RegisterService(typeof(SComponentModel), mefModel);
-        }
-
-        #endregion Test boilerplate
-
-        #region Tests
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+            => MefTestHelpers.CheckTypeCanBeImported<ProjectPropertyManager, IProjectPropertyManager>(
+                MefTestHelpers.CreateExport<IProjectSystemHelper>());
 
         [TestMethod]
-        public void ProjectPropertyManager_Ctor_NullArgChecks()
-        {
-            // Test case 1: missing IHost (MEF failure) throws exception
-            // Act + Assert
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectPropertyManager((IHost)null));
-
-            // Test case 2: missing IHost's local services does not fail, only asserts
-            // Arrange
-            var emptyHost = new ConfigurableHost(new ConfigurableServiceProvider(false), Dispatcher.CurrentDispatcher);
-            using (new AssertIgnoreScope())
-            {
-                // Act + Assert
-                new ProjectPropertyManager(emptyHost);
-            }
-        }
+        public void MefCtor_CheckIsSingleton()
+            => MefTestHelpers.CheckIsSingletonMefComponent<ProjectPropertyManager>();
 
         [TestMethod]
         public void ProjectPropertyManager_GetSelectedProject_NoSelectedProjects_ReturnsEmpty()
@@ -99,9 +67,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             p2.SetVBProjectKind();
             // p3 is unknown kind
             var expectedProjects = new ProjectMock[] { p1, p2, p3 };
-            this.projectSystem.SelectedProjects = expectedProjects;
-
-            ProjectPropertyManager testSubject = this.CreateTestSubject();
+            var projectSystem = CreateProjectSystem(expectedProjects);
+                
+            ProjectPropertyManager testSubject = this.CreateTestSubject(projectSystem);
 
             // Act
             Project[] actualProjects = testSubject.GetSelectedProjects().ToArray();
@@ -115,8 +83,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var project = new ProjectMock("foo.proj");
+            var projectSystem = CreateProjectSystem();
 
-            ProjectPropertyManager testSubject = this.CreateTestSubject();
+            ProjectPropertyManager testSubject = this.CreateTestSubject(projectSystem);
 
             // Test case 1: no property -> null
             // Arrange
@@ -152,8 +121,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var project = new ProjectMock("foo.proj");
+            var projectSystem = CreateProjectSystem();
 
-            ProjectPropertyManager testSubject = this.CreateTestSubject();
+            ProjectPropertyManager testSubject = this.CreateTestSubject(projectSystem);
 
             // Test case 1: true -> property is set true
             // Arrange
@@ -201,15 +171,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Exceptions.Expect<ArgumentNullException>(() => testSubject.SetBooleanProperty(project, null, true));
         }
 
-        #endregion Tests
-
-        #region Test helpers
-
-        private ProjectPropertyManager CreateTestSubject()
+        private static ConfigurableVsProjectSystemHelper CreateProjectSystem(params ProjectMock[] selectedProjects)
         {
-            return new ProjectPropertyManager(this.host);
+            var projectSystem = new ConfigurableVsProjectSystemHelper(new ConfigurableServiceProvider());
+            projectSystem.SelectedProjects = selectedProjects;
+            return projectSystem;
         }
 
-        #endregion Test helpers
+        private ProjectPropertyManager CreateTestSubject(IProjectSystemHelper projectSystemHelper = null)
+            => new ProjectPropertyManager(projectSystemHelper ?? Mock.Of<IProjectSystemHelper>());
     }
 }

@@ -42,12 +42,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             projectSystemHelper = new Mock<IProjectSystemHelper>();
             projectPropertyManager = new Mock<IProjectPropertyManager>();
 
-            var mefExports = MefTestHelpers.CreateExport<IProjectPropertyManager>(projectPropertyManager.Object);
-            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
-
+            var mefModel = ConfigurableComponentModel.CreateWithExports(
+                MefTestHelpers.CreateExport<IProjectPropertyManager>(projectPropertyManager.Object),
+                MefTestHelpers.CreateExport<IProjectSystemHelper>(projectSystemHelper.Object));
+            
             var serviceProvider = new Mock<IServiceProvider>();
-
-            serviceProvider.Setup(x => x.GetService(typeof(IProjectSystemHelper))).Returns(projectSystemHelper.Object);
             serviceProvider.Setup(x => x.GetService(typeof(SComponentModel))).Returns(mefModel);
 
             projectSystemHelper
