@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             this.serviceProvider = new ConfigurableServiceProvider();
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
-            this.host = new ConfigurableHost(this.serviceProvider);
+            this.host = new ConfigurableHost();
             this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
             this.host.SonarQubeService = this.sonarQubeServiceMock.Object;
 
@@ -87,10 +87,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         #region Tests
 
         [TestMethod]
+        public void ConnectionWorkflow_ConnectionStep_WhenGivenANullServiceProvider_ThrowsArgumentNullException()
+        {
+            // Arrange & Act
+            Action act = () => new ConnectionWorkflow(null, Mock.Of<IHost>(), new RelayCommand(() => { }));
+
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
+        }
+
+        [TestMethod]
         public void ConnectionWorkflow_ConnectionStep_WhenGivenANullHost_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action act = () => new ConnectionWorkflow(null, new RelayCommand(() => { }));
+            Action act = () => new ConnectionWorkflow(Mock.Of<IServiceProvider>(), null, new RelayCommand(() => { }));
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
         }
@@ -99,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionWorkflow_ConnectionStep_WhenGivenANullParentCommand_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action act = () => new ConnectionWorkflow(this.host, null);
+            Action act = () => new ConnectionWorkflow(Mock.Of<IServiceProvider>(), this.host, null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("parentCommand");
         }
@@ -110,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Arrange
             var connectionInfo = new ConnectionInformation(new Uri("http://server"));
 #pragma warning disable IDE0017 // Simplify object initialization
-            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(() => { }));
+            ConnectionWorkflow testSubject = new ConnectionWorkflow(serviceProvider, host, new RelayCommand(() => { }));
 #pragma warning restore IDE0017 // Simplify object initialization
 
             // Act
@@ -141,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var controller = new ConfigurableProgressController();
             var executionEvents = new ConfigurableProgressStepExecutionEvents();
             string connectionMessage = connectionInfo.ServerUri.ToString();
-            var testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
+            var testSubject = new ConnectionWorkflow(serviceProvider, host, new RelayCommand(AssertIfCalled));
 
             // Act
             await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
@@ -175,7 +184,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var controller = new ConfigurableProgressController();
             var executionEvents = new ConfigurableProgressStepExecutionEvents();
             string connectionMessage = connectionInfo.ServerUri.ToString();
-            var testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
+            var testSubject = new ConnectionWorkflow(serviceProvider, host, new RelayCommand(AssertIfCalled));
 
             // Act
             await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
@@ -216,7 +225,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var controller = new ConfigurableProgressController();
             var executionEvents = new ConfigurableProgressStepExecutionEvents();
             string connectionMessage = connectionInfo.ServerUri.ToString();
-            var testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
+            var testSubject = new ConnectionWorkflow(serviceProvider, host, new RelayCommand(AssertIfCalled));
 
             // Act
             await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
@@ -258,7 +267,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var controller = new ConfigurableProgressController();
             var executionEvents = new ConfigurableProgressStepExecutionEvents();
             string connectionMessage = connectionInfo.ServerUri.ToString();
-            var testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
+            var testSubject = new ConnectionWorkflow(serviceProvider, host, new RelayCommand(AssertIfCalled));
 
             // Act
             await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
@@ -348,7 +357,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var controller = new ConfigurableProgressController();
             var executionEvents = new ConfigurableProgressStepExecutionEvents();
             string connectionMessage = connectionInfo.ServerUri.ToString();
-            var testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
+            var testSubject = new ConnectionWorkflow(serviceProvider, host, new RelayCommand(AssertIfCalled));
 
             // Act
             await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
@@ -400,7 +409,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var controller = new ConfigurableProgressController();
             var executionEvents = new ConfigurableProgressStepExecutionEvents();
             string connectionMessage = connectionInfo.ServerUri.ToString();
-            var testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
+            var testSubject = new ConnectionWorkflow(serviceProvider, host, new RelayCommand(AssertIfCalled));
 
             // Act
             await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
@@ -444,7 +453,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
         private ConnectionWorkflow SetTestSubjectWithConnectedServer()
         {
-            ConnectionWorkflow testSubject = new ConnectionWorkflow(this.host, new RelayCommand(AssertIfCalled));
+            ConnectionWorkflow testSubject = new ConnectionWorkflow(serviceProvider, host, new RelayCommand(AssertIfCalled));
             var connectionInfo = new ConnectionInformation(new Uri("http://server"));
             testSubject.ConnectedServer = connectionInfo;
             return testSubject;

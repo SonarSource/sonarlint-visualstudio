@@ -20,7 +20,6 @@
 
 using System;
 using FluentAssertions;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
@@ -47,12 +46,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         [TestInitialize]
         public void TestInitialize()
         {
-            this.serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
+            this.serviceProvider = new ConfigurableServiceProvider();
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
             this.stepRunner = new ConfigurableProgressStepRunner();
             this.configProvider = new ConfigurableConfigurationProvider();
-
-            var host = new ConfigurableHost(this.serviceProvider);
         }
 
         #region Tests
@@ -330,22 +327,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Assert
             this.stateManager.AssignedProjectKey.Should().BeNull();
-        }
-
-        [TestMethod]
-        public void VsSessionHost_IServiceProvider_GetService()
-        {
-            var testSubject = CreateTestSubject();
-
-            // VS-services
-            // Sanity
-            testSubject.GetService<VsSessionHostTests>().Should().BeNull("Not expecting any service at this point");
-
-            // Arrange
-            this.serviceProvider.RegisterService(typeof(VsSessionHostTests), this);
-
-            // Act + Assert
-            testSubject.GetService<VsSessionHostTests>().Should().Be(this, "Unexpected service was returned, expected to use the service provider");
         }
 
         #endregion Tests

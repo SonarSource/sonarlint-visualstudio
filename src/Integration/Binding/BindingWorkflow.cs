@@ -37,24 +37,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// </summary>
     internal class BindingWorkflow : IBindingWorkflow
     {
+        private readonly IServiceProvider serviceProvider;
         private readonly IHost host;
-
         private readonly IBindingProcess bindingProcess;
 
-        public BindingWorkflow(IHost host,
+        public BindingWorkflow(IServiceProvider serviceProvider,
+            IHost host,
             IBindingProcess bindingProcess)
         {
-            if (host == null)
-            {
-                throw new ArgumentNullException(nameof(host));
-            }
-            if (bindingProcess == null)
-            {
-                throw new ArgumentNullException(nameof(bindingProcess));
-            }
-
-            this.bindingProcess = bindingProcess;
-            this.host = host;
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.bindingProcess = bindingProcess ?? throw new ArgumentNullException(nameof(bindingProcess));
+            this.host = host ?? throw new ArgumentNullException(nameof(host));
         }
 
         #region Workflow startup
@@ -63,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             Debug.Assert(this.host.ActiveSection != null, "Expect the section to be attached at least until this method returns");
 
-            IProgressEvents progress = ProgressStepRunner.StartAsync(this.host,
+            IProgressEvents progress = ProgressStepRunner.StartAsync(serviceProvider,
                 this.host.ActiveSection.ProgressHost,
                 controller => this.CreateWorkflowSteps(controller));
 

@@ -38,6 +38,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// </summary>
     internal class BindingController : HostedCommandControllerBase, IBindingWorkflowExecutor
     {
+        private readonly System.IServiceProvider serviceProvider;
         private readonly IHost host;
         private readonly IBindingWorkflowExecutor workflowExecutor;
         private readonly IProjectSystemHelper projectSystemHelper;
@@ -45,28 +46,24 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IBindingProcessFactory bindingProcessFactory;
         private readonly IKnownUIContexts knownUIContexts;
 
-        public BindingController(IHost host)
-            : this(host, null, new KnownUIContextsWrapper())
+        public BindingController(System.IServiceProvider serviceProvider, IHost host)
+            : this(serviceProvider, host, null, new KnownUIContextsWrapper())
         {
         }
 
-        internal /*for testing purposes*/ BindingController(IHost host, IBindingWorkflowExecutor workflowExecutor, IKnownUIContexts knownUIContexts)
-            : base(host)
+        internal /*for testing purposes*/ BindingController(System.IServiceProvider serviceProvider, IHost host, IBindingWorkflowExecutor workflowExecutor, IKnownUIContexts knownUIContexts)
+            : base(serviceProvider)
         {
-            if (host == null)
-            {
-                throw new ArgumentNullException(nameof(host));
-            }
-
-            this.host = host;
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.host = host ?? throw new ArgumentNullException(nameof(host));
 
             this.BindCommand = new RelayCommand<BindCommandArgs>(this.OnBind, this.OnBindStatus);
             this.workflowExecutor = workflowExecutor ?? this;
             this.knownUIContexts = knownUIContexts;
 
-            projectSystemHelper = this.host.GetMefService<IProjectSystemHelper>();
-            folderWorkspaceService = host.GetMefService<IFolderWorkspaceService>();
-            bindingProcessFactory = host.GetMefService<IBindingProcessFactory>();
+            projectSystemHelper = serviceProvider.GetMefService<IProjectSystemHelper>();
+            folderWorkspaceService = serviceProvider.GetMefService<IFolderWorkspaceService>();
+            bindingProcessFactory = serviceProvider.GetMefService<IBindingProcessFactory>();
         }
 
         #region Commands
@@ -123,18 +120,18 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         void IBindingWorkflowExecutor.BindProject(BindCommandArgs bindingArgs)
         {
-            var bindingProcess = CreateBindingProcess(host, bindingArgs, bindingProcessFactory);
-            var workflow = new BindingWorkflow(host, bindingProcess);
+            var bindingProcess = CreateBindingProcess(serviceProvider, bindingArgs, bindingProcessFactory, host.Logger);
+            var workflow = new BindingWorkflow(serviceProvider, host, bindingProcess);
 
             IProgressEvents progressEvents = workflow.Run();
             Debug.Assert(progressEvents != null, "BindingWorkflow.Run returned null");
             this.SetBindingInProgress(progressEvents, bindingArgs);
         }
 
-        internal static /* for testing purposes */ IBindingProcess CreateBindingProcess(IHost host, BindCommandArgs bindingArgs, IBindingProcessFactory bindingProcessFactory)
+        internal static /* for testing purposes */ IBindingProcess CreateBindingProcess(System.IServiceProvider serviceProvider, BindCommandArgs bindingArgs, IBindingProcessFactory bindingProcessFactory, ILogger logger)
         {
             // Choose the type of binding
-            var configProvider = host.GetMefService<IConfigurationProvider>();
+            var configProvider = serviceProvider.GetMefService<IConfigurationProvider>();
             Debug.Assert(configProvider != null, "Failed to fetch IConfigurationProvider");
 
             var currentConfiguration = configProvider.GetConfiguration();
@@ -143,7 +140,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // Otherwise, we are updating an existing binding
             var isFirstBinding = currentConfiguration.Mode == SonarLintMode.Standalone;
 
-            host.Logger.WriteLine(
+            logger?.WriteLine(
                 isFirstBinding ?
                     Strings.Bind_FirstTimeBinding :
                     Strings.Bind_UpdatingNewStyleBinding);
@@ -182,7 +179,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 this.host.VisualStateManager.SetBoundProject(bindingArgs.Connection.ServerUri, bindingArgs.Connection.Organization?.Key, bindingArgs.ProjectKey);
 
-                VsShellUtils.ActivateSolutionExplorer(this.host);
+                VsShellUtils.ActivateSolutionExplorer(serviceProvider);
             }
             else
             {

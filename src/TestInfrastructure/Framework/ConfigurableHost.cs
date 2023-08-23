@@ -34,13 +34,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
         private readonly ConfigurableServiceProvider serviceProvider;
 
         public ConfigurableHost()
-            : this(new ConfigurableServiceProvider())
         {
-        }
-
-        public ConfigurableHost(ConfigurableServiceProvider sp)
-        {
-            this.serviceProvider = sp;
             this.VisualStateManager = new ConfigurableStateManager { Host = this };
             Logger = new TestLogger();
         }

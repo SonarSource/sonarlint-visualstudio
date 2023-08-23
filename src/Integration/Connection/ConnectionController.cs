@@ -42,25 +42,22 @@ namespace SonarLint.VisualStudio.Integration.Connection
         private readonly IConnectionInformationProvider connectionProvider;
         private readonly IProjectSystemHelper projectSystemHelper;
 
-        public ConnectionController(IHost host)
-            : this(host, null, null)
+        public ConnectionController(IServiceProvider serviceProvider, IHost host)
+            : this(serviceProvider, host, null, null)
         {
         }
 
-        internal /*for testing purposes*/ ConnectionController(IHost host, IConnectionInformationProvider connectionProvider,
+        internal /*for testing purposes*/ ConnectionController(IServiceProvider serviceProvider,
+            IHost host,
+            IConnectionInformationProvider connectionProvider,
             IConnectionWorkflowExecutor workflowExecutor)
-            : base(host)
+            : base(serviceProvider)
         {
-            if (host == null)
-            {
-                throw new ArgumentNullException(nameof(host));
-            }
-
-            this.host = host;
+            this.host = host ?? throw new ArgumentNullException(nameof(host));
             this.WorkflowExecutor = workflowExecutor ?? this;
             this.connectionProvider = connectionProvider ?? this;
 
-            this.projectSystemHelper = this.host.GetMefService<IProjectSystemHelper>();
+            this.projectSystemHelper = serviceProvider.GetMefService<IProjectSystemHelper>();
             this.ConnectCommand = new RelayCommand(this.OnConnect, this.CanConnect);
             this.RefreshCommand = new RelayCommand<ConnectionInformation>(this.OnRefresh, this.CanRefresh);
         }
@@ -168,7 +165,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         void IConnectionWorkflowExecutor.EstablishConnection(ConnectionInformation information)
         {
-            ConnectionWorkflow workflow = new ConnectionWorkflow(this.host, this.ConnectCommand);
+            ConnectionWorkflow workflow = new ConnectionWorkflow(this.ServiceProvider, this.host, this.ConnectCommand);
             IProgressEvents progressEvents = workflow.Run(information);
             SetConnectionInProgress(progressEvents);
         }
