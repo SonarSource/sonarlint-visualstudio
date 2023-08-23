@@ -22,13 +22,13 @@ using System;
 using System.Runtime.InteropServices;
 using FluentAssertions;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.TestInfrastructure;
 using Moq;
-
-using VsServiceProvider = Microsoft.VisualStudio.Shell.ServiceProvider;
+using SonarLint.VisualStudio.TestInfrastructure;
 using IOLEServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+using VsServiceProvider = Microsoft.VisualStudio.Shell.ServiceProvider;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 {
@@ -43,7 +43,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         {
             var serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: true);
             var configurableVsProjectSystemHelper = new ConfigurableVsProjectSystemHelper(serviceProvider);
-            serviceProvider.RegisterService(typeof(IProjectSystemHelper), configurableVsProjectSystemHelper, true);
+
+            var mefHost = ConfigurableComponentModel.CreateWithExports(
+                MefTestHelpers.CreateExport<IProjectSystemHelper>(configurableVsProjectSystemHelper));
+            serviceProvider.RegisterService(typeof(SComponentModel), mefHost);
 
             SetupCapabilityEvaluator(serviceProvider);
 

@@ -22,9 +22,11 @@ using System;
 using System.Collections.Generic;
 using EnvDTE;
 using FluentAssertions;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 {
@@ -44,8 +46,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             projectSystemHelper = new Mock<IProjectSystemHelper>();
             vsHierarchy = new Mock<IVsHierarchy>();
 
+            var mefHost = ConfigurableComponentModel.CreateWithExports(
+                MefTestHelpers.CreateExport<IProjectSystemHelper>(projectSystemHelper.Object));
+           
             var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(x => x.GetService(typeof(IProjectSystemHelper))).Returns(projectSystemHelper.Object);
+            serviceProvider.Setup(x => x.GetService(typeof(SComponentModel))).Returns(mefHost);
 
             project = Mock.Of<Project>();
             projectKinds = new List<Guid>();

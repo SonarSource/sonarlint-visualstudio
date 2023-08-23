@@ -72,8 +72,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             projectSystemHelper = new ConfigurableVsProjectSystemHelper(serviceProvider);
             configProvider = new ConfigurableConfigurationProvider();
 
-            serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper);
-
             logger = new TestLogger();
             serviceProvider.RegisterService(typeof(ILogger), logger);
 
@@ -81,6 +79,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var bindingProcessFactoryMock = new Mock<IBindingProcessFactory>();
 
             var mefHost = ConfigurableComponentModel.CreateWithExports(
+                MefTestHelpers.CreateExport<IProjectSystemHelper>(projectSystemHelper),
                 MefTestHelpers.CreateExport<IFolderWorkspaceService>(folderWorkspaceServiceMock.Object),
                 MefTestHelpers.CreateExport<IConfigurationProvider>(configProvider),
                 MefTestHelpers.CreateExport<IBindingProcessFactory>(bindingProcessFactoryMock.Object));

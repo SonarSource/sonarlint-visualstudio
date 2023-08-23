@@ -32,15 +32,9 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IProjectSystemHelper projectSystem;
 
         [ImportingConstructor]
-        public ProjectPropertyManager(IHost host)
+        public ProjectPropertyManager(IProjectSystemHelper projectSystemHelper)
         {
-            if (host == null)
-            {
-                throw new ArgumentNullException(nameof(host));
-            }
-
-            this.projectSystem = host.GetService<IProjectSystemHelper>();
-            this.projectSystem.AssertLocalServiceIsNotNull();
+            this.projectSystem = projectSystemHelper;
         }
 
         #region IProjectPropertyManager

@@ -40,13 +40,11 @@ namespace SonarLint.VisualStudio.Integration
     internal sealed class VsSessionHost : IHost, IProgressStepRunnerWrapper, IDisposable
     {
         internal /*for testing purposes*/ static readonly Type[] SupportedLocalServices = {
-                typeof(IProjectSystemHelper),
                 typeof(ITestProjectRegexSetter)
         };
 
         private readonly IServiceProvider serviceProvider;
         private readonly IActiveSolutionTracker solutionTracker;
-        private readonly IProjectToLanguageMapper projectToLanguageMapper;
         private readonly IConfigurationProvider configurationProvider;
 
         private readonly IProgressStepRunnerWrapper progressStepRunner;
@@ -58,16 +56,14 @@ namespace SonarLint.VisualStudio.Integration
         [ImportingConstructor]
         public VsSessionHost([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             ISonarQubeService sonarQubeService,
-            IActiveSolutionTracker solutionTacker,
-            IProjectToLanguageMapper projectToLanguageMapper,
+            IActiveSolutionTracker solutionTracker,
             IConfigurationProvider configurationProvider,
             ILogger logger)
             : this(serviceProvider,
                 null,
                 null,
                 sonarQubeService,
-                solutionTacker,
-                projectToLanguageMapper,
+                solutionTracker,
                 configurationProvider,
                 logger,
                 Dispatcher.CurrentDispatcher)
@@ -78,8 +74,7 @@ namespace SonarLint.VisualStudio.Integration
                                     IStateManager state,
                                     IProgressStepRunnerWrapper progressStepRunner,
                                     ISonarQubeService sonarQubeService,
-                                    IActiveSolutionTracker solutionTacker,
-                                    IProjectToLanguageMapper projectToLanguageMapper,
+                                    IActiveSolutionTracker solutionTracker,
                                     IConfigurationProvider configurationProvider,
                                     ILogger logger,
                                     Dispatcher uiDispatcher)
@@ -89,8 +84,7 @@ namespace SonarLint.VisualStudio.Integration
             this.progressStepRunner = progressStepRunner ?? this;
             this.UIDispatcher = uiDispatcher ?? throw new ArgumentNullException(nameof(uiDispatcher));
             this.SonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
-            this.solutionTracker = solutionTacker ?? throw new ArgumentNullException(nameof(solutionTacker));
-            this.projectToLanguageMapper = projectToLanguageMapper ?? throw new ArgumentNullException(nameof(projectToLanguageMapper));
+            this.solutionTracker = solutionTracker ?? throw new ArgumentNullException(nameof(solutionTracker));
             this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
             this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
             this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -282,8 +276,6 @@ namespace SonarLint.VisualStudio.Integration
         {
             var projectNameTestProjectIndicator = new Lazy<ILocalService>(() => new ProjectNameTestProjectIndicator(Logger));
             localServices.Add(typeof(ITestProjectRegexSetter), projectNameTestProjectIndicator);
-
-            localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this, projectToLanguageMapper)));
 
             Debug.Assert(SupportedLocalServices.Length == localServices.Count, "Unexpected number of local services");
             Debug.Assert(SupportedLocalServices.All(t => localServices.ContainsKey(t)), "Not all the LocalServices are registered");

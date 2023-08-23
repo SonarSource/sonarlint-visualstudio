@@ -60,9 +60,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             this.WorkflowExecutor = workflowExecutor ?? this;
             this.connectionProvider = connectionProvider ?? this;
 
-            this.projectSystemHelper = this.host.GetService<IProjectSystemHelper>();
-            this.projectSystemHelper.AssertLocalServiceIsNotNull();
-
+            this.projectSystemHelper = this.host.GetMefService<IProjectSystemHelper>();
             this.ConnectCommand = new RelayCommand(this.OnConnect, this.CanConnect);
             this.RefreshCommand = new RelayCommand<ConnectionInformation>(this.OnRefresh, this.CanRefresh);
         }
