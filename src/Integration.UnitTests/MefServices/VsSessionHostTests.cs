@@ -335,20 +335,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         [TestMethod]
         public void VsSessionHost_IServiceProvider_GetService()
         {
-            // Arrange
-            var shell = new ConfigurableVsShell();
-            shell.RegisterPropertyGetter((int)__VSSPROPID2.VSSPROPID_InstallRootDir, () => this.TestContext.TestRunDirectory);
-            this.serviceProvider.RegisterService(typeof(SVsShell), shell);
-            this.serviceProvider.RegisterService(typeof(SVsSolution), new Mock<IVsSolution>().Object);
-
-            var testSubject = CreateTestSubject(new ConfigurableActiveSolutionTracker());
-
-            // Local services
-            // Act + Assert
-            foreach (Type serviceType in VsSessionHost.SupportedLocalServices)
-            {
-                testSubject.GetService(serviceType).Should().NotBeNull();
-            }
+            var testSubject = CreateTestSubject();
 
             // VS-services
             // Sanity

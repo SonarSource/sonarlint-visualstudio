@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Integration
 {
-    internal interface ITestProjectRegexSetter : ILocalService
+    internal interface ITestProjectRegexSetter
     {
         /// <summary>
         /// Sets the regex to that identifies project's name as test project

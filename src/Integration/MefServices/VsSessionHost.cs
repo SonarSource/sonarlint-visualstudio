@@ -19,10 +19,8 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Linq;
 using System.Windows.Threading;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
@@ -39,16 +37,11 @@ namespace SonarLint.VisualStudio.Integration
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class VsSessionHost : IHost, IProgressStepRunnerWrapper, IDisposable
     {
-        internal /*for testing purposes*/ static readonly Type[] SupportedLocalServices = {
-                typeof(ITestProjectRegexSetter)
-        };
-
         private readonly IServiceProvider serviceProvider;
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly IConfigurationProvider configurationProvider;
 
         private readonly IProgressStepRunnerWrapper progressStepRunner;
-        private readonly Dictionary<Type, Lazy<ILocalService>> localServices = new Dictionary<Type, Lazy<ILocalService>>();
 
         private bool isDisposed;
         private bool resetBindingWhenAttaching = true;
@@ -85,8 +78,6 @@ namespace SonarLint.VisualStudio.Integration
             this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
             this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
             this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-            this.RegisterLocalServices();
         }
 
         #region IProgressStepRunnerWrapper
@@ -269,36 +260,8 @@ namespace SonarLint.VisualStudio.Integration
 
         #region IServiceProvider
 
-        private void RegisterLocalServices()
-        {
-            var projectNameTestProjectIndicator = new Lazy<ILocalService>(() => new ProjectNameTestProjectIndicator(Logger));
-            localServices.Add(typeof(ITestProjectRegexSetter), projectNameTestProjectIndicator);
+        public object GetService(Type serviceType) => serviceProvider.GetService(serviceType);
 
-            Debug.Assert(SupportedLocalServices.Length == localServices.Count, "Unexpected number of local services");
-            Debug.Assert(SupportedLocalServices.All(t => localServices.ContainsKey(t)), "Not all the LocalServices are registered");
-        }
-
-        public object GetService(Type serviceType)
-        {
-            // We don't expect COM types, otherwise the dictionary would have to use a custom comparer
-            Lazy<ILocalService> instanceFactory;
-            if (typeof(ILocalService).IsAssignableFrom(serviceType) &&
-                this.localServices.TryGetValue(serviceType, out instanceFactory))
-            {
-                return instanceFactory.Value;
-            }
-
-            return this.serviceProvider.GetService(serviceType);
-        }
-
-        internal void ReplaceInternalServiceForTesting<T>(T instance)
-            where T : ILocalService
-        {
-            if (this.localServices.ContainsKey(typeof(T)))
-            {
-                this.localServices[typeof(T)] = new Lazy<ILocalService>(() => instance);
-            }
-        }
         #endregion
 
         #region IDisposable Support
@@ -309,15 +272,6 @@ namespace SonarLint.VisualStudio.Integration
                 if (disposing)
                 {
                     this.solutionTracker.ActiveSolutionChanged -= this.OnActiveSolutionChanged;
-
-                    this.localServices.Values
-                        .Where(v => v.IsValueCreated)
-                        .Select(v => v.Value)
-                        .OfType<IDisposable>()
-                        .ToList()
-                        .ForEach(d => d.Dispose());
-
-                    this.localServices.Clear();
                 }
 
                 this.isDisposed = true;
