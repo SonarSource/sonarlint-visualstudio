@@ -25,7 +25,6 @@ using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Moq;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
 {

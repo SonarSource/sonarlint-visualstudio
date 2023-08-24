@@ -19,6 +19,7 @@
  */
 
 using System.Windows.Input;
+using Moq;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -112,7 +113,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             var section = new ConfigurableSectionController
             {
                 ViewModel = new ConfigurableConnectSectionViewModel(),
-                View = new ConfigurableConnectSectionView(),
+                View = Mock.Of<IConnectSectionView>(),
                 ProgressHost = new ConfigurableProgressControlHost(),
                 UserNotifications = new ConfigurableUserNotification(),
                 BindCommand = new RelayCommand<BindCommandArgs>(args => { }),
