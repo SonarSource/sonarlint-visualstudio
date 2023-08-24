@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Rules;
+
 namespace ExtractRuleDescFromJson;
 
 /// <summary>
@@ -45,9 +47,9 @@ public class PluginRule
 
     public string[]? EducationPrinciples { get; set; }
 
-    public string? CleanCodeAttribute { get; set; }
+    public CleanCodeAttribute? CleanCodeAttribute { get; set; }
 
-    public Dictionary<string, string>? DefaultImpacts { get; set; }
+    public Dictionary<SoftwareQuality, SoftwareQualitySeverity>? DefaultImpacts { get; set; }
 }
 
 public class DescriptionSection
