@@ -19,9 +19,7 @@
  */
 
 using System;
-using System.Windows.Threading;
 using FluentAssertions;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -49,13 +47,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         [TestInitialize]
         public void TestInitialize()
         {
-            ThreadHelper.SetCurrentThreadAsUIThread();
             this.serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
             this.stepRunner = new ConfigurableProgressStepRunner();
             this.configProvider = new ConfigurableConfigurationProvider();
 
-            var host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
+            var host = new ConfigurableHost(this.serviceProvider);
         }
 
         #region Tests
@@ -377,8 +374,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 this.sonarQubeServiceMock.Object,
                 tracker ?? new ConfigurableActiveSolutionTracker(),
                 this.configProvider,
-                Mock.Of<ILogger>(),
-                Dispatcher.CurrentDispatcher);
+                Mock.Of<ILogger>());
 
             this.stateManager.Host = host;
 

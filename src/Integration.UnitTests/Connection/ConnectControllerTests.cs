@@ -20,7 +20,6 @@
 
 using System;
 using System.Globalization;
-using System.Windows.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -30,8 +29,8 @@ using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarQube.Client.Models;
 using SonarQube.Client;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 {
@@ -60,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.connectionProvider = new ConfigurableConnectionInformationProvider();
             this.settings = new ConfigurableSonarLintSettings();
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
-            this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher)
+            this.host = new ConfigurableHost(this.serviceProvider)
             {
                 SonarQubeService = this.sonarQubeServiceMock.Object,
                 Logger = logger
