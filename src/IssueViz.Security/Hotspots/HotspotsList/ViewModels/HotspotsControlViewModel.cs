@@ -26,7 +26,6 @@ using System.Runtime.CompilerServices;
 using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
@@ -66,10 +65,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             IIssueSelectionService selectionService,
             IThreadHandling threadHandling)
         {
+            this.threadHandling = threadHandling;
             AllowMultiThreadedAccessToHotspotsList();
 
             this.selectionService = selectionService;
-            this.threadHandling = threadHandling;
             selectionService.SelectedIssueChanged += SelectionService_SelectionChanged;
 
             this.store = hotspotsStore;
@@ -111,7 +110,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         /// </summary>
         private void AllowMultiThreadedAccessToHotspotsList()
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            threadHandling.ThrowIfNotOnUIThread();
             BindingOperations.EnableCollectionSynchronization(Hotspots, Lock);
         }
 

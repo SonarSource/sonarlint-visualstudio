@@ -41,13 +41,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
     [TestClass]
     public class HotspotsControlViewModelTests
     {
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            // HotspotsControlViewModel needs to be created on the UI thread
-            ThreadHelper.SetCurrentThreadAsUIThread();
-        }
-
         [TestMethod]
         public void Ctor_RegisterToStoreCollectionChanges()
         {
