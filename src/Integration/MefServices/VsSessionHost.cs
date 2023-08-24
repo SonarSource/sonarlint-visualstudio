@@ -258,12 +258,6 @@ namespace SonarLint.VisualStudio.Integration
         }
         #endregion
 
-        #region IServiceProvider
-
-        public object GetService(Type serviceType) => serviceProvider.GetService(serviceType);
-
-        #endregion
-
         #region IDisposable Support
         private void Dispose(bool disposing)
         {
@@ -283,6 +277,5 @@ namespace SonarLint.VisualStudio.Integration
             Dispose(true);
         }
         #endregion
-
     }
 }
