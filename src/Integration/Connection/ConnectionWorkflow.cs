@@ -46,16 +46,18 @@ namespace SonarLint.VisualStudio.Integration.Connection
     /// </summary>
     internal class ConnectionWorkflow
     {
+        private readonly IServiceProvider serviceProvider;
         private readonly IHost host;
         private readonly ICommand parentCommand;
         private readonly ICredentialStoreService credentialStore;
 
-        public ConnectionWorkflow(IHost host, ICommand parentCommand)
+        public ConnectionWorkflow(IServiceProvider serviceProvider, IHost host, ICommand parentCommand)
         {
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.host = host ?? throw new ArgumentNullException(nameof(host));
             this.parentCommand = parentCommand ?? throw new ArgumentNullException(nameof(parentCommand));
 
-            credentialStore = this.host.GetMefService<ICredentialStoreService>();
+            credentialStore = serviceProvider.GetMefService<ICredentialStoreService>();
         }
 
         internal /*for testing purposes*/ ConnectionInformation ConnectedServer
@@ -70,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             Debug.Assert(this.host.ActiveSection != null, "Expect the section to be attached at least until this method returns");
 
             this.OnProjectsChanged(information, null);
-            IProgressEvents progress = ProgressStepRunner.StartAsync(this.host, this.host.ActiveSection.ProgressHost, (controller) => this.CreateConnectionSteps(controller, information));
+            IProgressEvents progress = ProgressStepRunner.StartAsync(serviceProvider, this.host.ActiveSection.ProgressHost, (controller) => this.CreateConnectionSteps(controller, information));
 
 #if DEBUG
             progress.RunOnFinished(r => this.host.Logger.WriteLine("DEBUGONLY: Connect workflow finished, Execution result: {0}", r));

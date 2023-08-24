@@ -19,24 +19,21 @@
  */
 
 using System;
-using System.ComponentModel.Composition.Primitives;
 using System.ComponentModel.Design;
-using System.Windows.Threading;
 using FluentAssertions;
 using Microsoft.TeamFoundation.Controls;
-using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarQube.Client.Models;
 using SonarQube.Client;
-
-using VS_OLECMD = Microsoft.VisualStudio.OLE.Interop.OLECMD;
+using SonarQube.Client.Models;
+using TF_IOleCommandTarget = Microsoft.TeamFoundation.Client.CommandTarget.IOleCommandTarget;
 using TF_OLECMD = Microsoft.TeamFoundation.Client.CommandTarget.OLECMD;
 using VS_IOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
-using TF_IOleCommandTarget = Microsoft.TeamFoundation.Client.CommandTarget.IOleCommandTarget;
+using VS_OLECMD = Microsoft.VisualStudio.OLE.Interop.OLECMD;
 using VS_OLEConstants = Microsoft.VisualStudio.OLE.Interop.Constants;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
@@ -54,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
 
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
-            this.host = new ConfigurableHost(this.serviceProvider)
+            this.host = new ConfigurableHost()
             {
                 SonarQubeService = this.sonarQubeServiceMock.Object
             };
@@ -64,10 +61,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         #region Tests
 
         [TestMethod]
-        public void SectionController_Ctor_ArgChecks()
+        public void MefCtor_CheckIsExported()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new SectionController(null, new WebBrowser()));
-            Exceptions.Expect<ArgumentNullException>(() => new SectionController(this.host, null));
+            // Note: we're supplying a ConfigurableHost instance because an empty Mock host won't work here
+            // - we'd get an exception when the SectionController is disposed
+            MefTestHelpers.CheckTypeCanBeImported<SectionController, ITeamExplorerSection>(
+                MefTestHelpers.CreateExport<SVsServiceProvider>(),
+                MefTestHelpers.CreateExport<IHost>(new ConfigurableHost()),
+                MefTestHelpers.CreateExport<IWebBrowser>());
         }
 
         [TestMethod]
@@ -472,7 +473,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
         private SectionController CreateTestSubject(IWebBrowser webBrowser = null)
         {
-            var controller = new SectionController(host, webBrowser ?? new ConfigurableWebBrowser());
+            var controller = new SectionController(serviceProvider, host, webBrowser ?? new ConfigurableWebBrowser());
             controller.Initialize(null, new SectionInitializeEventArgs(new ServiceContainer(), null));
             return controller;
         }

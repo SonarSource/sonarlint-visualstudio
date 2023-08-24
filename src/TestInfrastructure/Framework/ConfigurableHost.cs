@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Linq;
 using FluentAssertions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
@@ -31,16 +30,8 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 {
     internal class ConfigurableHost : IHost
     {
-        private readonly ConfigurableServiceProvider serviceProvider;
-
         public ConfigurableHost()
-            : this(new ConfigurableServiceProvider())
         {
-        }
-
-        public ConfigurableHost(ConfigurableServiceProvider sp)
-        {
-            this.serviceProvider = sp;
             this.VisualStateManager = new ConfigurableStateManager { Host = this };
             Logger = new TestLogger();
         }
@@ -76,8 +67,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             // Simulate product code
             this.VisualStateManager.SyncCommandFromActiveSection();
         }
-
-        public object GetService(Type serviceType) => serviceProvider.GetService(serviceType);
 
         public void SetActiveSection(ISectionController section)
         {
