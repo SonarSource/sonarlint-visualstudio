@@ -43,10 +43,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestInitialize]
         public void TestInitialize()
         {
-            this.host = new ConfigurableHost(new ConfigurableServiceProvider());
+            this.host = new ConfigurableHost();
             this.mockBindingProcess = new Mock<IBindingProcess>();
 
-            this.testSubject = new BindingWorkflow(host, mockBindingProcess.Object);
+            this.testSubject = new BindingWorkflow(new ConfigurableServiceProvider(), host, mockBindingProcess.Object);
         }
 
         #region Tests
@@ -54,12 +54,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Ctor_ArgChecks()
         {
-            // 1. Null host
-            Action act = () => new BindingWorkflow(null, mockBindingProcess.Object);
+            var serviceProvider = Mock.Of<IServiceProvider>();
+            var host = Mock.Of<IHost>();
+            var bindingProcess = Mock.Of<IBindingProcess>();
+
+            // 1. Null serviceProvider
+            Action act = () => new BindingWorkflow(null, host, bindingProcess);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
+
+            // 2. Null host
+            act = () => new BindingWorkflow(serviceProvider, null, bindingProcess);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
 
-            // 2. Null binding process
-            act = () => new BindingWorkflow(host, null);
+            // 3. Null binding process
+            act = () => new BindingWorkflow(serviceProvider, host, null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingProcess");
         }
 

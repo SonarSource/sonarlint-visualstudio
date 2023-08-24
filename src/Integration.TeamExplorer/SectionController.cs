@@ -26,6 +26,7 @@ using System.Linq;
 using System.Windows.Input;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
+using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -49,21 +50,16 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         internal const int CommandNotHandled = (int)Microsoft.VisualStudio.OLE.Interop.Constants.OLECMDERR_E_UNKNOWNGROUP;
 
+        private readonly IServiceProvider serviceProvider;
         private readonly IWebBrowser webBrowser;
 
         [ImportingConstructor]
-        public SectionController(IHost host, IWebBrowser webBrowser)
+        public SectionController(
+            [Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider,
+            IHost host,
+            IWebBrowser webBrowser)
         {
-            if (host == null)
-            {
-                throw new ArgumentNullException(nameof(host));
-            }
-
-            if (webBrowser == null)
-            {
-                throw new ArgumentNullException(nameof(webBrowser));
-            }
-
+            this.serviceProvider = serviceProvider;
             this.Host = host;
             this.webBrowser = webBrowser;
         }
@@ -248,8 +244,8 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         {
             // Due to complexity of connect and bind we "outsource" the controlling part
             // to separate controllers which just expose commands
-            var connectionController = new Connection.ConnectionController(this.Host);
-            var bindingController = new Binding.BindingController(this.Host);
+            var connectionController = new Connection.ConnectionController(serviceProvider, Host);
+            var bindingController = new Binding.BindingController(serviceProvider, Host);
 
             this.CommandTargets.Add(connectionController);
             this.CommandTargets.Add(bindingController);

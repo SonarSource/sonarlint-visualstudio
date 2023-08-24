@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             serviceProvider.RegisterService(typeof(SComponentModel), mefHost);
 
-            host = new ConfigurableHost(serviceProvider)
+            host = new ConfigurableHost()
             {
                 SonarQubeService = sonarQubeService.Object,
                 Logger = logger
@@ -107,13 +107,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void Ctor_WithNullHost_ThrowsArgumentNullException()
+        public void Ctor_NullArgs_ThrowsArgumentNullException()
         {
-            // Arrange & Act
-            Action act = () => new BindingController(null);
-
-            // Assert
+            Action act = () => new BindingController(null, Mock.Of<IHost>());
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
+
+            act = () => new BindingController(Mock.Of<System.IServiceProvider>(), null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
         }
 
         [TestMethod]
@@ -392,7 +392,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             bindingProcessFactory.Setup(x => x.Create(ValidBindingArgs, true)).Returns(bindingProcess);
 
             // Act
-            var actual = BindingController.CreateBindingProcess(host, ValidBindingArgs, bindingProcessFactory.Object);
+            var actual = BindingController.CreateBindingProcess(serviceProvider, ValidBindingArgs, bindingProcessFactory.Object, logger);
 
             // Assert
             actual.Should().BeSameAs(bindingProcess);
@@ -411,7 +411,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             bindingProcessFactory.Setup(x => x.Create(ValidBindingArgs, false)).Returns(bindingProcess);
 
             // Act
-            var actual = BindingController.CreateBindingProcess(host, ValidBindingArgs, bindingProcessFactory.Object);
+            var actual = BindingController.CreateBindingProcess(serviceProvider, ValidBindingArgs, bindingProcessFactory.Object, logger);
 
             // Assert
             actual.Should().BeSameAs(bindingProcess);
@@ -539,7 +539,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private BindingController CreateBindingController()
         {
-            return new BindingController(host, workflow, knownUIContexts.Object);
+            return new BindingController(serviceProvider, host, workflow, knownUIContexts.Object);
         }
 
         private void SetKnownUIContexts(bool slnExistsAndFullyLoaded_IsActive, bool slnExistsAndNotBuildingAndNotDebugging_IsActive)
