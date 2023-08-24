@@ -166,7 +166,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         {
             this.threadHandling = threadHandling;
             unfilteredIssues = new ObservableCollection<ITaintIssueViewModel>();
+#pragma warning disable VSTHRD010 // the called method is deliberately checking it is on the main thread
             AllowMultiThreadedAccessToIssuesCollection();
+#pragma warning restore VSTHRD010
 
             this.menuCommandService = menuCommandService;
             this.sonarQubeService = sonarQubeService;
