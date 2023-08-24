@@ -152,6 +152,9 @@
                 <Setter Property="FontWeight" Value="SemiBold"/>
                 <Setter Property="Margin" Value="0,10,0,5" />
             </Style>
+            <Style x:Key="Subtitle_Paragraph" BasedOn="{StaticResource Title_Paragraph}" TargetType="Paragraph">
+                <Setter Property="Margin" Value="0, 5, 0, 5"/>
+            </Style>
             <Style x:Key="SubtitleElement_Span" TargetType="Span">
                 <Setter Property="FontSize" Value="{DynamicResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}"/>
                 <Setter Property="FontWeight" Value="Bold"/>
@@ -245,6 +248,35 @@
             </Style>
             <Style x:Key="Sub_Compliant_Diff" TargetType="Span">
                 <Setter Property="Background" Value="#4000FE2D" />
+            </Style>
+
+            <Style x:Key="CleanCodeTaxonomyBubble" TargetType="Border">
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="CornerRadius" Value="5"/>
+                <Setter Property="Padding" Value="3, 1, 3, 1"/>
+                <Setter Property="Margin" Value="-3, 0, 8, 5"/>
+            </Style>
+            <Style x:Key="CleanCodeAttributeBubble" BasedOn="{StaticResource CleanCodeTaxonomyBubble}" TargetType="Border">
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.InactiveCaptionKey}}"/>
+            </Style>
+            <!--Background values are the same color as icons, but with more transparency-->
+            <Style x:Key="HighSoftwareQualitySeverityBubble" BasedOn="{StaticResource CleanCodeTaxonomyBubble}" TargetType="Border">
+                <Setter Property="Background" Value="#55B42318"/>
+            </Style>
+            <Style x:Key="MediumSoftwareQualitySeverityBubble" BasedOn="{StaticResource CleanCodeTaxonomyBubble}" TargetType="Border">
+                <Setter Property="Background" Value="#55AE7A29"/>
+            </Style>
+            <Style x:Key="LowSoftwareQualitySeverityBubble" BasedOn="{StaticResource CleanCodeTaxonomyBubble}" TargetType="Border">
+                <Setter Property="Background" Value="#55316C92"/>
+            </Style>
+            <Style x:Key="CleanCodeSpan" BasedOn="{StaticResource SubtitleElement_Span}" TargetType="Span">
+                <Setter Property="FontWeight" Value="Regular"/>
+            </Style>
+            <Style x:Key="CleanCodeSeverityImage" BasedOn="{StaticResource SubtitleElement_Image}" TargetType="Image">
+                <Setter Property="Margin" Value="0,0,0,0" />
+            </Style>
+            <Style x:Key="CleanCodeCategory" TargetType="Run">
+                <Setter Property="FontWeight" Value="Bold"/>
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>

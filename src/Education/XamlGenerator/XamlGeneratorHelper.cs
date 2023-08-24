@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Xml;
 using SonarLint.VisualStudio.Rules;
@@ -54,6 +56,15 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
         private sealed class XamlGeneratorHelper : IXamlGeneratorHelper
         {
+            private static readonly Dictionary<SoftwareQualitySeverity, StyleResourceNames>
+                SoftwareQualityBubblesStyles =
+                    new Dictionary<SoftwareQualitySeverity, StyleResourceNames>
+                    {
+                        { SoftwareQualitySeverity.High, StyleResourceNames.HighSoftwareQualitySeverityBubble },
+                        { SoftwareQualitySeverity.Medium, StyleResourceNames.MediumSoftwareQualitySeverityBubble },
+                        { SoftwareQualitySeverity.Low, StyleResourceNames.LowSoftwareQualitySeverityBubble },
+                    };
+
             private const string XamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
             private readonly XmlWriter writer;
             private readonly IRuleHelpXamlTranslator ruleHelpXamlTranslator;
@@ -100,16 +111,96 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
             private void WriteSubTitle(IRuleInfo ruleInfo)
             {
-                writer.WriteStartElement("Paragraph");
-                writer.ApplyStyleToElement(StyleResourceNames.Title_Paragraph);
+                var isNewCct = ruleInfo.CleanCodeAttribute.HasValue;
 
-                WriteSubTitleElement_IssueType(ruleInfo);
-                WriteSubTitleElement_Severity(ruleInfo);
+                if (isNewCct)
+                {
+                    WriteCleanCodeHeader(ruleInfo);
+                }
+
+                writer.WriteStartElement("Paragraph");
+                writer.ApplyStyleToElement(StyleResourceNames.Subtitle_Paragraph);
+
+                if (!isNewCct)
+                {
+                    WriteSubTitleElement_IssueType(ruleInfo);
+                    WriteSubTitleElement_Severity(ruleInfo);
+                }
+
                 WriteSubTitleElement_RuleKey(ruleInfo);
                 WriteSubTitleElement_Tags(ruleInfo);
 
                 writer.WriteEndElement();
             }
+
+            #region Subtitle
+
+            #region New Clean Code Taxonomy
+
+            private void WriteCleanCodeHeader(IRuleInfo ruleInfo)
+            {
+                writer.WriteStartElement("BlockUIContainer");
+                writer.WriteStartElement("WrapPanel");
+                WriteCleanCodeHeader_CleanCodeAttribute(ruleInfo);
+                WriteCleanCodeHeader_SoftwareQualities(ruleInfo);
+                writer.WriteEndElement();
+                writer.WriteEndElement();
+            }
+
+            private void WriteCleanCodeHeader_CleanCodeAttribute(IRuleInfo ruleInfo)
+            {
+                var cleanCodeCategory = CleanCodeAttributeToCategoryMapping.Map[ruleInfo.CleanCodeAttribute.Value];
+                var cleanCodeAttribute = ruleInfo.CleanCodeAttribute;
+
+                WriteBubble(StyleResourceNames.CleanCodeAttributeBubble,
+                    () =>
+                    {
+                        WriteStylizedSpan(StyleResourceNames.CleanCodeSpan,
+                            () =>
+                            {
+                                WriteCleanCodeCategoryBold(cleanCodeCategory);
+                                writer.WriteString($" | Not {cleanCodeAttribute}");
+                            });
+                    });
+
+            }
+
+            private void WriteCleanCodeCategoryBold(CleanCodeCategory cleanCodeCategory)
+            {
+                writer.WriteStartElement("Run");
+                writer.ApplyStyleToElement(StyleResourceNames.CleanCodeCategory);
+                writer.WriteString(cleanCodeCategory.ToString());
+                writer.WriteEndElement();
+            }
+
+            private void WriteCleanCodeHeader_SoftwareQualities(IRuleInfo ruleInfo)
+            {
+                foreach (var softwareQualityAndSeverity in ruleInfo.DefaultImpacts)
+                {
+                    var imageInfo = SubTitleImageInfo.SoftwareQualitySeveritiesImages[softwareQualityAndSeverity.Value];
+
+                    WriteBubble(SoftwareQualityBubblesStyles[softwareQualityAndSeverity.Value],
+                        () =>
+                        {
+                            WriteSubTitleElement(softwareQualityAndSeverity.Key.ToString(), true);
+                            WriteSubTitleElementWithImage(imageInfo, true);
+                        });
+                }
+            }
+
+            private void WriteBubble(StyleResourceNames borderStyle, Action writeContent)
+            {
+                writer.WriteStartElement("Border");
+                writer.ApplyStyleToElement(borderStyle);
+                writer.WriteStartElement("TextBlock");
+                writeContent();
+                writer.WriteEndElement();
+                writer.WriteEndElement();
+            }
+
+            #endregion
+
+            #region Old severity
 
             private void WriteSubTitleElement_IssueType(IRuleInfo ruleInfo)
             {
@@ -123,24 +214,29 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 WriteSubTitleElementWithImage(imageInfo);
             }
 
-            private void WriteSubTitleElementWithImage(SubTitleImageInfo imageInfo)
-            {
-                writer.WriteStartElement("Span");
-                writer.ApplyStyleToElement(StyleResourceNames.SubtitleElement_Span);
+            #endregion
 
-                if (imageInfo.ImageResourceName != null)
-                {
-                    writer.WriteStartElement("InlineUIContainer");
-                    writer.WriteStartElement("Image");
-                    writer.ApplyStyleToElement(StyleResourceNames.SubtitleElement_Image);
-                    writer.WriteAttributeString("Source", $"{{DynamicResource {imageInfo.ImageResourceName}}}");
-                    writer.WriteEndElement(); // Image
-                    writer.WriteEndElement(); // InlineUIContainer
-                }
+            #region Common
 
-                writer.WriteString(imageInfo.DisplayText);
-                writer.WriteEndElement(); // Span
-            }
+            private void WriteSubTitleElementWithImage(SubTitleImageInfo imageInfo, bool useCctStyle = false) =>
+                WriteStylizedSpan(
+                    useCctStyle ? StyleResourceNames.CleanCodeSpan : StyleResourceNames.SubtitleElement_Span,
+                    () =>
+                    {
+                        if (imageInfo.ImageResourceName != null)
+                        {
+                            writer.WriteStartElement("InlineUIContainer");
+                            writer.WriteStartElement("Image");
+                            writer.ApplyStyleToElement(useCctStyle
+                                ? StyleResourceNames.CleanCodeSeverityImage
+                                : StyleResourceNames.SubtitleElement_Image);
+                            writer.WriteAttributeString("Source", $"{{DynamicResource {imageInfo.ImageResourceName}}}");
+                            writer.WriteEndElement(); // Image
+                            writer.WriteEndElement(); // InlineUIContainer
+                        }
+
+                        writer.WriteString(imageInfo.DisplayText);
+                    });
 
             private void WriteSubTitleElement_Tags(IRuleInfo ruleInfo)
             {
@@ -158,13 +254,26 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 WriteSubTitleElement(ruleInfo.FullRuleKey);
             }
 
-            private void WriteSubTitleElement(string text)
+            private void WriteSubTitleElement(string text, bool useCctStyle = false)
+            {
+                WriteStylizedSpan(useCctStyle
+                        ? StyleResourceNames.CleanCodeSpan
+                        : StyleResourceNames.SubtitleElement_Span,
+                    () => writer.WriteString(text));
+            }
+
+
+            private void WriteStylizedSpan(StyleResourceNames style, Action writeContent)
             {
                 writer.WriteStartElement("Span");
-                writer.ApplyStyleToElement(StyleResourceNames.SubtitleElement_Span);
-                writer.WriteString(text);
+                writer.ApplyStyleToElement(style);
+                writeContent();
                 writer.WriteEndElement();
             }
+
+            #endregion
+
+            #endregion
         }
     }
 }

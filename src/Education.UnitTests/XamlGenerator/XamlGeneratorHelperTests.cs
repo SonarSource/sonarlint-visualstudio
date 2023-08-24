@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
             sb.ToString().Should().BeEquivalentTo(
 @"<FlowDocument xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
   <Paragraph Style=""{DynamicResource Title_Paragraph}"">Hi</Paragraph>
-  <Paragraph Style=""{DynamicResource Title_Paragraph}"">
+  <Paragraph Style=""{DynamicResource Subtitle_Paragraph}"">
     <Span Style=""{DynamicResource SubtitleElement_Span}"">
       <InlineUIContainer>
         <Image Style=""{DynamicResource SubtitleElement_Image}"" Source=""{DynamicResource vulnerabilityDrawingImage}"" />
@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
             sb.ToString().Should().BeEquivalentTo(
 @"<FlowDocument xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
   <Paragraph Style=""{DynamicResource Title_Paragraph}"">Hi</Paragraph>
-  <Paragraph Style=""{DynamicResource Title_Paragraph}"">
+  <Paragraph Style=""{DynamicResource Subtitle_Paragraph}"">
     <Span Style=""{DynamicResource SubtitleElement_Span}"">
       <InlineUIContainer>
         <Image Style=""{DynamicResource SubtitleElement_Image}"" Source=""{DynamicResource vulnerabilityDrawingImage}"" />
@@ -103,6 +103,72 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
       <InlineUIContainer>
         <Image Style=""{DynamicResource SubtitleElement_Image}"" Source=""{DynamicResource criticalDrawingImage}"" />
       </InlineUIContainer>Critical</Span>
+    <Span Style=""{DynamicResource SubtitleElement_Span}"">cs:123</Span>
+  </Paragraph>
+  <Section />
+</FlowDocument>".Replace("\r\n", "\n").Replace("\n", "\r\n"));
+        }
+        
+        [TestMethod]
+        public void WriteDocumentHeaderAndEndDocument_ProduceCorrectStructure_NewCCT()
+        {
+            var sb = new StringBuilder();
+            var xmlWriter = new XamlWriterFactory().Create(sb);
+            var ruleInfo = new RuleInfo("cs", "cs:123", "<p>Hi</p>", "Hi", RuleIssueSeverity.Critical,
+                RuleIssueType.Vulnerability, true, new List<string>(), new List<IDescriptionSection>(),
+                new List<string>(), null, CleanCodeAttribute.Formatted, new Dictionary<SoftwareQuality, SoftwareQualitySeverity>
+                {
+                    { SoftwareQuality.Maintainability, SoftwareQualitySeverity.High},
+                    { SoftwareQuality.Security, SoftwareQualitySeverity.Low},
+                    { SoftwareQuality.Reliability, SoftwareQualitySeverity.Medium},
+                });
+            IXamlGeneratorHelper testSubject = CreateTestSubject(xmlWriter);
+
+            testSubject.WriteDocumentHeader(ruleInfo);
+            xmlWriter.WriteStartElement("Section");
+            xmlWriter.WriteEndElement();
+            testSubject.EndDocument();
+
+            sb.ToString().Should().BeEquivalentTo(@"<FlowDocument xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
+  <Paragraph Style=""{DynamicResource Title_Paragraph}"">Hi</Paragraph>
+  <BlockUIContainer>
+    <WrapPanel>
+      <Border Style=""{DynamicResource CleanCodeAttributeBubble}"">
+        <TextBlock>
+          <Span Style=""{DynamicResource CleanCodeSpan}"">
+            <Run Style=""{DynamicResource CleanCodeCategory}"">Consistency</Run> | Not Formatted</Span>
+        </TextBlock>
+      </Border>
+      <Border Style=""{DynamicResource HighSoftwareQualitySeverityBubble}"">
+        <TextBlock>
+          <Span Style=""{DynamicResource CleanCodeSpan}"">Maintainability</Span>
+          <Span Style=""{DynamicResource CleanCodeSpan}"">
+            <InlineUIContainer>
+              <Image Style=""{DynamicResource CleanCodeSeverityImage}"" Source=""{DynamicResource HighSoftwareQualitySeverity}"" />
+            </InlineUIContainer></Span>
+        </TextBlock>
+      </Border>
+      <Border Style=""{DynamicResource LowSoftwareQualitySeverityBubble}"">
+        <TextBlock>
+          <Span Style=""{DynamicResource CleanCodeSpan}"">Security</Span>
+          <Span Style=""{DynamicResource CleanCodeSpan}"">
+            <InlineUIContainer>
+              <Image Style=""{DynamicResource CleanCodeSeverityImage}"" Source=""{DynamicResource LowSoftwareQualitySeverity}"" />
+            </InlineUIContainer></Span>
+        </TextBlock>
+      </Border>
+      <Border Style=""{DynamicResource MediumSoftwareQualitySeverityBubble}"">
+        <TextBlock>
+          <Span Style=""{DynamicResource CleanCodeSpan}"">Reliability</Span>
+          <Span Style=""{DynamicResource CleanCodeSpan}"">
+            <InlineUIContainer>
+              <Image Style=""{DynamicResource CleanCodeSeverityImage}"" Source=""{DynamicResource MediumSoftwareQualitySeverity}"" />
+            </InlineUIContainer></Span>
+        </TextBlock>
+      </Border>
+    </WrapPanel>
+  </BlockUIContainer>
+  <Paragraph Style=""{DynamicResource Subtitle_Paragraph}"">
     <Span Style=""{DynamicResource SubtitleElement_Span}"">cs:123</Span>
   </Paragraph>
   <Section />
