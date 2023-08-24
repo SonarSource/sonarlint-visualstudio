@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -20,153 +20,17 @@
 
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using System.Windows.Threading;
 
 namespace SonarLint.VisualStudio.Progress.MVVM
 {
     public class ViewModelBase : INotifyPropertyChanged
     {
-        private readonly Dispatcher dispatcher;
-
-#if DEBUG
-        private readonly string stackPrint;
-#endif
-        protected ViewModelBase()
-        {
-            this.dispatcher = Dispatcher.CurrentDispatcher;
-
-#if DEBUG
-            this.stackPrint = new StackTrace().ToString();
-#endif
-        }
-
         /// <summary>
         ///  Occurs when a property value changes.
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
-
-        /// <summary>
-        /// Dispatcher associated with this object.
-        /// </summary>
-        public Dispatcher Dispatcher
-        {
-            get { return this.dispatcher; }
-        }
-
-        /// <summary>
-        /// Determines whether the calling thread has access to this object.
-        /// </summary>
-        /// <returns>true if the calling thread has access to this object; otherwise, false.</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool CheckAccess()
-        {
-            return Dispatcher.CheckAccess();
-        }
-
-        /// <summary>
-        /// Executes the specified action on a thread associated with object's dispatcher.
-        /// </summary>
-        /// <param name="action">An action to execute.</param>
-        public void CheckAccessInvoke(Action action)
-        {
-            ArgumentValidation.NotNull(action, "action");
-
-            if (this.CheckAccess())
-            {
-                action();
-            }
-            else
-            {
-                Dispatcher.Invoke(action, DispatcherPriority.Normal);
-            }
-        }
-
-        /// <summary>
-        /// Executes the specified action on a thread associated with object's dispatcher.
-        /// This invokes a InvokeAsync on the Dispatcher, does not wait for the action
-        /// to complete -- returns immediately.
-        /// </summary>
-        /// <param name="action">An action to execute.</param>
-        /// <returns>A task that completes when action has completed.</returns>
-        public async Task CheckAccessInvokeAsync(Action action)
-        {
-            ArgumentValidation.NotNull(action, "action");
-
-            if (this.CheckAccess())
-            {
-                action();
-            }
-            else
-            {
-                await Dispatcher.InvokeAsync(action, DispatcherPriority.Normal);
-            }
-        }
-
-        /// <summary>
-        /// Executes the specified action on a thread associated with object's dispatcher.
-        /// </summary>
-        /// <param name="func">An action to execute.</param>
-        /// <returns>The result of the action.</returns>
-        public TResult CheckAccessInvoke<TResult>(Func<TResult> func)
-        {
-            ArgumentValidation.NotNull(func, "action");
-
-            if (this.CheckAccess())
-            {
-                return func();
-            }
-            else
-            {
-                return Dispatcher.Invoke(func, DispatcherPriority.Normal);
-            }
-        }
-
-        /// <summary>
-        /// Executes the specified function on a thread associated with object's dispatcher.
-        /// This invokes a InvokeAsync on the Dispatcher, does not wait for the action
-        /// to complete -- returns immediately.
-        /// </summary>
-        /// <param name="func">The function to execute.</param>
-        /// <returns>A task with the result of func when completed.</returns>
-        public async Task<TResult> CheckAccessInvokeAsync<TResult>(Func<TResult> func)
-        {
-            ArgumentValidation.NotNull(func, "action");
-
-            if (this.CheckAccess())
-            {
-                return func();
-            }
-            else
-            {
-                return await Dispatcher.InvokeAsync(func, DispatcherPriority.Normal);
-            }
-        }
-
-        /// <summary>
-        /// Enforces that the calling thread has access to this object.
-        /// </summary>
-        /// <exception cref="System.InvalidOperationException">The calling thread does not have access to this object.</exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected void VerifyAccess()
-        {
-#if DEBUG
-            try
-            {
-                Dispatcher.VerifyAccess();
-            }
-            catch (Exception ex)
-            {
-                // Assist with debugging by providing the stack when created (access stack will be available during runtime)
-                throw new Exception(this.stackPrint, ex);
-            }
-#else
-            Dispatcher.VerifyAccess();
-#endif
-        }
 
         /// <summary>
         /// Raises PropertyChanged event. This method can only be called on the thread associated with this object's dispatcher.
@@ -177,7 +41,6 @@ namespace SonarLint.VisualStudio.Progress.MVVM
         [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed", Justification = "Set by [CallerMemberName]")]
         protected virtual void RaisePropertyChanged([CallerMemberName]string propertyName = null)
         {
-            this.VerifyAccess();
             this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
