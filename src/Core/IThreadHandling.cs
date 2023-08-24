@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.Core
         /// If the caller is not on the main thread then the method will switch to the main thread,
         /// then resume on the caller's thread when then the operation completes.
         /// </summary>
-        void RunOnUIThread2(Action op);
+        void RunOnUIThread(Action op);
 
         /// <summary>
         /// Executes the operation asynchronously on the background thread.

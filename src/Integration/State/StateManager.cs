@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.State
 
         public void SetProjects(ConnectionInformation connection, IEnumerable<SonarQubeProject> projects)
         {
-            threadHandling.RunOnUIThread2(() => SetProjectsUIThread(connection, projects));
+            threadHandling.RunOnUIThread(() => SetProjectsUIThread(connection, projects));
         }
 
         public void SetBoundProject(Uri serverUri, string organizationKey, string projectKey)

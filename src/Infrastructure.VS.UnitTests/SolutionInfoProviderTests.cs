@@ -174,7 +174,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object, () => calls.Add("GetService"));
 
             var threadHandling = new Mock<IThreadHandling>();
-            threadHandling.Setup(x => x.RunOnUIThread2(It.IsAny<Action>()))
+            threadHandling.Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
                 .Callback<Action>(productOperation =>
                 {
                     calls.Add("switch to UI thread");
@@ -197,7 +197,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object, () => calls.Add("GetService"));
 
             var threadHandling = new Mock<IThreadHandling>();
-            threadHandling.Setup(x => x.RunOnUIThread2(It.IsAny<Action>()))
+            threadHandling.Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
                 .Callback<Action>(productOperation =>
                 {
                     calls.Add("switch to UI thread");

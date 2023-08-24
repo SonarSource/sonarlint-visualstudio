@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             return Task.CompletedTask;
         }
 
-        public void RunOnUIThread2(Action op) => op();
+        public void RunOnUIThread(Action op) => op();
 
         public Task<T> RunOnBackgroundThread<T>(Func<Task<T>> asyncMethod) => asyncMethod();
 

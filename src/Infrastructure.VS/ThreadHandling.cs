@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
 
         public async Task RunOnUIThreadAsync(Action op) => await VS.RunOnUIThread.RunAsync(op);
 
-        public void RunOnUIThread2(Action op)
+        public void RunOnUIThread(Action op)
         {
             if (ThreadHelper.CheckAccess())
             {
