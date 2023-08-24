@@ -25,6 +25,8 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.VisualStudio.Imaging;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -37,23 +39,20 @@ namespace SonarLint.VisualStudio.Integration.State
     /// </summary>
     internal sealed class StateManager : IStateManager, IDisposable
     {
+        private readonly IThreadHandling threadHandling;
         private bool isDisposed;
 
         public StateManager(IHost host, TransferableVisualState state)
+            : this(host, state, ThreadHandling.Instance)
+        { }
+
+        internal /* for testing */ StateManager(IHost host, TransferableVisualState state, IThreadHandling threadHandling)
         {
-            if (host == null)
-            {
-                throw new ArgumentNullException(nameof(host));
-            }
-
-            if (state == null)
-            {
-                throw new ArgumentNullException(nameof(state));
-            }
-
-            this.Host = host;
-            this.ManagedState = state;
+            this.Host = host ?? throw new ArgumentNullException(nameof(host));
+            this.ManagedState = state ?? throw new ArgumentNullException(nameof(state));
             this.ManagedState.PropertyChanged += this.OnStatePropertyChanged;
+
+            this.threadHandling = threadHandling;
         }
 
         #region IStateManager
@@ -109,14 +108,7 @@ namespace SonarLint.VisualStudio.Integration.State
 
         public void SetProjects(ConnectionInformation connection, IEnumerable<SonarQubeProject> projects)
         {
-            if (this.Host.UIDispatcher.CheckAccess())
-            {
-                this.SetProjectsUIThread(connection, projects);
-            }
-            else
-            {
-                this.Host.UIDispatcher.BeginInvoke(new Action(() => this.SetProjectsUIThread(connection, projects)));
-            }
+            threadHandling.RunOnUIThread2(() => SetProjectsUIThread(connection, projects));
         }
 
         public void SetBoundProject(Uri serverUri, string organizationKey, string projectKey)
@@ -172,6 +164,7 @@ namespace SonarLint.VisualStudio.Integration.State
 
         private void SetProjectsUIThread(ConnectionInformation connection, IEnumerable<SonarQubeProject> projects)
         {
+            threadHandling.ThrowIfNotOnUIThread();
             Debug.Assert(connection != null);
             this.ClearBindingErrorNotifications();
 

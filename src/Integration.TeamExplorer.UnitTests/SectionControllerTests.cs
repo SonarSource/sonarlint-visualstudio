@@ -51,11 +51,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         [TestInitialize]
         public void TestInitialize()
         {
-            ThreadHelper.SetCurrentThreadAsUIThread();
             this.serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
 
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
-            this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher)
+            this.host = new ConfigurableHost(this.serviceProvider)
             {
                 SonarQubeService = this.sonarQubeServiceMock.Object
             };

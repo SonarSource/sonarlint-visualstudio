@@ -65,8 +65,7 @@ namespace SonarLint.VisualStudio.Integration
                 sonarQubeService,
                 solutionTracker,
                 configurationProvider,
-                logger,
-                Dispatcher.CurrentDispatcher)
+                logger)
         {
         }
 
@@ -76,13 +75,11 @@ namespace SonarLint.VisualStudio.Integration
                                     ISonarQubeService sonarQubeService,
                                     IActiveSolutionTracker solutionTracker,
                                     IConfigurationProvider configurationProvider,
-                                    ILogger logger,
-                                    Dispatcher uiDispatcher)
+                                    ILogger logger)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.VisualStateManager = state ?? new StateManager(this, new TransferableVisualState());
             this.progressStepRunner = progressStepRunner ?? this;
-            this.UIDispatcher = uiDispatcher ?? throw new ArgumentNullException(nameof(uiDispatcher));
             this.SonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
             this.solutionTracker = solutionTracker ?? throw new ArgumentNullException(nameof(solutionTracker));
             this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));

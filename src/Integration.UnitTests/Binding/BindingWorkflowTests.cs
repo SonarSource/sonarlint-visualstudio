@@ -22,7 +22,6 @@ using System;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -44,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestInitialize]
         public void TestInitialize()
         {
-            this.host = new ConfigurableHost(new ConfigurableServiceProvider(), Dispatcher.CurrentDispatcher);
+            this.host = new ConfigurableHost(new ConfigurableServiceProvider());
             this.mockBindingProcess = new Mock<IBindingProcess>();
 
             this.testSubject = new BindingWorkflow(host, mockBindingProcess.Object);

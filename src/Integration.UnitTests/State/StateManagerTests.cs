@@ -36,12 +36,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
     [TestClass]
     public class StateManagerTests
     {
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            ThreadHelper.SetCurrentThreadAsUIThread();
-        }
-
         #region Tests
 
         [TestMethod]
@@ -506,7 +500,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
         private StateManager CreateTestSubject(ConfigurableHost host, ConfigurableSectionController section = null)
         {
-            var testSubject = new StateManager(host, new TransferableVisualState());
+            var threadHandling = new NoOpThreadHandler();
+            var testSubject = new StateManager(host, new TransferableVisualState(threadHandling), threadHandling);
 
             if (section != null)
             {

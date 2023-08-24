@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 using FluentAssertions;
 using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -62,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             this.serviceProvider = new ConfigurableServiceProvider();
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
-            this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
+            this.host = new ConfigurableHost(this.serviceProvider);
             this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
             this.host.SonarQubeService = this.sonarQubeServiceMock.Object;
 

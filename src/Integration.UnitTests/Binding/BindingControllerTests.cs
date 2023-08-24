@@ -20,7 +20,6 @@
 
 using System;
 using System.Linq;
-using System.Windows.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -86,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             serviceProvider.RegisterService(typeof(SComponentModel), mefHost);
 
-            host = new ConfigurableHost(serviceProvider, Dispatcher.CurrentDispatcher)
+            host = new ConfigurableHost(serviceProvider)
             {
                 SonarQubeService = sonarQubeService.Object,
                 Logger = logger
