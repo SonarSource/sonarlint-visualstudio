@@ -52,7 +52,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private ConfigurableHost host;
         private ConfigurableSonarLintSettings settings;
         private Mock<ICredentialStoreService> credentialStoreMock;
-        private Mock<ITestProjectRegexSetter> testProjectRegexSetter;
         private Mock<IFolderWorkspaceService> folderWorkspaceService;
         private TestLogger logger;
 
@@ -79,10 +78,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 MefTestHelpers.CreateExport<ICredentialStoreService>(credentialStoreMock.Object));
 
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
-
-
-            this.testProjectRegexSetter = new Mock<ITestProjectRegexSetter>();
-            this.serviceProvider.RegisterService(typeof(ITestProjectRegexSetter), testProjectRegexSetter.Object);
 
             logger = new TestLogger();
             host.Logger = logger;
@@ -426,47 +421,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoNotification(NotificationIds.FailedToConnectId);
 
             AssertCredentialsStored(connectionInfo);
-        }
-
-        [TestMethod]
-        public async Task ConnectionWorkflow_DownloadServiceParameters_CustomRegexProperty_SetsFilterWithCorrectExpression()
-        {
-            // Arrange
-            var controller = new ConfigurableProgressController();
-            var progressEvents = new ConfigurableProgressStepExecutionEvents();
-
-            var expectedExpression = ".*spoon.*";
-            this.sonarQubeServiceMock.Setup(x => x.GetAllPropertiesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<SonarQubeProperty> { new SonarQubeProperty(SonarQubeProperty.TestProjectRegexKey, expectedExpression) });
-
-            ConnectionWorkflow testSubject = SetTestSubjectWithConnectedServer();
-
-            // Act
-            await testSubject.DownloadServiceParametersAsync(controller, progressEvents, CancellationToken.None);
-
-            // Assert
-            testProjectRegexSetter.Verify(x => x.SetTestRegex(expectedExpression), Times.Once);
-        }
-
-        [TestMethod]
-        public async Task ConnectionWorkflow_DownloadServiceParameters_Cancelled_AbortsWorkflow()
-        {
-            // Arrange
-            var controller = new ConfigurableProgressController();
-            var progressEvents = new ConfigurableProgressStepExecutionEvents();
-
-            ConnectionWorkflow testSubject = SetTestSubjectWithConnectedServer();
-
-            var cts = new CancellationTokenSource();
-            cts.Cancel();
-
-            // Act
-            await testSubject.DownloadServiceParametersAsync(controller, progressEvents, cts.Token);
-
-            // Assert
-            progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
-            controller.NumberOfAbortRequests.Should().Be(1);
-            AssertServiceDisconnectCalled();
         }
 
         #endregion Tests

@@ -360,15 +360,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Downloading server settings..
-        /// </summary>
-        public static string DownloadingServerSettingsProgessMessage {
-            get {
-                return ResourceManager.GetString("DownloadingServerSettingsProgessMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Insecure schemes must be a subset of supported schemes.
         /// </summary>
         public static string ExceptionInsecureSchemesIsNotSubset {

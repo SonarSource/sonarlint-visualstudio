@@ -370,10 +370,6 @@ This is the general format to use when writing errors to output window or when t
     <value>Warning: could not find CodeAnalysisRuleSet for project '{0}'</value>
     <comment>Warning message. '{0}' project unique name </comment>
   </data>
-  <data name="DownloadingServerSettingsProgessMessage" xml:space="preserve">
-    <value>Downloading server settings.</value>
-    <comment>Progress message about downloading server settings</comment>
-  </data>
   <data name="NoProjectsApplicableForBinding" xml:space="preserve">
     <value>None (for selected SonarQube project's quality profile)</value>
     <comment>Output window message indicating the current solution does not contain any projects that are applicable to the currently selected SonarQube project's quality profile.</comment>
