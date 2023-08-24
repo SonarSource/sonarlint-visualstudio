@@ -49,17 +49,13 @@ namespace SonarLint.VisualStudio.Integration.Connection
         private readonly IHost host;
         private readonly ICommand parentCommand;
         private readonly ICredentialStoreService credentialStore;
-        private readonly ITestProjectRegexSetter testProjectRegexSetter;
 
         public ConnectionWorkflow(IHost host, ICommand parentCommand)
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
             this.parentCommand = parentCommand ?? throw new ArgumentNullException(nameof(parentCommand));
 
-            this.credentialStore = this.host.GetMefService<ICredentialStoreService>();
-
-            this.testProjectRegexSetter = this.host.GetService<ITestProjectRegexSetter>();
-            testProjectRegexSetter.AssertLocalServiceIsNotNull();
+            credentialStore = this.host.GetMefService<ICredentialStoreService>();
         }
 
         internal /*for testing purposes*/ ConnectionInformation ConnectedServer
@@ -91,12 +87,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             {
                 new ProgressStepDefinition(connectStepDisplayText, StepAttributes.Indeterminate | StepAttributes.BackgroundThread,
                     (cancellationToken, notifications) =>
-                    this.ConnectionStepAsync(connection, controller, notifications, cancellationToken).GetAwaiter().GetResult()),
-
-                new ProgressStepDefinition(connectStepDisplayText, StepAttributes.BackgroundThread,
-                    (token, notifications) =>
-                    this.DownloadServiceParametersAsync(controller, notifications, token).GetAwaiter().GetResult()),
-
+                    this.ConnectionStepAsync(connection, controller, notifications, cancellationToken).GetAwaiter().GetResult())
                 };
         }
 
@@ -226,30 +217,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
                 return hasUserClickedOk ? organizationDialog.Organization : null;
             });
-        }
-
-        internal /*for testing purposes*/ async Task DownloadServiceParametersAsync(IProgressController controller,
-            IProgressStepExecutionEvents notifications, CancellationToken token)
-        {
-            Debug.Assert(this.ConnectedServer != null);
-
-            notifications.ProgressChanged(Strings.DownloadingServerSettingsProgessMessage);
-
-            var properties = await this.host.SonarQubeService.GetAllPropertiesAsync(this.host.VisualStateManager.BoundProjectKey, token);
-            if (token.IsCancellationRequested)
-            {
-                AbortWorkflow(controller, token);
-                return;
-            }
-
-            var testProjRegexPattern = properties.FirstOrDefault(IsTestProjectPatternProperty)?.Value;
-            testProjectRegexSetter.SetTestRegex(testProjRegexPattern);
-        }
-
-        private static bool IsTestProjectPatternProperty(SonarQubeProperty property)
-        {
-            const string testProjectRegexKey = "sonar.cs.msbuild.testProjectPattern";
-            return StringComparer.Ordinal.Equals(property.Key, testProjectRegexKey);
         }
 
         #endregion
