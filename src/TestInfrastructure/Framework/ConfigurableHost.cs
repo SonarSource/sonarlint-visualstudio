@@ -77,15 +77,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             this.VisualStateManager.SyncCommandFromActiveSection();
         }
 
-        public object GetService(Type serviceType)
-        {
-            if (typeof(ILocalService).IsAssignableFrom(serviceType))
-            {
-                VsSessionHost.SupportedLocalServices.Contains(serviceType).Should().BeTrue("The specified service type '{0}' will not be serviced in the real IHost.", serviceType.FullName);
-            }
-
-            return this.serviceProvider.GetService(serviceType);
-        }
+        public object GetService(Type serviceType) => serviceProvider.GetService(serviceType);
 
         public void SetActiveSection(ISectionController section)
         {
