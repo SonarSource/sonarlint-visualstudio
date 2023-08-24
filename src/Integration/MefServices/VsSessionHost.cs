@@ -22,7 +22,6 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Windows.Threading;
-using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
@@ -37,7 +36,6 @@ namespace SonarLint.VisualStudio.Integration
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class VsSessionHost : IHost, IProgressStepRunnerWrapper, IDisposable
     {
-        private readonly IServiceProvider serviceProvider;
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly IConfigurationProvider configurationProvider;
 
@@ -47,12 +45,11 @@ namespace SonarLint.VisualStudio.Integration
         private bool resetBindingWhenAttaching = true;
 
         [ImportingConstructor]
-        public VsSessionHost([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            ISonarQubeService sonarQubeService,
+        public VsSessionHost(ISonarQubeService sonarQubeService,
             IActiveSolutionTracker solutionTracker,
             IConfigurationProvider configurationProvider,
             ILogger logger)
-            : this(serviceProvider,
+            : this(
                 null,
                 null,
                 sonarQubeService,
@@ -62,15 +59,13 @@ namespace SonarLint.VisualStudio.Integration
         {
         }
 
-        internal /*for test purposes*/ VsSessionHost(IServiceProvider serviceProvider,
-                                    IStateManager state,
+        internal /*for test purposes*/ VsSessionHost(IStateManager state,
                                     IProgressStepRunnerWrapper progressStepRunner,
                                     ISonarQubeService sonarQubeService,
                                     IActiveSolutionTracker solutionTracker,
                                     IConfigurationProvider configurationProvider,
                                     ILogger logger)
         {
-            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.VisualStateManager = state ?? new StateManager(this, new TransferableVisualState());
             this.progressStepRunner = progressStepRunner ?? this;
             this.SonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));

@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Linq;
 using FluentAssertions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
@@ -31,8 +30,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 {
     internal class ConfigurableHost : IHost
     {
-        private readonly ConfigurableServiceProvider serviceProvider;
-
         public ConfigurableHost()
         {
             this.VisualStateManager = new ConfigurableStateManager { Host = this };

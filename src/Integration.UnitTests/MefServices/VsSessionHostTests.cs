@@ -35,7 +35,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
     [TestClass]
     public class VsSessionHostTests
     {
-        private ConfigurableServiceProvider serviceProvider;
         private Mock<ISonarQubeService> sonarQubeServiceMock;
         private ConfigurableStateManager stateManager;
         private ConfigurableProgressStepRunner stepRunner;
@@ -46,7 +45,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         [TestInitialize]
         public void TestInitialize()
         {
-            this.serviceProvider = new ConfigurableServiceProvider();
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
             this.stepRunner = new ConfigurableProgressStepRunner();
             this.configProvider = new ConfigurableConfigurationProvider();
@@ -58,7 +56,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<VsSessionHost, IHost>(
-                MefTestHelpers.CreateExport<Microsoft.VisualStudio.Shell.SVsServiceProvider>(),
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
                 MefTestHelpers.CreateExport<IConfigurationProvider>(),
@@ -336,8 +333,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         private VsSessionHost CreateTestSubject(ConfigurableActiveSolutionTracker tracker = null)
         {
             this.stateManager = new ConfigurableStateManager();
-            var host = new VsSessionHost(this.serviceProvider,
-                stateManager,
+            var host = new VsSessionHost(stateManager,
                 this.stepRunner,
                 this.sonarQubeServiceMock.Object,
                 tracker ?? new ConfigurableActiveSolutionTracker(),
