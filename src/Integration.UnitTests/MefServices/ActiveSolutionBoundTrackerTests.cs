@@ -24,7 +24,6 @@ using System.Linq.Expressions;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -63,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             serviceProvider = new ConfigurableServiceProvider(false);
             
-            host = new ConfigurableHost(serviceProvider, Dispatcher.CurrentDispatcher);
+            host = new ConfigurableHost(serviceProvider);
             var mefHost = MefTestHelpers.CreateExport<IHost>(host);
 
             activeSolutionTracker = new ConfigurableActiveSolutionTracker();

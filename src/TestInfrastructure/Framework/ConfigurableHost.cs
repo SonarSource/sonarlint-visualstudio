@@ -20,7 +20,6 @@
 
 using System;
 using System.Linq;
-using System.Windows.Threading;
 using FluentAssertions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
@@ -35,14 +34,13 @@ namespace SonarLint.VisualStudio.TestInfrastructure
         private readonly ConfigurableServiceProvider serviceProvider;
 
         public ConfigurableHost()
-            : this(new ConfigurableServiceProvider(), Dispatcher.CurrentDispatcher)
+            : this(new ConfigurableServiceProvider())
         {
         }
 
-        public ConfigurableHost(ConfigurableServiceProvider sp, Dispatcher dispatcher)
+        public ConfigurableHost(ConfigurableServiceProvider sp)
         {
             this.serviceProvider = sp;
-            this.UIDispatcher = dispatcher;
             this.VisualStateManager = new ConfigurableStateManager { Host = this };
             Logger = new TestLogger();
         }
@@ -61,12 +59,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
         {
             get;
             set;
-        }
-
-        public Dispatcher UIDispatcher
-        {
-            get;
-            private set;
         }
 
         public IStateManager VisualStateManager

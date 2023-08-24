@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Windows.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -29,11 +28,6 @@ namespace SonarLint.VisualStudio.Integration
 {
     internal interface IHost : IServiceProvider
     {
-        /// <summary>
-        /// The UI thread dispatcher. Not null.
-        /// </summary>
-        Dispatcher UIDispatcher { get; }
-
         /// <summary>
         /// <see cref="ISonarQubeService"/>. Not null.
         /// </summary>
