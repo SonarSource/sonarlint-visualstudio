@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.
             INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
             IThreadHandling threadHandling)
         {
-            this.threadHandling = threadHandling ?? ThreadHandling.Instance;
+            this.threadHandling = threadHandling;
             AllowMultiThreadedAccessToHotspotsList();
 
             this.selectionService = selectionService;
