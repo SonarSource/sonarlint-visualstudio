@@ -19,6 +19,7 @@
  */
 
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using SonarLint.VisualStudio.Rules;
 
 namespace ExtractRuleDescFromJson;
@@ -89,7 +90,11 @@ internal class RuleDescExtractor
 
     private static IEnumerable<PluginRule> LoadRules(string file)
     {
-        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        var options = new JsonSerializerOptions
+        {
+            Converters = { new JsonStringEnumConverter() },
+            PropertyNameCaseInsensitive = true
+        };
 
         var json = File.ReadAllText(file);
         return JsonSerializer.Deserialize<PluginRule[]>(json, options)
@@ -118,8 +123,8 @@ internal class RuleDescExtractor
                         : null)).ToList(),
                 pluginRule.EducationPrinciples,
                 null,
-                null,
-                null
+                pluginRule.CleanCodeAttribute,
+                pluginRule.DefaultImpacts
                 );
 
             SaveRuleFile(slvsRule);
