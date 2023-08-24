@@ -90,8 +90,6 @@ namespace SonarLint.VisualStudio.Integration
         #region IHost
         public event EventHandler ActiveSectionChanged;
 
-        public Dispatcher UIDispatcher { get; }
-
         public IStateManager VisualStateManager { get; }
 
         public ISonarQubeService SonarQubeService { get; }
