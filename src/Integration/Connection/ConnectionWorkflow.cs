@@ -31,6 +31,7 @@ using System.Windows.Input;
 using Microsoft.Alm.Authentication;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Connection.UI;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -49,13 +50,22 @@ namespace SonarLint.VisualStudio.Integration.Connection
         private readonly IServiceProvider serviceProvider;
         private readonly IHost host;
         private readonly ICommand parentCommand;
+        private readonly IThreadHandling threadHandling;
         private readonly ICredentialStoreService credentialStore;
 
         public ConnectionWorkflow(IServiceProvider serviceProvider, IHost host, ICommand parentCommand)
+            : this(serviceProvider, host, parentCommand, ThreadHandling.Instance)
+        { }
+
+        internal /* for testing */ ConnectionWorkflow(IServiceProvider serviceProvider,
+            IHost host,
+            ICommand parentCommand,
+            IThreadHandling threadHandling)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.host = host ?? throw new ArgumentNullException(nameof(host));
             this.parentCommand = parentCommand ?? throw new ArgumentNullException(nameof(parentCommand));
+            this.threadHandling = threadHandling;
 
             credentialStore = serviceProvider.GetMefService<ICredentialStoreService>();
         }
@@ -212,13 +222,16 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         private SonarQubeOrganization AskUserToSelectOrganizationOnUIThread(IEnumerable<SonarQubeOrganization> organizations)
         {
-            return Application.Current.Dispatcher.Invoke(() =>
+            SonarQubeOrganization organization = null;
+
+            threadHandling.RunOnUIThread2(() =>
             {
                 var organizationDialog = new OrganizationSelectionWindow(organizations) { Owner = Application.Current.MainWindow };
                 var hasUserClickedOk = organizationDialog.ShowDialog().GetValueOrDefault();
 
-                return hasUserClickedOk ? organizationDialog.Organization : null;
+                organization = hasUserClickedOk? organizationDialog.Organization : null;
             });
+            return organization;
         }
 
         #endregion
