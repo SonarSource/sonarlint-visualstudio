@@ -39,7 +39,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
     {
         private ConfigurableHost host;
         private Mock<ISonarQubeService> sonarQubeServiceMock;
-        private Mock<IConnectionWorkflowExecutor> connectionWorkflowMock;
         private ConfigurableConnectionInformationProvider connectionProvider;
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableSonarLintSettings settings;
@@ -55,11 +54,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             serviceProvider.RegisterService(typeof(ILogger), logger);
 
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
-            this.connectionWorkflowMock = new Mock<IConnectionWorkflowExecutor>();
             this.connectionProvider = new ConfigurableConnectionInformationProvider();
             this.settings = new ConfigurableSonarLintSettings();
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
-            this.host = new ConfigurableHost(this.serviceProvider)
+            this.host = new ConfigurableHost()
             {
                 SonarQubeService = this.sonarQubeServiceMock.Object,
                 Logger = logger
@@ -79,14 +77,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         [TestMethod]
         public void ConnectionController_Ctor_ArgumentChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new ConnectionController(null));
+            Exceptions.Expect<ArgumentNullException>(() => new ConnectionController(null, Mock.Of<IHost>()));
+            Exceptions.Expect<ArgumentNullException>(() => new ConnectionController(Mock.Of<IServiceProvider>(), null));
         }
 
         [TestMethod]
         public void ConnectionController_DefaultState()
         {
             // Arrange
-            var testSubject = new ConnectionController(this.host);
+            var testSubject = CreateTestSubject();
 
             // Assert
             testSubject.ConnectCommand.Should().NotBeNull("Connected command should not be null");
@@ -99,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionController_ConnectCommand_SolutionFully_Open_Status()
         {
             // Arrange
-            var testSubject = new ConnectionController(this.host);
+            var testSubject = CreateTestSubject();
             this.projectSystemHelper.SetIsSolutionFullyOpened(true);
 
             // Case 1: has connection, is busy
@@ -135,7 +134,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionController_ConnectCommand_SolutionNotFully_Open_Status_AlwaysFalse()
         {
             // Arrange
-            var testSubject = new ConnectionController(this.host);
+            var testSubject = CreateTestSubject();
             this.projectSystemHelper.SetIsSolutionFullyOpened(false);
 
             // Case 1: has connection, is busy
@@ -167,13 +166,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.ConnectCommand.CanExecute().Should().BeFalse("Solution not fully open");
         }
 
+        private static Mock<IConnectionWorkflowExecutor> CreateWorkflow()
+        {
+            var workflow = new Mock<IConnectionWorkflowExecutor>();
+            return workflow;
+        }
+
         [TestMethod]
         public void ConnectionController_ConnectCommand_Execution()
         {
             // Arrange
-            this.connectionWorkflowMock.Setup(x => x.EstablishConnection(It.IsAny<ConnectionInformation>()));
-            ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider,
-                this.connectionWorkflowMock.Object);
+            var connectionWorkflowMock = CreateWorkflow();
+            connectionWorkflowMock.Setup(x => x.EstablishConnection(It.IsAny<ConnectionInformation>()));
+            ConnectionController testSubject = new ConnectionController(this.serviceProvider, this.host, this.connectionProvider,
+                connectionWorkflowMock.Object);
             this.projectSystemHelper.SetIsSolutionFullyOpened(true);
 
             // Case 1: connection provider return null connection
@@ -189,7 +195,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.ConnectCommand.Execute();
 
             // Assert
-            this.connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>()), Times.Never);
+            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>()), Times.Never);
 
             // Case 2: connection provider returns a valid connection
             var expectedConnection = new ConnectionInformation(new Uri("https://127.0.0.0"));
@@ -201,7 +207,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.ConnectCommand.Execute();
 
             // Assert
-            this.connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>()), Times.Once);
+            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>()), Times.Once);
 
             // Case 3: existing connection, change to a different one
             var existingConnection = expectedConnection;
@@ -218,7 +224,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionController_RefreshCommand_Status()
         {
             // Arrange
-            var testSubject = new ConnectionController(this.host);
+            var testSubject = CreateTestSubject();
             var connection = new ConnectionInformation(new Uri("http://connection"));
 
             // Case 1: Has connection and busy
@@ -261,8 +267,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionController_RefreshCommand_Execution()
         {
             // Arrange
-            ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider,
-                this.connectionWorkflowMock.Object);
+            var connectionWorkflowMock = CreateWorkflow();
+            ConnectionController testSubject = new ConnectionController(serviceProvider, host, connectionProvider,
+                connectionWorkflowMock.Object);
             this.connectionProvider.ConnectionInformationToReturn = new ConnectionInformation(new Uri("http://notExpected"));
             var connection = new ConnectionInformation(new Uri("http://Expected"));
             // Sanity
@@ -275,7 +282,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.RefreshCommand.Execute(connection);
 
             // Assert
-            this.connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>()), Times.Once);
+            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>()), Times.Once);
             testSubject.LastAttemptedConnection.ServerUri.Should().Be(connection.ServerUri, "Unexpected last attempted connection");
             testSubject.LastAttemptedConnection.Should().NotBe(connection, "LastAttemptedConnection should be a clone");
         }
@@ -284,8 +291,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionController_SetConnectionInProgress()
         {
             // Arrange
-            ConnectionController testSubject = new ConnectionController(this.host, this.connectionProvider,
-                this.connectionWorkflowMock.Object);
+            var connectionWorkflowMock = CreateWorkflow();
+            ConnectionController testSubject = new ConnectionController(serviceProvider, host, connectionProvider,
+                connectionWorkflowMock.Object);
             this.projectSystemHelper.SetIsSolutionFullyOpened(true);
             this.connectionProvider.ConnectionInformationToReturn = null;
             var progressEvents = new ConfigurableProgressEvents();
@@ -324,5 +332,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         }
 
         #endregion Tests
+
+        private ConnectionController CreateTestSubject() =>
+            new ConnectionController(serviceProvider, host);
     }
 }

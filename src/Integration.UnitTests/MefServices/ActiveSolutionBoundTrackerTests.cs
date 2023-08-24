@@ -24,7 +24,9 @@ using System.Linq.Expressions;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Media.Animation;
 using FluentAssertions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -62,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             serviceProvider = new ConfigurableServiceProvider(false);
             
-            host = new ConfigurableHost(serviceProvider);
+            host = new ConfigurableHost();
             var mefHost = MefTestHelpers.CreateExport<IHost>(host);
 
             activeSolutionTracker = new ConfigurableActiveSolutionTracker();
@@ -563,15 +565,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        private static ActiveSolutionBoundTracker CreateTestSubject(IHost host,
+        private ActiveSolutionBoundTracker CreateTestSubject(IHost host,
             IActiveSolutionTracker solutionTracker,
             IConfigurationProvider configurationProvider,
             ILogger logger = null,
-            IBoundSolutionGitMonitor gitEvents = null)
+            IBoundSolutionGitMonitor gitEvents = null,
+            IServiceProvider serviceProvider = null)
         {
             logger ??= new TestLogger(logToConsole: true);
             gitEvents ??= Mock.Of<IBoundSolutionGitMonitor>();
-            return new ActiveSolutionBoundTracker(host, solutionTracker, logger, gitEvents, configurationProvider);
+            serviceProvider ??= this.serviceProvider;
+            return new ActiveSolutionBoundTracker(serviceProvider, host, solutionTracker, logger, gitEvents, configurationProvider);
         }
 
         private void ConfigureService(bool isConnected)

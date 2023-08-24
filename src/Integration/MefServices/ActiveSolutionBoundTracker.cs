@@ -22,12 +22,13 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.State;
 using SonarQube.Client;
+using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -59,7 +60,9 @@ namespace SonarLint.VisualStudio.Integration
         public BindingConfiguration CurrentConfiguration { get; private set; }
 
         [ImportingConstructor]
-        public ActiveSolutionBoundTracker(IHost host,
+        public ActiveSolutionBoundTracker(
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            IHost host,
             IActiveSolutionTracker activeSolutionTracker,
             ILogger logger,
             IBoundSolutionGitMonitor gitEventsMonitor,
@@ -70,7 +73,9 @@ namespace SonarLint.VisualStudio.Integration
             this.gitEventsMonitor = gitEventsMonitor;
             this.logger = logger;
 
-            vsMonitorSelection = host.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
+            // TODO - MEF-ctor should be free-threaded -> we might be on a background thread ->
+            // calling serviceProvider.GetService is dangerous.
+            vsMonitorSelection = serviceProvider.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
             vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
 
             this.configurationProvider = configurationProvider;

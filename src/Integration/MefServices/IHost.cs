@@ -26,7 +26,7 @@ using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    internal interface IHost : IServiceProvider
+    internal interface IHost
     {
         /// <summary>
         /// <see cref="ISonarQubeService"/>. Not null.
