@@ -22,13 +22,13 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.State;
 using SonarQube.Client;
+using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration
 {
