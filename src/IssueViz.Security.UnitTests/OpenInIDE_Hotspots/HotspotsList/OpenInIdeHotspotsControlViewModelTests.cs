@@ -38,13 +38,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
     [TestClass]
     public class OpenInIDEHotspotsControlViewModelTests
     {
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            // HotspotsControlViewModel needs to be created on the UI thread
-            ThreadHelper.SetCurrentThreadAsUIThread();
-        }
-
         [TestMethod]
         public void Ctor_RegisterToStoreCollectionChanges()
         {
@@ -404,7 +397,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             selectionService ??= Mock.Of<IIssueSelectionService>();
             navigateToRuleDescriptionCommand ??= Mock.Of<INavigateToRuleDescriptionCommand>();
 
-            return new OpenInIDEHotspotsControlViewModel(hotspotsStore.Object, locationNavigator, selectionService, navigateToRuleDescriptionCommand);
+            return new OpenInIDEHotspotsControlViewModel(hotspotsStore.Object,
+                locationNavigator,
+                selectionService,
+                navigateToRuleDescriptionCommand,
+                new NoOpThreadHandler());
         }
 
         private static void RaiseStoreIssuesChangedEvent(Mock<IOpenInIDEHotspotsStore> store, params IAnalysisIssueVisualization[] issueVizs)
