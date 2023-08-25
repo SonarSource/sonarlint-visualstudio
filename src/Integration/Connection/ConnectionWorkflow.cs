@@ -224,7 +224,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
         {
             SonarQubeOrganization organization = null;
 
-            threadHandling.RunOnUIThread2(() =>
+            threadHandling.RunOnUIThread(() =>
             {
                 var organizationDialog = new OrganizationSelectionWindow(organizations) { Owner = Application.Current.MainWindow };
                 var hasUserClickedOk = organizationDialog.ShowDialog().GetValueOrDefault();
