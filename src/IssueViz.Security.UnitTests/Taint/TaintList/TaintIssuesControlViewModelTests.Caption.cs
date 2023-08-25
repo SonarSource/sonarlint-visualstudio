@@ -198,9 +198,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             public TaintIssuesControlViewModel CreateTestSubject()
             {
-                // The ViewModel needs to be created on the UI thread
-                ThreadHelper.SetCurrentThreadAsUIThread();
-
                 return new TaintIssuesControlViewModel(
                     store.Object,
                     Mock.Of<ILocationNavigator>(),
@@ -212,7 +209,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                     Mock.Of<ICommand>(),
                     Mock.Of<IMenuCommandService>(),
                     Mock.Of<ISonarQubeService>(),
-                    Mock.Of<INavigateToRuleDescriptionCommand>());
+                    Mock.Of<INavigateToRuleDescriptionCommand>(),
+                    new NoOpThreadHandler());
             }
 
             public void ChangeActiveDocument(string filePath)
