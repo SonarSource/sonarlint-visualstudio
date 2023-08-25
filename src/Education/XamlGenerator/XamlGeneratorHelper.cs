@@ -158,14 +158,14 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                         WriteStylizedSpan(StyleResourceNames.CleanCodeSpan,
                             () =>
                             {
-                                WriteCleanCodeCategoryBold(cleanCodeCategory);
+                                WriteCleanCodeCategory(cleanCodeCategory);
                                 writer.WriteString($" | Not {cleanCodeAttribute}");
                             });
                     });
 
             }
 
-            private void WriteCleanCodeCategoryBold(CleanCodeCategory cleanCodeCategory)
+            private void WriteCleanCodeCategory(CleanCodeCategory cleanCodeCategory)
             {
                 writer.WriteStartElement("Run");
                 writer.ApplyStyleToElement(StyleResourceNames.CleanCodeCategory);
@@ -192,6 +192,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             {
                 writer.WriteStartElement("Border");
                 writer.ApplyStyleToElement(borderStyle);
+                // note: content is wrapped in a text block so the icon and the text wrap together and have a common background
                 writer.WriteStartElement("TextBlock");
                 writeContent();
                 writer.WriteEndElement();
@@ -225,18 +226,23 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     {
                         if (imageInfo.ImageResourceName != null)
                         {
-                            writer.WriteStartElement("InlineUIContainer");
-                            writer.WriteStartElement("Image");
-                            writer.ApplyStyleToElement(useCctStyle
-                                ? StyleResourceNames.CleanCodeSeverityImage
-                                : StyleResourceNames.SubtitleElement_Image);
-                            writer.WriteAttributeString("Source", $"{{DynamicResource {imageInfo.ImageResourceName}}}");
-                            writer.WriteEndElement(); // Image
-                            writer.WriteEndElement(); // InlineUIContainer
+                            WriteImage(imageInfo.ImageResourceName, useCctStyle);
                         }
 
                         writer.WriteString(imageInfo.DisplayText);
                     });
+
+            private void WriteImage(string imageId, bool useCctStyle)
+            {
+                writer.WriteStartElement("InlineUIContainer");
+                writer.WriteStartElement("Image");
+                writer.ApplyStyleToElement(useCctStyle
+                    ? StyleResourceNames.CleanCodeSeverityImage
+                    : StyleResourceNames.SubtitleElement_Image);
+                writer.WriteAttributeString("Source", $"{{DynamicResource {imageId}}}");
+                writer.WriteEndElement(); // Image
+                writer.WriteEndElement(); // InlineUIContainer
+            }
 
             private void WriteSubTitleElement_Tags(IRuleInfo ruleInfo)
             {
