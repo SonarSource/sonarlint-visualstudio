@@ -53,18 +53,6 @@ namespace SonarLint.VisualStudio.Core
         /// </summary>
         Task RunOnUIThreadAsync(Action op);
 
-        // TODO: renaming async methods to end with "Async", then rename this method to "RunOnUIThread"
-        // See https://github.com/SonarSource/sonarlint-visualstudio/issues/4180
-        /// <summary>
-        /// Executes the operation synchronously on the main thread.
-        /// If the caller is on the main thread already then the operation is executed directly.
-        /// If the caller is not on the main thread then the method will switch to the main thread,
-        /// then resume on the caller's thread when then the operation completes.
-        /// </summary>
-        [Obsolete("This method does not work correctly. Use RunOnUIThread2 instead.")]
-        // See https://github.com/SonarSource/sonarlint-visualstudio/issues/4179 for more info.
-        void RunOnUIThread(Action op);
-
         /// <summary>
         /// Executes the operation asynchronously on the main thread. While synchronously blocking 
         /// synchronously the calling thread.
@@ -72,7 +60,7 @@ namespace SonarLint.VisualStudio.Core
         /// If the caller is not on the main thread then the method will switch to the main thread,
         /// then resume on the caller's thread when then the operation completes.
         /// </summary>
-        void RunOnUIThread2(Action op);
+        void RunOnUIThread(Action op);
 
         /// <summary>
         /// Executes the operation asynchronously on the background thread.

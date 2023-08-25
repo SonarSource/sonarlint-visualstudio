@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             var elapsed = DateTime.UtcNow - startTime;
             var displayText = elapsed.ToString("mm\\:ss");
 
-            threadHandling.RunOnUIThread2(
+            threadHandling.RunOnUIThread(
                 () => txtStopwatchTime.Text = displayText);
         }
 
@@ -187,7 +187,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         void IProgress<MigrationProgress>.Report(MigrationProgress value)
         {
-            threadHandling.RunOnUIThread2(() =>
+            threadHandling.RunOnUIThread(() =>
             {
                 ListBoxItem item = new ListBoxItem();
                 if (value.IsWarning)
