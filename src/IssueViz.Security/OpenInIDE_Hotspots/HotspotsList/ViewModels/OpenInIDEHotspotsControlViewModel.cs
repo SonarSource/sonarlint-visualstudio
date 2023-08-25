@@ -26,7 +26,8 @@ using System.Runtime.CompilerServices;
 using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
@@ -52,7 +53,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.
         private readonly object Lock = new object();
         private readonly IIssueSelectionService selectionService;
         private readonly IOpenInIDEHotspotsStore store;
+        private readonly IThreadHandling threadHandling;
         private IOpenInIDEHotspotViewModel selectedHotspot;
+
 
         public ObservableCollection<IOpenInIDEHotspotViewModel> Hotspots { get; } = new ObservableCollection<IOpenInIDEHotspotViewModel>();
 
@@ -62,12 +65,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.
 
         public INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; private set; }
 
-
         public OpenInIDEHotspotsControlViewModel(IOpenInIDEHotspotsStore hotspotsStore,
             ILocationNavigator locationNavigator,
             IIssueSelectionService selectionService,
             INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand)
+            : this(hotspotsStore,
+                  locationNavigator,
+                  selectionService,
+                  navigateToRuleDescriptionCommand,
+                  ThreadHandling.Instance)
+        { }
+
+        internal /* for testing */ OpenInIDEHotspotsControlViewModel(IOpenInIDEHotspotsStore hotspotsStore,
+            ILocationNavigator locationNavigator,
+            IIssueSelectionService selectionService,
+            INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
+            IThreadHandling threadHandling)
         {
+            this.threadHandling = threadHandling;
             AllowMultiThreadedAccessToHotspotsList();
 
             this.selectionService = selectionService;
@@ -100,7 +115,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.
         /// </summary>
         private void AllowMultiThreadedAccessToHotspotsList()
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            threadHandling.ThrowIfNotOnUIThread();
             BindingOperations.EnableCollectionSynchronization(Hotspots, Lock);
         }
 

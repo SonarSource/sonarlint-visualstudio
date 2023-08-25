@@ -27,7 +27,6 @@ using System.Runtime.CompilerServices;
 using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Telemetry;
@@ -82,7 +81,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         private readonly ITaintStore store;
         private readonly IMenuCommandService menuCommandService;
         private readonly ISonarQubeService sonarQubeService;
-        private readonly IEducation educationService;
+        private readonly IThreadHandling threadHandling;
 
         private readonly object Lock = new object();
         private string activeDocumentFilePath;
@@ -148,7 +147,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             ISonarQubeService sonarQubeService,
             INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand
             )
+            : this(store, locationNavigator, activeDocumentTracker, activeDocumentLocator, showInBrowserService, telemetryManager, selectionService,
+                  navigateToDocumentationCommand, menuCommandService, sonarQubeService, navigateToRuleDescriptionCommand, ThreadHandling.Instance)
+        { }
+
+        internal /* for testing */ TaintIssuesControlViewModel(ITaintStore store,
+            ILocationNavigator locationNavigator,
+            IActiveDocumentTracker activeDocumentTracker,
+            IActiveDocumentLocator activeDocumentLocator,
+            IShowInBrowserService showInBrowserService,
+            ITelemetryManager telemetryManager,
+            IIssueSelectionService selectionService,
+            ICommand navigateToDocumentationCommand,
+            IMenuCommandService menuCommandService,
+            ISonarQubeService sonarQubeService,
+            INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
+            IThreadHandling threadHandling)
         {
+            this.threadHandling = threadHandling;
             unfilteredIssues = new ObservableCollection<ITaintIssueViewModel>();
             AllowMultiThreadedAccessToIssuesCollection();
 
@@ -229,7 +245,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         /// </summary>
         private void AllowMultiThreadedAccessToIssuesCollection()
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            threadHandling.ThrowIfNotOnUIThread();
             BindingOperations.EnableCollectionSynchronization(unfilteredIssues, Lock);
         }
 
@@ -300,7 +316,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         private void UpdateCaptionAndListFilter()
         {
-            RunOnUIThread.Run(() =>
+            threadHandling.RunOnUIThread(() =>
             {
                 // WPF is not automatically re-applying the filter when the underlying list
                 // of issues changes, so we're manually applying the filtering every time.
