@@ -316,7 +316,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         private void UpdateCaptionAndListFilter()
         {
-            threadHandling.RunOnUIThread2(() =>
+            threadHandling.RunOnUIThread(() =>
             {
                 // WPF is not automatically re-applying the filter when the underlying list
                 // of issues changes, so we're manually applying the filtering every time.
