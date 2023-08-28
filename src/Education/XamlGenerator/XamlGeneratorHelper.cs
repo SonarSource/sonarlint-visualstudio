@@ -169,7 +169,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             {
                 writer.WriteStartElement("Run");
                 writer.ApplyStyleToElement(StyleResourceNames.CleanCodeCategory);
-                writer.WriteString(cleanCodeCategory.ToString());
+                writer.WriteString($"{cleanCodeCategory} issue");
                 writer.WriteEndElement();
             }
 
