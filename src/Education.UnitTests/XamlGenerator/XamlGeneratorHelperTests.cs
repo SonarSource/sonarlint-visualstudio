@@ -136,7 +136,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
       <Border Style=""{DynamicResource CleanCodeAttributeBubble}"">
         <TextBlock>
           <Span Style=""{DynamicResource CleanCodeSpan}"">
-            <Run Style=""{DynamicResource CleanCodeCategory}"">Consistency</Run> | Not Formatted</Span>
+            <Run Style=""{DynamicResource CleanCodeCategory}"">Consistency issue</Run> | Not Formatted</Span>
         </TextBlock>
       </Border>
       <Border Style=""{DynamicResource HighSoftwareQualitySeverityBubble}"">
