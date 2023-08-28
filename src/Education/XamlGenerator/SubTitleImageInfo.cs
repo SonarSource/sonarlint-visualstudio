@@ -48,6 +48,15 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             { RuleIssueType.Unknown, new SubTitleImageInfo("codeSmellDrawingImage", "Unknown" )}
         };
 
+        public static readonly IReadOnlyDictionary<SoftwareQualitySeverity, SubTitleImageInfo>
+            SoftwareQualitySeveritiesImages = new Dictionary<SoftwareQualitySeverity, SubTitleImageInfo>()
+            {
+                // note: display text for these icons is dynamic and is set in XamlGeneratorHelper
+                { SoftwareQualitySeverity.High , new SubTitleImageInfo("HighSoftwareQualitySeverity", string.Empty)},
+                { SoftwareQualitySeverity.Medium , new SubTitleImageInfo("MediumSoftwareQualitySeverity", string.Empty)},
+                { SoftwareQualitySeverity.Low , new SubTitleImageInfo("LowSoftwareQualitySeverity", string.Empty)},
+            };
+
         private SubTitleImageInfo(string imageResourceName, string displayText)
         {
             ImageResourceName = imageResourceName;
