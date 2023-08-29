@@ -68,6 +68,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         }
 
         [TestMethod]
+        [DataRow(SonarLintMode.Standalone, false)]
+        public void Ctor_DependingOnBindingConfig_InitialTimeStateSetCorrectly(SonarLintMode mode, bool start)
+        {
+            var refreshTimer = new Mock<ITimer>();
+            var timerFactory = CreateTimerFactory(refreshTimer.Object);
+            var activeSolutionBoundTracker = CreateActiveSolutionBoundTrackerWihtBindingConfig(SonarLintMode.Standalone);
+
+            _ = CreateTestSubject(activeSolutionBoundTracker: activeSolutionBoundTracker.Object, timerFactory: timerFactory);
+
+            refreshTimer.Verify(x => x.Start(), start ? Times.Once : Times.Never);
+            refreshTimer.Verify(x => x.Stop(), start ? Times.Never : Times.Once );
+        }
+
+        [TestMethod]
         public void InvokeEvent_TimerElapsed_StoreUpdatersAreCalled()
         {
             var refreshTimer = new Mock<ITimer>();
@@ -117,16 +131,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             _ = CreateTestSubject(activeSolutionBoundTracker:activeSolutionBoundTracker.Object, timerFactory:timerFactory);
 
-            refreshTimer.Verify(x => x.Start(), Times.Never);
-            refreshTimer.Verify(x => x.Stop(), Times.Once);
+            refreshTimer.Reset();
 
             activeSolutionBoundTracker.Raise(x => x.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(CreateBindingConfiguration(SonarLintMode.Connected)));
             refreshTimer.Verify(x => x.Start(), Times.Once);
-            refreshTimer.Verify(x => x.Stop(), Times.Once);
+            refreshTimer.Verify(x => x.Stop(), Times.Never);
 
             activeSolutionBoundTracker.Raise(x => x.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(CreateBindingConfiguration(SonarLintMode.Standalone)));
             refreshTimer.Verify(x => x.Start(), Times.Once);
-            refreshTimer.Verify(x => x.Stop(), Times.Exactly(2));
+            refreshTimer.Verify(x => x.Stop(), Times.Once);
         }
 
         private static ITimerFactory CreateTimerFactory(ITimer timer)
@@ -148,8 +161,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
                 suppressionIssueStoreUpdater ?? Mock.Of<ISuppressionIssueStoreUpdater>(),
                 serverHotspotStoreUpdater ?? Mock.Of<IServerHotspotStoreUpdater>(),
                 qualityProfileUpdater ?? Mock.Of<IQualityProfileUpdater>(),
-                new TestLogger(logToConsole: true),
                 activeSolutionBoundTracker,
+                new TestLogger(logToConsole: true),
                 timerFactory ?? Mock.Of<ITimerFactory>());
         }
 

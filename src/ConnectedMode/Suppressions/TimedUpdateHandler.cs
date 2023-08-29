@@ -50,13 +50,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             IQualityProfileUpdater qualityProfileUpdater,
             ILogger logger,
             IActiveSolutionBoundTracker activeSolutionBoundTracker)
-            : this(suppressionIssueStoreUpdater, serverHotspotStoreUpdater, qualityProfileUpdater, logger, activeSolutionBoundTracker, new TimerFactory()) { }
+            : this(suppressionIssueStoreUpdater, serverHotspotStoreUpdater, qualityProfileUpdater, activeSolutionBoundTracker, logger, new TimerFactory()) { }
 
         internal /* for testing */ TimedUpdateHandler(ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
             IServerHotspotStoreUpdater serverHotspotStoreUpdater,
             IQualityProfileUpdater qualityProfileUpdater,
-            ILogger logger,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            ILogger logger,
             ITimerFactory timerFactory)
         {
             this.suppressionIssueStoreUpdater = suppressionIssueStoreUpdater;
@@ -72,15 +72,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
             activeSolutionBoundTracker.SolutionBindingChanged += SolutionBindingChanged;
 
-            CreateTimerIfInConnectedMode(activeSolutionBoundTracker.CurrentConfiguration);
+            SetTimerStatus(activeSolutionBoundTracker.CurrentConfiguration);
         }
 
         private void SolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs activeSolutionBindingEventArgs)
         {
-            CreateTimerIfInConnectedMode(activeSolutionBindingEventArgs.Configuration);
+            SetTimerStatus(activeSolutionBindingEventArgs.Configuration);
         }
 
-        private void CreateTimerIfInConnectedMode(BindingConfiguration bindingConfiguration)
+        private void SetTimerStatus(BindingConfiguration bindingConfiguration)
         {
             if (bindingConfiguration?.Mode != SonarLintMode.Standalone)
             {
