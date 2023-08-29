@@ -183,6 +183,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 ruleKey: sqLanguage + ":" + cFamilyIssue.RuleKey,
                 severity: Convert(defaultSeverity),
                 type: Convert(defaultType),
+                null,
                 primaryLocation: ToAnalysisIssueLocation(cFamilyIssue, fileContents),
                 flows: flows,
                 fixes: ToQuickFixes(cFamilyIssue)
