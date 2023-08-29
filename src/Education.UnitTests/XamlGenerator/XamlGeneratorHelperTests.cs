@@ -24,6 +24,7 @@ using System.Xml;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.Rules;
 
