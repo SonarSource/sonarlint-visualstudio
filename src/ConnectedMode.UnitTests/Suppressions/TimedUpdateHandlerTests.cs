@@ -149,7 +149,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
                 serverHotspotStoreUpdater ?? Mock.Of<IServerHotspotStoreUpdater>(),
                 qualityProfileUpdater ?? Mock.Of<IQualityProfileUpdater>(),
                 new TestLogger(logToConsole: true),
-                activeSolutionBoundTracker ?? Mock.Of<IActiveSolutionBoundTracker>(),
+                activeSolutionBoundTracker,
                 timerFactory ?? Mock.Of<ITimerFactory>());
         }
 
