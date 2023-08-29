@@ -128,8 +128,6 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
                 "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S4433.json",
                 // Diff-specific errors
                 "SonarLint.VisualStudio.Rules.Embedded.vbnet.S3466.json",
-                "SonarLint.VisualStudio.Rules.Embedded.javascript.S6643.json",
-                "SonarLint.VisualStudio.Rules.Embedded.typescript.S6643.json"
             });
         }
 
