@@ -21,6 +21,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.CFamily.Rules
 {
@@ -50,6 +51,15 @@ namespace SonarLint.VisualStudio.CFamily.Rules
 
         [JsonProperty("compatibleLanguages")]
         public string[] CompatibleLanguages { get; set; }
+
+        [JsonProperty("code")]
+        public Code Code { get; set; }
+    }
+
+    public class Code
+    {
+        [JsonProperty("impacts")]
+        public Dictionary<SoftwareQuality, SoftwareQualitySeverity> Impacts { get; set; } = new Dictionary<SoftwareQuality, SoftwareQualitySeverity>();
     }
 
     public enum IssueType
