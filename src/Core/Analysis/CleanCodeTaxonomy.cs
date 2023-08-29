@@ -20,7 +20,7 @@
 
 using System.Collections.Generic;
 
-namespace SonarLint.VisualStudio.Rules
+namespace SonarLint.VisualStudio.Core.Analysis
 {
     /// <summary>
     /// Clean Code Category describes the category the issue falls into
