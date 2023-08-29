@@ -69,11 +69,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
         [TestMethod]
         [DataRow(SonarLintMode.Standalone, false)]
+        [DataRow(SonarLintMode.Connected, true)]
+        [DataRow(SonarLintMode.LegacyConnected, true)]
         public void Ctor_DependingOnBindingConfig_InitialTimeStateSetCorrectly(SonarLintMode mode, bool start)
         {
             var refreshTimer = new Mock<ITimer>();
             var timerFactory = CreateTimerFactory(refreshTimer.Object);
-            var activeSolutionBoundTracker = CreateActiveSolutionBoundTrackerWihtBindingConfig(SonarLintMode.Standalone);
+            var activeSolutionBoundTracker = CreateActiveSolutionBoundTrackerWihtBindingConfig(mode);
 
             _ = CreateTestSubject(activeSolutionBoundTracker: activeSolutionBoundTracker.Object, timerFactory: timerFactory);
 
