@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Rules
 {

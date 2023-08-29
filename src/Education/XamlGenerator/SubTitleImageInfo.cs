@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Generic;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator

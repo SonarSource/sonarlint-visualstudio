@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Xml;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
