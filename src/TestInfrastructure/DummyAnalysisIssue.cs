@@ -30,6 +30,8 @@ namespace SonarLint.VisualStudio.TestInfrastructure
         public string RuleKey { get; set; }
 
         public AnalysisIssueSeverity Severity { get; set; }
+        
+        public SoftwareQualitySeverity? HighestSoftwareQualitySeverity { get; set; }
 
         public AnalysisIssueType Type { get; set; }
 

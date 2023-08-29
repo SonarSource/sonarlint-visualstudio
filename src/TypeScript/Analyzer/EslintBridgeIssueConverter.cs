@@ -75,6 +75,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                 sonarRuleKey,
                 Convert(ruleDefinition.Severity),
                 Convert(ruleDefinition.Type),
+                null,
                 primaryLocation: new AnalysisIssueLocation(
                     issue.Message,
                     filePath,

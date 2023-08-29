@@ -57,6 +57,7 @@ namespace SonarLint.VisualStudio.CloudSecrets
             return new AnalysisIssue(ruleKey: secretDetector.RuleKey,
                 severity: AnalysisIssueSeverity.Major,
                 type: AnalysisIssueType.Vulnerability,
+                highestSoftwareQualitySeverity: null,
                 primaryLocation: new AnalysisIssueLocation(
                     message: secretDetector.Message,
                     filePath: Path.IsPathRooted(filePath) ? Path.GetFullPath(filePath) : filePath,

@@ -32,6 +32,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             string ruleKey,
             AnalysisIssueSeverity severity,
             AnalysisIssueType type,
+            SoftwareQualitySeverity? highestSoftwareQualitySeverity, 
             IAnalysisIssueLocation primaryLocation,
             IReadOnlyList<IAnalysisIssueFlow> flows,
             IReadOnlyList<IQuickFix> fixes = null,
@@ -40,6 +41,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
         {
             RuleKey = ruleKey;
             Severity = severity;
+            HighestSoftwareQualitySeverity = highestSoftwareQualitySeverity;
             Type = type;
             PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
             Flows = flows ?? EmptyFlows;
@@ -50,6 +52,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
         public string RuleKey { get; }
 
         public AnalysisIssueSeverity Severity { get; }
+        
+        public SoftwareQualitySeverity? HighestSoftwareQualitySeverity { get; }
 
         public AnalysisIssueType Type { get; }
 
