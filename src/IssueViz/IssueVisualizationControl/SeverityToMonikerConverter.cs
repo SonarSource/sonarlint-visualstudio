@@ -26,10 +26,11 @@ using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
 {
-    [ValueConversion(typeof(AnalysisIssueSeverity), typeof(ImageMoniker))]
+    [ValueConversion(typeof(IAnalysisIssueVisualization), typeof(ImageMoniker))]
     public class SeverityToMonikerConverter : IValueConverter
     {
         private readonly IAnalysisSeverityToVsSeverityConverter analysisSeverityToVsSeverityConverter;
@@ -46,18 +47,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var severity = (AnalysisIssueSeverity)value;
-            var vsSeverity = analysisSeverityToVsSeverityConverter.Convert(severity);
-
-            switch (vsSeverity)
+            var issueVis = value as IAnalysisIssueVisualization;
+            
+            if (issueVis?.Issue is IAnalysisIssue issue)
             {
-                case __VSERRORCATEGORY.EC_ERROR:
-                    return KnownMonikers.StatusError;
-                case __VSERRORCATEGORY.EC_WARNING:
-                    return KnownMonikers.StatusWarning;
-                default:
-                    return KnownMonikers.StatusInformation;
+                switch (analysisSeverityToVsSeverityConverter.GetVsSeverity(issue))
+                {
+                    case __VSERRORCATEGORY.EC_ERROR:
+                        return KnownMonikers.StatusError;
+                    case __VSERRORCATEGORY.EC_WARNING:
+                        return KnownMonikers.StatusWarning;
+                }
             }
+
+            return KnownMonikers.StatusInformation;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
