@@ -210,7 +210,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case StandardTableKeyNames.ErrorSeverity:
-                    content = toVsSeverityConverter.Convert(issue.Severity);
+                    content = toVsSeverityConverter.GetVsSeverity(issue);
                     return true;
 
                 case StandardTableKeyNames.BuildTool:

@@ -25,6 +25,7 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
 {
@@ -60,11 +61,54 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
 
             testSubject.Convert(AnalysisIssueSeverity.Blocker).Should().Be(expectedVsErrorCategory);
         }
+        
+        [TestMethod]
+        [DataRow(SoftwareQualitySeverity.High, __VSERRORCATEGORY.EC_WARNING)]
+        [DataRow(SoftwareQualitySeverity.Medium, __VSERRORCATEGORY.EC_WARNING)]
+        [DataRow(SoftwareQualitySeverity.Low, __VSERRORCATEGORY.EC_MESSAGE)]
+        public void ConvertFromCct_CorrectlyMapped(SoftwareQualitySeverity severity, __VSERRORCATEGORY expectedVsErrorCategory)
+        {
+            testSubject.ConvertFromCct(severity).Should().Be(expectedVsErrorCategory);
+        }
 
+        [TestMethod]
+        public void ConvertFromCct_InvalidCctSeverity_DoesNotThrow()
+        {
+            testSubject.ConvertFromCct((SoftwareQualitySeverity)(-999)).Should().Be(__VSERRORCATEGORY.EC_MESSAGE);
+        }
+        
         [TestMethod]
         public void Convert_InvalidDaemonSeverity_DoesNotThrow()
         {
             testSubject.Convert((AnalysisIssueSeverity)(-999)).Should().Be(__VSERRORCATEGORY.EC_MESSAGE);
+        }
+
+        [TestMethod]
+        public void GetVsSeverity_IssueWithNewCct_UsesNewCctConverter()
+        {
+            var converter = new Mock<IAnalysisSeverityToVsSeverityConverter>();
+
+            converter.Object.GetVsSeverity(new DummyAnalysisIssue
+            {
+                Severity = AnalysisIssueSeverity.Major, HighestSoftwareQualitySeverity = SoftwareQualitySeverity.High
+            });
+            
+            converter.Verify(x => x.ConvertFromCct(SoftwareQualitySeverity.High), Times.Once);
+            converter.Invocations.Should().HaveCount(1);
+        }
+        
+        [TestMethod]
+        public void GetVsSeverity_IssueWithoutNewCct_UsesOldSeverityConverter()
+        {
+            var converter = new Mock<IAnalysisSeverityToVsSeverityConverter>();
+
+            converter.Object.GetVsSeverity(new DummyAnalysisIssue
+            {
+                Severity = AnalysisIssueSeverity.Major
+            });
+            
+            converter.Verify(x => x.Convert(AnalysisIssueSeverity.Major), Times.Once);
+            converter.Invocations.Should().HaveCount(1);
         }
     }
 }
