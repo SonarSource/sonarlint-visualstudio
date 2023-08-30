@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Linq;
 using System.Reflection;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -30,10 +29,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class ReferencesTests
     {
         [TestMethod]
-        public void MicrosoftVisualStudioCodeAnalysis_EnsureCorrectVersion()
+        public void MicrosoftVisualStudioVCProjectEngine_EnsureCorrectVersion()
         {
             var codeAnalysisAssemblyVersion = AssemblyHelper.GetVersionOfReferencedAssembly(
-                    typeof(SonarLint.VisualStudio.Integration.Binding.BindingController), "Microsoft.VisualStudio.CodeAnalysis");
+                typeof(SonarLint.VisualStudio.Integration.Vsix.AccumulatingIssueConsumer), // any type in the VSIX assembly will do
+                "Microsoft.VisualStudio.VCProjectEngine");
 
             AssertIsCorrectMajorVersion(codeAnalysisAssemblyVersion.Major);
         }
@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var executingAssemblyLocation = Assembly.GetExecutingAssembly().Location;
             executingAssemblyLocation.Should()
                 .NotBeNull()
-                .And.EndWith("Integration.UnitTests.dll");
+                .And.EndWith("Integration.Vsix.UnitTests.dll");
             
             if (executingAssemblyLocation.Contains("\\VS2019\\"))
             {
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
             else
             {
-                Assert.Fail("Test setup error: Expecting the path to the test dll to contain one of 'VS2015', 'VS2017', 'VS2019' or 'VS2022'.");
+                Assert.Fail("Test setup error: Expecting the path to the test dll to contain one of 'VS2019' or 'VS2022'.");
             }
         }
     }

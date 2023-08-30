@@ -47,17 +47,6 @@
   </PropertyGroup>
 
   <!-- ******************************************************************************* -->
-  <!-- Legacy VS static analysis ruleset -->
-  <!-- ******************************************************************************* -->
-
-  <ItemGroup Label="Legacy VS CodeAnalysis" Condition=" $(RequiresRuleset)=='true' " >
-    <Reference Include="Microsoft.VisualStudio.CodeAnalysis">
-      <HintPath>$(ThirdPartyPath)\Microsoft.VisualStudio.CodeAnalysis.dll</HintPath>
-      <Private>$(CopyVSAssembliesToOutput)</Private>
-    </Reference>
-  </ItemGroup>
-
-  <!-- ******************************************************************************* -->
   <!-- Team foundation assemblies -->
   <!-- ******************************************************************************* -->
   <ItemGroup Label="TeamFoundation" Condition="$(RequiresTeamFoundation)=='true'">
