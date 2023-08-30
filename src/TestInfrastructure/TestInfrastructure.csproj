@@ -4,8 +4,6 @@
   <Import Project="..\SonarLint.VsPkgRefs.props" />
 
   <PropertyGroup Label="Specify which VS-specific refs are required">
-    <RequiresRuleset>true</RequiresRuleset>
-
     <!-- Conditional compilation constant for VS2022-specific code.
          We'd prefer to set this the shared SonarLint.VSSpecificAssemblies.props file, but
          the IDE isn't picking up the setting if we do that. -->
