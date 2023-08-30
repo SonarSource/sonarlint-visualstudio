@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules
             RulesSettings customRulesSettings,
             IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration,
             ILogger logger)
-            :this(defaultRulesConfig, customRulesSettings, connectedModeFeaturesConfiguration, logger, new RulesConfigFixup(logger))
+            : this(defaultRulesConfig, customRulesSettings, connectedModeFeaturesConfiguration, logger, new RulesConfigFixup(logger))
         {
         }
 
@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules
             IRulesConfigFixup fixup)
         {
             this.defaultRulesConfig = defaultRulesConfig ?? throw new ArgumentNullException(nameof(defaultRulesConfig));
-            
+
             if (customRulesSettings == null)
             {
                 throw new ArgumentNullException(nameof(customRulesSettings));
@@ -156,7 +156,8 @@ namespace SonarLint.VisualStudio.CFamily.Rules
                 DefaultSeverity = userConfig.Severity.Value,
                 Title = defaultMetadata.Title,
                 CompatibleLanguages = defaultMetadata.CompatibleLanguages,
-                Type = defaultMetadata.Type
+                Type = defaultMetadata.Type,
+                Code = defaultMetadata.Code
             };
         }
 

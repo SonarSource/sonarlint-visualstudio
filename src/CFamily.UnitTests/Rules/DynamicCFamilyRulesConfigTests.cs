@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Configuration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -58,7 +59,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
                 Mock.Of<IConnectedModeFeaturesConfiguration>(),
                 null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-            
+
             // 4. Hotspot config
             act = () => new DynamicCFamilyRulesConfig(new DummyCFamilyRulesConfig("anyLanguage"),
                 settings,
@@ -73,11 +74,14 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             // Arrange
             var defaultConfig = new DummyCFamilyRulesConfig("123")
                 .AddRule("rule1", IssueSeverity.Blocker, isActive: true,
-                    parameters: new Dictionary<string, string> { { "p1", "v1" } })
+                    parameters: new Dictionary<string, string> { { "p1", "v1" } },
+                    code: new Code { Impacts = new Dictionary<SoftwareQuality, SoftwareQualitySeverity> { { SoftwareQuality.Maintainability, SoftwareQualitySeverity.High } } })
                 .AddRule("rule2", IssueSeverity.Major, isActive: true,
-                    parameters: new Dictionary<string, string> { { "p2", "v2" } })
+                    parameters: new Dictionary<string, string> { { "p2", "v2" } },
+                    code: new Code { Impacts = new Dictionary<SoftwareQuality, SoftwareQualitySeverity> { { SoftwareQuality.Maintainability, SoftwareQualitySeverity.Medium } } })
                 .AddRule("rule3", IssueSeverity.Minor, isActive: false,
-                    parameters: new Dictionary<string, string> { { "p3", "v3" } });
+                    parameters: new Dictionary<string, string> { { "p3", "v3" } },
+                    code: new Code { Impacts = new Dictionary<SoftwareQuality, SoftwareQualitySeverity> { { SoftwareQuality.Maintainability, SoftwareQualitySeverity.Low } } });
 
             var settings = new RulesSettings();
 
@@ -176,9 +180,9 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
         {
             // Arrange
             var defaultConfig = new DummyCFamilyRulesConfig("c")
-                .AddRule("rule1", IssueSeverity.Major, isActive: false)
-                .AddRule("rule2", IssueSeverity.Minor, isActive: true)
-                .AddRule("rule3", IssueSeverity.Info, isActive: true);
+                .AddRule("rule1", IssueSeverity.Major, isActive: false, null)
+                .AddRule("rule2", IssueSeverity.Minor, isActive: true, null)
+                .AddRule("rule3", IssueSeverity.Info, isActive: true, null);
 
             var settings = new RulesSettings();
 
@@ -263,7 +267,6 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
 
             // Act
             var dynamicConfig = CreateTestSubject(defaultConfig, settings);
-            
 
             // Assert
             dynamicConfig.RulesParameters.Count.Should().Be(3);
@@ -354,7 +357,6 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             public RulesSettings Apply(RulesSettings input,
                 IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration) => input;
         }
-
     }
 
     internal static class RulesSettingsExtensions
