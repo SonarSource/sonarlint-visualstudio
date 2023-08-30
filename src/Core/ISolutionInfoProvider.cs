@@ -54,5 +54,18 @@ namespace SonarLint.VisualStudio.Core
         /// <remarks>If possible, use the asynchronous version of this method. This synchronous version was added
         /// to be used only by existing non-thread-aware code that cannot easily be refactored.</remarks>
         string GetFullSolutionFilePath();
+
+
+        /// <summary>
+        /// Returns true if the Solution is fully opened or false if it is not.
+        /// </summary>
+        Task<bool> IsSolutionFullyOpenedAsync();
+
+        /// <summary>
+        /// Returns true if the Solution is fully opened or false if it is not.
+        /// </summary>
+        ///  <remarks>If possible, use the asynchronous version of this method. This synchronous version was added
+        /// to be used only by existing non-thread-aware code that cannot easily be refactored.</remarks>
+        bool IsSolutionFullyOpened();
     }
 }

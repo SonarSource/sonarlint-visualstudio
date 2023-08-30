@@ -279,20 +279,5 @@ namespace SonarLint.VisualStudio.Integration
                 yield return output[0];
             }
         }
-
-        public bool IsSolutionFullyOpened()
-        {
-            object isLoaded;
-            IVsSolution solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
-            Debug.Assert(solution != null, "Cannot find SVsSolution");
-
-            int hresult = solution.GetProperty((int)__VSPROPID4.VSPROPID_IsSolutionFullyLoaded, out isLoaded);
-
-            if (ErrorHandler.Succeeded(hresult) && isLoaded is Boolean)
-            {
-                return (bool)isLoaded;
-            }
-            return false;
-        }
     }
 }
