@@ -5,7 +5,6 @@
 
   <PropertyGroup Label="Specify which external/VS-specific refs are required">
     <RequiresTeamFoundation>true</RequiresTeamFoundation>
-    <RequiresRuleset>true</RequiresRuleset>
     <RequiresAlmAuthentication>true</RequiresAlmAuthentication>
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
   </PropertyGroup>

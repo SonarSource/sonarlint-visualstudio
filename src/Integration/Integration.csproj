@@ -4,7 +4,6 @@
   <Import Project="..\SonarLint.VsPkgRefs.props" />
 
   <PropertyGroup Label="Specify which external/VS-specific refs are required">
-    <RequiresRuleset>true</RequiresRuleset>
     <RequiresAlmAuthentication>true</RequiresAlmAuthentication>
   </PropertyGroup>
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
