@@ -22,6 +22,7 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
@@ -39,6 +40,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         private readonly IServerHotspotStoreUpdater serverHotspotStoreUpdater;
         private readonly IQualityProfileUpdater qualityProfileUpdater;
         private readonly ILogger logger;
+        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
 
         private bool disposed;
 
@@ -46,12 +48,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         public TimedUpdateHandler(ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
             IServerHotspotStoreUpdater serverHotspotStoreUpdater,
             IQualityProfileUpdater qualityProfileUpdater,
-            ILogger logger)
-            : this(suppressionIssueStoreUpdater, serverHotspotStoreUpdater, qualityProfileUpdater, logger, new TimerFactory()) { }
+            ILogger logger,
+            IActiveSolutionBoundTracker activeSolutionBoundTracker)
+            : this(suppressionIssueStoreUpdater, serverHotspotStoreUpdater, qualityProfileUpdater, activeSolutionBoundTracker, logger, new TimerFactory()) { }
 
         internal /* for testing */ TimedUpdateHandler(ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
             IServerHotspotStoreUpdater serverHotspotStoreUpdater,
             IQualityProfileUpdater qualityProfileUpdater,
+            IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ILogger logger,
             ITimerFactory timerFactory)
         {
@@ -59,13 +63,33 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             this.serverHotspotStoreUpdater = serverHotspotStoreUpdater;
             this.qualityProfileUpdater = qualityProfileUpdater;
             this.logger = logger;
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
 
             refreshTimer = timerFactory.Create();
             refreshTimer.AutoReset = true;
             refreshTimer.Interval = MillisecondsToWaitBetweenRefresh;
             refreshTimer.Elapsed += OnRefreshTimerElapsed;
 
-            refreshTimer.Start();
+            activeSolutionBoundTracker.SolutionBindingChanged += SolutionBindingChanged;
+
+            SetTimerStatus(activeSolutionBoundTracker.CurrentConfiguration);
+        }
+
+        private void SolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs activeSolutionBindingEventArgs)
+        {
+            SetTimerStatus(activeSolutionBindingEventArgs.Configuration);
+        }
+
+        private void SetTimerStatus(BindingConfiguration bindingConfiguration)
+        {
+            if (bindingConfiguration?.Mode != SonarLintMode.Standalone)
+            {
+                refreshTimer.Start();
+            }
+            else
+            {
+                refreshTimer.Stop();
+            }
         }
 
         private void OnRefreshTimerElapsed(object sender, TimerEventArgs e)
@@ -83,6 +107,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
                 refreshTimer.Elapsed -= OnRefreshTimerElapsed;
                 refreshTimer.Dispose();
                 disposed = true;
+
+                activeSolutionBoundTracker.SolutionBindingChanged -= SolutionBindingChanged;
             }
         }
     }
