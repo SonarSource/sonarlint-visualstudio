@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
                 MefTestHelpers.CreateExport<IConnectedModeFeaturesConfiguration>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
-        
+
         [TestMethod]
         public void Get_NullLanguage_ArgumentNullException()
         {
@@ -82,11 +82,11 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
             };
 
             var sonarWayConfig = new DummyCFamilyRulesConfig("cpp")
-                .AddRule("rule1", IssueSeverity.Info, isActive: false)
-                .AddRule("rule2", IssueSeverity.Major, isActive: false)
-                .AddRule("rule3", IssueSeverity.Minor, isActive: true)
-                .AddRule("rule4", IssueSeverity.Blocker, isActive: false)
-                .AddRule(hotspotRuleKey, IssueSeverity.Blocker, isActive: true);
+                .AddRule("rule1", IssueSeverity.Info, isActive: false, code: null)
+                .AddRule("rule2", IssueSeverity.Major, isActive: false, code: null)
+                .AddRule("rule3", IssueSeverity.Minor, isActive: true, code: null)
+                .AddRule("rule4", IssueSeverity.Blocker, isActive: false, code: null)
+                .AddRule(hotspotRuleKey, IssueSeverity.Blocker, isActive: true, code: null);
 
             var testSubject = CreateTestSubject(standaloneModeSettings, sonarWayConfig, hotspotsEnabled);
 
@@ -95,12 +95,12 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
 
             // Assert
             var activeKeys = new List<string> { "rule1", "rule3", "rule4" };
-            
+
             if (hotspotsEnabled)
             {
                 activeKeys.Add(hotspotRuleKey);
             }
-            
+
             result.ActivePartialRuleKeys.Should().BeEquivalentTo(activeKeys);
             result.AllPartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2", "rule3", "rule4", hotspotRuleKey);
         }

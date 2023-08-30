@@ -34,9 +34,10 @@ namespace SonarLint.VisualStudio.CFamily.Helpers.UnitTests
             LanguageKey = languageKey;
             ruleKeyToActiveMap = new Dictionary<string, bool>();
         }
-        public DummyCFamilyRulesConfig AddRule(string partialRuleKey, IssueSeverity issueSeverity, bool isActive)
+
+        public DummyCFamilyRulesConfig AddRule(string partialRuleKey, IssueSeverity issueSeverity, bool isActive, Code code)
         {
-            return AddRule(partialRuleKey, issueSeverity, isActive, null);
+            return AddRule(partialRuleKey, issueSeverity, isActive, null, code);
         }
 
         public DummyCFamilyRulesConfig AddRule(string partialRuleKey, bool isActive)
@@ -48,13 +49,13 @@ namespace SonarLint.VisualStudio.CFamily.Helpers.UnitTests
 
         public DummyCFamilyRulesConfig AddRule(string partialRuleKey, bool isActive, Dictionary<string, string> parameters)
         {
-            return AddRule(partialRuleKey, (IssueSeverity)0 /* default enum value */, isActive, parameters);
+            return AddRule(partialRuleKey, (IssueSeverity)0 /* default enum value */, isActive, parameters, new Code());
         }
 
-        public DummyCFamilyRulesConfig AddRule(string partialRuleKey, IssueSeverity issueSeverity, bool isActive, Dictionary<string, string> parameters)
+        public DummyCFamilyRulesConfig AddRule(string partialRuleKey, IssueSeverity issueSeverity, bool isActive, Dictionary<string, string> parameters, Code code)
         {
             ruleKeyToActiveMap[partialRuleKey] = isActive;
-            RulesMetadata[partialRuleKey] = new RuleMetadata { DefaultSeverity = issueSeverity };
+            RulesMetadata[partialRuleKey] = new RuleMetadata { DefaultSeverity = issueSeverity, Code = code };
 
             if (parameters != null)
             {
@@ -72,6 +73,7 @@ namespace SonarLint.VisualStudio.CFamily.Helpers.UnitTests
         public IEnumerable<string> ActivePartialRuleKeys => ruleKeyToActiveMap.Where(kvp => kvp.Value)
                                                                         .Select(kvp => kvp.Key)
                                                                         .ToList();
+
         public IDictionary<string, IDictionary<string, string>> RulesParameters { get; set; }
                 = new Dictionary<string, IDictionary<string, string>>();
 

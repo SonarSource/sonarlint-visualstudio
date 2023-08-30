@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
 
             testLogger.AssertOutputStringExists(Resources.NoCustomRulesSettings);
         }
-        
+
         [TestMethod]
         public void GetConfig_RulesInCustomSettings_MergedConfigReturned()
         {
@@ -170,9 +170,9 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
         private static ICFamilyRulesConfig CreateWellKnownRulesConfig(string languageKey)
         {
             var defaultRulesConfig = new DummyCFamilyRulesConfig(languageKey)
-                .AddRule(WellKnownPartialRuleKey1_Active, IssueSeverity.Blocker, isActive: true, parameters: null)
-                .AddRule(WellKnownPartialRuleKey2_Active, IssueSeverity.Major, isActive: true, parameters: null)
-                .AddRule(WellKnownPartialRuleKey3_Inactive, IssueSeverity.Minor, isActive: false, parameters: null);
+                .AddRule(WellKnownPartialRuleKey1_Active, IssueSeverity.Blocker, isActive: true, parameters: null, code: null)
+                .AddRule(WellKnownPartialRuleKey2_Active, IssueSeverity.Major, isActive: true, parameters: null, code: null)
+                .AddRule(WellKnownPartialRuleKey3_Inactive, IssueSeverity.Minor, isActive: false, parameters: null, code: null);
 
             return defaultRulesConfig;
         }
