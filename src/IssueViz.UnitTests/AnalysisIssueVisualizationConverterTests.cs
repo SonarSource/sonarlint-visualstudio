@@ -271,7 +271,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
                 Guid.NewGuid().ToString(),
                 AnalysisIssueSeverity.Blocker,
                 AnalysisIssueType.Bug,
-                null,
+                SoftwareQualitySeverity.High,
                 CreateLocation(Guid.NewGuid().ToString()),
                 null,
                 quickFixes
@@ -286,7 +286,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
                 Guid.NewGuid().ToString(),
                 AnalysisIssueSeverity.Blocker,
                 AnalysisIssueType.Bug,
-                null,
+                SoftwareQualitySeverity.High,
                 CreateLocation(filePath),
                 flows
             );

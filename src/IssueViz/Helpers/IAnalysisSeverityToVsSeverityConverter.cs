@@ -27,6 +27,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
     public interface IAnalysisSeverityToVsSeverityConverter
     {
         __VSERRORCATEGORY Convert(AnalysisIssueSeverity severity);
+        __VSERRORCATEGORY ConvertFromCct(SoftwareQualitySeverity severity);
     }
 
     public class AnalysisSeverityToVsSeverityConverter : IAnalysisSeverityToVsSeverityConverter
@@ -41,6 +42,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
         internal AnalysisSeverityToVsSeverityConverter(IEnvironmentSettings environmentSettings)
         {
             this.environmentSettings = environmentSettings;
+        }
+
+        public __VSERRORCATEGORY ConvertFromCct(SoftwareQualitySeverity severity)
+        {
+            switch (severity)
+            {
+                case SoftwareQualitySeverity.Medium:
+                case SoftwareQualitySeverity.High:
+                    return __VSERRORCATEGORY.EC_WARNING;
+
+                case SoftwareQualitySeverity.Low:
+                    return __VSERRORCATEGORY.EC_MESSAGE;
+
+                default:
+                    // We don't want to throw here - we're being called by VS to populate
+                    // the columns in the error list, and if we're on a UI thread then
+                    // we'll crash VS
+                    return __VSERRORCATEGORY.EC_MESSAGE;
+            }
         }
 
         public __VSERRORCATEGORY Convert(AnalysisIssueSeverity severity)
@@ -65,5 +85,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
                     return __VSERRORCATEGORY.EC_MESSAGE;
             }
         }
+    }
+
+    public static class AnalysisSeverityToVsSeverityConverterExtensions
+    {
+        public static __VSERRORCATEGORY GetVsSeverity(
+            this IAnalysisSeverityToVsSeverityConverter converter,
+            IAnalysisIssue issue) =>
+            issue.HighestSoftwareQualitySeverity.HasValue
+                ? converter.ConvertFromCct(issue.HighestSoftwareQualitySeverity.Value)
+                : converter.Convert(issue.Severity);
     }
 }
