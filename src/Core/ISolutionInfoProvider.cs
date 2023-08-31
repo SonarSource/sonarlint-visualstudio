@@ -55,7 +55,6 @@ namespace SonarLint.VisualStudio.Core
         /// to be used only by existing non-thread-aware code that cannot easily be refactored.</remarks>
         string GetFullSolutionFilePath();
 
-
         /// <summary>
         /// Returns true if the Solution is fully opened or false if it is not.
         /// </summary>
