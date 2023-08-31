@@ -21,6 +21,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -40,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
     {
         private readonly IHost host;
         private readonly IConnectionInformationProvider connectionProvider;
-        private readonly IProjectSystemHelper projectSystemHelper;
+        private readonly ISolutionInfoProvider solutionInfoProvider;
 
         public ConnectionController(IServiceProvider serviceProvider, IHost host)
             : this(serviceProvider, host, null, null)
@@ -57,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             this.WorkflowExecutor = workflowExecutor ?? this;
             this.connectionProvider = connectionProvider ?? this;
 
-            this.projectSystemHelper = serviceProvider.GetMefService<IProjectSystemHelper>();
+            this.solutionInfoProvider = serviceProvider.GetMefService<ISolutionInfoProvider>();
             this.ConnectCommand = new RelayCommand(this.OnConnect, this.CanConnect);
             this.RefreshCommand = new RelayCommand<ConnectionInformation>(this.OnRefresh, this.CanRefresh);
         }
@@ -103,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         private bool CanConnect()
         {
-            return this.projectSystemHelper.IsSolutionFullyOpened()
+            return solutionInfoProvider.IsSolutionFullyOpened()
                 && !this.host.VisualStateManager.IsConnected
                 && !this.host.VisualStateManager.IsBusy;
         }

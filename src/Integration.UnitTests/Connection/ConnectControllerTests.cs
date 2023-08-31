@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private ConfigurableConnectionInformationProvider connectionProvider;
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableSonarLintSettings settings;
-        private ConfigurableVsProjectSystemHelper projectSystemHelper;
+        private Mock<ISolutionInfoProvider> solutionInfoProvider;
         private TestLogger logger;
 
         [TestInitialize]
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
             this.connectionProvider = new ConfigurableConnectionInformationProvider();
             this.settings = new ConfigurableSonarLintSettings();
-            this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
+            this.solutionInfoProvider = new Mock<ISolutionInfoProvider>();
             this.host = new ConfigurableHost()
             {
                 SonarQubeService = this.sonarQubeServiceMock.Object,
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             IComponentModel componentModel = ConfigurableComponentModel.CreateWithExports(
                 new []
                 {
-                    MefTestHelpers.CreateExport<IProjectSystemHelper>(projectSystemHelper),
+                    MefTestHelpers.CreateExport<ISolutionInfoProvider>(solutionInfoProvider.Object),
                     MefTestHelpers.CreateExport<ISonarLintSettings>(settings)
                 });
             this.serviceProvider.RegisterService(typeof(SComponentModel), componentModel);
@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             // Arrange
             var testSubject = CreateTestSubject();
-            this.projectSystemHelper.SetIsSolutionFullyOpened(true);
+            this.solutionInfoProvider.Setup(x => x.IsSolutionFullyOpened()).Returns(true);
 
             // Case 1: has connection, is busy
             this.host.TestStateManager.IsConnected = true;
@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             // Arrange
             var testSubject = CreateTestSubject();
-            this.projectSystemHelper.SetIsSolutionFullyOpened(false);
+            this.solutionInfoProvider.Setup(x => x.IsSolutionFullyOpened()).Returns(false);
 
             // Case 1: has connection, is busy
             this.host.TestStateManager.IsConnected = true;
@@ -180,7 +180,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             connectionWorkflowMock.Setup(x => x.EstablishConnection(It.IsAny<ConnectionInformation>()));
             ConnectionController testSubject = new ConnectionController(this.serviceProvider, this.host, this.connectionProvider,
                 connectionWorkflowMock.Object);
-            this.projectSystemHelper.SetIsSolutionFullyOpened(true);
+            this.solutionInfoProvider.Setup(x => x.IsSolutionFullyOpened()).Returns(true);
 
             // Case 1: connection provider return null connection
             this.connectionProvider.ConnectionInformationToReturn = null;
@@ -294,7 +294,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var connectionWorkflowMock = CreateWorkflow();
             ConnectionController testSubject = new ConnectionController(serviceProvider, host, connectionProvider,
                 connectionWorkflowMock.Object);
-            this.projectSystemHelper.SetIsSolutionFullyOpened(true);
+            this.solutionInfoProvider.Setup(x => x.IsSolutionFullyOpened()).Returns(true);
             this.connectionProvider.ConnectionInformationToReturn = null;
             var progressEvents = new ConfigurableProgressEvents();
             var connectionInfo = new ConnectionInformation(new Uri("http://refreshConnection"));

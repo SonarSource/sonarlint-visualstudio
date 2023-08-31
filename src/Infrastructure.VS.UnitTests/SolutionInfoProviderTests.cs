@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [DataRow("a value")]
         public async Task GetSlnFilePathAsync_ReturnsExpectedValue(string solutionNameToReturn)
         {
-            var solution = CreateIVsSolution(solutionNameToReturn);
+            var solution = CreateIVsSolutionWithSolutionFileName(solutionNameToReturn);
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
 
             var testSubject = CreateTestSubject(serviceProvider.Object);
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [DataRow("a value")]
         public void GetSlnFilePath_ReturnsExpectedValue(string solutionNameToReturn)
         {
-            var solution = CreateIVsSolution(solutionNameToReturn);
+            var solution = CreateIVsSolutionWithSolutionFileName(solutionNameToReturn);
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
 
             var testSubject = CreateTestSubject(serviceProvider.Object);
@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [DataRow("c:\\aaa\\bbb\\mysolution.sln", "c:\\aaa\\bbb")]
         public async Task GetDirectoryAsync_ReturnsExpectedValue(string solutionNameToReturn, string expectedResult)
         {
-            var solution = CreateIVsSolution(solutionNameToReturn);
+            var solution = CreateIVsSolutionWithSolutionFileName(solutionNameToReturn);
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
 
             var testSubject = CreateTestSubject(serviceProvider.Object);
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [DataRow("c:\\aaa\\bbb\\mysolution.sln", "c:\\aaa\\bbb")]
         public void GetDirectory_ReturnsExpectedValue(string solutionNameToReturn, string expectedResult)
         {
-            var solution = CreateIVsSolution(solutionNameToReturn);
+            var solution = CreateIVsSolutionWithSolutionFileName(solutionNameToReturn);
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
 
             var testSubject = CreateTestSubject(serviceProvider.Object);
@@ -119,11 +119,55 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task GetSolutionFullyOpenAsync_ReturnsExpectedValue(bool isFullyOpen)
+        {
+            var solution = CreateIVsSolutionWithIsFullyOpened(isFullyOpen);
+            var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
+
+            var testSubject = CreateTestSubject(serviceProvider.Object);
+
+            var actual = await testSubject.IsSolutionFullyOpenedAsync();
+            actual.Should().Be(isFullyOpen);
+        }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void GetSolutionFullyOpen_ReturnsExpectedValue(bool isFullyOpen)
+        {
+            var solution = CreateIVsSolutionWithIsFullyOpened(isFullyOpen);
+            var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
+
+            var testSubject = CreateTestSubject(serviceProvider.Object);
+
+            var actual = testSubject.IsSolutionFullyOpened();
+            actual.Should().Be(isFullyOpen);
+        }
+
+        [TestMethod]
+        [DataRow(true, 0)]
+        [DataRow(false, 0)]
+        [DataRow(true, -1)]
+        [DataRow(false, -1)]
+        public void GetSolutionFullyOpen_HrefResult_ChangesOutcome(bool isFullyOpen, int hresult)
+        {
+            var solution = CreateIVsSolutionWithIsFullyOpened(isFullyOpen, hresult);
+            var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
+
+            var testSubject = CreateTestSubject(serviceProvider.Object);
+
+            var actual = testSubject.IsSolutionFullyOpened();
+            actual.Should().Be(hresult == 0 && isFullyOpen);
+        }
+
+        [TestMethod]
         public async Task GetSlnFilePathAsync_ServiceCalledOnUIThread()
         {
             var calls = new List<string>();
 
-            var solution = CreateIVsSolution("any", () => calls.Add("GetSolutionName"));
+            var solution = CreateIVsSolutionWithSolutionFileName("any", () => calls.Add("GetSolutionName"));
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object, () => calls.Add("GetService"));
 
             var threadHandling = new Mock<IThreadHandling>();
@@ -147,7 +191,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         {
             var calls = new List<string>();
 
-            var solution = CreateIVsSolution("any", () => calls.Add("GetSolutionName"));
+            var solution = CreateIVsSolutionWithSolutionFileName("any", () => calls.Add("GetSolutionName"));
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object, () => calls.Add("GetService"));
 
             var threadHandling = new Mock<IThreadHandling>();
@@ -166,11 +210,34 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
+        public async Task IsSolutionFullyOpenAsync_ServiceCalledOnUIThread()
+        {
+            var calls = new List<string>();
+
+            var solution = CreateIVsSolutionWithIsFullyOpened(true, callback:() => calls.Add("GetSolutionIsFullyOpen"));
+            var serviceProvider = CreateServiceProviderWithSolution(solution.Object, () => calls.Add("GetService"));
+
+            var threadHandling = new Mock<IThreadHandling>();
+            threadHandling.Setup(x => x.RunOnUIThreadAsync(It.IsAny<Action>()))
+                .Callback<Action>(productOperation =>
+                {
+                    calls.Add("switch to UI thread");
+                    productOperation.Invoke();
+                });
+
+            var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object);
+
+            var actual = await testSubject.IsSolutionFullyOpenedAsync();
+
+            calls.Should().ContainInOrder("switch to UI thread", "GetService", "GetSolutionIsFullyOpen");
+        }
+
+        [TestMethod]
         public void GetSlnFilePath_ServiceCalledOnUIThread()
         {
             var calls = new List<string>();
 
-            var solution = CreateIVsSolution("any", () => calls.Add("GetSolutionName"));
+            var solution = CreateIVsSolutionWithSolutionFileName("any", () => calls.Add("GetSolutionName"));
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object, () => calls.Add("GetService"));
 
             var threadHandling = new Mock<IThreadHandling>();
@@ -193,7 +260,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         {
             var calls = new List<string>();
 
-            var solution = CreateIVsSolution("any", () => calls.Add("GetSolutionName"));
+            var solution = CreateIVsSolutionWithSolutionFileName("any", () => calls.Add("GetSolutionName"));
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object, () => calls.Add("GetService"));
 
             var threadHandling = new Mock<IThreadHandling>();
@@ -209,6 +276,29 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             var actual = testSubject.GetSolutionDirectory();
 
             calls.Should().ContainInOrder("switch to UI thread", "GetService", "GetSolutionName");
+        }
+
+        [TestMethod]
+        public async Task IsSolutionFullyOpen_ServiceCalledOnUIThread()
+        {
+            var calls = new List<string>();
+
+            var solution = CreateIVsSolutionWithIsFullyOpened(true, callback: () => calls.Add("GetSolutionIsFullyOpen"));
+            var serviceProvider = CreateServiceProviderWithSolution(solution.Object, () => calls.Add("GetService"));
+
+            var threadHandling = new Mock<IThreadHandling>();
+            threadHandling.Setup(x => x.RunOnUIThreadAsync(It.IsAny<Action>()))
+                .Callback<Action>(productOperation =>
+                {
+                    calls.Add("switch to UI thread");
+                    productOperation.Invoke();
+                });
+
+            var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object);
+
+            var actual = await testSubject.IsSolutionFullyOpenedAsync();
+
+            calls.Should().ContainInOrder("switch to UI thread", "GetService", "GetSolutionIsFullyOpen");
         }
 
         private static SolutionInfoProvider CreateTestSubject(IServiceProvider serviceProvider,
@@ -230,7 +320,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             return serviceProvider;
         }
 
-        private static Mock<IVsSolution> CreateIVsSolution(string solutionNameToReturn, Action callback = null)
+        private static Mock<IVsSolution> CreateIVsSolutionWithSolutionFileName(string solutionNameToReturn, Action callback = null)
         {
             var solution = new Mock<IVsSolution>();
 
@@ -239,6 +329,19 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
                 .Setup(x => x.GetProperty((int)__VSPROPID.VSPROPID_SolutionFileName, out solutionDirectory))
                 .Callback<IInvocation>(x => callback?.Invoke())
                 .Returns(VSConstants.S_OK);
+
+            return solution;
+        }
+
+        private static Mock<IVsSolution> CreateIVsSolutionWithIsFullyOpened(bool isFullyOpened, int hresult = VSConstants.S_OK,Action callback = null)
+        {
+            var solution = new Mock<IVsSolution>();
+
+            object isOpened = isFullyOpened;
+            solution
+                .Setup(x => x.GetProperty((int)__VSPROPID4.VSPROPID_IsSolutionFullyLoaded, out isOpened))
+                .Callback<IInvocation>(x => callback?.Invoke())
+                .Returns(hresult);
 
             return solution;
         }
