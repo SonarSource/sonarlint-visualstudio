@@ -73,7 +73,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 await this.GetMefServiceAsync<ICFamilyTelemetryManager>();
 
-                if (await IsSolutionFullyOpenedAsync())
+                var solutionInfoProvider = await this.GetMefServiceAsync<ISolutionInfoProvider>();
+
+                if (await solutionInfoProvider.IsSolutionFullyOpenedAsync())
                 {
                     telemetryManager.Update();
                 }
@@ -83,18 +85,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // Suppress non-critical exceptions
                 logger?.WriteLine(Resources.Strings.Telemetry_ERROR, ex.Message);
             }
-        }
-
-        private async System.Threading.Tasks.Task<bool> IsSolutionFullyOpenedAsync()
-        {
-            Debug.Assert(ThreadHelper.CheckAccess(), "Expecting to be called on the UI thread");
-            var solution = await this.GetServiceAsync(typeof(SVsSolution)) as IVsSolution;
-            Debug.Assert(solution != null, "Cannot find SVsSolution");
-
-            object isLoaded;
-            var hresult = solution.GetProperty((int)__VSPROPID4.VSPROPID_IsSolutionFullyLoaded, out isLoaded);
-
-            return ErrorHandler.Succeeded(hresult) && (isLoaded as bool?) == true;
         }
 
         protected override void Dispose(bool disposing)

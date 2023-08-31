@@ -73,6 +73,30 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
             return fullSolutionName;
         }
 
+        public async Task<bool> IsSolutionFullyOpenedAsync()
+        {
+            var isOpen = false;
+            await threadHandling.RunOnUIThreadAsync(() => isOpen = GetSolutionIsFullyOpened());
+            return isOpen;
+        }
+
+        public bool IsSolutionFullyOpened()
+        {
+            var isOpen = false;
+            threadHandling.RunOnUIThread(() => isOpen = GetSolutionIsFullyOpened());
+            return isOpen;
+        }
+
+        private bool GetSolutionIsFullyOpened()
+        {
+            var solution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
+
+            object isLoaded;
+            var hresult = solution.GetProperty((int)__VSPROPID4.VSPROPID_IsSolutionFullyLoaded, out isLoaded);
+
+            return Microsoft.VisualStudio.ErrorHandler.Succeeded(hresult) && (isLoaded as bool?) == true;
+        }
+
         private string GetSolutionFilePath()
         {
             // If there isn't an open solution the returned hresult will indicate an error
