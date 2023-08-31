@@ -28,6 +28,8 @@ using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;
+using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualizationControl
 {
@@ -43,33 +45,65 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         }
 
         [TestMethod]
+        public void Convert_CurrentIssueNull_InformationMoniker()
+        {
+            var issueVisMock = new Mock<IAnalysisIssueVisualization>();
+            issueVisMock.SetupGet(x => x.Issue).Returns((IAnalysisIssue)null);
+            
+            var result = (ImageMoniker)new SeverityToMonikerConverter(Mock.Of<IAnalysisSeverityToVsSeverityConverter>()).Convert(issueVisMock.Object, null, null, null);
+
+            result.Should().Be(KnownMonikers.StatusInformation);
+        }
+        
+        [TestMethod]
+        public void Convert_CurrentNotIAnalysisIssue_InformationMoniker()
+        {
+            var issueVisMock = new Mock<IAnalysisIssueVisualization>();
+            issueVisMock.SetupGet(x => x.Issue).Returns(Mock.Of<IAnalysisIssueBase>());
+            
+            var result = (ImageMoniker)new SeverityToMonikerConverter(Mock.Of<IAnalysisSeverityToVsSeverityConverter>()).Convert(issueVisMock.Object, null, null, null);
+
+            result.Should().Be(KnownMonikers.StatusInformation);
+        }
+
+        [TestMethod]
+        public void Convert_NullParameter_InformationMoniker()
+        {
+
+            var result = (ImageMoniker)new SeverityToMonikerConverter(Mock.Of<IAnalysisSeverityToVsSeverityConverter>()).Convert(null, null, null, null);
+
+            result.Should().Be(KnownMonikers.StatusInformation);
+        }
+
+        [TestMethod]
         public void Convert_VsSeverityIsError_ErrorMoniker()
         {
-            VerifyConversion(__VSERRORCATEGORY.EC_ERROR, KnownMonikers.StatusError);
+            VerifyConversionWhenIssueIsIAnalysisIssue(__VSERRORCATEGORY.EC_ERROR, KnownMonikers.StatusError);
         }
 
         [TestMethod]
         public void Convert_VsSeverityIsMessage_InformationMoniker()
         {
-            VerifyConversion(__VSERRORCATEGORY.EC_MESSAGE, KnownMonikers.StatusInformation);
+            VerifyConversionWhenIssueIsIAnalysisIssue(__VSERRORCATEGORY.EC_MESSAGE, KnownMonikers.StatusInformation);   
         }
 
         [TestMethod]
         public void Convert_VsSeverityIsWarning_WarningMoniker()
         {
-            VerifyConversion(__VSERRORCATEGORY.EC_WARNING, KnownMonikers.StatusWarning);
+            VerifyConversionWhenIssueIsIAnalysisIssue(__VSERRORCATEGORY.EC_WARNING, KnownMonikers.StatusWarning);
         }
 
-        private void VerifyConversion(__VSERRORCATEGORY vsSeverity, object expectedMoniker)
+        private void VerifyConversionWhenIssueIsIAnalysisIssue(__VSERRORCATEGORY vsSeverity, object expectedMoniker)
         {
-            const AnalysisIssueSeverity value = AnalysisIssueSeverity.Info;
-
             var toVsSeverityConverterMock = new Mock<IAnalysisSeverityToVsSeverityConverter>();
             toVsSeverityConverterMock
-                .Setup(x => x.Convert(value))
+                .Setup(x => x.Convert(AnalysisIssueSeverity.Info))
                 .Returns(vsSeverity);
 
-            var result = (ImageMoniker)new SeverityToMonikerConverter(toVsSeverityConverterMock.Object).Convert(value, null, null, null);
+            var issueVisMock = new Mock<IAnalysisIssueVisualization>();
+            issueVisMock.SetupGet(x => x.Issue).Returns(new DummyAnalysisIssue { Severity = AnalysisIssueSeverity.Info });
+
+            var result = (ImageMoniker)new SeverityToMonikerConverter(toVsSeverityConverterMock.Object).Convert(issueVisMock.Object, null, null, null);
             var expected = (ImageMoniker) expectedMoniker;
 
             result.Should().Be(expected);

@@ -24,7 +24,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -40,8 +39,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         string Description { get; }
         string RuleKey { get; }
         string RuleDescriptionContextKey { get; }
-
-        AnalysisIssueSeverity Severity { get; }
         IAnalysisIssueVisualization CurrentIssue { get; }
         IAnalysisIssueFlowVisualization CurrentFlow { get; set; }
         IReadOnlyList<ILocationListItem> LocationListItems { get; }
@@ -125,11 +122,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         public string RuleKey => CurrentIssue?.Issue?.RuleKey;
 
         public string RuleDescriptionContextKey => CurrentIssue?.Issue?.RuleDescriptionContextKey;
-
-        public AnalysisIssueSeverity Severity =>
-            CurrentIssue?.Issue is IAnalysisIssue analysisIssue
-                ? analysisIssue.Severity
-                : AnalysisIssueSeverity.Info;
 
         public IAnalysisIssueVisualization CurrentIssue
         {

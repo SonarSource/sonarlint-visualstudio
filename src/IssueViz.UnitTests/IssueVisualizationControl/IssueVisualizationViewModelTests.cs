@@ -40,8 +40,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
     [TestClass]
     public class IssueVisualizationViewModelTests
     {
-        private const AnalysisIssueSeverity DefaultNullIssueSeverity = AnalysisIssueSeverity.Info;
-
         private Mock<IAnalysisIssueSelectionService> selectionServiceMock;
         private Mock<ILocationNavigator> locationNavigatorMock;
         private Mock<IFileNameLocationListItemCreator> fileNameLocationListItemCreatorMock;
@@ -347,39 +345,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             testSubject.RuleKey.Should().Be("test RuleKey");
             testSubject.RuleDescriptionContextKey.Should().Be("issue Context");
-        }
-
-        #endregion
-
-        #region Severity
-
-        [TestMethod]
-        public void Severity_CurrentIssueIsNull_DefaultSeverity()
-        {
-            testSubject.Severity.Should().Be(DefaultNullIssueSeverity);
-        }
-
-        [TestMethod]
-        public void Severity_CurrentIssueHasNoAnalysisIssue_DefaultSeverity()
-        {
-            var issueViz = CreateIssue();
-
-            RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz);
-
-            testSubject.Severity.Should().Be(DefaultNullIssueSeverity);
-        }
-
-        [TestMethod]
-        public void Severity_CurrentIssueHasAnalysisIssue_IssueSeverity()
-        {
-            var issue = new Mock<IAnalysisIssue>();
-            issue.SetupGet(x => x.Severity).Returns(AnalysisIssueSeverity.Blocker);
-
-            var issueViz = CreateIssue(issue: issue.Object);
-
-            RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz);
-
-            testSubject.Severity.Should().Be(AnalysisIssueSeverity.Blocker);
         }
 
         #endregion
