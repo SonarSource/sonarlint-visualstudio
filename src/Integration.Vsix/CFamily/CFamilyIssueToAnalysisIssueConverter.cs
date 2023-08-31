@@ -123,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             var defaultType = ruleMetaData.Type;
             SoftwareQualitySeverity? highestSoftwareQualitySeverity = null;
 
-            if (connectedModeFeaturesConfiguration.IsNewCctAvailable() && ruleMetaData.Type != IssueType.SecurityHotspot)
+            if (ruleMetaData.Type != IssueType.SecurityHotspot && connectedModeFeaturesConfiguration.IsNewCctAvailable())
             {
                 highestSoftwareQualitySeverity = GetHighestSoftwareQualitySeverity(ruleMetaData);
             }
@@ -192,8 +192,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             IssueType defaultType,
             IReadOnlyList<IAnalysisIssueFlow> flows,
             IReadOnlyDictionary<string, ITextDocument> fileContents,
-            SoftwareQualitySeverity? highestSoftwareQualitySeverity
-            )
+            SoftwareQualitySeverity? highestSoftwareQualitySeverity)
         {
             return new AnalysisIssue
             (

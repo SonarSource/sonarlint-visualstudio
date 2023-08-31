@@ -101,8 +101,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
     /// </summary>
     public enum SoftwareQualitySeverity
     {
-        Low,
-        Medium,
-        High
+        Low = 0,
+        Medium = 1,
+        High = 2
     }
 }
