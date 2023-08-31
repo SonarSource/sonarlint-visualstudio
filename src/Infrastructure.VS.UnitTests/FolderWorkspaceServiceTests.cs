@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         {
             MefTestHelpers.CheckTypeCanBeImported<FolderWorkspaceService, IFolderWorkspaceService>(
                 MefTestHelpers.CreateExport<SVsServiceProvider>(),
-                MefTestHelpers.CreateExport<IWorkspaceService>());
+                MefTestHelpers.CreateExport<ISolutionInfoProvider>());
         }
 
         [TestMethod]
@@ -101,10 +101,10 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(x => x.GetService(typeof(SVsSolution))).Returns(vsSolution.Object);
 
-            var workspaceService = new Mock<IWorkspaceService>();
-            workspaceService.Setup(x => x.FindRootDirectory()).Returns(solutionDirectory);
+            var solutionInfoProvider = new Mock<ISolutionInfoProvider>();
+            solutionInfoProvider.Setup(x => x.GetSolutionDirectory()).Returns(solutionDirectory);
 
-            return new FolderWorkspaceService(serviceProvider.Object, workspaceService.Object);
+            return new FolderWorkspaceService(serviceProvider.Object, solutionInfoProvider.Object);
         }
 
         private static Mock<IVsSolution> SetupVsSolution(bool? isOpenAsFolder)

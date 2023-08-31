@@ -39,13 +39,13 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         internal const int VSPROPID_IsInOpenFolderMode = -8044;
 
         private readonly IVsSolution vsSolution;
-        private readonly IWorkspaceService workspaceService;
+        private readonly ISolutionInfoProvider solutionInfoProvider;
 
         [ImportingConstructor]
-        public FolderWorkspaceService([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IWorkspaceService workspaceService)
+        public FolderWorkspaceService([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ISolutionInfoProvider solutionInfoProvider)
         {
             vsSolution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
-            this.workspaceService = workspaceService;
+            this.solutionInfoProvider = solutionInfoProvider;
         }
 
         public bool IsFolderWorkspace()
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
 
             // For projects that are opened as folder, the root IVsHierarchy is the "Miscellaneous Files" folder.
             // This folder doesn't have a directory path so we need to take the directory path from IVsSolution.
-            return workspaceService.FindRootDirectory();
+            return solutionInfoProvider.GetSolutionDirectory();
         }
     }
 }
