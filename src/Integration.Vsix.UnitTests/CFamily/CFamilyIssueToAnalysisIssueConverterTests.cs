@@ -449,9 +449,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        // [DataRow(true, IssueType.Bug, SoftwareQualitySeverity.High)]
+        [DataRow(true, IssueType.Bug, SoftwareQualitySeverity.High)]
         [DataRow(false, IssueType.Bug, null)]
-        //[DataRow(true, IssueType.SecurityHotspot, null)]
+        [DataRow(true, IssueType.SecurityHotspot, null)]
         public void Convert_NewCCTEnabled_FillsSoftwareQualitySeverity(bool isCCTEnabled, IssueType type, SoftwareQualitySeverity? expectedSoftwareQualitySeverity)
         {
             var message = new Message("key", "any", 4, 3, 2, 1, "message", false, new MessagePart[0], Array.Empty<Fix>());

@@ -64,6 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             this.textDocumentFactoryService = textDocumentFactoryService;
             this.contentTypeRegistryService = contentTypeRegistryService;
+            this.connectedModeFeaturesConfiguration = connectedModeFeaturesConfiguration;
         }
 
         public ICFamilyIssueToAnalysisIssueConverter Create()
