@@ -189,6 +189,29 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             connectedModeFeaturesConfiguration.Verify(x => x.IsNewCctAvailable(), Times.Once);
             ruleInfoMock.Verify(x => x.WithCleanCodeTaxonomyDisabled(), Times.Exactly(!isEnabled ? 1 : 0));
         }
+        
+        [TestMethod]
+        public async Task GetRuleInfoAsync_DisablesCCTForHotspotsRegardlessOfConfiguration()
+        {
+            var ruleId = new SonarCompositeRuleId("csharpsquid", "S1000");
+            var ruleInfoMock = new Mock<IRuleInfo>();
+            ruleInfoMock.SetupGet(x => x.IssueType).Returns(RuleIssueType.Hotspot);
+            var metadataProviderMock = new Mock<ILocalRuleMetadataProvider>();
+            metadataProviderMock
+                .Setup(x => x.GetRuleInfo(It.IsAny<SonarCompositeRuleId>()))
+                .Returns(ruleInfoMock.Object);
+            var connectedModeFeaturesConfiguration = CreateFeatureConfigurationMock(true);
+
+            var testSubject = CreateTestSubject(metadataProviderMock,
+                Mock.Of<Mock<IServerRuleMetadataProvider>>(),
+                CreateConfigurationProvider(),
+                connectedModeFeaturesConfiguration);
+
+            await testSubject.GetRuleInfoAsync(ruleId, CancellationToken.None);
+            
+            connectedModeFeaturesConfiguration.Verify(x => x.IsNewCctAvailable(), Times.Never);
+            ruleInfoMock.Verify(x => x.WithCleanCodeTaxonomyDisabled(), Times.Once);
+        }
 
         #region Helper Methods
 
