@@ -126,8 +126,6 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
                 "SonarLint.VisualStudio.Rules.Embedded.cpp.S1232.json",
                 // introduced in dotnet analyzer 9.5
                 "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S4433.json",
-                // Diff-specific errors
-                "SonarLint.VisualStudio.Rules.Embedded.vbnet.S3466.json",
             });
         }
 
