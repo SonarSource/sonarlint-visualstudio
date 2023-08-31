@@ -32,17 +32,18 @@ using SonarLint.VisualStudio.CFamily.Rules;
 using SonarLint.VisualStudio.CFamily.SubProcess;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Configuration;
 using SonarLint.VisualStudio.Core.ETW;
 using SonarLint.VisualStudio.Infrastructure.VS.Editor;
 
 /* Instancing: a new issue converter should be created for each analysis run.
- * 
+ *
  * Overview
  * --------
  * Each analysis is for a single file, although the issues returned could be for related
  * files (e.g. a header file). The results will generally be a small set of files - the
  * analysis file + [zero or more related files].
- * 
+ *
  * Converting an issue entails loading the text document for the file. We don't want to load
  * the same document multiple times, so we'll create a separate converter for each analysis,
  * so the converter can cache the loaded text documents.
@@ -56,9 +57,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     {
         private readonly ITextDocumentFactoryService textDocumentFactoryService;
         private readonly IContentTypeRegistryService contentTypeRegistryService;
+        private readonly IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration;
 
         [ImportingConstructor]
-        public CFamilyIssueConverterFactory(ITextDocumentFactoryService textDocumentFactoryService, IContentTypeRegistryService contentTypeRegistryService)
+        public CFamilyIssueConverterFactory(ITextDocumentFactoryService textDocumentFactoryService, IContentTypeRegistryService contentTypeRegistryService, IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration)
         {
             this.textDocumentFactoryService = textDocumentFactoryService;
             this.contentTypeRegistryService = contentTypeRegistryService;
@@ -66,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         public ICFamilyIssueToAnalysisIssueConverter Create()
         {
-            return new CFamilyIssueToAnalysisIssueConverter(textDocumentFactoryService, contentTypeRegistryService);
+            return new CFamilyIssueToAnalysisIssueConverter(textDocumentFactoryService, contentTypeRegistryService, connectedModeFeaturesConfiguration);
         }
     }
 
@@ -78,20 +80,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private readonly IFileSystem fileSystem;
         private readonly IContentType filesContentType;
         private readonly Dictionary<string, ITextDocument> pathToTextDocMap;
+        private readonly IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration;
 
-        public CFamilyIssueToAnalysisIssueConverter(ITextDocumentFactoryService textDocumentFactoryService, IContentTypeRegistryService contentTypeRegistryService)
-            : this(textDocumentFactoryService, contentTypeRegistryService, new LineHashCalculator(), new FileSystem())
+        public CFamilyIssueToAnalysisIssueConverter(ITextDocumentFactoryService textDocumentFactoryService, IContentTypeRegistryService contentTypeRegistryService, IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration)
+            : this(textDocumentFactoryService, contentTypeRegistryService, connectedModeFeaturesConfiguration, new LineHashCalculator(), new FileSystem())
         {
         }
 
         internal CFamilyIssueToAnalysisIssueConverter(ITextDocumentFactoryService textDocumentFactoryService,
             IContentTypeRegistryService contentTypeRegistryService,
+            IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration,
             ILineHashCalculator lineHashCalculator,
             IFileSystem fileSystem)
         {
             this.textDocumentFactoryService = textDocumentFactoryService;
             this.lineHashCalculator = lineHashCalculator;
             this.fileSystem = fileSystem;
+            this.connectedModeFeaturesConfiguration = connectedModeFeaturesConfiguration;
+
             filesContentType = contentTypeRegistryService.UnknownContentType;
 
             pathToTextDocMap = new Dictionary<string, ITextDocument>(StringComparer.OrdinalIgnoreCase);
@@ -109,9 +115,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             Debug.Assert(cFamilyIssue.Column > 0 || cFamilyIssue.Column == 0);
             Debug.Assert(cFamilyIssue.EndColumn > 0 || cFamilyIssue.EndLine == 0);
 
+            var ruleMetaData = rulesConfiguration.RulesMetadata[cFamilyIssue.RuleKey];
+
             // Look up default severity and type
-            var defaultSeverity = rulesConfiguration.RulesMetadata[cFamilyIssue.RuleKey].DefaultSeverity;
-            var defaultType = rulesConfiguration.RulesMetadata[cFamilyIssue.RuleKey].Type;
+            var defaultSeverity = ruleMetaData.DefaultSeverity;
+            var defaultType = ruleMetaData.Type;
+            SoftwareQualitySeverity? highestSoftwareQualitySeverity = null;
+
+            if (connectedModeFeaturesConfiguration.IsNewCctAvailable() && ruleMetaData.Type != IssueType.SecurityHotspot)
+            {
+                highestSoftwareQualitySeverity = GetHighestSoftwareQualitySeverity(ruleMetaData);
+            }
 
             var fileContents = GetFileContentsOfReportedFiles(cFamilyIssue);
 
@@ -127,7 +141,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             var flows = locations.Any() ? new[] { new AnalysisIssueFlow(locations) } : null;
 
-            var result = ToAnalysisIssue(cFamilyIssue, sqLanguage, defaultSeverity, defaultType, flows, fileContents);
+            var result = ToAnalysisIssue(cFamilyIssue, sqLanguage, defaultSeverity, defaultType, flows, fileContents, highestSoftwareQualitySeverity);
 
             CodeMarkers.Instance.CFamilyConvertIssueStop();
 
@@ -176,14 +190,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             IssueSeverity defaultSeverity,
             IssueType defaultType,
             IReadOnlyList<IAnalysisIssueFlow> flows,
-            IReadOnlyDictionary<string, ITextDocument> fileContents)
+            IReadOnlyDictionary<string, ITextDocument> fileContents,
+            SoftwareQualitySeverity? highestSoftwareQualitySeverity
+            )
         {
             return new AnalysisIssue
             (
                 ruleKey: sqLanguage + ":" + cFamilyIssue.RuleKey,
                 severity: Convert(defaultSeverity),
                 type: Convert(defaultType),
-                null,
+                highestSoftwareQualitySeverity,
                 primaryLocation: ToAnalysisIssueLocation(cFamilyIssue, fileContents),
                 flows: flows,
                 fixes: ToQuickFixes(cFamilyIssue)
@@ -252,12 +268,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             {
                 case IssueSeverity.Blocker:
                     return AnalysisIssueSeverity.Blocker;
+
                 case IssueSeverity.Critical:
                     return AnalysisIssueSeverity.Critical;
+
                 case IssueSeverity.Info:
                     return AnalysisIssueSeverity.Info;
+
                 case IssueSeverity.Major:
                     return AnalysisIssueSeverity.Major;
+
                 case IssueSeverity.Minor:
                     return AnalysisIssueSeverity.Minor;
 
@@ -275,15 +295,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             {
                 case IssueType.Bug:
                     return AnalysisIssueType.Bug;
+
                 case IssueType.CodeSmell:
                     return AnalysisIssueType.CodeSmell;
+
                 case IssueType.Vulnerability:
                     return AnalysisIssueType.Vulnerability;
+
                 case IssueType.SecurityHotspot:
                     return AnalysisIssueType.SecurityHotspot;
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(issueType));
             }
         }
+
+        internal /* for testing */ static SoftwareQualitySeverity? GetHighestSoftwareQualitySeverity(RuleMetadata ruleMetadata)
+            => ruleMetadata.Code?.Impacts?.Count > 0 ? (SoftwareQualitySeverity?)ruleMetadata.Code.Impacts.Max(r => r.Value) : null;
     }
 }

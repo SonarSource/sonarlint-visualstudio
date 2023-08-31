@@ -42,16 +42,19 @@ namespace SonarLint.VisualStudio.Core.Analysis
         Conventional,
         Formatted,
         Identifiable,
+
         // Intentionality
         Clear,
         Complete,
         Efficient,
         Logical,
+
         // Adaptability
         Distinct,
         Focused,
         Modular,
         Tested,
+
         // Responsibility
         Lawful,
         Respectful,
@@ -98,8 +101,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
     /// </summary>
     public enum SoftwareQualitySeverity
     {
-        High,
+        Low,
         Medium,
-        Low
+        High
     }
 }

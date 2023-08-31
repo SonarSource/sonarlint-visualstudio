@@ -31,8 +31,9 @@ using SonarLint.VisualStudio.CFamily.Rules;
 using SonarLint.VisualStudio.CFamily.SubProcess;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+using SonarLint.VisualStudio.Core.Configuration;
 using SonarLint.VisualStudio.Infrastructure.VS.Editor;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using Edit = SonarLint.VisualStudio.CFamily.SubProcess.Edit;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
@@ -385,7 +386,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var fileSystemMock = CreateFileSystemMock(fileExists: true);
             var textDocFactory = new Mock<ITextDocumentFactoryService>();
 
-            var testSubject = CreateTestSubject(fileSystem: fileSystemMock.Object, textDocFactory: textDocFactory.Object);
+            var testSubject = CreateTestSubject(fileSystem: fileSystemMock.Object, textDocumentFactoryService: textDocFactory.Object);
 
             Convert(testSubject, message);
 
@@ -418,7 +419,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var fileSystemMock = CreateFileSystemMock(fileExists: true);
             var textDocFactory = new Mock<ITextDocumentFactoryService>();
 
-            var testSubject = CreateTestSubject(fileSystem: fileSystemMock.Object, textDocFactory: textDocFactory.Object);
+            var testSubject = CreateTestSubject(fileSystem: fileSystemMock.Object, textDocumentFactoryService: textDocFactory.Object);
 
             // Convert multiple times
             Convert(testSubject, message1);
@@ -445,6 +446,37 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             issue.RuleKey.Should().Be($"lang1:{ruleKey}");
             issue.Severity.Should().Be(severity);
             issue.Type.Should().Be(type);
+        }
+
+        [TestMethod]
+        // [DataRow(true, IssueType.Bug, SoftwareQualitySeverity.High)]
+        [DataRow(false, IssueType.Bug, null)]
+        //[DataRow(true, IssueType.SecurityHotspot, null)]
+        public void Convert_NewCCTEnabled_FillsSoftwareQualitySeverity(bool isCCTEnabled, IssueType type, SoftwareQualitySeverity? expectedSoftwareQualitySeverity)
+        {
+            var message = new Message("key", "any", 4, 3, 2, 1, "message", false, new MessagePart[0], Array.Empty<Fix>());
+
+            var impacts = new Dictionary<SoftwareQuality, SoftwareQualitySeverity>
+            {
+                { SoftwareQuality.Maintainability, SoftwareQualitySeverity.High }
+            };
+
+            var ruleMetaData = CreateRuleMetaData(impacts, type);
+            var rulesMetaData = new Dictionary<string, RuleMetadata>
+            {
+                {"key", ruleMetaData }
+            };
+
+            var CFamilyconfig = new Mock<ICFamilyRulesConfig>();
+            CFamilyconfig.Setup(c => c.RulesMetadata).Returns(rulesMetaData);
+
+            var CMConfig = new Mock<IConnectedModeFeaturesConfiguration>();
+            CMConfig.Setup(c => c.IsNewCctAvailable()).Returns(isCCTEnabled);
+
+            var testSubject = CreateTestSubject(connectedModeFeaturesConfiguration: CMConfig.Object);
+            var issue = testSubject.Convert(message, "lang", CFamilyconfig.Object);
+
+            issue.HighestSoftwareQualitySeverity.Should().Be(expectedSoftwareQualitySeverity);
         }
 
         [TestMethod]
@@ -517,7 +549,59 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
+        [DataRow(SoftwareQualitySeverity.High, SoftwareQualitySeverity.High)]
+        [DataRow(SoftwareQualitySeverity.Medium, SoftwareQualitySeverity.Medium)]
+        [DataRow(SoftwareQualitySeverity.Low, SoftwareQualitySeverity.Low)]
+        [DataRow(null, null)]
+        public void GetHighestSoftwareQualitySeverity(SoftwareQualitySeverity? softwareQualitySeverity, SoftwareQualitySeverity? highestSoftwareQualitySeverity)
+        {
+            var impacts = new Dictionary<SoftwareQuality, SoftwareQualitySeverity>();
+
+            if (softwareQualitySeverity.HasValue)
+            {
+                impacts.Add(SoftwareQuality.Maintainability, softwareQualitySeverity.Value);
+            }
+
+            RuleMetadata ruleMetaData = CreateRuleMetaData(impacts);
+
+            CFamilyIssueToAnalysisIssueConverter.GetHighestSoftwareQualitySeverity(ruleMetaData).Should().Be(highestSoftwareQualitySeverity);
+        }
+
+        [TestMethod]
+        [DataRow(new SoftwareQualitySeverity[] { SoftwareQualitySeverity.Low, SoftwareQualitySeverity.Medium }, SoftwareQualitySeverity.Medium)]
+        [DataRow(new SoftwareQualitySeverity[] { SoftwareQualitySeverity.Low, SoftwareQualitySeverity.High }, SoftwareQualitySeverity.High)]
+        [DataRow(new SoftwareQualitySeverity[] { SoftwareQualitySeverity.Medium, SoftwareQualitySeverity.High }, SoftwareQualitySeverity.High)]
+        public void GetHighestSoftwareQualitySeverity_HasTwoImpacts_GetsTheHighestOne(SoftwareQualitySeverity[] softwareQualitySeverities, SoftwareQualitySeverity? highestSoftwareQualitySeverity)
+        {
+            var impacts = new Dictionary<SoftwareQuality, SoftwareQualitySeverity>
+            {
+                { SoftwareQuality.Maintainability, softwareQualitySeverities[0] },
+                { SoftwareQuality.Reliability, softwareQualitySeverities[1] }
+            };
+
+            RuleMetadata ruleMetaData = CreateRuleMetaData(impacts);
+
+            CFamilyIssueToAnalysisIssueConverter.GetHighestSoftwareQualitySeverity(ruleMetaData).Should().Be(highestSoftwareQualitySeverity);
+        }
+
+        [TestMethod]
+        public void GetHighestSoftwareQualitySeverity_HasThreeImpacts_GetsTheHighestOne()
+        {
+            var impacts = new Dictionary<SoftwareQuality, SoftwareQualitySeverity>
+            {
+                { SoftwareQuality.Maintainability, SoftwareQualitySeverity.Low },
+                { SoftwareQuality.Reliability, SoftwareQualitySeverity.High },
+                { SoftwareQuality.Security, SoftwareQualitySeverity.Medium }
+            };
+
+            RuleMetadata ruleMetaData = CreateRuleMetaData(impacts);
+
+            CFamilyIssueToAnalysisIssueConverter.GetHighestSoftwareQualitySeverity(ruleMetaData).Should().Be(SoftwareQualitySeverity.High);
+        }
+
+        [TestMethod]
         public void ConvertFromIssueType_InvalidValue_Throws()
+
         {
             Action act = () => CFamilyIssueToAnalysisIssueConverter.Convert((IssueType)(-1));
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueType");
@@ -609,17 +693,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         private static void CompareFixes(Fix fix, IQuickFix quickFix)
         {
             quickFix.Edits.Count.Should().Be(fix.Edits.Length, $"because number of edits were not equal in {fix.Message}");
-            
+
             for (int i = 0; i < fix.Edits.Length; i++)
             {
-                fix.Edits[i].StartColumn.Should().Be(quickFix.Edits[i].RangeToReplace.StartLineOffset+1, $"because StartColumn was not equal in {fix.Message}, edit: {i} ");
-                fix.Edits[i].EndColumn.Should().Be(quickFix.Edits[i].RangeToReplace.EndLineOffset+1, $"because EndColumn was not equal in {fix.Message}, edit: {i} ");
+                fix.Edits[i].StartColumn.Should().Be(quickFix.Edits[i].RangeToReplace.StartLineOffset + 1, $"because StartColumn was not equal in {fix.Message}, edit: {i} ");
+                fix.Edits[i].EndColumn.Should().Be(quickFix.Edits[i].RangeToReplace.EndLineOffset + 1, $"because EndColumn was not equal in {fix.Message}, edit: {i} ");
                 fix.Edits[i].StartLine.Should().Be(quickFix.Edits[i].RangeToReplace.StartLine, $"because StartLine was not equal in {fix.Message}, edit: {i} ");
                 fix.Edits[i].EndLine.Should().Be(quickFix.Edits[i].RangeToReplace.EndLine, $"because EndLine was not equal in {fix.Message}, edit: {i} ");
                 fix.Edits[i].Text.Should().Be(quickFix.Edits[i].NewText, $"because NewText was not equal in {fix.Message}, edit: {i} ");
             }
         }
-
 
         private static ICFamilyRulesConfig GetDummyRulesConfiguration()
         {
@@ -662,19 +745,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         private static IAnalysisIssue Convert(CFamilyIssueToAnalysisIssueConverter testSubject, Message message) =>
             testSubject.Convert(message, "lang1", GetDummyRulesConfiguration());
 
-        private static CFamilyIssueToAnalysisIssueConverter CreateTestSubject(IFileSystem fileSystem = null,
-            ITextDocumentFactoryService textDocFactory = null) =>
-            CreateTestSubject(Mock.Of<ILineHashCalculator>(),
-                fileSystem ?? CreateFileSystemMock().Object,
-                textDocFactory ?? Mock.Of<ITextDocumentFactoryService>());
-
         private static CFamilyIssueToAnalysisIssueConverter CreateTestSubject(
-            ILineHashCalculator lineHashCalculator,
-            IFileSystem fileSystem,
-            ITextDocumentFactoryService textDocumentFactoryService)
+            ILineHashCalculator lineHashCalculator = null,
+            IFileSystem fileSystem = null,
+            ITextDocumentFactoryService textDocumentFactoryService = null,
+            IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration = null)
         {
             var contentTypeRegistryService = CreateContentTypeRegistryService();
-            var testSubject = new CFamilyIssueToAnalysisIssueConverter(textDocumentFactoryService, contentTypeRegistryService, lineHashCalculator, fileSystem);
+
+            lineHashCalculator ??= Mock.Of<ILineHashCalculator>();
+            fileSystem ??= CreateFileSystemMock().Object;
+            textDocumentFactoryService ??= Mock.Of<ITextDocumentFactoryService>();
+
+            if (connectedModeFeaturesConfiguration == null)
+            {
+                var connectedModeFeaturesConfigurationMock = new Mock<IConnectedModeFeaturesConfiguration>();
+                connectedModeFeaturesConfigurationMock.Setup(c => c.IsNewCctAvailable()).Returns(false);
+
+                connectedModeFeaturesConfiguration = connectedModeFeaturesConfigurationMock.Object;
+            }
+
+            var testSubject = new CFamilyIssueToAnalysisIssueConverter(textDocumentFactoryService, contentTypeRegistryService, connectedModeFeaturesConfiguration, lineHashCalculator, fileSystem);
 
             return testSubject;
         }
@@ -716,6 +807,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             textBuffer.Setup(x => x.CurrentSnapshot).Returns(textSnapshot);
 
             return textBuffer.Object;
+        }
+
+        private static RuleMetadata CreateRuleMetaData(Dictionary<SoftwareQuality, SoftwareQualitySeverity> impacts, IssueType type = default)
+        {
+            var code = new Code { Impacts = impacts };
+            var ruleMetaData = new RuleMetadata { Code = code, Type = type };
+            return ruleMetaData;
         }
     }
 }
