@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Notifications
 
             firstAction.Action(null);
 
-            browserService.Verify(x=> x.Navigate("https://github.com/SonarSource/sonarlint-visualstudio/wiki/NodeJS-prerequisite-for-JavaScript-and-TypeScript-analysis"), Times.Once);
+            browserService.Verify(x=> x.Navigate("https://docs.sonarsource.com/sonarlint/visual-studio/getting-started/requirements/#nodejs-prerequisites-for-js-and-ts"), Times.Once);
             browserService.VerifyNoOtherCalls();
         }
 

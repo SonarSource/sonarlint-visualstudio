@@ -228,7 +228,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Visit https://github.com/SonarSource/sonarlint-visualstudio/wiki to find out more about this and other SonarLint features.
+        ///   Looks up a localized string similar to Visit https://docs.sonarsource.com/sonarlint/visual-studio/ to find out more about this and other SonarLint features.
         ///.
         /// </summary>
         internal static string RequestValidator_DocumentationLink {

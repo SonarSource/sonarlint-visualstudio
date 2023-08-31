@@ -286,7 +286,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://github.com/SonarSource/sonarlint-visualstudio/wiki/migrate-connected-mode-to-v7.
+        ///   Looks up a localized string similar to https://docs.sonarsource.com/sonarlint/visual-studio/team-features/migrate-connected-mode-to-v7/.
         /// </summary>
         internal static string Url_LearnMoreUrl {
             get {
@@ -295,7 +295,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://github.com/SonarSource/sonarlint-visualstudio/wiki/migrate-connected-mode-to-v7#additional-notes-for-tfvc-users.
+        ///   Looks up a localized string similar to https://docs.sonarsource.com/sonarlint/visual-studio/team-features/migrate-connected-mode-to-v7/#notes-for-tfvc-users.
         /// </summary>
         internal static string Url_TfvcHelp {
             get {

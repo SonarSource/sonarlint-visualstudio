@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     internal class GeneralOptionsDialogPage : UIElementDialogPage
     {
         public const string PageName = "General";
-        private const string WikiUrl = "https://github.com/SonarSource/sonarlint-visualstudio/wiki";
+        private const string WikiUrl = "https://docs.sonarsource.com/sonarlint/visual-studio/team-features/connected-mode/";
 
         private GeneralOptionsDialogControl dialogControl;
         private ISonarLintSettings settings;
