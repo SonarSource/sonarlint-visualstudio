@@ -129,11 +129,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             return dteProject.GetAggregateProjectTypeGuids();
         }
 
-        public bool IsSolutionFullyOpened()
-        {
-            return this.isSolutionFullyOpened;
-        }
-
         #endregion IVsProjectSystemHelper
 
         #region Test helpers
