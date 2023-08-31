@@ -37,25 +37,25 @@ namespace SonarLint.VisualStudio.Core
     internal class GitWorkSpaceService : IGitWorkspaceService
     {
         private readonly ILogger logger;
-        private readonly IWorkspaceService workspaceService;
+        private readonly ISolutionInfoProvider solutionInfoProvider;
         private readonly IFileSystem fileSystem;
 
         private const string gitFolder = ".git";
 
         [ImportingConstructor]
-        public GitWorkSpaceService(IWorkspaceService workspaceService, ILogger logger) : this(workspaceService, logger, new FileSystem())
+        public GitWorkSpaceService(ISolutionInfoProvider solutionInfoProvider, ILogger logger) : this(solutionInfoProvider, logger, new FileSystem())
         { }
 
-        internal GitWorkSpaceService(IWorkspaceService workspaceService, ILogger logger, IFileSystem fileSystem)
+        internal GitWorkSpaceService(ISolutionInfoProvider solutionInfoProvider, ILogger logger, IFileSystem fileSystem)
         {
-            this.workspaceService = workspaceService;
+            this.solutionInfoProvider = solutionInfoProvider;
             this.logger = logger;
             this.fileSystem = fileSystem;
         }
 
         public string GetRepoRoot()
         {
-            var workspaceRoot = workspaceService.FindRootDirectory();
+            var workspaceRoot = solutionInfoProvider.GetSolutionDirectory();
             string gitRoot;
 
             if (workspaceRoot == null)
