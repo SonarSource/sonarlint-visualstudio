@@ -61,9 +61,9 @@ namespace SonarLint.VisualStudio.Rules
         {
             var localMetaData = localRuleMetadataProvider.GetRuleInfo(ruleId);
 
-            if (!connectedModeFeaturesConfiguration.IsNewCctAvailable())
+            if (localMetaData?.IssueType == RuleIssueType.Hotspot || !connectedModeFeaturesConfiguration.IsNewCctAvailable())
             {
-                localMetaData = localMetaData.WithCleanCodeTaxonomyDisabled();
+                localMetaData = localMetaData?.WithCleanCodeTaxonomyDisabled();
             }
 
             var configuration = configurationProvider.GetConfiguration();
@@ -92,7 +92,6 @@ namespace SonarLint.VisualStudio.Rules
   
             if (serverMetaData != null)
             {
-                // todo: server overrides for CCT
                 return localMetaData.WithServerOverride(serverMetaData.Severity, serverMetaData.HtmlNote);
             }
 
