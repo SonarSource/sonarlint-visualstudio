@@ -35,20 +35,20 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<GitWorkSpaceService, IGitWorkspaceService>(
-                MefTestHelpers.CreateExport<IWorkspaceService>(),
+                MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]
         public void GetRepoRoot_GitFolderInSolutionFolder_ReturnsRepoFolder()
         {
-            var workSpaceService = CreateWorkspaceService("C:\\Solution");
+            var solutionInfoProvider = CreateSolutionInfoProvider("C:\\Solution");
 
             var logger = new Mock<ILogger>();
 
             var fileSystem = CreateFileSystem("C:\\Solution\\.git");
 
-            var testSubject = CreateTestSubject(workSpaceService.Object, logger.Object, fileSystem.Object);
+            var testSubject = CreateTestSubject(solutionInfoProvider.Object, logger.Object, fileSystem.Object);
 
             var gitRoot = testSubject.GetRepoRoot();
 
@@ -59,12 +59,12 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         public void GetRepoRoot_GitFolderIsAboveSolutionFolder_ReturnsRepoFolder()
         {
-            var workSpaceService = CreateWorkspaceService("C:\\Repo\\Code\\Solution");
+            var solutionInfoProvider = CreateSolutionInfoProvider("C:\\Repo\\Code\\Solution");
             var logger = new Mock<ILogger>();
 
             var fileSystem = CreateFileSystem("C:\\Repo\\.git", "C:\\Repo\\Code", "C:\\Repo");
 
-            var testSubject = CreateTestSubject(workSpaceService.Object, logger.Object, fileSystem.Object);
+            var testSubject = CreateTestSubject(solutionInfoProvider.Object, logger.Object, fileSystem.Object);
 
             var gitRoot = testSubject.GetRepoRoot();
 
@@ -75,13 +75,13 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         public void GetRepoRoot_NotUnderGit_ReturnsNull()
         {
-            var workSpaceService = CreateWorkspaceService("C:\\Solution");
+            var solutionInfoProvider = CreateSolutionInfoProvider("C:\\Solution");
 
             var logger = new Mock<ILogger>();
 
             var fileSystem = CreateFileSystem("C:\\Solution\\", "C:");
 
-            var testSubject = CreateTestSubject(workSpaceService.Object, logger.Object, fileSystem.Object);
+            var testSubject = CreateTestSubject(solutionInfoProvider.Object, logger.Object, fileSystem.Object);
 
             var gitRoot = testSubject.GetRepoRoot();
 
@@ -93,11 +93,11 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         public void GetRepoRoot_NoSolutionOpen_ReturnsNull()
         {
-            var workSpaceService = CreateWorkspaceService(null);
+            var solutionInfoProvider = CreateSolutionInfoProvider(null);
 
             var logger = new Mock<ILogger>();
 
-            var testSubject = CreateTestSubject(workSpaceService.Object, logger.Object);
+            var testSubject = CreateTestSubject(solutionInfoProvider.Object, logger.Object);
 
             var gitRoot = testSubject.GetRepoRoot();
 
@@ -106,11 +106,11 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
 
-        private static GitWorkSpaceService CreateTestSubject(IWorkspaceService workSpaceService, ILogger logger, IFileSystem fileSystem = null)
+        private static GitWorkSpaceService CreateTestSubject(ISolutionInfoProvider solutionInfoProvider, ILogger logger, IFileSystem fileSystem = null)
         {
             fileSystem ??= CreateFileSystem().Object;
 
-            return new GitWorkSpaceService(workSpaceService, logger, fileSystem);
+            return new GitWorkSpaceService(solutionInfoProvider, logger, fileSystem);
         }
 
         private static Mock<IFileSystem> CreateFileSystem(params string[] existingFolders)
@@ -129,11 +129,11 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             return fileSystem;
         }
 
-        private static Mock<IWorkspaceService> CreateWorkspaceService(string rootFolder)
+        private static Mock<ISolutionInfoProvider> CreateSolutionInfoProvider(string solutionDirectoryToReturn)
         {
-            var workSpaceService = new Mock<IWorkspaceService>();
-            workSpaceService.Setup(ws => ws.FindRootDirectory()).Returns(rootFolder);
-            return workSpaceService;
+            var solutionInfoProvider = new Mock<ISolutionInfoProvider>();
+            solutionInfoProvider.Setup(x => x.GetSolutionDirectory()).Returns(solutionDirectoryToReturn);
+            return solutionInfoProvider;
         }
     }
 }
