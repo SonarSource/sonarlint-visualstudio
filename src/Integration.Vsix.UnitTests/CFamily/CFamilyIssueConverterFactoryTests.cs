@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.CFamily.Analysis;
+using SonarLint.VisualStudio.Core.Configuration;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -35,8 +36,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<CFamilyIssueConverterFactory, ICFamilyIssueConverterFactory>(                MefTestHelpers.CreateExport<ITextDocumentFactoryService>(Mock.Of<ITextDocumentFactoryService>()),
-                MefTestHelpers.CreateExport<IContentTypeRegistryService>());
+            MefTestHelpers.CheckTypeCanBeImported<CFamilyIssueConverterFactory, ICFamilyIssueConverterFactory>
+                (MefTestHelpers.CreateExport<ITextDocumentFactoryService>(Mock.Of<ITextDocumentFactoryService>()),
+                MefTestHelpers.CreateExport<IContentTypeRegistryService>(),
+                MefTestHelpers.CreateExport<IConnectedModeFeaturesConfiguration>());
         }
 
         [TestMethod]
@@ -44,8 +47,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         {
             var textDocumentFactory = Mock.Of<ITextDocumentFactoryService>();
             var contentTypeRegistry = Mock.Of<IContentTypeRegistryService>();
+            var connectedModeFeaturesConfiguration = Mock.Of<IConnectedModeFeaturesConfiguration>();
 
-            var testSubject = new CFamilyIssueConverterFactory(textDocumentFactory, contentTypeRegistry);
+            var testSubject = new CFamilyIssueConverterFactory(textDocumentFactory, contentTypeRegistry, connectedModeFeaturesConfiguration);
 
             // Create first item
             var result1 = testSubject.Create();
