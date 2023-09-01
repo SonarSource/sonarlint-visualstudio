@@ -20,26 +20,26 @@
   <!-- ******************************************************************************* -->
   <!-- Newtonsoft -->
   <!-- ******************************************************************************* -->
-  <!-- NOTE: we are referencing a version that is installed with VS2017 RTM. Newer versions  of VS ship with newer versions
-         of the Newtonsoft assembly and have binding redirects. This means that we don't need to ship the Newtonsoft dll
-         ourselves. 
-         However, the SonarAnalyzers from v4.25+ also depend on a different version of the Newtonsoft assembly which is
-         newer version than the one that ships in VS. This means the VSIX needs to contain that version of the Newtonsoft
-         assembly so that some of the analyzer rules can work (Integration.Vsix.csproj handles this).
-         
-         See #2474 for more info.
-   -->
-  <PropertyGroup>
-    <NewtonsoftVersion>8.0.3</NewtonsoftVersion>
-    <NewtonsoftVersion Condition=" $(VsTargetVersion) == '2022' ">13.0.1</NewtonsoftVersion>
-  </PropertyGroup>
+  <!-- NOTE: We're specifying the version we want to use and are embedding it in the VSIX.
+         However, VS ships with multiple verions of NewtonSoft.Json.dll and has binding redirects
+         in devenv.exe.config that can change the version is loaded at runtime. However, this
+         should not cause a problem as we will end up with a compatible version.
 
+         Also, VS2019 ships with NewtonSoft v12.x i.e. we are using a newer version. This
+         should not cause a problem since VS can load both versions.
+         
+         Finally, NewtonSoft.Json v12 has vulnerabilities reported against it which Mend
+         will complain about. By referencing v13.x we avoid those warnings.
+         
+         See #3098 for more info.
+   -->
+  
   <!-- ******************************************************************************* -->
   <!-- Additional external NuGet packages used by multiple projects. -->
   <!-- They are defined here to make sure we reference the same version everywhere. -->
   <!-- ******************************************************************************* -->
   <ItemGroup Label="NuGet packages">
-    <PackageReference Include="Newtonsoft.Json" Condition=" $(RequiresNewtonsoft)=='true'" Version="$(NewtonsoftVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Condition=" $(RequiresNewtonsoft)=='true'" Version="13.0.3" />
     <PackageReference Include="System.IO.Abstractions" Condition=" $(RequiresSystemIOAbstractions)=='true'" Version="9.0.4" />
     <PackageReference Include="System.Threading.Channels" Condition=" $(RequiresChannels)=='true'" Version="7.0.0" />
     <PackageReference Include="LibGit2Sharp" Version="0.26.2" Condition="$(RequiresLibGit)=='true'" GeneratePathProperty="true" PrivateAssets="all" />  
