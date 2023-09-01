@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Mod
         {
             Action act = () => new TaintIssue("issue key", "rule key",
                 null,
-                AnalysisIssueSeverity.Major, DateTimeOffset.MinValue, DateTimeOffset.MinValue, null, null);
+                AnalysisIssueSeverity.Major, SoftwareQualitySeverity.High, DateTimeOffset.MinValue, DateTimeOffset.MinValue, null, null);
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("primaryLocation");
         }
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Mod
             var lastUpdated = DateTimeOffset.UtcNow;
             var issue = new TaintIssue("issue key", "rule key",
                 new AnalysisIssueLocation("message", "local-path.cpp", new TextRange(1, 2, 3, 4, "hash")),
-                AnalysisIssueSeverity.Major, created, lastUpdated, null, "contextKey");
+                AnalysisIssueSeverity.Major, SoftwareQualitySeverity.High, created, lastUpdated, null, "contextKey");
 
             issue.IssueKey.Should().Be("issue key");
             issue.RuleKey.Should().Be("rule key");
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Mod
             IReadOnlyList<IAnalysisIssueFlow> flows = null;
             var issue = new TaintIssue("issue key", "rule key",
                 new AnalysisIssueLocation("message", "local-path.cpp", new TextRange(1, 2, 3, 4, "hash")),
-                AnalysisIssueSeverity.Major, DateTimeOffset.MinValue, DateTimeOffset.MaxValue, flows, null);
+                AnalysisIssueSeverity.Major, SoftwareQualitySeverity.High, DateTimeOffset.MinValue, DateTimeOffset.MaxValue, flows, null);
 
             issue.Flows.Should().BeEmpty();
         }
@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Mod
             var flows = new[] { Mock.Of<IAnalysisIssueFlow>(), Mock.Of<IAnalysisIssueFlow>() };
             var issue = new TaintIssue("issue key", "rule key",
                 new AnalysisIssueLocation("message", "local-path.cpp", new TextRange(1, 2, 3, 4, "hash")),
-                AnalysisIssueSeverity.Major, DateTimeOffset.MinValue, DateTimeOffset.MaxValue, flows, null);
+                AnalysisIssueSeverity.Major, SoftwareQualitySeverity.High, DateTimeOffset.MinValue, DateTimeOffset.MaxValue, flows, null);
 
             issue.Flows.Should().BeEquivalentTo(flows);
         }
