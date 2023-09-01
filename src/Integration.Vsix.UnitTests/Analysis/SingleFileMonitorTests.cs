@@ -188,8 +188,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             }
         }
     
-        [Ignore] // Note: started failing when we started using Microsoft.VisualStudio.Sdk.TestFramework
-                 // to mock VS threading/JoinableTaskContext to fix the options/dialog tests
         [TestMethod]
         public void DisposeWhileHandlingFileEvent_DisposedWatcherIsNotCalled()
         {
@@ -241,8 +239,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             eventHandlerMethodTask.Wait(timeout).Should().BeTrue();
             disposedEventSignalled.Should().BeTrue();
 
-            // Expect a single call to watcher.Dispose(), and no other calls
+            // Expect a single call to watcher.Dispose(), and the event handlers to be unregistered
             watcherMock.Verify(x => x.Dispose(), Times.Once);
+            watcherMock.VerifyRemove(x => x.Changed -= It.IsAny<FileSystemEventHandler>(), Times.Once);
+            watcherMock.VerifyRemove(x => x.Created -= It.IsAny<FileSystemEventHandler>(), Times.Once);
+            watcherMock.VerifyRemove(x => x.Deleted -= It.IsAny<FileSystemEventHandler>(), Times.Once);
+            watcherMock.VerifyRemove(x => x.Renamed -= It.IsAny<RenamedEventHandler>(), Times.Once);
+
             watcherMock.VerifyNoOtherCalls();
         }
 
@@ -477,12 +480,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
                 var timeout = System.Diagnostics.Debugger.IsAttached ? 1000 * 60 * 5 : 1000;
                 var signaled = signal.WaitOne(timeout);
                 signaled.Should().Be(true); // throw if we timed out
-            }
-
-            public void PauseForEvent(int milliseconds)
-            {
-                // Wait for the event, but don't throw in the event of it not arriving
-                signal.WaitOne(milliseconds);
             }
 
             private void OnFileChanged(object sender, EventArgs args)

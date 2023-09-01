@@ -50,13 +50,6 @@
     <PackageReference Include="SonarAnalyzer.CSharp" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
 
-  <ItemGroup Label="VSSDK Test framework">
-    <!-- see https://github.com/SonarSource/sonarlint-visualstudio/issues/2760 -->
-    <!--<PackageReference Condition="$(VsTargetVersion) != '2022'" Include="Microsoft.VisualStudio.Sdk.TestFramework" Version="16.5.22-beta" />-->
-
-    <PackageReference Condition="$(VsTargetVersion) == '2022'" Include="Microsoft.VisualStudio.Sdk.TestFramework" Version="17.2.7" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Integration.Vsix\Integration.Vsix.csproj" />
     <ProjectReference Include="..\Integration\Integration.csproj" />
