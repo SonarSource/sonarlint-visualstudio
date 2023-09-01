@@ -182,10 +182,10 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn CanUserSort="True" SortMemberPath="TaintIssueViz.Issue.Severity" Header="Severity" Width="68"  MinWidth="68">
+                        <DataGridTemplateColumn CanUserSort="True" SortMemberPath="DisplaySeveritySortOrder" Header="Severity" Width="68"  MinWidth="68">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding TaintIssueViz.Issue.Severity}"
+                                    <TextBlock Text="{Binding DisplaySeverity}"
                                        Style="{StaticResource CellTextBlockStyle}" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
