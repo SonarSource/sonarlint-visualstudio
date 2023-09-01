@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.TypeScript.Notifications
 
         private void ShowMoreInfo()
         {
-            browserService.Navigate("https://github.com/SonarSource/sonarlint-visualstudio/wiki/NodeJS-prerequisite-for-JavaScript-and-TypeScript-analysis");
+            browserService.Navigate(DocumentationLinks.LanguageSpecificRequirements_JsTs);
         }
     }
 }

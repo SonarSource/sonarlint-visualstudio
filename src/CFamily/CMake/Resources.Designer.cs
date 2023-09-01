@@ -19,7 +19,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -143,7 +143,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         
         /// <summary>
         ///   Looks up a localized string similar to [CMake] Could not locate compilation database at &apos;{0}&apos;. Make sure that your project is configured correctly. 
-        ///    See https://github.com/SonarSource/sonarlint-visualstudio/wiki for more information..
+        ///    See {1} for more information...
         /// </summary>
         internal static string NoCompilationDatabaseFile {
             get {

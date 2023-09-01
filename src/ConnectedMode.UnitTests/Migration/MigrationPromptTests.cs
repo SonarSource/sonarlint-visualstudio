@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             notification.Actions.LastOrDefault().CommandText.Should().Be(MigrationStrings.MigrationPrompt_LearnMoreButton);
             notification.Actions.LastOrDefault().Action(null);
 
-            browserService.Verify(x => x.Navigate(MigrationStrings.Url_LearnMoreUrl), Times.Once);
+            browserService.Verify(x => x.Navigate(DocumentationLinks.MigrateToConnectedModeV7), Times.Once);
         }
 
         [TestMethod]

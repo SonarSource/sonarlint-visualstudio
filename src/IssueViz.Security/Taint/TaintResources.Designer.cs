@@ -19,7 +19,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class TaintResources {
@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
         
         /// <summary>
         ///   Looks up a localized string similar to [Taint] Displaying taint vulnerabilities in the IDE requires SonarQube v8.6 or later, or SonarCloud. Connected SonarQube version: v{0}
-        ///    Visit https://github.com/SonarSource/sonarlint-visualstudio/wiki to find out more about this and other SonarLint features..
+        ///    Visit {1} to find out more about this and other SonarLint features..
         /// </summary>
         internal static string Synchronizer_UnsupportedSQVersion {
             get {

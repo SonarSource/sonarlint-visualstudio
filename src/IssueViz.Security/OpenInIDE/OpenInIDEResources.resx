@@ -170,7 +170,7 @@
     project: {1}</value>
   </data>
   <data name="RequestValidator_DocumentationLink" xml:space="preserve">
-    <value>Visit https://github.com/SonarSource/sonarlint-visualstudio/wiki to find out more about this and other SonarLint features.
+    <value>Visit {0} to find out more about this and other SonarLint features.
 </value>
   </data>
   <data name="OpenHotspot_InvalidServerParameter" xml:space="preserve">

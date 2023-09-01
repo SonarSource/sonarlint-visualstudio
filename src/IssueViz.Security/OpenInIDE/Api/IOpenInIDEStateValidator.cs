@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             }
 
             logger.WriteLine(failureMessage);
-            logger.WriteLine(OpenInIDEResources.RequestValidator_DocumentationLink);
+            logger.WriteLine(OpenInIDEResources.RequestValidator_DocumentationLink, DocumentationLinks.HomePage);
 
             return false;
         }
