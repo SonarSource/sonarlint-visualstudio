@@ -24,12 +24,23 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels
 {
     internal interface ITaintIssueViewModel : INotifyPropertyChanged, IDisposable
     {
         IAnalysisIssueVisualization TaintIssueViz { get; }
+        
+        /// <summary>
+        /// Displays new <see cref="SoftwareQualitySeverity"/> if available, otherwise displays <see cref="AnalysisIssueSeverity"/>
+        /// </summary>
+        string DisplaySeverity { get; }
+        
+        /// <summary>
+        /// Correct order for <see cref="DisplaySeverity"/>, derived from the original data order
+        /// </summary>
+        int DisplaySeveritySortOrder { get; }
 
         int Line { get; }
 
@@ -53,10 +64,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             TaintIssueViz = issueViz;
             TaintIssueViz.PropertyChanged += OnPropertyChanged;
 
+            if (issueViz.Issue is ITaintIssue taintIssue)
+            {
+                if (taintIssue.HighestSoftwareQualitySeverity.HasValue)
+                {
+                    DisplaySeverity = taintIssue.HighestSoftwareQualitySeverity.ToString();
+                    DisplaySeveritySortOrder = (int)taintIssue.HighestSoftwareQualitySeverity ;
+                }
+                else
+                {
+                    DisplaySeverity = taintIssue.Severity.ToString();
+                    DisplaySeveritySortOrder = (int)taintIssue.Severity;
+                }
+            }
+
             this.positionCalculator = positionCalculator;
         }
 
         public IAnalysisIssueVisualization TaintIssueViz { get; }
+        public string DisplaySeverity { get; } = string.Empty;
+        public int DisplaySeveritySortOrder { get; }
 
         public int Line => positionCalculator.GetLine(TaintIssueViz);
 

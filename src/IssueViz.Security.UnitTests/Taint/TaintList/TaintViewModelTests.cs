@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.TaintList
@@ -41,7 +42,44 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             issueViz.VerifyAdd(x => x.PropertyChanged += It.IsAny<PropertyChangedEventHandler>(), Times.Once);
         }
+        
+        [DataRow(SoftwareQualitySeverity.High)]
+        [DataRow(SoftwareQualitySeverity.Medium)]
+        [DataRow(SoftwareQualitySeverity.Low)]
+        [DataTestMethod]
+        public void DisplaySeverity_NewSeverity_DisplayedCorrectly(SoftwareQualitySeverity severity)
+        {
+            var taintIssue = new Mock<ITaintIssue>();
+            taintIssue.Setup(x => x.HighestSoftwareQualitySeverity).Returns(severity);
+            taintIssue.Setup(x => x.Severity).Returns(AnalysisIssueSeverity.Major);
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.Setup(x => x.Issue).Returns(taintIssue.Object);
 
+            var testSubject = CreateTestSubject(issueViz.Object);
+
+            testSubject.DisplaySeverity.Should().Be(severity.ToString());
+            testSubject.DisplaySeveritySortOrder.Should().Be((int)severity);
+        }
+
+        [DataRow(AnalysisIssueSeverity.Blocker)]
+        [DataRow(AnalysisIssueSeverity.Critical)]
+        [DataRow(AnalysisIssueSeverity.Major)]
+        [DataRow(AnalysisIssueSeverity.Minor)]
+        [DataRow(AnalysisIssueSeverity.Info)]
+        [DataTestMethod]
+        public void DisplaySeverity_OldSeverity_DisplayedCorrectly(AnalysisIssueSeverity severity)
+        {
+            var taintIssue = new Mock<ITaintIssue>();
+            taintIssue.Setup(x => x.Severity).Returns(severity);
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.Setup(x => x.Issue).Returns(taintIssue.Object);
+
+            var testSubject = CreateTestSubject(issueViz.Object);
+
+            testSubject.DisplaySeverity.Should().Be(severity.ToString());
+            testSubject.DisplaySeveritySortOrder.Should().Be((int)severity);
+        }
+        
         [TestMethod]
         public void Dispose_UnregisterFromIssueVizPropertyChangedEvent()
         {
