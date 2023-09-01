@@ -20,6 +20,9 @@
 
 namespace SonarLint.VisualStudio.Core
 {
+    /// <summary>
+    /// Contains all documentation links used in-product.
+    /// </summary>
     public static class DocumentationLinks
     {
         public const string HomePage = "https://docs.sonarsource.com/sonarlint/visual-studio/";
