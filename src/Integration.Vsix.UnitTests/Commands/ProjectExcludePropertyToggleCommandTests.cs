@@ -19,7 +19,9 @@
  */
 
 using System;
+using EnvDTE;
 using FluentAssertions;
+using FluentAssertions.Common;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -31,141 +33,79 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
     [TestClass]
     public class ProjectExcludePropertyToggleCommandTests
     {
-        #region Test boilerplate
-
-        private ConfigurableVsProjectSystemHelper projectSystem;
-
-        // TODO - cleanup. These unit tests are supposed to be testing
-        // ProjectExcludePropertyToggleCommand, so they don't need a real
-        // instance of ProjectPropertyManager. See #4770.
-        private ProjectPropertyManager propertyManager;
-        private Mock<IProjectToLanguageMapper> projectToLanguageMapper;
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            projectSystem = new ConfigurableVsProjectSystemHelper(new ConfigurableServiceProvider());
-            propertyManager = new ProjectPropertyManager(projectSystem);
-            projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
-        }
-
-        #endregion Test boilerplate
-
         #region Tests
 
         [TestMethod]
-        public void ProjectExcludePropertyToggleCommand_Ctor()
+        public void Ctor_ArgsCheck()
         {
             Action act = () => new ProjectExcludePropertyToggleCommand(null, null);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("propertyManager");
 
-            act = () => new ProjectExcludePropertyToggleCommand(propertyManager, null);
+            act = () => new ProjectExcludePropertyToggleCommand(Mock.Of<IProjectPropertyManager>(), null);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("projectToLanguageMapper");
         }
 
         [TestMethod]
-        public void ProjectExcludePropertyToggleCommand_Invoke_SingleProject_TogglesValue()
+        [DataRow(true, null)]
+        [DataRow(false, true)]
+        public void Invoke_SingleProject_TogglesValue(bool initialExcludeValue, bool? expectedSetValue)
         {
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
             command.Enabled = true;
 
-            var project = new ProjectMock("projecty.xxxx");
+            var project = Mock.Of<Project>();
+
+            var projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
             projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(project)).Returns(true);
 
-            var testSubject = CreateTestSubject();
+            var propertyManager = CreatePropertyManager(project);
+            SetupGetBooleanProperty(propertyManager, project, initialExcludeValue);
 
-            this.projectSystem.SelectedProjects = new[] { project };
-
-            // Test case 1: true --toggle--> clears property
-            this.SetExcludeProperty(project, true);
+            var testSubject = CreateTestSubject(propertyManager.Object, projectToLanguageMapper.Object);
 
             // Act
             testSubject.Invoke(command, null);
 
             // Assert
-            this.VerifyExcludeProperty(project, null);
-
-            // Test case 2: no property --toggle--> true
-            this.SetExcludeProperty(project, null);
-
-            // Act
-            testSubject.Invoke(command, null);
-
-            // Assert
-            this.VerifyExcludeProperty(project, true);
+            VerifyBooleanPropertyCalls(propertyManager, project, expectedSetValue, 1);
         }
 
         [TestMethod]
-        public void ProjectExcludePropertyToggleCommand_Invoke_MultipleProjects_ConsistentPropValues_TogglesValues()
+        [DataRow(true, true, null, null, 2)]
+        [DataRow(false, false, true, true, 2)]
+        [DataRow(null, false, true, true, 1)]
+        [DataRow(null, true, true, true, 1)]
+        public void Invoke_MultipleProjects_TogglesValues(bool? initialExcludeValue1, bool? initialExcludeValue2,
+            bool? expectedSetValue1, bool? expectedSetValue2, int nrOfCallsToGetBoolean)
         {
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
             command.Enabled = true;
 
-            var testSubject = CreateTestSubject();
+            var p1 = Mock.Of<Project>();
+            var p2 = Mock.Of<Project>();
 
-            var p1 = new ProjectMock("good1.proj");
-            var p2 = new ProjectMock("good2.proj");
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p1)).Returns(true);
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p2)).Returns(true);
+            var projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
+            SetupHasSupportedLanguage(projectToLanguageMapper, p1, true);
+            SetupHasSupportedLanguage(projectToLanguageMapper, p2, true);
 
-            this.projectSystem.SelectedProjects = new[] { p1, p2 };
+            var propertyManager = CreatePropertyManager(p1, p2);
+            SetupGetBooleanProperty(propertyManager, p1, initialExcludeValue1);
+            SetupGetBooleanProperty(propertyManager, p2, initialExcludeValue2);
 
-            // Test case 1: all not set --toggle--> all true
-            // Act
-            testSubject.Invoke(command, null);
-
-            // Assert
-            this.VerifyExcludeProperty(p1, true);
-            this.VerifyExcludeProperty(p2, true);
-
-            // Test case 2: all true --toggle--> all not set
-            // Arrange
-            this.SetExcludeProperty(p1, true);
-            this.SetExcludeProperty(p2, true);
+            var testSubject = CreateTestSubject(propertyManager.Object, projectToLanguageMapper.Object);
 
             // Act
             testSubject.Invoke(command, null);
 
             // Assert
-            this.VerifyExcludeProperty(p1, null);
-            this.VerifyExcludeProperty(p2, null);
+            VerifyBooleanPropertyCalls(propertyManager, p1, expectedSetValue1, nrOfCallsToGetBoolean);
+            VerifyBooleanPropertyCalls(propertyManager, p2, expectedSetValue2, nrOfCallsToGetBoolean);
         }
 
         [TestMethod]
-        public void ProjectExcludePropertyToggleCommand_Invoke_MultipleProjects_MixedPropValues_SetIsExcludedTrue()
-        {
-            // Arrange
-            OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
-            command.Enabled = true;
-
-            var testSubject = CreateTestSubject();
-
-            var p1 = new ProjectMock("trueProj.proj");
-            var p2 = new ProjectMock("nullProj.proj");
-            var p3 = new ProjectMock("trueProj.proj");
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p1)).Returns(true);
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p2)).Returns(true);
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p3)).Returns(true);
-
-            this.projectSystem.SelectedProjects = new[] { p1, p2, p3 };
-
-            this.SetExcludeProperty(p1, true);
-            this.SetExcludeProperty(p2, null);
-            this.SetExcludeProperty(p3, false);
-
-            // Act
-            testSubject.Invoke(command, null);
-
-            // Assert
-            this.VerifyExcludeProperty(p1, true);
-            this.VerifyExcludeProperty(p2, true);
-            this.VerifyExcludeProperty(p3, true);
-        }
-
-        [TestMethod]
-        public void ProjectExcludePropertyToggleCommand_QueryStatus_MissingPropertyManager_IsDisabledIsHidden()
+        public void QueryStatus_MissingPropertyManager_IsDisabledIsHidden()
         {
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
@@ -181,220 +121,144 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         }
 
         [TestMethod]
-        public void ProjectExcludePropertyToggleCommand_QueryStatus_SingleProject_SupportedProject_IsEnabledIsVisible()
+        [DataRow(true)]
+        [DataRow(false)]
+        public void QueryStatus_SingleProject_Project_Supported_Unsupported_CorrectCommandState(bool projectSupported)
         {
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = CreateTestSubject();
+            var project = Mock.Of<Project>();
 
-            var project = new ProjectMock("mcproject.csproj");
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(project)).Returns(true);
+            var projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
+            SetupHasSupportedLanguage(projectToLanguageMapper, project, projectSupported);
 
-            this.projectSystem.SelectedProjects = new[] { project };
+            var propertyManager = CreatePropertyManager(project);
+
+            var testSubject = CreateTestSubject(propertyManager.Object, projectToLanguageMapper.Object);
 
             // Act
             testSubject.QueryStatus(command, null);
 
             // Assert
-            command.Enabled.Should().BeTrue("Expected command to be enabled");
-            command.Visible.Should().BeTrue("Expected command to be visible");
+            command.Enabled.Should().IsSameOrEqualTo(projectSupported);
+            command.Visible.Should().IsSameOrEqualTo(projectSupported);
         }
 
         [TestMethod]
-        public void ProjectExcludePropertyToggleCommand_QueryStatus_SingleProject_UnsupportedProject_IsDisabledIsHidden()
+        [DataRow(true)]
+        [DataRow(false)]
+        public void QueryStatus_SingleProject_CheckedStateReflectsValues(bool excludeValue)
         {
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = CreateTestSubject();
+            var project = Mock.Of<Project>();
 
-            var project = new ProjectMock("mcproject.csproj");
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(project)).Returns(false);
+            var projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
+            SetupHasSupportedLanguage(projectToLanguageMapper, project, true);
 
-            this.projectSystem.SelectedProjects = new[] { project };
+            var propertyManager = CreatePropertyManager(project);
+            SetupGetBooleanProperty(propertyManager, project, excludeValue);
+
+            var testSubject = CreateTestSubject(propertyManager.Object, projectToLanguageMapper.Object);
 
             // Act
             testSubject.QueryStatus(command, null);
 
             // Assert
-            command.Enabled.Should().BeFalse("Expected command to be disabled");
-            command.Visible.Should().BeFalse("Expected command to be hidden");
+            command.Checked.Should().IsSameOrEqualTo(excludeValue);
         }
 
         [TestMethod]
-        public void ProjectExcludePropertyToggleCommand_QueryStatus_SingleProject_CheckedStateReflectsValues()
+        [DataRow(true, true, true)]
+        [DataRow(false, false, false)]
+        [DataRow(null, false, false)]
+        [DataRow(null, true, false)]
+        public void QueryStatus_MultipleProjects_CheckedStateReflectsValues(bool? excludeValue1, bool? excludeValue2, bool expectedCheckedValue)
         {
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = CreateTestSubject();
+            var p1 = Mock.Of<Project>();
+            var p2 = Mock.Of<Project>();
 
-            var project = new ProjectMock("face.proj");
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(project)).Returns(true);
+            var projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
+            SetupHasSupportedLanguage(projectToLanguageMapper, p1, true);
+            SetupHasSupportedLanguage(projectToLanguageMapper, p2, true);
 
-            this.projectSystem.SelectedProjects = new[] { project };
+            var propertyManager = CreatePropertyManager(p1, p2);
+            SetupGetBooleanProperty(propertyManager, p1, excludeValue1);
+            SetupGetBooleanProperty(propertyManager, p2, excludeValue2);
 
-            // Test case 1: no property -> not checked
-            // Act
-            testSubject.QueryStatus(command, null);
-
-            // Assert
-            command.Checked.Should().BeFalse("Expected command to be unchecked");
-
-            // Test case 1: true -> is checked
-            this.SetExcludeProperty(project, true);
+            var testSubject = CreateTestSubject(propertyManager.Object, projectToLanguageMapper.Object);
 
             // Act
             testSubject.QueryStatus(command, null);
 
             // Assert
-            command.Checked.Should().BeTrue("Expected command to be checked");
+            command.Checked.Should().IsSameOrEqualTo(expectedCheckedValue);
         }
 
         [TestMethod]
-        public void ProjectExcludePropertyToggleCommand_QueryStatus_MultipleProjects_ConsistentPropValues_CheckedStateReflectsValues()
+        [DataRow(true, true, true)]
+        [DataRow(false, false, false)]
+        [DataRow(true, false, false)]
+        public void QueryStatus_MultipleProjects_AllSupported_MixedSupport_CorrectCommandState(bool supportedValue1, bool supportedValue2, bool expectedCommandState)
         {
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = CreateTestSubject();
+            var p1 = Mock.Of<Project>();
+            var p2 = Mock.Of<Project>();
 
-            var p1 = new ProjectMock("good1.proj");
-            var p2 = new ProjectMock("good2.proj");
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p1)).Returns(true);
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p2)).Returns(true);
+            var projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
+            SetupHasSupportedLanguage(projectToLanguageMapper, p1, supportedValue1);
+            SetupHasSupportedLanguage(projectToLanguageMapper, p2, supportedValue2);
 
-            this.projectSystem.SelectedProjects = new[] { p1, p2 };
+            var propertyManager = CreatePropertyManager(p1, p2);
 
-            // Test case 1: no property -> not checked
-            // Act
-            testSubject.QueryStatus(command, null);
-
-            // Assert
-            command.Checked.Should().BeFalse("Expected command to be unchecked");
-
-            // Test case 2: all true -> is checked
-            this.SetExcludeProperty(p1, true);
-            this.SetExcludeProperty(p2, true);
+            var testSubject = CreateTestSubject(propertyManager.Object, projectToLanguageMapper.Object);
 
             // Act
             testSubject.QueryStatus(command, null);
 
             // Assert
-            command.Checked.Should().BeTrue("Expected command to be checked");
-        }
-
-        [TestMethod]
-        public void ProjectExcludePropertyToggleCommand_QueryStatus_MultipleProjects_MixedPropValues_IsUnchecked()
-        {
-            // Arrange
-            OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
-
-            var testSubject = CreateTestSubject();
-
-            var p1 = new ProjectMock("good1.proj");
-            var p2 = new ProjectMock("good2.proj");
-            var p3 = new ProjectMock("good3.proj");
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p1)).Returns(true);
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p2)).Returns(true);
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p3)).Returns(true);
-
-            this.projectSystem.SelectedProjects = new[] { p1, p2, p3 };
-
-            this.SetExcludeProperty(p1, true);
-            this.SetExcludeProperty(p2, null);
-            this.SetExcludeProperty(p3, false);
-
-            // Act
-            testSubject.QueryStatus(command, null);
-
-            // Assert
-            command.Checked.Should().BeFalse("Expected command to be unchecked");
-        }
-
-        [TestMethod]
-        public void ProjectExcludePropertyToggleCommand_QueryStatus_MultipleProjects_AllSupportedProjects_IsEnabledIsVisible()
-        {
-            // Arrange
-            OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
-
-            var testSubject = CreateTestSubject();
-
-            var p1 = new ProjectMock("good1.proj");
-            var p2 = new ProjectMock("good2.proj");
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p1)).Returns(true);
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p2)).Returns(true);
-
-            this.projectSystem.SelectedProjects = new [] { p1, p2 };
-
-            // Act
-            testSubject.QueryStatus(command, null);
-
-            // Assert
-            command.Enabled.Should().BeTrue("Expected command to be enabled");
-            command.Visible.Should().BeTrue("Expected command to be visible");
-        }
-
-        [TestMethod]
-        public void ProjectExcludePropertyToggleCommand_QueryStatus_MultipleProjects_MixedSupportedProject_IsDisabledIsHidden()
-        {
-            // Arrange
-            OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
-
-            var testSubject = CreateTestSubject();
-
-            var unsupportedProject = new ProjectMock("bad.proj");
-            var supportedProject = new ProjectMock("good.proj");
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(unsupportedProject)).Returns(false);
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(supportedProject)).Returns(true);
-
-            this.projectSystem.SelectedProjects = new[] { unsupportedProject, supportedProject };
-
-            // Act
-            testSubject.QueryStatus(command, null);
-
-            // Assert
-            command.Enabled.Should().BeFalse("Expected command to be disabled");
-            command.Visible.Should().BeFalse("Expected command to be hidden");
+            command.Enabled.Should().IsSameOrEqualTo(expectedCommandState);
+            command.Visible.Should().IsSameOrEqualTo(expectedCommandState);
         }
 
         #endregion Tests
 
         #region Test helpers
 
-        private void VerifyExcludeProperty(ProjectMock project, bool? expected)
+        private static void SetupHasSupportedLanguage(Mock<IProjectToLanguageMapper> projectToLanguageMapper, Project project, bool value) =>
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(project)).Returns(value);
+
+        private static void VerifyBooleanPropertyCalls(Mock<IProjectPropertyManager> propertyManager, Project project, bool? value, int nrOfCallsToGetBoolean)
         {
-            bool? actual = this.GetExcludeProperty(project);
-            actual.Should().Be(expected);
+            propertyManager.Verify(x => x.GetBooleanProperty(project, "SonarQubeExclude"), Times.Exactly(nrOfCallsToGetBoolean));
+            propertyManager.Verify(x => x.SetBooleanProperty(project, "SonarQubeExclude", value), Times.Once);
         }
 
-        private bool? GetExcludeProperty(ProjectMock project)
-        {
-            string valueString = project.GetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey);
-            bool value;
-            if (bool.TryParse(valueString, out value))
-            {
-                return value;
-            }
+        private static void SetupGetBooleanProperty(Mock<IProjectPropertyManager> propertyManager, Project project, bool? value) =>
+            propertyManager.Setup(x => x.GetBooleanProperty(project, "SonarQubeExclude")).Returns(value);
 
-            return null;
+        private static Mock<IProjectPropertyManager> CreatePropertyManager(params Project[] projectsToReturn)
+        {
+            var propertyManager = new Mock<IProjectPropertyManager>();
+            propertyManager.Setup(x => x.GetSelectedProjects()).Returns(projectsToReturn);
+            return propertyManager;
         }
 
-        private void SetExcludeProperty(ProjectMock project, bool? value)
+        private ProjectExcludePropertyToggleCommand CreateTestSubject(IProjectPropertyManager propertyManager = null,
+            IProjectToLanguageMapper projectToLanguageMapper = null)
         {
-            if (value.GetValueOrDefault(false))
-            {
-                project.SetBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey, value.Value.ToString());
-            }
-            else
-            {
-                project.ClearBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey);
-            }
-        }
+            propertyManager ??= Mock.Of<IProjectPropertyManager>();
+            projectToLanguageMapper ??= Mock.Of<IProjectToLanguageMapper>();
 
-        private ProjectExcludePropertyToggleCommand CreateTestSubject() => 
-            new ProjectExcludePropertyToggleCommand(propertyManager, projectToLanguageMapper.Object);
+            return new ProjectExcludePropertyToggleCommand(propertyManager, projectToLanguageMapper);
+        }
 
         #endregion Test helpers
     }
