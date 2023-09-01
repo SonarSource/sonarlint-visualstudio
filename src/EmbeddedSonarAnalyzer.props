@@ -13,7 +13,7 @@
 		 rule help from an "normal" Java plugin. The two artefacts are versioned separately.
 	-->
     <EmbeddedSonarSecretsNuGetVersion>1.0.4</EmbeddedSonarSecretsNuGetVersion>
-    <EmbeddedSonarSecretsJarVersion>2.0.1.611</EmbeddedSonarSecretsJarVersion>
+    <EmbeddedSonarSecretsJarVersion>2.3.0.1632</EmbeddedSonarSecretsJarVersion>
   </PropertyGroup>
 
 </Project>
