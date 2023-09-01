@@ -107,6 +107,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                         sonarQubeIssue.TextRange.EndOffset,
                         sonarQubeIssue.Hash)),
                 Convert(sonarQubeIssue.Severity),
+                null, // todo: add after implemented in SonarQubeService
                 sonarQubeIssue.CreationTimestamp,
                 sonarQubeIssue.LastUpdateTimestamp,
                 Convert(sonarQubeIssue.Flows),
@@ -129,6 +130,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                         sonarQubeTaintIssue.MainLocation.TextRange.EndLineOffset,
                         sonarQubeTaintIssue.MainLocation.TextRange.Hash)),
                 Convert(sonarQubeTaintIssue.Severity),
+                null, // todo: add after implemented in SonarQubeService
                 sonarQubeTaintIssue.CreationDate,
                 default,
                 Convert(sonarQubeTaintIssue.Flows),

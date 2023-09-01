@@ -29,6 +29,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
         string IssueKey { get; }
 
         AnalysisIssueSeverity Severity { get; }
+        
+        SoftwareQualitySeverity? highestSoftwareQualitySeverity { get; }
 
         DateTimeOffset CreationTimestamp { get; }
 
@@ -42,7 +44,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
         public TaintIssue(string issueKey,
             string ruleKey,
             IAnalysisIssueLocation primaryLocation,
-            AnalysisIssueSeverity severity,
+            AnalysisIssueSeverity severity, 
+            SoftwareQualitySeverity? highestSoftwareQualitySeverity,
             DateTimeOffset creationTimestamp,
             DateTimeOffset lastUpdateTimestamp,
             IReadOnlyList<IAnalysisIssueFlow> flows,
@@ -56,11 +59,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
             LastUpdateTimestamp = lastUpdateTimestamp;
             Flows = flows ?? EmptyFlows;
             RuleDescriptionContextKey = ruleDescriptionContextKey;
+            this.highestSoftwareQualitySeverity = highestSoftwareQualitySeverity;
         }
 
         public string IssueKey { get; }
         public string RuleKey { get; }
         public AnalysisIssueSeverity Severity { get; }
+        public SoftwareQualitySeverity? highestSoftwareQualitySeverity { get; }
         public DateTimeOffset CreationTimestamp { get; }
         public DateTimeOffset LastUpdateTimestamp { get; }
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
