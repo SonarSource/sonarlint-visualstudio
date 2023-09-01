@@ -1014,8 +1014,8 @@
       },
       "Newtonsoft.Json": {
         "type": "Transitive",
-        "resolved": "13.0.1",
-        "contentHash": "ppPFpBcvxdsfUonNcvITKqLl3bqxWbDCZIzDWHzjpdAHRFfZe0Dw9HmA0+za13IdyrgJwpkDTDA9fHaxOrt20A=="
+        "resolved": "13.0.3",
+        "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
       },
       "NuGet.Core": {
         "type": "Transitive",
@@ -1544,7 +1544,7 @@
           "Microsoft.Alm.Authentication": "[4.0.0.1, )",
           "Microsoft.VisualStudio.LanguageServices": "[1.3.2, )",
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
-          "Newtonsoft.Json": "[13.0.1, )",
+          "Newtonsoft.Json": "[13.0.3, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.IssueVisualization": "[1.0.0, )",
           "StrongNamer": "[0.0.8, )"
@@ -1553,7 +1553,7 @@
       "SonarLint.VisualStudio.Core": {
         "type": "Project",
         "dependencies": {
-          "Newtonsoft.Json": "[13.0.1, )",
+          "Newtonsoft.Json": "[13.0.3, )",
           "SonarQube.Client": "[1.0.0, )",
           "System.IO.Abstractions": "[9.0.4, )",
           "System.Threading.Channels": "[7.0.0, )"
@@ -1571,7 +1571,7 @@
         "dependencies": {
           "Microsoft.Alm.Authentication": "[4.0.0.1, )",
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
-          "Newtonsoft.Json": "[13.0.1, )",
+          "Newtonsoft.Json": "[13.0.3, )",
           "NuGet.Core": "[2.12.0, )",
           "NuGet.VisualStudio": "[3.3.0, )",
           "SonarLint.VisualStudio.CloudSecrets": "[1.0.0, )",
@@ -1640,7 +1640,7 @@
           "BouncyCastle": "[1.8.9, )",
           "Google.Protobuf": "[3.6.1, )",
           "Grpc.Tools": "[1.4.1, )",
-          "Newtonsoft.Json": "[13.0.1, )",
+          "Newtonsoft.Json": "[13.0.3, )",
           "System.Net.Http": "[4.0.0, )"
         }
       }
