@@ -29,7 +29,8 @@ namespace SonarQube.Client.Models
 
         public SonarQubeIssue(string issueKey, string filePath, string hash, string message, string moduleKey, string ruleId, bool isResolved,
             SonarQubeIssueSeverity severity, DateTimeOffset creationTimestamp, DateTimeOffset lastUpdateTimestamp,
-            IssueTextRange textRange, List<IssueFlow> flows, string context = null)
+            IssueTextRange textRange, List<IssueFlow> flows, string context = null, string cleanCodeAttribute = null,
+            Dictionary<string, string> defaultImpacts = null)
         {
             IssueKey = issueKey;
             FilePath = filePath;
@@ -44,6 +45,8 @@ namespace SonarQube.Client.Models
             TextRange = textRange;
             Flows = flows ?? EmptyFlows;
             Context = context;
+            CleanCodeAttribute = cleanCodeAttribute;
+            DefaultImpacts = defaultImpacts;
         }
 
         public string IssueKey { get; }
@@ -74,6 +77,9 @@ namespace SonarQube.Client.Models
         public IReadOnlyList<IssueFlow> Flows { get; }
 
         public string Context { get; set; }
+
+        public string CleanCodeAttribute { get; }
+        public Dictionary<string, string> DefaultImpacts { get; set; }
     }
 
     public class IssueFlow

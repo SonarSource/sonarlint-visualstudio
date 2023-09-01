@@ -82,7 +82,7 @@ namespace SonarQube.Client.Api.V7_20
         /// issues and components, where each issue's "component" property points to a component with
         /// the same "key". We obtain the FilePath of each issue from its corresponding component.
         /// </summary>
-        private ILookup<string, string> componentKeyPathLookup;
+        private protected ILookup<string, string> componentKeyPathLookup;
 
         private SonarQubeIssue ToSonarQubeIssue(ServerIssue issue) =>
             new SonarQubeIssue(issue.IssueKey, ComputePath(issue.Component), issue.Hash, issue.Message, ComputeModuleKey(issue),
@@ -94,26 +94,26 @@ namespace SonarQube.Client.Api.V7_20
                 ToIssueFlows(issue.Flows),
                 issue.ContextKey);
 
-        private string ComputePath(string component) =>
+        private protected string ComputePath(string component) =>
             FilePathNormalizer.NormalizeSonarQubePath(componentKeyPathLookup[component].FirstOrDefault() ?? string.Empty);
 
-        private static string ComputeModuleKey(ServerIssue issue) =>
+        private protected static string ComputeModuleKey(ServerIssue issue) =>
             issue.SubProject ?? issue.Component;
 
-        private List<IssueFlow> ToIssueFlows(ServerIssueFlow[] serverIssueFlows) =>
+        private protected List<IssueFlow> ToIssueFlows(ServerIssueFlow[] serverIssueFlows) =>
             serverIssueFlows?.Select(ToIssueFlow).ToList();
 
-        private IssueFlow ToIssueFlow(ServerIssueFlow serverIssueFlow) =>
+        private protected IssueFlow ToIssueFlow(ServerIssueFlow serverIssueFlow) =>
             new IssueFlow(serverIssueFlow.Locations?.Select(ToIssueLocation).ToList());
 
-        private IssueLocation ToIssueLocation(ServerIssueLocation serverIssueLocation) =>
+        private protected IssueLocation ToIssueLocation(ServerIssueLocation serverIssueLocation) =>
             new IssueLocation(ComputePath(serverIssueLocation.Component), serverIssueLocation.Component, serverIssueLocation.TextRange.ToIssueTextRange(), serverIssueLocation.Message);
 
         #endregion Json data classes -> public read-only class conversion methods
 
         #region JSON data classes
 
-        private class ServerIssue
+        private protected class ServerIssue
         {
             [JsonProperty("key")]
             public string IssueKey { get; set; }
@@ -155,13 +155,13 @@ namespace SonarQube.Client.Api.V7_20
             public string ContextKey { get; set; }
         }
 
-        private sealed class ServerIssueFlow
+        private protected sealed class ServerIssueFlow
         {
             [JsonProperty("locations")]
             public ServerIssueLocation[] Locations { get; set; }
         }
 
-        private sealed class ServerIssueLocation
+        private protected sealed class ServerIssueLocation
         {
             [JsonProperty("component")]
             public string Component { get; set; }
