@@ -18,12 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SonarQube.Client.Api.Common;
 using SonarQube.Client.Api.V9_6;
+using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Api.V10_2
@@ -59,12 +59,7 @@ namespace SonarQube.Client.Api.V10_2
                 ToIssueFlows(issue.Flows),
                 issue.ContextKey,
                 issue.CleanCodeAttribute,
-                ToDefaultImpacts(issue.Impacts));
-
-        private static Dictionary<string, string> ToDefaultImpacts(ServerImpact[] impacts)
-        {
-            return impacts?.ToDictionary(i => i.SoftwareQuality, i => i.Severity);
-        }
+                ServerImpactHelper.ToDefaultImpacts(issue.Impacts));
 
         private class ServerIssueWithCCT : ServerIssue
         {
@@ -73,15 +68,6 @@ namespace SonarQube.Client.Api.V10_2
 
             [JsonProperty("impacts")]
             public ServerImpact[] Impacts { get; set; }
-        }
-
-        private class ServerImpact
-        {
-            [JsonProperty("softwareQuality")]
-            public string SoftwareQuality { get; set; }
-
-            [JsonProperty("severity")]
-            public string Severity { get; set; }
         }
     }
 }

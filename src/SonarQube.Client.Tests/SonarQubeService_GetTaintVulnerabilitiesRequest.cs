@@ -1872,10 +1872,10 @@ namespace SonarQube.Client.Tests
 
             var taint1 = result[0];
 
-            var taint1Impacts = new Dictionary<string, string>
+            var taint1Impacts = new Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity>
             {
-                { "MAINTAINABILITY", "HIGH" },
-                { "SECURITY", "HIGH" }
+                { SonarQubeSoftwareQuality.Maintainability, SonarQubeSoftwareQualitySeverity.High },
+                { SonarQubeSoftwareQuality.Security, SonarQubeSoftwareQualitySeverity.High }
             };
 
             taint1.IssueKey.Should().Be("AW0p2Qpn-y65ELkujuRf");
@@ -1901,10 +1901,10 @@ namespace SonarQube.Client.Tests
 
             var taint2 = result[1];
 
-            var taint2Impacts = new Dictionary<string, string>
+            var taint2Impacts = new Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity>
             {
-                { "RELIABILITY", "LOW" },
-                { "SECURITY", "HIGH" }
+                { SonarQubeSoftwareQuality.Reliability, SonarQubeSoftwareQualitySeverity.Low },
+                { SonarQubeSoftwareQuality.Security, SonarQubeSoftwareQualitySeverity.High }
             };
 
             taint2.IssueKey.Should().Be("AW0p2QqO-y65ELkujuRk");

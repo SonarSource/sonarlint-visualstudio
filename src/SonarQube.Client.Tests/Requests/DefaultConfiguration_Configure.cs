@@ -72,7 +72,7 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Api.V9_6.GetTaintVulnerabilitiesWithContextRequest for 9.6",
                     "Registered SonarQube.Client.Api.V9_7.SearchHotspotRequest for 9.7",
                     "Registered SonarQube.Client.Api.V10_2.SearchHotspotRequest for 10.2",
-                    "Registered SonarQube.Client.Api.V10_2.GetTaintVulnerabilitiesWithCCTRequest for 10."
+                    "Registered SonarQube.Client.Api.V10_2.GetTaintVulnerabilitiesWithCCTRequest for 10.2"
                 };
 
             DefaultConfiguration.ConfigureSonarQube(new RequestFactory(logger));
