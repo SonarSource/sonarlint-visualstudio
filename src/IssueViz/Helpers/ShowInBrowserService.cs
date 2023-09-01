@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
 
         public void ShowDocumentation()
         {
-            vsBrowserService.Navigate("https://github.com/SonarSource/sonarlint-visualstudio/wiki");
+            vsBrowserService.Navigate(DocumentationLinks.HomePage);
         }
 
         public void ShowCommunityPage()

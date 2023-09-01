@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 return compilationDatabaseLocation;
             }
 
-            logger.WriteLine(Resources.NoCompilationDatabaseFile, compilationDatabaseLocation);
+            logger.WriteLine(Resources.NoCompilationDatabaseFile, compilationDatabaseLocation, DocumentationLinks.LanguageSpecificRequirements);
 
             return null;
         }

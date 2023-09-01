@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         private void OnLearnMore()
         {
-            browserService.Navigate(MigrationStrings.Url_LearnMoreUrl);
+            browserService.Navigate(DocumentationLinks.MigrateToConnectedModeV7);
         }
 
         public void Dispose()

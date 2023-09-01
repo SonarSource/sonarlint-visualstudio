@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             page.Control.ShowWikiHyperLink.Command.Execute(null);
 
             // Assert
-            browserService.Verify(x => x.Navigate("https://github.com/SonarSource/sonarlint-visualstudio/wiki"), Times.Once);
+            browserService.Verify(x => x.Navigate(DocumentationLinks.DisablingARule), Times.Once);
         }
 
         private static void ConfigureSiteMock(GeneralOptionsDialogPage testSubject,

@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 return true;
             }
 
-            logger.WriteLine(TaintResources.Synchronizer_UnsupportedSQVersion, serverInfo.Version);
+            logger.WriteLine(TaintResources.Synchronizer_UnsupportedSQVersion, serverInfo.Version, DocumentationLinks.TaintVulnerabilities);
             return false;
         }
 
