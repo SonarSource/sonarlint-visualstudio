@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.TypeScript.Notifications
 
         private void ShowMoreInfo()
         {
-            browserService.Navigate("https://docs.sonarsource.com/sonarlint/visual-studio/getting-started/requirements/#nodejs-prerequisites-for-js-and-ts");
+            browserService.Navigate(DocumentationLinks.LanguageSpecificRequirements_JsTs);
         }
     }
 }

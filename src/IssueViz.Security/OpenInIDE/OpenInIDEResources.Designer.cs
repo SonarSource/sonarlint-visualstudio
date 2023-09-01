@@ -19,7 +19,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class OpenInIDEResources {
@@ -228,7 +228,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Visit https://docs.sonarsource.com/sonarlint/visual-studio/ to find out more about this and other SonarLint features.
+        ///   Looks up a localized string similar to Visit {0} to find out more about this and other SonarLint features.
         ///.
         /// </summary>
         internal static string RequestValidator_DocumentationLink {

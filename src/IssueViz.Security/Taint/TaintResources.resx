@@ -137,6 +137,6 @@
   </data>
   <data name="Synchronizer_UnsupportedSQVersion" xml:space="preserve">
     <value>[Taint] Displaying taint vulnerabilities in the IDE requires SonarQube v8.6 or later, or SonarCloud. Connected SonarQube version: v{0}
-    Visit https://docs.sonarsource.com/sonarlint/visual-studio/using-sonarlint/taint-vulnerabilities/ to find out more about this and other SonarLint features.</value>
+    Visit {1} to find out more about this and other SonarLint features.</value>
   </data>
 </root>

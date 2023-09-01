@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             page.Control.ShowWikiHyperLink.Command.Execute(null);
 
             // Assert
-            browserService.Verify(x => x.Navigate("https://docs.sonarsource.com/sonarlint/visual-studio/using-sonarlint/rules/#disabling-a-rule"), Times.Once);
+            browserService.Verify(x => x.Navigate(DocumentationLinks.DisablingARule), Times.Once);
         }
 
         private static void ConfigureSiteMock(GeneralOptionsDialogPage testSubject,

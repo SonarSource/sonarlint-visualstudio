@@ -143,7 +143,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         
         /// <summary>
         ///   Looks up a localized string similar to [CMake] Could not locate compilation database at &apos;{0}&apos;. Make sure that your project is configured correctly. 
-        ///    See https://docs.sonarsource.com/sonarlint/visual-studio/getting-started/requirements/#language-specific-requirements for more information...
+        ///    See {1} for more information...
         /// </summary>
         internal static string NoCompilationDatabaseFile {
             get {

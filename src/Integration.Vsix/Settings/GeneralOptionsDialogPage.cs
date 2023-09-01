@@ -33,7 +33,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     internal class GeneralOptionsDialogPage : UIElementDialogPage
     {
         public const string PageName = "General";
-        private const string WikiUrl = "https://docs.sonarsource.com/sonarlint/visual-studio/using-sonarlint/rules/#disabling-a-rule";
 
         private GeneralOptionsDialogControl dialogControl;
         private ISonarLintSettings settings;
@@ -50,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     var logger = this.Site.GetMefService<ILogger>();
 
                     var openSettingsFileCmd = new OpenSettingsFileWpfCommand(this.Site, userSettingsProvider, this, logger);
-                    var showWikiInBrowserCmd = new RelayCommand(() => browserService.Navigate(WikiUrl));
+                    var showWikiInBrowserCmd = new RelayCommand(() => browserService.Navigate(DocumentationLinks.DisablingARule));
                     dialogControl = new GeneralOptionsDialogControl(openSettingsFileCmd, showWikiInBrowserCmd);
                 }
                 return dialogControl;

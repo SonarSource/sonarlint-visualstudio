@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
 
             testSubject.ShowDocumentation();
 
-            browserService.Verify(x => x.Navigate("https://docs.sonarsource.com/sonarlint/visual-studio/"), Times.Once());
+            browserService.Verify(x => x.Navigate(DocumentationLinks.HomePage), Times.Once());
             browserService.VerifyNoOtherCalls();
         }
 
