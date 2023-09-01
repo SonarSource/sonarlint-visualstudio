@@ -107,8 +107,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             return helpOp;
         }
 
-        private void OnShowHelp() => browserService.Navigate(MigrationStrings.Url_LearnMoreUrl);
+        private void OnShowHelp() => browserService.Navigate(DocumentationLinks.MigrateToConnectedModeV7);
 
-        private void OnShowTfvcHelp() => browserService.Navigate(MigrationStrings.Url_TfvcHelp);
+        private void OnShowTfvcHelp() => browserService.Navigate(DocumentationLinks.MigrateToConnectedModeV7_NotesForTfvcUsers);
     }
 }
