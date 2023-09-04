@@ -58,8 +58,8 @@ namespace SonarQube.Client.Api.V10_2
                 issue.TextRange.ToIssueTextRange(),
                 ToIssueFlows(issue.Flows),
                 issue.ContextKey,
-                issue.CleanCodeAttribute,
-                ServerImpactHelper.ToDefaultImpacts(issue.Impacts));
+                CleanCodeTaxonomyHelpers.ToSonarQubeCleanCodeAttribute(issue.CleanCodeAttribute),
+                CleanCodeTaxonomyHelpers.ToDefaultImpacts(issue.Impacts));
 
         private class ServerIssueWithCCT : ServerIssue
         {

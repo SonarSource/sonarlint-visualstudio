@@ -251,9 +251,31 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             testSubject.IsLanguageSupported(Language.VBNET).Should().BeFalse();
         }
 
-        private static SonarQubeRule CreateRule(string ruleKey, string repoKey, bool isActive,
-            SonarQubeIssueSeverity severity, IDictionary<string, string> parameters = null, string description = null, IReadOnlyList<SonarQubeDescriptionSection> descriptionSections = null, IReadOnlyList<string> educationPrinciples = null, string name = null, IReadOnlyList<string> tags = null, string htmlNote = null) =>
-            new SonarQubeRule(ruleKey, repoKey, isActive, severity, parameters, SonarQubeIssueType.Unknown, description, descriptionSections, educationPrinciples, name, tags, htmlNote);
+        private static SonarQubeRule CreateRule(string ruleKey,
+            string repoKey,
+            bool isActive,
+            SonarQubeIssueSeverity severity,
+            IDictionary<string, string> parameters = null,
+            string description = null,
+            IReadOnlyList<SonarQubeDescriptionSection> descriptionSections = null,
+            IReadOnlyList<string> educationPrinciples = null,
+            string name = null,
+            IReadOnlyList<string> tags = null,
+            string htmlNote = null) =>
+            new SonarQubeRule(ruleKey,
+                repoKey,
+                isActive,
+                severity,
+                null,
+                null,
+                parameters,
+                SonarQubeIssueType.Unknown,
+                description,
+                descriptionSections,
+                educationPrinciples,
+                name,
+                tags,
+                htmlNote);
 
         private static NonRoslynBindingConfigProvider CreateTestSubject(Mock<ISonarQubeService> serviceMock, TestLogger testLogger)
         {

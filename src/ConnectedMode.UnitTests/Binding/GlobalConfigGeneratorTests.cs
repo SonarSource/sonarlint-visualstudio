@@ -132,8 +132,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             act.Should().Throw<NotSupportedException>();
         }
 
-        private static SonarQubeRule CreateRule(string ruleKey, string repoKey, bool isActive = true, SonarQubeIssueSeverity sqSeverity = SonarQubeIssueSeverity.Info) =>
-            new SonarQubeRule(ruleKey, repoKey, isActive, sqSeverity, new Dictionary<string, string>(), SonarQubeIssueType.Unknown, null, null, null, null, null, null);
+        private static SonarQubeRule CreateRule(string ruleKey, string repoKey, bool isActive = true) =>
+            new SonarQubeRule(ruleKey, repoKey, isActive, SonarQubeIssueSeverity.Info, null, null, new Dictionary<string, string>(), SonarQubeIssueType.Unknown, null, null, null, null, null, null);
 
         private string GetRuleString(string expectedKey, string expectedSeverity) =>
             $"dotnet_diagnostic.{expectedKey}.severity = {expectedSeverity}";

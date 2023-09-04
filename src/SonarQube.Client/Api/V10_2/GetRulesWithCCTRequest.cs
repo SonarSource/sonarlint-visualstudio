@@ -24,25 +24,27 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarQube.Client.Api.V5_50;
+using SonarQube.Client.Api.V9_6;
 using SonarQube.Client.Logging;
 using SonarQube.Client.Models;
 
-namespace SonarQube.Client.Api.V9_6
+namespace SonarQube.Client.Api.V10_2
 {
-    public class GetRulesWithEducationPrinciplesRequest : IGetRulesRequest
+    public class GetRulesWithCCTRequest : IGetRulesRequest
     {
-        internal static readonly IList<string> ResponseFieldsOverride = GetRulesRequest.ResponseList.Concat(new List<string> { "descriptionSections", "educationPrinciples" }).ToList();
+        private static readonly IList<string> ResponseFieldsOverride = GetRulesWithEducationPrinciplesRequest
+            .ResponseFieldsOverride.Concat(new[] { "cleanCodeAttribute", "impacts" }).ToArray();
+        
         private readonly GetRulesRequest innerRequest = new GetRulesRequest();
-
+        
+        public ILogger Logger { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int ItemsLimit { get; set; } 
         public bool? IsActive { get; set; }
         public string QualityProfileKey { get; set; }
         public string RuleKey { get; set; }
-        public int Page { get; set; }
-        public int PageSize { get; set; }
-        public int ItemsLimit { get; set; }
-        public ILogger Logger { get; set; }
-        public IList<string> ResponseFieldsList { get; set; }
-
+        
         public async Task<SonarQubeRule[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
         {
             innerRequest.IsActive = this.IsActive;

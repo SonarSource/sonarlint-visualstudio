@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -33,9 +34,11 @@ namespace SonarQube.Client.Tests
         [TestMethod]
         public async Task GetRuleByKeyAsync_RuleIsFound_ReturnsRule()
         {
-            await ConnectToSonarQube();
+            await ConnectToSonarQube("10.2.0.0");
 
-            SetupRequest("api/rules/search?qprofile=qpKey&rule_key=csharpsquid%3AS2342&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2Ctags%2Cname%2ChtmlNote&p=1&ps=500", @"
+            SetupRequest(
+                "api/rules/search?qprofile=qpKey&rule_key=csharpsquid%3AS2342&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2Ctags%2Cname%2ChtmlNote%2CdescriptionSections%2CeducationPrinciples%2CcleanCodeAttribute%2Cimpacts&p=1&ps=500",
+                @"
 {
   ""total"": 1,
   ""p"": 1,
@@ -63,6 +66,14 @@ namespace SonarQube.Client.Tests
         }
       ],
       ""type"": ""CODE_SMELL"",
+      ""cleanCodeAttributeCategory"": ""INTENTIONAL"",
+    ""cleanCodeAttribute"": ""CLEAR"",
+      ""impacts"": [
+                {
+                    ""softwareQuality"": ""RELIABILITY"",
+                    ""severity"": ""MEDIUM""
+                }
+            ],
       ""descriptionSections"" : [
         {
           ""key"": ""key1"",
@@ -147,6 +158,10 @@ namespace SonarQube.Client.Tests
             result.Severity.Should().Be(SonarQubeIssueSeverity.Minor);
             result.Name.Should().Be("RuleName");
             result.Tags.Should().BeEquivalentTo(new[] { "tag1", "tag2" });
+            result.CleanCodeAttribute.Should().Be(SonarQubeCleanCodeAttribute.Clear);
+            result.SoftwareQualitySeverities.Should().BeEquivalentTo(
+                new Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity>
+                    { { SonarQubeSoftwareQuality.Reliability, SonarQubeSoftwareQualitySeverity.Medium } });
 
             result.DescriptionSections.Count.Should().Be(2);
             result.DescriptionSections[0].Key.Should().Be("key1");

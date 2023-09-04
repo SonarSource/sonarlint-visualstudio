@@ -26,8 +26,18 @@ using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Helpers
 {
-    internal static class ServerImpactHelper
+    internal static class CleanCodeTaxonomyHelpers
     {
+        internal static SonarQubeCleanCodeAttribute? ToSonarQubeCleanCodeAttribute(string value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            return (SonarQubeCleanCodeAttribute)Enum.Parse(typeof(SonarQubeCleanCodeAttribute), value, true);
+        }
+        
         internal static Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity> ToDefaultImpacts(ServerImpact[] impacts)
         {
             return impacts?

@@ -42,16 +42,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
         private SonarQubeQualityProfile validQualityProfile;
 
         private static readonly SonarQubeRule ActiveRuleWithUnsupportedSeverity = new SonarQubeRule("activeHotspot", "any1",
-            true, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.SecurityHotspot, null, null, null, null, null, null);
+            true, SonarQubeIssueSeverity.Blocker, null, null, null, SonarQubeIssueType.SecurityHotspot, null, null, null, null, null, null);
 
         private static readonly SonarQubeRule InactiveRuleWithUnsupportedSeverity = new SonarQubeRule("inactiveHotspot", "any2",
-            false, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.SecurityHotspot, null, null, null, null, null, null);
+            false, SonarQubeIssueSeverity.Blocker, null, null, null, SonarQubeIssueType.SecurityHotspot, null, null, null, null, null, null);
 
         private static readonly SonarQubeRule ActiveTaintAnalysisRule = new SonarQubeRule("activeTaint", "roslyn.sonaranalyzer.security.foo",
-            true, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.CodeSmell, null, null, null, null, null, null);
+            true, SonarQubeIssueSeverity.Blocker,  null, null,null, SonarQubeIssueType.CodeSmell, null, null, null, null, null, null);
 
         private static readonly SonarQubeRule InactiveTaintAnalysisRule = new SonarQubeRule("inactiveTaint", "roslyn.sonaranalyzer.security.bar",
-            false, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.CodeSmell, null, null, null, null, null, null);
+            false, SonarQubeIssueSeverity.Blocker, null, null, null, SonarQubeIssueType.CodeSmell, null, null, null, null, null, null);
 
         [TestInitialize]
         public void TestInitialize()
@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
 
             validRules = new List<SonarQubeRule>
             {
-                new SonarQubeRule("key", "repoKey", true, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.Bug, null, null, null, null, null, null)
+                new SonarQubeRule("key", "repoKey", true, SonarQubeIssueSeverity.Blocker, null, null, null, SonarQubeIssueType.Bug, null, null, null, null, null, null)
             };
 
             anyProperties = Array.Empty<SonarQubeProperty>();
@@ -262,13 +262,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
         [DataRow(SonarQubeIssueType.Vulnerability, true)]
         public void IsSupportedRule_Severity(SonarQubeIssueType issueType, bool expected)
         {
-            var rule = new SonarQubeRule("any", "any", true, SonarQubeIssueSeverity.Blocker, null, issueType, null, null, null, null, null, null);
+            var rule = new SonarQubeRule("any", "any", true, SonarQubeIssueSeverity.Blocker, null, null, null, issueType, null, null, null, null, null, null);
 
             CSharpVBBindingConfigProvider.IsSupportedRule(rule).Should().Be(expected);
         }
 
         private static SonarQubeRule CreateRule(string ruleKey, string repoKey, bool isActive) =>
-            new SonarQubeRule(ruleKey, repoKey, isActive, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.CodeSmell, null, null, null, null, null, null);
+            new SonarQubeRule(ruleKey, repoKey, isActive, SonarQubeIssueSeverity.Blocker, null, null, null, SonarQubeIssueType.CodeSmell, null, null, null, null, null, null);
 
         private class TestEnvironmentBuilder
         {
