@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                         sonarQubeIssue.TextRange.EndOffset,
                         sonarQubeIssue.Hash)),
                 Convert(sonarQubeIssue.Severity),
-                null, // todo: add after implemented in SonarQubeService
+                ConvertToHighestSeverity(sonarQubeIssue.DefaultImpacts),
                 sonarQubeIssue.CreationTimestamp,
                 sonarQubeIssue.LastUpdateTimestamp,
                 Convert(sonarQubeIssue.Flows),
@@ -205,6 +205,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 default:
                     throw new ArgumentOutOfRangeException(nameof(issueSeverity));
             }
+        }
+
+        internal /* for testing */ static SoftwareQualitySeverity? ConvertToHighestSeverity(
+            Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity> sonarQubeSoftwareQualitySeverities)
+        {
+            if (sonarQubeSoftwareQualitySeverities == null || sonarQubeSoftwareQualitySeverities.Count == 0)
+            {
+                return null;
+            }
+
+            return sonarQubeSoftwareQualitySeverities
+                .Select(kvp => kvp.Value)
+                .Select(sqSeverity =>
+                {
+                    switch (sqSeverity)
+                    {
+                        case SonarQubeSoftwareQualitySeverity.Low:
+                            return SoftwareQualitySeverity.Low;
+                        case SonarQubeSoftwareQualitySeverity.Medium:
+                            return SoftwareQualitySeverity.Medium;
+                        case SonarQubeSoftwareQualitySeverity.High:
+                            return SoftwareQualitySeverity.High;
+                        default:
+                            throw new ArgumentOutOfRangeException(nameof(sqSeverity));
+                    }
+                })
+                .Max();
         }
     }
 }

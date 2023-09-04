@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -85,8 +86,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var created = DateTimeOffset.Parse("2001-12-30T01:02:03+0000");
             var lastUpdate = DateTimeOffset.Parse("2009-02-01T13:14:15+0200");
 
-            var issue = CreateServerIssue("issue key", "path4", "hash", "message4", "rule", SonarQubeIssueSeverity.Major,
-                new IssueTextRange(13, 14, 15, 16), created, lastUpdate, resolved:true, contextKey: "contextKey", flow1, flow2);
+            var issue = CreateServerIssue("issue key",
+                "path4",
+                "hash",
+                "message4",
+                "rule",
+                SonarQubeIssueSeverity.Major,
+                cctSeverities: new Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity>
+                {
+                    { SonarQubeSoftwareQuality.Security, SonarQubeSoftwareQualitySeverity.Medium }
+                },
+                new IssueTextRange(13, 14, 15, 16),
+                created,
+                lastUpdate,
+                resolved: true,
+                contextKey: "contextKey",
+                flow1,
+                flow2);
 
             var expectedConvertedIssueViz = CreateIssueViz();
             var issueVizConverter = new Mock<IAnalysisIssueVisualizationConverter>();
@@ -104,6 +120,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                         taintIssue.IssueKey == "issue key" &&
                         taintIssue.RuleKey == "rule" &&
                         taintIssue.Severity == AnalysisIssueSeverity.Major &&
+                        taintIssue.HighestSoftwareQualitySeverity == SoftwareQualitySeverity.Medium &&
                         taintIssue.RuleDescriptionContextKey == "contextKey" &&
 
                         taintIssue.PrimaryLocation.FilePath == "path4" &&
@@ -158,6 +175,75 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         public void Convert_KnownSeverity_ConvertedToAnalysisIssueSeverity(SonarQubeIssueSeverity sqSeverity, AnalysisIssueSeverity expectedSeverity)
         {
             var result = TaintIssueToIssueVisualizationConverter.Convert(sqSeverity);
+
+            result.Should().Be(expectedSeverity);
+        }
+        
+        [TestMethod]
+        public void ConvertToHighestSeverity_NullSeverities_ReturnsNull()
+        {
+            var result = TaintIssueToIssueVisualizationConverter.ConvertToHighestSeverity(null);
+
+            result.Should().Be(null);
+        }
+        
+        [TestMethod]
+        public void ConvertToHighestSeverity_EmptySeverities_ReturnsNull()
+        {
+            var result = TaintIssueToIssueVisualizationConverter.ConvertToHighestSeverity(new Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity>());
+
+            result.Should().Be(null);
+        }
+
+        [DataTestMethod]
+        [DataRow(SonarQubeSoftwareQualitySeverity.High, SoftwareQualitySeverity.High)]
+        [DataRow(SonarQubeSoftwareQualitySeverity.Medium, SoftwareQualitySeverity.Medium)]
+        [DataRow(SonarQubeSoftwareQualitySeverity.Low, SoftwareQualitySeverity.Low)]
+        public void ConvertToHighestSeverity_SingleSeverity_ReturnsIt(SonarQubeSoftwareQualitySeverity sqSeverity,
+            SoftwareQualitySeverity expectedSeverity)
+        {
+            var impacts = new Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity>
+            {
+                { SonarQubeSoftwareQuality.Maintainability, sqSeverity }
+            };
+
+            var result = TaintIssueToIssueVisualizationConverter.ConvertToHighestSeverity(impacts);
+
+            result.Should().Be(expectedSeverity);
+        }
+        
+        [TestMethod]
+        public void ConvertToHighestSeverity_InvalidSeverity_Throws()
+        {
+            var impacts = new Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity>
+            {
+                { SonarQubeSoftwareQuality.Maintainability, (SonarQubeSoftwareQualitySeverity)999 }
+            };
+
+            var act = () => TaintIssueToIssueVisualizationConverter.ConvertToHighestSeverity(impacts);
+
+            act.Should().Throw<ArgumentOutOfRangeException>();
+        }
+        
+        [DataTestMethod]
+        [DataRow(new []{SonarQubeSoftwareQualitySeverity.Low, SonarQubeSoftwareQualitySeverity.Low, SonarQubeSoftwareQualitySeverity.Low}, SoftwareQualitySeverity.Low)]
+        [DataRow(new []{SonarQubeSoftwareQualitySeverity.Low, SonarQubeSoftwareQualitySeverity.Medium, SonarQubeSoftwareQualitySeverity.Low}, SoftwareQualitySeverity.Medium)]
+        [DataRow(new []{SonarQubeSoftwareQualitySeverity.High, SonarQubeSoftwareQualitySeverity.Medium, SonarQubeSoftwareQualitySeverity.Low}, SoftwareQualitySeverity.High)]
+        public void ConvertToHighestSeverity_MultipleSeverities_ReturnsHighest(SonarQubeSoftwareQualitySeverity[] sqSeverities, SoftwareQualitySeverity expectedSeverity)
+        {
+            if (sqSeverities.Length != 3)
+            {
+                Assert.Fail("Wrong length of the list");
+            }
+            
+            var impacts = new Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity>
+            {
+                { SonarQubeSoftwareQuality.Maintainability, sqSeverities[0] },
+                { SonarQubeSoftwareQuality.Reliability, sqSeverities[1] },
+                { SonarQubeSoftwareQuality.Security, sqSeverities[2] },
+            };
+
+            var result = TaintIssueToIssueVisualizationConverter.ConvertToHighestSeverity(impacts);
 
             result.Should().Be(expectedSeverity);
         }
@@ -340,9 +426,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         private static SonarQubeIssue CreateServerIssue(string issueKey = "issue key", string filePath = "test.cpp", string hash = "hash", string message = "message", string rule = "rule",
-            SonarQubeIssueSeverity severity = SonarQubeIssueSeverity.Info, IssueTextRange textRange = null,
+            SonarQubeIssueSeverity severity = SonarQubeIssueSeverity.Info, Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity> cctSeverities = null, IssueTextRange textRange = null,
             DateTimeOffset created = default, DateTimeOffset lastUpdate = default, bool resolved = true, string contextKey = null, params IssueFlow[] flows) => 
-            new(issueKey, filePath, hash, message, null, rule, resolved, severity, created, lastUpdate, textRange, flows.ToList(), contextKey);
+            new(issueKey, filePath, hash, message, null, rule, resolved, severity, created, lastUpdate, textRange, flows.ToList(), contextKey, defaultImpacts: cctSeverities);
 
         private static IssueLocation CreateServerLocation(string filePath = "test.cpp", string message = "message",
             IssueTextRange textRange = null) => new(filePath, null, textRange, message);
