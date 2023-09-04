@@ -26,6 +26,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
@@ -87,6 +88,9 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             result.Tags.Should().BeEquivalentTo(tags);
             result.EducationPrinciples.Should().BeEquivalentTo(educationPrinciples);
             result.HtmlNote.Should().Be("htmlNote<br/>");
+            result.CleanCodeAttribute.Should().Be(CleanCodeAttribute.Clear);
+            result.DefaultImpacts.Should().BeEquivalentTo(new Dictionary<SoftwareQuality, SoftwareQualitySeverity>{
+                { SoftwareQuality.Reliability, SoftwareQualitySeverity.Low}});
 
             result.DescriptionSections.Count.Should().Be(3);
 

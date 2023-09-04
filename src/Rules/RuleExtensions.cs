@@ -18,6 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Rules
@@ -30,6 +34,84 @@ namespace SonarLint.VisualStudio.Rules
         }
 
         internal static string GetCompositeKey(this SonarQubeRule sonarQubeRule) => $"{sonarQubeRule.RepositoryKey}:{sonarQubeRule.Key}";
+
+        internal static Dictionary<SoftwareQuality, SoftwareQualitySeverity> ToSoftwareQualitySeverities(
+            this Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity>
+                sonarQubeSoftwareQualitySeverities) =>
+            sonarQubeSoftwareQualitySeverities
+                ?.ToDictionary(kvp => ToSoftwareQuality(kvp.Key), 
+                    kvp => ToSoftwareQualitySeverity(kvp.Value));
+
+        private static SoftwareQuality ToSoftwareQuality(SonarQubeSoftwareQuality sonarQubeSoftwareQuality)
+        {
+            switch (sonarQubeSoftwareQuality)
+            {
+                case SonarQubeSoftwareQuality.Maintainability:
+                    return SoftwareQuality.Maintainability;
+                case SonarQubeSoftwareQuality.Reliability:
+                    return SoftwareQuality.Reliability;
+                case SonarQubeSoftwareQuality.Security:
+                    return SoftwareQuality.Security;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(sonarQubeSoftwareQuality));
+            }
+        }
+
+        private static SoftwareQualitySeverity ToSoftwareQualitySeverity(
+            SonarQubeSoftwareQualitySeverity sonarQubeSoftwareQuality)
+        {
+            switch (sonarQubeSoftwareQuality)
+            {
+                case SonarQubeSoftwareQualitySeverity.Low:
+                    return SoftwareQualitySeverity.Low;
+                case SonarQubeSoftwareQualitySeverity.Medium:
+                    return SoftwareQualitySeverity.Medium;
+                case SonarQubeSoftwareQualitySeverity.High:
+                    return SoftwareQualitySeverity.High;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(sonarQubeSoftwareQuality));
+            }
+        }
+
+        internal static CleanCodeAttribute? ToCleanCodeAttribute(
+            this SonarQubeCleanCodeAttribute? sonarQubeCleanCodeAttribute)
+        {
+            switch (sonarQubeCleanCodeAttribute)
+            {
+                case SonarQubeCleanCodeAttribute.Conventional:
+                    return CleanCodeAttribute.Conventional;
+                case SonarQubeCleanCodeAttribute.Formatted:
+                    return CleanCodeAttribute.Formatted;
+                case SonarQubeCleanCodeAttribute.Identifiable:
+                    return CleanCodeAttribute.Identifiable;
+                case SonarQubeCleanCodeAttribute.Clear:
+                    return CleanCodeAttribute.Clear;
+                case SonarQubeCleanCodeAttribute.Complete:
+                    return CleanCodeAttribute.Complete;
+                case SonarQubeCleanCodeAttribute.Efficient:
+                    return CleanCodeAttribute.Efficient;
+                case SonarQubeCleanCodeAttribute.Logical:
+                    return CleanCodeAttribute.Logical;
+                case SonarQubeCleanCodeAttribute.Distinct:
+                    return CleanCodeAttribute.Distinct;
+                case SonarQubeCleanCodeAttribute.Focused:
+                    return CleanCodeAttribute.Focused;
+                case SonarQubeCleanCodeAttribute.Modular:
+                    return CleanCodeAttribute.Modular;
+                case SonarQubeCleanCodeAttribute.Tested:
+                    return CleanCodeAttribute.Tested;
+                case SonarQubeCleanCodeAttribute.Lawful:
+                    return CleanCodeAttribute.Lawful;
+                case SonarQubeCleanCodeAttribute.Respectful:
+                    return CleanCodeAttribute.Respectful;
+                case SonarQubeCleanCodeAttribute.Trustworthy:
+                    return CleanCodeAttribute.Trustworthy;
+                case null:
+                    return null;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(sonarQubeCleanCodeAttribute));
+            }
+        }
 
         internal static RuleIssueSeverity ToRuleIssueSeverity(this SonarQubeIssueSeverity sonarQubeIssueSeverity)
         {

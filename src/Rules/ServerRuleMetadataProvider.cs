@@ -78,8 +78,8 @@ namespace SonarLint.VisualStudio.Rules
                     descriptionSections,
                     sqRule.EducationPrinciples,
                     HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(sqRule.HtmlNote),
-                    null,
-                    null);
+                    sqRule.CleanCodeAttribute.ToCleanCodeAttribute(),
+                    sqRule.SoftwareQualitySeverities.ToSoftwareQualitySeverities());
             }
             catch (Exception ex)
             {
