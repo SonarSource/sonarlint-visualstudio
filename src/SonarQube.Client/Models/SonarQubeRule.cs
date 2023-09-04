@@ -30,7 +30,20 @@ namespace SonarQube.Client.Models
         /// </summary>
         private static readonly IReadOnlyDictionary<string, string> Empty = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>());
 
-        public SonarQubeRule(string key, string repositoryKey, bool isActive, SonarQubeIssueSeverity severity, IDictionary<string, string> parameters, SonarQubeIssueType issueType, string description, IReadOnlyList<SonarQubeDescriptionSection> descriptionSections, IReadOnlyList<string> educationPrinciples, string name, IReadOnlyList<string> tags, string htmlNote)
+        public SonarQubeRule(string key,
+            string repositoryKey,
+            bool isActive,
+            SonarQubeIssueSeverity severity,
+            SonarQubeCleanCodeAttribute? cleanCodeAttribute,
+            Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity> softwareQualitySeverities,
+            IDictionary<string, string> parameters,
+            SonarQubeIssueType issueType,
+            string description,
+            IReadOnlyList<SonarQubeDescriptionSection> descriptionSections,
+            IReadOnlyList<string> educationPrinciples,
+            string name,
+            IReadOnlyList<string> tags,
+            string htmlNote)
 
         {
             Key = key;
@@ -38,6 +51,8 @@ namespace SonarQube.Client.Models
             Description = description;
             IsActive = isActive;
             Severity = severity;
+            CleanCodeAttribute = cleanCodeAttribute;
+            SoftwareQualitySeverities = softwareQualitySeverities;
             IssueType = issueType;
             DescriptionSections = descriptionSections;
             EducationPrinciples = educationPrinciples;
@@ -68,6 +83,10 @@ namespace SonarQube.Client.Models
         public IReadOnlyList<string> Tags { get; }
 
         public SonarQubeIssueSeverity Severity { get; }
+        
+        public SonarQubeCleanCodeAttribute? CleanCodeAttribute { get; }
+        
+        public Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity> SoftwareQualitySeverities { get; }
 
         /// <summary>
         /// When the rule is active, contains the parameters that are set in the corresponding quality profile.

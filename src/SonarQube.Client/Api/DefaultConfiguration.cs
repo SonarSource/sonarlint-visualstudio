@@ -61,7 +61,8 @@ namespace SonarQube.Client.Api
                 .RegisterRequest<IGetTaintVulnerabilitiesRequest, V9_6.GetTaintVulnerabilitiesWithContextRequest>("9.6")
                 .RegisterRequest<ISearchHotspotRequest, V9_7.SearchHotspotRequest>("9.7")
                 .RegisterRequest<ISearchHotspotRequest, V10_2.SearchHotspotRequest>("10.2")
-                .RegisterRequest<IGetTaintVulnerabilitiesRequest, V10_2.GetTaintVulnerabilitiesWithCCTRequest>("10.2");
+                .RegisterRequest<IGetTaintVulnerabilitiesRequest, V10_2.GetTaintVulnerabilitiesWithCCTRequest>("10.2")
+                .RegisterRequest<IGetRulesRequest, V10_2.GetRulesWithCCTRequest>("10.2");
 
             return requestFactory;
         }
@@ -74,7 +75,7 @@ namespace SonarQube.Client.Api
                 .RegisterRequest<IGetSourceCodeRequest, V5_00.GetSourceCodeRequest>()
                 .RegisterRequest<IGetLanguagesRequest, V5_10.GetLanguagesRequest>()
                 .RegisterRequest<IGetModulesRequest, V5_40.GetModulesRequest>()
-                .RegisterRequest<IGetRulesRequest, V9_6.GetRulesWithEducationPrinciplesRequest>()
+                .RegisterRequest<IGetRulesRequest, V10_2.GetRulesWithCCTRequest>()
                 .RegisterRequest<IDownloadStaticFile, V5_50.DownloadStaticFile>()
                 .RegisterRequest<IGetProjectsRequest, V6_20.GetProjectsRequest>()
                 .RegisterRequest<IGetPluginsRequest, V6_30.GetPluginsRequest>()

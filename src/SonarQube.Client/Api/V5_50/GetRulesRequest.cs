@@ -22,6 +22,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SonarQube.Client.Api.Common;
+using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 using SonarQube.Client.Requests;
 
@@ -101,7 +103,20 @@ namespace SonarQube.Client.Api.V5_50
 
             var descriptionSections = response.DescriptionSections?.Select(ds => ds.ToSonarQubeDescriptionSection()).ToList();
 
-            return new SonarQubeRule(GetRuleKey(response.Key), response.RepositoryKey, isActive, severity, parameters, issueType, response.Description, descriptionSections, response.EducationPrinciples, response.Name, response.Tags, response.HtmlNote);
+            return new SonarQubeRule(GetRuleKey(response.Key),
+                response.RepositoryKey,
+                isActive,
+                severity,
+                CleanCodeTaxonomyHelpers.ToSonarQubeCleanCodeAttribute(response.CleanCodeAttribute),
+                CleanCodeTaxonomyHelpers.ToDefaultImpacts(response.Impacts),
+                parameters,
+                issueType,
+                response.Description,
+                descriptionSections,
+                response.EducationPrinciples,
+                response.Name,
+                response.Tags,
+                response.HtmlNote);
         }
 
         private static string GetRuleKey(string compositeKey) =>
@@ -135,6 +150,12 @@ namespace SonarQube.Client.Api.V5_50
 
             [JsonProperty("educationPrinciples")]
             public IReadOnlyList<string> EducationPrinciples { get; set; }
+            
+            [JsonProperty("cleanCodeAttribute")]
+            public string CleanCodeAttribute { get; set; }
+
+            [JsonProperty("impacts")]
+            public ServerImpact[] Impacts { get; set; }
         }
 
         private sealed class QualityProfileResponse

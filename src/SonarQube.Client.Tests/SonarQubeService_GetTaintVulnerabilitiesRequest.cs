@@ -1896,7 +1896,7 @@ namespace SonarQube.Client.Tests
             taint1.Flows[0].Locations[3].Message.Should().Be("taint value is propagated");
             taint1.TextRange.Should().BeEquivalentTo(new IssueTextRange(17, 17, 4, 25));
             taint1.Context.Should().Be("context");
-            taint1.CleanCodeAttribute.Should().Be("CLEAR");
+            taint1.CleanCodeAttribute.Should().Be(SonarQubeCleanCodeAttribute.Clear);
             taint1.DefaultImpacts.Should().BeEquivalentTo(taint1Impacts);
 
             var taint2 = result[1];
@@ -1925,7 +1925,7 @@ namespace SonarQube.Client.Tests
             taint2.Flows[0].Locations[15].Message.Should().Be("this value can be controlled by the user");
             taint2.TextRange.Should().BeEquivalentTo(new IssueTextRange(20, 20, 6, 23));
             taint2.Context.Should().BeNull();
-            taint2.CleanCodeAttribute.Should().Be("DISTINCT");
+            taint2.CleanCodeAttribute.Should().Be(SonarQubeCleanCodeAttribute.Distinct);
             taint2.DefaultImpacts.Should().BeEquivalentTo(taint2Impacts);
         }
 
