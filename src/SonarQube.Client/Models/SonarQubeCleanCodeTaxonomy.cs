@@ -20,6 +20,31 @@
 
 namespace SonarQube.Client.Models
 {
+    public enum SonarQubeCleanCodeAttribute
+    {
+        // Consistency
+        Conventional,
+        Formatted,
+        Identifiable,
+
+        // Intentionality
+        Clear,
+        Complete,
+        Efficient,
+        Logical,
+
+        // Adaptability
+        Distinct,
+        Focused,
+        Modular,
+        Tested,
+
+        // Responsibility
+        Lawful,
+        Respectful,
+        Trustworthy
+    }
+    
     public enum SonarQubeSoftwareQuality
     {
         Maintainability,
