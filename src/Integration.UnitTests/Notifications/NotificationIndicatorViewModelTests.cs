@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Telemetry;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
@@ -217,6 +218,24 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         }
 
         [TestMethod]
+        public void HasUnreadEvents_RunOnUIThread()
+        {
+            var threadHandling = new Mock<IThreadHandling>();
+            var model = CreateTestSubject(threadHandling: threadHandling.Object);
+            model.AreNotificationsEnabled = true;
+            model.IsIconVisible = true;
+
+            var events = new[]
+            {
+                CreateNotification("category1")
+            };
+
+            model.SetNotificationEvents(events);
+
+            threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
+        }
+
+        [TestMethod]
         public void NavigateToNotification_NotificationNavigated()
         {
             var vsBrowserService = new Mock<IBrowserService>();
@@ -282,13 +301,15 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
 
         private NotificationIndicatorViewModel CreateTestSubject(ITimer timer = null, 
             IServerNotificationsTelemetryManager telemetryManager = null,
-            IBrowserService vsBrowserService = null)
+            IBrowserService vsBrowserService = null,
+            IThreadHandling threadHandling = null)
         {
             timer ??= Mock.Of<ITimer>();
             telemetryManager ??= Mock.Of<IServerNotificationsTelemetryManager>();
             vsBrowserService ??= Mock.Of<IBrowserService>();
+            threadHandling ??= new NoOpThreadHandler();
 
-            return new NotificationIndicatorViewModel(telemetryManager, vsBrowserService, a => a(), timer);
+            return new NotificationIndicatorViewModel(telemetryManager, vsBrowserService, threadHandling, timer);
         }
     }
 }
