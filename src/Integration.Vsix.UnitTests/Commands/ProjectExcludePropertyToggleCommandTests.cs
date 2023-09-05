@@ -72,12 +72,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         }
 
         [TestMethod]
-        [DataRow(true, true, null, null, 2)]
-        [DataRow(false, false, true, true, 2)]
-        [DataRow(null, false, true, true, 1)]
-        [DataRow(null, true, true, true, 1)]
+        [DataRow(true, true, null)]   // Same across projects -> toggle
+        [DataRow(false, false, true)] // Same across projects -> toggle
+        [DataRow(null, null, true)]   // Same across projects (null === false) -> set to true
+        [DataRow(null, false, true)]  // Same across projects (null === false) -> set to true
+        [DataRow(null, true, true)]   // Different across projects -> set to true
+        [DataRow(false, true, true)]  // Different across projects -> set to true
         public void Invoke_MultipleProjects_TogglesValues(bool? initialExcludeValue1, bool? initialExcludeValue2,
-            bool? expectedSetValue1, bool? expectedSetValue2, int nrOfCallsToGetBoolean)
+            bool? expectedSetValue)
         {
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
@@ -100,8 +102,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             testSubject.Invoke(command, null);
 
             // Assert
-            VerifyBooleanPropertyCalls(propertyManager, p1, expectedSetValue1, nrOfCallsToGetBoolean);
-            VerifyBooleanPropertyCalls(propertyManager, p2, expectedSetValue2, nrOfCallsToGetBoolean);
+
+            // If values are the same across projects it is expected for getBoolean to be called twice.
+            var expectedCallsToGetBoolean = initialExcludeValue1 == initialExcludeValue2 ? 2 : 1;
+
+            VerifyBooleanPropertyCalls(propertyManager, p1, expectedSetValue, expectedCallsToGetBoolean);
+            VerifyBooleanPropertyCalls(propertyManager, p2, expectedSetValue, expectedCallsToGetBoolean);
         }
 
         [TestMethod]
