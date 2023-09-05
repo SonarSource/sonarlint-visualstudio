@@ -18,8 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Rules.UnitTests
@@ -35,6 +37,50 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
             var result = testSubject.GetCompositeKey();
 
             result.Should().Be("repositoryKey:key");
+        }
+
+        [TestMethod]
+        public void ToSoftwareQualitySeverities_Converts()
+        {
+            var input = new Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity>
+            {
+                { SonarQubeSoftwareQuality.Maintainability, SonarQubeSoftwareQualitySeverity.High },
+                { SonarQubeSoftwareQuality.Security, SonarQubeSoftwareQualitySeverity.Low },
+                { SonarQubeSoftwareQuality.Reliability, SonarQubeSoftwareQualitySeverity.Medium }
+            };
+
+            var actualResult = input.ToSoftwareQualitySeverities();
+            
+            actualResult.Should().BeEquivalentTo(new Dictionary<SoftwareQuality, SoftwareQualitySeverity>
+            {
+                { SoftwareQuality.Maintainability, SoftwareQualitySeverity.High },
+                { SoftwareQuality.Reliability, SoftwareQualitySeverity.Medium },
+                { SoftwareQuality.Security, SoftwareQualitySeverity.Low }
+            });
+        }
+
+        [DataRow(SonarQubeCleanCodeAttribute.Conventional, CleanCodeAttribute.Conventional)]
+        [DataRow(SonarQubeCleanCodeAttribute.Complete, CleanCodeAttribute.Complete)]
+        [DataRow(SonarQubeCleanCodeAttribute.Clear, CleanCodeAttribute.Clear)]
+        [DataRow(SonarQubeCleanCodeAttribute.Distinct, CleanCodeAttribute.Distinct)]
+        [DataRow(SonarQubeCleanCodeAttribute.Efficient, CleanCodeAttribute.Efficient)]
+        [DataRow(SonarQubeCleanCodeAttribute.Formatted, CleanCodeAttribute.Formatted)]
+        [DataRow(SonarQubeCleanCodeAttribute.Focused, CleanCodeAttribute.Focused)]
+        [DataRow(SonarQubeCleanCodeAttribute.Identifiable, CleanCodeAttribute.Identifiable)]
+        [DataRow(SonarQubeCleanCodeAttribute.Logical, CleanCodeAttribute.Logical)]
+        [DataRow(SonarQubeCleanCodeAttribute.Lawful, CleanCodeAttribute.Lawful)]
+        [DataRow(SonarQubeCleanCodeAttribute.Modular, CleanCodeAttribute.Modular)]
+        [DataRow(SonarQubeCleanCodeAttribute.Respectful, CleanCodeAttribute.Respectful)]
+        [DataRow(SonarQubeCleanCodeAttribute.Trustworthy, CleanCodeAttribute.Trustworthy)]
+        [DataRow(SonarQubeCleanCodeAttribute.Tested, CleanCodeAttribute.Tested)]
+        [DataRow(null, null)]
+        [TestMethod]
+        public void ToCleanCodeAttribute_Converts(SonarQubeCleanCodeAttribute? input,
+            CleanCodeAttribute? expectedResult)
+        {
+            var actualResult = input.ToCleanCodeAttribute();
+
+            actualResult.Should().Be(expectedResult);
         }
 
         [DataRow(SonarQubeIssueSeverity.Blocker, RuleIssueSeverity.Blocker)]
