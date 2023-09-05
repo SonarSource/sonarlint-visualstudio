@@ -37,7 +37,7 @@ namespace SonarQube.Client.Tests
             await ConnectToSonarQube("10.2.0.0");
 
             SetupRequest(
-                "api/rules/search?qprofile=qpKey&rule_key=csharpsquid%3AS2342&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2Ctags%2Cname%2ChtmlNote%2CdescriptionSections%2CeducationPrinciples%2CcleanCodeAttribute%2Cimpacts&p=1&ps=500",
+                "api/rules/search?qprofile=qpKey&rule_key=csharpsquid%3AS2342&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2Ctags%2Cname%2ChtmlNote%2CdescriptionSections%2CeducationPrinciples%2CcleanCodeAttribute&p=1&ps=500",
                 @"
 {
   ""total"": 1,

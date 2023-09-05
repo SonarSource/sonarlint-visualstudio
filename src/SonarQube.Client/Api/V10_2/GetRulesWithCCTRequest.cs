@@ -33,7 +33,7 @@ namespace SonarQube.Client.Api.V10_2
     public class GetRulesWithCCTRequest : IGetRulesRequest
     {
         private static readonly IList<string> ResponseFieldsOverride = GetRulesWithEducationPrinciplesRequest
-            .ResponseFieldsOverride.Concat(new[] { "cleanCodeAttribute", "impacts" }).ToArray();
+            .ResponseFieldsOverride.Concat(new[] { "cleanCodeAttribute" }).ToArray();
         
         private readonly GetRulesRequest innerRequest = new GetRulesRequest();
         
