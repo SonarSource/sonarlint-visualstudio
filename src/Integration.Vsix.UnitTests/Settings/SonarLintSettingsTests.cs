@@ -22,7 +22,9 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.Integration.Vsix.Settings;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
@@ -30,129 +32,112 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
     [TestClass]
     public class SonarLintSettingsTests
     {
-        private ConfigurableWritableSettingsStore settingsStore;
-        private ConfigurableSettingsManager settingsManager;
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+            => MefTestHelpers.CheckTypeCanBeImported<SonarLintSettings, ISonarLintSettings>(
+                MefTestHelpers.CreateExport<WritableSettingsStoreFactory>());
 
-        [TestInitialize]
-        public void TestInitialize()
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+            => MefTestHelpers.CheckIsSingletonMefComponent<SonarLintSettings>();
+
+        [TestMethod]
+        public void Ctor_DoesNotCallAnyServices()
         {
-            this.settingsStore = new ConfigurableWritableSettingsStore();
-            this.settingsManager = new ConfigurableSettingsManager(this.settingsStore);
+            var storeFactory = new Mock<WritableSettingsStoreFactory>();
+            _ = CreateTestSubject(storeFactory.Object);
+
+            // The MEF constructor should be free-threaded, which it will be if
+            // it doesn't make any external calls.
+            storeFactory.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
-        public void IntegrationSettings_Ctor_NullArgChecks()
+        public void LazyInitialization_FactoryIsOnlyCalledOnce()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new SonarLintSettings((SettingsManager)null));
+            var store = new Mock<WritableSettingsStore>();
+            var factory = CreateStoreFactory(store.Object);
+
+            var testSubject = CreateTestSubject(factory.Object);
+
+            factory.Invocations.Should().BeEmpty(); // Sanity check
+            store.Reset();
+
+            // 1. Make any call to the test subject
+            _ = testSubject.GetValueOrDefault("any", "any");
+
+            factory.Invocations.Should().HaveCount(1);
+            store.Invocations.Should().HaveCount(1);
+
+            // 2. Call the settings again
+            _ = testSubject.GetValueOrDefault("any", true);
+            testSubject.SetValue("any", "any");
+
+            factory.Invocations.Should().HaveCount(1);
+            store.Invocations.Should().HaveCount(3);
+        }
+
+        #region Boolean method tests
+
+        [TestMethod]
+        [DataRow(true, false)]
+        [DataRow(false, true)]
+        [DataRow(true, true)]
+        [DataRow(false, false)]
+        public void GetValueOrDefault_Bool(bool valueToReturn, bool defaultValueSuppliedByCaller)
+        {
+            var store = new Mock<WritableSettingsStore>();
+            store.Setup(x => x.GetBoolean(SonarLintSettings.SettingsRoot, "aProp", defaultValueSuppliedByCaller)).Returns(valueToReturn);
+
+            var testSubject = CreateTestSubject(store.Object);
+
+            var actual = testSubject.GetValueOrDefault("aProp", defaultValueSuppliedByCaller);
+            actual.Should().Be(valueToReturn);
         }
 
         [TestMethod]
-        public void IntegrationSettings_Ctor_InitializesStore()
+        public void GetValueOrDefault_StoreThrows_ReturnsDefault_Bool()
         {
-            // Sanity - should be empty store
-            this.settingsStore.AssertCollectionDoesNotExist(SonarLintSettings.SettingsRoot);
+            var suppliedDefault = true;
 
-            // Act
-            this.CreateTestSubject();
+            var store = new Mock<WritableSettingsStore>();
+            store.Setup(x => x.GetBoolean(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Boolean>()))
+                .Throws(new ArgumentException("thrown in a test"));
 
-            // Assert
-            this.settingsStore.AssertCollectionExists(SonarLintSettings.SettingsRoot);
+            var testSubject = CreateTestSubject(storeToReturn: store.Object);
+
+            var actual = testSubject.GetValueOrDefault("key1", suppliedDefault);
+            actual.Should().Be(suppliedDefault);
         }
 
         [TestMethod]
-        public void IntegrationSettings_GetValueOrDefault_Bool()
+        public void GetValueOrDefault_NoStore_Bool()
         {
-            // Arrange
-            SonarLintSettings testSubject = this.CreateTestSubject();
+            var expected = true;
+            var testSubject = CreateTestSubject(storeToReturn: null);
 
-            // Test case 1: exists -> value
-            // Arrange
-            bool expected1 = false;
-            this.settingsStore.SetBoolean(SonarLintSettings.SettingsRoot, "key1", expected1);
-
-            // Act
-            bool actual1 = testSubject.GetValueOrDefault("key1", true);
-
-            // Assert
-            actual1.Should().Be(expected1, "Did not load existing value");
-
-            // Test case 2: does NOT exist -> default
-            // Arrange
-            bool expected2 = true;
-
-            // Act
-            bool actual2 = testSubject.GetValueOrDefault("key2", expected2);
-
-            // Assert
-            actual2.Should().Be(expected2, "Did not return default value");
-
-            // Test case 3: invalid type
-            // Arrange
-            bool expected3 = true;
-            this.settingsStore.SetString(SonarLintSettings.SettingsRoot, "key3", "notboolean");
-
-            // Act
-            bool actual3 = testSubject.GetValueOrDefault("key3", expected3);
-
-            // Assert
-            actual3.Should().Be(expected3, "Did not return default value");
+            var actual = testSubject.GetValueOrDefault("key1", expected);
+            actual.Should().Be(expected);
         }
 
         [TestMethod]
-        public void IntegrationSettings_GetValueOrDefault_Bool_NoStore()
+        [DataRow("a key", true)]
+        [DataRow("another key", false)]
+        public void SetValue_Bool(string propertyName, bool valueToSet)
         {
-            // Arrange
-            bool expected = true;
-            SonarLintSettings testSubject;
-            using (new AssertIgnoreScope())
-            {
-                testSubject = this.CreateTestSubject(storeLoadFailure: true);
-            }
+            var settingsStore = new Mock<WritableSettingsStore>();
 
-            // Act
-            bool actual = testSubject.GetValueOrDefault("key1", expected);
+            var testSubject = CreateTestSubject(settingsStore.Object);
 
-            // Assert
-            actual.Should().Be(expected, "Did not return default value in case of missing setting store");
+            testSubject.SetValue(propertyName, valueToSet);
+            
+            CheckPropertySet(settingsStore, propertyName, valueToSet);
         }
 
         [TestMethod]
-        public void IntegrationSettings_SetValue_Bool()
+        public void SetValue_NoStore_Bool()
         {
-            // Arrange
-            const string propertyKey = "key1";
-            const string collection = SonarLintSettings.SettingsRoot;
-            SonarLintSettings testSubject = this.CreateTestSubject();
-
-            // Sanity
-            this.settingsStore.AssertCollectionPropertyCount(collection, 0);
-
-            // Test case 1: new property
-            // Act
-            testSubject.SetValue(propertyKey, true);
-
-            // Assert
-            this.settingsStore.AssertCollectionPropertyCount(collection, 1);
-            this.settingsStore.AssertBoolean(collection, propertyKey, true);
-
-            // Test case 2: overwrite existing property
-            // Act
-            testSubject.SetValue(propertyKey, false);
-
-            // Assert
-            this.settingsStore.AssertCollectionPropertyCount(collection, 1);
-            this.settingsStore.AssertBoolean(collection, propertyKey, false);
-        }
-
-        [TestMethod]
-        public void IntegrationSettings_SetValue_Bool_NoStore()
-        {
-            // Arrange
-            SonarLintSettings testSubject;
-            using (new AssertIgnoreScope())
-            {
-                testSubject = this.CreateTestSubject(storeLoadFailure: true);
-            }
+            var testSubject = CreateTestSubject(storeToReturn: null);
 
             // Act + Assert (no store -> no exception)
             Action act = () => testSubject.SetValue("key1", false);
@@ -160,216 +145,164 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             act.Should().NotThrow();
         }
 
+        #endregion
+
+        #region String method tests
+
         [TestMethod]
-        public void IntegrationSettings_GetValueOrDefault_String()
+        [DataRow("val1", "unused default")]
+        [DataRow("xxx", "xxx")]
+        public void GetValueOrDefault_String(string valueToReturn, string defaultValueSuppliedByCaller)
         {
-            // Arrange
-            SonarLintSettings testSubject = this.CreateTestSubject();
+            var store = new Mock<WritableSettingsStore>();
+            store.Setup(x => x.GetString(SonarLintSettings.SettingsRoot, "aProp", defaultValueSuppliedByCaller)).Returns(valueToReturn);
 
-            // Test case 1: exists -> value
-            // Arrange
-            string expected1 = "value";
-            this.settingsStore.SetString(SonarLintSettings.SettingsRoot, "key1", expected1);
+            var testSubject = CreateTestSubject(store.Object);
 
-            // Act
-            string actual1 = testSubject.GetValueOrDefault("key1", "default");
-
-            // Assert
-            actual1.Should().Be(expected1, "Did not load existing value");
-
-            // Test case 2: does NOT exist -> default
-            // Arrange
-            string expected2 = "default";
-
-            // Act
-            string actual2 = testSubject.GetValueOrDefault("key2", expected2);
-
-            // Assert
-            actual2.Should().Be(expected2, "Did not return default value");
-
-            // Test case 3: invalid type
-            // Arrange
-            string expected3 = "default";
-            this.settingsStore.SetBoolean(SonarLintSettings.SettingsRoot, "key3", true);
-
-            // Act
-            string actual3 = testSubject.GetValueOrDefault("key3", expected3);
-
-            // Assert
-            actual3.Should().Be(expected3, "Did not return default value");
+            var actual = testSubject.GetValueOrDefault("aProp", defaultValueSuppliedByCaller);
+            actual.Should().Be(valueToReturn);
         }
 
         [TestMethod]
-        public void IntegrationSettings_GetValueOrDefault_String_NoStore()
+        public void GetValueOrDefault_StoreThrows_ReturnsDefault_String()
         {
-            // Arrange
-            string expected = "default";
-            SonarLintSettings testSubject;
-            using (new AssertIgnoreScope())
-            {
-                testSubject = this.CreateTestSubject(storeLoadFailure: true);
-            }
+            var suppliedDefault = "the default";
 
-            // Act
-            string actual = testSubject.GetValueOrDefault("key1", expected);
+            var store = new Mock<WritableSettingsStore>();
+            store.Setup(x => x.GetString(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Throws(new ArgumentException("thrown in a test"));
 
-            // Assert
-            actual.Should().Be(expected, "Did not return default value in case of missing setting store");
+            var testSubject = CreateTestSubject(storeToReturn: store.Object);
+
+            var actual = testSubject.GetValueOrDefault("key1", suppliedDefault);
+            actual.Should().Be(suppliedDefault);
         }
 
         [TestMethod]
-        public void IntegrationSettings_SetValue_String()
+        public void GetValueOrDefault_NoStore_String()
         {
-            // Arrange
-            const string propertyKey = "key1";
-            const string collection = SonarLintSettings.SettingsRoot;
-            SonarLintSettings testSubject = this.CreateTestSubject();
+            string expected = "the value";
+            var testSubject = CreateTestSubject(storeToReturn: null);
 
-            // Sanity
-            this.settingsStore.AssertCollectionPropertyCount(collection, 0);
-
-            // Test case 1: new property
-            // Act
-            testSubject.SetValue(propertyKey, "value");
-
-            // Assert
-            this.settingsStore.AssertCollectionPropertyCount(collection, 1);
-            this.settingsStore.AssertString(collection, propertyKey, "value");
-
-            // Test case 2: overwrite existing property
-            // Act
-            testSubject.SetValue(propertyKey, "value2");
-
-            // Assert
-            this.settingsStore.AssertCollectionPropertyCount(collection, 1);
-            this.settingsStore.AssertString(collection, propertyKey, "value2");
+            var actual = testSubject.GetValueOrDefault("key1", expected);
+            actual.Should().Be(expected);
         }
 
         [TestMethod]
-        public void IntegrationSettings_SetValue_String_NoStore()
+        [DataRow("a key", "a value")]
+        [DataRow("another key", "another value")]
+        public void SetValue_String(string propertyName, string valueToSet)
         {
-            // Arrange
-            SonarLintSettings testSubject;
-            using (new AssertIgnoreScope())
-            {
-                testSubject = this.CreateTestSubject(storeLoadFailure: true);
-            }
+            var settingsStore = new Mock<WritableSettingsStore>();
+
+            var testSubject = CreateTestSubject(settingsStore.Object);
+
+            testSubject.SetValue(propertyName, valueToSet);
+
+            CheckPropertySet(settingsStore, propertyName, valueToSet);
+        }
+
+        [TestMethod]
+        public void SetValue_NoStore_String()
+        {
+            var testSubject = CreateTestSubject(storeToReturn: null);
 
             // Act + Assert (no store -> no exception)
-            Action act = () => testSubject.SetValue("key1", "value");
+            Action act = () => testSubject.SetValue("key1", "a value");
 
             act.Should().NotThrow();
         }
 
+        #endregion
+
+        #region Int method tests
+
         [TestMethod]
-        public void IntegrationSettings_GetValueOrDefault_Int()
+        [DataRow(111, 222)]
+        [DataRow(333, 222)]
+        public void GetValueOrDefault_Int(int valueToReturn, int defaultValueSuppliedByCaller)
         {
-            // Arrange
-            SonarLintSettings testSubject = this.CreateTestSubject();
+            var store = new Mock<WritableSettingsStore>();
+            store.Setup(x => x.GetInt32(SonarLintSettings.SettingsRoot, "aProp", defaultValueSuppliedByCaller)).Returns(valueToReturn);
 
-            // Test case 1: exists -> value
-            // Arrange
-            int expected1 = 1;
-            this.settingsStore.SetInt32(SonarLintSettings.SettingsRoot, "key1", expected1);
+            var testSubject = CreateTestSubject(store.Object);
 
-            // Act
-            int actual1 = testSubject.GetValueOrDefault("key1", 0);
-
-            // Assert
-            actual1.Should().Be(expected1, "Did not load existing value");
-
-            // Test case 2: does NOT exist -> default
-            // Arrange
-            int expected2 = 2;
-
-            // Act
-            int actual2 = testSubject.GetValueOrDefault("key2", expected2);
-
-            // Assert
-            actual2.Should().Be(expected2, "Did not return default value");
-
-            // Test case 3: invalid type
-            // Arrange
-            int expected3 = 3;
-            this.settingsStore.SetBoolean(SonarLintSettings.SettingsRoot, "key3", true);
-
-            // Act
-            int actual3 = testSubject.GetValueOrDefault("key3", expected3);
-
-            // Assert
-            actual3.Should().Be(expected3, "Did not return default value");
+            var actual = testSubject.GetValueOrDefault("aProp", defaultValueSuppliedByCaller);
+            actual.Should().Be(valueToReturn);
         }
 
         [TestMethod]
-        public void IntegrationSettings_GetValueOrDefault_Int_NoStore()
+        public void GetValueOrDefault_StoreThrows_ReturnsDefault_Int()
         {
-            // Arrange
-            int expected = 1;
-            SonarLintSettings testSubject;
-            using (new AssertIgnoreScope())
-            {
-                testSubject = this.CreateTestSubject(storeLoadFailure: true);
-            }
+            var suppliedDefault = -123;
 
-            // Act
-            int actual = testSubject.GetValueOrDefault("key1", expected);
+            var store = new Mock<WritableSettingsStore>();
+            store.Setup(x => x.GetInt32(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                .Throws(new ArgumentException("thrown in a test"));
 
-            // Assert
-            actual.Should().Be(expected, "Did not return default value in case of missing setting store");
+            var testSubject = CreateTestSubject(storeToReturn: store.Object);
+
+            var actual = testSubject.GetValueOrDefault("key1", suppliedDefault);
+            actual.Should().Be(suppliedDefault);
         }
 
         [TestMethod]
-        public void IntegrationSettings_SetValue_Int()
+        public void GetValueOrDefault_NoStore_Int()
         {
-            // Arrange
-            const string propertyKey = "key1";
-            const string collection = SonarLintSettings.SettingsRoot;
-            SonarLintSettings testSubject = this.CreateTestSubject();
+            int expected = 888;
+            var testSubject = CreateTestSubject(storeToReturn: null);
 
-            // Sanity
-            this.settingsStore.AssertCollectionPropertyCount(collection, 0);
-
-            // Test case 1: new property
-            // Act
-            testSubject.SetValue(propertyKey, 1);
-
-            // Assert
-            this.settingsStore.AssertCollectionPropertyCount(collection, 1);
-            this.settingsStore.AssertInt(collection, propertyKey, 1);
-
-            // Test case 2: overwrite existing property
-            // Act
-            testSubject.SetValue(propertyKey, 2);
-
-            // Assert
-            this.settingsStore.AssertCollectionPropertyCount(collection, 1);
-            this.settingsStore.AssertInt(collection, propertyKey, 2);
+            var actual = testSubject.GetValueOrDefault("key1", expected);
+            actual.Should().Be(expected);
         }
 
         [TestMethod]
-        public void IntegrationSettings_SetValue_Int_NoStore()
+        [DataRow("a key", 123)]
+        [DataRow("another key", 456)]
+        public void SetValue_Int(string propertyName, int valueToSet)
         {
-            // Arrange
-            SonarLintSettings testSubject;
-            using (new AssertIgnoreScope())
-            {
-                testSubject = this.CreateTestSubject(storeLoadFailure: true);
-            }
+            var settingsStore = new Mock<WritableSettingsStore>();
+
+            var testSubject = CreateTestSubject(settingsStore.Object);
+
+            testSubject.SetValue(propertyName, valueToSet);
+
+            CheckPropertySet(settingsStore, propertyName, valueToSet);
+        }
+
+        [TestMethod]
+        public void SetValue_NoStore_Int()
+        {
+            var testSubject = CreateTestSubject(storeToReturn: null);
 
             // Act + Assert (no store -> no exception)
-            Action act = () => testSubject.SetValue("key1", 1);
+            Action act = () => testSubject.SetValue("key1", 123);
 
             act.Should().NotThrow();
         }
 
-        #region Helpers
+        #endregion
+        private static SonarLintSettings CreateTestSubject(WritableSettingsStoreFactory storeFactory)
+            => new SonarLintSettings(storeFactory);
 
-        private SonarLintSettings CreateTestSubject(bool storeLoadFailure = false)
+        private static SonarLintSettings CreateTestSubject(WritableSettingsStore storeToReturn)
+            => CreateTestSubject(CreateStoreFactory(storeToReturn).Object);
+
+        private static Mock<WritableSettingsStoreFactory> CreateStoreFactory(
+            WritableSettingsStore storeToReturn = null)
         {
-            this.settingsManager.StoreFailsToLoad = storeLoadFailure;
-            return new SonarLintSettings(this.settingsManager);
+            var factory = new Mock<WritableSettingsStoreFactory>();
+            factory.Setup(x => x.Create(It.IsAny<string>())).Returns(storeToReturn);
+            return factory;
         }
 
-        #endregion Helpers
+        private static void CheckPropertySet(Mock<WritableSettingsStore> store, string propertyKey, bool value)
+            => store.Verify(x => x.SetBoolean(SonarLintSettings.SettingsRoot, propertyKey, value), Times.Once);
+
+        private static void CheckPropertySet(Mock<WritableSettingsStore> store, string propertyKey, int value)
+            => store.Verify(x => x.SetInt32(SonarLintSettings.SettingsRoot, propertyKey, value), Times.Once);
+
+        private static void CheckPropertySet(Mock<WritableSettingsStore> store, string propertyKey, string value)
+            => store.Verify(x => x.SetString(SonarLintSettings.SettingsRoot, propertyKey, value), Times.Once);
     }
 }

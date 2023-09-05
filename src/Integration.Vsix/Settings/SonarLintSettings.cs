@@ -23,44 +23,31 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell.Settings;
+using SonarLint.VisualStudio.Integration.Vsix.Settings;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     [Export(typeof(ISonarLintSettings))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class SonarLintSettings : ISonarLintSettings, IProfileManager
+    internal class SonarLintSettings : ISonarLintSettings, IProfileManager
     {
         public const string SettingsRoot = "SonarLintForVisualStudio";
 
-        private readonly WritableSettingsStore writableSettingsStore;
+        // Lazily create the settings store on first use (we can't create it in the constructor)
+        private readonly Lazy<WritableSettingsStore> writableSettingsStore;
 
         [ImportingConstructor]
-        public SonarLintSettings(SVsServiceProvider serviceProvider)
-            : this(new ShellSettingsManager(serviceProvider))
+        public SonarLintSettings(WritableSettingsStoreFactory storeFactory)
         {
-        }
-
-        internal SonarLintSettings(SettingsManager settingsManager)
-        {
-            if (settingsManager == null)
-            {
-                throw new ArgumentNullException(nameof(settingsManager));
-            }
-
-            this.writableSettingsStore = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
-            if (this.writableSettingsStore != null &&
-                !this.writableSettingsStore.CollectionExists(SettingsRoot))
-            {
-                this.writableSettingsStore.CreateCollection(SettingsRoot);
-            }
+            // Called from MEF constructor -> must be free-threaded
+            writableSettingsStore = new Lazy<WritableSettingsStore>(() => storeFactory.Create(SettingsRoot));
         }
 
         internal /* testing purposes */ bool GetValueOrDefault(string key, bool defaultValue)
         {
             try
             {
-                return this.writableSettingsStore?.GetBoolean(SettingsRoot, key, defaultValue)
+                return writableSettingsStore.Value?.GetBoolean(SettingsRoot, key, defaultValue)
                 ?? defaultValue;
             }
             catch (ArgumentException)
@@ -71,14 +58,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal /* testing purposes */ void SetValue(string key, bool value)
         {
-            this.writableSettingsStore?.SetBoolean(SettingsRoot, key, value);
+            writableSettingsStore.Value?.SetBoolean(SettingsRoot, key, value);
         }
 
         internal /* testing purposes */ string GetValueOrDefault(string key, string defaultValue)
         {
             try
             {
-                return this.writableSettingsStore?.GetString(SettingsRoot, key, defaultValue)
+                return writableSettingsStore.Value?.GetString(SettingsRoot, key, defaultValue)
                 ?? defaultValue;
             }
             catch (ArgumentException)
@@ -89,14 +76,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal /* testing purposes */ void SetValue(string key, string value)
         {
-            this.writableSettingsStore?.SetString(SettingsRoot, key, value);
+            writableSettingsStore.Value?.SetString(SettingsRoot, key, value);
         }
 
         internal /* testing purposes */ int GetValueOrDefault(string key, int defaultValue)
         {
             try
             {
-                return this.writableSettingsStore?.GetInt32(SettingsRoot, key, defaultValue)
+                return writableSettingsStore.Value?.GetInt32(SettingsRoot, key, defaultValue)
                     ?? defaultValue;
             }
             catch (ArgumentException)
@@ -107,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal /* testing purposes */ void SetValue(string key, int value)
         {
-            this.writableSettingsStore?.SetInt32(SettingsRoot, key, value);
+            writableSettingsStore.Value?.SetInt32(SettingsRoot, key, value);
         }
 
         #region IProfileManager
