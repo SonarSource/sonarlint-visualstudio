@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
     {
         private readonly IServerNotificationsTelemetryManager telemetryManager;
         private readonly ITimer autocloseTimer;
-        private readonly Action<Action> uiThreadInvoker;
+        private readonly IThreadHandling threadHandling;
 
         private string text;
         private bool hasUnreadEvents;
@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         public ICommand NavigateToNotification { get; }
 
         public NotificationIndicatorViewModel(IServerNotificationsTelemetryManager telemetryManager, IBrowserService vsBrowserService)
-            : this(telemetryManager, vsBrowserService, ThreadHelper.Generic.Invoke,
+            : this(telemetryManager, vsBrowserService, ThreadHandling.Instance,
                   new TimerWrapper { AutoReset = false, Interval = 3000 /* 3 sec */})
         {
         }
@@ -59,11 +59,11 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         // For testing
         internal NotificationIndicatorViewModel(IServerNotificationsTelemetryManager telemetryManager, 
             IBrowserService vsBrowserService,
-            Action<Action> uiThreadInvoker, 
+            IThreadHandling threadHandling, 
             ITimer autocloseTimer)
         {
             this.telemetryManager = telemetryManager;
-            this.uiThreadInvoker = uiThreadInvoker;
+            this.threadHandling = threadHandling;
             this.autocloseTimer = autocloseTimer;
 
             NotificationEvents = new ObservableCollection<SonarQubeNotification>();
@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
                 return;
             }
 
-            uiThreadInvoker(() =>
+            threadHandling.RunOnUIThread(() =>
                 {
                     NotificationEvents.Clear();
 
