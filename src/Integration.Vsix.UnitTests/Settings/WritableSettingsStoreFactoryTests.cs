@@ -62,18 +62,17 @@ public class WritableSettingsStoreFactoryTests
     [TestMethod]
     public void Create_FactoryMethodIsCalledCorrectly()
     {
-        var serviceProvider = CreateConfiguredServiceProvider(out var settingsService);
+        var serviceProvider = Mock.Of<IServiceProvider>();
         var settingsManager = new Mock<SettingsManager>();
         var factoryMethod = CreateFactoryMethod(settingsManager.Object);
 
-        var testSubject = CreateTestSubject(serviceProvider.Object,
+        var testSubject = CreateTestSubject(serviceProvider,
             factoryMethod: factoryMethod.Object);
 
         testSubject.Create("any").Should().BeNull();
 
-        serviceProvider.Verify(x => x.GetService(typeof(SVsSettingsManager)), Times.Once);
         factoryMethod.Invocations.Should().HaveCount(1);
-        factoryMethod.Verify(x => x.Invoke(settingsService), Times.Once); 
+        factoryMethod.Verify(x => x.Invoke(serviceProvider), Times.Once); 
     }
 
     [TestMethod]
@@ -118,19 +117,11 @@ public class WritableSettingsStoreFactoryTests
 
     // TODO - threading test
 
-    private static Mock<IServiceProvider> CreateConfiguredServiceProvider(out IVsSettingsManager settingsService)
-    {
-        settingsService = Mock.Of<IVsSettingsManager>();
-        var serviceProvider = new Mock<IServiceProvider>();
-        serviceProvider.Setup(x => x.GetService(typeof(SVsSettingsManager))).Returns(settingsService);
-        return serviceProvider;
-    }
-
     private static Mock<WritableSettingsStoreFactory.VSSettingsFactoryMethod> CreateFactoryMethod(
         SettingsManager settingsManagerToReturn)
     {
         var factoryMethod = new Mock<WritableSettingsStoreFactory.VSSettingsFactoryMethod>();
-        factoryMethod.Setup(x => x.Invoke(It.IsAny<IVsSettingsManager>())).Returns(settingsManagerToReturn);
+        factoryMethod.Setup(x => x.Invoke(It.IsAny<IServiceProvider>())).Returns(settingsManagerToReturn);
         return factoryMethod;
     }
 
@@ -154,17 +145,17 @@ public class WritableSettingsStoreFactoryTests
     /// </summary>
     private static WritableSettingsStoreFactory CreateConfiguredTestSubject(SettingsManager settingsManagerToReturn)
     {
-        var serviceProvider = CreateConfiguredServiceProvider(out var settingsService);
         var factoryMethod = CreateFactoryMethod(settingsManagerToReturn);
-        return CreateTestSubject(serviceProvider.Object, null, factoryMethod.Object);
+        return CreateTestSubject(Mock.Of<IServiceProvider>(), null, factoryMethod.Object);
     }
 
     private static WritableSettingsStoreFactory CreateTestSubject(
-        IServiceProvider serviceProvider,
+        IServiceProvider serviceProvider = null,
         IThreadHandling threadHandling = null,
         WritableSettingsStoreFactory.VSSettingsFactoryMethod factoryMethod = null)
     {
-        var testSubject = new WritableSettingsStoreFactory(serviceProvider,
+        var testSubject = new WritableSettingsStoreFactory(
+            serviceProvider ?? Mock.Of<IServiceProvider>(),
             threadHandling ?? new NoOpThreadHandler(),
             factoryMethod ?? (svc => null));
 

@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly Lazy<WritableSettingsStore> writableSettingsStore;
 
         [ImportingConstructor]
-        public SonarLintSettings(WritableSettingsStoreFactory storeFactory)
+        public SonarLintSettings(IWritableSettingsStoreFactory storeFactory)
         {
             // Called from MEF constructor -> must be free-threaded
             writableSettingsStore = new Lazy<WritableSettingsStore>(() => storeFactory.Create(SettingsRoot));

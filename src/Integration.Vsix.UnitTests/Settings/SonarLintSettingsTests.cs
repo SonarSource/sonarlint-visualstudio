@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         [TestMethod]
         public void MefCtor_CheckIsExported()
             => MefTestHelpers.CheckTypeCanBeImported<SonarLintSettings, ISonarLintSettings>(
-                MefTestHelpers.CreateExport<WritableSettingsStoreFactory>());
+                MefTestHelpers.CreateExport<IWritableSettingsStoreFactory>());
 
         [TestMethod]
         public void MefCtor_CheckIsSingleton()
@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         [TestMethod]
         public void Ctor_DoesNotCallAnyServices()
         {
-            var storeFactory = new Mock<WritableSettingsStoreFactory>();
+            var storeFactory = new Mock<IWritableSettingsStoreFactory>();
             _ = CreateTestSubject(storeFactory.Object);
 
             // The MEF constructor should be free-threaded, which it will be if
@@ -282,16 +282,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         }
 
         #endregion
-        private static SonarLintSettings CreateTestSubject(WritableSettingsStoreFactory storeFactory)
+        private static SonarLintSettings CreateTestSubject(IWritableSettingsStoreFactory storeFactory)
             => new SonarLintSettings(storeFactory);
 
         private static SonarLintSettings CreateTestSubject(WritableSettingsStore storeToReturn)
             => CreateTestSubject(CreateStoreFactory(storeToReturn).Object);
 
-        private static Mock<WritableSettingsStoreFactory> CreateStoreFactory(
+        private static Mock<IWritableSettingsStoreFactory> CreateStoreFactory(
             WritableSettingsStore storeToReturn = null)
         {
-            var factory = new Mock<WritableSettingsStoreFactory>();
+            var factory = new Mock<IWritableSettingsStoreFactory>();
             factory.Setup(x => x.Create(It.IsAny<string>())).Returns(storeToReturn);
             return factory;
         }

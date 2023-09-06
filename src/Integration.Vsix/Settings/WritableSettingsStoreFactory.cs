@@ -22,7 +22,6 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Settings;
 using SonarLint.VisualStudio.Core;
 
@@ -49,11 +48,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Settings
         // at runtime. However, we want to be able to unit test our code, so we define a 
         // delegate for a factory method the tests can inject replace the VS class with a mock.
 
-        internal delegate SettingsManager VSSettingsFactoryMethod(IVsSettingsManager settingsService);
+        internal delegate SettingsManager VSSettingsFactoryMethod(IServiceProvider settingsService);
         private readonly VSSettingsFactoryMethod settingsManagerFactoryMethod;
 
-        private static SettingsManager CreateRealVSSettingsManager(IVsSettingsManager vsSettingsManager)
-            => new ShellSettingsManager(vsSettingsManager);
+        private static SettingsManager CreateRealVSSettingsManager(IServiceProvider serviceProvider)
+            => new ShellSettingsManager(serviceProvider);
 
         #endregion
 
@@ -83,14 +82,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Settings
             WritableSettingsStore store = null;
             threadHandling.RunOnUIThread(() =>
             {
-                // Suppressing issue - false positive
-#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
-                var svc = serviceProvider.GetService(typeof(SVsSettingsManager)) as IVsSettingsManager;
-#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
-
                 // At runtime we'll be creating the real VS class.
                 // When testing, the tests will inject a dummy method returning a mock.
-                var settingsManager = settingsManagerFactoryMethod(svc);
+                var settingsManager = settingsManagerFactoryMethod(serviceProvider);
 
                 store = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
                 if (store != null &&
