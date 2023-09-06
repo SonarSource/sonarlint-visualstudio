@@ -147,6 +147,36 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        [DataRow(null)]
+        public async Task GetIsFolderWorkspaceAsync_ReturnsExpectedValue(bool? isOpenAsFolder)
+        {
+            var solution = CreateIVsSolutionWithIsFolderWorkspace(isOpenAsFolder);
+            var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
+
+            var testSubject = CreateTestSubject(serviceProvider.Object);
+
+            var actual = await testSubject.IsFolderWorkspaceAsync();
+            actual.Should().Be(isOpenAsFolder == true);
+        }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        [DataRow(null)]
+        public void GetIsFolderWorkspace_ReturnsExpectedValue(bool? isOpenAsFolder)
+        {
+            var solution = CreateIVsSolutionWithIsFolderWorkspace(isOpenAsFolder);
+            var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
+
+            var testSubject = CreateTestSubject(serviceProvider.Object);
+
+            var actual = testSubject.IsFolderWorkspace();
+            actual.Should().Be(isOpenAsFolder == true);
+        }
+
+        [TestMethod]
         [DataRow(true, 0)]
         [DataRow(false, 0)]
         [DataRow(true, -1)]
@@ -233,6 +263,29 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
+        public async Task IsFolderWorkspaceAsync_ServiceCalledOnUIThread()
+        {
+            var calls = new List<string>();
+
+            var solution = CreateIVsSolutionWithIsFullyOpened(true, callback: () => calls.Add("GetIsFolderWorkspace"));
+            var serviceProvider = CreateServiceProviderWithSolution(solution.Object, () => calls.Add("GetService"));
+
+            var threadHandling = new Mock<IThreadHandling>();
+            threadHandling.Setup(x => x.RunOnUIThreadAsync(It.IsAny<Action>()))
+                .Callback<Action>(productOperation =>
+                {
+                    calls.Add("switch to UI thread");
+                    productOperation.Invoke();
+                });
+
+            var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object);
+
+            var actual = await testSubject.IsSolutionFullyOpenedAsync();
+
+            calls.Should().ContainInOrder("switch to UI thread", "GetService", "GetIsFolderWorkspace");
+        }
+
+        [TestMethod]
         public void GetSlnFilePath_ServiceCalledOnUIThread()
         {
             var calls = new List<string>();
@@ -301,6 +354,29 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             calls.Should().ContainInOrder("switch to UI thread", "GetService", "GetSolutionIsFullyOpen");
         }
 
+        [TestMethod]
+        public async Task IsFolderWorkspacec_ServiceCalledOnUIThread()
+        {
+            var calls = new List<string>();
+
+            var solution = CreateIVsSolutionWithIsFullyOpened(true, callback: () => calls.Add("GetIsFolderWorkspace"));
+            var serviceProvider = CreateServiceProviderWithSolution(solution.Object, () => calls.Add("GetService"));
+
+            var threadHandling = new Mock<IThreadHandling>();
+            threadHandling.Setup(x => x.RunOnUIThreadAsync(It.IsAny<Action>()))
+                .Callback<Action>(productOperation =>
+                {
+                    calls.Add("switch to UI thread");
+                    productOperation.Invoke();
+                });
+
+            var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object);
+
+            var actual = await testSubject.IsSolutionFullyOpenedAsync();
+
+            calls.Should().ContainInOrder("switch to UI thread", "GetService", "GetIsFolderWorkspace");
+        }
+
         private static SolutionInfoProvider CreateTestSubject(IServiceProvider serviceProvider,
             IThreadHandling threadHandling = null)
         {
@@ -344,6 +420,19 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
                 .Returns(hresult);
 
             return solution;
+        }
+
+        private static Mock<IVsSolution> CreateIVsSolutionWithIsFolderWorkspace(bool? isOpenAsFolder)
+        {
+            object result = isOpenAsFolder;
+            var VSPROPID_IsInOpenFolderMode = -8044;
+            var vsSolution = new Mock<IVsSolution>();
+
+            vsSolution
+                .Setup(x => x.GetProperty(VSPROPID_IsInOpenFolderMode, out result))
+                .Returns(VSConstants.S_OK);
+
+            return vsSolution;
         }
 
         private static Mock<IThreadHandling> CreateThreadHandlingWithRunOnUICallback(Action testOperation)
