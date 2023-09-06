@@ -32,29 +32,17 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class FolderWorkspaceService : IFolderWorkspaceService
     {
-        /// <summary>
-        /// See https://docs.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.interop.__vspropid7?view=visualstudiosdk-2019
-        /// The enum is not available in VS 2015 API.
-        /// </summary>
-        internal const int VSPROPID_IsInOpenFolderMode = -8044;
-
-        private readonly IVsSolution vsSolution;
         private readonly ISolutionInfoProvider solutionInfoProvider;
 
         [ImportingConstructor]
-        public FolderWorkspaceService([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ISolutionInfoProvider solutionInfoProvider)
+        public FolderWorkspaceService(ISolutionInfoProvider solutionInfoProvider)
         {
-            vsSolution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
             this.solutionInfoProvider = solutionInfoProvider;
         }
 
         public bool IsFolderWorkspace()
         {
-            // "Open as Folder" was introduced in VS2017, so in VS2015 the hr result will be `E_NOTIMPL` and `isOpenAsFolder` will be null.
-            var hr = vsSolution.GetProperty(VSPROPID_IsInOpenFolderMode, out var isOpenAsFolder);
-            Debug.Assert(hr == VSConstants.S_OK, "Failed to retrieve VSPROPID_IsInOpenFolderMode");
-
-            return isOpenAsFolder != null && (bool)isOpenAsFolder;
+            return solutionInfoProvider.IsFolderWorkspace();
         }
 
         public string FindRootDirectory()

@@ -66,5 +66,16 @@ namespace SonarLint.VisualStudio.Core
         ///  <remarks>If possible, use the asynchronous version of this method. This synchronous version was added
         /// to be used only by existing non-thread-aware code that cannot easily be refactored.</remarks>
         bool IsSolutionFullyOpened();
+
+        /// <summary>
+        /// Returns true/false if the workspace is in Open-As-Folder mode
+        /// </summary>
+        Task<bool> IsFolderWorkspaceAsync();
+
+        /// <summary>
+        /// Returns true/false if the workspace is in Open-As-Folder mode
+        /// </summary>
+        /// <remarks>to be used only by existing non-thread-aware code that cannot easily be refactored.</remarks>
+        bool IsFolderWorkspace();
     }
 }

@@ -37,7 +37,6 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<FolderWorkspaceService, IFolderWorkspaceService>(
-                MefTestHelpers.CreateExport<SVsServiceProvider>(),
                 MefTestHelpers.CreateExport<ISolutionInfoProvider>());
         }
 
@@ -62,61 +61,24 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
-        [DataRow(null)] // the API returns null for VS2015
+        [DataRow(true)]
         [DataRow(false)]
-        public void FindRootDirectory_NotOpenAsFolder_Null(bool? isOpenAsFolder)
-        {
-            var testSubject = CreateTestSubject(isOpenAsFolder, solutionDirectory: "some directory");
-
-            var result = testSubject.FindRootDirectory();
-            result.Should().BeNull();
-        }
-
-        [TestMethod]
-        [DataRow(null)] // the API returns null for VS2015
-        [DataRow(false)]
-        public void IsFolderWorkspace_NotOpenAsFolder_False(bool? isOpenAsFolder)
+        public void IsFolderWorkspace_GetsResultFromSolutionInfoProvider(bool isOpenAsFolder)
         {
             var testSubject = CreateTestSubject(isOpenAsFolder, solutionDirectory: "some directory");
 
             var result = testSubject.IsFolderWorkspace();
 
-            result.Should().BeFalse();
+            result.Should().Be(isOpenAsFolder);
         }
 
-        [TestMethod]
-        public void IsFolderWorkspace_OpenAsFolder_True()
+        private FolderWorkspaceService CreateTestSubject(bool isOpenAsFolder, string solutionDirectory)
         {
-            var testSubject = CreateTestSubject(true, solutionDirectory: "some directory");
-
-            var result = testSubject.IsFolderWorkspace();
-
-            result.Should().BeTrue();
-        }
-
-        private FolderWorkspaceService CreateTestSubject(bool? isOpenAsFolder, string solutionDirectory)
-        {
-            var vsSolution = SetupVsSolution(isOpenAsFolder);
-
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(x => x.GetService(typeof(SVsSolution))).Returns(vsSolution.Object);
-
             var solutionInfoProvider = new Mock<ISolutionInfoProvider>();
             solutionInfoProvider.Setup(x => x.GetSolutionDirectory()).Returns(solutionDirectory);
+            solutionInfoProvider.Setup(x => x.IsFolderWorkspace()).Returns(isOpenAsFolder);
 
-            return new FolderWorkspaceService(serviceProvider.Object, solutionInfoProvider.Object);
-        }
-
-        private static Mock<IVsSolution> SetupVsSolution(bool? isOpenAsFolder)
-        {
-            object result = isOpenAsFolder;
-            var vsSolution = new Mock<IVsSolution>();
-
-            vsSolution
-                .Setup(x => x.GetProperty(FolderWorkspaceService.VSPROPID_IsInOpenFolderMode, out result))
-                .Returns(VSConstants.S_OK);
-
-            return vsSolution;
+            return new FolderWorkspaceService(solutionInfoProvider.Object);
         }
     }
 }
