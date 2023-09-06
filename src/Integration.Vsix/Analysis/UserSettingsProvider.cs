@@ -58,7 +58,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             this.serializer = new RulesSettingsSerializer(fileSystem, logger);
 
             SettingsFilePath = settingsFileMonitor.MonitoredFilePath;
-            UserSettings = SafeLoadUserSettings(SettingsFilePath, logger);
             settingsFileMonitor.FileChanged += OnFileChanged;
         }
 
@@ -70,7 +69,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         #region IUserSettingsProvider implementation
 
-        public UserSettings UserSettings { get; private set; }
+        public UserSettings UserSettings
+        {
+            get
+            {
+                if (UserSettings == null) UserSettings = SafeLoadUserSettings(SettingsFilePath, logger);
+                return UserSettings;
+            }
+            private set => UserSettings = value;
+        }
 
         public event EventHandler SettingsChanged;
 
