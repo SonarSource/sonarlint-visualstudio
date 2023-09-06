@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
@@ -115,7 +116,33 @@ public class WritableSettingsStoreFactoryTests
         }
     }
 
-    // TODO - threading test
+    [TestMethod]
+    public void Create_FactoryMethodCalledOnUIThread()
+    {
+        var calls = new List<string>();
+
+        WritableSettingsStoreFactory.VSSettingsFactoryMethod factoryMethod =
+            x => {
+                calls.Add("factory method");
+                return Mock.Of<SettingsManager>();
+            };
+
+        var threadHandling = new Mock<IThreadHandling>();
+        threadHandling.Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
+            .Callback<Action>(x =>
+            {
+                calls.Add("thread switch");
+                x();
+            });
+
+        var testSubject = CreateTestSubject(
+            threadHandling: threadHandling.Object,
+            factoryMethod: factoryMethod);
+
+        _ = testSubject.Create("any");
+
+        calls.Should().ContainInOrder("thread switch", "factory method");
+    }
 
     private static Mock<WritableSettingsStoreFactory.VSSettingsFactoryMethod> CreateFactoryMethod(
         SettingsManager settingsManagerToReturn)
