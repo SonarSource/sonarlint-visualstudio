@@ -263,11 +263,11 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
-        public async Task IsSolutionFullyOpenAsync_ServiceCalledOnUIThread()
+        public async Task IsFolderWorkspaceAsync_ServiceCalledOnUIThread()
         {
             var calls = new List<string>();
 
-            var solution = CreateIVsSolutionWithIsFullyOpened(true, callback: () => calls.Add("GetSolutionIsFullyOpen"));
+            var solution = CreateIVsSolutionWithIsFullyOpened(true, callback: () => calls.Add("GetIsFolderWorkspace"));
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object, () => calls.Add("GetService"));
 
             var threadHandling = new Mock<IThreadHandling>();
@@ -282,7 +282,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             var actual = await testSubject.IsSolutionFullyOpenedAsync();
 
-            calls.Should().ContainInOrder("switch to UI thread", "GetService", "GetSolutionIsFullyOpen");
+            calls.Should().ContainInOrder("switch to UI thread", "GetService", "GetIsFolderWorkspace");
         }
 
         [TestMethod]
@@ -352,6 +352,29 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             var actual = await testSubject.IsSolutionFullyOpenedAsync();
 
             calls.Should().ContainInOrder("switch to UI thread", "GetService", "GetSolutionIsFullyOpen");
+        }
+
+        [TestMethod]
+        public async Task IsFolderWorkspacec_ServiceCalledOnUIThread()
+        {
+            var calls = new List<string>();
+
+            var solution = CreateIVsSolutionWithIsFullyOpened(true, callback: () => calls.Add("GetIsFolderWorkspace"));
+            var serviceProvider = CreateServiceProviderWithSolution(solution.Object, () => calls.Add("GetService"));
+
+            var threadHandling = new Mock<IThreadHandling>();
+            threadHandling.Setup(x => x.RunOnUIThreadAsync(It.IsAny<Action>()))
+                .Callback<Action>(productOperation =>
+                {
+                    calls.Add("switch to UI thread");
+                    productOperation.Invoke();
+                });
+
+            var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object);
+
+            var actual = await testSubject.IsSolutionFullyOpenedAsync();
+
+            calls.Should().ContainInOrder("switch to UI thread", "GetService", "GetIsFolderWorkspace");
         }
 
         private static SolutionInfoProvider CreateTestSubject(IServiceProvider serviceProvider,
