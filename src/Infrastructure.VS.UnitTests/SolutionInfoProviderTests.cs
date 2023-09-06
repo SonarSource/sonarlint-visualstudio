@@ -150,15 +150,15 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [DataRow(true)]
         [DataRow(false)]
         [DataRow(null)]
-        public void GetIsFolderWorkspaceAsync_ReturnsExpectedValue(bool? isOpenAsFolder)
+        public async Task GetIsFolderWorkspaceAsync_ReturnsExpectedValue(bool? isOpenAsFolder)
         {
             var solution = CreateIVsSolutionWithIsFolderWorkspace(isOpenAsFolder);
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
 
             var testSubject = CreateTestSubject(serviceProvider.Object);
 
-            var actual = testSubject.IsSolutionFullyOpened();
-            actual.Should().Be((bool)isOpenAsFolder);
+            var actual = await testSubject.IsFolderWorkspaceAsync();
+            actual.Should().Be(isOpenAsFolder == true);
         }
 
         [TestMethod]
@@ -172,8 +172,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             var testSubject = CreateTestSubject(serviceProvider.Object);
 
-            var actual = testSubject.IsSolutionFullyOpened();
-            actual.Should().Be((bool)isOpenAsFolder);
+            var actual = testSubject.IsFolderWorkspace();
+            actual.Should().Be(isOpenAsFolder == true);
         }
 
         [TestMethod]
