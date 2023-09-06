@@ -161,7 +161,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             testSubject.EnsureFileExists();
 
             // Assert
-            fileSystemMock.Verify(x => x.File.Exists(fileName), Times.Exactly(2));
+            fileSystemMock.Verify(x => x.File.Exists(fileName), Times.Exactly(1));
             fileSystemMock.Verify(x => x.File.WriteAllText(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 

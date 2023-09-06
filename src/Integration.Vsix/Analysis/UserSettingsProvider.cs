@@ -40,6 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private readonly IFileSystem fileSystem;
         private readonly ILogger logger;
         private readonly RulesSettingsSerializer serializer;
+        private UserSettings userSettings;
 
         [ImportingConstructor]
         public UserSettingsProvider(ILogger logger)
@@ -73,10 +74,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         {
             get
             {
-                if (UserSettings == null) UserSettings = SafeLoadUserSettings(SettingsFilePath, logger);
-                return UserSettings;
+                if (userSettings == null) userSettings = SafeLoadUserSettings(SettingsFilePath, logger);
+                return userSettings;
             }
-            private set => UserSettings = value;
+            private set => userSettings = value;
         }
 
         public event EventHandler SettingsChanged;
