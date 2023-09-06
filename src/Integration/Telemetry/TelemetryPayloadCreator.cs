@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IActiveSolutionBoundTracker solutionBindingTracker;
         private readonly INodeVersionInfoProvider nodeVersionInfoProvider;
         private readonly ICompatibleNodeLocator compatibleNodeLocator;
-        private readonly IVsVersion vsVersion;
+        private readonly IVsVersionProvider vsVersionProvider;
 
         [ImportingConstructor]
         public TelemetryPayloadCreator(IActiveSolutionBoundTracker solutionBindingTracker,
@@ -65,11 +65,10 @@ namespace SonarLint.VisualStudio.Integration
             ICurrentTimeProvider currentTimeProvider)
         {
             this.solutionBindingTracker = solutionBindingTracker;
+            this.vsVersionProvider = vsVersionProvider;
             this.nodeVersionInfoProvider = nodeVersionInfoProvider;
             this.compatibleNodeLocator = compatibleNodeLocator;
             this.currentTimeProvider = currentTimeProvider;
-
-            vsVersion = vsVersionProvider.Version;
         }
 
         private static readonly string SonarLintVersion = GetSonarLintVersion();
@@ -111,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration
                 SonarLintProduct = "SonarLint Visual Studio",
                 SonarLintVersion = SonarLintVersion,
                 VisualStudioVersion = VisualStudioHelpers.VisualStudioVersion,
-                VisualStudioVersionInformation = GetVsVersion(vsVersion),
+                VisualStudioVersionInformation = GetVsVersion(vsVersionProvider.Version),
                 NumberOfDaysSinceInstallation = currentTimeProvider.Now.DaysPassedSince(telemetryData.InstallationDate),
                 NumberOfDaysOfUse = telemetryData.NumberOfDaysOfUse,
                 IsUsingConnectedMode = isConnected,
