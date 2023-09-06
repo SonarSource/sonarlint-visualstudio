@@ -96,7 +96,7 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Api.V5_00.GetSourceCodeRequest",
                     "Registered SonarQube.Client.Api.V5_10.GetLanguagesRequest",
                     "Registered SonarQube.Client.Api.V5_40.GetModulesRequest",
-                    "Registered SonarQube.Client.Api.V10_2.GetRulesWithCCTRequest",
+                    "Registered SonarQube.Client.Api.V9_6.GetRulesWithEducationPrinciplesRequest",
                     "Registered SonarQube.Client.Api.V5_50.DownloadStaticFile",
                     "Registered SonarQube.Client.Api.V6_20.GetProjectsRequest",
                     "Registered SonarQube.Client.Api.V6_30.GetPluginsRequest",
