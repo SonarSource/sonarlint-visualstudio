@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         private void OnFileChanged(object sender, EventArgs e)
         {
-            UserSettings = SafeLoadUserSettings(SettingsFilePath, logger);
+            userSettings = SafeLoadUserSettings(SettingsFilePath, logger);
             SettingsChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -74,10 +74,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         {
             get
             {
-                if (userSettings == null) userSettings = SafeLoadUserSettings(SettingsFilePath, logger);
+                if (userSettings == null) { userSettings = SafeLoadUserSettings(SettingsFilePath, logger); }
                 return userSettings;
             }
-            private set => userSettings = value;
         }
 
         public event EventHandler SettingsChanged;
