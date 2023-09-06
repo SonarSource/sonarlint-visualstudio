@@ -20,8 +20,10 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
@@ -85,6 +87,35 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
             var isOpen = false;
             threadHandling.RunOnUIThread(() => isOpen = GetSolutionIsFullyOpened());
             return isOpen;
+        }
+
+        public async Task<bool> IsFolderWorkspaceAsync()
+        {
+            var isFolderWorkspace = false;
+            await threadHandling.RunOnUIThreadAsync(() => isFolderWorkspace = GetIsFolderWorkspace());
+            return isFolderWorkspace;
+        }
+
+        public bool IsFolderWorkspace()
+        {
+            var isFolderWorkspace = false;
+            threadHandling.RunOnUIThread(() => isFolderWorkspace = GetIsFolderWorkspace());
+            return isFolderWorkspace;
+        }
+
+        private bool GetIsFolderWorkspace()
+        {
+            var solution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
+
+            // See https://docs.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.interop.__vspropid7?view=visualstudiosdk-2019
+            // The enum is not available in VS 2015 API.
+            var VSPROPID_IsInOpenFolderMode = -8044;
+
+            // "Open as Folder" was introduced in VS2017, so in VS2015 the hr result will be `E_NOTIMPL` and `isOpenAsFolder` will be null.
+            var hr = solution.GetProperty(VSPROPID_IsInOpenFolderMode, out var isOpenAsFolder);
+            Debug.Assert(hr == VSConstants.S_OK, "Failed to retrieve VSPROPID_IsInOpenFolderMode");
+
+            return isOpenAsFolder != null && (bool)isOpenAsFolder;
         }
 
         private bool GetSolutionIsFullyOpened()
