@@ -36,6 +36,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public TestContext TestContext { get; set; }
 
         [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<UserSettingsProvider, IUserSettingsProvider>(
+                MefTestHelpers.CreateExport<ILogger>());
+        }
+
+        [TestMethod]
+        public void Ctor_DoesNotCallAnyNonFreeThreadedServices()
+        {
+            // Arrange
+            var logger = new Mock<ILogger>();
+            var fileSystemMock = new Mock<IFileSystem>();
+            var fileMonitorMock = new Mock<ISingleFileMonitor>();
+
+            // Act
+            _ = new UserSettingsProvider(logger.Object, fileSystemMock.Object, fileMonitorMock.Object);
+
+            // The MEF constructor should be free-threaded, which it will be if
+            // it doesn't make any external calls.
+            logger.Invocations.Should().BeEmpty();
+            fileSystemMock.Invocations.Should().BeEmpty();
+            fileMonitorMock.Verify(x => x.MonitoredFilePath, Times.Once);
+            fileMonitorMock.VerifyAdd(x => x.FileChanged += It.IsAny<EventHandler>(), Times.Once);
+            fileMonitorMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
         public void Ctor_NullArguments()
         {
             var mockSingleFileMonitor = new Mock<ISingleFileMonitor>();
