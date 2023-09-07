@@ -42,6 +42,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Install
         }
 
         [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+            => MefTestHelpers.CheckIsSingletonMefComponent<ImportBeforeInstallTrigger>();
+
+        [TestMethod]
         public void Ctor_SubscribesToEvents()
         {
             var activeSolutionTracker = new Mock<IActiveSolutionBoundTracker>();
@@ -50,6 +54,23 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Install
 
             activeSolutionTracker.VerifyAdd(x => x.PreSolutionBindingChanged += It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>(), Times.Once);
             activeSolutionTracker.VerifyAdd(x => x.PreSolutionBindingUpdated += It.IsAny<EventHandler>(), Times.Once);
+
+            activeSolutionTracker.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Ctor_DoesNotCallAnyServices()
+        {
+            var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
+            var importBeforeFileGenerator = new Mock<IImportBeforeFileGenerator>();
+            var threadHandling = new Mock<IThreadHandling>();
+
+            _ = CreateTestSubject(activeSolutionBoundTracker.Object, importBeforeFileGenerator.Object, threadHandling.Object);
+
+            // The MEF constructor should be free-threaded, which it will be if
+            // it doesn't make any external calls.
+            importBeforeFileGenerator.Invocations.Should().BeEmpty();
+            threadHandling.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
