@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.CloudSecrets
         private readonly Lazy<IRuleSettingsProvider> ruleSettingsProvider;
         private readonly ICloudSecretsTelemetryManager cloudSecretsTelemetryManager;
         private readonly ISecretsToAnalysisIssueConverter secretsToAnalysisIssueConverter;
-        private readonly Lazy<IContentType> filesContentType;
+        private readonly IContentTypeRegistryService contentTypeRegistryService;
 
         [ImportingConstructor]
         public SecretsAnalyzer(
@@ -74,8 +74,8 @@ namespace SonarLint.VisualStudio.CloudSecrets
             this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
             this.cloudSecretsTelemetryManager = cloudSecretsTelemetryManager;
             this.secretsToAnalysisIssueConverter = secretsToAnalysisIssueConverter;
+            this.contentTypeRegistryService = contentTypeRegistryService;
 
-            filesContentType = new Lazy<IContentType>(() => contentTypeRegistryService.UnknownContentType);
             ruleSettingsProvider = new Lazy<IRuleSettingsProvider>(() => ruleSettingsProviderFactory.Get(Language.Secrets));
         }
 
@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.CloudSecrets
             {
                 var stopwatch = Stopwatch.StartNew();
 
-                var textDocument = textDocumentFactoryService.CreateAndLoadTextDocument(filePath, filesContentType.Value); // load the document from disc
+                var textDocument = textDocumentFactoryService.CreateAndLoadTextDocument(filePath, contentTypeRegistryService.UnknownContentType); // load the document from disc
                 var currentSnapshot = textDocument.TextBuffer.CurrentSnapshot;
                 var fileContent = currentSnapshot.GetText();
                 var rulesSettings = ruleSettingsProvider.Value.Get();
