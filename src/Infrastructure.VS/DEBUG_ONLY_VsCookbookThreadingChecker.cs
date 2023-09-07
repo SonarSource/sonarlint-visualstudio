@@ -18,10 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#if DEBUG
+
+// Disable issues in this debug-only file
+#pragma warning disable VSTHRD104   // "Expose an async version of the method" - using the pattern from VS Cookbook
+#pragma warning disable IDE0079     // "Remove unnecessary suppressiom"
+#pragma warning disable S101        // "Rename class to match Pascal case naming rules"
+
 using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
+using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS
 {
@@ -81,6 +88,23 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         }
 
         /// <summary>
+        /// If this method is called on the UI thread it will check
+        /// whether the operation _requires_ the UI thread.
+        /// If the method is called from a background thread it will just execute the operation.
+        /// </summary>
+        public static T IfOnUIThreadCheckIfRequiresMainThread<T>(Func<T> operationToTest)
+        {
+            if (ThreadHelper.CheckAccess())
+            {
+                Debug.WriteLine("On UI thread: testing operation...");
+                return CheckIfRequiresMainThread(operationToTest);
+            }
+
+            Debug.WriteLine("Not on UI thread: skipping the check, just executing the operation...");
+            return operationToTest();
+        }
+
+        /// <summary>
         /// Checks if the operation _requires_ the UI thread.
         /// Note: this method must be called from the UI thread, otherwise
         /// it will throw.
@@ -104,23 +128,6 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
                     });
                 }
             });
-        }
-
-        /// <summary>
-        /// If this method is called on the UI thread it will check
-        /// whether the operation _requires_ the UI thread.
-        /// If the method is called from a background thread it will just execute the operation.
-        /// </summary>
-        public static T IfOnUIThreadCheckIfRequiresMainThread<T>(Func<T> operationToTest)
-        {
-            if (ThreadHelper.CheckAccess())
-            {
-                Debug.WriteLine("On UI thread: testing operation...");
-                return CheckIfRequiresMainThread(operationToTest);
-            }
-
-            Debug.WriteLine("Not on UI thread: skipping the check, just executing the operation...");
-            return operationToTest();
         }
 
         /// <summary>
@@ -152,3 +159,5 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         }
     }
 }
+
+#endif // DEBUG
