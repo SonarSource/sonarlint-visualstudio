@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -26,13 +27,6 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
-using SonarLint.VisualStudio.TypeScript.NodeJSLocator.LocationProviders;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.Linq;
-using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TypeScript.NodeJSLocator.LocationProviders;
 
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
@@ -94,10 +88,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         [TestMethod]
         public void Get_HasLocationProviders_AggregatedNotDistinctList()
         {
-            var provider1 = SetupLocationsProvider(new [] {"path1"});
+            var provider1 = SetupLocationsProvider(new[] { "path1" });
             var provider2 = SetupLocationsProvider(null);
-            var provider3 = SetupLocationsProvider(new[] {"path2", null, ""});
-            var provider4 = SetupLocationsProvider(new[] {"path3", "path4", "path1"});
+            var provider3 = SetupLocationsProvider(new[] { "path2", null, "" });
+            var provider4 = SetupLocationsProvider(new[] { "path3", "path4", "path1" });
 
             var testSubject = CreateTestSubject(provider1, provider2, provider3, provider4);
             var result = testSubject.Get();
