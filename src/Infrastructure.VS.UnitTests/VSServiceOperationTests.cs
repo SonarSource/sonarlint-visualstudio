@@ -216,6 +216,9 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
         #region Multiple calls, same service tests
 
+        // NOTE - we're only testing this scenario for Execute(Action)
+        // Adding tests for all of the other methods doesn't add enough value to justify the effort at this point.
+
         [TestMethod]
         public void Execute_Action_MultipleCalls_SameService_ServiceProviderIsCalledOnlyOnce()
         {
@@ -261,12 +264,15 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             serviceProvider.Verify(x => x.GetService(typeof(SVsUIShell)), Times.Once);
             serviceProvider.Invocations.Should().HaveCount(1);
-            callback.Verify(x => x.Invoke(uiShellService), Times.Exactly(2)); // called again with the same service instance
+            callback.Verify(x => x.Invoke(uiShellService), Times.Exactly(2)); 
         }
 
         #endregion
 
         #region Multiple calls, same different service
+
+        // NOTE - we're only testing this scenario for Execute(Action)
+        // Adding tests for all of the other methods doesn't add enough value to justify the effort at this point.
 
         [TestMethod]
         public void Execute_Action_MultipleCalls_DifferentServices_ServiceProviderIsCalledForEachService()
@@ -287,7 +293,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             serviceProvider.Invocations.Should().HaveCount(1);
             callback1.Verify(x => x.Invoke(service1), Times.Once);
 
-            // 2. Second call for the same service -> does not call the service provider
+            // 2. Second call for a different service -> calls the service provider again
             var callback2 = new Mock<Action<IVsMonitorSelection>>();
             testSubject.Execute<SVsShellMonitorSelection, IVsMonitorSelection>(callback2.Object);
 
