@@ -27,16 +27,9 @@ using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 {
-    /// <summary>
-    /// Reacts to project changes and opens/closes Server Sent Events sessions
-    /// </summary>
-    internal interface ISSESessionManager : IDisposable
-    {
-    }
-
-    [Export(typeof(ISSESessionManager))]
+    [Export(typeof(SSESessionManager))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class SSESessionManager : ISSESessionManager
+    internal sealed class SSESessionManager
     {
         private const int DelayTimeBetweenRetriesInMilliseconds = 1000;
 
@@ -59,8 +52,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             this.logger = logger;
 
             activeSolutionBoundTracker.SolutionBindingChanged += SolutionBindingChanged;
-
-            CreateSessionIfInConnectedMode(activeSolutionBoundTracker.CurrentConfiguration);
         }
 
         public void Dispose()
@@ -81,8 +72,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             CreateSessionIfInConnectedMode(activeSolutionBindingEventArgs.Configuration);
         }
 
-        private void CreateSessionIfInConnectedMode(BindingConfiguration bindingConfiguration)
+        /// <summary>
+        /// Creates a new session if in connected mode. If no binding configuration is provided the
+        /// ActiveSolutionBoundTracker.CurrentConfiguration will be used.
+        /// </summary>
+        public void CreateSessionIfInConnectedMode(BindingConfiguration bindingConfiguration = null)
         {
+            if (bindingConfiguration == null) { bindingConfiguration = activeSolutionBoundTracker.CurrentConfiguration; }
+
             lock (syncRoot)
             {
                 EndCurrentSession();

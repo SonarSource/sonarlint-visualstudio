@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
     [Guid("dd3427e0-7bb2-4a51-b00a-ddae2c32c7ef")]
     public sealed class ConnectedModePackage : AsyncPackage
     {
-        private ISSESessionManager sseSessionManager;
+        private SSESessionManager sseSessionManager;
         private IIssueServerEventsListener issueServerEventsListener;
         private IQualityProfileServerEventsListener qualityProfileServerEventsListener;
         private ServerSuppressionsChangedHandler serverSuppressionsChangedHandler;
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
             logger.WriteLine(Resources.Package_Initializing);
 
-            sseSessionManager = componentModel.GetService<ISSESessionManager>();
+            LoadServicesAndDoInitialUpdates(componentModel);
 
             issueServerEventsListener = componentModel.GetService<IIssueServerEventsListener>();
             issueServerEventsListener.ListenAsync().Forget();
@@ -84,17 +84,24 @@ namespace SonarLint.VisualStudio.ConnectedMode
             hotspotStoreMonitor = componentModel.GetService<ILocalHotspotStoreMonitor>();
             await hotspotStoreMonitor.InitializeAsync();
 
-            // Trigger an initial update of suppressions (These classes might have missed the initial solution binding
-            // event from the ActiveSolutionBoundTracker)
-            // See https://github.com/SonarSource/sonarlint-visualstudio/issues/3886
+            logger.WriteLine(Resources.Package_Initialized);
+        }
+
+        /// <summary>
+        /// Trigger an initial update of suppressions (These classes might have missed the initial solution binding
+        /// event from the ActiveSolutionBoundTracker)
+        /// See https://github.com/SonarSource/sonarlint-visualstudio/issues/3886
+        /// </summary>
+        private void LoadServicesAndDoInitialUpdates(IComponentModel componentModel)
+        {
+            sseSessionManager = componentModel.GetService<SSESessionManager>();
+            sseSessionManager.CreateSessionIfInConnectedMode();
             importBeforeInstallTrigger = componentModel.GetService<ImportBeforeInstallTrigger>();
             importBeforeInstallTrigger.TriggerUpdateAsync().Forget();
             var updater = componentModel.GetService<ISuppressionIssueStoreUpdater>();
             updater.UpdateAllServerSuppressionsAsync().Forget();
             var hotspotsUpdater = componentModel.GetService<IServerHotspotStoreUpdater>();
             hotspotsUpdater.UpdateAllServerHotspotsAsync().Forget();
-
-            logger.WriteLine(Resources.Package_Initialized);
         }
 
         protected override void Dispose(bool disposing)
