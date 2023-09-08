@@ -46,11 +46,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Install
 
             this.activeSolutionBoundTracker.PreSolutionBindingChanged += OnPreSolutionBindingChanged;
             this.activeSolutionBoundTracker.PreSolutionBindingUpdated += OnPreSolutionBindingUpdated;
-
-            // Trigger an initial update of importBeforeFileGenerator (we might have missed the solution binding
-            // event from the ActiveSolutionBoundTracker)
-            // See https://github.com/SonarSource/sonarlint-visualstudio/issues/3886
-            TriggerUpdateAsync().Forget();
         }
 
         private void OnPreSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
@@ -60,7 +55,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Install
 
         private void OnPreSolutionBindingUpdated(object sender, EventArgs e) => TriggerUpdateAsync().Forget();
 
-        private async Task TriggerUpdateAsync()
+        public async Task TriggerUpdateAsync()
         {
             var config = activeSolutionBoundTracker.CurrentConfiguration;
 

@@ -19,10 +19,13 @@
  */
 
 using System;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Install;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
+
+using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Install
 {
@@ -39,6 +42,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Install
         }
 
         [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+            => MefTestHelpers.CheckIsSingletonMefComponent<ImportBeforeInstallTrigger>();
+
+        [TestMethod]
         public void Ctor_SubscribesToEvents()
         {
             var activeSolutionTracker = new Mock<IActiveSolutionBoundTracker>();
@@ -47,29 +54,51 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Install
 
             activeSolutionTracker.VerifyAdd(x => x.PreSolutionBindingChanged += It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>(), Times.Once);
             activeSolutionTracker.VerifyAdd(x => x.PreSolutionBindingUpdated += It.IsAny<EventHandler>(), Times.Once);
+
+            activeSolutionTracker.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Ctor_DoesNotCallAnyServices()
+        {
+            var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
+            var importBeforeFileGenerator = new Mock<IImportBeforeFileGenerator>();
+            var threadHandling = new Mock<IThreadHandling>();
+
+            _ = CreateTestSubject(activeSolutionBoundTracker.Object, importBeforeFileGenerator.Object, threadHandling.Object);
+
+            // The MEF constructor should be free-threaded, which it will be if
+            // it doesn't make any external calls.
+            importBeforeFileGenerator.Invocations.Should().BeEmpty();
+            threadHandling.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
         [DataRow(SonarLintMode.Connected, true)]
         [DataRow(SonarLintMode.LegacyConnected, true)]
         [DataRow(SonarLintMode.Standalone, false)]
-        public void Ctor_TriggersImportBeforeFileDependingOnMode(SonarLintMode mode, bool shouldTrigger)
+        public async Task TriggersImportBeforeFileDependingOnMode(SonarLintMode mode, bool shouldTrigger)
         {
             var activeSolutionTracker = CreateActiveSolutionBoundTrackerWihtBindingConfig(mode);
             var importBeforeFileGenerator = new Mock<IImportBeforeFileGenerator>();
 
-            _ = CreateTestSubject(activeSolutionTracker.Object, importBeforeFileGenerator.Object);
+            var testSubject = CreateTestSubject(activeSolutionTracker.Object, importBeforeFileGenerator.Object);
+
+            await testSubject.TriggerUpdateAsync();
 
             importBeforeFileGenerator.Verify(x => x.WriteTargetsFileToDiskIfNotExists(), shouldTrigger ? Times.Once : Times.Never);
         }
 
         [TestMethod]
-        public void Ctor__TriggersImportBeforeFile_SwitchesThread()
+        public async Task TriggersImportBeforeFile_SwitchesThread()
         {
             var activeSolutionTracker = CreateActiveSolutionBoundTrackerWihtBindingConfig(SonarLintMode.Connected);
             var threadHandling = new Mock<IThreadHandling>();
+            threadHandling.Setup(th => th.SwitchToBackgroundThread()).Returns(new NoOpThreadHandler.NoOpAwaitable());
 
-            _ = CreateTestSubject(activeSolutionTracker.Object, threadHandling: threadHandling.Object);
+            var testSubject = CreateTestSubject(activeSolutionTracker.Object, threadHandling: threadHandling.Object);
+            
+            await testSubject.TriggerUpdateAsync();
 
             threadHandling.Verify(x => x.SwitchToBackgroundThread(), Times.Once);
         }
