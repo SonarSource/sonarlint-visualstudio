@@ -22,7 +22,6 @@ using System;
 using System.Runtime.InteropServices;
 using FluentAssertions;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -34,18 +33,32 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
     public class VsInfoServiceTests
     {
         [TestMethod]
-        public void MefCtor_CheckIsExported()
+        public void MefCtor_CheckIsExported() 
+            => MefTestHelpers.CheckTypeCanBeImported<VsInfoService, IVsInfoService>(
+                MefTestHelpers.CreateExport<IVsUIServiceOperation>());
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+            => MefTestHelpers.CheckIsSingletonMefComponent<VsInfoService>();
+
+        [TestMethod]
+        public void MefCtor_DoesNotCallAnyServices()
         {
-            MefTestHelpers.CheckTypeCanBeImported<VsInfoService, IVsInfoService>(
-                MefTestHelpers.CreateExport<SVsServiceProvider>(CreateConfiguredServiceProvider("anypath").Object));
+            var serviceOp = new Mock<IVsUIServiceOperation>();
+
+            _ = new VsInfoService(serviceOp.Object);
+
+            // The MEF constructor should be free-threaded, which it will be if
+            // it doesn't make any external calls.
+            serviceOp.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
         public void Create_VsShellCallSucceeds_ReturnsExpectedPath()
         {
-            var serviceProvider = CreateConfiguredServiceProvider("c:\\test\\");
+            var serviceOp = CreateConfiguredServiceOperation("c:\\test\\");
 
-            var testSubject = new VsInfoService(serviceProvider.Object);
+            var testSubject = new VsInfoService(serviceOp);
 
             testSubject.InstallRootDir.Should().Be("c:\\test\\");
         }
@@ -54,22 +67,34 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         public void Create_VsShellCallFails_ExceptionThrown()
         {
             var logger = new TestLogger();
-            var serviceProvider = CreateConfiguredServiceProvider("c:\\test\\", shellHrResult: -123);
+            var serviceOp = CreateConfiguredServiceOperation("c:\\test\\", shellHrResult: -123);
 
-            Action act = () => new VsInfoService(serviceProvider.Object);
+            var testSubject = new VsInfoService(serviceOp);
+
+            Action act = () => _ = testSubject.InstallRootDir;
             act.Should().ThrowExactly<COMException>();
         }
 
-        private Mock<IServiceProvider> CreateConfiguredServiceProvider(string installDirectory, int shellHrResult = VSConstants.S_OK)
+        private IVsUIServiceOperation CreateConfiguredServiceOperation(string installDirectory, int shellHrResult = VSConstants.S_OK)
         {
             object installDir = installDirectory;
             var vsShell = new Mock<IVsShell>();
             vsShell.Setup(x => x.GetProperty((int)__VSSPROPID2.VSSPROPID_InstallRootDir, out installDir)).Returns(shellHrResult);
 
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(x => x.GetService(typeof(SVsShell))).Returns(vsShell.Object);
+            var serviceOp = CreateServiceOperation(vsShell.Object);
 
-            return serviceProvider;
+            return serviceOp;
+        }
+
+        private IVsUIServiceOperation CreateServiceOperation(IVsShell svcToPassToCallback)
+        {
+            var serviceOp = new Mock<IVsUIServiceOperation>();
+
+            // Set up the mock to invoke the operation with the supplied VS service
+            serviceOp.Setup(x => x.Execute<SVsShell, IVsShell, string>(It.IsAny<Func<IVsShell, string>>()))
+                .Returns<Func<IVsShell, string>>(op => op(svcToPassToCallback));
+
+            return serviceOp.Object;
         }
     }
 }
