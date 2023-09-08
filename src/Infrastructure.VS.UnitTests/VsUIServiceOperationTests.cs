@@ -279,9 +279,10 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         {
             var service1 = Mock.Of<IVsUIShell>();
             var service2 = Mock.Of<IVsMonitorSelection>();
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(x => x.GetService(typeof(SVsUIShell))).Returns(service1);
-            serviceProvider.Setup(x => x.GetService(typeof(SVsShellMonitorSelection))).Returns(service2);
+
+            var serviceProvider = CreateConfiguredServiceProvider(
+                (typeof(SVsUIShell), service1),
+                (typeof(SVsShellMonitorSelection), service2));
 
             var testSubject = CreateTestSubject(serviceProvider.Object);
 
@@ -309,6 +310,16 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         {
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(x => x.GetService(typeof(S))).Returns(serviceToReturn);
+            return serviceProvider;
+        }
+
+        private static Mock<IServiceProvider> CreateConfiguredServiceProvider(params (Type serviceType, object serviceToReturn)[] serviceTuple)
+        {
+            var serviceProvider = new Mock<IServiceProvider>();
+            foreach((var serviceType, var serviceToReturn) in serviceTuple)
+            { 
+                serviceProvider.Setup(x => x.GetService(serviceType)).Returns(serviceToReturn);
+            }
             return serviceProvider;
         }
 
