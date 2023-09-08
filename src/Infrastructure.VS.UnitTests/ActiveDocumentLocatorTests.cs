@@ -41,18 +41,37 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestInitialize]
         public void TestInitialize()
         {
-            ThreadHelper.SetCurrentThreadAsUIThread();
-
             monitorSelectionMock = new Mock<IVsMonitorSelection>();
             textDocumentProviderMock = new Mock<ITextDocumentProvider>();
             textDocument = Mock.Of<ITextDocument>();
 
-            var serviceProviderMock = new Mock<IServiceProvider>();
-            serviceProviderMock
-                .Setup(x => x.GetService(typeof(SVsShellMonitorSelection)))
-                .Returns(monitorSelectionMock.Object);
+            var vsServiceOperation = CreateServiceOperation(monitorSelectionMock.Object);
 
-            testSubject = new ActiveDocumentLocator(serviceProviderMock.Object, textDocumentProviderMock.Object);
+            testSubject = new ActiveDocumentLocator(vsServiceOperation, textDocumentProviderMock.Object);
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+            => MefTestHelpers.CheckTypeCanBeImported<ActiveDocumentLocator, IActiveDocumentLocator>(
+                MefTestHelpers.CreateExport<IVsUIServiceOperation>(),
+                MefTestHelpers.CreateExport<ITextDocumentProvider>());
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+            => MefTestHelpers.CheckIsSingletonMefComponent<ActiveDocumentLocator>();
+
+        [TestMethod]
+        public void MefCtor_DoesNotCallAnyServices()
+        {
+            var serviceOp = new Mock<IVsUIServiceOperation>();
+            var textDocProvider = new Mock<ITextDocumentProvider>();
+
+            _ = new ActiveDocumentLocator(serviceOp.Object, textDocProvider.Object);
+
+            // The MEF constructor should be free-threaded, which it will be if
+            // it doesn't make any external calls.
+            serviceOp.Invocations.Should().BeEmpty();
+            textDocProvider.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -108,5 +127,17 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
         private void VerifyMonitorSelectionServiceCalled(object obj) =>
             monitorSelectionMock.Verify(x => x.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out obj), Times.Once);
+
+        private IVsUIServiceOperation CreateServiceOperation(IVsMonitorSelection svcToPassToCallback)
+        {
+            var serviceOp = new Mock<IVsUIServiceOperation>();
+
+            // Set up the mock to invoke the operation with the supplied VS service
+            serviceOp.Setup(x => x.Execute<SVsShellMonitorSelection, IVsMonitorSelection, ITextDocument>(It.IsAny<Func<IVsMonitorSelection, ITextDocument>>()))
+                .Returns<Func<IVsMonitorSelection, ITextDocument>>(op => op(svcToPassToCallback));
+
+
+            return serviceOp.Object;
+        }
     }
 }
