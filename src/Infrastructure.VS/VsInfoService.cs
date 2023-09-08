@@ -43,9 +43,9 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         private readonly Lazy<string> installRootDir;
 
         [ImportingConstructor]
-        public VsInfoService(IVsUIServiceOperation vSServiceOperation)
+        public VsInfoService(IVsUIServiceOperation vsUIServiceOperation)
         {
-            installRootDir = new Lazy<string>(() => vSServiceOperation.Execute<SVsShell, IVsShell, string>(GetInstallRootDir));
+            installRootDir = new Lazy<string>(() => vsUIServiceOperation.Execute<SVsShell, IVsShell, string>(GetInstallRootDir));
         }
 
         public string InstallRootDir => installRootDir.Value;
