@@ -40,27 +40,30 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class NodeLocationsProvider : INodeLocationsProvider
     {
-        internal readonly IList<INodeLocationsProvider> LocationProviders;
+        internal readonly Lazy<IList<INodeLocationsProvider>> LocationProviders;
 
         [ImportingConstructor]
-        public NodeLocationsProvider([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ILogger logger)
-            : this(new INodeLocationsProvider[]
+        public NodeLocationsProvider([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ILogger logger) :
+            this(new Lazy<IList<INodeLocationsProvider>>(() =>
             {
-                new EnvironmentVariableNodeLocationsProvider(logger),
-                new GlobalPathNodeLocationsProvider(), 
-                new BundledNodeLocationsProvider(serviceProvider, logger), 
-            })
+                return new INodeLocationsProvider[]
+                {
+                    new EnvironmentVariableNodeLocationsProvider(logger),
+                    new GlobalPathNodeLocationsProvider(),
+                    new BundledNodeLocationsProvider(serviceProvider, logger),
+                };
+            }))
         {
         }
 
-        internal NodeLocationsProvider(IList<INodeLocationsProvider> locationProviders)
+        internal /* for testing */ NodeLocationsProvider(Lazy<IList<INodeLocationsProvider>> locationProviders)
         {
             LocationProviders = locationProviders;
         }
 
         public IReadOnlyCollection<string> Get()
         {
-            return LocationProviders
+            return LocationProviders.Value
                 .SelectMany(x => x.Get() ?? Enumerable.Empty<string>())
                 .Where(x => !string.IsNullOrEmpty(x))
                 .ToArray();
