@@ -21,22 +21,21 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.Integration.Helpers
 {
     [Export(typeof(IAbsoluteFilePathLocator))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class AbsoluteFilePathLocator : IAbsoluteFilePathLocator
     {
-        private readonly IVsUIShellOpenDocument vsUiShellOpenDocument;
+        private readonly IVsUIServiceOperation vSServiceOperation;
 
         [ImportingConstructor]
-        public AbsoluteFilePathLocator([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
-        {
-            vsUiShellOpenDocument = serviceProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
-        }
+        public AbsoluteFilePathLocator(IVsUIServiceOperation vSServiceOperation)
+            => this.vSServiceOperation = vSServiceOperation;
 
         public string Locate(string relativeFilePath)
         {
@@ -48,14 +47,19 @@ namespace SonarLint.VisualStudio.Integration.Helpers
             relativeFilePath = relativeFilePath.Replace("/", "\\");
             relativeFilePath = relativeFilePath.TrimStart('\\');
 
-            var absoluteFilePaths = new string[1];
+            var result = vSServiceOperation.Execute<SVsUIShellOpenDocument, IVsUIShellOpenDocument, string>(vsUiShellOpenDocument =>
+            {
+                var absoluteFilePaths = new string[1];
 
-            var hr = vsUiShellOpenDocument.SearchProjectsForRelativePath(
-                (uint) __VSRELPATHSEARCHFLAGS.RPS_UseAllSearchStrategies,
-                relativeFilePath,
-                absoluteFilePaths);
+                var hr = vsUiShellOpenDocument.SearchProjectsForRelativePath(
+                    (uint)__VSRELPATHSEARCHFLAGS.RPS_UseAllSearchStrategies,
+                    relativeFilePath,
+                    absoluteFilePaths);
 
-            return hr == VSConstants.S_OK ? absoluteFilePaths[0] : null;
+                return hr == VSConstants.S_OK ? absoluteFilePaths[0] : null;
+            });
+
+            return result;
         }
     }
 }

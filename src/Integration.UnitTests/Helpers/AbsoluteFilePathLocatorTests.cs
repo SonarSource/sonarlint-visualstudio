@@ -21,11 +21,11 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -36,12 +36,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
-        {
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(x => x.GetService(typeof(SVsUIShellOpenDocument))).Returns(Mock.Of<IVsUIShellOpenDocument>());
+            => MefTestHelpers.CheckTypeCanBeImported<AbsoluteFilePathLocator, IAbsoluteFilePathLocator>(
+                MefTestHelpers.CreateExport<IVsUIServiceOperation>());
 
-            MefTestHelpers.CheckTypeCanBeImported<AbsoluteFilePathLocator, IAbsoluteFilePathLocator>(
-                MefTestHelpers.CreateExport<SVsServiceProvider>(serviceProvider.Object));
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+            => MefTestHelpers.CheckIsSingletonMefComponent<AbsoluteFilePathLocator>();
+
+        [TestMethod]
+        public void MefCtor_DoesNotCallAnyServices()
+        {
+            var serviceOp = new Mock<IVsUIServiceOperation>();
+
+            _ = CreateTestSubject(serviceOp.Object);
+
+            // The MEF constructor should be free-threaded, which it will be if
+            // it doesn't make any external calls.
+            serviceOp.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -49,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         {
             var vsUiShell = new Mock<IVsUIShellOpenDocument>();
             
-            var testSubject = new AbsoluteFilePathLocator(CreateServiceProvider(vsUiShell.Object));
+            var testSubject = CreateTestSubject(CreateServiceOperation(vsUiShell.Object));
 
             Action act = () => testSubject.Locate(null);
 
@@ -64,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             const string absolutePath = "some absolute path";
             var vsUiShell = SetupVsUiShellOpenDocument(relativePath, VSConstants.E_FAIL, absolutePath);
 
-            var testSubject = new AbsoluteFilePathLocator(CreateServiceProvider(vsUiShell.Object));
+            var testSubject = CreateTestSubject(CreateServiceOperation(vsUiShell.Object));
 
             var result = testSubject.Locate(relativePath);
             result.Should().BeNull();
@@ -80,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 
             var vsUiShell = SetupVsUiShellOpenDocument(relativePath, VSConstants.S_OK, null);
 
-            var testSubject = new AbsoluteFilePathLocator(CreateServiceProvider(vsUiShell.Object));
+            var testSubject = CreateTestSubject(CreateServiceOperation(vsUiShell.Object));
 
             var result = testSubject.Locate(relativePath);
             result.Should().BeNull();
@@ -97,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 
             var vsUiShell = SetupVsUiShellOpenDocument(path, VSConstants.S_OK, absolutePath);
 
-            var testSubject = new AbsoluteFilePathLocator(CreateServiceProvider(vsUiShell.Object));
+            var testSubject = CreateTestSubject(CreateServiceOperation(vsUiShell.Object));
 
             var result = testSubject.Locate(path);
             result.Should().Be(absolutePath);
@@ -114,7 +125,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 
             var vsUiShell = SetupVsUiShellOpenDocument(path, VSConstants.S_OK, absolutePath);
 
-            var testSubject = new AbsoluteFilePathLocator(CreateServiceProvider(vsUiShell.Object));
+            var testSubject = CreateTestSubject(CreateServiceOperation(vsUiShell.Object));
 
             var result = testSubject.Locate("\\some relative path");
             result.Should().Be(absolutePath);
@@ -131,7 +142,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 
             var vsUiShell = SetupVsUiShellOpenDocument(path, VSConstants.S_OK, absolutePath);
 
-            var testSubject = new AbsoluteFilePathLocator(CreateServiceProvider(vsUiShell.Object));
+            var testSubject = CreateTestSubject(CreateServiceOperation(vsUiShell.Object));
 
             var result = testSubject.Locate("/some/relative/path");
             result.Should().Be(absolutePath);
@@ -140,12 +151,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             vsUiShell.VerifyNoOtherCalls();
         }
 
-        private IServiceProvider CreateServiceProvider(IVsUIShellOpenDocument vsUiShellOpenDocument)
+        private IVsUIServiceOperation CreateServiceOperation(IVsUIShellOpenDocument svcToPassToCallback)
         {
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(x => x.GetService(typeof(SVsUIShellOpenDocument))).Returns(vsUiShellOpenDocument);
+            var serviceOp = new Mock<IVsUIServiceOperation>();
 
-            return serviceProvider.Object;
+            // Set up the mock to invoke the operation with the supplied VS service
+            serviceOp.Setup(x => x.Execute<SVsUIShellOpenDocument, IVsUIShellOpenDocument, string>(It.IsAny<Func<IVsUIShellOpenDocument, string>>()))
+                .Returns<Func<IVsUIShellOpenDocument, string>>(op => op(svcToPassToCallback));
+            
+            return serviceOp.Object;
         }
 
         private Mock<IVsUIShellOpenDocument> SetupVsUiShellOpenDocument(string relativePath, int hrResult, string absolutePath)
@@ -164,5 +178,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 
             return vsUiShell;
         }
+
+        private static AbsoluteFilePathLocator CreateTestSubject(IVsUIServiceOperation serviceOperation)
+            => new AbsoluteFilePathLocator(serviceOperation);
     }
 }
