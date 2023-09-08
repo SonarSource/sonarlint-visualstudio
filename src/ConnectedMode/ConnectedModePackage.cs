@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
         }
 
         /// <summary>
-        /// Trigger an initial update of suppressions (These classes might have missed the initial solution binding
+        /// Trigger an initial update of classes that need them. (These classes might have missed the initial solution binding
         /// event from the ActiveSolutionBoundTracker)
         /// See https://github.com/SonarSource/sonarlint-visualstudio/issues/3886
         /// </summary>

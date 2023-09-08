@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 {
     [Export(typeof(SSESessionManager))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class SSESessionManager
+    internal sealed class SSESessionManager : IDisposable
     {
         private const int DelayTimeBetweenRetriesInMilliseconds = 1000;
 
