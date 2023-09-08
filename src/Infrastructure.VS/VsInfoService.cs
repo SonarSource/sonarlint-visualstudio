@@ -21,7 +21,6 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS
@@ -41,18 +40,18 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class VsInfoService : IVsInfoService
     {
+        private readonly Lazy<string> installRootDir;
+
         [ImportingConstructor]
-        public VsInfoService([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public VsInfoService(IVsUIServiceOperation vsUIServiceOperation)
         {
-            InstallRootDir = GetInstallRootDir(serviceProvider);
+            installRootDir = new Lazy<string>(() => vsUIServiceOperation.Execute<SVsShell, IVsShell, string>(GetInstallRootDir));
         }
 
-        public string InstallRootDir { get; }
+        public string InstallRootDir => installRootDir.Value;
 
-        private string GetInstallRootDir(IServiceProvider serviceProvider)
+        private string GetInstallRootDir(IVsShell shell)
         {
-            IVsShell shell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
-
             object value;
             ErrorHandler.ThrowOnFailure(shell.GetProperty((int)__VSSPROPID2.VSSPROPID_InstallRootDir, out value));
             return value as string;
