@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Install
 
         private void OnPreSolutionBindingUpdated(object sender, EventArgs e) => TriggerUpdateAsync().Forget();
 
-        internal async Task TriggerUpdateAsync()
+        public async Task TriggerUpdateAsync()
         {
             var config = activeSolutionBoundTracker.CurrentConfiguration;
 
