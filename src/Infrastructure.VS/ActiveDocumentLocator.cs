@@ -18,10 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 
@@ -40,23 +38,25 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
     internal class ActiveDocumentLocator : IActiveDocumentLocator
     {
         private readonly ITextDocumentProvider textDocumentProvider;
-        private IVsMonitorSelection monitorSelection;
+        private readonly IVsUIServiceOperation vSServiceOperation;
 
         [ImportingConstructor]
-        public ActiveDocumentLocator([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ITextDocumentProvider textDocumentProvider)
+        public ActiveDocumentLocator(IVsUIServiceOperation vSServiceOperation, ITextDocumentProvider textDocumentProvider)
         {
             this.textDocumentProvider = textDocumentProvider;
-            
-            RunOnUIThread.Run(() =>
-            {
-                monitorSelection = serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
-            });
+            this.vSServiceOperation = vSServiceOperation;
         }
 
         public ITextDocument FindActiveDocument()
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            var result = vSServiceOperation.Execute<SVsShellMonitorSelection, IVsMonitorSelection, ITextDocument>
+                (DoFindActiveDocument);
 
+            return result;
+        }
+
+        private ITextDocument DoFindActiveDocument(IVsMonitorSelection monitorSelection)
+        {
             // Get the current doc frame, if there is one
             monitorSelection.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out var pvarValue);
             if (!(pvarValue is IVsWindowFrame frame))
