@@ -27,6 +27,13 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
 using SonarLint.VisualStudio.TypeScript.NodeJSLocator.LocationProviders;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.Linq;
+using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.TypeScript.NodeJSLocator.LocationProviders;
 
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
 {
@@ -42,14 +49,37 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         }
 
         [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+            => MefTestHelpers.CheckIsSingletonMefComponent<NodeLocationsProvider>();
+
+        [TestMethod]
+        public void Ctor_DoesNotCallAnyServices()
+        {
+            var serviceProvider = new Mock<IServiceProvider>();
+            var logger = new Mock<ILogger>();
+
+            _ = new NodeLocationsProvider(serviceProvider.Object, logger.Object);
+
+            serviceProvider.Invocations.Should().BeEmpty();
+            logger.Invocations.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void Ctor_ProvidersListIsLazy()
+        {
+            var testSubject = new NodeLocationsProvider(Mock.Of<IServiceProvider>(), Mock.Of<ILogger>());
+            testSubject.LocationProviders.IsValueCreated.Should().BeFalse();
+        }
+
+        [TestMethod]
         public void Ctor_InitializesCorrectProviders_InPriorityOrder()
         {
             var testSubject = new NodeLocationsProvider(Mock.Of<IServiceProvider>(), Mock.Of<ILogger>());
 
-            testSubject.LocationProviders.Count.Should().Be(3);
-            testSubject.LocationProviders[0].Should().BeOfType<EnvironmentVariableNodeLocationsProvider>();
-            testSubject.LocationProviders[1].Should().BeOfType<GlobalPathNodeLocationsProvider>();
-            testSubject.LocationProviders[2].Should().BeOfType<BundledNodeLocationsProvider>();
+            testSubject.LocationProviders.Value.Count.Should().Be(3);
+            testSubject.LocationProviders.Value[0].Should().BeOfType<EnvironmentVariableNodeLocationsProvider>();
+            testSubject.LocationProviders.Value[1].Should().BeOfType<GlobalPathNodeLocationsProvider>();
+            testSubject.LocationProviders.Value[2].Should().BeOfType<BundledNodeLocationsProvider>();
         }
 
         [TestMethod]
@@ -85,7 +115,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
 
         private NodeLocationsProvider CreateTestSubject(params INodeLocationsProvider[] locationsProviders)
         {
-            return new NodeLocationsProvider(locationsProviders);
+            var locationProvidersLazy = new Lazy<IList<INodeLocationsProvider>>(() => locationsProviders);
+            return new NodeLocationsProvider(locationProvidersLazy);
         }
     }
 }
