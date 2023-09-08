@@ -21,45 +21,59 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Helpers
 {
     [Export(typeof(IToolWindowService))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ToolWindowService : IToolWindowService
     {
-        private readonly IVsUIShell shell;
+        private readonly IVsUIServiceOperation vsUIServiceOperation;
 
         [ImportingConstructor]
-        public ToolWindowService([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public ToolWindowService(IVsUIServiceOperation vsUIServiceOperation)
         {
-            shell = serviceProvider.GetService<SVsUIShell, IVsUIShell>();
-            Debug.Assert(shell != null, "Failed to retrieve the IVsUIShell");
+            this.vsUIServiceOperation = vsUIServiceOperation;
         }
 
         public void Show(Guid toolWindowId)
         {
-            var frame = GetOrCreateWindowFrame(toolWindowId);
-            frame?.Show();
+            vsUIServiceOperation.Execute<SVsUIShell, IVsUIShell>(
+                shell =>
+                {
+                    var frame = GetOrCreateWindowFrame(shell, toolWindowId);
+                    frame?.Show();
+                });
         }
 
         public void EnsureToolWindowExists(Guid toolWindowId)
         {
-            GetOrCreateWindowFrame(toolWindowId);
+            vsUIServiceOperation.Execute<SVsUIShell, IVsUIShell>(
+                shell =>
+                {
+                    GetOrCreateWindowFrame(shell, toolWindowId);
+                });
         }
 
         public V GetToolWindow<T, V>() where T : class
         {
-            var frame = GetOrCreateWindowFrame(typeof(T).GUID);
-            frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out object docView);
+            var docView = vsUIServiceOperation.Execute<SVsUIShell, IVsUIShell, V>(
+                shell =>
+                {
+                    var frame = GetOrCreateWindowFrame(shell, typeof(T).GUID);
+                    frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out object docviewObject);
 
-            return (V)docView;
+                    return (V)docviewObject;
+                });
+
+            return docView;
         }
 
-        private IVsWindowFrame GetOrCreateWindowFrame(Guid toolWindowId)
+        private static IVsWindowFrame GetOrCreateWindowFrame(IVsUIShell shell, Guid toolWindowId)
         {
             // We want VS to ask the package to create the tool window if it doesn't already exist
             const uint flags = (uint)__VSFINDTOOLWIN.FTW_fForceCreate;
