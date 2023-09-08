@@ -39,10 +39,28 @@ public class SSESessionManagerTests
         activeSolutionBoundTrackerMock.SetupGet(tracker => tracker.CurrentConfiguration)
             .Returns(BindingConfiguration.Standalone);
 
-        MefTestHelpers.CheckTypeCanBeImported<SSESessionManager, ISSESessionManager>(
+        MefTestHelpers.CheckTypeCanBeImported<SSESessionManager, SSESessionManager>(
             MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(activeSolutionBoundTrackerMock.Object),
             MefTestHelpers.CreateExport<ISSESessionFactory>(),
             MefTestHelpers.CreateExport<ILogger>());
+    }
+
+    [TestMethod]
+    public void Ctor_DoesNotCallAnyServices_BesidesExpected()
+    {
+        var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
+        var sseSessionFactory = new Mock<ISSESessionFactory>();
+        var logger = new Mock<ILogger>();
+
+        var _ = new SSESessionManager(activeSolutionBoundTracker.Object, sseSessionFactory.Object, logger.Object);
+
+        // The MEF constructor should be free-threaded, which it will be if
+        // it doesn't make any external calls.
+
+        activeSolutionBoundTracker.VerifyAdd(tracker => tracker.SolutionBindingChanged += It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>(), Times.Once);
+        activeSolutionBoundTracker.VerifyNoOtherCalls();
+        sseSessionFactory.Invocations.Should().BeEmpty();
+        logger.Invocations.Should().BeEmpty();
     }
 
     [TestMethod]
@@ -58,45 +76,32 @@ public class SSESessionManagerTests
     }
 
     [TestMethod]
-    public void Ctor_ForceConnectsAfterSubscriptionToBindingChangedEvent()
+    public void CreateSessionIfInConnectedMode_WhenInStandaloneModeOnCreation_DoesNotCreateSession()
     {
-        var isSubscribed = false;
-        var testScope = new TestScope(TestScope.CreateConnectedModeBindingConfiguration(DefaultProjectKey));
-        testScope.ActiveSolutionBoundTrackerMock
-            .SetupAdd(solutionTracker => solutionTracker.SolutionBindingChanged += It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>()).
-            Callback(() =>
-            {
-                isSubscribed.Should().BeFalse();
-                isSubscribed = true;
-            });
-        testScope.SetUpSSEFactoryToReturnNoOpSSESession(DefaultProjectKey, factoryMockCallback: () => isSubscribed.Should().BeTrue());
+        var bindingConfig = BindingConfiguration.Standalone;
+        var testScope = new TestScope(bindingConfig);
 
         var _ = testScope.CreateTestSubject();
+        var testSubject = testScope.CreateTestSubject();
 
-        testScope.ActiveSolutionBoundTrackerMock.VerifyAdd(tracker => tracker.SolutionBindingChanged += It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>(), Times.Once);
-        testScope.SSESessionFactoryMock.Verify(factory => factory.Create(DefaultProjectKey, It.IsAny<OnSessionFailedAsync>()), Times.Once);
-    }
-
-    [TestMethod]
-    public void Ctor_WhenInConnectedModeOnCreation_CreatesSession()
-    {
-        var testScope = new TestScope(TestScope.CreateConnectedModeBindingConfiguration(DefaultProjectKey));
-        var sessionMock = testScope.SetUpSSEFactoryToReturnNoOpSSESession(DefaultProjectKey);
-
-        var _ = testScope.CreateTestSubject();
-
-        testScope.SSESessionFactoryMock.Verify(factory => factory.Create(DefaultProjectKey, It.IsAny<OnSessionFailedAsync>()), Times.Once);
-        sessionMock.Verify(session => session.PumpAllAsync(), Times.Once);
-    }
-
-    [TestMethod]
-    public void Ctor_WhenInStandaloneModeOnCreation_DoesNotCreateSession()
-    {
-        var testScope = new TestScope(BindingConfiguration.Standalone);
-
-        var _ = testScope.CreateTestSubject();
+        testSubject.CreateSessionIfInConnectedMode(bindingConfig);
 
         testScope.SSESessionFactoryMock.Verify(factory => factory.Create(DefaultProjectKey, It.IsAny<OnSessionFailedAsync>()), Times.Never);
+    }
+
+    [TestMethod]
+    public void CreateSessionIfInConnectedMode_WhenInConnectedModeOnCreation_CreatesSession()
+    {
+        var bindingConfig = TestScope.CreateConnectedModeBindingConfiguration(DefaultProjectKey);
+
+        var testScope = new TestScope(bindingConfig);
+        var sessionMock = testScope.SetUpSSEFactoryToReturnNoOpSSESession(DefaultProjectKey);
+
+        var testSubject = testScope.CreateTestSubject();
+
+        testSubject.CreateSessionIfInConnectedMode(bindingConfig);
+        testScope.SSESessionFactoryMock.Verify(factory => factory.Create(DefaultProjectKey, It.IsAny<OnSessionFailedAsync>()), Times.Once);
+        sessionMock.Verify(session => session.PumpAllAsync(), Times.Once);
     }
 
     [TestMethod]
@@ -153,11 +158,14 @@ public class SSESessionManagerTests
     [DataTestMethod]
     public async Task OnSessionFailed_CancelsSessionAndStartsNewOne()
     {
-        var testScope = new TestScope(TestScope.CreateConnectedModeBindingConfiguration(DefaultProjectKey));
+        var bindingConfig = TestScope.CreateConnectedModeBindingConfiguration(DefaultProjectKey);
+
+        var testScope = new TestScope(bindingConfig);
 
         var sessionMock1 = testScope.SetUpSSEFactoryToReturnNoOpSSESession(DefaultProjectKey);
         sessionMock1.Setup(session => session.Dispose());
-        var _ = testScope.CreateTestSubject();
+        var testSubject = testScope.CreateTestSubject();
+        testSubject.CreateSessionIfInConnectedMode(bindingConfig);
 
         var sessionMock2 = testScope.SetUpSSEFactoryToReturnNoOpSSESession(DefaultProjectKey);
 
