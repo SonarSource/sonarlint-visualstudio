@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         public void MefCtor_CheckIsExported() 
             => MefTestHelpers.CheckTypeCanBeImported<VsInfoService, IVsInfoService>(
-                MefTestHelpers.CreateExport<IVSServiceOperation>());
+                MefTestHelpers.CreateExport<IVsUIServiceOperation>());
 
         [TestMethod]
         public void MefCtor_CheckIsSingleton()
@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         public void MefCtor_DoesNotCallAnyServices()
         {
-            var serviceOp = new Mock<IVSServiceOperation>();
+            var serviceOp = new Mock<IVsUIServiceOperation>();
 
             _ = new VsInfoService(serviceOp.Object);
 
@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             act.Should().ThrowExactly<COMException>();
         }
 
-        private IVSServiceOperation CreateConfiguredServiceOperation(string installDirectory, int shellHrResult = VSConstants.S_OK)
+        private IVsUIServiceOperation CreateConfiguredServiceOperation(string installDirectory, int shellHrResult = VSConstants.S_OK)
         {
             object installDir = installDirectory;
             var vsShell = new Mock<IVsShell>();
@@ -86,9 +86,9 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             return serviceOp;
         }
 
-        private IVSServiceOperation CreateServiceOperation(IVsShell svcToPassToCallback)
+        private IVsUIServiceOperation CreateServiceOperation(IVsShell svcToPassToCallback)
         {
-            var serviceOp = new Mock<IVSServiceOperation>();
+            var serviceOp = new Mock<IVsUIServiceOperation>();
 
             // Set up the mock to invoke the operation with the supplied VS service
             serviceOp.Setup(x => x.Execute<SVsShell, IVsShell, string>(It.IsAny<Func<IVsShell, string>>()))

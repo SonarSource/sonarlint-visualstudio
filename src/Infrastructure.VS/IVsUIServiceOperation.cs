@@ -27,20 +27,53 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS
 {
-    public interface IVSServiceOperation
+    /// <summary>
+    /// Helper to simplify fetching and using VS services that need to
+    /// be called on the UI thread
+    /// </summary>
+    /// <remarks>The class handles thread switching when required. All of the methods
+    /// return on the type of thread that they were called on i.e.
+    /// * returns on the UI thread if called from the UI thread
+    /// * returns on a background thread if called from the background thread
+    /// </remarks>
+    public interface IVsUIServiceOperation
     {
+        /// <summary>
+        /// Executes the operation synchronously on the main thread
+        /// </summary>
+        /// <typeparam name="S">Type of the VS service to request e.g. SVsUIShell</typeparam>
+        /// <typeparam name="I">Type of the interface to return e.g. IVsUIShell</typeparam>
+        /// <param name="operation">The operation to perform</param>
         void Execute<S, I>(Action<I> operation) where I : class;
 
+        /// <summary>
+        /// Executes the operation asynchronously on the main thread
+        /// </summary>
+        /// <typeparam name="S">Type of the VS service to request e.g. SVsUIShell</typeparam>
+        /// <typeparam name="I">Type of the interface to return e.g. IVsUIShell</typeparam>
+        /// <param name="operation">The operation to perform</param>
         TReturn Execute<S, I, TReturn>(Func<I, TReturn> operation) where I : class;
 
+        /// <summary>
+        /// Executes the function synchronously on the main thread
+        /// </summary>
+        /// <typeparam name="S">Type of the VS service to request e.g. SVsUIShell</typeparam>
+        /// <typeparam name="I">Type of the interface to return e.g. IVsUIShell</typeparam>
+        /// <param name="operation">The function to evaluate</param>
         Task ExecuteAsync<S, I>(Action<I> operation) where I : class;
 
+        /// <summary>
+        /// Executes the function asynchronously on the main thread
+        /// </summary>
+        /// <typeparam name="S">Type of the VS service to request e.g. SVsUIShell</typeparam>
+        /// <typeparam name="I">Type of the interface to return e.g. IVsUIShell</typeparam>
+        /// <param name="operation">The function to evaluate</param>
         Task<TReturn> ExecuteAsync<S, I, TReturn>(Func<I, TReturn> operation) where I : class;
     }
 
-    [Export(typeof(IVSServiceOperation))]
+    [Export(typeof(IVsUIServiceOperation))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
-    internal class VsServiceOperation : IVSServiceOperation
+    internal class VsUIServiceOperation : IVsUIServiceOperation
     {
         private readonly IServiceProvider serviceProvider;
         private readonly IThreadHandling threadHandling;
@@ -51,7 +84,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         private object currentService = null;
 
         [ImportingConstructor]
-        public VsServiceOperation([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+        public VsUIServiceOperation([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IThreadHandling threadHandling)
         {
             // MEF constructor -> must be free-threaded
