@@ -52,6 +52,34 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         }
 
         [TestMethod]
+        public void Ctor_DoesNotCallAnyNonFreeThreadedServices()
+        {
+            // Arrange
+            var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>();
+            var contentTypeRegistryService = new Mock<IContentTypeRegistryService>();
+            var analysisStatusNotifierFactory = new Mock<IAnalysisStatusNotifierFactory>();
+            var cloudSecretsTelemetryManager = new Mock<ICloudSecretsTelemetryManager>();
+            var ruleSettingsProviderFactory = new Mock<IRuleSettingsProviderFactory>();
+            var secretDetectors = new[]
+            {
+                SetupSecretDetector("rule1", "rule1"),
+            };
+
+            // Act
+            _ = new SecretsAnalyzer(textDocumentFactoryService.Object, contentTypeRegistryService.Object, secretDetectors.Select(x => x.Object), analysisStatusNotifierFactory.Object,
+                ruleSettingsProviderFactory.Object, cloudSecretsTelemetryManager.Object);
+
+            // The MEF constructor should be free-threaded, which it will be if
+            // it doesn't make any external calls.
+            textDocumentFactoryService.Invocations.Should().BeEmpty();
+            contentTypeRegistryService.Invocations.Should().BeEmpty();
+            analysisStatusNotifierFactory.Invocations.Should().BeEmpty();
+            cloudSecretsTelemetryManager.Invocations.Should().BeEmpty();
+            ruleSettingsProviderFactory.Invocations.Should().BeEmpty();
+            secretDetectors[0].Invocations.Should().BeEmpty();
+        }
+
+        [TestMethod]
         public void IsAnalysisSupported_NoLanguages_True()
         {
             var testSubject = CreateTestSubject();
@@ -390,3 +418,4 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         }
     }
 }
+
