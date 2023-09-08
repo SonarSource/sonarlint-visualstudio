@@ -77,8 +77,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
             timedUpdateHandler = componentModel.GetService<TimedUpdateHandler>();
             localSuppressionsChangedHandler = componentModel.GetService<LocalSuppressionsChangedHandler>();
 
-            importBeforeInstallTrigger = componentModel.GetService<ImportBeforeInstallTrigger>();
-
             hotspotDocumentClosedHandler = componentModel.GetService<IHotspotDocumentClosedHandler>();
 
             hotspotSolutionClosedHandler = componentModel.GetService<IHotspotSolutionClosedHandler>();
@@ -86,9 +84,11 @@ namespace SonarLint.VisualStudio.ConnectedMode
             hotspotStoreMonitor = componentModel.GetService<ILocalHotspotStoreMonitor>();
             await hotspotStoreMonitor.InitializeAsync();
 
-            // Trigger an initial update of suppressions (we might have missed the solution binding
+            // Trigger an initial update of suppressions (These classes might have missed the initial solution binding
             // event from the ActiveSolutionBoundTracker)
             // See https://github.com/SonarSource/sonarlint-visualstudio/issues/3886
+            importBeforeInstallTrigger = componentModel.GetService<ImportBeforeInstallTrigger>();
+            importBeforeInstallTrigger.TriggerUpdateAsync().Forget();
             var updater = componentModel.GetService<ISuppressionIssueStoreUpdater>();
             updater.UpdateAllServerSuppressionsAsync().Forget();
             var hotspotsUpdater = componentModel.GetService<IServerHotspotStoreUpdater>();
