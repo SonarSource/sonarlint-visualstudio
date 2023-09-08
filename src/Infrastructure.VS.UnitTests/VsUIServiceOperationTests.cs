@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         public void Execute_Action_RunOnUIThread()
         {
-            (var calls, var testSubject) = SetupUpThreadHandlingTests<SMyInterface>();
+            (var calls, var testSubject) = SetupThreadHandlingTests<SMyInterface>();
 
             var callback = (IMyInterface x) => calls.Add("callback");
 
@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         public void Execute_Func_RunOnUIThread()
         {
-            (var calls, var testSubject) = SetupUpThreadHandlingTests<SMyInterface>();
+            (var calls, var testSubject) = SetupThreadHandlingTests<SMyInterface>();
 
             string callback(IMyInterface x)
             {
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         public async Task ExecuteAsync_Action_RunOnUIThread()
         {
-            (var calls, var testSubject) = SetupUpThreadHandlingTests<SMyInterface>();
+            (var calls, var testSubject) = SetupThreadHandlingTests<SMyInterface>();
 
             var callback = (IMyInterface x) => calls.Add("callback");
 
@@ -125,7 +125,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         public async Task ExecuteAsync_Func_RunOnUIThread()
         {
-            (var calls, var testSubject) = SetupUpThreadHandlingTests<SMyInterface>();
+            (var calls, var testSubject) = SetupThreadHandlingTests<SMyInterface>();
 
             string callback(IMyInterface x)
             {
@@ -142,7 +142,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
                 "callback");
         }
 
-        private static (IList<string> calls, VsUIServiceOperation testSubject) SetupUpThreadHandlingTests<S>()
+        private static (IList<string> calls, VsUIServiceOperation testSubject) SetupThreadHandlingTests<S>()
         {
             var calls = new List<string>();
 
@@ -179,7 +179,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         public void Execute_Func_ReturnsValueFromCallback()
         {
-            (var callback, var testSubject) = SetupUpFuncReturnsValueTests("expected sync result");
+            (var callback, var testSubject) = SetupFuncReturnsValueTests("expected sync result");
 
             // Act
             var result = testSubject.Execute<SMyInterface, IMyInterface, string>(callback.Object);
@@ -191,7 +191,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         public async Task ExecuteAsync_Func_ReturnsValueFromCallback()
         {
-            (var callback, var testSubject) = SetupUpFuncReturnsValueTests("expected async result");
+            (var callback, var testSubject) = SetupFuncReturnsValueTests("expected async result");
 
             // Act
             var result = await testSubject.ExecuteAsync<SMyInterface, IMyInterface, string>(callback.Object);
@@ -200,7 +200,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             callback.Verify(x => x.Invoke(It.IsAny<IMyInterface>()), Times.Once);
         }
 
-        private static (Mock<Func<IMyInterface, string>> callback, VsUIServiceOperation vsServiceOperation) SetupUpFuncReturnsValueTests(string callbackResultToReturn)
+        private static (Mock<Func<IMyInterface, string>> callback, VsUIServiceOperation vsServiceOperation) SetupFuncReturnsValueTests(string callbackResultToReturn)
         {
             var service = Mock.Of<IMyInterface>();
             var serviceProvider = CreateConfiguredServiceProvider<SMyInterface>(service);
