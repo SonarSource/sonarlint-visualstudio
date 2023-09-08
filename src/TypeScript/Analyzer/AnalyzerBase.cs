@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         protected readonly ITelemetryManager telemetryManager;
         protected readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
-        protected readonly IEslintBridgeAnalyzer eslintBridgeAnalyzer;
+        protected readonly Lazy<IEslintBridgeAnalyzer> eslintBridgeAnalyzer;
         protected IAnalysisStatusNotifier analysisStatusNotifier;
 
         protected AnalyzerBase(ITelemetryManager telemetryManager,
@@ -62,8 +62,11 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             this.telemetryManager = telemetryManager;
             this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
 
-            var rulesProvider = rulesProviderFactory.Create(repoKey, language);
-            eslintBridgeAnalyzer = eslintBridgeAnalyzerFactory.Create(rulesProvider, eslintBridgeClient);
+            eslintBridgeAnalyzer = new Lazy<IEslintBridgeAnalyzer>(() =>
+            {
+                var rulesProvider = rulesProviderFactory.Create(repoKey, language);
+                return eslintBridgeAnalyzerFactory.Create(rulesProvider, eslintBridgeClient);
+            });
         }
 
         protected async virtual Task<(bool hasError, string tsConfig)> GetTsConfigAsync(string sourceFilePath, CancellationToken cancellationToken)
@@ -87,7 +90,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
                 var stopwatch = Stopwatch.StartNew();
 
-                var issues = await eslintBridgeAnalyzer.Analyze(filePath, tsConfigResult.tsConfig, cancellationToken);
+                var issues = await eslintBridgeAnalyzer.Value.Analyze(filePath, tsConfigResult.tsConfig, cancellationToken);
                 analysisStatusNotifier.AnalysisFinished(issues.Count, stopwatch.Elapsed);
 
                 if (issues.Any())
@@ -121,7 +124,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             {
                 if (disposing)
                 {
-                    eslintBridgeAnalyzer.Dispose();
+                    eslintBridgeAnalyzer.Value.Dispose();
                 }
                 disposed = true;
             }
