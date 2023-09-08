@@ -271,11 +271,11 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
         #region Multiple calls, same different service
 
-        // NOTE - we're only testing this scenario for Execute(Action)
+        // NOTE - we're only testing this scenario for ExecuteAsync(Func)
         // Adding tests for all of the other methods doesn't add enough value to justify the effort at this point.
 
         [TestMethod]
-        public void Execute_Action_MultipleCalls_DifferentServices_ServiceProviderIsCalledForEachService()
+        public async Task ExecuteAsync_Func_MultipleCalls_DifferentServices_ServiceProviderIsCalledForEachService()
         {
             var service1 = Mock.Of<IVsUIShell>();
             var service2 = Mock.Of<IVsMonitorSelection>();
@@ -286,16 +286,17 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             var testSubject = CreateTestSubject(serviceProvider.Object);
 
             // 1. First call for IVsUIShell -> calls the service provider
-            var callback1 = new Mock<Action<IVsUIShell>>();
-            testSubject.Execute<SVsUIShell, IVsUIShell>(callback1.Object);
+            var callback1 = new Mock<Func<IVsUIShell, int>>();
+
+            await testSubject.ExecuteAsync<SVsUIShell, IVsUIShell, int>(callback1.Object);
 
             serviceProvider.Verify(x => x.GetService(typeof(SVsUIShell)), Times.Once);
             serviceProvider.Invocations.Should().HaveCount(1);
             callback1.Verify(x => x.Invoke(service1), Times.Once);
 
             // 2. Second call for a different service -> calls the service provider again
-            var callback2 = new Mock<Action<IVsMonitorSelection>>();
-            testSubject.Execute<SVsShellMonitorSelection, IVsMonitorSelection>(callback2.Object);
+            var callback2 = new Mock<Func<IVsMonitorSelection, int>>();
+            await testSubject.ExecuteAsync<SVsShellMonitorSelection, IVsMonitorSelection, int>(callback2.Object);
 
             serviceProvider.Verify(x => x.GetService(typeof(SVsShellMonitorSelection)), Times.Once);
             serviceProvider.Invocations.Should().HaveCount(2);
