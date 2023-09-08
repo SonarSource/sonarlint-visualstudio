@@ -38,10 +38,10 @@ namespace SonarLint.VisualStudio.CloudSecrets
         private readonly ITextDocumentFactoryService textDocumentFactoryService;
         private readonly IEnumerable<ISecretDetector> secretDetectors;
         private readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
-        private readonly IRuleSettingsProvider ruleSettingsProvider;
+        private readonly Lazy<IRuleSettingsProvider> ruleSettingsProvider;
         private readonly ICloudSecretsTelemetryManager cloudSecretsTelemetryManager;
         private readonly ISecretsToAnalysisIssueConverter secretsToAnalysisIssueConverter;
-        private readonly IContentType filesContentType;
+        private readonly IContentTypeRegistryService contentTypeRegistryService;
 
         [ImportingConstructor]
         public SecretsAnalyzer(
@@ -74,8 +74,9 @@ namespace SonarLint.VisualStudio.CloudSecrets
             this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
             this.cloudSecretsTelemetryManager = cloudSecretsTelemetryManager;
             this.secretsToAnalysisIssueConverter = secretsToAnalysisIssueConverter;
-            filesContentType = contentTypeRegistryService.UnknownContentType;
-            ruleSettingsProvider = ruleSettingsProviderFactory.Get(Language.Secrets);
+            this.contentTypeRegistryService = contentTypeRegistryService;
+
+            ruleSettingsProvider = new Lazy<IRuleSettingsProvider>(() => ruleSettingsProviderFactory.Get(Language.Secrets));
         }
 
         public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
@@ -98,10 +99,10 @@ namespace SonarLint.VisualStudio.CloudSecrets
             {
                 var stopwatch = Stopwatch.StartNew();
 
-                var textDocument = textDocumentFactoryService.CreateAndLoadTextDocument(filePath, filesContentType); // load the document from disc
+                var textDocument = textDocumentFactoryService.CreateAndLoadTextDocument(filePath, contentTypeRegistryService.UnknownContentType); // load the document from disc
                 var currentSnapshot = textDocument.TextBuffer.CurrentSnapshot;
                 var fileContent = currentSnapshot.GetText();
-                var rulesSettings = ruleSettingsProvider.Get();
+                var rulesSettings = ruleSettingsProvider.Value.Get();
 
                 var issues = new List<IAnalysisIssue>();
 
