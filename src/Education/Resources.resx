@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CCATooltip" xml:space="preserve">
+    <value>Clean Code attributes are characteristics code needs to have to be considered clean</value>
+  </data>
   <data name="CleanCodeHyperLink" xml:space="preserve">
     <value>Learn more about Clean Code</value>
   </data>
@@ -143,6 +146,9 @@
   </data>
   <data name="RuleHelpUserControl_Verbose_RelativeURI" xml:space="preserve">
     <value>[RuleHelpUserControl] Failed to navigate to Uri as it is a relative path: {0}</value>
+  </data>
+  <data name="SQTooltip" xml:space="preserve">
+    <value>Issues found for this rule will have a {0} impact on the {1} of your software.</value>
   </data>
   <data name="XamlBuilder_UnexpectedNodeError" xml:space="preserve">
     <value>[Education] Error: rule description contains an unexpected node. Node type: {0}, name: {1}, value: {2}</value>
