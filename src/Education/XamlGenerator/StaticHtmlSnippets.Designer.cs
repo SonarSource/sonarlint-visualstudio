@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator {
         ///&lt;p&gt;A non-exhaustive list of these code protection ramparts includes the following:&lt;/p&gt;
         ///&lt;ul&gt;
         ///    &lt;li&gt;Minimizing the attack surface of the code&lt;/li&gt;
-        ///    &lt;li&gt;Application of the principle of least priv [rest of string was truncated]&quot;;.
+        ///    &lt;li&gt;Application of the principle of l [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string EducationPrinciplesDefenseInDepth {
             get {
@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator {
         ///    validate the attacker-controlled data against predefined formats, such as:
         ///&lt;/p&gt;
         ///&lt;ul&gt;
-        ///    &lt;li&gt;Character  [rest of string was truncated]&quot;;.
+        ///    [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string EducationPrinciplesNeverTrustUserInput {
             get {
@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator {
         ///    &lt;li&gt;Don&apos;t blindly copy and paste the fix-ups into your code.&lt;/li&gt;
         ///&lt;/ul&gt;
         ///&lt;h3&gt;Help us improve&lt;/h3&gt;
-        ///&lt;p&gt;Let us [rest of string was truncated]&quot;;.
+        ///&lt;p&gt;L [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string HowToFixItFallbackContext {
             get {

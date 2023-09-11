@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
     internal interface IXamlGeneratorHelper
     {
         void WriteDocumentHeader(IRuleInfo ruleInfo);
+
         void EndDocument();
     }
 
@@ -144,7 +145,15 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 writer.WriteStartElement("WrapPanel");
                 WriteCleanCodeHeader_CleanCodeAttribute(ruleInfo);
                 WriteCleanCodeHeader_SoftwareQualities(ruleInfo);
+                WriteCleanCodeHeader_Url();
                 writer.WriteEndElement();
+                writer.WriteEndElement();
+            }
+
+            private void WriteCleanCodeHeader_Url()
+            {
+                writer.WriteStartElement("TextBlock");
+                WriteHyperLink("https://docs.sonarsource.com/sonarlint/visual-studio/concepts/clean-code", Resources.CleanCodeHyperLink);
                 writer.WriteEndElement();
             }
 
@@ -163,7 +172,6 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                                 writer.WriteString($" | Not {cleanCodeAttribute}");
                             });
                     });
-
             }
 
             private void WriteCleanCodeCategory(CleanCodeCategory cleanCodeCategory)
@@ -269,12 +277,21 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     () => writer.WriteString(text));
             }
 
-
             private void WriteStylizedSpan(StyleResourceNames style, Action writeContent)
             {
                 writer.WriteStartElement("Span");
                 writer.ApplyStyleToElement(style);
                 writeContent();
+                writer.WriteEndElement();
+            }
+
+            private void WriteHyperLink(string url, string text = null)
+            {
+                text = text ?? url;
+
+                writer.WriteStartElement("Hyperlink");
+                writer.WriteAttributeString("NavigateUri", url);
+                writer.WriteString(text);
                 writer.WriteEndElement();
             }
 
