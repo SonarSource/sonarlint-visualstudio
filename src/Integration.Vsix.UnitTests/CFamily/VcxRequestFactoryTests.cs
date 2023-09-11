@@ -51,7 +51,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             MefTestHelpers.CheckTypeCanBeImported<VcxRequestFactory, IRequestFactory>(
                 MefTestHelpers.CreateExport<VsShell.SVsServiceProvider>(),
                 MefTestHelpers.CreateExport<ICFamilyRulesConfigProvider>(),
-                MefTestHelpers.CreateExport<ILogger>());
+                MefTestHelpers.CreateExport<ILogger>(),
+                MefTestHelpers.CreateExport<IThreadHandling>());
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+            => MefTestHelpers.CheckIsSingletonMefComponent<VcxRequestFactory>();
+
+        [TestMethod]
+        public void MefCtor_DoesNotCallAnyServices()
+        {
+            var serviceProvider = new Mock<IServiceProvider>();
+            var cFamilyRulesConfigProvider = new Mock<ICFamilyRulesConfigProvider>();
+            var logger = new Mock<ILogger>();
+            var threadHandling = new Mock<IThreadHandling>();
+
+            _ = new VcxRequestFactory(serviceProvider.Object, cFamilyRulesConfigProvider.Object, logger.Object, threadHandling.Object);
+
+            // The MEF constructor should be free-threaded, which it will be if
+            // it doesn't make any external calls.
+            serviceProvider.Invocations.Should().BeEmpty();
+            cFamilyRulesConfigProvider.Invocations.Should().BeEmpty();
+            logger.Invocations.Should().BeEmpty();
+            threadHandling.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -77,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var request = await testSubject.TryCreateAsync("any", new CFamilyAnalyzerOptions());
 
             threadHandling.Verify(x => x.RunOnUIThreadAsync(It.IsAny<Action>()), Times.Once);
-            threadHandling.Verify(x => x.ThrowIfNotOnUIThread(), Times.Once);
+            threadHandling.Verify(x => x.ThrowIfNotOnUIThread(), Times.Exactly(2));
         }
 
         [TestMethod]
@@ -306,7 +329,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             return new VcxRequestFactory(serviceProvider.Object,
                 cFamilyRulesConfigProvider,
-                fileConfigProvider,
+                new Lazy<IFileConfigProvider>(() => fileConfigProvider),
                 logger,
                 threadHandling);
         }
