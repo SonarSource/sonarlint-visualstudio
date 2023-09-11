@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
   <Section />
 </FlowDocument>".Replace("\r\n", "\n").Replace("\n", "\r\n"));
         }
-        
+
         [TestMethod]
         public void WriteDocumentHeaderAndEndDocument_ProduceCorrectStructure_NewCCT()
         {
@@ -167,6 +167,9 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
             </InlineUIContainer></Span>
         </TextBlock>
       </Border>
+      <TextBlock>
+        <Hyperlink NavigateUri=""https://docs.sonarsource.com/sonarlint/visual-studio/concepts/clean-code"">Learn more about Clean Code</Hyperlink>
+      </TextBlock>
     </WrapPanel>
   </BlockUIContainer>
   <Paragraph Style=""{DynamicResource Subtitle_Paragraph}"">
