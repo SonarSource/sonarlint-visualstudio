@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 
 namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
 {
@@ -32,6 +33,7 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
         ILocation MainLocation { get; }
         IFlow[] Flows { get; }
         string Context { get; }
+        Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity> DefaultImpacts { get; }
     }
 
     public interface IFlow
@@ -63,6 +65,7 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
             DateTimeOffset creationDate,
             SonarQubeIssueSeverity severity,
             SonarQubeIssueType type,
+            Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity> defaultImpacts,
             Location mainLocation,
             Flow[] flows,
             string context)
@@ -72,6 +75,7 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
             CreationDate = creationDate;
             Severity = severity;
             Type = type;
+            DefaultImpacts = defaultImpacts;
             MainLocation = mainLocation ?? throw new ArgumentNullException(nameof(mainLocation));
             Flows = flows ?? throw new ArgumentNullException(nameof(flows));
             Context = context;
@@ -82,6 +86,7 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
         public DateTimeOffset CreationDate { get; }
         public SonarQubeIssueSeverity Severity { get; }
         public SonarQubeIssueType Type { get; }
+        public Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity> DefaultImpacts { get; }
         public ILocation MainLocation { get; }
         public IFlow[] Flows { get; }
         public string Context { get; }
