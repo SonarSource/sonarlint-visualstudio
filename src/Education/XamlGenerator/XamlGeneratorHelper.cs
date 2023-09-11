@@ -165,6 +165,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 WriteBubble(StyleResourceNames.CleanCodeAttributeBubble,
                     () =>
                     {
+                        writer.WriteAttributeString("ToolTip", Resources.CCATooltip);
                         WriteStylizedSpan(StyleResourceNames.CleanCodeSpan,
                             () =>
                             {
@@ -188,10 +189,14 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 {
                     var imageInfo = SubTitleImageInfo.SoftwareQualitySeveritiesImages[softwareQualityAndSeverity.Value];
 
+                    var softwareQuality = softwareQualityAndSeverity.Key.ToString();
+                    var softwareQualitySeverity = softwareQualityAndSeverity.Value.ToString();
+
                     WriteBubble(SoftwareQualityBubblesStyles[softwareQualityAndSeverity.Value],
                         () =>
                         {
-                            WriteSubTitleElement(softwareQualityAndSeverity.Key.ToString(), true);
+                            writer.WriteAttributeString("ToolTip", string.Format(Resources.SQTooltip, softwareQualitySeverity, softwareQuality));
+                            WriteSubTitleElement(softwareQuality, true);
                             WriteSubTitleElementWithImage(imageInfo, true);
                         });
                 }
