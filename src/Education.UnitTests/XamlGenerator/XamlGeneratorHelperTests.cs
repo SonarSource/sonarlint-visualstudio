@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         </TextBlock>
       </Border>
       <Border Style=""{DynamicResource HighSoftwareQualitySeverityBubble}"">
-        <TextBlock ToolTip=""Issues found for this rule will have a Maintainability impact on the High of your software."">
+        <TextBlock ToolTip=""Issues found for this rule will have a High impact on the Maintainability of your software."">
           <Span Style=""{DynamicResource CleanCodeSpan}"">Maintainability</Span>
           <Span Style=""{DynamicResource CleanCodeSpan}"">
             <InlineUIContainer>
@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         </TextBlock>
       </Border>
       <Border Style=""{DynamicResource LowSoftwareQualitySeverityBubble}"">
-        <TextBlock ToolTip=""Issues found for this rule will have a Security impact on the Low of your software."">
+        <TextBlock ToolTip=""Issues found for this rule will have a Low impact on the Security of your software."">
           <Span Style=""{DynamicResource CleanCodeSpan}"">Security</Span>
           <Span Style=""{DynamicResource CleanCodeSpan}"">
             <InlineUIContainer>
@@ -159,7 +159,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         </TextBlock>
       </Border>
       <Border Style=""{DynamicResource MediumSoftwareQualitySeverityBubble}"">
-        <TextBlock ToolTip=""Issues found for this rule will have a Reliability impact on the Medium of your software."">
+        <TextBlock ToolTip=""Issues found for this rule will have a Medium impact on the Reliability of your software."">
           <Span Style=""{DynamicResource CleanCodeSpan}"">Reliability</Span>
           <Span Style=""{DynamicResource CleanCodeSpan}"">
             <InlineUIContainer>

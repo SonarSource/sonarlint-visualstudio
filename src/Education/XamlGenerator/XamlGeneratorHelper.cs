@@ -195,7 +195,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     WriteBubble(SoftwareQualityBubblesStyles[softwareQualityAndSeverity.Value],
                         () =>
                         {
-                            writer.WriteAttributeString("ToolTip", string.Format(Resources.SQTooltip, softwareQuality, softwareQualitySeverity));
+                            writer.WriteAttributeString("ToolTip", string.Format(Resources.SQTooltip, softwareQualitySeverity, softwareQuality));
                             WriteSubTitleElement(softwareQuality, true);
                             WriteSubTitleElementWithImage(imageInfo, true);
                         });
