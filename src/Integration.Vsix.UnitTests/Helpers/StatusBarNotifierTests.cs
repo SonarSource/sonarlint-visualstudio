@@ -19,9 +19,13 @@
  */
 
 using System;
+using System.Collections.Generic;
+using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -30,22 +34,54 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
     [TestClass]
     public class StatusBarNotifierTests
     {
-        private Mock<IVsStatusbar> statusBarMock;
-        private StatusBarNotifier testSubject;
-        private object statusIcon;
+        private object statusIcon = (short) Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General;
 
-        [TestInitialize]
-        public void TestInitialize()
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+         => MefTestHelpers.CheckTypeCanBeImported<StatusBarNotifier, IStatusBarNotifier>(
+             MefTestHelpers.CreateExport<IVsUIServiceOperation>(),
+             MefTestHelpers.CreateExport<IThreadHandling>());
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+            => MefTestHelpers.CheckIsSingletonMefComponent<StatusBarNotifier>();
+
+        [TestMethod]
+        public void MefCtor_DoesNotCallAnyServices()
         {
-            statusIcon = (short)Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General;
-            statusBarMock = new Mock<IVsStatusbar>();
+            var serviceOp = new Mock<IVsUIServiceOperation>();
 
-            var serviceProviderMock = new Mock<IServiceProvider>();
-            serviceProviderMock.Setup(x => x.GetService(typeof(IVsStatusbar))).Returns(statusBarMock.Object);
+            _ = CreateTestSubject(serviceOp.Object);
 
-            testSubject = new StatusBarNotifier(serviceProviderMock.Object);
+            // The MEF constructor should be free-threaded, which it will be if
+            // it doesn't make any external calls.
+            serviceOp.Invocations.Should().BeEmpty();
+        }
 
-            ThreadHelper.SetCurrentThreadAsUIThread();
+        [TestMethod]
+        public void Notify_SwitchToUiThread()
+        {
+            var calls = new List<string>();
+            var expectedMessage = Guid.NewGuid().ToString();
+
+            var statusBar = new Mock<IVsStatusbar>();
+            statusBar.Setup(x => x.SetText(expectedMessage)).Callback(() =>  calls.Add("Set Text"));
+
+            var serviceOp = CreateServiceOperation(statusBar.Object, () => calls.Add("GetService"));
+
+            var threadHandling = new Mock<IThreadHandling>();
+            threadHandling.Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
+                .Callback<Action>(productOperation =>
+                {
+                    calls.Add("switch to UI thread");
+                    productOperation.Invoke();
+                });
+
+            var testSubject = CreateTestSubject(serviceOp, threadHandling.Object);
+
+            testSubject.Notify(expectedMessage, false);
+
+            calls.Should().ContainInOrder("GetService", "switch to UI thread", "Set Text");
         }
 
         [TestMethod]
@@ -55,11 +91,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         {
             var expectedMessage = Guid.NewGuid().ToString();
 
+            var statusBar = new Mock<IVsStatusbar>();
+            var serviceOp = CreateServiceOperation(statusBar.Object);
+            var testSubject = CreateTestSubject(serviceOp);
             testSubject.Notify(expectedMessage, showSpinner);
 
-            statusBarMock.Verify(x => x.SetText(expectedMessage), Times.Once);
-            statusBarMock.Verify(x => x.Animation(showSpinner ? 1 : 0, ref statusIcon), Times.Once);
-            statusBarMock.VerifyNoOtherCalls();
+            statusBar.Verify(x => x.SetText(expectedMessage), Times.Once);
+            statusBar.Verify(x => x.Animation(showSpinner ? 1 : 0, ref statusIcon), Times.Once);
+            statusBar.VerifyNoOtherCalls();
+        }
+
+        private IVsUIServiceOperation CreateServiceOperation(IVsStatusbar svcToPassToCallback, Action callback = null)
+        {
+            var serviceOp = new Mock<IVsUIServiceOperation>();
+
+            // Set up the mock to invoke the operation with the supplied VS service
+            serviceOp.Setup(x => x.Execute<IVsStatusbar, IVsStatusbar>(It.IsAny<Action<IVsStatusbar>>()))
+                .Callback<Action<IVsStatusbar>>(op => {
+                    callback?.Invoke();
+                    op(svcToPassToCallback);
+                    });
+
+            return serviceOp.Object;
+        }
+
+        private static StatusBarNotifier CreateTestSubject(IVsUIServiceOperation vsUIServiceOperation, IThreadHandling threadHandling = null)
+        {
+            threadHandling ??= new NoOpThreadHandler();
+
+            var testSubject = new StatusBarNotifier(vsUIServiceOperation, threadHandling);
+            return testSubject;
         }
     }
 }
