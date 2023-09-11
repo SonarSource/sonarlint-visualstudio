@@ -61,6 +61,15 @@ namespace SonarLint.VisualStudio.Education {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Learn more about Clean Code.
+        /// </summary>
+        internal static string CleanCodeHyperLink {
+            get {
+                return ResourceManager.GetString("CleanCodeHyperLink", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Education] Unable to locate help for rule &apos;{0}&apos;. Help should be available at https://rules.sonarsource.com..
         /// </summary>
         internal static string Education_NoRuleInfo {
