@@ -24,6 +24,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
+using SonarQube.Client.Api.Common;
 using SonarQube.Client.Logging;
 using SonarQube.Client.Models;
 using SonarQube.Client.Models.ServerSentEvents;
@@ -189,6 +190,12 @@ namespace SonarQube.Client.Tests.Models.ServerSentEvents
 			]
 		}
 	],
+    ""impacts"": [
+        {
+          ""softwareQuality"": ""SECURITY"",
+          ""severity"": ""HIGH""
+        }
+      ],
     ""ruleDescriptionContextKey"": ""ContextKey""
 }";
             var sqSSEStreamReader = CreateSqStreamReader(new SqServerEvent("TaintVulnerabilityRaised", serializedTaintVulnerabilityRaisedEvent));
@@ -208,6 +215,7 @@ namespace SonarQube.Client.Tests.Models.ServerSentEvents
                     ruleKey: "javasecurity:S123",
                     severity: SonarQubeIssueSeverity.Major,
                     type: SonarQubeIssueType.Vulnerability,
+                    impacts: new []{new ServerImpact{SoftwareQuality = "SECURITY", Severity = "HIGH"}},
                     mainLocation:
                     new Location(
                         filePath: "functions/taint.js",

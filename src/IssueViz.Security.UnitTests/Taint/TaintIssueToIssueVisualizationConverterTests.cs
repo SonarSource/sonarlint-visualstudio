@@ -313,7 +313,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
             var mainLocation = CreateTaintServerLocation("path4", "message4", CreateTaintTextRange(13, 14, 15, 16, "hash4"));
             var creationDate = DateTimeOffset.UtcNow;
-            var issue = CreateTaintServerIssue("issue key", "rule", creationDate, SonarQubeIssueSeverity.Major, mainLocation, flow1, flow2);
+            var issue = CreateTaintServerIssue("issue key",
+                "rule",
+                creationDate,
+                SonarQubeIssueSeverity.Major,
+                new Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity>
+                {
+                    { SonarQubeSoftwareQuality.Security, SonarQubeSoftwareQualitySeverity.Low},
+                    { SonarQubeSoftwareQuality.Maintainability, SonarQubeSoftwareQualitySeverity.Medium},
+                },
+                mainLocation,
+                flow1,
+                flow2);
 
             var expectedConvertedIssueViz = CreateIssueViz();
             var issueVizConverter = new Mock<IAnalysisIssueVisualizationConverter>();
@@ -331,6 +342,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                         taintIssue.IssueKey == "issue key" &&
                         taintIssue.RuleKey == "rule" &&
                         taintIssue.Severity == AnalysisIssueSeverity.Major &&
+                        taintIssue.HighestSoftwareQualitySeverity == SoftwareQualitySeverity.Medium &&
 
                         taintIssue.PrimaryLocation.FilePath == "path4" &&
                         taintIssue.PrimaryLocation.Message == "message4" &&
@@ -467,7 +479,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         private ITaintIssue CreateDummyTaintSonarQubeIssue()
         {
             return CreateTaintServerIssue("key", "rule", DateTimeOffset.UtcNow, SonarQubeIssueSeverity.Blocker,
-                CreateTaintServerLocation(serverFilePath: "path", message: "blah",
+                mainLocation: CreateTaintServerLocation(serverFilePath: "path", message: "blah",
                     textRange: CreateTaintTextRange(1, 2, 3, 4, "hash")));
         }
 
@@ -475,6 +487,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             string ruleKey = "rule1", 
             DateTimeOffset creationDate = default, 
             SonarQubeIssueSeverity severity = SonarQubeIssueSeverity.Blocker,
+            Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity> defaultImpacts = null,
             ILocation mainLocation = null, 
             params IFlow[] flows)
         {
@@ -486,6 +499,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             issue.SetupGet(x => x.Flows).Returns(flows);
             issue.SetupGet(x => x.CreationDate).Returns(creationDate);
             issue.SetupGet(x => x.MainLocation).Returns(mainLocation);
+            issue.SetupGet(x => x.DefaultImpacts).Returns(defaultImpacts);
 
             return issue.Object;
         }

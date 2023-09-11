@@ -20,6 +20,7 @@
 
 using System;
 using Newtonsoft.Json;
+using SonarQube.Client.Api.Common;
 using SonarQube.Client.Helpers;
 
 namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
@@ -49,10 +50,22 @@ namespace SonarQube.Client.Models.ServerSentEvents.ClientContract
             [JsonConverter(typeof(MillisecondUnixTimestampDateTimeOffsetConverter))] DateTimeOffset creationDate,
             SonarQubeIssueSeverity severity,
             SonarQubeIssueType type,
+            ServerImpact[] impacts,
             Location mainLocation,
             Flow[] flows,
             string ruleDescriptionContextKey)
-            : this(projectKey, key, branch, new TaintIssue(key, ruleKey, creationDate, severity, type, mainLocation, flows, ruleDescriptionContextKey))
+            : this(projectKey,
+                key,
+                branch,
+                new TaintIssue(key,
+                    ruleKey,
+                    creationDate,
+                    severity,
+                    type,
+                    CleanCodeTaxonomyHelpers.ToDefaultImpacts(impacts),
+                    mainLocation,
+                    flows,
+                    ruleDescriptionContextKey))
         {
         }
 
