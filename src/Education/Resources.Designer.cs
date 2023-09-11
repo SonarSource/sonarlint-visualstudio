@@ -61,6 +61,15 @@ namespace SonarLint.VisualStudio.Education {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Clean Code attributes are characteristics code needs to have to be considered clean.
+        /// </summary>
+        internal static string CCATooltip {
+            get {
+                return ResourceManager.GetString("CCATooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Learn more about Clean Code.
         /// </summary>
         internal static string CleanCodeHyperLink {
@@ -138,6 +147,15 @@ namespace SonarLint.VisualStudio.Education {
         internal static string RuleHelpUserControl_Verbose_RelativeURI {
             get {
                 return ResourceManager.GetString("RuleHelpUserControl_Verbose_RelativeURI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Issues found for this rule will have a {0} impact on the {1} of your software..
+        /// </summary>
+        internal static string SQTooltip {
+            get {
+                return ResourceManager.GetString("SQTooltip", resourceCulture);
             }
         }
         
