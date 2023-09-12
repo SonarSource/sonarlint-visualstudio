@@ -23,6 +23,7 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -50,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestInitialize]
         public void TestInit()
         {
-            ThreadHelper.SetCurrentThreadAsUIThread();
+            SonarLint.VisualStudio.TestInfrastructure.ThreadHelper.SetCurrentThreadAsUIThread();
             this.serviceProvider = new ConfigurableServiceProvider();
 
             this.shell = new ConfigurableVsUIShell();
@@ -58,6 +59,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<InfoBarManager, IInfoBarManager>(
+                MefTestHelpers.CreateExport<SVsServiceProvider>());
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+            => MefTestHelpers.CheckIsSingletonMefComponent<InfoBarManager>();
+
+        [TestMethod]
+        public void MefCtor_DoesNotCallAnyServices()
+        {
+            var serviceProviderMock = new Mock<IServiceProvider>();
+
+            _ = new InfoBarManager(serviceProviderMock.Object);
+
+            // The MEF constructor should be free-threaded, which it will be if
+            // it doesn't make any external calls.
+            serviceProviderMock.Invocations.Should().BeEmpty();
+        }
 
         [TestMethod]
         public void InfoBarManager_ArgChecks()
