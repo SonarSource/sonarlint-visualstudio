@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         {
             if (!disposed)
             {
-                if (disposing & eslintBridgeAnalyzer.IsValueCreated)
+                if (disposing && eslintBridgeAnalyzer.IsValueCreated)
                 {
                    eslintBridgeAnalyzer.Value.Dispose();
                 }
