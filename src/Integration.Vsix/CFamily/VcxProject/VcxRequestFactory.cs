@@ -44,33 +44,39 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
     {
         private readonly ICFamilyRulesConfigProvider cFamilyRulesConfigProvider;
         private readonly IThreadHandling threadHandling;
-        private readonly IFileConfigProvider fileConfigProvider;
+        private readonly Lazy<IFileConfigProvider> fileConfigProvider;
         private readonly ILogger logger;
-        private readonly DTE2 dte;
+        private readonly Lazy<DTE2> dte;
 
         [ImportingConstructor]
         public VcxRequestFactory([Import(typeof(VsShell.SVsServiceProvider))] IServiceProvider serviceProvider,
             ICFamilyRulesConfigProvider cFamilyRulesConfigProvider,
-            ILogger logger)
+            ILogger logger,
+            IThreadHandling threadHandling)
             : this(serviceProvider,
                 cFamilyRulesConfigProvider,
-                new FileConfigProvider(logger),
+                new Lazy<IFileConfigProvider>(() => new FileConfigProvider(logger)),
                 logger,
-                ThreadHandling.Instance)
+                threadHandling)
         {
         }
 
         internal VcxRequestFactory(IServiceProvider serviceProvider,
             ICFamilyRulesConfigProvider rulesConfigProvider,
-            IFileConfigProvider fileConfigProvider,
+            Lazy<IFileConfigProvider> fileConfigProvider,
             ILogger logger,
             IThreadHandling threadHandling)
         {
-            this.dte = serviceProvider.GetService<SDTE, DTE2>();
             this.cFamilyRulesConfigProvider = rulesConfigProvider;
             this.threadHandling = threadHandling;
             this.fileConfigProvider = fileConfigProvider;
             this.logger = logger;
+
+            this.dte = new Lazy<DTE2>(() =>
+            {
+                threadHandling.ThrowIfNotOnUIThread();
+                return serviceProvider.GetService<SDTE, DTE2>();
+            });
         }
 
         public async Task<IRequest> TryCreateAsync(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
@@ -110,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
         {
             threadHandling.ThrowIfNotOnUIThread();
 
-            var projectItem = dte?.Solution?.FindProjectItem(analyzedFilePath);
+            var projectItem = dte?.Value.Solution?.FindProjectItem(analyzedFilePath);
 
             if (projectItem == null)
             {
@@ -118,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 return null;
             }
 
-            var fileConfig = fileConfigProvider.Get(projectItem, analyzedFilePath, analyzerOptions);
+            var fileConfig = fileConfigProvider.Value.Get(projectItem, analyzedFilePath, analyzerOptions);
 
             if (fileConfig == null)
             {
