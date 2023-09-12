@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
@@ -37,13 +35,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
     internal class StatusBarNotifier : IStatusBarNotifier
     {
         private readonly IVsUIServiceOperation vSServiceOperation;
-        private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
-        public StatusBarNotifier(IVsUIServiceOperation vSServiceOperation, IThreadHandling threadHandling)
+        public StatusBarNotifier(IVsUIServiceOperation vSServiceOperation)
         {
             this.vSServiceOperation = vSServiceOperation;
-            this.threadHandling = threadHandling;
         }
 
         public void Notify(string message, bool showSpinner)
@@ -53,13 +49,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
 
         private void DoNotify(IVsStatusbar vsStatusBar, string message, bool showSpinner)
         {
-            threadHandling.RunOnUIThread(() =>
-            {
-                object icon = (short)Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General;
-                vsStatusBar.Animation(showSpinner ? 1 : 0, ref icon);
+            object icon = (short)Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General;
+            vsStatusBar.Animation(showSpinner ? 1 : 0, ref icon);
 
-                vsStatusBar.SetText(message);
-            });
+            vsStatusBar.SetText(message);
         }
     }
 }

@@ -39,8 +39,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [TestMethod]
         public void MefCtor_CheckIsExported()
          => MefTestHelpers.CheckTypeCanBeImported<StatusBarNotifier, IStatusBarNotifier>(
-             MefTestHelpers.CreateExport<IVsUIServiceOperation>(),
-             MefTestHelpers.CreateExport<IThreadHandling>());
+             MefTestHelpers.CreateExport<IVsUIServiceOperation>());
 
         [TestMethod]
         public void MefCtor_CheckIsSingleton()
@@ -56,32 +55,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             // The MEF constructor should be free-threaded, which it will be if
             // it doesn't make any external calls.
             serviceOp.Invocations.Should().BeEmpty();
-        }
-
-        [TestMethod]
-        public void Notify_SwitchToUiThread()
-        {
-            var calls = new List<string>();
-            var expectedMessage = Guid.NewGuid().ToString();
-
-            var statusBar = new Mock<IVsStatusbar>();
-            statusBar.Setup(x => x.SetText(expectedMessage)).Callback(() =>  calls.Add("Set Text"));
-
-            var serviceOp = CreateServiceOperation(statusBar.Object, () => calls.Add("GetService"));
-
-            var threadHandling = new Mock<IThreadHandling>();
-            threadHandling.Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
-                .Callback<Action>(productOperation =>
-                {
-                    calls.Add("switch to UI thread");
-                    productOperation.Invoke();
-                });
-
-            var testSubject = CreateTestSubject(serviceOp, threadHandling.Object);
-
-            testSubject.Notify(expectedMessage, false);
-
-            calls.Should().ContainInOrder("GetService", "switch to UI thread", "Set Text");
         }
 
         [TestMethod]
@@ -115,11 +88,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             return serviceOp.Object;
         }
 
-        private static StatusBarNotifier CreateTestSubject(IVsUIServiceOperation vsUIServiceOperation, IThreadHandling threadHandling = null)
+        private static StatusBarNotifier CreateTestSubject(IVsUIServiceOperation vsUIServiceOperation)
         {
-            threadHandling ??= new NoOpThreadHandler();
-
-            var testSubject = new StatusBarNotifier(vsUIServiceOperation, threadHandling);
+            var testSubject = new StatusBarNotifier(vsUIServiceOperation);
             return testSubject;
         }
     }
