@@ -33,15 +33,29 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class ErrorListHelper : IErrorListHelper
     {
-        private readonly IErrorList errorList;
+        private readonly IVsUIServiceOperation vSServiceOperation;
 
         [ImportingConstructor]
-        public ErrorListHelper([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public ErrorListHelper(IVsUIServiceOperation vSServiceOperation)
         {
-            errorList = serviceProvider.GetService(typeof(SVsErrorList)) as IErrorList;
+            this.vSServiceOperation = vSServiceOperation;
         }
 
         public bool TryGetRuleIdFromSelectedRow(out SonarCompositeRuleId ruleId)
+        {
+            SonarCompositeRuleId ruleIdOut = null;
+            var result = vSServiceOperation.Execute<SVsErrorList, IErrorList, bool>(
+                errorList =>
+                {
+                    return DoTryGetRuleIdFromSelectedRow(errorList, out ruleIdOut);
+                });
+
+            ruleId = ruleIdOut;
+
+            return result;
+        }
+
+        private bool DoTryGetRuleIdFromSelectedRow(IErrorList errorList, out SonarCompositeRuleId ruleId)
         {
             ruleId = null;
             var selectedItems = errorList?.TableControl?.SelectedEntries;
