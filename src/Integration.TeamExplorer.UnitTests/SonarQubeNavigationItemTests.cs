@@ -20,7 +20,9 @@
 
 using System;
 using FluentAssertions;
+using Microsoft.TeamFoundation.Controls;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -31,28 +33,48 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
     public class SonarQubeNavigationItemTests
     {
         [TestMethod]
+        [Ignore] // Object is created successfully, but an exception when
+                 // the MEF composition contained is disposed causing the test to fail
+        public void MefCtor_CheckIsExported()
+                => MefTestHelpers.CheckTypeCanBeImported<SonarQubeNavigationItem, ITeamExplorerNavigationItem>(
+                    MefTestHelpers.CreateExport<ITeamExplorerController>());
+
+        [TestMethod]
+        public void CheckIsNonSharedMefComponent()
+            => MefTestHelpers.CheckIsNonSharedMefComponent<SonarQubeNavigationItem>();
+
+        [TestMethod]
+        public void MefCtor_DoesNotCallAnyServices()
+        {
+            var controller = new Mock<ITeamExplorerController>();
+
+            _ = new SonarQubeNavigationItem(controller.Object);
+
+            // The MEF constructor should be free-threaded, which it will be if
+            // it doesn't make any external calls.
+            controller.Invocations.Should().BeEmpty();
+        }
+
+        [TestMethod]
         public void SonarQubeNavigationItem_Execute()
         {
             // Arrange
-            var controller = new ConfigurableTeamExplorerController();
+            var controller = new Mock<ITeamExplorerController>();
 
-            var testSubject = new SonarQubeNavigationItem(controller);
+            var testSubject = CreateTestSubject(controller.Object);
 
             // Act
             testSubject.Execute();
 
             // Assert
-            controller.ShowConnectionsPageCallsCount.Should().Be(1);
+            controller.Verify(x => x.ShowSonarQubePage(), Times.Once);
         }
 
         [TestMethod]
         public void SonarQubeNavigationItem_Ctor()
         {
-            // Arrange
-            var controller = new ConfigurableTeamExplorerController();
-
-            // Act
-            var testSubject = new SonarQubeNavigationItem(controller);
+            // Arrange & Act
+            var testSubject = CreateTestSubject();
 
             // Assert
             testSubject.IsVisible.Should().BeTrue("Nav item should be visible");
@@ -67,5 +89,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             Exceptions.Expect<ArgumentNullException>(() => new SonarQubeNavigationItem(null));
         }
+
+        private static SonarQubeNavigationItem CreateTestSubject(ITeamExplorerController controller = null)
+            => new SonarQubeNavigationItem(controller ?? Mock.Of<ITeamExplorerController>());
     }
 }
