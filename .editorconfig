@@ -63,3 +63,6 @@ csharp_style_pattern_local_over_anonymous_function = false:suggestion
 
 # IDE0016: Use 'throw' expression
 csharp_style_throw_expression = false:suggestion
+
+# CS7035: it expects the build number to fit in 16 bits, our build numbers are bigger https://github.com/dotnet/roslyn/issues/17024#issuecomment-1669503201
+dotnet_diagnostic.CS7035.severity = none
