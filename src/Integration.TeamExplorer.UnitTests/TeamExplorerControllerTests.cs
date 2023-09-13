@@ -22,6 +22,8 @@ using System;
 using FluentAssertions;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -31,52 +33,56 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
     public class TeamExplorerControllerTests
     {
         [TestMethod]
-        public void TeamExplorerController_Ctor_NullArgChecks()
+        public void MefCtor_CheckIsExported()
+             => MefTestHelpers.CheckTypeCanBeImported<TeamExplorerController, ITeamExplorerController>(
+                    MefTestHelpers.CreateExport<IVsUIServiceOperation>());
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+            => MefTestHelpers.CheckIsSingletonMefComponent<TeamExplorerController>();
+
+        [TestMethod]
+        public void MefCtor_DoesNotCallAnyServices()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new TeamExplorerController(null));
+            var serviceOp = new Mock<IVsUIServiceOperation>();
+
+            _ = CreateTestSubject(serviceOp.Object);
+
+            // The MEF constructor should be free-threaded, which it will be if
+            // it doesn't make any external calls.
+            serviceOp.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
-        public void TeamExplorerController_Ctor()
-        {
-            // Test case 1: no Team Explorer service
-            // Arrange
-            var serviceProvider = new ConfigurableServiceProvider(false);
-
-            // Act + Assert
-            Exceptions.Expect<ArgumentException>(() => new TeamExplorerController(serviceProvider));
-
-            // Test case 2: has TE service
-            // Arrange
-            var teService = new ConfigurableTeamExplorer();
-            serviceProvider.RegisterService(typeof(ITeamExplorer), teService);
-
-            // Act + Assert
-            var testSubject = new TeamExplorerController(serviceProvider);
-            testSubject.TeamExplorer.Should().Be(teService, "Unexpected Team Explorer service");
-        }
-
-        [TestMethod]
-        public void TeamExplorerController_ShowConnectionsPage()
+        public void ShowSonarQubePage_NavigatesToPage()
         {
             // Arrange
-            var startPageId = new Guid(TeamExplorerPageIds.GitCommits);
+            var startPageId = new Guid(SonarQubePage.PageId);
 
-            var serviceProvider = new ConfigurableServiceProvider();
-            var teService = new ConfigurableTeamExplorer(startPageId);
-            serviceProvider.RegisterService(typeof(ITeamExplorer), teService);
+            var teamExplorer = new Mock<ITeamExplorer>();
+            var serviceOp = CreateServiceOperation(teamExplorer.Object);
 
-            var sonarPageId = new Guid(SonarQubePage.PageId);
-            var sonarPageInstance = new ConfigurableTeamExplorerPage(sonarPageId);
-            teService.AvailablePages.Add(sonarPageId, sonarPageInstance);
-
-            var testSubject = new TeamExplorerController(serviceProvider);
+            var testSubject = CreateTestSubject(serviceOp);
 
             // Act
             testSubject.ShowSonarQubePage();
 
             // Assert
-            teService.CurrentPageId.Should().Be(sonarPageId);
+            teamExplorer.Verify(x => x.NavigateToPage(startPageId, null), Times.Once);
         }
+
+        private IVsUIServiceOperation CreateServiceOperation(ITeamExplorer svcToPassToCallback)
+        {
+            var serviceOp = new Mock<IVsUIServiceOperation>();
+
+            // Set up the mock to invoke the operation with the supplied VS service
+            serviceOp.Setup(x => x.Execute<ITeamExplorer, ITeamExplorer>(It.IsAny<Action<ITeamExplorer>>()))
+                .Callback<Action<ITeamExplorer>>(op => op(svcToPassToCallback));
+
+            return serviceOp.Object;
+        }
+
+        private TeamExplorerController CreateTestSubject(IVsUIServiceOperation vSServiceOperation) =>
+            new(vSServiceOperation);
     }
 }

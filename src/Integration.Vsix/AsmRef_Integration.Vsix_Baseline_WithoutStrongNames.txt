@@ -305,7 +305,7 @@ Referenced assemblies:
 - 'System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-# Number of references: 14
+# Number of references: 15
 
 ---
 Assembly: 'SonarLint.VisualStudio.IssueVisualization, Version=7.4.0.0, Culture=neutral, PublicKeyToken=null'

@@ -317,10 +317,6 @@ ocalization note: '[try again]()' is a special markup used to translate the text
     <value>SonarQube</value>
     <comment>Title for the SonarQube Team Explorer page</comment>
   </data>
-  <data name="MissingService" xml:space="preserve">
-    <value>Could not acquire service: {0}</value>
-    <comment>Exception message indicating the package could not acquire the given service. {0} service name</comment>
-  </data>
   <data name="WarningsSettingsCategory" xml:space="preserve">
     <value>Warnings</value>
     <comment>Warnings settings category for Security options page</comment>
