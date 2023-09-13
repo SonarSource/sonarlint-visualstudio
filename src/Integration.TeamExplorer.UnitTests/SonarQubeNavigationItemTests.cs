@@ -33,8 +33,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
     public class SonarQubeNavigationItemTests
     {
         [TestMethod]
-        [Ignore] // Object is created successfully, but an exception when
-                 // the MEF composition contained is disposed causing the test to fail
         public void MefCtor_CheckIsExported()
                 => MefTestHelpers.CheckTypeCanBeImported<SonarQubeNavigationItem, ITeamExplorerNavigationItem>(
                     MefTestHelpers.CreateExport<ITeamExplorerController>());
