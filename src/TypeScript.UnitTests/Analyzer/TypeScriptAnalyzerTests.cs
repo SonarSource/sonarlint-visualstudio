@@ -174,16 +174,18 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
-        public void Dispose_DisposesEslintBridgeAnalyzer()
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task Dispose_DisposesEslintBridgeAnalyzer_IfEslintBridgeAnalyzerLazyWasLoaded(bool lazyLoaded)
         {
             var eslintBridgeAnalyzer = SetupEslintBridgeAnalyzer(null);
 
             var testSubject = CreateTestSubject(eslintBridgeAnalyzer.Object);
-
+            if (lazyLoaded) { await testSubject.ExecuteAsync(ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None); }
             Action act = () => testSubject.Dispose();
             act.Should().NotThrow();
 
-            eslintBridgeAnalyzer.Verify(x => x.Dispose(), Times.Once);
+            eslintBridgeAnalyzer.Verify(x => x.Dispose(), lazyLoaded ? Times.Once : Times.Never);
         }
 
         [TestMethod, Description("Regression test for #2452")]
