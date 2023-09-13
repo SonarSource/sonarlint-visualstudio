@@ -21,10 +21,8 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Globalization;
 using Microsoft.TeamFoundation.Controls;
-using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
@@ -32,29 +30,23 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class TeamExplorerController : ITeamExplorerController
     {
-        private readonly ITeamExplorer teamExplorer;
-
-        internal /* testing purposes */ ITeamExplorer TeamExplorer => this.teamExplorer;
+        private readonly IVsUIServiceOperation vSServiceOperation;
 
         [ImportingConstructor]
-        public TeamExplorerController([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public TeamExplorerController(IVsUIServiceOperation vSServiceOperation)
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            this.teamExplorer = serviceProvider.GetService<ITeamExplorer>();
-            if (this.TeamExplorer == null)
-            {
-                throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Strings.MissingService, nameof(ITeamExplorer)), nameof(serviceProvider));
-            }
+            this.vSServiceOperation = vSServiceOperation;
         }
 
         public void ShowSonarQubePage()
         {
-            Debug.Assert(this.TeamExplorer != null, "Shouldn't be created without the Team Explorer service");
-            this.TeamExplorer.NavigateToPage(new Guid(SonarQubePage.PageId), null);
+            vSServiceOperation.Execute<ITeamExplorer, ITeamExplorer>(DoShowSonarQubePage);
+        }
+
+        private void DoShowSonarQubePage(ITeamExplorer teamExplorer)
+        {
+            Debug.Assert(teamExplorer != null, "Shouldn't be created without the Team Explorer service");
+            teamExplorer.NavigateToPage(new Guid(SonarQubePage.PageId), null);
         }
     }
 }
