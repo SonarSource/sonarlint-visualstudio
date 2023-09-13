@@ -27,7 +27,6 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
@@ -38,7 +37,23 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<ErrorListHelper, IErrorListHelper>(
-                MefTestHelpers.CreateExport<SVsServiceProvider>());
+                MefTestHelpers.CreateExport<IVsUIServiceOperation>());
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+        => MefTestHelpers.CheckIsSingletonMefComponent<ErrorListHelper>();
+
+        [TestMethod]
+        public void MefCtor_DoesNotCallAnyServices()
+        {
+            var serviceOp = new Mock<IVsUIServiceOperation>();
+
+            _ = new ErrorListHelper(serviceOp.Object);
+
+            // The MEF constructor should be free-threaded, which it will be if
+            // it doesn't make any external calls.
+            serviceOp.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -60,8 +75,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
                 { StandardTableKeyNames.ErrorCode, fullRuleKey }
             });
 
-            var mockErrorList = CreateErrorList(issueHandle);
-            var serviceProvider = CreateServiceProvider(mockErrorList);
+            var errorList = CreateErrorList(issueHandle);
+            var serviceProvider = CreateServiceOperation(errorList);
 
             // Act
             var testSubject = new ErrorListHelper(serviceProvider);
@@ -96,7 +111,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             });
 
             // Act
-            var testSubject = new ErrorListHelper(Mock.Of<IServiceProvider>());
+            var testSubject = new ErrorListHelper(Mock.Of<IVsUIServiceOperation>());
             bool result = testSubject.TryGetRuleId(issueHandle, out var ruleId);
 
             // Assert
@@ -115,8 +130,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
                 { StandardTableKeyNames.ErrorCode, ":" } // should not happen
             });
 
-            var mockErrorList = CreateErrorList(issueHandle);
-            var serviceProvider = CreateServiceProvider(mockErrorList);
+            var errorList = CreateErrorList(issueHandle);
+            var serviceProvider = CreateServiceOperation(errorList);
 
             // Act
             var testSubject = new ErrorListHelper(serviceProvider);
@@ -141,8 +156,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
                 { StandardTableKeyNames.ErrorCode, "csharpsquid:S222" }
             });
 
-            var mockErrorList = CreateErrorList(cppIssueHandle, jsIssueHandle);
-            var serviceProvider = CreateServiceProvider(mockErrorList);
+            var errorList = CreateErrorList(cppIssueHandle, jsIssueHandle);
+            var serviceProvider = CreateServiceOperation(errorList);
 
             // Act
             var testSubject = new ErrorListHelper(serviceProvider);
@@ -163,8 +178,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
                 { StandardTableKeyNames.ErrorCode, "cpp:S333" }
             });
 
-            var mockErrorList = CreateErrorList(issueHandle);
-            var serviceProvider = CreateServiceProvider(mockErrorList);
+            var errorList = CreateErrorList(issueHandle);
+            var serviceProvider = CreateServiceOperation(errorList);
 
             // Act
             var testSubject = new ErrorListHelper(serviceProvider);
@@ -189,7 +204,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             });
 
             // Act
-            var testSubject = new ErrorListHelper(Mock.Of<IServiceProvider>());
+            var testSubject = new ErrorListHelper(Mock.Of<IVsUIServiceOperation>());
             bool result = testSubject.TryGetRuleId(issueHandle, out var errorCode);
 
             // Assert
@@ -198,16 +213,16 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
 
-        private static IServiceProvider CreateServiceProvider(IErrorList errorList = null)
+        private IVsUIServiceOperation CreateServiceOperation(IErrorList svcToPassToCallback)
         {
-            errorList ??= Mock.Of<IErrorList>();
+            var serviceOp = new Mock<IVsUIServiceOperation>();
 
-            var serviceProviderMock = new Mock<IServiceProvider>();
-            serviceProviderMock
-                .Setup(x => x.GetService(typeof(SVsErrorList)))
-                .Returns(errorList);
+            // Set up the mock to invoke the operation with the supplied VS service
+            serviceOp.Setup(x => x.Execute<SVsErrorList, IErrorList, bool>(It.IsAny<Func<IErrorList, bool>>()))
+                .Returns<Func<IErrorList, bool>>(op => op(svcToPassToCallback));
 
-            return serviceProviderMock.Object;
+
+            return serviceOp.Object;
         }
 
         private static IErrorList CreateErrorList(params ITableEntryHandle[] entries)
