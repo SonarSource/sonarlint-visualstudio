@@ -152,8 +152,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
                 batch.AddExport(item);
             }
 
-            using var container = new CompositionContainer(catalog);
-            container.Compose(batch);
+            DoCompose(catalog, batch);
         }
 
         /// <summary>
@@ -177,13 +176,46 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
             var catalog = new AssemblyCatalog(exportingAssembly);
 
-            using var container = new CompositionContainer(catalog);
-            container.Compose(batch);
+            DoCompose(catalog, batch);
+        }
+
+        private static void DoCompose(ComposablePartCatalog catalog, CompositionBatch batch)
+        {
+            var container = new CompositionContainer(catalog);
+
+            try
+            {
+                container.Compose(batch);
+
+            }
+            finally
+            {
+                SafeDispose(container);
+            }
+        }
+
+        private static void SafeDispose(CompositionContainer container)
+        {
+            // Clean up, ignoring any errors
+            try
+            {
+                Console.WriteLine("Disposing composition container...");
+                container.Dispose();
+                throw new InvalidCastException("test");
+
+            }
+            catch (Exception ex)
+            {
+                // Disposing the container will dispose the parts it created. That might cause exceptions in our
+                // code. Since we're testing whether objects can be imported here we're not interested in
+                // exceptions when disposing the objects -> dump to console and ignore
+                Console.WriteLine($"Error disposing composition container: {ex}");
+            }
         }
 
         /// <summary>
         /// Check if type has creation policy non shared.
-        /// </summary>
+        /// </summary>m
         public static void CheckIsNonSharedMefComponent<T>()
         {
             var creationPolicy = GetCreationPolicyFromAttribute<T>();
