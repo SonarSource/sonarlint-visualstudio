@@ -505,15 +505,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not acquire service: {0}.
-        /// </summary>
-        public static string MissingService {
-            get {
-                return ResourceManager.GetString("MissingService", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to More info....
         /// </summary>
         public static string MoreInfoLinkText {
