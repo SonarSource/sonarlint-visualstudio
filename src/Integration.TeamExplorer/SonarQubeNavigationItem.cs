@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.Integration.Resources;
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
     [TeamExplorerNavigationItem(SonarQubeNavigationItem.ItemId, SonarQubeNavigationItem.Priority, TargetPageId = SonarQubePage.PageId)]
+    [PartCreationPolicy(CreationPolicy.NonShared)] // The VS navigations in MS.TeamFoundation.TeamExplorer.Navigation are non-shared
     internal class SonarQubeNavigationItem : TeamExplorerNavigationItemBase
     {
         public const string ItemId = "172AF455-5F42-46FC-BFE6-23227A05806B";
@@ -49,6 +50,12 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.IsVisible = true;
             this.IsEnabled = true;
 
+            // Note on threading:
+            // MEF constructors must be free-threaded i.e. capable of running to completion the calling thread.
+            // There's no public documentation on how these whether it's ok to create WPF artefacts like brushes
+            // and icons in the constructor. However, this is what the VS Team Explorer implementations of this
+            // class are doing, so we assume it's ok.
+            // See [VS installation directory]\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Microsoft.TeamFoundation.TeamExplorer.Navigation.dll
             var image = ResourceHelper.Get<DrawingImage>("SonarQubeServerIcon");
             this.m_icon = image != null ? new DrawingBrush(image.Drawing) : null;
 
