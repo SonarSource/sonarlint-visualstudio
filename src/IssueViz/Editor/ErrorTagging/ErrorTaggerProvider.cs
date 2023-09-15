@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
@@ -29,6 +30,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
 {
     [Export(typeof(ITaggerProvider))]
     [ContentType("text")]
+    [TextViewRole(PredefinedTextViewRoles.PrimaryDocument)]
     [TagType(typeof(IErrorTag))]
     internal class ErrorTaggerProvider : ITaggerProvider
     {

@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
@@ -29,6 +30,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
 {
     [Export(typeof(ITaggerProvider))]
     [ContentType("text")]
+    [TextViewRole(PredefinedTextViewRoles.PrimaryDocument)]
     [TagType(typeof(IIssueLocationTag))]
     internal class LocationTaggerProvider : ITaggerProvider
     {
