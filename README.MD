@@ -4,8 +4,8 @@
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=sonarlint-visualstudio&metric=coverage)](https://sonarcloud.io/component_measures?id=sonarlint-visualstudio&metric=new_lines_to_cover&view=list)
 
 
-SonarLint is a Visual Studio 2017, 2019 and 2022 extension that provides on-the-fly feedback to developers on new bugs and
-quality issues in C#, VB.NET, C/C++, TypeScript and JavaScript.
+SonarLint is a Visual Studio 2017, 2019, and 2022 extension that provides on-the-fly feedback to developers on new bugs and
+quality issues in C#, VB.NET, C/C++, TypeScript and JavaScript to help produce [Clean Code](https://www.sonarsource.com/solutions/clean-code/).
 
 SonarLint is free, open source, and available in the Visual Studio Marketplace:
 * [SonarLint for Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=SonarSource.SonarLintforVisualStudio2022)
@@ -28,9 +28,9 @@ Note: SonarLint for Visual Studio 2017 has been deprecated. New versions will no
 * [SonarLint overview](https://redirect.sonarsource.com/doc/sonar-visualstudio.html)
 * [Issue tracking](https://github.com/SonarSource/sonarlint-visualstudio/issues)
 
-## Have question or feedback?
+## Have questions or feedback?
 
-The preferred way to discuss about SonarLint is by posting on the [SonarSource Community Forum](https://community.sonarsource.com). Feel free to ask questions, report issues, and give suggestions.
+The preferred way to discuss SonarLint is by posting on the [SonarSource Community Forum](https://community.sonarsource.com). Feel free to ask questions, report issues, and give suggestions.
 
 **False positives:** please report false positives in analysis rules in [this section](https://community.sonarsource.com/c/bug/fp/7) of the community forum. 
 
