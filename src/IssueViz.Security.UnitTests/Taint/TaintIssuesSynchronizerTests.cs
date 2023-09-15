@@ -28,13 +28,16 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.TestInfrastructure;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 using Task = System.Threading.Tasks.Task;
+
+using VSShellInterop = Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 {
@@ -54,7 +57,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                 MefTestHelpers.CreateExport<IConfigurationProvider>(),
                 MefTestHelpers.CreateExport<IStatefulServerBranchProvider>(),
                 // The constructor calls the service provider so we need to pass a correctly-configured one
-                MefTestHelpers.CreateExport<SVsServiceProvider>(CreateServiceProvider()),
+                MefTestHelpers.CreateExport<IVsUIServiceOperation>(),
                 MefTestHelpers.CreateExport<IToolWindowService>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
@@ -108,7 +111,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             sonarQubeServer
                 .SetupSequence(x => x.GetServerInfo())
                 .Returns(new ServerInfo(new Version(1, 1), ServerType.SonarQube))
-                .Returns((ServerInfo) null);
+                .Returns((ServerInfo)null);
 
             var logger = new TestLogger();
 
@@ -363,7 +366,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         public async Task SynchronizeWithServer_ConnectedModeWithIssues_UIContextIsSetAndToolWindowCalled(SonarLintMode sonarLintMode)
         {
             var sonarService = CreateSonarService();
-            
+
             var bindingConfig = CreateBindingConfig(sonarLintMode, "myProjectKey___");
             var serverBranchProvider = CreateServerBranchProvider("branchYYY");
             SetupTaintIssues(sonarService, "myProjectKey___", "branchYYY", new TestSonarQubeIssue());
@@ -441,7 +444,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             taintStore ??= Mock.Of<ITaintStore>();
             converter ??= Mock.Of<ITaintIssueToIssueVisualizationConverter>();
 
-            var serviceProvider = CreateServiceProvider(vsMonitor);
+            var serviceOperation = CreateServiceOperation(vsMonitor);
 
             bindingConfig ??= CreateBindingConfig(SonarLintMode.Connected, "any branch");
 
@@ -457,7 +460,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             logger ??= Mock.Of<ILogger>();
 
             return new TaintIssuesSynchronizer(taintStore, sonarService, converter, configurationProvider.Object,
-                toolWindowService, serverBranchProvider, serviceProvider, logger);
+                toolWindowService, serverBranchProvider, serviceOperation, logger);
+        }
+
+        private static IVsUIServiceOperation CreateServiceOperation(IVsMonitorSelection svcToPassToCallback)
+        {
+            svcToPassToCallback ??= Mock.Of<IVsMonitorSelection>();
+
+            var serviceOp = new Mock<IVsUIServiceOperation>();
+
+            // Set up the mock to invoke the operation with the supplied VS service
+            serviceOp.Setup(x => x.Execute<VSShellInterop.SVsShellMonitorSelection, VSShellInterop.IVsMonitorSelection>(It.IsAny<Action<IVsMonitorSelection>>()))
+                .Callback<Action<IVsMonitorSelection>>(op => op(svcToPassToCallback));
+
+            return serviceOp.Object;
         }
 
         private static Mock<IStatefulServerBranchProvider> CreateServerBranchProvider(string branchName)
@@ -488,21 +504,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             return monitor;
         }
 
-        private static IServiceProvider CreateServiceProvider(IVsMonitorSelection vsMonitor = null)
-        {
-            vsMonitor ??= Mock.Of<IVsMonitorSelection>();
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(x => x.GetService(typeof(SVsShellMonitorSelection))).Returns(vsMonitor);
-            return serviceProvider.Object;
-        }
-
         private static void CheckUIContextIsCleared(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie) =>
             CheckUIContextUpdated(monitorMock, expectedCookie, 0);
 
         private static void CheckUIContextIsSet(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie) =>
             CheckUIContextUpdated(monitorMock, expectedCookie, 1);
 
-        private static void CheckUIContextUpdated(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie, int expectedState) => 
+        private static void CheckUIContextUpdated(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie, int expectedState) =>
             monitorMock.Verify(x => x.SetCmdUIContext(expectedCookie, expectedState), Times.Once);
 
         private static void CheckConnectedStatusIsChecked(Mock<ISonarQubeService> serviceMock) =>
