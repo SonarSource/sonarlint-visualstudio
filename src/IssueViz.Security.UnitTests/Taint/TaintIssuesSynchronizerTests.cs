@@ -63,6 +63,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         [TestMethod]
+        public void MefCtor_DoesNotCallAnyServices_BesidesExpected()
+        {
+            var taintStore = new Mock<ITaintStore>();
+            var sonarQubeService = new Mock<ISonarQubeService>();
+            var taintIssueToIssueVisualizationConverter = new Mock<ITaintIssueToIssueVisualizationConverter>();
+            var configurationProvider = new Mock<IConfigurationProvider>();
+            var statefulServerBranchProvider = new Mock<IStatefulServerBranchProvider>();
+            var vsUIServiceOperation = new Mock<IVsUIServiceOperation>();
+            var toolWindowService = new Mock<IToolWindowService>();
+            var logger = new Mock<ILogger>();
+
+            _ = new TaintIssuesSynchronizer(taintStore.Object, sonarQubeService.Object, taintIssueToIssueVisualizationConverter.Object, configurationProvider.Object,
+                toolWindowService.Object, statefulServerBranchProvider.Object, vsUIServiceOperation.Object, logger.Object);
+
+            // The MEF constructor should be free-threaded, which it will be if
+            // it doesn't make any external calls.
+            taintStore.Invocations.Should().BeEmpty();
+            sonarQubeService.Invocations.Should().BeEmpty();
+            taintIssueToIssueVisualizationConverter.Invocations.Should().BeEmpty();
+            configurationProvider.Invocations.Should().BeEmpty();
+            toolWindowService.Invocations.Should().BeEmpty();
+            statefulServerBranchProvider.Invocations.Should().BeEmpty();
+            vsUIServiceOperation.Invocations.Should().BeEmpty();
+            logger.Invocations.Should().BeEmpty();
+        }
+
+        [TestMethod]
         public async Task SynchronizeWithServer_NonCriticalException_UIContextAndStoreCleared()
         {
             var logger = new TestLogger();
