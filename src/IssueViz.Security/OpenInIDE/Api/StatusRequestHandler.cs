@@ -18,38 +18,47 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
-using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 {
     [Export(typeof(IStatusRequestHandler))]
     internal class StatusRequestHandler : IStatusRequestHandler
     {
-        private readonly IVsShell vsShell;
-        private readonly IVsSolution vsSolution;
+        private readonly IVsUIServiceOperation vSServiceOperation;
 
         [ImportingConstructor]
-        public StatusRequestHandler([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public StatusRequestHandler(IVsUIServiceOperation vSServiceOperation)
         {
-            vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
-            vsSolution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
+            this.vSServiceOperation = vSServiceOperation;
         }
 
-        Task<IStatusResponse> IStatusRequestHandler.GetStatusAsync()
+        async Task<IStatusResponse> IStatusRequestHandler.GetStatusAsync()
         {
-            vsShell.GetProperty((int) __VSSPROPID5.VSSPROPID_AppBrandName, out var ideName);
-            ideName = ideName ?? "Microsoft Visual Studio";
+            var ideName = await GetIdeNameAsync();
+            var ideInstance = await GetIdeInstanceAsync();
 
-            vsSolution.GetProperty((int) __VSPROPID.VSPROPID_SolutionBaseName, out var ideInstance);
-            ideInstance = ideInstance ?? "";
-
-            return Task.FromResult<IStatusResponse>(new StatusResponse(ideName.ToString(), ideInstance.ToString()));
+            return new StatusResponse(ideName.ToString(), ideInstance.ToString());
         }
+
+        private async Task<string> GetIdeNameAsync() =>
+            await vSServiceOperation.ExecuteAsync<SVsShell, IVsShell, string>(
+                shell =>
+                {
+                    shell.GetProperty((int)__VSSPROPID5.VSSPROPID_AppBrandName, out var ideName);
+                    return ideName as string ?? "Microsoft Visual Studio";
+                });
+
+        private async Task<string> GetIdeInstanceAsync() =>
+             await vSServiceOperation.ExecuteAsync<SVsSolution, IVsSolution, string>(
+                 solution =>
+                 {
+                     solution.GetProperty((int)__VSPROPID.VSPROPID_SolutionBaseName, out var ideInstance);
+                     return ideInstance as string ?? "";
+                 });
     }
 }
