@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         [TestMethod]
-        public void MefCtor_DoesNotCallAnyServices_BesidesExpected()
+        public void MefCtor_DoesNotCallAnyServices()
         {
             var taintStore = new Mock<ITaintStore>();
             var sonarQubeService = new Mock<ISonarQubeService>();
