@@ -108,17 +108,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         {
             var serviceOp = new Mock<IVsUIServiceOperation>();
 
-            //// Set up the mock to invoke the operation with the supplied VS service
-            //serviceOp.Setup(x => x.ExecuteAsync<SVsShell, IVsShell, string>(It.IsAny<Func<IVsShell, string>>()))
-            //    .Returns<Func<IVsShell, Task<string>>>(op => op(shell.Object));
-            //             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^  <-- this bit is incorrect. It should be the
-            //                                               the type of parameter being passed i.e. Func<IVsShell, string>
-            // However, because the function being mocked returns a Task<string>, we need to wrap the result of the
-            // in a Task.FromResult<string>(...)
-
-            //serviceOp.Setup(x => x.ExecuteAsync<SVsSolution, IVsSolution, string>(It.IsAny<Func<IVsSolution, string>>()))
-            //    .Returns<Func<IVsSolution, Task<string>>>(op => op(solution.Object));
-
             // Set up the mock to invoke the operation with the supplied VS service
             serviceOp.Setup(x => x.ExecuteAsync<SVsShell, IVsShell, string>(It.IsAny<Func<IVsShell, string>>()))
                 .Returns<Func<IVsShell, string>>(x => Task.FromResult(x(shell.Object)));
