@@ -22,10 +22,10 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.State;
 using SonarQube.Client;
 using Task = System.Threading.Tasks.Task;
@@ -47,21 +47,23 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IHost extensionHost;
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly IConfigurationProvider configurationProvider;
-        private readonly IVsMonitorSelection vsMonitorSelection;
         private readonly IBoundSolutionGitMonitor gitEventsMonitor;
+        private readonly IVsUIServiceOperation vSServiceOperation;
         private readonly ILogger logger;
-        private readonly uint boundSolutionContextCookie;
 
         public event EventHandler<ActiveSolutionBindingEventArgs> PreSolutionBindingChanged;
+
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
+
         public event EventHandler PreSolutionBindingUpdated;
+
         public event EventHandler SolutionBindingUpdated;
 
         public BindingConfiguration CurrentConfiguration { get; private set; }
 
         [ImportingConstructor]
         public ActiveSolutionBoundTracker(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            IVsUIServiceOperation vSServiceOperation,
             IHost host,
             IActiveSolutionTracker activeSolutionTracker,
             ILogger logger,
@@ -71,13 +73,8 @@ namespace SonarLint.VisualStudio.Integration
             extensionHost = host;
             solutionTracker = activeSolutionTracker;
             this.gitEventsMonitor = gitEventsMonitor;
+            this.vSServiceOperation = vSServiceOperation;
             this.logger = logger;
-
-            // TODO - MEF-ctor should be free-threaded -> we might be on a background thread ->
-            // calling serviceProvider.GetService is dangerous.
-            vsMonitorSelection = serviceProvider.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
-            vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
-
             this.configurationProvider = configurationProvider;
 
             // The user changed the binding through the Team Explorer
@@ -87,8 +84,6 @@ namespace SonarLint.VisualStudio.Integration
             solutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
 
             CurrentConfiguration = configurationProvider.GetConfiguration();
-
-            SetBoundSolutionUIContext();
 
             this.gitEventsMonitor.HeadChanged += GitEventsMonitor_HeadChanged;
         }
@@ -178,8 +173,14 @@ namespace SonarLint.VisualStudio.Integration
 
         private void SetBoundSolutionUIContext()
         {
-            var isContextActive = !CurrentConfiguration.Equals(BindingConfiguration.Standalone);
-            vsMonitorSelection.SetCmdUIContext(boundSolutionContextCookie, isContextActive ? 1 : 0);
+            vSServiceOperation.Execute<SVsShellMonitorSelection, IVsMonitorSelection>(
+               monitorSelection =>
+               {
+                   monitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out var boundSolutionContextCookie);
+
+                   var isContextActive = !CurrentConfiguration.Equals(BindingConfiguration.Standalone);
+                   monitorSelection.SetCmdUIContext(boundSolutionContextCookie, isContextActive ? 1 : 0);
+               });
         }
 
         #region IPartImportsSatisfiedNotification
@@ -189,7 +190,7 @@ namespace SonarLint.VisualStudio.Integration
             await UpdateConnectionAsync();
         }
 
-        #endregion
+        #endregion IPartImportsSatisfiedNotification
 
         #region IDisposable
 
@@ -209,6 +210,6 @@ namespace SonarLint.VisualStudio.Integration
             this.Dispose(true);
         }
 
-        #endregion
+        #endregion IDisposable
     }
 }

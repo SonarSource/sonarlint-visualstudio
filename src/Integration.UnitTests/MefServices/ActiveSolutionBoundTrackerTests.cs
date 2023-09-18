@@ -24,16 +24,15 @@ using System.Linq.Expressions;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Media.Animation;
 using FluentAssertions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
@@ -49,8 +48,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly Expression<Func<ISonarQubeService, Task>> connectMethod = x => x.ConnectAsync(It.IsAny<ConnectionInformation>(), It.IsAny<CancellationToken>());
         private readonly Expression<Action<ISonarQubeService>> disconnectMethod = x => x.Disconnect();
 
-        private ConfigurableServiceProvider serviceProvider;
-        private SolutionMock solutionMock;
+        private IVsUIServiceOperation vsUIServiceOperation;
         private ConfigurableActiveSolutionTracker activeSolutionTracker;
         private ConfigurableHost host;
         private Mock<IVsMonitorSelection> vsMonitorMock;
@@ -62,31 +60,64 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestInitialize]
         public void TestInitialize()
         {
-            serviceProvider = new ConfigurableServiceProvider(false);
-            
             host = new ConfigurableHost();
-            var mefHost = MefTestHelpers.CreateExport<IHost>(host);
-
             activeSolutionTracker = new ConfigurableActiveSolutionTracker();
-            var mefAST = MefTestHelpers.CreateExport<IActiveSolutionTracker>(activeSolutionTracker);
-
-            var mefModel = ConfigurableComponentModel.CreateWithExports(mefHost, mefAST);
-            serviceProvider.RegisterService(typeof(SComponentModel), mefModel, replaceExisting: true);
-
-            solutionMock = new SolutionMock();
-            serviceProvider.RegisterService(typeof(SVsSolution), solutionMock);
-
             configProvider = new ConfigurableConfigurationProvider();
-            
             loggerMock = new Mock<ILogger>();
-
 
             vsMonitorMock = new Mock<IVsMonitorSelection>();
             vsMonitorMock
                 .Setup(x => x.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionUIContextCookie))
                 .Returns(VSConstants.S_OK);
 
-            serviceProvider.RegisterService(typeof(SVsShellMonitorSelection), vsMonitorMock.Object, replaceExisting: true);
+            vsUIServiceOperation = CreateServiceOperation(vsMonitorMock.Object);
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<ActiveSolutionBoundTracker, IActiveSolutionBoundTracker>(
+                MefTestHelpers.CreateExport<IVsUIServiceOperation>(),
+                MefTestHelpers.CreateExport<IHost>(host),
+                MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
+                MefTestHelpers.CreateExport<ILogger>(),
+                MefTestHelpers.CreateExport<IBoundSolutionGitMonitor>(),
+                MefTestHelpers.CreateExport<IConfigurationProvider>());
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+           => MefTestHelpers.CheckIsSingletonMefComponent<ActiveSolutionBoundTracker>();
+
+        [TestMethod]
+        public void MefCtor_DoesNotCallAnyServices_BesidesExpected()
+        {
+            var vsUIServiceOperation = new Mock<IVsUIServiceOperation>();
+            var hostMock = new Mock<IHost>();
+            hostMock.SetupGet(x => x.VisualStateManager).Returns(Mock.Of<IStateManager>());
+
+            var activeSolutionTrackerMock = new Mock<IActiveSolutionTracker>();
+            var logger = new Mock<ILogger>();
+            var boundSolutionGitMonitor = new Mock<IBoundSolutionGitMonitor>();
+            var configurationProvider = new Mock<IConfigurationProvider>();
+
+            _ = new ActiveSolutionBoundTracker(vsUIServiceOperation.Object, hostMock.Object, activeSolutionTrackerMock.Object, logger.Object,
+                boundSolutionGitMonitor.Object, configurationProvider.Object);
+
+            // The MEF constructor should be free-threaded, which it will be if
+            // it doesn't make any external calls.
+            vsUIServiceOperation.Invocations.Should().BeEmpty();
+            logger.Invocations.Should().BeEmpty();
+            configurationProvider.Verify(x => x.GetConfiguration(), Times.Once);
+            configurationProvider.VerifyNoOtherCalls();
+            hostMock.VerifyGet(x => x.VisualStateManager, Times.Once());
+            hostMock.VerifyAdd(x => x.VisualStateManager.BindingStateChanged += It.IsAny<EventHandler<BindingStateEventArgs>>());
+            hostMock.VerifyNoOtherCalls();
+
+            activeSolutionTrackerMock.VerifyAdd(x => x.ActiveSolutionChanged += It.IsAny<EventHandler<ActiveSolutionChangedEventArgs>>());
+            activeSolutionTrackerMock.VerifyNoOtherCalls();
+            boundSolutionGitMonitor.VerifyAdd(x => x.HeadChanged += It.IsAny<EventHandler>());
+            boundSolutionGitMonitor.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -173,7 +204,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 eventCounter.SolutionBindingChangedCount.Should().Be(0, "no events raised during construction");
                 eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "no events raised during construction");
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(0, "no events raised during construction");
-                VerifyAndResetBoundSolutionUIContextMock(isActive: true);
 
                 // Case 1: Clear bound project
                 ConfigureSolutionBinding(null);
@@ -310,7 +340,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 eventCounter.RaisedEventNames.Should().HaveCount(2);
                 eventCounter.RaisedEventNames[0].Should().Be("PreSolutionBindingChanged");
-                eventCounter.RaisedEventNames[1].Should().Be("SolutionBindingChanged");                    
+                eventCounter.RaisedEventNames[1].Should().Be("SolutionBindingChanged");
             }
         }
 
@@ -405,7 +435,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             using (CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
             {
-
                 int commandCallCount = 0;
                 int commandCanExecuteCallCount = 0;
                 var teSection = ConfigurableSectionController.CreateDefault();
@@ -570,12 +599,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             IConfigurationProvider configurationProvider,
             ILogger logger = null,
             IBoundSolutionGitMonitor gitEvents = null,
-            IServiceProvider serviceProvider = null)
+            IVsUIServiceOperation vsUIServiceOperation = null)
         {
             logger ??= new TestLogger(logToConsole: true);
             gitEvents ??= Mock.Of<IBoundSolutionGitMonitor>();
-            serviceProvider ??= this.serviceProvider;
-            return new ActiveSolutionBoundTracker(serviceProvider, host, solutionTracker, logger, gitEvents, configurationProvider);
+            vsUIServiceOperation ??= this.vsUIServiceOperation;
+            return new ActiveSolutionBoundTracker(vsUIServiceOperation, host, solutionTracker, logger, gitEvents, configurationProvider);
+        }
+
+        private static IVsUIServiceOperation CreateServiceOperation(IVsMonitorSelection svcToPassToCallback)
+        {
+            svcToPassToCallback ??= Mock.Of<IVsMonitorSelection>();
+
+            var serviceOp = new Mock<IVsUIServiceOperation>();
+
+            // Set up the mock to invoke the operation with the supplied VS service
+            serviceOp.Setup(x => x.Execute<SVsShellMonitorSelection, IVsMonitorSelection>(It.IsAny<Action<IVsMonitorSelection>>()))
+                .Callback<Action<IVsMonitorSelection>>(op => op(svcToPassToCallback));
+
+            return serviceOp.Object;
         }
 
         private void ConfigureService(bool isConnected)
@@ -588,7 +630,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Callback(() => isMockServiceConnected = false)
                 .Verifiable();
             sonarQubeServiceMock.Setup(connectMethod)
-                .Callback(() => isMockServiceConnected = true )
+                .Callback(() => isMockServiceConnected = true)
                 .Returns(Task.Delay(0))
                 .Verifiable();
 
