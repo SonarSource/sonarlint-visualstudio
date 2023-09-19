@@ -26,10 +26,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList;
 using SonarQube.Client;
-using VSShell = Microsoft.VisualStudio.Shell;
 using VSShellInterop = Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
@@ -54,10 +54,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         private readonly IConfigurationProvider configurationProvider;
         private readonly IToolWindowService toolWindowService;
         private readonly IStatefulServerBranchProvider serverBranchProvider;
+        private readonly IVsUIServiceOperation vSServiceOperation;
         private readonly ILogger logger;
-
-        private readonly VSShellInterop.IVsMonitorSelection vsMonitorSelection;
-        private readonly uint contextCookie;
 
         [ImportingConstructor]
         public TaintIssuesSynchronizer(ITaintStore taintStore,
@@ -66,7 +64,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             IConfigurationProvider configurationProvider,
             IToolWindowService toolWindowService,
             IStatefulServerBranchProvider serverBranchProvider,
-            [Import(typeof(VSShell.SVsServiceProvider))] IServiceProvider serviceProvider,
+            IVsUIServiceOperation vSServiceOperation,
             ILogger logger)
         {
             this.taintStore = taintStore;
@@ -75,14 +73,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             this.configurationProvider = configurationProvider;
             this.toolWindowService = toolWindowService;
             this.serverBranchProvider = serverBranchProvider;
+            this.vSServiceOperation = vSServiceOperation;
             this.logger = logger;
-
-            vsMonitorSelection = (VSShellInterop.IVsMonitorSelection)serviceProvider.GetService(typeof(VSShellInterop.SVsShellMonitorSelection));
-            Guid localGuid = TaintIssuesExistUIContext.Guid;
-            vsMonitorSelection.GetCmdUIContextCookie(ref localGuid, out contextCookie);
         }
 
-        public async Task SynchronizeWithServer() 
+        public async Task SynchronizeWithServer()
         {
             try
             {
@@ -169,7 +164,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         private async Task<AnalysisInformation> GetAnalysisInformation(string projectKey, string branchName)
         {
             Debug.Assert(branchName != null, "BranchName should not be null when in Connected Mode");
-            
+
             var branches = await sonarQubeService.GetProjectBranchesAsync(projectKey, CancellationToken.None);
 
             var issuesBranch = branches.FirstOrDefault(x => x.Name.Equals(branchName));
@@ -190,7 +185,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             taintStore.Set(Enumerable.Empty<IAnalysisIssueVisualization>(), null);
         }
 
-        private void UpdateTaintIssuesUIContext(bool hasTaintIssues) =>
-            vsMonitorSelection.SetCmdUIContext(contextCookie, hasTaintIssues ? 1 : 0);
+        private void UpdateTaintIssuesUIContext(bool hasTaintIssues)
+        {
+            vSServiceOperation.Execute<VSShellInterop.SVsShellMonitorSelection, VSShellInterop.IVsMonitorSelection>(
+                monitorSelection =>
+                {
+                    Guid localGuid = TaintIssuesExistUIContext.Guid;
+
+                    monitorSelection.GetCmdUIContextCookie(ref localGuid, out var cookie);
+                    monitorSelection.SetCmdUIContext(cookie, hasTaintIssues ? 1 : 0);
+                });
+        }
     }
 }
