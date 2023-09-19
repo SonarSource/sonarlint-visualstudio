@@ -21,7 +21,6 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.Setup.Configuration;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -38,10 +37,26 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<VsVersionProvider, IVsVersionProvider>(
-                MefTestHelpers.CreateExport<SVsServiceProvider>(CreateServiceProvider(Mock.Of<IVsShell>())),
+            => MefTestHelpers.CheckTypeCanBeImported<VsVersionProvider, IVsVersionProvider>(
+                MefTestHelpers.CreateExport<IVsUIServiceOperation>(),
                 MefTestHelpers.CreateExport<ILogger>());
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+            => MefTestHelpers.CheckIsSingletonMefComponent<VsVersionProvider>();
+
+        [TestMethod]
+        public void MefCtor_DoesNotCallAnyServices()
+        {
+            var serviceOp = new Mock<IVsUIServiceOperation>();
+            var logger = new Mock<ILogger>();
+
+            _ = new VsVersionProvider(serviceOp.Object, logger.Object);
+
+            // The MEF constructor should be free-threaded, which it will be if
+            // it doesn't make any external calls.
+            serviceOp.Invocations.Should().BeEmpty();
+            logger.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -112,7 +127,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
                 .Setup(x => x.Get())
                 .Throws(new Exception("this is a test"));
 
-            var testSubject = new VsVersionProvider(CreateServiceProvider(vsShell.Object), setupConfigurationProvider.Object, Mock.Of<ILogger>());;
+            var testSubject = new VsVersionProvider(CreateServiceOperation(vsShell.Object), setupConfigurationProvider.Object, Mock.Of<ILogger>());;
 
             testSubject.Version.Should().BeNull();
 
@@ -126,15 +141,18 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             var setupConfigurationProvider = new Mock<ISetupConfigurationProvider>();
             setupConfigurationProvider.Setup(x => x.Get()).Returns(setupConfiguration);
 
-            return new VsVersionProvider(CreateServiceProvider(vsShell), setupConfigurationProvider.Object, logger);
+            return new VsVersionProvider(CreateServiceOperation(vsShell), setupConfigurationProvider.Object, logger);
         }
 
-        private IServiceProvider CreateServiceProvider(IVsShell vsShell)
+        private IVsUIServiceOperation CreateServiceOperation(IVsShell svcToPassToCallback)
         {
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(x => x.GetService(typeof(SVsShell))).Returns(vsShell);
+            var serviceOp = new Mock<IVsUIServiceOperation>();
 
-            return serviceProvider.Object;
+            // Set up the mock to invoke the operation with the supplied VS service
+            serviceOp.Setup(x => x.Execute<SVsShell, IVsShell, IVsVersion>(It.IsAny<Func<IVsShell, IVsVersion>>()))
+                .Returns<Func<IVsShell, IVsVersion>>(op => op(svcToPassToCallback));
+
+            return serviceOp.Object;
         }
 
         private static Mock<IVsShell> CreateVsShell(string installDirectory = null, Exception errorToReturn = null)
