@@ -111,6 +111,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 
             // Note: we're currently reporting the whole snapshot as having changed. We could be more specific
             // if our buffer raised a more specific notification.
+            // See #3692 for more information.
             NotifyTagsChanged();
         }
 
