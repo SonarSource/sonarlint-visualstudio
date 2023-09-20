@@ -40,8 +40,26 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<VsVersionProvider, IVsVersionProvider>(
-                MefTestHelpers.CreateExport<SVsServiceProvider>(CreateServiceProvider(Mock.Of<IVsShell>())),
+                MefTestHelpers.CreateExport<SVsServiceProvider>(),
                 MefTestHelpers.CreateExport<ILogger>());
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+            => MefTestHelpers.CheckIsSingletonMefComponent<VsVersionProvider>();
+
+        [TestMethod]
+        public void MefCtor_DoesNotCallAnyServices()
+        {
+            var serviceProvider = new Mock<SVsServiceProvider>();
+            var logger = new Mock<ILogger>();
+
+            _ = new VsVersionProvider(serviceProvider.Object, logger.Object);
+
+            // The MEF constructor should be free-threaded, which it will be if
+            // it doesn't make any external calls.
+            serviceProvider.Invocations.Should().BeEmpty();
+            logger.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]

@@ -32,7 +32,9 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.VsVersion
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class VsVersionProvider : IVsVersionProvider
     {
-        public IVsVersion Version { get; }
+        private readonly Lazy<IVsVersion> version;
+
+        public IVsVersion Version { get { return version.Value; } }
 
         [ImportingConstructor]
         public VsVersionProvider([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ILogger logger)
@@ -42,7 +44,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.VsVersion
 
         internal VsVersionProvider(IServiceProvider serviceProvider, ISetupConfigurationProvider setupConfigurationProvider, ILogger logger)
         {
-            Version = CalculateVersion(serviceProvider, setupConfigurationProvider, logger);
+            version = new Lazy<IVsVersion>(() => CalculateVersion(serviceProvider, setupConfigurationProvider, logger));
         }
 
         private static IVsVersion CalculateVersion(IServiceProvider serviceProvider, ISetupConfigurationProvider setupConfigurationProvider, ILogger logger)
