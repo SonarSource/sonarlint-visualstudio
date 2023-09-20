@@ -52,8 +52,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             var actual = testSubject.Create(bindingArgs);
             actual.Should().Should().NotBeNull();
             actual.Should().BeOfType<BindingProcessImpl>();
-
-            var actualImpl = (BindingProcessImpl)actual;
         }
 
         private static BindingProcessFactory CreateTestSubject(
