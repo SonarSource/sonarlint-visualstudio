@@ -49,12 +49,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 
             var testSubject = CreateTestSubject();
 
-            var actual = testSubject.Create(bindingArgs, false);
+            var actual = testSubject.Create(bindingArgs);
             actual.Should().Should().NotBeNull();
             actual.Should().BeOfType<BindingProcessImpl>();
 
             var actualImpl = (BindingProcessImpl)actual;
-            actualImpl.InternalState.IsFirstBinding.Should().BeFalse();
         }
 
         private static BindingProcessFactory CreateTestSubject(

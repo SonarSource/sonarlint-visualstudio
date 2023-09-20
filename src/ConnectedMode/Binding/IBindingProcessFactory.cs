@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     /// </summary>
     internal interface IBindingProcessFactory
     {
-        IBindingProcess Create(BindCommandArgs bindingArgs, bool isFirstBinding);
+        IBindingProcess Create(BindCommandArgs bindingArgs);
     }
 
     [Export(typeof(IBindingProcessFactory))]
@@ -56,14 +56,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             this.logger = logger;
         }
 
-        public IBindingProcess Create(BindCommandArgs bindingArgs, bool isFirstBinding)
+        public IBindingProcess Create(BindCommandArgs bindingArgs)
         {
             return new BindingProcessImpl(bindingArgs,
                 exclusionSettingsStorage,
                 sonarQubeService,
                 qualityProfileDownloader,
-                logger,
-                isFirstBinding);
+                logger);
         }
     }
 }

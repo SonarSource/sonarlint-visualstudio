@@ -157,9 +157,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void BindingWorkflow_EmitBindingCompleteMessage()
         {
             // Arrange
-
-            // Test case 1: process succeeded
-            mockBindingProcess.Setup(x => x.BindOperationSucceeded).Returns(true);
             var notificationsOk = new ConfigurableProgressStepExecutionEvents();
 
             // Act
@@ -167,17 +164,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             notificationsOk.AssertProgressMessages(string.Format(CultureInfo.CurrentCulture, Strings.FinishedSolutionBindingWorkflowSuccessful));
-
-            // Test case 2: process failed
-            // Arrange
-            mockBindingProcess.Setup(x => x.BindOperationSucceeded).Returns(false);
-            var notificationsFail = new ConfigurableProgressStepExecutionEvents();
-
-            // Act
-            testSubject.EmitBindingCompleteMessage(notificationsFail);
-
-            // Assert
-            notificationsFail.AssertProgressMessages(string.Format(CultureInfo.CurrentCulture, Strings.FinishedSolutionBindingWorkflowNotAllPackagesInstalled));
         }
 
         #endregion Tests
