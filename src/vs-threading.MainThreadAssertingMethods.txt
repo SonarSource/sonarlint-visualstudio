@@ -1,1 +1,4 @@
+# List all of our methods that assert we are on the UI thread.
+# Format: see https://github.com/microsoft/vs-threading/blob/main/doc/analyzers/configuration.md#methods-that-assert-the-main-thread
+
 [SonarLint.VisualStudio.Core.IThreadHandling]::ThrowIfNotOnUIThread

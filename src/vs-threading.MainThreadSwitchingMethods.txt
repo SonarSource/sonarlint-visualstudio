@@ -1,0 +1,7 @@
+# List all of our methods that handle switching the UI thread.
+# Format: see https://github.com/microsoft/vs-threading/blob/main/doc/analyzers/configuration.md#methods-that-switch-to-the-main-thread
+
+[SonarLint.VisualStudio.Core.IThreadHandling]::SwitchToMainThreadAsync
+[SonarLint.VisualStudio.Core.IThreadHandling]::RunOnUIThread
+[SonarLint.VisualStudio.Core.IThreadHandling]::RunOnUIThreadAsync
+

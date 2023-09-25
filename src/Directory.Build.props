@@ -13,8 +13,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)AssemblyInfo.Shared.cs">
       <Link>Properties\AssemblyInfo.Shared.cs</Link>
     </Compile>
-	<AdditionalFiles Include="$(MSBuildThisFileDirectory)vs-threading.MainThreadAssertingMethods.txt">
-	      <Link>Properties\vs-threading.MainThreadAssertingMethods.txt</Link>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)vs-threading.MainThreadAssertingMethods.txt">
+	    <Visible>false</Visible>
+    </AdditionalFiles>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)vs-threading.MainThreadSwitchingMethods.txt">
+      <Visible>false</Visible>
     </AdditionalFiles>
   </ItemGroup>
 
