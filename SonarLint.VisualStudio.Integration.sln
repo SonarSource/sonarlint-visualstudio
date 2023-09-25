@@ -162,6 +162,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.Client", "src\Son
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.Client.Tests", "src\SonarQube.Client.Tests\SonarQube.Client.Tests.csproj", "{4F5AE2A8-56DD-44EC-9872-B7884CC1C1DB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VsAnalyzerConfig", "VsAnalyzerConfig", "{682C440B-E506-4811-9569-9734D8DF4620}"
+	ProjectSection(SolutionItems) = preProject
+		src\vs-threading.MainThreadAssertingMethods.txt = src\vs-threading.MainThreadAssertingMethods.txt
+		src\vs-threading.MainThreadSwitchingMethods.txt = src\vs-threading.MainThreadSwitchingMethods.txt
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -539,6 +545,7 @@ Global
 		{E47E649E-5044-485B-A077-8FB282094A7D} = {628A579F-0D27-4F9F-A756-8CC0A67A7B3D}
 		{EE7F939B-7127-433C-80CD-5DB278361229} = {32F0945C-72D0-4116-95D5-F9EE2177D51B}
 		{4F5AE2A8-56DD-44EC-9872-B7884CC1C1DB} = {32F0945C-72D0-4116-95D5-F9EE2177D51B}
+		{682C440B-E506-4811-9569-9734D8DF4620} = {A4C88C9A-7C47-47FE-8AB6-8D7588D05EF1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DABC27C8-E761-4826-AD2D-056F677EF3C0}
