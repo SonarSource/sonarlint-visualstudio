@@ -381,25 +381,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void BindingController_InStandalone_IsFirstBindingIsTrue()
-        {
-            // Arrange
-            configProvider.ModeToReturn = SonarLintMode.Standalone;
-            configProvider.ProjectToReturn = ValidProject;
-
-            var bindingProcessFactory = new Mock<IBindingProcessFactory>();
-            var bindingProcess = Mock.Of<IBindingProcess>();
-            bindingProcessFactory.Setup(x => x.Create(ValidBindingArgs, true)).Returns(bindingProcess);
-
-            // Act
-            var actual = BindingController.CreateBindingProcess(serviceProvider, ValidBindingArgs, bindingProcessFactory.Object, logger);
-
-            // Assert
-            actual.Should().BeSameAs(bindingProcess);
-            logger.AssertOutputStrings(Strings.Bind_FirstTimeBinding);
-        }
-
-        [TestMethod]
         public void BindingController_InConnectedMode_IsFirstBindingIsFalse()
         {
             // Arrange
@@ -408,10 +389,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             var bindingProcessFactory = new Mock<IBindingProcessFactory>();
             var bindingProcess = Mock.Of<IBindingProcess>();
-            bindingProcessFactory.Setup(x => x.Create(ValidBindingArgs, false)).Returns(bindingProcess);
+            bindingProcessFactory.Setup(x => x.Create(ValidBindingArgs)).Returns(bindingProcess);
 
             // Act
-            var actual = BindingController.CreateBindingProcess(serviceProvider, ValidBindingArgs, bindingProcessFactory.Object, logger);
+            var actual = BindingController.CreateBindingProcess(ValidBindingArgs, bindingProcessFactory.Object, logger);
 
             // Assert
             actual.Should().BeSameAs(bindingProcess);

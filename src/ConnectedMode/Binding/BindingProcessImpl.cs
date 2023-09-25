@@ -47,8 +47,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             IExclusionSettingsStorage exclusionSettingsStorage,
             ISonarQubeService sonarQubeService,
             IQualityProfileDownloader qualityProfileDownloader,
-            ILogger logger,
-            bool isFirstBinding = false)
+            ILogger logger)
         {
             this.bindingArgs = bindingArgs ?? throw new ArgumentNullException(nameof(bindingArgs));
             this.exclusionSettingsStorage = exclusionSettingsStorage ?? throw new ArgumentNullException(nameof(exclusionSettingsStorage));
@@ -59,12 +58,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             Debug.Assert(bindingArgs.ProjectKey != null);
             Debug.Assert(bindingArgs.ProjectName != null);
             Debug.Assert(bindingArgs.Connection != null);
-
-            this.InternalState = new BindingProcessState(isFirstBinding);
         }
-
-        // This property should not be used by product code outside this class
-        internal /* for testing */ BindingProcessState InternalState { get;  }
 
         #region IBindingTemplate methods
 
@@ -112,39 +106,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
                 return false;
             }
             return true;
-        }
-
-        public bool BindOperationSucceeded => InternalState.BindingOperationSucceeded;
-
-        #endregion
-
-        #region Workflow state
-
-        internal class BindingProcessState
-        {
-            public BindingProcessState(bool isFirstBinding)
-            {
-                this.IsFirstBinding = isFirstBinding;
-            }
-
-            public bool IsFirstBinding { get; }
-
-            // TODO - change to simple list of configs
-            public Dictionary<Language, IBindingConfig> BindingConfigs
-            {
-                get;
-            } = new Dictionary<Language, IBindingConfig>();
-
-            public Dictionary<Language, SonarQubeQualityProfile> QualityProfiles
-            {
-                get;
-            } = new Dictionary<Language, SonarQubeQualityProfile>();
-
-            public bool BindingOperationSucceeded
-            {
-                get;
-                set;
-            } = true;
         }
 
         #endregion

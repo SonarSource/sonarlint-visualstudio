@@ -37,7 +37,5 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken);
 
         Task<bool> SaveServerExclusionsAsync(CancellationToken cancellationToken);
-
-        bool BindOperationSucceeded { get; }
     }
 }
