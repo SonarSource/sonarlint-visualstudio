@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             args.ProjectKey.Should().Be(AnyBoundProject.ProjectKey);
             args.Connection.ServerUri.Should().Be(AnyBoundProject.ServerUri);
 
-            bindingProcessFactory.Verify(x => x.Create(It.IsAny<BindCommandArgs>(), true), Times.Once);
+            bindingProcessFactory.Verify(x => x.Create(It.IsAny<BindCommandArgs>()), Times.Once);
         }
 
         [TestMethod]
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             bindingProcess ??= Mock.Of<IBindingProcess>();
 
             var bindingProcessFactory = new Mock<IBindingProcessFactory>();
-            bindingProcessFactory.Setup(x => x.Create(It.IsAny<BindCommandArgs>(), true)).Returns(bindingProcess);
+            bindingProcessFactory.Setup(x => x.Create(It.IsAny<BindCommandArgs>())).Returns(bindingProcess);
 
             return bindingProcessFactory;
         }

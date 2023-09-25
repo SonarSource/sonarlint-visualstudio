@@ -142,10 +142,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /*for testing purposes*/ void EmitBindingCompleteMessage(IProgressStepExecutionEvents notifications)
         {
-            var message = this.bindingProcess.BindOperationSucceeded
-                ? Strings.FinishedSolutionBindingWorkflowSuccessful
-                : Strings.FinishedSolutionBindingWorkflowNotAllPackagesInstalled;
-            notifications.ProgressChanged(message);
+            notifications.ProgressChanged(Strings.FinishedSolutionBindingWorkflowSuccessful);
         }
 
         #endregion

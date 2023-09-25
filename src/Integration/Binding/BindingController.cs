@@ -24,7 +24,6 @@ using System.Linq;
 using Microsoft.VisualStudio.OLE.Interop;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -120,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         void IBindingWorkflowExecutor.BindProject(BindCommandArgs bindingArgs)
         {
-            var bindingProcess = CreateBindingProcess(serviceProvider, bindingArgs, bindingProcessFactory, host.Logger);
+            var bindingProcess = CreateBindingProcess(bindingArgs, bindingProcessFactory, host.Logger);
             var workflow = new BindingWorkflow(serviceProvider, host, bindingProcess);
 
             IProgressEvents progressEvents = workflow.Run();
@@ -128,24 +127,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.SetBindingInProgress(progressEvents, bindingArgs);
         }
 
-        internal static /* for testing purposes */ IBindingProcess CreateBindingProcess(System.IServiceProvider serviceProvider, BindCommandArgs bindingArgs, IBindingProcessFactory bindingProcessFactory, ILogger logger)
+        internal static /* for testing purposes */ IBindingProcess CreateBindingProcess(BindCommandArgs bindingArgs, IBindingProcessFactory bindingProcessFactory, ILogger logger)
         {
-            // Choose the type of binding
-            var configProvider = serviceProvider.GetMefService<IConfigurationProvider>();
-            Debug.Assert(configProvider != null, "Failed to fetch IConfigurationProvider");
+            logger.WriteLine(Strings.Bind_UpdatingNewStyleBinding);
 
-            var currentConfiguration = configProvider.GetConfiguration();
-
-            // If we are currently in standalone then the project is being bound for the first time.
-            // Otherwise, we are updating an existing binding
-            var isFirstBinding = currentConfiguration.Mode == SonarLintMode.Standalone;
-
-            logger.WriteLine(
-                isFirstBinding ?
-                    Strings.Bind_FirstTimeBinding :
-                    Strings.Bind_UpdatingNewStyleBinding);
-
-            var bindingProcess = bindingProcessFactory.Create(bindingArgs, isFirstBinding);
+            var bindingProcess = bindingProcessFactory.Create(bindingArgs);
             return bindingProcess;
         }
 

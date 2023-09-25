@@ -349,10 +349,6 @@ ocalization note: '[try again]()' is a special markup used to translate the text
     <value>SonarQube</value>
     <comment>Name of SonarQube server product</comment>
   </data>
-  <data name="FinishedSolutionBindingWorkflowNotAllPackagesInstalled" xml:space="preserve">
-    <value>Not all NuGet packages were installed. Please see output above for more information.</value>
-    <comment>Output message indicating not all NuGet packages were installed during the binding workflow</comment>
-  </data>
   <data name="UnexpectedErrorMessageFormat" xml:space="preserve">
     <value>{0}: Unexpected error: {1}.
 
@@ -503,9 +499,6 @@ This is the general format to use when writing errors to output window or when t
   <data name="Bind_FailedToSaveConfiguration" xml:space="preserve">
     <value>Failed to save configuration</value>
     <comment>Message for save error in new binding workflow</comment>
-  </data>
-  <data name="Bind_FirstTimeBinding" xml:space="preserve">
-    <value>Establishing new binding...</value>
   </data>
   <data name="Bind_UpdatingNewStyleBinding" xml:space="preserve">
     <value>Updating binding...</value>

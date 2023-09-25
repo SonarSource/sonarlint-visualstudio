@@ -244,16 +244,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
                 Times.Once);
         }
 
-        [TestMethod]
-        public void EmitBindingCompleteMessage()
-        {
-            // Arrange
-            var testSubject = this.CreateTestSubject();
-
-            // Test case 1: Default state is 'true'
-            testSubject.InternalState.BindingOperationSucceeded.Should().BeTrue($"Initial state of {nameof(BindingProcessImpl.InternalState.BindingOperationSucceeded)} should be true");
-        }
-
         #endregion Tests
 
         #region Helpers
@@ -274,8 +264,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
                 exclusionSettingsStorage,
                 sonarQubeService,
                 qpDownloader,
-                logger,
-                false);
+                logger);
         }
 
         private BindCommandArgs CreateBindCommandArgs(string projectKey = "key", string projectName = "name", ConnectionInformation connection = null)

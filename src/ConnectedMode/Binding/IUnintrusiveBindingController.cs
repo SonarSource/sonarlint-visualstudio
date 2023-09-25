@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         private IBindingProcess CreateBindingProcess(BoundSonarQubeProject project)
         {
             var commandArgs = new BindCommandArgs(project.ProjectKey, project.ProjectName, project.CreateConnectionInformation());
-            var bindingProcess = bindingProcessFactory.Create(commandArgs, true);
+            var bindingProcess = bindingProcessFactory.Create(commandArgs);
 
             return bindingProcess;
         }
