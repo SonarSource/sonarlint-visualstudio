@@ -114,21 +114,22 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         #region TeamExplorerSectionBase overrides
 
-#if VS2019
+// TE: is no longer be required since our UI is no longer hosted in the Team Explorer tool window
+//#if VS2019
 
-        protected override void InitializeViewModel(SectionInitializeEventArgs e)
-        {
-            base.InitializeViewModel(e);
+//        protected override void InitializeViewModel(SectionInitializeEventArgs e)
+//        {
+//            base.InitializeViewModel(e);
 
-            // Warning - cargo cult code!
-            // This property isn't documented. However, without it the Team Explorer will add a scroll bar to the section during
-            // binding if the section height is not large enough to display the user control (so there can be two scrollbars, the
-            // section scrollbar and the project tree view scrollbar).
-            // With it, the control is correctly sized to the available height with just the project tree view scrollbar when required.
-            // This property is was added in VS2019.
-            ITeamExplorerSectionExtensions.SetProperty(this, SectionProperties.FillVerticalSpace, 600d);
-        }
-#endif
+//            // Warning - cargo cult code!
+//            // This property isn't documented. However, without it the Team Explorer will add a scroll bar to the section during
+//            // binding if the section height is not large enough to display the user control (so there can be two scrollbars, the
+//            // section scrollbar and the project tree view scrollbar).
+//            // With it, the control is correctly sized to the available height with just the project tree view scrollbar when required.
+//            // This property is was added in VS2019.
+//            ITeamExplorerSectionExtensions.SetProperty(this, SectionProperties.FillVerticalSpace, 600d);
+//        }
+//#endif
 
         public void Initialize()
         {

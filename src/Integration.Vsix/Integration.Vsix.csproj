@@ -78,7 +78,9 @@
     <RequiresChannels>true</RequiresChannels>
     <RequiresLanguageServices>true</RequiresLanguageServices>
   </PropertyGroup>
-  
+
+  <!-- TE: TODO - check. The following comment probably isn't true. Not sure if we still need to import the
+           version-specific props file (maybe yes). -->
   <!-- This project references the SonarLint TeamExplorer assembly which is VS-version specific -->
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
