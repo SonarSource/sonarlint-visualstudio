@@ -24,13 +24,12 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
-using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList;
 using SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
@@ -65,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         Scope = "type",
         Target = "~T:SonarLint.VisualStudio.Integration.Vsix.SonarLintIntegrationPackage")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    [ProvideToolWindow(typeof(ConnectedMode_prototype.ConnectedModeToolWindow), MultiInstances = false, Transient = true, Style = VsDockStyle.Tabbed, Width = 700, Height = 250)]
+    [ProvideToolWindow(typeof(ConnectedMode_prototype.ConnectedModeToolWindow), MultiInstances = false, Transient = true, Style = VsDockStyle.Tabbed, Window = ToolWindowGuids.SolutionExplorer, Width = 325, Height = 400)]
     public class SonarLintIntegrationPackage : AsyncPackage
     {
         // Note: we don't currently have any tests for this class so we don't need to inject

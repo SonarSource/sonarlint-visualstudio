@@ -20,7 +20,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Windows.Controls;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 
@@ -35,6 +34,7 @@ namespace SonarLint.VisualStudio.Integration.ConnectedMode_prototype
         public ConnectedModeToolWindow(ISectionController sectionController)
         {
             Content = sectionController.View;
+            Caption = "Sonar Connected Mode"; // TODO - add to resource file
         }
     }
 }
