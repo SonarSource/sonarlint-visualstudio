@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         private readonly IWebBrowser webBrowser;
 
-        internal object View;
+        internal ConnectSectionView View;
         internal ITeamExplorerSection ViewModel;
 
         [ImportingConstructor]
@@ -128,20 +128,13 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         }
 #endif
 
-        object CreateView(SectionInitializeEventArgs e)
-        {
-            return new ConnectSectionView();
-        }
-
-        ITeamExplorerSection CreateViewModel(SectionInitializeEventArgs e)
-        {
-            return new ConnectSectionViewModel();
-        }
-
         public void Initialize(object sender, SectionInitializeEventArgs e)
         {
-            this.View = CreateView(e);
-            this.ViewModel = CreateViewModel(e);
+            View = new ConnectSectionView();
+            ViewModel = new ConnectSectionViewModel();
+            // Need to connect the view with the view model.
+            // Presumably this was being done by the TE base class previously
+            View.DataContext = ViewModel;
 
             this.Host.VisualStateManager.IsBusyChanged += this.OnIsBusyChanged;
 
