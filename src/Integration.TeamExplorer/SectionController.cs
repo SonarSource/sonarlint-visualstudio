@@ -29,9 +29,12 @@ using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client.Models;
-using IVSOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
-using TF_OLECMD = Microsoft.TeamFoundation.Client.CommandTarget.OLECMD;
-using VS_OLECMD = Microsoft.VisualStudio.OLE.Interop.OLECMD;
+
+// TE: we're no longer hosted in the Team Explorer so we don't need to worry about handling normal VS commands.
+//     All of our commands are normal WPF commands.
+//using IVSOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
+//using TF_OLECMD = Microsoft.TeamFoundation.Client.CommandTarget.OLECMD;
+//using VS_OLECMD = Microsoft.VisualStudio.OLE.Interop.OLECMD;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
@@ -72,10 +75,10 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             Initialize(null, null);
         }
 
-        internal /*for testing purposes*/ List<IVSOleCommandTarget> CommandTargets
-        {
-            get;
-        } = new List<IVSOleCommandTarget>();
+        //internal /*for testing purposes*/ List<IVSOleCommandTarget> CommandTargets
+        //{
+        //    get;
+        //} = new List<IVSOleCommandTarget>();
 
         protected IHost Host
         {
@@ -244,8 +247,8 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             var connectionController = new Connection.ConnectionController(this.Host);
             var bindingController = new Binding.BindingController(this.Host);
 
-            this.CommandTargets.Add(connectionController);
-            this.CommandTargets.Add(bindingController);
+            //this.CommandTargets.Add(connectionController);
+            //this.CommandTargets.Add(bindingController);
 
             this.ConnectCommand = connectionController.ConnectCommand;
             this.RefreshCommand = connectionController.RefreshCommand;
@@ -254,7 +257,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         private void CleanControllerCommands()
         {
-            this.CommandTargets.Clear();
+            //this.CommandTargets.Clear();
 
             this.ConnectCommand = null;
             this.RefreshCommand = null;
@@ -362,26 +365,26 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         #endregion Commands
 
-        #region VS IOleCommandTarget conversion
+        //#region VS IOleCommandTarget conversion
 
-        /*
-         * The TeamFoundation client defines an IOleCommandTarget interface that is identical to the
-         * VS IOleComandTarget. We want to limit our references to the TF-specific assemblies, so we
-         * define our commands using the VS version.
-         * This means we need to convert from the TF OLECMD structure to the equivalent VS OLECMD
-         * when we are forwarding calls from this class to our VS OLE commands.
-         */
+        ///*
+        // * The TeamFoundation client defines an IOleCommandTarget interface that is identical to the
+        // * VS IOleComandTarget. We want to limit our references to the TF-specific assemblies, so we
+        // * define our commands using the VS version.
+        // * This means we need to convert from the TF OLECMD structure to the equivalent VS OLECMD
+        // * when we are forwarding calls from this class to our VS OLE commands.
+        // */
 
-        private static VS_OLECMD[] GetVsPrgCmds(TF_OLECMD[] prgCmds) =>
-            prgCmds?.Select(ConvertTFtoVSOleCmd).ToArray();
+        //private static VS_OLECMD[] GetVsPrgCmds(TF_OLECMD[] prgCmds) =>
+        //    prgCmds?.Select(ConvertTFtoVSOleCmd).ToArray();
 
-        private static VS_OLECMD ConvertTFtoVSOleCmd(TF_OLECMD cmd) =>
-            new VS_OLECMD
-            {
-                cmdf = cmd.cmdf,
-                cmdID = cmd.cmdID
-            };
+        //private static VS_OLECMD ConvertTFtoVSOleCmd(TF_OLECMD cmd) =>
+        //    new VS_OLECMD
+        //    {
+        //        cmdf = cmd.cmdf,
+        //        cmdID = cmd.cmdID
+        //    };
 
-        #endregion VS IOleCommandTarget conversion
+        //#endregion VS IOleCommandTarget conversion
     }
 }
