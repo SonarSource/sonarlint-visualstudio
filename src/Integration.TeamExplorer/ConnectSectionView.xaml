@@ -9,7 +9,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.TeamExplorer"
              xmlns:root="clr-namespace:SonarLint.VisualStudio.Integration;assembly=SonarLint.VisualStudio.Integration"
-             xmlns:tecontrols="clr-namespace:Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;assembly=Microsoft.TeamFoundation.Controls"
              xmlns:tfconverters="clr-namespace:Microsoft.TeamFoundation.Controls.WPF.Converters;assembly=Microsoft.TeamFoundation.Controls"
              xmlns:vsimagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              xmlns:vsimaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
@@ -71,15 +70,20 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <tecontrols:TextLink x:Name="ConnectLink"
-                                         Grid.Column="0"
+                        <TextBlock Grid.Column="0">
+                            <Hyperlink x:Name="ConnectLink"
                                          Command="{Binding ConnectCommand}"
-                                         CommandParameter="{Binding ElementName=progressPlacePlaceholder}"
-                                         Text="{x:Static resx:UIStrings.ConnectLinkText}" />
-                        <tecontrols:TextLink Grid.Column="2"
+                                         CommandParameter="{Binding ElementName=progressPlacePlaceholder}">
+                                <TextBlock Text="{x:Static resx:UIStrings.ConnectLinkText}" />
+                            </Hyperlink>
+                        </TextBlock>
+                        <TextBlock Grid.Column="2">
+                            <Hyperlink
                                          Command="{Binding BrowseToUrlCommand}"
-                                         CommandParameter="{x:Static root:Constants.SonarQubeHomeWebUrl}"
-                                         Text="{x:Static resx:UIStrings.MoreInfoLinkText}" />
+                                         CommandParameter="{x:Static root:Constants.SonarQubeHomeWebUrl}">
+                                <TextBlock Text="{x:Static resx:UIStrings.MoreInfoLinkText}" />
+                            </Hyperlink>
+                        </TextBlock>
                     </Grid>
                 </StackPanel>
 
