@@ -342,7 +342,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             host.ClearActiveSection();
             host.VisualStateManager.ManagedState.ConnectedServers.Clear();
-            controller.Initialize(null, new Microsoft.TeamFoundation.Controls.SectionInitializeEventArgs(new ServiceContainer(), null));
+            controller.Initialize();
             bool refreshCalled = false;
             controller.RefreshCommand = new RelayCommand<ConnectionInformation>(c => refreshCalled = true);
             controller.Refresh();
@@ -352,7 +352,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         private SectionController CreateTestSubject(IWebBrowser webBrowser = null)
         {
             var controller = new SectionController(host, webBrowser ?? new ConfigurableWebBrowser());
-            controller.Initialize(null, new SectionInitializeEventArgs(new ServiceContainer(), null));
+            controller.Initialize();
             return controller;
         }
 

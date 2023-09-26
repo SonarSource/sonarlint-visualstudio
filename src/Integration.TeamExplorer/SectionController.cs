@@ -24,7 +24,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
-using Microsoft.TeamFoundation.Controls;
+//using Microsoft.TeamFoundation.Controls;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
             this.Host = host;
             this.webBrowser = webBrowser;
-            Initialize(null, null);
+            Initialize();
         }
 
         //internal /*for testing purposes*/ List<IVSOleCommandTarget> CommandTargets
@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         }
 #endif
 
-        public void Initialize(object sender, SectionInitializeEventArgs e)
+        public void Initialize()
         {
             View = new ConnectSectionView();
             ViewModel = new ConnectSectionViewModel();
