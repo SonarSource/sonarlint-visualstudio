@@ -116,8 +116,13 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
             resourceNames.Count().Should().BeGreaterThan(1500);
 
             Console.WriteLine("Checking xaml creation. Count = " + resourceNames.Count());
-            var failures = resourceNames.Where(x => !ProcessResource(x))
-                .ToArray();
+
+            string[] failures;
+            using(new AssertIgnoreScope()) // the product code can assert if it encounters an unrecognised tag
+            {
+                failures = resourceNames.Where(x => !ProcessResource(x))
+                    .ToArray();
+            }
 
             // see https://github.com/SonarSource/sonarlint-visualstudio/issues/4471
             failures.Should().BeEquivalentTo(new[]
