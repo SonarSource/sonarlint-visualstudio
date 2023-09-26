@@ -36,6 +36,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("SonarLint.VisualStudio.Integration.TestInfrastructure")]
 [assembly: InternalsVisibleTo("SonarLint.VisualStudio.Integration.TeamExplorer")]
 [assembly: InternalsVisibleTo("SonarLint.VisualStudio.Integration.TeamExplorer.UnitTests")]
+[assembly: InternalsVisibleTo("Sonarlint.2022")]
 
 // Moq
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

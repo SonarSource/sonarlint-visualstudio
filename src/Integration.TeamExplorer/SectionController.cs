@@ -41,8 +41,9 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
     /// The class is responsible for view and view model creation also hosting the commands
     /// relevant during the life time of the section (initialized when activated and disposed when navigated to a different section).
     /// </summary>
-    [TeamExplorerSection(SectionController.SectionId, SonarQubePage.PageId, SectionController.Priority)]
-    internal class SectionController : TeamExplorerSectionBase, ISectionController
+    //[TeamExplorerSection(SectionController.SectionId, SonarQubePage.PageId, SectionController.Priority)]
+    [Export(typeof(ISectionController))]
+    internal class SectionController : /*TeamExplorerSectionBase,*/ ISectionController, IDisposable
     {
         public const string SectionId = "25AB05EF-8132-453E-A990-55587C0C5CD3";
         public const int Priority = 300;
@@ -50,6 +51,9 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         internal const int CommandNotHandled = (int)Microsoft.VisualStudio.OLE.Interop.Constants.OLECMDERR_E_UNKNOWNGROUP;
 
         private readonly IWebBrowser webBrowser;
+
+        internal object View;
+        internal ITeamExplorerSection ViewModel;
 
         [ImportingConstructor]
         public SectionController(IHost host, IWebBrowser webBrowser)
@@ -66,6 +70,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
             this.Host = host;
             this.webBrowser = webBrowser;
+            Initialize(null, null);
         }
 
         internal /*for testing purposes*/ List<IVSOleCommandTarget> CommandTargets
@@ -123,20 +128,20 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         }
 #endif
 
-        protected override object CreateView(SectionInitializeEventArgs e)
+        object CreateView(SectionInitializeEventArgs e)
         {
             return new ConnectSectionView();
         }
 
-        protected override ITeamExplorerSection CreateViewModel(SectionInitializeEventArgs e)
+        ITeamExplorerSection CreateViewModel(SectionInitializeEventArgs e)
         {
             return new ConnectSectionViewModel();
         }
 
-        public override void Initialize(object sender, SectionInitializeEventArgs e)
+        public void Initialize(object sender, SectionInitializeEventArgs e)
         {
-            // Create the View & ViewModel
-            base.Initialize(sender, e);
+            this.View = CreateView(e);
+            this.ViewModel = CreateViewModel(e);
 
             this.Host.VisualStateManager.IsBusyChanged += this.OnIsBusyChanged;
 
@@ -147,7 +152,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.Host.SetActiveSection(this);
         }
 
-        public override void Dispose()
+        public void Dispose()
         {
             this.Host.ClearActiveSection();
 
@@ -156,14 +161,10 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.CleanProvidedCommands();
             this.SyncCommands();
 
-            // Dispose the View & ViewModel
-            base.Dispose();
         }
 
-        public override void Refresh()
+        public void Refresh()
         {
-            base.Refresh();
-
             if (this.RefreshCommand.CanExecute(null))
             {
                 this.RefreshCommand.Execute(null);
@@ -173,26 +174,26 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         /// <summary>
         /// Delegate QueryStatus to commands
         /// </summary>
-        protected override int IOleCommandTargetQueryStatus(ref Guid pguidCmdGroup, uint cCmds,  
-            TF_OLECMD[] prgCmds, IntPtr pCmdText)
-        {
-            var result = CommandNotHandled;
+        //protected override int IOleCommandTargetQueryStatus(ref Guid pguidCmdGroup, uint cCmds,  
+        //    TF_OLECMD[] prgCmds, IntPtr pCmdText)
+        //{
+        //    var result = CommandNotHandled;
 
-            var vsPrgCmds = GetVsPrgCmds(prgCmds);
+        //    var vsPrgCmds = GetVsPrgCmds(prgCmds);
 
-            foreach (var commandTarget in this.CommandTargets)
-            {
-                result = commandTarget.QueryStatus(ref pguidCmdGroup, cCmds, vsPrgCmds, pCmdText);
+        //    foreach (var commandTarget in this.CommandTargets)
+        //    {
+        //        result = commandTarget.QueryStatus(ref pguidCmdGroup, cCmds, vsPrgCmds, pCmdText);
 
-                // If handed, stop the loop
-                if (result != CommandNotHandled)
-                {
-                    break;
-                }
-            }
+        //        // If handed, stop the loop
+        //        if (result != CommandNotHandled)
+        //        {
+        //            break;
+        //        }
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
         private void OnIsBusyChanged(object sender, bool isBusy)
         {

@@ -224,7 +224,7 @@ namespace SonarLint.VisualStudio.Integration.State
 
         private void ClearBindingErrorNotifications()
         {
-            this.Host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.FailedToFindBoundProjectKeyId);
+            //this.Host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.FailedToFindBoundProjectKeyId);
         }
 
         private void RestoreBoundProject(ServerViewModel serverViewModel)

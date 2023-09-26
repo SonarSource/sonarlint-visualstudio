@@ -22,18 +22,19 @@ using System;
 using System.Runtime.InteropServices;
 using System.Windows.Controls;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Integration.TeamExplorer;
 
 namespace SonarLint.VisualStudio.Integration.ConnectedMode_prototype
 {
     [Guid(ToolWindowIdAsString)]
-    public class ConnectedModeToolWindow : ToolWindowPane
+    internal class ConnectedModeToolWindow : ToolWindowPane
     {
         private const string ToolWindowIdAsString = "0eddcf48-0951-4546-b5c9-c5c2b583a6d4";
         public static readonly Guid ToolWindowId = new Guid(ToolWindowIdAsString);
 
-        public ConnectedModeToolWindow()
+        public ConnectedModeToolWindow(ISectionController sectionController)
         {
-            Content = new TextBox();
+            Content = sectionController.View;
         }
     }
 }

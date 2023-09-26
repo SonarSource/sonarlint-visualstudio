@@ -152,85 +152,85 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             viewModel.IsBusy.Should().BeFalse();
         }
 
-        [TestMethod]
-        public void SectionController_IOleCommandTargetQueryStatus()
-        {
-            // Arrange
-            var testSubject = this.CreateTestSubject();
-            TF_IOleCommandTarget testSubjectCommandTarget = testSubject;
-            testSubject.CommandTargets.Clear();
-            var command1 = new TestCommandTarget();
-            var command2 = new TestCommandTarget();
-            var command3 = new TestCommandTarget();
-            testSubject.CommandTargets.Add(command1);
-            testSubject.CommandTargets.Add(command2);
-            testSubject.CommandTargets.Add(command3);
-            Guid group = Guid.Empty;
-            uint cCmds = 0;
-            var prgCmds = new TF_OLECMD[0];
-            IntPtr pCmdText = IntPtr.Zero;
+        //[TestMethod]
+        //public void SectionController_IOleCommandTargetQueryStatus()
+        //{
+        //    // Arrange
+        //    var testSubject = this.CreateTestSubject();
+        //    TF_IOleCommandTarget testSubjectCommandTarget = testSubject;
+        //    testSubject.CommandTargets.Clear();
+        //    var command1 = new TestCommandTarget();
+        //    var command2 = new TestCommandTarget();
+        //    var command3 = new TestCommandTarget();
+        //    testSubject.CommandTargets.Add(command1);
+        //    testSubject.CommandTargets.Add(command2);
+        //    testSubject.CommandTargets.Add(command3);
+        //    Guid group = Guid.Empty;
+        //    uint cCmds = 0;
+        //    var prgCmds = new TF_OLECMD[0];
+        //    IntPtr pCmdText = IntPtr.Zero;
 
-            // Case 1 : no commands handling the request
-            // Act+Verify
-            testSubjectCommandTarget.QueryStatus(ref group, cCmds, prgCmds, pCmdText).Should().Be(SectionController.CommandNotHandled);
-            command1.QueryStatusNumberOfCalls.Should().Be(1);
-            command2.QueryStatusNumberOfCalls.Should().Be(1);
-            command3.QueryStatusNumberOfCalls.Should().Be(1);
+        //    // Case 1 : no commands handling the request
+        //    // Act+Verify
+        //    testSubjectCommandTarget.QueryStatus(ref group, cCmds, prgCmds, pCmdText).Should().Be(SectionController.CommandNotHandled);
+        //    command1.QueryStatusNumberOfCalls.Should().Be(1);
+        //    command2.QueryStatusNumberOfCalls.Should().Be(1);
+        //    command3.QueryStatusNumberOfCalls.Should().Be(1);
 
-            // Case 2 : the last command is handling the request
-            command3.QueryStatusReturnsResult = (int)VS_OLEConstants.OLECMDERR_E_CANCELED;
-            // Act+Verify
-            testSubjectCommandTarget.QueryStatus(ref group, cCmds, prgCmds, pCmdText).Should().Be((int)VS_OLEConstants.OLECMDERR_E_CANCELED);
-            command1.QueryStatusNumberOfCalls.Should().Be(2);
-            command2.QueryStatusNumberOfCalls.Should().Be(2);
-            command3.QueryStatusNumberOfCalls.Should().Be(2);
+        //    // Case 2 : the last command is handling the request
+        //    command3.QueryStatusReturnsResult = (int)VS_OLEConstants.OLECMDERR_E_CANCELED;
+        //    // Act+Verify
+        //    testSubjectCommandTarget.QueryStatus(ref group, cCmds, prgCmds, pCmdText).Should().Be((int)VS_OLEConstants.OLECMDERR_E_CANCELED);
+        //    command1.QueryStatusNumberOfCalls.Should().Be(2);
+        //    command2.QueryStatusNumberOfCalls.Should().Be(2);
+        //    command3.QueryStatusNumberOfCalls.Should().Be(2);
 
-            // Case 3 : the first command is handling the request
-            command1.QueryStatusReturnsResult = (int)VS_OLEConstants.OLECMDERR_E_DISABLED;
-            // Act+Verify
-            testSubjectCommandTarget.QueryStatus(ref group, cCmds, prgCmds, pCmdText).Should().Be((int)VS_OLEConstants.OLECMDERR_E_DISABLED);
-            command1.QueryStatusNumberOfCalls.Should().Be(3);
-            command2.QueryStatusNumberOfCalls.Should().Be(2);
-            command3.QueryStatusNumberOfCalls.Should().Be(2);
-        }
+        //    // Case 3 : the first command is handling the request
+        //    command1.QueryStatusReturnsResult = (int)VS_OLEConstants.OLECMDERR_E_DISABLED;
+        //    // Act+Verify
+        //    testSubjectCommandTarget.QueryStatus(ref group, cCmds, prgCmds, pCmdText).Should().Be((int)VS_OLEConstants.OLECMDERR_E_DISABLED);
+        //    command1.QueryStatusNumberOfCalls.Should().Be(3);
+        //    command2.QueryStatusNumberOfCalls.Should().Be(2);
+        //    command3.QueryStatusNumberOfCalls.Should().Be(2);
+        //}
 
-        [TestMethod]
-        public void SectionController_IOleCommandTargetQueryStatus_OLECMD_Conversion()
-        {
-            // Arrange
-            var testSubject = this.CreateTestSubject();
-            TF_IOleCommandTarget testSubjectCommandTarget = testSubject;
-            testSubject.CommandTargets.Clear();
-            var command1 = new TestCommandTarget();
-            testSubject.CommandTargets.Add(command1);
-            Guid group = Guid.Empty;
-            uint cCmds = 0;
-            IntPtr pCmdText = IntPtr.Zero;
+        //[TestMethod]
+        //public void SectionController_IOleCommandTargetQueryStatus_OLECMD_Conversion()
+        //{
+        //    // Arrange
+        //    var testSubject = this.CreateTestSubject();
+        //    TF_IOleCommandTarget testSubjectCommandTarget = testSubject;
+        //    testSubject.CommandTargets.Clear();
+        //    var command1 = new TestCommandTarget();
+        //    testSubject.CommandTargets.Add(command1);
+        //    Guid group = Guid.Empty;
+        //    uint cCmds = 0;
+        //    IntPtr pCmdText = IntPtr.Zero;
 
-            // Case 1 : null input TF_OLECMD
-            // Act+Verify
-            testSubjectCommandTarget.QueryStatus(ref group, cCmds, null, pCmdText).Should().Be(SectionController.CommandNotHandled);
-            command1.QueryStatusNumberOfCalls.Should().Be(1);
-            command1.CommandArguments.Should().BeNull();
+        //    // Case 1 : null input TF_OLECMD
+        //    // Act+Verify
+        //    testSubjectCommandTarget.QueryStatus(ref group, cCmds, null, pCmdText).Should().Be(SectionController.CommandNotHandled);
+        //    command1.QueryStatusNumberOfCalls.Should().Be(1);
+        //    command1.CommandArguments.Should().BeNull();
 
-            // Case 2 : multiple OLECMD values
-            var prgCmds = new TF_OLECMD[]
-                {
-                    new TF_OLECMD { cmdf = 1, cmdID = 2 },
-                    new TF_OLECMD { cmdf = 3, cmdID = 4 },
-                };
+        //    // Case 2 : multiple OLECMD values
+        //    var prgCmds = new TF_OLECMD[]
+        //        {
+        //            new TF_OLECMD { cmdf = 1, cmdID = 2 },
+        //            new TF_OLECMD { cmdf = 3, cmdID = 4 },
+        //        };
 
-            // Act+Verify
-            testSubjectCommandTarget.QueryStatus(ref group, cCmds, prgCmds, pCmdText).Should().Be(SectionController.CommandNotHandled);
-            command1.QueryStatusNumberOfCalls.Should().Be(2);
-            command1.CommandArguments.Should().NotBeNull();
-            command1.CommandArguments.Length.Should().Be(2);
+        //    // Act+Verify
+        //    testSubjectCommandTarget.QueryStatus(ref group, cCmds, prgCmds, pCmdText).Should().Be(SectionController.CommandNotHandled);
+        //    command1.QueryStatusNumberOfCalls.Should().Be(2);
+        //    command1.CommandArguments.Should().NotBeNull();
+        //    command1.CommandArguments.Length.Should().Be(2);
 
-            command1.CommandArguments[0].cmdf.Should().Be(1);
-            command1.CommandArguments[0].cmdID.Should().Be(2);
-            command1.CommandArguments[1].cmdf.Should().Be(3);
-            command1.CommandArguments[1].cmdID.Should().Be(4);
-        }
+        //    command1.CommandArguments[0].cmdf.Should().Be(1);
+        //    command1.CommandArguments[0].cmdID.Should().Be(2);
+        //    command1.CommandArguments[1].cmdf.Should().Be(3);
+        //    command1.CommandArguments[1].cmdID.Should().Be(4);
+        //}
 
         [TestMethod]
         public void SectionController_IOleCommandTargetQueryStatus_OLE_Constants_SanityCheck()

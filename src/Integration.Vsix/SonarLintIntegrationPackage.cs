@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList;
@@ -130,7 +131,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             if (toolWindowType == typeof(ConnectedMode_prototype.ConnectedModeToolWindow))
             {
-                return new ConnectedMode_prototype.ConnectedModeToolWindow();
+                IServiceProvider serviceProvider = this;
+
+                return new ConnectedMode_prototype.ConnectedModeToolWindow(serviceProvider.GetMefService<ISectionController>());
             }
 
             return base.InstantiateToolWindow(toolWindowType);
