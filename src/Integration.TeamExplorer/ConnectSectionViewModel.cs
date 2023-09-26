@@ -20,7 +20,6 @@
 
 using System;
 using System.Windows.Input;
-using Microsoft.TeamFoundation.Controls;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -41,6 +40,15 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
                                         IConnectSectionViewModel,
                                         IUserNotification
     {
+
+        // Replacement for Microsoft.TeamFoundation.Controls.NotificationType
+        private enum NotificationType
+        {
+            Information = 0,
+            Warning = 1,
+            Error = 2
+        }
+
         private TransferableVisualState state;
         private ICommand connectCommand;
         private ICommand<BindCommandArgs> bindCommand;
@@ -57,16 +65,13 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         public void ShowNotificationError(string message, Guid notificationId, ICommand associatedCommand)
         {
-            this.ShowNotification(message, NotificationType.Error, NotificationFlags.NoTooltips/*No need for them since we don't use hyperlinks*/, associatedCommand, notificationId);
+            this.ShowNotification(message, NotificationType.Error, associatedCommand, notificationId);
         }
 
         public void ShowNotificationWarning(string message, Guid notificationId, ICommand associatedCommand)
         {
-            this.ShowNotification(message, NotificationType.Warning, NotificationFlags.NoTooltips/*No need for them since we don't use hyperlinks*/, associatedCommand, notificationId);
+            this.ShowNotification(message, NotificationType.Warning, associatedCommand, notificationId);
         }
-
-        // TODO - TE: remove references to Microsoft.TeamFoundation.Controls.NotificationType and 
-        // Microsoft.TeamFoundation.Controls.NotificationFlags
 
         public bool HideNotification(Guid id)
         {
@@ -75,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             return true;
         }
 
-        private void ShowNotification(string message, NotificationType notificationType, NotificationFlags notificationFlags,
+        private void ShowNotification(string message, NotificationType notificationType,
             ICommand associatedCommand, Guid notificationId)
         {
             // TODO - TE: implement notifications
