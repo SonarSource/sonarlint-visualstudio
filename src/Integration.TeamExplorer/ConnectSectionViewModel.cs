@@ -21,16 +21,25 @@
 using System;
 using System.Windows.Input;
 using Microsoft.TeamFoundation.Controls;
-using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.WPF;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
-    internal class ConnectSectionViewModel : TeamExplorerSectionViewModelBase,
+    // TE: Simplified replacement for TeamExplorerSectionViewModelBase, implementing just the methods
+    // required by our code.
+    internal class DummyTeamExplorerSectionViewModelBase : SonarLint.VisualStudio.Integration.WPF.ViewModelBase
+    {
+        public bool IsBusy { get; set; }
+        public bool IsExpanded { get; set; }
+        public bool IsVisible { get; set; }
+        public string Title { get; set; }
+    }
+
+    internal class ConnectSectionViewModel : DummyTeamExplorerSectionViewModelBase,
                                         IConnectSectionViewModel,
-                                        IUserNotification /* Most of it implemented by TeamExplorerSectionViewModelBase */
+                                        IUserNotification
     {
         private TransferableVisualState state;
         private ICommand connectCommand;
@@ -54,6 +63,23 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         public void ShowNotificationWarning(string message, Guid notificationId, ICommand associatedCommand)
         {
             this.ShowNotification(message, NotificationType.Warning, NotificationFlags.NoTooltips/*No need for them since we don't use hyperlinks*/, associatedCommand, notificationId);
+        }
+
+        // TODO - TE: remove references to Microsoft.TeamFoundation.Controls.NotificationType and 
+        // Microsoft.TeamFoundation.Controls.NotificationFlags
+
+        public bool HideNotification(Guid id)
+        {
+            // TODO - TE: implement notifications
+            // This method was provided by TeamExplorerSectionViewModelBase. We need to provide an alternative implementation.
+            return true;
+        }
+
+        private void ShowNotification(string message, NotificationType notificationType, NotificationFlags notificationFlags,
+            ICommand associatedCommand, Guid notificationId)
+        {
+            // TODO - TE: implement notifications
+            // This method was provided by TeamExplorerSectionViewModelBase. We need to provide an alternative implementation.
         }
 
         #endregion

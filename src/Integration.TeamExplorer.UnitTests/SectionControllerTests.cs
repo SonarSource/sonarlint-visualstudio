@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             // Arrange
             SectionController testSubject = this.CreateTestSubject();
-            ITeamExplorerSection viewModel = testSubject.ViewModel;
+            IConnectSectionViewModel viewModel = testSubject.ViewModel;
 
             // Act
             this.host.TestStateManager.SetAndInvokeBusyChanged(true);

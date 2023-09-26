@@ -25,7 +25,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
 using Microsoft.TeamFoundation.Controls;
-using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -53,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         private readonly IWebBrowser webBrowser;
 
         internal ConnectSectionView View;
-        internal ITeamExplorerSection ViewModel;
+        internal ConnectSectionViewModel ViewModel;
 
         [ImportingConstructor]
         public SectionController(IHost host, IWebBrowser webBrowser)
