@@ -9,7 +9,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.TeamExplorer"
              xmlns:root="clr-namespace:SonarLint.VisualStudio.Integration;assembly=SonarLint.VisualStudio.Integration"
-             xmlns:tfconverters="clr-namespace:Microsoft.TeamFoundation.Controls.WPF.Converters;assembly=Microsoft.TeamFoundation.Controls"
+             xmlns:converters="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
              xmlns:vsimagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              xmlns:vsimaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:vstheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
@@ -27,8 +27,25 @@
                 <ResourceDictionary Source="CommonStyles.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/Microsoft.TeamFoundation.Controls;component/WPF/SharedResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <tfconverters:IntToVisibleConverter x:Key="IntToVisibleConverter" />
-            <tfconverters:TrueToVisibleConverter x:Key="TrueToVisibleConverter" />
+
+            <!-- TE: Replace Team Explorer converters with our converters -->
+             <!--<tfconverters:IntToVisibleConverter x:Key="IntToVisibleConverter" />-->
+            <!--<tfconverters:TrueToVisibleConverter x:Key="TrueToVisibleConverter" />-->
+            
+            <!-- Copied from ConnectionInfoDialogView.xaml -->
+            <converters:BoolToVisibilityConverter x:Key="TrueToVisibleConverter"
+                                              FalseValue="Collapsed" TrueValue="Visible"/>
+
+            <converters:BoolToVisibilityConverter x:Key="TrueToVisibleConverterInverted"
+                                              FalseValue="Visible" TrueValue="Collapsed"/>
+
+            <!-- New converter to replace Team Explorer converter -->
+            <converters:IntToVisibleConverter x:Key="IntToVisibleConverter"
+                                              ZeroOrLessVisibility="Collapsed" GreaterThanZeroVisibility="Visible"/>
+
+            <converters:IntToVisibleConverter x:Key="IntToVisibleConverterInverted"
+                                              ZeroOrLessVisibility="Visible" GreaterThanZeroVisibility="Collapsed"/>
+
             <vsutilities:BrushToColorConverter x:Key="BrushToColorConverter" />
             <sonarlintWpf:ProjectViewModelToBindingArgsConverter x:Key="ProjectViewModelToBindingArgsConverter" />
         </ResourceDictionary>
@@ -44,7 +61,9 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0">
-                <StackPanel Margin="0,6,6,6" Visibility="{Binding State.ConnectedServers.Count, Converter={StaticResource IntToVisibleConverter}, ConverterParameter=Invert}">
+                <!-- TE: the visibility of this panel doesn't need to be dynamic since the control
+                     is now hosted in our tool window rather than in a Team Explorer page -->
+                <StackPanel Margin="0,6,6,6" Visibility="Visible">
                     <Grid Margin="0,0,0,6">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -100,8 +119,7 @@
                         Text="{x:Static resx:UIStrings.SelectProjectInstruction}"
                         TextWrapping="Wrap"
                         Visibility="{Binding State.HasBoundProject,
-                                            Converter={StaticResource TrueToVisibleConverter},
-                                            ConverterParameter=Invert}" />
+                                            Converter={StaticResource TrueToVisibleConverterInverted}}" />
             </StackPanel>
 
             <Border BorderThickness="1" BorderBrush="Transparent" Grid.Row="2" >
@@ -150,8 +168,7 @@
                                     Style="{StaticResource SubduedText}"
                                     Text="{x:Static resx:UIStrings.ServerNoProjectsInlineText}"
                                     Visibility="{Binding Projects.Count,
-                                                        Converter={StaticResource IntToVisibleConverter},
-                                                        ConverterParameter=Invert}" />
+                                                        Converter={StaticResource IntToVisibleConverterInverted}}" />
                             </StackPanel>
                         </HierarchicalDataTemplate>
 
