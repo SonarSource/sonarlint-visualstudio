@@ -27,10 +27,10 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;
+using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList;
 using SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
-using Microsoft.VisualStudio.Shell.Interop;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -64,6 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         Scope = "type",
         Target = "~T:SonarLint.VisualStudio.Integration.Vsix.SonarLintIntegrationPackage")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [ProvideToolWindow(typeof(ConnectedMode_prototype.ConnectedModeToolWindow), MultiInstances = false, Transient = true, Style = VsDockStyle.Tabbed, Width = 700, Height = 250)]
     public class SonarLintIntegrationPackage : AsyncPackage
     {
         // Note: we don't currently have any tests for this class so we don't need to inject
@@ -94,14 +95,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 IServiceProvider serviceProvider = this;
 
                 this.commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
-                this.commandManager.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
+                this.commandManager.Initialize(serviceProvider.GetMefService<IToolWindowService>(),
                     serviceProvider.GetMefService<IProjectPropertyManager>(),
                     serviceProvider.GetMefService<IProjectToLanguageMapper>(),
                     serviceProvider.GetMefService<IOutputWindowService>(),
                     serviceProvider.GetMefService<IShowInBrowserService>(),
                     serviceProvider.GetMefService<IBrowserService>(),
                     ShowOptionPage);
-
 
                 this.roslynSettingsFileSynchronizer = await this.GetMefServiceAsync<IRoslynSettingsFileSynchronizer>();
                 roslynSettingsFileSynchronizer.UpdateFileStorageAsync().Forget(); // don't wait for it to finish
@@ -124,6 +124,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 this.roslynSettingsFileSynchronizer?.Dispose();
                 this.roslynSettingsFileSynchronizer = null;
             }
+        }
+
+        protected override WindowPane InstantiateToolWindow(Type toolWindowType)
+        {
+            if (toolWindowType == typeof(ConnectedMode_prototype.ConnectedModeToolWindow))
+            {
+                return new ConnectedMode_prototype.ConnectedModeToolWindow();
+            }
+
+            return base.InstantiateToolWindow(toolWindowType);
         }
     }
 }

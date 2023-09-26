@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                                                .ToList();
 
             // Act
-            testSubject.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
+            testSubject.Initialize(serviceProvider.GetMefService<IToolWindowService>(),
                 serviceProvider.GetMefService<IProjectPropertyManager>(),
                 Mock.Of<IProjectToLanguageMapper>(),
                 Mock.Of<IOutputWindowService>(),

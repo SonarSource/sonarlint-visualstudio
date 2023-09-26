@@ -18,30 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Runtime.InteropServices;
+using System.Windows.Controls;
 using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration.ConnectedMode_prototype;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
+namespace SonarLint.VisualStudio.Integration.ConnectedMode_prototype
 {
-    internal class ManageConnectionsCommand : VsCommandBase
+    [Guid(ToolWindowIdAsString)]
+    public class ConnectedModeToolWindow : ToolWindowPane
     {
-        internal const int Id = 0x102;
+        private const string ToolWindowIdAsString = "0eddcf48-0951-4546-b5c9-c5c2b583a6d4";
+        public static readonly Guid ToolWindowId = new Guid(ToolWindowIdAsString);
 
-        private readonly IToolWindowService toolWindowService;
-
-        public ManageConnectionsCommand(IToolWindowService toolWindowService)
+        public ConnectedModeToolWindow()
         {
-            this.toolWindowService = toolWindowService;
-        }
-
-        protected override void QueryStatusInternal(OleMenuCommand command)
-        {
-        }
-
-        protected override void InvokeInternal()
-        {
-            toolWindowService.Show(ConnectedModeToolWindow.ToolWindowId);
+            Content = new TextBox();
         }
     }
 }

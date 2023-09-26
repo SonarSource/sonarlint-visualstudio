@@ -22,10 +22,9 @@ using System;
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix.Commands;
-using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu;
+using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -41,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.menuService = menuService ?? throw new ArgumentNullException(nameof(menuService));
         }
 
-        public void Initialize(ITeamExplorerController teamExplorerController,
+        public void Initialize(IToolWindowService toolWindowService,
             IProjectPropertyManager projectPropertyManager,
             IProjectToLanguageMapper projectToLanguageMapper,
             IOutputWindowService outputWindowService,
@@ -65,9 +64,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             RegisterCommand(CommonGuids.HelpMenuCommandSet, ViewDocumentationCommand.Id, new ViewDocumentationCommand(showInBrowserService));
             RegisterCommand(CommonGuids.HelpMenuCommandSet, AboutCommand.Id, new AboutCommand(browserService));
             RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowCommunityPageCommand.Id, new ShowCommunityPageCommand(showInBrowserService));
-            
+
             // Connected mode buttons
-            RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, ManageConnectionsCommand.Id, new ManageConnectionsCommand(teamExplorerController));
+            RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, ManageConnectionsCommand.Id, new ManageConnectionsCommand(toolWindowService));
         }
 
         internal /* testing purposes */ OleMenuCommand RegisterCommand(int commandId, VsCommandBase command)
@@ -84,9 +83,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             var idObject = new CommandID(commandGroupGuid, commandId);
             var command = new OleMenuCommand(invokeHandler, delegate { }, beforeQueryStatus, idObject);
-            
+
             menuService.AddCommand(command);
-            
+
             return command;
         }
     }
