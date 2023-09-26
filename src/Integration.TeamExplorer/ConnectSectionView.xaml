@@ -29,8 +29,8 @@
             </ResourceDictionary.MergedDictionaries>
 
             <!-- TE: Replace Team Explorer converters with our converters -->
-             <!--<tfconverters:IntToVisibleConverter x:Key="IntToVisibleConverter" />-->
-            <!--<tfconverters:TrueToVisibleConverter x:Key="TrueToVisibleConverter" />-->
+            <!-- REPLACED: <tfconverters:IntToVisibleConverter x:Key="IntToVisibleConverter" />-->
+            <!-- REPLACED: <tfconverters:TrueToVisibleConverter x:Key="TrueToVisibleConverter" />-->
             
             <!-- Copied from ConnectionInfoDialogView.xaml -->
             <converters:BoolToVisibilityConverter x:Key="TrueToVisibleConverter"

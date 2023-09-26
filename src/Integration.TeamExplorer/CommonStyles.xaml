@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
         xmlns:sonarlintWpf="clr-namespace:SonarLint.VisualStudio.Integration.WPF;assembly=SonarLint.VisualStudio.Integration"
-        xmlns:tfconverters="clr-namespace:Microsoft.TeamFoundation.Controls.WPF.Converters;assembly=Microsoft.TeamFoundation.Controls"
+        xmlns:converters="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
         xmlns:vstheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
         xmlns:vsutilities="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities"
         xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.Resources;assembly=SonarLint.VisualStudio.Integration">
@@ -12,10 +12,15 @@
     </ResourceDictionary.MergedDictionaries>
 
     <!-- Converters -->
-    <tfconverters:AnyTrueToVisibleConverter x:Key="AnyTrueToVisibleConverter"/>
-    <tfconverters:TrueToVisibleConverter x:Key="TrueToVisibleConverter"/>
-    <tfconverters:IntToBoolConverter x:Key="IntToBoolConverter"/>
-    <tfconverters:IsNullConverter x:Key="IsNullConverter"/>
+    <!-- TE: replace Team Explorer converters -->
+    <!-- NOT USED: <tfconverters:AnyTrueToVisibleConverter x:Key="AnyTrueToVisibleConverter"/>-->
+    <!-- REPLACED: <tfconverters:TrueToVisibleConverter x:Key="TrueToVisibleConverter"/>-->
+    <!-- REPLACED: <tfconverters:IntToBoolConverter x:Key="IntToBoolConverter"/>-->
+    <!-- REPLACED: <tfconverters:IsNullConverter x:Key="IsNullConverter"/>-->
+    <converters:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible"/>
+    <converters:IntToBoolConverter x:Key="IntToBoolConverter"/>
+    <converters:NullToBooleanConverter x:Key="IsNullConverter"/>
+
     <vsutilities:BrushToColorConverter x:Key="BrushToColorConverter"/>
     <sonarlintWpf:ProjectViewModelVisibilityConverter x:Key="ProjectViewModelVisibilityConverter" />
 
