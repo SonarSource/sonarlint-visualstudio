@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         public const string SectionId = "25AB05EF-8132-453E-A990-55587C0C5CD3";
         public const int Priority = 300;
 
-        internal const int CommandNotHandled = (int)Microsoft.VisualStudio.OLE.Interop.Constants.OLECMDERR_E_UNKNOWNGROUP;
+//        internal const int CommandNotHandled = (int)Microsoft.VisualStudio.OLE.Interop.Constants.OLECMDERR_E_UNKNOWNGROUP;
 
         private readonly IWebBrowser webBrowser;
 
