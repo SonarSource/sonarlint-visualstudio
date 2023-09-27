@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -53,12 +52,13 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 //        internal const int CommandNotHandled = (int)Microsoft.VisualStudio.OLE.Interop.Constants.OLECMDERR_E_UNKNOWNGROUP;
 
         private readonly IWebBrowser webBrowser;
+        private readonly IUserNotification userNotification;
 
         internal ConnectSectionView View;
         internal ConnectSectionViewModel ViewModel;
 
         [ImportingConstructor]
-        public SectionController(IHost host, IWebBrowser webBrowser)
+        public SectionController(IHost host, IWebBrowser webBrowser, IUserNotification userNotification)
         {
             if (host == null)
             {
@@ -72,6 +72,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
             this.Host = host;
             this.webBrowser = webBrowser;
+            this.userNotification = userNotification;
             Initialize();
         }
 
@@ -106,10 +107,8 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             get { return (ConnectSectionViewModel)this.ViewModel; }
         }
 
-        IUserNotification ISectionController.UserNotifications
-        {
-            get { return (IUserNotification)this.ViewModel; }
-        }
+        IUserNotification ISectionController.UserNotifications => this.userNotification;
+
         #endregion
 
         #region TeamExplorerSectionBase overrides

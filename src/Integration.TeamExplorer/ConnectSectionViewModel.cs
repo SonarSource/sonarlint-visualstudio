@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Windows.Input;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.State;
@@ -37,18 +36,8 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
     }
 
     internal class ConnectSectionViewModel : DummyTeamExplorerSectionViewModelBase,
-                                        IConnectSectionViewModel,
-                                        IUserNotification
+                                        IConnectSectionViewModel
     {
-
-        // Replacement for Microsoft.TeamFoundation.Controls.NotificationType
-        private enum NotificationType
-        {
-            Information = 0,
-            Warning = 1,
-            Error = 2
-        }
-
         private TransferableVisualState state;
         private ICommand connectCommand;
         private ICommand<BindCommandArgs> bindCommand;
@@ -60,34 +49,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.IsExpanded = true;
             this.IsVisible = true;
         }
-
-        #region IUserNotification
-
-        public void ShowNotificationError(string message, Guid notificationId, ICommand associatedCommand)
-        {
-            this.ShowNotification(message, NotificationType.Error, associatedCommand, notificationId);
-        }
-
-        public void ShowNotificationWarning(string message, Guid notificationId, ICommand associatedCommand)
-        {
-            this.ShowNotification(message, NotificationType.Warning, associatedCommand, notificationId);
-        }
-
-        public bool HideNotification(Guid id)
-        {
-            // TODO - TE: implement notifications
-            // This method was provided by TeamExplorerSectionViewModelBase. We need to provide an alternative implementation.
-            return true;
-        }
-
-        private void ShowNotification(string message, NotificationType notificationType,
-            ICommand associatedCommand, Guid notificationId)
-        {
-            // TODO - TE: implement notifications
-            // This method was provided by TeamExplorerSectionViewModelBase. We need to provide an alternative implementation.
-        }
-
-        #endregion
 
         #region Properties
 
