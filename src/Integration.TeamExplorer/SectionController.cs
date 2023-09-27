@@ -60,16 +60,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         [ImportingConstructor]
         public SectionController(IHost host, IWebBrowser webBrowser, IUserNotification userNotification)
         {
-            if (host == null)
-            {
-                throw new ArgumentNullException(nameof(host));
-            }
-
-            if (webBrowser == null)
-            {
-                throw new ArgumentNullException(nameof(webBrowser));
-            }
-
             this.Host = host;
             this.webBrowser = webBrowser;
             this.userNotification = userNotification;

@@ -55,13 +55,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         #region Tests
 
         [TestMethod]
-        public void SectionController_Ctor_ArgChecks()
-        {
-            Exceptions.Expect<ArgumentNullException>(() => new SectionController(null, new WebBrowser()));
-            Exceptions.Expect<ArgumentNullException>(() => new SectionController(this.host, null));
-        }
-
-        [TestMethod]
         public void SectionController_Initialization()
         {
             // Act
@@ -351,7 +344,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
         private SectionController CreateTestSubject(IWebBrowser webBrowser = null)
         {
-            var controller = new SectionController(host, webBrowser ?? new ConfigurableWebBrowser());
+            var controller = new SectionController(host,
+                webBrowser ?? new ConfigurableWebBrowser(),
+                Mock.Of<IUserNotification>());
             controller.Initialize();
             return controller;
         }
