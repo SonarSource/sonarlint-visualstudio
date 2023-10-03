@@ -21,7 +21,6 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Setup.Configuration;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.VsVersion;
@@ -32,24 +31,26 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.VsVersion
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class VsVersionProvider : IVsVersionProvider
     {
-        public IVsVersion Version { get; }
+        private readonly Lazy<IVsVersion> lazyVersion;
+
+        public IVsVersion Version => lazyVersion.Value;
 
         [ImportingConstructor]
-        public VsVersionProvider([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ILogger logger)
-            : this(serviceProvider, new SetupConfigurationProvider(), logger)
+        public VsVersionProvider(IVsUIServiceOperation serviceOperation, ILogger logger)
+            : this(serviceOperation, new SetupConfigurationProvider(), logger)
         {
         }
 
-        internal VsVersionProvider(IServiceProvider serviceProvider, ISetupConfigurationProvider setupConfigurationProvider, ILogger logger)
+        internal VsVersionProvider(IVsUIServiceOperation serviceOperation, ISetupConfigurationProvider setupConfigurationProvider, ILogger logger)
         {
-            Version = CalculateVersion(serviceProvider, setupConfigurationProvider, logger);
+            lazyVersion = new Lazy<IVsVersion>(() =>
+                serviceOperation.Execute<SVsShell, IVsShell, IVsVersion>(vsShell => CalculateVersion(vsShell, setupConfigurationProvider, logger)));
         }
 
-        private static IVsVersion CalculateVersion(IServiceProvider serviceProvider, ISetupConfigurationProvider setupConfigurationProvider, ILogger logger)
+        private static IVsVersion CalculateVersion(IVsShell vsShell, ISetupConfigurationProvider setupConfigurationProvider, ILogger logger)
         {
             try
             {
-                var vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
                 vsShell.GetProperty((int)__VSSPROPID.VSSPROPID_InstallDirectory, out var installDir);
 
                 var setupConfiguration = setupConfigurationProvider.Get();
