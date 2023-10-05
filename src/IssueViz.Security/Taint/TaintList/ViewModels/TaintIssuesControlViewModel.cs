@@ -22,6 +22,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Data;
@@ -163,12 +164,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             ISonarQubeService sonarQubeService,
             INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
             IThreadHandling threadHandling)
-        {
+        {            
             this.threadHandling = threadHandling;
             threadHandling.ThrowIfNotOnUIThread();
-            AllowMultiThreadedAccessToIssuesCollection();
-
             unfilteredIssues = new ObservableCollection<ITaintIssueViewModel>();
+            AllowMultiThreadedAccessToIssuesCollection();
 
             this.menuCommandService = menuCommandService;
             this.sonarQubeService = sonarQubeService;
@@ -248,6 +248,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         private void AllowMultiThreadedAccessToIssuesCollection()
         {
             threadHandling.ThrowIfNotOnUIThread();
+
+            Debug.Assert(unfilteredIssues != null, "unfiltered issues must be set before calling AllowMultiThreadedAccessToIssuesCollection");
             BindingOperations.EnableCollectionSynchronization(unfilteredIssues, Lock);
         }
 
