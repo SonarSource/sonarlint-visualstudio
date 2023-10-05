@@ -32,8 +32,6 @@ using SonarLint.VisualStudio.CFamily.CompilationDatabase;
 using SonarLint.VisualStudio.CFamily.Rules;
 using SonarLint.VisualStudio.CFamily.SubProcess;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration.Helpers;
 using VsShell = Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
@@ -53,11 +51,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             ICFamilyRulesConfigProvider cFamilyRulesConfigProvider,
             ILogger logger,
             IThreadHandling threadHandling)
+// Suppress FP. The call to threadHandling.ThrowIfNotOnUIThread() inside the Lazy<> causes the
+// incorrect identify this constructor as needing to do a threading check.
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
             : this(serviceProvider,
                 cFamilyRulesConfigProvider,
                 new Lazy<IFileConfigProvider>(() => new FileConfigProvider(logger)),
                 logger,
                 threadHandling)
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
         {
         }
 
