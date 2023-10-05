@@ -83,6 +83,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.
             IThreadHandling threadHandling)
         {
             this.threadHandling = threadHandling;
+            threadHandling.ThrowIfNotOnUIThread();
             AllowMultiThreadedAccessToHotspotsList();
 
             this.selectionService = selectionService;

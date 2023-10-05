@@ -165,8 +165,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             IThreadHandling threadHandling)
         {
             this.threadHandling = threadHandling;
-            unfilteredIssues = new ObservableCollection<ITaintIssueViewModel>();
+            threadHandling.ThrowIfNotOnUIThread();
             AllowMultiThreadedAccessToIssuesCollection();
+
+            unfilteredIssues = new ObservableCollection<ITaintIssueViewModel>();
 
             this.menuCommandService = menuCommandService;
             this.sonarQubeService = sonarQubeService;

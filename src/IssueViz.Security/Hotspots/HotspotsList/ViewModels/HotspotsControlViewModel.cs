@@ -66,9 +66,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             IThreadHandling threadHandling)
         {
             this.threadHandling = threadHandling;
-#pragma warning disable VSTHRD010 // the called method is deliberately checking it is on the main thread
+            threadHandling.ThrowIfNotOnUIThread();
             AllowMultiThreadedAccessToHotspotsList();
-#pragma warning restore VSTHRD010
 
             this.selectionService = selectionService;
             selectionService.SelectedIssueChanged += SelectionService_SelectionChanged;
