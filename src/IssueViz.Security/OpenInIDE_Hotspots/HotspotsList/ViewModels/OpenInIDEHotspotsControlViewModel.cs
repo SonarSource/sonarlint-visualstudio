@@ -115,10 +115,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.
         /// Allow the observable collection <see cref="Hotspots"/> to be modified from non-UI thread. 
         /// </summary>
         private void AllowMultiThreadedAccessToHotspotsList()
-        {
-            threadHandling.ThrowIfNotOnUIThread();
-            BindingOperations.EnableCollectionSynchronization(Hotspots, Lock);
-        }
+            => threadHandling.RunOnUIThread(() => BindingOperations.EnableCollectionSynchronization(Hotspots, Lock));
 
         private void SetCommands(IOpenInIDEHotspotsStore hotspotsStore, ILocationNavigator locationNavigator)
         {

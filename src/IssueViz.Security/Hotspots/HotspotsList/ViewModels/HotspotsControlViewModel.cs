@@ -66,7 +66,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             IThreadHandling threadHandling)
         {
             this.threadHandling = threadHandling;
-            threadHandling.ThrowIfNotOnUIThread();
             AllowMultiThreadedAccessToHotspotsList();
 
             this.selectionService = selectionService;
@@ -110,10 +109,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         /// Allow the observable collection <see cref="Hotspots"/> to be modified from non-UI thread. 
         /// </summary>
         private void AllowMultiThreadedAccessToHotspotsList()
-        {
-            threadHandling.ThrowIfNotOnUIThread();
-            BindingOperations.EnableCollectionSynchronization(Hotspots, Lock);
-        }
+            => threadHandling.RunOnUIThread(() => BindingOperations.EnableCollectionSynchronization(Hotspots, Lock));
 
         private void SetCommands(ILocationNavigator locationNavigator)
         {
