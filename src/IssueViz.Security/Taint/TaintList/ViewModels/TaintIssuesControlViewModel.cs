@@ -246,10 +246,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         /// </summary>
         private void AllowMultiThreadedAccessToIssuesCollection()
         {
-            threadHandling.ThrowIfNotOnUIThread();
-
             Debug.Assert(unfilteredIssues != null, "unfiltered issues must be set before calling AllowMultiThreadedAccessToIssuesCollection");
-            BindingOperations.EnableCollectionSynchronization(unfilteredIssues, Lock);
+
+            threadHandling.RunOnUIThread(() => { BindingOperations.EnableCollectionSynchronization(unfilteredIssues, Lock); });
         }
 
         private void SetCommands(ILocationNavigator locationNavigator)
