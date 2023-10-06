@@ -29,6 +29,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
@@ -48,13 +49,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
     [TestClass]
     public class TaintIssuesControlViewModelTests
     {
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            // The ViewModel needs to be created on the UI thread
-            ThreadHelper.SetCurrentThreadAsUIThread();
-        }
-
         [TestMethod]
         public void Ctor_RegisterToStoreCollectionChanges()
         {
@@ -882,7 +876,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             IShowInBrowserService showInBrowserService = null,
             IIssueSelectionService selectionService = null,
             IMenuCommandService menuCommandService = null,
-            ISonarQubeService sonarQubeService = null)
+            ISonarQubeService sonarQubeService = null,
+            IThreadHandling threadHandling = null)
         {
             issueVizs ??= Array.Empty<IAnalysisIssueVisualization>();
             store ??= new Mock<ITaintStore>();
@@ -896,6 +891,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             selectionService ??= Mock.Of<IIssueSelectionService>();
             menuCommandService ??= Mock.Of<IMenuCommandService>();
             sonarQubeService ??= Mock.Of<ISonarQubeService>();
+            threadHandling ??= new NoOpThreadHandler();
 
             return new TaintIssuesControlViewModel(store.Object,
                 locationNavigator,
@@ -907,7 +903,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                 Mock.Of<ICommand>(),
                 menuCommandService,
                 sonarQubeService,
-                Mock.Of<INavigateToRuleDescriptionCommand>());
+                Mock.Of<INavigateToRuleDescriptionCommand>(),
+                threadHandling);
         }
 
         private static void SetServerType(ServerType? serverType, Mock<ISonarQubeService> sonarQubeServiceMock)
