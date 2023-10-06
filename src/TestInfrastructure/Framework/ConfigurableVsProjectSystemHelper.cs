@@ -31,7 +31,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
     {
         private readonly IServiceProvider serviceProvider;
         private bool isSolutionFullyOpened;
-        private bool isLegacyProjectSystem = true; // assume is legacy by default
 
         public ConfigurableVsProjectSystemHelper(IServiceProvider serviceProvider)
         {
