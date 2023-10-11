@@ -4,37 +4,25 @@
     ".NETFramework,Version=v4.7.2": {
       "Microsoft.VSSDK.BuildTools": {
         "type": "Direct",
-        "requested": "[17.7.2196, )",
-        "resolved": "17.7.2196",
-        "contentHash": "CtnWBwf39vyDkQUf1ngC89VKlvvGisnkafyb2+mHwrvS0rWgr6d5xTP/BtwleTkuai4QEqD4UNz0RrpOlAg4uQ==",
+        "requested": "[17.0.5232, )",
+        "resolved": "17.0.5232",
+        "contentHash": "k2+OBg4wxpOofGrEdsm9+vQXgghOusae4f2Vo7XLbEFWv6S9zWqQ5KQ6wy1Ygu845I82CbthEiubmxtVye1fsA==",
         "dependencies": {
-          "Microsoft.VisualStudio.SDK.Analyzers": "16.10.10",
-          "Microsoft.VsSDK.CompatibilityAnalyzer": "17.7.2196"
+          "Microsoft.VisualStudio.SDK.Analyzers": "15.8.33"
         }
-      },
-      "Microsoft.CodeAnalysis.BannedApiAnalyzers": {
-        "type": "Transitive",
-        "resolved": "3.3.2",
-        "contentHash": "LlcsDRSYfkJFWOdDpysY/4Ph4llHc8DLOc3roFTz9+216vl+vwVGfbys2rcSmhZCTDv/0kxSs2oOdd9SX2NiVg=="
       },
       "Microsoft.VisualStudio.SDK.Analyzers": {
         "type": "Transitive",
-        "resolved": "16.10.10",
-        "contentHash": "LuhBHy7MJJ5SjpS7J2GuHqPyL1VeqXUwYc+mTagaUCzXbNwJmLcSUAioCyQyAzPIn6qtnzuM5Lz6ULOQS3ifUA==",
+        "resolved": "15.8.33",
+        "contentHash": "5rP5FqdiHID6AtB7m8LNQKXnjTFCErAtazW8gqY4z27kTp+K6S6ZMzBME7hryOCSo2laogjjL1GWp2bUaJZqRw==",
         "dependencies": {
-          "Microsoft.CodeAnalysis.BannedApiAnalyzers": "3.3.2",
-          "Microsoft.VisualStudio.Threading.Analyzers": "16.10.56"
+          "Microsoft.VisualStudio.Threading.Analyzers": "15.8.122"
         }
       },
       "Microsoft.VisualStudio.Threading.Analyzers": {
         "type": "Transitive",
-        "resolved": "16.10.56",
-        "contentHash": "uTvu9fbmHTtRFY5xUgG45waU+ARad0JxyG/2btOC9Su6RTo3PrGVXKU2vHDtVELqlJsnKImhMaPH3YR0XCVwDg=="
-      },
-      "Microsoft.VsSDK.CompatibilityAnalyzer": {
-        "type": "Transitive",
-        "resolved": "17.7.2196",
-        "contentHash": "Qm5yPLHxKcH4BcFlgy7b1LfMPvQ0cSf41eNxfrTX6b8b+YcEr/d4x//MJETF9XMmZYu3IujGDgSbbk9f6Zv7Dg=="
+        "resolved": "15.8.122",
+        "contentHash": "1gu3LopB8nLiomlMGx6Y8Glb+rwABHpksdpNH1X9/GGp6uJvnHAUZWsFUQz8sAuu1CKcQagJcSOUt4bb4pOFKg=="
       }
     }
   }
