@@ -99,12 +99,12 @@
       },
       "Microsoft.VSSDK.BuildTools": {
         "type": "Direct",
-        "requested": "[17.7.2196, )",
-        "resolved": "17.7.2196",
-        "contentHash": "CtnWBwf39vyDkQUf1ngC89VKlvvGisnkafyb2+mHwrvS0rWgr6d5xTP/BtwleTkuai4QEqD4UNz0RrpOlAg4uQ==",
+        "requested": "[17.6.2164, )",
+        "resolved": "17.6.2164",
+        "contentHash": "SIyMfFGhGfJ4NLgbwW157ylbR0OCZJrxy7ge+jX14Fmhedj+SLQG9duqc0FRnIvMq4e1EmLNEAHE2wvXu1h+/w==",
         "dependencies": {
           "Microsoft.VisualStudio.SDK.Analyzers": "16.10.10",
-          "Microsoft.VsSDK.CompatibilityAnalyzer": "17.7.2196"
+          "Microsoft.VsSDK.CompatibilityAnalyzer": "17.6.2164"
         }
       },
       "Microsoft.VSSDK.VsixSignTool": {
