@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
         public string Uri { get; set; }
 
         [JsonProperty("SonarCloudOrganization", NullValueHandling = NullValueHandling.Ignore)]
-        public string Organisation { get; set; }
+        public string Organization { get; set; }
 
         [JsonProperty("ProjectKey")]
         public string ProjectKey { get; set; }
