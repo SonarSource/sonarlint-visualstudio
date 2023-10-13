@@ -24,10 +24,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
 {
     public interface ISharedBindingConfigProvider
     {
-        Task<bool> HasSharedBindingAsync();
+        bool HasSharedBinding();
 
-        Task<SharedBindingConfigModel> GetSharedBindingAsync();
+        SharedBindingConfigModel GetSharedBinding();
 
-        Task SaveSharedBindingAsync(SharedBindingConfigModel sharedBindingConfigModel);
+        void SaveSharedBinding(SharedBindingConfigModel sharedBindingConfigModel);
     }
 }
