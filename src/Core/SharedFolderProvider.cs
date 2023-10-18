@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Core
         /// Returns the file path to the current Shared Folder
         /// Or null if there's not a Shared Folder
         /// </summary>
-        string GetSharedFolderPathOrNull();
+        string GetSharedFolderPath();
     }
 
     [Export(typeof(ISharedFolderProvider))]
@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Core
             this.fileSystem = fileSystem;
         }
 
-        public string GetSharedFolderPathOrNull()
+        public string GetSharedFolderPath()
         {
             var workspaceRoot = solutionInfoProvider.GetSolutionDirectory();
             string sonarlintFolder;
