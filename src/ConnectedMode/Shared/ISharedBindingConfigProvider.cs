@@ -19,7 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Shared
 {
@@ -33,6 +33,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
     }
 
     [Export(typeof(ISharedBindingConfigProvider))]
+    [ExcludeFromCodeCoverage]
     public class NoOpBindingConfigProvider : ISharedBindingConfigProvider
     {
         public bool HasSharedBinding()
