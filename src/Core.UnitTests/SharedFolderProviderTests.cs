@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 
             var testSubject = CreateTestSubject(solutionInfoProvider, fileSystem);
 
-            var sharedFolder = testSubject.GetSharedFolderPath();
+            var sharedFolder = testSubject.GetSharedFolderPathOrNull();
 
             sharedFolder.Should().Be("C:\\Solution\\.sonarlint");
         }
@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 
             var testSubject = CreateTestSubject(solutionInfoProvider, fileSystem);
 
-            var sharedFolder = testSubject.GetSharedFolderPath();
+            var sharedFolder = testSubject.GetSharedFolderPathOrNull();
 
             sharedFolder.Should().Be("C:\\Repo\\.sonarlint");
         }
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 
             var testSubject = CreateTestSubject(solutionInfoProvider, fileSystem);
 
-            var sharedFolder = testSubject.GetSharedFolderPath();
+            var sharedFolder = testSubject.GetSharedFolderPathOrNull();
 
             sharedFolder.Should().BeNull();
         }
@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 
             var testSubject = CreateTestSubject(solutionInfoProvider, fileSystem);
 
-            var sharedFolder = testSubject.GetSharedFolderPath();
+            var sharedFolder = testSubject.GetSharedFolderPathOrNull();
 
             sharedFolder.Should().BeNull();
         }
