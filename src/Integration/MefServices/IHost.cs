@@ -19,6 +19,8 @@
  */
 
 using System;
+using Microsoft.Alm.Authentication;
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -37,6 +39,10 @@ namespace SonarLint.VisualStudio.Integration
         /// The visual state manager. Not null.
         /// </summary>
         IStateManager VisualStateManager { get; }
+
+        SharedBindingConfigModel SharedBindingConfig { get; }
+
+        Credential GetCredentialsForSharedConfig();
 
         /// <summary>
         /// The currently active section. Null when no active section.

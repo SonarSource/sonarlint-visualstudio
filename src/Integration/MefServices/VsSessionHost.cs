@@ -21,7 +21,9 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Windows.Threading;
+using Microsoft.Alm.Authentication;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
@@ -38,8 +40,11 @@ namespace SonarLint.VisualStudio.Integration
     {
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly IConfigurationProvider configurationProvider;
+        private readonly ISharedBindingConfigProvider sharedBindingConfigProvider;
+        private readonly ICredentialStoreService credentialStoreService;
 
         private readonly IProgressStepRunnerWrapper progressStepRunner;
+
 
         private bool isDisposed;
         private bool resetBindingWhenAttaching = true;
@@ -48,6 +53,8 @@ namespace SonarLint.VisualStudio.Integration
         public VsSessionHost(ISonarQubeService sonarQubeService,
             IActiveSolutionTracker solutionTracker,
             IConfigurationProvider configurationProvider,
+            ISharedBindingConfigProvider sharedBindingConfigProvider,
+            ICredentialStoreService credentialStoreService,
             ILogger logger)
             : this(
                 null,
@@ -55,22 +62,28 @@ namespace SonarLint.VisualStudio.Integration
                 sonarQubeService,
                 solutionTracker,
                 configurationProvider,
+                sharedBindingConfigProvider,
+                credentialStoreService,
                 logger)
         {
         }
 
         internal /*for test purposes*/ VsSessionHost(IStateManager state,
-                                    IProgressStepRunnerWrapper progressStepRunner,
-                                    ISonarQubeService sonarQubeService,
-                                    IActiveSolutionTracker solutionTracker,
-                                    IConfigurationProvider configurationProvider,
-                                    ILogger logger)
+            IProgressStepRunnerWrapper progressStepRunner,
+            ISonarQubeService sonarQubeService,
+            IActiveSolutionTracker solutionTracker,
+            IConfigurationProvider configurationProvider,
+            ISharedBindingConfigProvider sharedBindingConfigProvider,
+            ICredentialStoreService credentialStoreService,
+            ILogger logger)
         {
             this.VisualStateManager = state ?? new StateManager(this, new TransferableVisualState());
             this.progressStepRunner = progressStepRunner ?? this;
             this.SonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
             this.solutionTracker = solutionTracker ?? throw new ArgumentNullException(nameof(solutionTracker));
             this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
+            this.sharedBindingConfigProvider = sharedBindingConfigProvider;
+            this.credentialStoreService = credentialStoreService;
             this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
             this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -91,8 +104,16 @@ namespace SonarLint.VisualStudio.Integration
         public event EventHandler ActiveSectionChanged;
 
         public IStateManager VisualStateManager { get; }
+        public SharedBindingConfigModel SharedBindingConfig { get; private set; }
 
         public ISonarQubeService SonarQubeService { get; }
+
+        public Credential GetCredentialsForSharedConfig()
+        {
+            return SharedBindingConfig == null 
+                ? null 
+                : credentialStoreService.ReadCredentials(SharedBindingConfig.ServerUri);
+        }
 
         public ISectionController ActiveSection { get; private set; }
 
@@ -187,6 +208,8 @@ namespace SonarLint.VisualStudio.Integration
             if (clearCurrentBinding || bindingConfig == null || bindingConfig.Mode == SonarLintMode.Standalone)
             {
                 this.ClearCurrentBinding();
+                SharedBindingConfig = sharedBindingConfigProvider.GetSharedBinding();
+                VisualStateManager.BoundProjectKey = this.SharedBindingConfig?.ProjectKey;
             }
             else
             {
@@ -214,6 +237,8 @@ namespace SonarLint.VisualStudio.Integration
 
         private void ApplyBindingInformation(BindingConfiguration bindingConfig)
         {
+            SharedBindingConfig = null;
+
             // Set the project key that should become bound once the connection workflow has completed
             this.VisualStateManager.BoundProjectKey = bindingConfig.Project.ProjectKey;
             this.VisualStateManager.BoundProjectName = bindingConfig.Project.ProjectName;
