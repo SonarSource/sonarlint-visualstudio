@@ -63,6 +63,36 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
+        [DataRow(null, null)]
+        [DataRow("C:\\Solution\\MyApp.sln", "MyApp")]
+        [DataRow("C:\\aaa\\BBB\\Solution", "Solution")]
+        public async Task GetSolutionNameAsync_ReturnsExpectedValue(string solutionNameToReturn, string expectedResult)
+        {
+            var solution = CreateIVsSolutionWithSolutionFileName(solutionNameToReturn);
+            var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
+
+            var testSubject = CreateTestSubject(serviceProvider.Object);
+
+            var actual = await testSubject.GetSolutionNameAsync();
+            actual.Should().Be(expectedResult);
+        }
+
+        [TestMethod]
+        [DataRow(null, null)]
+        [DataRow("C:\\Solution\\MyApp.sln", "MyApp")]
+        [DataRow("C:\\aaa\\BBB\\Solution", "Solution")]
+        public void GetSolutionName_ReturnsExpectedValue(string solutionNameToReturn, string expectedResult)
+        {
+            var solution = CreateIVsSolutionWithSolutionFileName(solutionNameToReturn);
+            var serviceProvider = CreateServiceProviderWithSolution(solution.Object);
+
+            var testSubject = CreateTestSubject(serviceProvider.Object);
+
+            var actual = testSubject.GetSolutionName();
+            actual.Should().Be(expectedResult);
+        }
+
+        [TestMethod]
         [DataRow(null)]
         [DataRow("a value")]
         public async Task GetSlnFilePathAsync_ReturnsExpectedValue(string solutionNameToReturn)
@@ -208,7 +238,6 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
                     productOperation.Invoke();
                 });
 
-
             var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object);
 
             var actual = await testSubject.GetFullSolutionFilePathAsync();
@@ -244,7 +273,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         {
             var calls = new List<string>();
 
-            var solution = CreateIVsSolutionWithIsFullyOpened(true, callback:() => calls.Add("GetSolutionIsFullyOpen"));
+            var solution = CreateIVsSolutionWithIsFullyOpened(true, callback: () => calls.Add("GetSolutionIsFullyOpen"));
             var serviceProvider = CreateServiceProviderWithSolution(solution.Object, () => calls.Add("GetService"));
 
             var threadHandling = new Mock<IThreadHandling>();
@@ -409,7 +438,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             return solution;
         }
 
-        private static Mock<IVsSolution> CreateIVsSolutionWithIsFullyOpened(bool isFullyOpened, int hresult = VSConstants.S_OK,Action callback = null)
+        private static Mock<IVsSolution> CreateIVsSolutionWithIsFullyOpened(bool isFullyOpened, int hresult = VSConstants.S_OK, Action callback = null)
         {
             var solution = new Mock<IVsSolution>();
 

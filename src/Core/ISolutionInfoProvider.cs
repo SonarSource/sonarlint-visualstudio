@@ -77,5 +77,16 @@ namespace SonarLint.VisualStudio.Core
         /// </summary>
         /// <remarks>to be used only by existing non-thread-aware code that cannot easily be refactored.</remarks>
         bool IsFolderWorkspace();
+
+        /// <summary>
+        /// Returns the Solution Name, or null if there is not a current solution
+        /// </summary>
+        Task<string> GetSolutionNameAsync();
+
+        /// <summary>
+        /// Returns the Solution Name, or null if there is not a current solution
+        /// </summary>
+        /// <remarks>to be used only by existing non-thread-aware code that cannot easily be refactored.</remarks>
+        string GetSolutionName();
     }
 }
