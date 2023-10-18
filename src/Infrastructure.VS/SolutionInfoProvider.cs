@@ -136,5 +136,17 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
             solution.GetProperty((int)__VSPROPID.VSPROPID_SolutionFileName, out var fullSolutionName);
             return fullSolutionName as string;
         }
+
+        public async Task<string> GetSolutionNameAsync()
+        {
+            string fullSolutionName = await GetFullSolutionFilePathAsync();
+            return fullSolutionName != null ? Path.GetFileNameWithoutExtension(fullSolutionName) : null;
+        }
+
+        public string GetSolutionName()
+        {
+            string fullSolutionName = GetFullSolutionFilePath();
+            return fullSolutionName != null ? Path.GetFileNameWithoutExtension(fullSolutionName) : null;
+        }
     }
 }
