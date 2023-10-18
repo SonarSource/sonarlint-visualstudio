@@ -54,23 +54,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
         public string Get()
         {
-            var fullSolutionName = solutionInfoProvider.GetFullSolutionFilePath();
-            return GetConnectionFilePath(fullSolutionName);
-
-        }
-
-        private string GetConnectionFilePath(string solutionFilePath)
-        {
-            if (solutionFilePath == null)
-            {
-                return null;
-            }
-
             // The path must match the one in the SonarLintTargets.xml file that is dropped in
             // the MSBuild ImportBefore folder i.e.
             //   $(APPDATA)\SonarLint for Visual Studio\\Bindings\\$(SolutionName)\binding.config
-            var solutionName = Path.GetFileNameWithoutExtension(solutionFilePath);
-
+            var solutionName = solutionInfoProvider.GetSolutionName();
             return Path.Combine(SLVSRootBindingFolder, $"{solutionName}", "binding.config");
         }
     }
