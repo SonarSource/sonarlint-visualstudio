@@ -367,7 +367,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             
             tracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
             
-            testSubject.SharedBindingConfig.Should().NotBeNull();
+            testSubject.SharedBindingConfig.Should().BeNull();
             this.stateManager.BoundProjectKey.Should().Be(null);
         }
         
@@ -383,7 +383,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             
             testSubject.SetActiveSection(section);
             
-            testSubject.SharedBindingConfig.Should().BeNull();
+            testSubject.SharedBindingConfig.Should().NotBeNull();
             this.stateManager.BoundProjectKey.Should().Be("abcd");
         }
         
