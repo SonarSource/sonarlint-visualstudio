@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.IO;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -30,9 +29,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
-            =>  MefTestHelpers.CheckTypeCanBeImported<UnintrusiveBindingPathProvider, IUnintrusiveBindingPathProvider>(
+            => MefTestHelpers.CheckTypeCanBeImported<UnintrusiveBindingPathProvider, IUnintrusiveBindingPathProvider>(
                     MefTestHelpers.CreateExport<ISolutionInfoProvider>());
-
 
         [TestMethod]
         public void MefCtor_CheckIsNonSharedMefComponent()
@@ -63,13 +61,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
         [TestMethod]
         public void Get_HasOpenSolution_ReturnsExpectedValue()
         {
-            const string solutionPath = @"c:\aaa\bbbb\C C";
             const string solutionName = "mysolutionName";
             const string rootFolderName = @"x:\users\foo\";
 
-            var fullPathSlnPath = Path.Combine(solutionPath, solutionName + ".sln");
-
-            var solutionInfoProvider = CreateSolutionInfoProvider(fullPathSlnPath);
+            var solutionInfoProvider = CreateSolutionInfoProvider(solutionName);
             var envVars = CreateEnvVars(rootFolderName);
 
             var testSubject = CreateTestSubject(solutionInfoProvider.Object, envVars);
@@ -86,10 +81,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             return new UnintrusiveBindingPathProvider(solutionInfoProvider, envVars);
         }
 
-        private Mock<ISolutionInfoProvider> CreateSolutionInfoProvider(string fullSolutionFilePath = null)
+        private Mock<ISolutionInfoProvider> CreateSolutionInfoProvider(string solutionName = null)
         {
             var solutionInfoProvider = new Mock<ISolutionInfoProvider>();
-            solutionInfoProvider.Setup(x => x.GetFullSolutionFilePath()).Returns(fullSolutionFilePath);
+            solutionInfoProvider.Setup(x => x.GetSolutionName()).Returns(solutionName);
 
             return solutionInfoProvider;
         }

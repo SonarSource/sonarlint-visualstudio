@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             // the MSBuild ImportBefore folder i.e.
             //   $(APPDATA)\SonarLint for Visual Studio\\Bindings\\$(SolutionName)\binding.config
             var solutionName = solutionInfoProvider.GetSolutionName();
-            return Path.Combine(SLVSRootBindingFolder, $"{solutionName}", "binding.config");
+            return solutionName != null ? Path.Combine(SLVSRootBindingFolder, $"{solutionName}", "binding.config") : null;
         }
     }
 }
