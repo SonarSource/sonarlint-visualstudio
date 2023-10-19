@@ -20,6 +20,8 @@
 
 using System;
 using FluentAssertions;
+using Microsoft.Alm.Authentication;
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.State;
@@ -39,6 +41,13 @@ namespace SonarLint.VisualStudio.TestInfrastructure
         #region IHost
 
         public event EventHandler ActiveSectionChanged;
+
+        public SharedBindingConfigModel SharedBindingConfig { get; }
+
+        public Credential GetCredentialsForSharedConfig()
+        {
+            return null;
+        }
 
         public ISectionController ActiveSection
         {
