@@ -62,9 +62,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
             // Case 1 - projects does not contain BoundProjectKey
             testSubject.BoundProjectKey = "missing_project";
-            testSubject.SetProjects(connection1, projects);
+            Action act = () => testSubject.SetProjects(connection1, projects);
 
             // Assert
+            act.Should().Throw<BindingAbortedException>();
             var message = notifications.AssertNotification(NotificationIds.FailedToFindBoundProjectKeyId);
             message.Should().MatchRegex("\\[.+\\]\\(\\)"); // Contains the hyperlink syntax [text]()
             notifications.AssertNotification(NotificationIds.FailedToFindBoundProjectKeyId, section.ReconnectCommand);
