@@ -18,7 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
+using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Shared
 {
@@ -29,5 +30,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
         SharedBindingConfigModel GetSharedBinding();
 
         void SaveSharedBinding(SharedBindingConfigModel sharedBindingConfigModel);
+    }
+
+    [Export(typeof(ISharedBindingConfigProvider))]
+    [ExcludeFromCodeCoverage]
+    public class NoOpBindingConfigProvider : ISharedBindingConfigProvider
+    {
+        public bool HasSharedBinding()
+        {
+            return false;
+        }
+
+        public SharedBindingConfigModel GetSharedBinding()
+        {
+            return null;
+        }
+
+        public void SaveSharedBinding(SharedBindingConfigModel sharedBindingConfigModel)
+        {
+        }
     }
 }

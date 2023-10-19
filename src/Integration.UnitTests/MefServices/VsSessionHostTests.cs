@@ -20,8 +20,11 @@
 
 using System;
 using FluentAssertions;
+using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -39,6 +42,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         private ConfigurableStateManager stateManager;
         private ConfigurableProgressStepRunner stepRunner;
         private ConfigurableConfigurationProvider configProvider;
+        private Mock<ISharedBindingConfigProvider> sharedBindingConfigProviderMock;
+        private Mock<ICredentialStoreService> credentialStoreServiceMock;
 
         public TestContext TestContext { get; set; }
 
@@ -48,6 +53,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
             this.stepRunner = new ConfigurableProgressStepRunner();
             this.configProvider = new ConfigurableConfigurationProvider();
+            sharedBindingConfigProviderMock = new Mock<ISharedBindingConfigProvider>();
+            credentialStoreServiceMock = new Mock<ICredentialStoreService>();
         }
 
         #region Tests
@@ -59,6 +66,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
                 MefTestHelpers.CreateExport<IConfigurationProvider>(),
+                MefTestHelpers.CreateExport<ISharedBindingConfigProvider>(),
+                MefTestHelpers.CreateExport<ICredentialStoreService>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
@@ -326,6 +335,108 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.stateManager.AssignedProjectKey.Should().BeNull();
         }
 
+        [TestMethod]
+        public void ResetBinding_SharedConfigSetWhenUnbound()
+        {
+            var tracker = new ConfigurableActiveSolutionTracker();
+            var testSubject = CreateTestSubject(tracker);
+            var section = ConfigurableSectionController.CreateDefault();
+            testSubject.SetActiveSection(section);
+            sharedBindingConfigProviderMock.Setup(x => x.GetSharedBinding())
+                .Returns(new SharedBindingConfigModel { ProjectKey = "abcd" });
+            
+            this.stateManager.BoundProjectKey.Should().Be(null);
+            
+            tracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+            
+            testSubject.SharedBindingConfig.Should().NotBeNull();
+            this.stateManager.BoundProjectKey.Should().Be("abcd");
+        }
+        
+        [TestMethod]
+        public void ResetBinding_SharedConfigNotSetWhenNull()
+        {
+            var tracker = new ConfigurableActiveSolutionTracker();
+            var testSubject = CreateTestSubject(tracker);
+            var section = ConfigurableSectionController.CreateDefault();
+            testSubject.SetActiveSection(section);
+            sharedBindingConfigProviderMock.Setup(x => x.GetSharedBinding())
+                .Returns((SharedBindingConfigModel)null);
+            
+            this.stateManager.BoundProjectKey.Should().Be(null);
+            
+            tracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+            
+            testSubject.SharedBindingConfig.Should().BeNull();
+            this.stateManager.BoundProjectKey.Should().Be(null);
+        }
+        
+        [TestMethod]
+        public void InitializeBinding_SharedConfigSetWhenUnbound()
+        {
+            var testSubject = CreateTestSubject();
+            var section = ConfigurableSectionController.CreateDefault();
+            sharedBindingConfigProviderMock.Setup(x => x.GetSharedBinding())
+                .Returns(new SharedBindingConfigModel { ProjectKey = "abcd" });
+            
+            this.stateManager.BoundProjectKey.Should().Be(null);
+            
+            testSubject.SetActiveSection(section);
+            
+            testSubject.SharedBindingConfig.Should().NotBeNull();
+            this.stateManager.BoundProjectKey.Should().Be("abcd");
+        }
+        
+        [TestMethod]
+        public void ResetBinding_SharedConfigRemovedWhenBound()
+        {
+            var tracker = new ConfigurableActiveSolutionTracker();
+            var testSubject = CreateTestSubject(tracker);
+            var section = ConfigurableSectionController.CreateDefault();
+            sharedBindingConfigProviderMock.Setup(x => x.GetSharedBinding())
+                .Returns(new SharedBindingConfigModel { ProjectKey = "abcd" });
+            testSubject.SetActiveSection(section);
+
+            testSubject.SharedBindingConfig.Should().NotBeNull();
+            this.stateManager.BoundProjectKey.Should().Be("abcd");
+            
+            this.stateManager.SetBoundProject(new Uri("http://bound"), null, "bla");
+            SetConfiguration(new BoundSonarQubeProject(new Uri("http://bound"), "bla", "projectName"), SonarLintMode.Connected);
+            
+            tracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+
+            testSubject.SharedBindingConfig.Should().BeNull();
+            this.stateManager.BoundProjectKey.Should().Be("bla");
+        }
+
+        [DataRow(null)]
+        [DataRow("http://localhost:9000")]
+        [DataRow("https://sonarqube.io")]
+        [DataTestMethod]
+        public void GetCredentialsForSharedConfig_CallsCredentialServiceOnlyWhenSharedConfigExists(string serverUri)
+        {
+            var testSubject = CreateTestSubject();
+            var section = ConfigurableSectionController.CreateDefault();
+            sharedBindingConfigProviderMock.Setup(x => x.GetSharedBinding())
+                .Returns(serverUri != null ? new SharedBindingConfigModel { Uri = serverUri} : null);
+            testSubject.SetActiveSection(section);
+            var credential = new Credential("a");
+            credentialStoreServiceMock.Setup(x => x.ReadCredentials(It.IsAny<TargetUri>())).Returns(credential);
+
+            var result = testSubject.GetCredentialsForSharedConfig();
+            
+            if (serverUri == null)
+            {
+                credentialStoreServiceMock.Verify(x => x.ReadCredentials(It.IsAny<TargetUri>()), Times.Never);
+                result.Should().BeNull();
+            }
+            else
+            {
+                credentialStoreServiceMock.Verify(x => x.ReadCredentials(It.IsAny<TargetUri>()), Times.Once);
+                result.Should().BeSameAs(credential);
+            }
+        }
+
         #endregion Tests
 
         #region Helpers
@@ -338,6 +449,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 this.sonarQubeServiceMock.Object,
                 tracker ?? new ConfigurableActiveSolutionTracker(),
                 this.configProvider,
+                sharedBindingConfigProviderMock.Object,
+                credentialStoreServiceMock.Object,
                 Mock.Of<ILogger>());
 
             this.stateManager.Host = host;
