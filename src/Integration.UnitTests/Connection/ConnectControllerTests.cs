@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Progress.Controller;
@@ -79,8 +80,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         [TestMethod]
         public void ConnectionController_Ctor_ArgumentChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new ConnectionController(null, Mock.Of<IHost>()));
-            Exceptions.Expect<ArgumentNullException>(() => new ConnectionController(Mock.Of<IServiceProvider>(), null));
+            Exceptions.Expect<ArgumentNullException>(() => new ConnectionController(null, Mock.Of<IHost>(), Mock.Of<IAutoBindTrigger>()));
+            Exceptions.Expect<ArgumentNullException>(() => new ConnectionController(Mock.Of<IServiceProvider>(), null, Mock.Of<IAutoBindTrigger>()));
+            Exceptions.Expect<ArgumentNullException>(() => new ConnectionController(Mock.Of<IServiceProvider>(), Mock.Of<IHost>(), null));
         }
 
         [TestMethod]
@@ -180,8 +182,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Arrange
             var connectionWorkflowMock = CreateWorkflow();
             connectionWorkflowMock.Setup(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), It.IsAny<string>(), It.IsAny<bool>()));
-            ConnectionController testSubject = new ConnectionController(this.serviceProvider, this.host, this.connectionProvider,
-                connectionWorkflowMock.Object);
+            ConnectionController testSubject = new ConnectionController(this.serviceProvider, this.host, null,
+                this.connectionProvider, connectionWorkflowMock.Object);
             this.solutionInfoProvider.Setup(x => x.IsSolutionFullyOpened()).Returns(true);
 
             // Case 1: connection provider return null connection
@@ -226,7 +228,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             var connectionWorkflowMock = CreateWorkflow();
             connectionWorkflowMock.Setup(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), It.IsAny<string>(), It.IsAny<bool>()));
-            var testSubject = new ConnectionController(this.serviceProvider, this.host, this.connectionProvider,
+            var testSubject = new ConnectionController(this.serviceProvider, this.host, null, this.connectionProvider,
                 connectionWorkflowMock.Object);
             this.solutionInfoProvider.Setup(x => x.IsSolutionFullyOpened()).Returns(true);
             host.SharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = "https://sonarcloudi.io", Organization = "Org"};
@@ -243,7 +245,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             var connectionWorkflowMock = CreateWorkflow();
             connectionWorkflowMock.Setup(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), It.IsAny<string>(), It.IsAny<bool>()));
-            var testSubject = new ConnectionController(this.serviceProvider, this.host, this.connectionProvider,
+            var testSubject = new ConnectionController(this.serviceProvider, this.host, null, this.connectionProvider,
                 connectionWorkflowMock.Object);
             this.solutionInfoProvider.Setup(x => x.IsSolutionFullyOpened()).Returns(true);
             host.SharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = "https://sonarcloudi.io", Organization = "Org"};
@@ -262,7 +264,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             var connectionWorkflowMock = CreateWorkflow();
             connectionWorkflowMock.Setup(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), It.IsAny<string>(), It.IsAny<bool>()));
-            var testSubject = new ConnectionController(this.serviceProvider, this.host, this.connectionProvider,
+            var testSubject = new ConnectionController(this.serviceProvider, this.host, null, this.connectionProvider,
                 connectionWorkflowMock.Object);
             this.solutionInfoProvider.Setup(x => x.IsSolutionFullyOpened()).Returns(true);
             var expectedConnection = new ConnectionInformation(new Uri("https://127.0.0.0"));
@@ -321,7 +323,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             // Arrange
             var connectionWorkflowMock = CreateWorkflow();
-            ConnectionController testSubject = new ConnectionController(serviceProvider, host, connectionProvider,
+            ConnectionController testSubject = new ConnectionController(serviceProvider, host, null, connectionProvider,
                 connectionWorkflowMock.Object);
             this.connectionProvider.ConnectionInformationToReturn = new ConnectionInformation(new Uri("http://notExpected"));
             var connection = new ConnectionInformation(new Uri("http://Expected"));
@@ -345,7 +347,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             // Arrange
             var connectionWorkflowMock = CreateWorkflow();
-            ConnectionController testSubject = new ConnectionController(serviceProvider, host, connectionProvider,
+            ConnectionController testSubject = new ConnectionController(serviceProvider, host, null, connectionProvider,
                 connectionWorkflowMock.Object);
             this.solutionInfoProvider.Setup(x => x.IsSolutionFullyOpened()).Returns(true);
             this.connectionProvider.ConnectionInformationToReturn = null;
@@ -387,6 +389,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         #endregion Tests
 
         private ConnectionController CreateTestSubject() =>
-            new ConnectionController(serviceProvider, host);
+            new ConnectionController(serviceProvider, host, Mock.Of<IAutoBindTrigger>());
     }
 }
