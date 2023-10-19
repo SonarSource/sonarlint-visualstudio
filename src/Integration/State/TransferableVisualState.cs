@@ -22,6 +22,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 
@@ -33,6 +34,7 @@ namespace SonarLint.VisualStudio.Integration.State
         private readonly IThreadHandling threadHandling;
         private ProjectViewModel boundProject;
         private bool isBusy;
+        private readonly ConnectConfiguration connectConfiguration = new ConnectConfiguration();
 
         public TransferableVisualState()
             : this(ThreadHandling.Instance)
@@ -49,6 +51,15 @@ namespace SonarLint.VisualStudio.Integration.State
             {
                 Debug.Assert(threadHandling.CheckAccess(), $"{nameof(ConnectedServers)} should only be accessed from the UI thread");
                 return this.connectedServers;
+            }
+        }
+
+        public ConnectConfiguration ConnectConfiguration
+        {
+            get
+            {
+                Debug.Assert(threadHandling.CheckAccess(), $"{nameof(ConnectConfiguration)} should only be accessed from the UI thread");
+                return connectConfiguration;
             }
         }
 

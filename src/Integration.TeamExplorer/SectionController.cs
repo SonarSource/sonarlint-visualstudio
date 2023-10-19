@@ -28,6 +28,7 @@ using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client.Models;
@@ -197,7 +198,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         #endregion
 
         #region Commands
-        public ICommand ConnectCommand
+        public ICommand<ConnectConfiguration> ConnectCommand
         {
             get;
             private set;

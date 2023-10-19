@@ -21,9 +21,11 @@
 using System;
 using System.Globalization;
 using FluentAssertions;
+using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -106,28 +108,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.host.VisualStateManager.IsBusy = true;
 
             // Act + Assert
-            testSubject.ConnectCommand.CanExecute().Should().BeFalse("Connected already and busy");
+            testSubject.ConnectCommand.CanExecute(null).Should().BeFalse("Connected already and busy");
 
             // Case 2: has connection, not busy
             this.host.TestStateManager.IsConnected = true;
             this.host.VisualStateManager.IsBusy = false;
 
             // Act + Assert
-            testSubject.ConnectCommand.CanExecute().Should().BeFalse("Connected already");
+            testSubject.ConnectCommand.CanExecute(null).Should().BeFalse("Connected already");
 
             // Case 3: no connection, is busy
             this.host.TestStateManager.IsConnected = false;
             this.host.VisualStateManager.IsBusy = true;
 
             // Act + Assert
-            testSubject.ConnectCommand.CanExecute().Should().BeFalse("Busy");
+            testSubject.ConnectCommand.CanExecute(null).Should().BeFalse("Busy");
 
             // Case 4: no connection, not busy
             this.host.TestStateManager.IsConnected = false;
             this.host.VisualStateManager.IsBusy = false;
 
             // Act + Assert
-            testSubject.ConnectCommand.CanExecute().Should().BeTrue("No connection and not busy");
+            testSubject.ConnectCommand.CanExecute(null).Should().BeTrue("No connection and not busy");
         }
 
         [TestMethod]
@@ -142,28 +144,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.host.VisualStateManager.IsBusy = true;
 
             // Act + Assert
-            testSubject.ConnectCommand.CanExecute().Should().BeFalse("Solution not fully open");
+            testSubject.ConnectCommand.CanExecute(null).Should().BeFalse("Solution not fully open");
 
             // Case 2: has connection, not busy
             this.host.TestStateManager.IsConnected = true;
             this.host.VisualStateManager.IsBusy = false;
 
             // Act + Assert
-            testSubject.ConnectCommand.CanExecute().Should().BeFalse("Solution not fully open");
+            testSubject.ConnectCommand.CanExecute(null).Should().BeFalse("Solution not fully open");
 
             // Case 3: no connection, is busy
             this.host.TestStateManager.IsConnected = false;
             this.host.VisualStateManager.IsBusy = true;
 
             // Act + Assert
-            testSubject.ConnectCommand.CanExecute().Should().BeFalse("Busy");
+            testSubject.ConnectCommand.CanExecute(null).Should().BeFalse("Busy");
 
             // Case 4: no connection, not busy
             this.host.TestStateManager.IsConnected = false;
             this.host.VisualStateManager.IsBusy = false;
 
             // Act + Assert
-            testSubject.ConnectCommand.CanExecute().Should().BeFalse("Solution not fully open");
+            testSubject.ConnectCommand.CanExecute(null).Should().BeFalse("Solution not fully open");
         }
 
         private static Mock<IConnectionWorkflowExecutor> CreateWorkflow()
@@ -177,7 +179,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             // Arrange
             var connectionWorkflowMock = CreateWorkflow();
-            connectionWorkflowMock.Setup(x => x.EstablishConnection(It.IsAny<ConnectionInformation>()));
+            connectionWorkflowMock.Setup(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), It.IsAny<string>(), It.IsAny<bool>()));
             ConnectionController testSubject = new ConnectionController(this.serviceProvider, this.host, this.connectionProvider,
                 connectionWorkflowMock.Object);
             this.solutionInfoProvider.Setup(x => x.IsSolutionFullyOpened()).Returns(true);
@@ -186,16 +188,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.connectionProvider.ConnectionInformationToReturn = null;
 
             // Sanity
-            testSubject.ConnectCommand.CanExecute().Should().BeTrue("Should be possible to execute");
+            testSubject.ConnectCommand.CanExecute(null).Should().BeTrue("Should be possible to execute");
 
             // Sanity
             testSubject.LastAttemptedConnection.Should().BeNull("No previous attempts to connect");
 
             // Act
-            testSubject.ConnectCommand.Execute();
+            testSubject.ConnectCommand.Execute(null);
 
             // Assert
-            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>()), Times.Never);
+            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
 
             // Case 2: connection provider returns a valid connection
             var expectedConnection = new ConnectionInformation(new Uri("https://127.0.0.0"));
@@ -204,11 +206,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.LastAttemptedConnection.Should().BeNull("Previous attempt returned null");
 
             // Act
-            testSubject.ConnectCommand.Execute();
+            testSubject.ConnectCommand.Execute(null);
 
             // Assert
-            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>()), Times.Once);
-
+            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), null, false), Times.Once);
             // Case 3: existing connection, change to a different one
             var existingConnection = expectedConnection;
             this.host.TestStateManager.IsConnected = true;
@@ -217,7 +218,59 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.LastAttemptedConnection.Should().Be(existingConnection, "Unexpected last attempted connection");
 
             // Assert
-            testSubject.ConnectCommand.CanExecute().Should().BeFalse("Should not be able to connect if an existing connecting is present");
+            testSubject.ConnectCommand.CanExecute(null).Should().BeFalse("Should not be able to connect if an existing connecting is present");
+        }
+
+        [TestMethod]
+        public void ConnectionController_ConnectCommand_SharedConfigAndCredentialsPresent_AutoBinds()
+        {
+            var connectionWorkflowMock = CreateWorkflow();
+            connectionWorkflowMock.Setup(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), It.IsAny<string>(), It.IsAny<bool>()));
+            var testSubject = new ConnectionController(this.serviceProvider, this.host, this.connectionProvider,
+                connectionWorkflowMock.Object);
+            this.solutionInfoProvider.Setup(x => x.IsSolutionFullyOpened()).Returns(true);
+            host.SharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = "https://sonarcloudi.io", Organization = "Org"};
+            host.CredentialsForSharedConfig = new Credential("user", "pwd");
+            host.TestStateManager.BoundProjectKey = "projectKey";
+            
+            testSubject.ConnectCommand.Execute(new ConnectConfiguration());
+            
+            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), "projectKey", true));
+        }
+        
+        [TestMethod]
+        public void ConnectionController_ConnectCommand_SharedConfigDisable_DoesNotAutoBind()
+        {
+            var connectionWorkflowMock = CreateWorkflow();
+            connectionWorkflowMock.Setup(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), It.IsAny<string>(), It.IsAny<bool>()));
+            var testSubject = new ConnectionController(this.serviceProvider, this.host, this.connectionProvider,
+                connectionWorkflowMock.Object);
+            this.solutionInfoProvider.Setup(x => x.IsSolutionFullyOpened()).Returns(true);
+            host.SharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = "https://sonarcloudi.io", Organization = "Org"};
+            host.CredentialsForSharedConfig = new Credential("user", "pwd");
+            host.TestStateManager.BoundProjectKey = "projectKey";
+            var expectedConnection = new ConnectionInformation(new Uri("https://127.0.0.0"));
+            this.connectionProvider.ConnectionInformationToReturn = expectedConnection;
+            
+            testSubject.ConnectCommand.Execute(null);
+            
+            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), "projectKey", false));
+        }
+        
+        [TestMethod]
+        public void ConnectionController_ConnectCommand_SharedConfigNotPresentDoesNotAutoBind()
+        {
+            var connectionWorkflowMock = CreateWorkflow();
+            connectionWorkflowMock.Setup(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), It.IsAny<string>(), It.IsAny<bool>()));
+            var testSubject = new ConnectionController(this.serviceProvider, this.host, this.connectionProvider,
+                connectionWorkflowMock.Object);
+            this.solutionInfoProvider.Setup(x => x.IsSolutionFullyOpened()).Returns(true);
+            var expectedConnection = new ConnectionInformation(new Uri("https://127.0.0.0"));
+            this.connectionProvider.ConnectionInformationToReturn = expectedConnection;
+            
+            testSubject.ConnectCommand.Execute(new ConnectConfiguration());
+            
+            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), null, false));
         }
 
         [TestMethod]
@@ -282,7 +335,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.RefreshCommand.Execute(connection);
 
             // Assert
-            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>()), Times.Once);
+            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), null, false), Times.Once);
             testSubject.LastAttemptedConnection.ServerUri.Should().Be(connection.ServerUri, "Unexpected last attempted connection");
             testSubject.LastAttemptedConnection.Should().NotBe(connection, "LastAttemptedConnection should be a clone");
         }
@@ -300,7 +353,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var connectionInfo = new ConnectionInformation(new Uri("http://refreshConnection"));
 
             // Sanity
-            testSubject.ConnectCommand.CanExecute().Should().BeTrue();
+            testSubject.ConnectCommand.CanExecute(null).Should().BeTrue();
             testSubject.RefreshCommand.CanExecute(connectionInfo).Should().BeTrue();
 
             foreach (var controllerResult in (ProgressControllerResult[])Enum.GetValues(typeof(ProgressControllerResult)))
@@ -311,7 +364,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 testSubject.SetConnectionInProgress(progressEvents);
 
                 // Assert
-                testSubject.ConnectCommand.CanExecute().Should().BeFalse("Connection is in progress so should not be enabled");
+                testSubject.ConnectCommand.CanExecute(null).Should().BeFalse("Connection is in progress so should not be enabled");
                 testSubject.RefreshCommand.CanExecute(connectionInfo).Should().BeFalse("Connection is in progress so should not be enabled");
                 logger.AssertOutputStrings(0);
 
@@ -326,7 +379,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 progressEvents.SimulateFinished(controllerResult);
 
                 // Assert
-                testSubject.ConnectCommand.CanExecute().Should().BeTrue("Connection is finished with result: {0}", controllerResult);
+                testSubject.ConnectCommand.CanExecute(null).Should().BeTrue("Connection is finished with result: {0}", controllerResult);
                 testSubject.RefreshCommand.CanExecute(connectionInfo).Should().BeTrue("Connection is finished with result: {0}", controllerResult);
             }
         }
