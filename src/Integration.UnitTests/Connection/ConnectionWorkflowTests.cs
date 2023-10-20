@@ -186,7 +186,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var testSubject = CreateTestSubject(serviceProvider, host, new RelayCommand(AssertIfCalled));
 
             // Act
-            await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
+            Func<Task> act = async () => await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
+            await act.Should().ThrowExactlyAsync<BindingAbortedException>();
 
             // Assert
             controller.NumberOfAbortRequests.Should().Be(1);
@@ -269,7 +270,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var testSubject = CreateTestSubject(serviceProvider, host, new RelayCommand(AssertIfCalled));
 
             // Act
-            await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
+            Func<Task> act = async () => await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
+            await act.Should().ThrowExactlyAsync<BindingAbortedException>();
 
             // Assert
             executionEvents.AssertProgressMessages(
@@ -286,7 +288,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Act (reconnect with same bad connection)
             executionEvents.Reset();
             projectChangedCallbackCalled = false;
-            await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
+            Func<Task> act2 = async () => await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
+            await act2.Should().ThrowExactlyAsync<BindingAbortedException>();
 
             // Assert
             executionEvents.AssertProgressMessages(
@@ -308,7 +311,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             tokenSource.Cancel();
 
             // Act
-            await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, token);
+            Func<Task> act3 = async () => await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, token);
+            await act3.Should().ThrowExactlyAsync<BindingAbortedException>();
 
             // Assert
             executionEvents.AssertProgressMessages(

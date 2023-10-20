@@ -28,6 +28,8 @@ using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client.Models;
@@ -52,16 +54,19 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         private readonly IServiceProvider serviceProvider;
         private readonly IWebBrowser webBrowser;
+        private readonly IAutoBindTrigger autoBindTrigger;
 
         [ImportingConstructor]
         public SectionController(
             [Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider,
             IHost host,
-            IWebBrowser webBrowser)
+            IWebBrowser webBrowser,
+            IAutoBindTrigger autoBindTrigger)
         {
             this.serviceProvider = serviceProvider;
             this.Host = host;
             this.webBrowser = webBrowser;
+            this.autoBindTrigger = autoBindTrigger;
         }
 
         internal /*for testing purposes*/ List<IVSOleCommandTarget> CommandTargets
@@ -197,7 +202,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         #endregion
 
         #region Commands
-        public ICommand ConnectCommand
+        public ICommand<ConnectConfiguration> ConnectCommand
         {
             get;
             private set;
@@ -244,7 +249,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         {
             // Due to complexity of connect and bind we "outsource" the controlling part
             // to separate controllers which just expose commands
-            var connectionController = new Connection.ConnectionController(serviceProvider, Host);
+            var connectionController = new Connection.ConnectionController(serviceProvider, Host, autoBindTrigger);
             var bindingController = new Binding.BindingController(serviceProvider, Host);
 
             this.CommandTargets.Add(connectionController);

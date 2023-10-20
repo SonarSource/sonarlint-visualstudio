@@ -74,7 +74,7 @@
                         <tecontrols:TextLink x:Name="ConnectLink"
                                          Grid.Column="0"
                                          Command="{Binding ConnectCommand}"
-                                         CommandParameter="{Binding ElementName=progressPlacePlaceholder}"
+                                         CommandParameter="{Binding Path=.State.ConnectConfiguration}"
                                          Text="{x:Static resx:UIStrings.ConnectLinkText}" />
                         <tecontrols:TextLink Grid.Column="2"
                                          Command="{Binding BrowseToUrlCommand}"

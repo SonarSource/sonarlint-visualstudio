@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -18,12 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Client.Models;
-
 namespace SonarLint.VisualStudio.Integration.Connection
 {
-    public interface IConnectionWorkflowExecutor
+    internal sealed class ConnectConfiguration
     {
-        void EstablishConnection(ConnectionInformation information, string autoBindProjectKey, bool autoBind);
+        public bool UseSharedBinding { get; } = true; // constant for now, could be changed later
     }
 }
