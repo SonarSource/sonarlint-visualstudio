@@ -33,6 +33,7 @@ using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
+using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
@@ -227,52 +228,98 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionController_ConnectCommand_SharedConfigAndCredentialsPresent_AutoBinds()
         {
             var connectionWorkflowMock = CreateWorkflow();
-            connectionWorkflowMock.Setup(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), It.IsAny<string>(), It.IsAny<bool>()));
-            var testSubject = new ConnectionController(this.serviceProvider, this.host, null, this.connectionProvider,
+            SetupConnectionWorkflow(connectionWorkflowMock);
+            SetUpOpenSolution();
+            var connectionProviderMock = new Mock<IConnectionInformationProvider>();
+            var testSubject = new ConnectionController(this.serviceProvider, this.host, null, connectionProviderMock.Object,
                 connectionWorkflowMock.Object);
-            this.solutionInfoProvider.Setup(x => x.IsSolutionFullyOpened()).Returns(true);
             host.SharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = "https://sonarcloudi.io", Organization = "Org"};
             host.CredentialsForSharedConfig = new Credential("user", "pwd");
             host.TestStateManager.BoundProjectKey = "projectKey";
             
             testSubject.ConnectCommand.Execute(new ConnectConfiguration());
             
-            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), "projectKey", true));
+            connectionWorkflowMock.Verify(x =>
+                    x.EstablishConnection(It.IsAny<ConnectionInformation>(), "projectKey", true),
+                Times.Once);
+            connectionProviderMock.Verify(x => x.GetConnectionInformation(It.IsAny<ConnectionInformation>()),
+                Times.Never);
         }
         
+        [TestMethod]
+        public void ConnectionController_ConnectCommand_SharedConfig_AsksForCredentialsPresent_AutoBinds()
+        {
+            var connectionWorkflowMock = CreateWorkflow();
+            SetupConnectionWorkflow(connectionWorkflowMock);
+            SetUpOpenSolution();
+            var connectionProviderMock = new Mock<IConnectionInformationProvider>();
+            var testSubject = new ConnectionController(this.serviceProvider, this.host, null, connectionProviderMock.Object,
+                connectionWorkflowMock.Object);
+            host.SharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = "https://sonarcloudi.io", Organization = "Org"};
+            var connectionInformation =
+                new ConnectionInformation(host.SharedBindingConfig.ServerUri, "user", "pwd".ToSecureString())
+                {
+                    Organization = new SonarQubeOrganization(host.SharedBindingConfig.Organization, string.Empty)
+                };
+            SetupConnectionProvider(connectionProviderMock, connectionInformation);
+            host.TestStateManager.BoundProjectKey = "projectKey";
+            
+            testSubject.ConnectCommand.Execute(new ConnectConfiguration());
+            
+            connectionWorkflowMock.Verify(x => 
+                    x.EstablishConnection(connectionInformation, "projectKey", true),
+                Times.Once);
+            connectionProviderMock.Verify(x => 
+                    x.GetConnectionInformation(It.Is<ConnectionInformation>(c => 
+                        c.ServerUri == host.SharedBindingConfig.ServerUri && c.Organization.Key == host.SharedBindingConfig.Organization)),
+                Times.Once);
+        }
+
         [TestMethod]
         public void ConnectionController_ConnectCommand_SharedConfigDisable_DoesNotAutoBind()
         {
             var connectionWorkflowMock = CreateWorkflow();
-            connectionWorkflowMock.Setup(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), It.IsAny<string>(), It.IsAny<bool>()));
-            var testSubject = new ConnectionController(this.serviceProvider, this.host, null, this.connectionProvider,
-                connectionWorkflowMock.Object);
-            this.solutionInfoProvider.Setup(x => x.IsSolutionFullyOpened()).Returns(true);
+            SetupConnectionWorkflow(connectionWorkflowMock);
+            SetUpOpenSolution();
+            var connectionProviderMock = new Mock<IConnectionInformationProvider>();
             host.SharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = "https://sonarcloudi.io", Organization = "Org"};
             host.CredentialsForSharedConfig = new Credential("user", "pwd");
-            host.TestStateManager.BoundProjectKey = "projectKey";
             var expectedConnection = new ConnectionInformation(new Uri("https://127.0.0.0"));
-            this.connectionProvider.ConnectionInformationToReturn = expectedConnection;
+            SetupConnectionProvider(connectionProviderMock, expectedConnection);
             
+            var testSubject = new ConnectionController(this.serviceProvider, this.host, null,
+                connectionProviderMock.Object, connectionWorkflowMock.Object);
+           
             testSubject.ConnectCommand.Execute(null);
             
-            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), "projectKey", false));
+            connectionWorkflowMock.Verify(x =>
+                    x.EstablishConnection(It.IsAny<ConnectionInformation>(), null, false),
+                Times.Once);
+            connectionProviderMock.Verify(x => 
+                    x.GetConnectionInformation(It.IsAny<ConnectionInformation>()),
+                Times.Once);
         }
         
         [TestMethod]
         public void ConnectionController_ConnectCommand_SharedConfigNotPresentDoesNotAutoBind()
         {
             var connectionWorkflowMock = CreateWorkflow();
-            connectionWorkflowMock.Setup(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), It.IsAny<string>(), It.IsAny<bool>()));
-            var testSubject = new ConnectionController(this.serviceProvider, this.host, null, this.connectionProvider,
-                connectionWorkflowMock.Object);
-            this.solutionInfoProvider.Setup(x => x.IsSolutionFullyOpened()).Returns(true);
+            SetupConnectionWorkflow(connectionWorkflowMock);
+            SetUpOpenSolution();
+            var connectionProviderMock = new Mock<IConnectionInformationProvider>();
             var expectedConnection = new ConnectionInformation(new Uri("https://127.0.0.0"));
-            this.connectionProvider.ConnectionInformationToReturn = expectedConnection;
+            SetupConnectionProvider(connectionProviderMock, expectedConnection);
+            
+            var testSubject = new ConnectionController(this.serviceProvider, this.host, null,
+                connectionProviderMock.Object, connectionWorkflowMock.Object);
             
             testSubject.ConnectCommand.Execute(new ConnectConfiguration());
             
-            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), null, false));
+            connectionWorkflowMock.Verify(x =>
+                    x.EstablishConnection(It.IsAny<ConnectionInformation>(), null, false), 
+                Times.Once);
+            connectionProviderMock.Verify(x => x.GetConnectionInformation(It.IsAny<ConnectionInformation>()),
+                Times.Once);
         }
 
         [TestMethod]
@@ -387,7 +434,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         }
 
         #endregion Tests
+        private static void SetupConnectionWorkflow(Mock<IConnectionWorkflowExecutor> connectionWorkflowMock)
+        {
+            connectionWorkflowMock.Setup(x =>
+                x.EstablishConnection(It.IsAny<ConnectionInformation>(), It.IsAny<string>(), It.IsAny<bool>()));
+        }
 
+        private void SetUpOpenSolution()
+        {
+            this.solutionInfoProvider.Setup(x => x.IsSolutionFullyOpened()).Returns(true);
+        }
+        
+        private static void SetupConnectionProvider(Mock<IConnectionInformationProvider> connectionProviderMock, ConnectionInformation expectedConnection)
+        {
+            connectionProviderMock
+                .Setup(x => x.GetConnectionInformation(It.IsAny<ConnectionInformation>()))
+                .Returns(expectedConnection);
+        }
+        
         private ConnectionController CreateTestSubject() =>
             new ConnectionController(serviceProvider, host, Mock.Of<IAutoBindTrigger>());
     }
