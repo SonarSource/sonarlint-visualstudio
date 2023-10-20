@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             : base(serviceProvider)
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
-            this.autoBindTrigger = workflowExecutor == null ? autoBindTrigger : null; 
+            this.autoBindTrigger = workflowExecutor == null ? autoBindTrigger : null;
             this.WorkflowExecutor = workflowExecutor ?? this;
             this.connectionProvider = connectionProvider ?? this;
 
@@ -76,29 +76,17 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         #region Properties
 
-        public RelayCommand<ConnectConfiguration> ConnectCommand
-        {
-            get;
-        }
+        public RelayCommand<ConnectConfiguration> ConnectCommand { get; }
 
-        public RelayCommand<ConnectionInformation> RefreshCommand
-        {
-            get;
-        }
+        public RelayCommand<ConnectionInformation> RefreshCommand { get; }
 
-        internal /*for testing purposes*/ IConnectionWorkflowExecutor WorkflowExecutor
-        {
-            get;
-        }
+        internal /*for testing purposes*/ IConnectionWorkflowExecutor WorkflowExecutor { get; }
 
         internal ConnectionInformation LastAttemptedConnection { get; private set; }
 
         internal bool IsConnectionInProgress
         {
-            get
-            {
-                return this.host.VisualStateManager.IsBusy;
-            }
+            get { return this.host.VisualStateManager.IsBusy; }
             set
             {
                 if (this.host.VisualStateManager.IsBusy != value)
@@ -109,6 +97,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 }
             }
         }
+
         #endregion
 
         #region Connect Command
@@ -116,15 +105,15 @@ namespace SonarLint.VisualStudio.Integration.Connection
         private bool CanConnect(ConnectConfiguration configuration)
         {
             return solutionInfoProvider.IsSolutionFullyOpened()
-                && !this.host.VisualStateManager.IsConnected
-                && !this.host.VisualStateManager.IsBusy;
+                   && !this.host.VisualStateManager.IsConnected
+                   && !this.host.VisualStateManager.IsBusy;
         }
 
         private void OnConnect(ConnectConfiguration configuration)
         {
             Debug.Assert(this.CanConnect(configuration));
             Debug.Assert(!this.host.VisualStateManager.IsBusy, "Service is in a connecting state");
-           
+
             ConnectionInformation connectionInfo;
 
             var sharedConfig = host.SharedBindingConfig;
@@ -132,14 +121,19 @@ namespace SonarLint.VisualStudio.Integration.Connection
             var useSharedConfig = configuration?.UseSharedBinding ?? false;
             var autoBindProjectKey = host.VisualStateManager.BoundProjectKey;
 
-            if (useSharedConfig && !string.IsNullOrEmpty(autoBindProjectKey) && sharedConfig != null && credentials != null)
+            if (useSharedConfig && !string.IsNullOrEmpty(autoBindProjectKey) && sharedConfig != null)
             {
                 connectionInfo = new ConnectionInformation(sharedConfig.ServerUri,
-                    credentials.Username,
-                    credentials.Password.ToSecureString())
+                    credentials?.Username,
+                    credentials?.Password?.ToSecureString())
                 {
                     Organization = new SonarQubeOrganization(sharedConfig.Organization, string.Empty)
                 };
+
+                if (credentials == null)
+                {
+                    connectionInfo = this.connectionProvider.GetConnectionInformation(connectionInfo);
+                }
             }
             else
             {
@@ -151,6 +145,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 this.EstablishConnection(connectionInfo, autoBindProjectKey, useSharedConfig && sharedConfig != null);
             }
         }
+
         #endregion
 
         #region Refresh Command
@@ -158,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
         private bool CanRefresh(ConnectionInformation useConnection)
         {
             return !this.host.VisualStateManager.IsBusy
-                && (useConnection != null || this.host.VisualStateManager.IsConnected);
+                   && (useConnection != null || this.host.VisualStateManager.IsConnected);
         }
 
         private void OnRefresh(ConnectionInformation useConnection)
@@ -167,17 +162,21 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             // We're currently only connected to one server. when this will change we will need to refresh all the connected servers
             ConnectionInformation connectionToRefresh = useConnection
-                ?? this.host.VisualStateManager.GetConnectedServers().FirstOrDefault();
-            Debug.Assert(connectionToRefresh != null, "Expecting either to be connected to get a connection to connect to");
+                                                        ?? this.host.VisualStateManager.GetConnectedServers()
+                                                            .FirstOrDefault();
+            Debug.Assert(connectionToRefresh != null,
+                "Expecting either to be connected to get a connection to connect to");
 
             // Any existing connection will be disposed, so create a copy and use it to connect
             this.EstablishConnection(connectionToRefresh.Clone());
         }
+
         #endregion
 
         #region IConnectionInformationProvider
 
-        ConnectionInformation IConnectionInformationProvider.GetConnectionInformation(ConnectionInformation currentConnection)
+        ConnectionInformation IConnectionInformationProvider.GetConnectionInformation(
+            ConnectionInformation currentConnection)
         {
             var dialog = new ConnectionInformationDialog();
             return dialog.ShowDialog(currentConnection);
@@ -186,7 +185,9 @@ namespace SonarLint.VisualStudio.Integration.Connection
         #endregion
 
         #region IConnectionWorkflowExecutor
-        private void EstablishConnection(ConnectionInformation connectionInfo, string autoBindProjectKey = null, bool autoBind = false)
+
+        private void EstablishConnection(ConnectionInformation connectionInfo, string autoBindProjectKey = null,
+            bool autoBind = false)
         {
             Debug.Assert(connectionInfo != null);
 
@@ -196,7 +197,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
         }
 
         [ExcludeFromCodeCoverage] // the workflow is impossible to test as it's directly requests services from service provider, not mock-able
-        void IConnectionWorkflowExecutor.EstablishConnection(ConnectionInformation information, string autoBindProjectKey, bool autoBind)
+        void IConnectionWorkflowExecutor.EstablishConnection(ConnectionInformation information,
+            string autoBindProjectKey, bool autoBind)
         {
             ConnectionWorkflow workflow = new ConnectionWorkflow(this.ServiceProvider, this.host, this.ConnectCommand);
             IProgressEvents progressEvents = workflow.Run(information);
@@ -208,7 +210,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
         {
             this.IsConnectionInProgress = true;
 
-            ProgressNotificationListener progressListener = new ProgressNotificationListener(progressEvents, this.host.Logger);
+            ProgressNotificationListener progressListener =
+                new ProgressNotificationListener(progressEvents, this.host.Logger);
             progressListener.MessageFormat = Strings.ConnectingToSonarQubePrefixMessageFormat;
 
             progressEvents.RunOnFinished(result =>
@@ -217,6 +220,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 this.IsConnectionInProgress = false;
             });
         }
+
         #endregion
     }
 }
