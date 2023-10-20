@@ -237,6 +237,7 @@ namespace SonarLint.VisualStudio.Integration.State
                     string.Format(CultureInfo.CurrentCulture, Strings.BoundProjectNotFound, this.BoundProjectKey),
                     NotificationIds.FailedToFindBoundProjectKeyId,
                     Host.ActiveSection?.ReconnectCommand);
+                throw new BindingAbortedException("Can't find selected project");
             }
             else
             {

@@ -20,12 +20,16 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.Progress.Controller;
+using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Connection
@@ -39,33 +43,40 @@ namespace SonarLint.VisualStudio.Integration.Connection
     internal sealed class ConnectionController : HostedCommandControllerBase, IConnectionInformationProvider,
         IConnectionWorkflowExecutor
     {
+        private readonly IAutoBindTrigger autoBindTrigger;
         private readonly IHost host;
         private readonly IConnectionInformationProvider connectionProvider;
         private readonly ISolutionInfoProvider solutionInfoProvider;
 
-        public ConnectionController(IServiceProvider serviceProvider, IHost host)
-            : this(serviceProvider, host, null, null)
+        public ConnectionController(IServiceProvider serviceProvider, IHost host, IAutoBindTrigger autoBindTrigger)
+            : this(serviceProvider, host, autoBindTrigger, null, null)
         {
+            if (autoBindTrigger == null)
+            {
+                throw new ArgumentNullException(nameof(autoBindTrigger));
+            }
         }
 
         internal /*for testing purposes*/ ConnectionController(IServiceProvider serviceProvider,
             IHost host,
+            IAutoBindTrigger autoBindTrigger,
             IConnectionInformationProvider connectionProvider,
             IConnectionWorkflowExecutor workflowExecutor)
             : base(serviceProvider)
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
+            this.autoBindTrigger = workflowExecutor == null ? autoBindTrigger : null; 
             this.WorkflowExecutor = workflowExecutor ?? this;
             this.connectionProvider = connectionProvider ?? this;
 
             this.solutionInfoProvider = serviceProvider.GetMefService<ISolutionInfoProvider>();
-            this.ConnectCommand = new RelayCommand(this.OnConnect, this.CanConnect);
+            this.ConnectCommand = new RelayCommand<ConnectConfiguration>(this.OnConnect, this.CanConnect);
             this.RefreshCommand = new RelayCommand<ConnectionInformation>(this.OnRefresh, this.CanRefresh);
         }
 
         #region Properties
 
-        public RelayCommand ConnectCommand
+        public RelayCommand<ConnectConfiguration> ConnectCommand
         {
             get;
         }
@@ -102,22 +113,42 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         #region Connect Command
 
-        private bool CanConnect()
+        private bool CanConnect(ConnectConfiguration configuration)
         {
             return solutionInfoProvider.IsSolutionFullyOpened()
                 && !this.host.VisualStateManager.IsConnected
                 && !this.host.VisualStateManager.IsBusy;
         }
 
-        private void OnConnect()
+        private void OnConnect(ConnectConfiguration configuration)
         {
-            Debug.Assert(this.CanConnect());
+            Debug.Assert(this.CanConnect(configuration));
             Debug.Assert(!this.host.VisualStateManager.IsBusy, "Service is in a connecting state");
+           
+            ConnectionInformation connectionInfo;
 
-            var connectionInfo = this.connectionProvider.GetConnectionInformation(this.LastAttemptedConnection);
+            var sharedConfig = host.SharedBindingConfig;
+            var credentials = host.GetCredentialsForSharedConfig();
+            var useSharedConfig = configuration?.UseSharedBinding ?? false;
+            var autoBindProjectKey = host.VisualStateManager.BoundProjectKey;
+
+            if (useSharedConfig && !string.IsNullOrEmpty(autoBindProjectKey) && sharedConfig != null && credentials != null)
+            {
+                connectionInfo = new ConnectionInformation(sharedConfig.ServerUri,
+                    credentials.Username,
+                    credentials.Password.ToSecureString())
+                {
+                    Organization = new SonarQubeOrganization(sharedConfig.Organization, string.Empty)
+                };
+            }
+            else
+            {
+                connectionInfo = this.connectionProvider.GetConnectionInformation(this.LastAttemptedConnection);
+            }
+
             if (connectionInfo != null)
             {
-                this.EstablishConnection(connectionInfo);
+                this.EstablishConnection(connectionInfo, autoBindProjectKey, useSharedConfig && sharedConfig != null);
             }
         }
         #endregion
@@ -155,20 +186,22 @@ namespace SonarLint.VisualStudio.Integration.Connection
         #endregion
 
         #region IConnectionWorkflowExecutor
-        private void EstablishConnection(ConnectionInformation connectionInfo)
+        private void EstablishConnection(ConnectionInformation connectionInfo, string autoBindProjectKey = null, bool autoBind = false)
         {
             Debug.Assert(connectionInfo != null);
 
             this.LastAttemptedConnection = connectionInfo;
 
-            this.WorkflowExecutor.EstablishConnection(connectionInfo);
+            this.WorkflowExecutor.EstablishConnection(connectionInfo, autoBindProjectKey, autoBind);
         }
 
-        void IConnectionWorkflowExecutor.EstablishConnection(ConnectionInformation information)
+        [ExcludeFromCodeCoverage] // the workflow is impossible to test as it's directly requests services from service provider, not mock-able
+        void IConnectionWorkflowExecutor.EstablishConnection(ConnectionInformation information, string autoBindProjectKey, bool autoBind)
         {
             ConnectionWorkflow workflow = new ConnectionWorkflow(this.ServiceProvider, this.host, this.ConnectCommand);
             IProgressEvents progressEvents = workflow.Run(information);
             SetConnectionInProgress(progressEvents);
+            autoBindTrigger.TriggerAfterSuccessfulWorkflow(progressEvents, autoBind, autoBindProjectKey, information);
         }
 
         internal /*for testing purposes*/ void SetConnectionInProgress(IProgressEvents progressEvents)

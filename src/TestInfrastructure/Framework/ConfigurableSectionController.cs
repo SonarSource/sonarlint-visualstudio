@@ -21,6 +21,7 @@
 using System.Windows.Input;
 using Moq;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -38,7 +39,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             set;
         }
 
-        public ICommand ConnectCommand
+        public ICommand<ConnectConfiguration> ConnectCommand
         {
             get;
             set;
@@ -117,7 +118,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
                 ProgressHost = new ConfigurableProgressControlHost(),
                 UserNotifications = new ConfigurableUserNotification(),
                 BindCommand = new RelayCommand<BindCommandArgs>(args => { }),
-                ConnectCommand = new RelayCommand(() => { }),
+                ConnectCommand = new RelayCommand<ConnectConfiguration>(_ => { }),
                 DisconnectCommand = new RelayCommand(() => { }),
                 ReconnectCommand = new RelayCommand(() => { }),
                 RefreshCommand = new RelayCommand<ConnectionInformation>(c => { }),

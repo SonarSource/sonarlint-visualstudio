@@ -25,6 +25,7 @@ using Microsoft.TeamFoundation.Controls;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -68,7 +69,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             MefTestHelpers.CheckTypeCanBeImported<SectionController, ITeamExplorerSection>(
                 MefTestHelpers.CreateExport<SVsServiceProvider>(),
                 MefTestHelpers.CreateExport<IHost>(new ConfigurableHost()),
-                MefTestHelpers.CreateExport<IWebBrowser>());
+                MefTestHelpers.CreateExport<IWebBrowser>(),
+                MefTestHelpers.CreateExport<IAutoBindTrigger>());
         }
 
         [TestMethod]
@@ -473,7 +475,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
         private SectionController CreateTestSubject(IWebBrowser webBrowser = null)
         {
-            var controller = new SectionController(serviceProvider, host, webBrowser ?? new ConfigurableWebBrowser());
+            var controller = new SectionController(serviceProvider, host, webBrowser ?? new ConfigurableWebBrowser(), Mock.Of<IAutoBindTrigger>());
             controller.Initialize(null, new SectionInitializeEventArgs(new ServiceContainer(), null));
             return controller;
         }

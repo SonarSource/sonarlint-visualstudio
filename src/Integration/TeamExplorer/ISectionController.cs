@@ -20,7 +20,7 @@
 
 using System.Windows.Input;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client.Models;
@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         ///<remarks>return <see cref="ViewModel"/> when the view model specific implementation is the one to use</remarks>
         IUserNotification UserNotifications { get; }
 
-        ICommand ConnectCommand { get; }
+        ICommand<ConnectConfiguration> ConnectCommand { get; }
 
         ICommand ReconnectCommand { get; }
 

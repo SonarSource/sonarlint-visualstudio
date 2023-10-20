@@ -138,12 +138,13 @@ namespace SonarLint.VisualStudio.Integration.Connection
                     if (hasOrgs)
                     {
                         notifications.ProgressChanged(Strings.ConnectionStepRetrievingOrganizations);
-                        var organizations = await this.host.SonarQubeService.GetAllOrganizationsAsync(cancellationToken);
+                        var organizations =
+                            await this.host.SonarQubeService.GetAllOrganizationsAsync(cancellationToken);
 
                         connection.Organization = AskUserToSelectOrganizationOnUIThread(organizations);
                         if (connection.Organization == null) // User clicked cancel
                         {
-                            AbortWithMessage(notifications, controller, cancellationToken); // TODO: Might be worth throwing
+                            AbortWithMessage(notifications, controller, cancellationToken);
                             return;
                         }
                     }
@@ -174,8 +175,10 @@ namespace SonarLint.VisualStudio.Integration.Connection
                     projects.Count == 10000 &&
                     !projects.Any(p => p.Key == this.host.VisualStateManager.BoundProjectKey))
                 {
-                    this.host.Logger.WriteLine($"The project with key '{this.host.VisualStateManager.BoundProjectKey}' is not part of the first ten thousand projects. The binding process will continue assuming it was found.");
-                    this.host.Logger.WriteLine("Note that if the project key does not actually exist on the server the binding will fail at a later stage.");
+                    this.host.Logger.WriteLine(
+                        $"The project with key '{this.host.VisualStateManager.BoundProjectKey}' is not part of the first ten thousand projects. The binding process will continue assuming it was found.");
+                    this.host.Logger.WriteLine(
+                        "Note that if the project key does not actually exist on the server the binding will fail at a later stage.");
 
                     // We have to create a new list because the collection returned by the service as a fixed size
                     projects = new List<SonarQubeProject>(projects);
@@ -200,6 +203,10 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 // Canceled or timeout
                 this.host.Logger.WriteLine(CoreStrings.SonarQubeRequestTimeoutOrCancelled);
                 AbortWithMessage(notifications, controller, cancellationToken);
+            }
+            catch (BindingAbortedException)
+            {
+                throw; // needed to set ProgressControllerResult to Failed, not possible without an exception (or a refactoring of the progress framework)
             }
             catch (Exception ex)
             {
@@ -244,6 +251,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             Debug.Assert(aborted || token.IsCancellationRequested, "Failed to abort the workflow");
 
             this.host.SonarQubeService.Disconnect();
+            throw new BindingAbortedException("Connection failed");
         }
 
         #endregion
