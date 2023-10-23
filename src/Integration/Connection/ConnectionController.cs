@@ -119,9 +119,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
             var sharedConfig = host.SharedBindingConfig;
             var credentials = host.GetCredentialsForSharedConfig();
             var useSharedConfig = configuration?.UseSharedBinding ?? false;
-            var autoBindProjectKey = host.VisualStateManager.BoundProjectKey;
 
-            if (useSharedConfig && !string.IsNullOrEmpty(autoBindProjectKey) && sharedConfig != null)
+            if (useSharedConfig && sharedConfig != null)
             {
                 connectionInfo = new ConnectionInformation(sharedConfig.ServerUri,
                     credentials?.Username,
@@ -134,15 +133,20 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 {
                     connectionInfo = this.connectionProvider.GetConnectionInformation(connectionInfo);
                 }
+
+                if (connectionInfo != null)
+                {
+                    this.EstablishConnection(connectionInfo, sharedConfig.ProjectKey);
+                }
             }
             else
             {
                 connectionInfo = this.connectionProvider.GetConnectionInformation(this.LastAttemptedConnection);
-            }
 
-            if (connectionInfo != null)
-            {
-                this.EstablishConnection(connectionInfo, autoBindProjectKey, useSharedConfig && sharedConfig != null);
+                if (connectionInfo != null)
+                {
+                    this.EstablishConnection(connectionInfo);
+                }
             }
         }
 
@@ -186,24 +190,23 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         #region IConnectionWorkflowExecutor
 
-        private void EstablishConnection(ConnectionInformation connectionInfo, string autoBindProjectKey = null,
-            bool autoBind = false)
+        private void EstablishConnection(ConnectionInformation connectionInfo, string autoBindProjectKey = null)
         {
             Debug.Assert(connectionInfo != null);
 
             this.LastAttemptedConnection = connectionInfo;
 
-            this.WorkflowExecutor.EstablishConnection(connectionInfo, autoBindProjectKey, autoBind);
+            this.WorkflowExecutor.EstablishConnection(connectionInfo, autoBindProjectKey);
         }
 
         [ExcludeFromCodeCoverage] // the workflow is impossible to test as it's directly requests services from service provider, not mock-able
         void IConnectionWorkflowExecutor.EstablishConnection(ConnectionInformation information,
-            string autoBindProjectKey, bool autoBind)
+            string autoBindProjectKey)
         {
             ConnectionWorkflow workflow = new ConnectionWorkflow(this.ServiceProvider, this.host, this.ConnectCommand);
             IProgressEvents progressEvents = workflow.Run(information);
             SetConnectionInProgress(progressEvents);
-            autoBindTrigger.TriggerAfterSuccessfulWorkflow(progressEvents, autoBind, autoBindProjectKey, information);
+            autoBindTrigger.TriggerAfterSuccessfulWorkflow(progressEvents, autoBindProjectKey, information);
         }
 
         internal /*for testing purposes*/ void SetConnectionInProgress(IProgressEvents progressEvents)

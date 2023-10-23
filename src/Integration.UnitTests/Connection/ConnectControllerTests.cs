@@ -182,7 +182,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             // Arrange
             var connectionWorkflowMock = CreateWorkflow();
-            connectionWorkflowMock.Setup(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), It.IsAny<string>(), It.IsAny<bool>()));
+            connectionWorkflowMock.Setup(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), It.IsAny<string>()));
             ConnectionController testSubject = new ConnectionController(this.serviceProvider, this.host, null,
                 this.connectionProvider, connectionWorkflowMock.Object);
             this.solutionInfoProvider.Setup(x => x.IsSolutionFullyOpened()).Returns(true);
@@ -200,7 +200,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.ConnectCommand.Execute(null);
 
             // Assert
-            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), It.IsAny<string>()), Times.Never);
 
             // Case 2: connection provider returns a valid connection
             var expectedConnection = new ConnectionInformation(new Uri("https://127.0.0.0"));
@@ -212,7 +212,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.ConnectCommand.Execute(null);
 
             // Assert
-            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), null, false), Times.Once);
+            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), null), Times.Once);
             // Case 3: existing connection, change to a different one
             var existingConnection = expectedConnection;
             this.host.TestStateManager.IsConnected = true;
@@ -235,12 +235,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 connectionWorkflowMock.Object);
             host.SharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = "https://sonarcloudi.io", Organization = "Org"};
             host.CredentialsForSharedConfig = new Credential("user", "pwd");
-            host.TestStateManager.BoundProjectKey = "projectKey";
             
             testSubject.ConnectCommand.Execute(new ConnectConfiguration());
             
             connectionWorkflowMock.Verify(x =>
-                    x.EstablishConnection(It.IsAny<ConnectionInformation>(), "projectKey", true),
+                    x.EstablishConnection(It.IsAny<ConnectionInformation>(), "projectKey"),
                 Times.Once);
             connectionProviderMock.Verify(x => x.GetConnectionInformation(It.IsAny<ConnectionInformation>()),
                 Times.Never);
@@ -262,12 +261,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                     Organization = new SonarQubeOrganization(host.SharedBindingConfig.Organization, string.Empty)
                 };
             SetupConnectionProvider(connectionProviderMock, connectionInformation);
-            host.TestStateManager.BoundProjectKey = "projectKey";
             
             testSubject.ConnectCommand.Execute(new ConnectConfiguration());
             
             connectionWorkflowMock.Verify(x => 
-                    x.EstablishConnection(connectionInformation, "projectKey", true),
+                    x.EstablishConnection(connectionInformation, "projectKey"),
                 Times.Once);
             connectionProviderMock.Verify(x => 
                     x.GetConnectionInformation(It.Is<ConnectionInformation>(c => 
@@ -293,7 +291,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.ConnectCommand.Execute(null);
             
             connectionWorkflowMock.Verify(x =>
-                    x.EstablishConnection(It.IsAny<ConnectionInformation>(), null, false),
+                    x.EstablishConnection(It.IsAny<ConnectionInformation>(), null),
                 Times.Once);
             connectionProviderMock.Verify(x => 
                     x.GetConnectionInformation(It.IsAny<ConnectionInformation>()),
@@ -316,7 +314,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.ConnectCommand.Execute(new ConnectConfiguration());
             
             connectionWorkflowMock.Verify(x =>
-                    x.EstablishConnection(It.IsAny<ConnectionInformation>(), null, false), 
+                    x.EstablishConnection(It.IsAny<ConnectionInformation>(), null), 
                 Times.Once);
             connectionProviderMock.Verify(x => x.GetConnectionInformation(It.IsAny<ConnectionInformation>()),
                 Times.Once);
@@ -384,7 +382,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             testSubject.RefreshCommand.Execute(connection);
 
             // Assert
-            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), null, false), Times.Once);
+            connectionWorkflowMock.Verify(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), null), Times.Once);
             testSubject.LastAttemptedConnection.ServerUri.Should().Be(connection.ServerUri, "Unexpected last attempted connection");
             testSubject.LastAttemptedConnection.Should().NotBe(connection, "LastAttemptedConnection should be a clone");
         }
@@ -437,7 +435,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private static void SetupConnectionWorkflow(Mock<IConnectionWorkflowExecutor> connectionWorkflowMock)
         {
             connectionWorkflowMock.Setup(x =>
-                x.EstablishConnection(It.IsAny<ConnectionInformation>(), It.IsAny<string>(), It.IsAny<bool>()));
+                x.EstablishConnection(It.IsAny<ConnectionInformation>(), It.IsAny<string>()));
         }
 
         private void SetUpOpenSolution()

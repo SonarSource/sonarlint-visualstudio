@@ -24,6 +24,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
 {
     public interface IConnectionWorkflowExecutor
     {
-        void EstablishConnection(ConnectionInformation information, string autoBindProjectKey, bool autoBind);
+        void EstablishConnection(ConnectionInformation information, string autoBindProjectKey);
     }
 }

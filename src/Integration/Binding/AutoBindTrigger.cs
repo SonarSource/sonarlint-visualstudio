@@ -27,8 +27,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal interface IAutoBindTrigger
     {
-        void TriggerAfterSuccessfulWorkflow(IProgressEvents workflowProgress, bool isAutoBindRequested,
-            string projectKey, ConnectionInformation connectionInformation);
+        void TriggerAfterSuccessfulWorkflow(IProgressEvents workflowProgress,
+            string autoBindProjectKey, ConnectionInformation connectionInformation);
     }
     
     [Export(typeof(IAutoBindTrigger))]
@@ -43,26 +43,23 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.host = host;
         }
         
-        public void TriggerAfterSuccessfulWorkflow(IProgressEvents workflowProgress, bool isAutoBindRequested,
-            string projectKey, ConnectionInformation connectionInformation)
+        public void TriggerAfterSuccessfulWorkflow(IProgressEvents workflowProgress,
+            string autoBindProjectKey, ConnectionInformation connectionInformation)
         {
             workflowProgress.RunOnFinished(result =>
             {
-                AutobindIfPossible(result, isAutoBindRequested, projectKey, connectionInformation);
+                AutobindIfPossible(result, autoBindProjectKey, connectionInformation);
             });
         }
 
-        internal /* for testing */ void AutobindIfPossible(ProgressControllerResult result, 
-            bool isAutoBindRequested,
-            string projectKey,
+        internal /* for testing */ void AutobindIfPossible(ProgressControllerResult result,
+            string autoBindProjectKey,
             ConnectionInformation connectionInformation)
         {
-            if (result == ProgressControllerResult.Succeeded
-                && isAutoBindRequested
-                && !string.IsNullOrEmpty(projectKey))
+            if (result == ProgressControllerResult.Succeeded && !string.IsNullOrEmpty(autoBindProjectKey))
             {
                 host.ActiveSection.BindCommand.Execute(
-                    new BindCommandArgs(projectKey, string.Empty, connectionInformation));
+                    new BindCommandArgs(autoBindProjectKey, string.Empty, connectionInformation));
             }
         }
     }
