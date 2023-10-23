@@ -51,7 +51,7 @@ public class AutoBindTriggerTests
         var testSubject = CreateTestSubject();
         var workflowProgressMock = new Mock<IProgressEvents>();
 
-        testSubject.TriggerAfterSuccessfulWorkflow(workflowProgressMock.Object, false, null, null);
+        testSubject.TriggerAfterSuccessfulWorkflow(workflowProgressMock.Object, null, null);
         
         workflowProgressMock.VerifyAdd(x => x.Finished += It.IsAny<EventHandler<ProgressControllerFinishedEventArgs>>(), Times.Once);
     }
@@ -62,7 +62,7 @@ public class AutoBindTriggerTests
         var (hostMock, bindCommandMock) = CreateHostMock();
         var testSubject = CreateTestSubject(hostMock.Object);
         
-        testSubject.AutobindIfPossible(ProgressControllerResult.Failed, true, "project", ConnectionInformation);
+        testSubject.AutobindIfPossible(ProgressControllerResult.Failed, "project", ConnectionInformation);
         
         bindCommandMock.Verify(x => x.Execute(It.IsAny<BindCommandArgs>()), Times.Never);
     }
@@ -73,18 +73,7 @@ public class AutoBindTriggerTests
         var (hostMock, bindCommandMock) = CreateHostMock();
         var testSubject = CreateTestSubject(hostMock.Object);
         
-        testSubject.AutobindIfPossible(ProgressControllerResult.Succeeded, false, "project", ConnectionInformation);
-        
-        bindCommandMock.Verify(x => x.Execute(It.IsAny<BindCommandArgs>()), Times.Never);
-    }
-    
-    [TestMethod]
-    public void AutobindIfPossible_ProjectNotKnown_DoesNothing()
-    {
-        var (hostMock, bindCommandMock) = CreateHostMock();
-        var testSubject = CreateTestSubject(hostMock.Object);
-        
-        testSubject.AutobindIfPossible(ProgressControllerResult.Succeeded, true, null, ConnectionInformation);
+        testSubject.AutobindIfPossible(ProgressControllerResult.Succeeded, null, ConnectionInformation);
         
         bindCommandMock.Verify(x => x.Execute(It.IsAny<BindCommandArgs>()), Times.Never);
     }
@@ -95,7 +84,7 @@ public class AutoBindTriggerTests
         var (hostMock, bindCommandMock) = CreateHostMock();
         var testSubject = CreateTestSubject(hostMock.Object);
         
-        testSubject.AutobindIfPossible(ProgressControllerResult.Succeeded, true, "project", ConnectionInformation);
+        testSubject.AutobindIfPossible(ProgressControllerResult.Succeeded, "project", ConnectionInformation);
         
         bindCommandMock.Verify(
             x => x.Execute(It.Is<BindCommandArgs>(args =>
