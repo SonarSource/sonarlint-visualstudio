@@ -350,7 +350,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             tracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
             
             testSubject.SharedBindingConfig.Should().NotBeNull();
-            this.stateManager.BoundProjectKey.Should().Be("abcd");
         }
         
         [TestMethod]
@@ -384,7 +383,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.SetActiveSection(section);
             
             testSubject.SharedBindingConfig.Should().NotBeNull();
-            this.stateManager.BoundProjectKey.Should().Be("abcd");
         }
         
         [TestMethod]
@@ -398,7 +396,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.SetActiveSection(section);
 
             testSubject.SharedBindingConfig.Should().NotBeNull();
-            this.stateManager.BoundProjectKey.Should().Be("abcd");
             
             this.stateManager.SetBoundProject(new Uri("http://bound"), null, "bla");
             SetConfiguration(new BoundSonarQubeProject(new Uri("http://bound"), "bla", "projectName"), SonarLintMode.Connected);

@@ -209,7 +209,6 @@ namespace SonarLint.VisualStudio.Integration
             {
                 this.ClearCurrentBinding();
                 SharedBindingConfig = sharedBindingConfigProvider.GetSharedBinding();
-                VisualStateManager.BoundProjectKey = this.SharedBindingConfig?.ProjectKey;
             }
             else
             {
