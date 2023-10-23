@@ -39,6 +39,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
     {
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
+        internal /*for testing*/ const string SonarCloudUri = "https://sonarcloud.io";
 
         [ImportingConstructor]
         public SharedBindingConfigFileProvider(ILogger logger) : this(logger, new FileSystem())
@@ -57,6 +58,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
             try
             {
                 result = JsonConvert.DeserializeObject<SharedBindingConfigModel>(fileSystem.File.ReadAllText(filePath));
+                if (result.IsSonarCloud())
+                {
+                    result.Uri = SonarCloudUri;
+                }
             }
             catch (Exception ex)
             {
@@ -71,6 +76,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
             bool result = false;
             try
             {
+                if (sharedBindingConfigModel.IsSonarCloud())
+                {
+                    sharedBindingConfigModel.Uri = null;
+                }
+
                 var fileContent = JsonConvert.SerializeObject(sharedBindingConfigModel);
                 fileSystem.File.WriteAllText(filePath, fileContent);
                 result = true;

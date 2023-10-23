@@ -63,6 +63,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         {
             string configFileContent = @"{""SonarCloudOrganization"":""Some Organisation"",""ProjectKey"":""projectKey""}";
             string filePath = "Some Path";
+            var uri = new Uri(SharedBindingConfigFileProvider.SonarCloudUri);
 
             var file = CreateFile(filePath, configFileContent);
             var fileSystem = GetFileSystem(file.Object);
@@ -73,8 +74,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 
             result.Organization.Should().Be("Some Organisation");
             result.ProjectKey.Should().Be("projectKey");
-            result.Uri.Should().BeNull();
-            result.ServerUri.Should().BeNull();
+            result.Uri.Should().Be(SharedBindingConfigFileProvider.SonarCloudUri);
+            result.ServerUri.Should().BeEquivalentTo(uri);
         }
 
         [TestMethod]
