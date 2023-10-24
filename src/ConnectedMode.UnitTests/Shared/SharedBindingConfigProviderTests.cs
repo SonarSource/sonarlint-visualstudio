@@ -39,6 +39,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+        {
+            MefTestHelpers.CheckIsSingletonMefComponent<SharedBindingConfigProvider>();
+        }
+
         [DataRow("Path", true, true)]
         [DataRow("Path", false, false)]
         [DataRow(null, true, false)]
