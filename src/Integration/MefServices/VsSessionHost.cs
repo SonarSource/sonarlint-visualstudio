@@ -209,6 +209,8 @@ namespace SonarLint.VisualStudio.Integration
             {
                 this.ClearCurrentBinding();
                 SharedBindingConfig = sharedBindingConfigProvider.GetSharedBinding();
+                VisualStateManager.HasSharedBinding = SharedBindingConfig != null;
+                VisualStateManager.ResetConnectionConfiguration();
             }
             else
             {

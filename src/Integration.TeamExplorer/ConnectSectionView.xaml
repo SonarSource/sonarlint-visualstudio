@@ -9,6 +9,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.TeamExplorer"
              xmlns:root="clr-namespace:SonarLint.VisualStudio.Integration;assembly=SonarLint.VisualStudio.Integration"
+             xmlns:corewpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
              xmlns:tecontrols="clr-namespace:Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;assembly=Microsoft.TeamFoundation.Controls"
              xmlns:tfconverters="clr-namespace:Microsoft.TeamFoundation.Controls.WPF.Converters;assembly=Microsoft.TeamFoundation.Controls"
              xmlns:vsimagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
@@ -31,7 +32,17 @@
             <tfconverters:IntToVisibleConverter x:Key="IntToVisibleConverter" />
             <tfconverters:TrueToVisibleConverter x:Key="TrueToVisibleConverter" />
             <vsutilities:BrushToColorConverter x:Key="BrushToColorConverter" />
+            <corewpf:BoolNegatingConverter x:Key="BoolNegatingConverter" />
+            <corewpf:BoolToVisibilityConverter x:Key="HideWhenBusyConverter" TrueValue="Hidden" FalseValue="Visible"/>
             <sonarlintWpf:ProjectViewModelToBindingArgsConverter x:Key="ProjectViewModelToBindingArgsConverter" />
+            <Style x:Key="SharedBindingCheckbox" TargetType="CheckBox">
+                <Setter Property="Margin" Value="5, 0, 0, 0"/>
+                <Style.Triggers>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Opacity" Value="0.5" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -74,8 +85,28 @@
                         <tecontrols:TextLink x:Name="ConnectLink"
                                          Grid.Column="0"
                                          Command="{Binding ConnectCommand}"
-                                         CommandParameter="{Binding Path=.State.ConnectConfiguration}"
+                                         CommandParameter="{Binding Path=State.ConnectConfiguration}"
                                          Text="{x:Static resx:UIStrings.ConnectLinkText}" />
+                        <CheckBox Grid.Column="1"
+                                  ToolTipService.ShowOnDisabled="True"
+                                  ToolTipService.IsEnabled="{Binding Path=IsEnabled,
+                                    RelativeSource={RelativeSource Mode=Self}, 
+                                    Converter={StaticResource BoolNegatingConverter}}"
+                                  IsChecked="{Binding Path=State.ConnectConfiguration.UseSharedBinding, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                  IsEnabled="{Binding Path=State.HasSharedBinding}"
+                                  Visibility="{Binding Path=State.IsBusy, Converter={StaticResource HideWhenBusyConverter}}"
+                                  Style="{StaticResource SharedBindingCheckbox}">
+                            <CheckBox.ToolTip>
+                                <ToolTip>
+                                    <TextBlock Text="{x:Static resx:UIStrings.SharedBindingCheckboxDisabledTooltipText}"/>
+                                </ToolTip>
+                            </CheckBox.ToolTip>
+                            <CheckBox.Content>
+                                <TextBlock FlowDirection="LeftToRight"
+                                           Text="{x:Static resx:UIStrings.SharedBindingCheckboxLabel}"
+                                           Style="{StaticResource SQStaticTextStyle}" />
+                            </CheckBox.Content>
+                        </CheckBox>
                         <tecontrols:TextLink Grid.Column="2"
                                          Command="{Binding BrowseToUrlCommand}"
                                          CommandParameter="{x:Static root:Constants.SonarQubeHomeWebUrl}"
