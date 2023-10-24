@@ -372,7 +372,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.SharedBindingConfig.Should().BeNull();
             testSubject.VisualStateManager.HasSharedBinding.Should().BeFalse();
             this.stateManager.BoundProjectKey.Should().Be(null);
-            ((ConfigurableStateManager)testSubject.VisualStateManager).ResetConnectionConfigCalled.Should().BeFalse();
+            ((ConfigurableStateManager)testSubject.VisualStateManager).ResetConnectionConfigCalled.Should().BeTrue();
         }
         
         [TestMethod]

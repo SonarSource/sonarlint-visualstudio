@@ -236,7 +236,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             host.SharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = "https://sonarcloudi.io", Organization = "Org"};
             host.CredentialsForSharedConfig = new Credential("user", "pwd");
             
-            testSubject.ConnectCommand.Execute(new ConnectConfiguration());
+            testSubject.ConnectCommand.Execute(new ConnectConfiguration(){UseSharedBinding = true});
             
             connectionWorkflowMock.Verify(x =>
                     x.EstablishConnection(It.IsAny<ConnectionInformation>(), "projectKey"),
@@ -262,7 +262,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 };
             SetupConnectionProvider(connectionProviderMock, connectionInformation);
             
-            testSubject.ConnectCommand.Execute(new ConnectConfiguration());
+            testSubject.ConnectCommand.Execute(new ConnectConfiguration(){UseSharedBinding = true});
             
             connectionWorkflowMock.Verify(x => 
                     x.EstablishConnection(connectionInformation, "projectKey"),
@@ -274,30 +274,42 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         }
 
         [TestMethod]
+        public void ConnectionController_ConnectCommand_ConnectionConfigNotPresent_DoesNotAutoBind()
+        {
+            TestDisabledSharedConfig(null);
+        }
+
+        [TestMethod]
         public void ConnectionController_ConnectCommand_SharedConfigDisable_DoesNotAutoBind()
+        {
+            TestDisabledSharedConfig(new ConnectConfiguration() {UseSharedBinding = false});
+        }
+
+        private void TestDisabledSharedConfig(ConnectConfiguration config)
         {
             var connectionWorkflowMock = CreateWorkflow();
             SetupConnectionWorkflow(connectionWorkflowMock);
             SetUpOpenSolution();
             var connectionProviderMock = new Mock<IConnectionInformationProvider>();
-            host.SharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = "https://sonarcloudi.io", Organization = "Org"};
+            host.SharedBindingConfig = new SharedBindingConfigModel
+                { ProjectKey = "projectKey", Uri = "https://sonarcloudi.io", Organization = "Org" };
             host.CredentialsForSharedConfig = new Credential("user", "pwd");
             var expectedConnection = new ConnectionInformation(new Uri("https://127.0.0.0"));
             SetupConnectionProvider(connectionProviderMock, expectedConnection);
-            
+
             var testSubject = new ConnectionController(this.serviceProvider, this.host, null,
                 connectionProviderMock.Object, connectionWorkflowMock.Object);
-           
-            testSubject.ConnectCommand.Execute(null);
-            
+
+            testSubject.ConnectCommand.Execute(config);
+
             connectionWorkflowMock.Verify(x =>
                     x.EstablishConnection(It.IsAny<ConnectionInformation>(), null),
                 Times.Once);
-            connectionProviderMock.Verify(x => 
+            connectionProviderMock.Verify(x =>
                     x.GetConnectionInformation(It.IsAny<ConnectionInformation>()),
                 Times.Once);
         }
-        
+
         [TestMethod]
         public void ConnectionController_ConnectCommand_SharedConfigNotPresentDoesNotAutoBind()
         {
@@ -311,7 +323,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var testSubject = new ConnectionController(this.serviceProvider, this.host, null,
                 connectionProviderMock.Object, connectionWorkflowMock.Object);
             
-            testSubject.ConnectCommand.Execute(new ConnectConfiguration());
+            testSubject.ConnectCommand.Execute(new ConnectConfiguration() { UseSharedBinding = true });
             
             connectionWorkflowMock.Verify(x =>
                     x.EstablishConnection(It.IsAny<ConnectionInformation>(), null), 
