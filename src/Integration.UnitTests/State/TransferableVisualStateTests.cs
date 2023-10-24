@@ -20,6 +20,7 @@
 
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -47,6 +48,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             testSubject.IsBusy.Should().BeFalse();
             testSubject.ConnectedServers.Should().NotBeNull();
             testSubject.ConnectedServers.Should().BeEmpty();
+            testSubject.ConnectConfiguration.Should().BeEquivalentTo(new ConnectConfiguration());
+            testSubject.HasSharedBinding.Should().BeFalse();
         }
 
         [TestMethod]

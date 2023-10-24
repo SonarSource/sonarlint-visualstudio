@@ -24,6 +24,7 @@ using System.Linq;
 using System.Windows.Input;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -493,6 +494,37 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
             // Assert
             connection1.IsDisposed.Should().BeTrue("Leaking connections?");
+        }
+
+        [TestMethod]
+        public void HasSharedBinding_ProxyForManagedState()
+        {
+            var host = new ConfigurableHost();
+            var testSubject = CreateTestSubject(host);
+
+            testSubject.HasSharedBinding = true;
+            testSubject.HasSharedBinding.Should().BeTrue();
+            testSubject.ManagedState.HasSharedBinding.Should().BeTrue();
+
+            testSubject.HasSharedBinding = false;
+            testSubject.HasSharedBinding.Should().BeFalse();
+            testSubject.ManagedState.HasSharedBinding.Should().BeFalse();
+
+            testSubject.ManagedState.HasSharedBinding = true;
+            testSubject.HasSharedBinding.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void ResetConnectionConfiguration_CreatesNewConfiguration()
+        {
+            var host = new ConfigurableHost();
+            var testSubject = CreateTestSubject(host);
+
+            var initialConfiguration = testSubject.ManagedState.ConnectConfiguration;
+            testSubject.ResetConnectionConfiguration();
+
+            testSubject.ManagedState.ConnectConfiguration.Should().NotBeSameAs(initialConfiguration);
+            testSubject.ManagedState.ConnectConfiguration.Should().BeEquivalentTo(new ConnectConfiguration());
         }
 
         #endregion Tests
