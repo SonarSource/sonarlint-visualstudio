@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Imaging;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -82,6 +83,12 @@ namespace SonarLint.VisualStudio.Integration.State
             }
         }
 
+        public bool HasSharedBinding
+        {
+            get => ManagedState.HasSharedBinding;
+            set => ManagedState.HasSharedBinding = value;
+        }
+
         public bool HasBoundProject
         {
             get
@@ -96,6 +103,11 @@ namespace SonarLint.VisualStudio.Integration.State
             {
                 return this.GetConnectedServers().Any();
             }
+        }
+
+        public void ResetConnectionConfiguration()
+        {
+            ManagedState.ConnectConfiguration = new ConnectConfiguration();
         }
 
         public IEnumerable<ConnectionInformation> GetConnectedServers()

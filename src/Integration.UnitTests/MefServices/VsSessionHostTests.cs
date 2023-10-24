@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -350,6 +351,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             tracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
             
             testSubject.SharedBindingConfig.Should().NotBeNull();
+            testSubject.VisualStateManager.HasSharedBinding.Should().BeTrue();
+            ((ConfigurableStateManager)testSubject.VisualStateManager).ResetConnectionConfigCalled.Should().BeTrue();
         }
         
         [TestMethod]
@@ -367,7 +370,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             tracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
             
             testSubject.SharedBindingConfig.Should().BeNull();
+            testSubject.VisualStateManager.HasSharedBinding.Should().BeFalse();
             this.stateManager.BoundProjectKey.Should().Be(null);
+            ((ConfigurableStateManager)testSubject.VisualStateManager).ResetConnectionConfigCalled.Should().BeFalse();
         }
         
         [TestMethod]
@@ -383,6 +388,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.SetActiveSection(section);
             
             testSubject.SharedBindingConfig.Should().NotBeNull();
+            testSubject.VisualStateManager.HasSharedBinding.Should().BeTrue();
+            ((ConfigurableStateManager)testSubject.VisualStateManager).ResetConnectionConfigCalled.Should().BeTrue();
         }
         
         [TestMethod]

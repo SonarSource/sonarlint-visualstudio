@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.State;
 using SonarQube.Client.Models;
 
@@ -61,6 +62,8 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             get;
             set;
         }
+
+        public bool HasSharedBinding { get; set; }
 
         public bool HasBoundProject
         {
@@ -108,6 +111,11 @@ namespace SonarLint.VisualStudio.TestInfrastructure
         }
 
         public bool IsConnected { get; set; }
+
+        public void ResetConnectionConfiguration()
+        {
+            ResetConnectionConfigCalled = true;
+        }
 
         public IEnumerable<ConnectionInformation> GetConnectedServers()
         {
@@ -158,6 +166,8 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             this.IsBusy = value;
             this.IsBusyChanged?.Invoke(this, value);
         }
+
+        public bool ResetConnectionConfigCalled { get; private set; }
 
         #endregion Test helpers
     }

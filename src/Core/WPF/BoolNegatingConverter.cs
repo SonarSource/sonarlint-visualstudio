@@ -18,10 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Integration.Connection
+using System;
+using System.Globalization;
+using System.Windows.Data;
+
+namespace SonarLint.VisualStudio.Core.WPF
 {
-    internal sealed class ConnectConfiguration
+    [ValueConversion(typeof(bool), typeof(bool))]
+    public class BoolNegatingConverter : IValueConverter
     {
-        public bool UseSharedBinding { get; set; } = false;
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var b = value as bool?;
+            return !b ?? throw new ArgumentException(nameof(value));
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
     }
 }

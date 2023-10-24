@@ -34,7 +34,8 @@ namespace SonarLint.VisualStudio.Integration.State
         private readonly IThreadHandling threadHandling;
         private ProjectViewModel boundProject;
         private bool isBusy;
-        private readonly ConnectConfiguration connectConfiguration = new ConnectConfiguration();
+        private ConnectConfiguration connectConfiguration = new ConnectConfiguration();
+        private bool hasSharedBinding;
 
         public TransferableVisualState()
             : this(ThreadHandling.Instance)
@@ -60,6 +61,25 @@ namespace SonarLint.VisualStudio.Integration.State
             {
                 Debug.Assert(threadHandling.CheckAccess(), $"{nameof(ConnectConfiguration)} should only be accessed from the UI thread");
                 return connectConfiguration;
+            }
+            set
+            {
+                Debug.Assert(threadHandling.CheckAccess(), $"{nameof(ConnectConfiguration)} should only be set from the UI thread");
+                SetAndRaisePropertyChanged(ref connectConfiguration, value);
+            }
+        }
+
+        public bool HasSharedBinding
+        {
+            get
+            {
+                Debug.Assert(threadHandling.CheckAccess(), $"{nameof(HasSharedBinding)} should only be accessed from the UI thread");
+                return hasSharedBinding;
+            }
+            set
+            {
+                Debug.Assert(threadHandling.CheckAccess(), $"{nameof(HasSharedBinding)} should only be set from the UI thread");
+                SetAndRaisePropertyChanged(ref hasSharedBinding, value);
             }
         }
 
