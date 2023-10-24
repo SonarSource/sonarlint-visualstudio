@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.Core;
 namespace SonarLint.VisualStudio.ConnectedMode.Shared
 {
     [Export(typeof(ISharedBindingConfigProvider))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class SharedBindingConfigProvider : ISharedBindingConfigProvider
     {
         private const string sharedFolderName = ".sonarlint";
