@@ -280,4 +280,10 @@
   <data name="TimedUpdateTriggered" xml:space="preserve">
     <value>[ConnectedMode/TimedUpdate] Triggering refresh of server settings...</value>
   </data>
+  <data name="SharedBindingConfigProvider_SavePathNotFound" xml:space="preserve">
+    <value>[SharedBindingConfigProvider] There's no SonarLint shared folder or solution is not under git</value>
+  </data>
+  <data name="SharedBindingConfigProvider_SharedFolderNotFound" xml:space="preserve">
+    <value>[SharedBindingConfigProvider] SonarLint shared folder was not found</value>
+  </data>
 </root>

@@ -349,6 +349,24 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [SharedBindingConfigProvider] There&apos;s no SonarLint shared folder or solution is not under git.
+        /// </summary>
+        internal static string SharedBindingConfigProvider_SavePathNotFound {
+            get {
+                return ResourceManager.GetString("SharedBindingConfigProvider_SavePathNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [SharedBindingConfigProvider] SonarLint shared folder was not found.
+        /// </summary>
+        internal static string SharedBindingConfigProvider_SharedFolderNotFound {
+            get {
+                return ResourceManager.GetString("SharedBindingConfigProvider_SharedFolderNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [ConnectedMode/BranchMapping] Binding changed -&gt; cache cleared.
         /// </summary>
         internal static string StatefulBranchProvider_BindingChanged {
