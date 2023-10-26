@@ -23,12 +23,29 @@ using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding.Suggestion;
 
 [TestClass]
 public class SuggestSharedBindingGoldBarTests
 {
+    [TestMethod]
+    public void MefCtor_CheckExports()
+    {
+        MefTestHelpers.CheckTypeCanBeImported<SuggestSharedBindingGoldBar, ISuggestSharedBindingGoldBar>(
+            MefTestHelpers.CreateExport<INotificationService>(),
+            MefTestHelpers.CreateExport<IDoNotShowAgainNotificationAction>(),
+            MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
+            MefTestHelpers.CreateExport<IBrowserService>());
+    }
+    
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton()
+    {
+        MefTestHelpers.CheckIsSingletonMefComponent<SuggestSharedBindingGoldBar>();
+    }
+    
     [TestMethod]
     public void Show_GeneratesCorrectNotificationStructure()
     {
