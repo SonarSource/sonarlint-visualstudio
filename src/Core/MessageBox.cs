@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Core
     }
 
     [ExcludeFromCodeCoverage]
-    internal class MessageBox : IMessageBox
+    public class MessageBox : IMessageBox
     {
         public MessageBoxResult Show(string messageBoxText, string caption, MessageBoxButton button, MessageBoxImage icon)
         {
