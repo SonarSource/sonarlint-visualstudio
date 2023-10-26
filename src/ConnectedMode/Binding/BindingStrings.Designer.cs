@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Connect using Shared Binding.
+        ///   Looks up a localized string similar to Bind.
         /// </summary>
         internal static string SharedBindingSuggestionConnectOptionText {
             get {
@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Do you want to start using Connected Mode with Shared Binding Configuration?.
+        ///   Looks up a localized string similar to SonarLint detected binding configuration for this solution in your repository. Do you want to bind it to {0}?.
         /// </summary>
         internal static string SharedBindingSuggestionMainText {
             get {
