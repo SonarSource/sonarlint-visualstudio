@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 
         protected override void QueryStatusInternal(OleMenuCommand command)
         {
-            command.Enabled = configurationProvider.GetConfiguration().Mode != SonarLintMode.Standalone;
+            command.Enabled = configurationProvider.GetConfiguration().Mode == SonarLintMode.Connected;
         }
 
         protected override void InvokeInternal()
@@ -56,9 +56,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 
             var sharedBindingConfig = new SharedBindingConfigModel { ProjectKey = project.ProjectKey, Uri = project.ServerUri.ToString(), Organization = project.Organization?.Key };
 
-            var saveResult = sharedBindingConfigProvider.SaveSharedBinding(sharedBindingConfig);
+            var isSuccess = sharedBindingConfigProvider.SaveSharedBinding(sharedBindingConfig);
 
-            if (saveResult)
+            if (isSuccess)
             {
                 messageBox.Show(Strings.SaveSharedConnectionCommand_SaveSuccess_Message, Strings.SaveSharedConnectionCommand_SaveSuccess_Caption, MessageBoxButton.OK, MessageBoxImage.Information);
             }

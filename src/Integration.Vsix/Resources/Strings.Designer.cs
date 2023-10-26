@@ -322,7 +322,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint saved the binding configuration to .sonarlint folder in Git repo root. Please commit this file to share it with other contributors. See documentation for more info..
+        ///   Looks up a localized string similar to SonarLint saved the binding configuration to .sonarlint folder in repo root.
+        ///Please commit this file to share it with other contributors. See documentation for more info..
         /// </summary>
         internal static string SaveSharedConnectionCommand_SaveSuccess_Message {
             get {

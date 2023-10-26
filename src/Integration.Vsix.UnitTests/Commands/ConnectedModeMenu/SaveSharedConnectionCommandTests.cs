@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.ConnectedModeMen
     {
         [DataRow(SonarLintMode.Standalone, false)]
         [DataRow(SonarLintMode.Connected, true)]
-        [DataRow(SonarLintMode.LegacyConnected, true)]
+        [DataRow(SonarLintMode.LegacyConnected, false)]
         [TestMethod]
         public void QueryStatus_EnableCommandCorrectly(SonarLintMode mode, bool expectedResult)
         {

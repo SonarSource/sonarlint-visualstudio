@@ -18,7 +18,7 @@
       <Button guid="ConnectedModeMenuCmdSet" id="SaveSharedConnectionCommand">
         <Parent guid="ConnectedModeMenuCmdSet" id="ConnectedModeGroup" />
         <Strings>
-          <ButtonText>Save Shared Connection Binding</ButtonText>
+          <ButtonText>Save Binding Configuration</ButtonText>
         </Strings>
       </Button>
     </Buttons>
