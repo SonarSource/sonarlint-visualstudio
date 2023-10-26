@@ -81,7 +81,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.ConnectedModeMen
         {
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(), SonarLintMode.Connected, null);
+            var project = new BoundSonarQubeProject(new Uri("http://127.0.0.1:9000"), "projectKey", null);
+            var bindingConfiguration = new BindingConfiguration(project, SonarLintMode.Connected, null);
 
             var sharedBindingConfigProvider = new Mock<ISharedBindingConfigProvider>();
             sharedBindingConfigProvider.Setup(x => x.SaveSharedBinding(It.IsAny<SharedBindingConfigModel>())).Returns(false);
