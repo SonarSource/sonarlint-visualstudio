@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
@@ -62,6 +63,9 @@ namespace SonarLint.VisualStudio.Core
 
             while (currentDir != null && fileSystem.Directory.Exists(currentDir.FullName))
             {
+                if (currentDir.FullName == Environment.GetFolderPath(Environment.SpecialFolder.UserProfile))
+                    break;
+
                 sonarlintFolder = Path.Combine(currentDir.FullName, sharedFolder);
 
                 if (fileSystem.Directory.Exists(sonarlintFolder)) { return sonarlintFolder; }

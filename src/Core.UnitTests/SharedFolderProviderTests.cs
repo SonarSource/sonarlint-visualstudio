@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.IO;
 using System.IO.Abstractions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -80,6 +82,25 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         {
             var solutionInfoProvider = CreateSolutionInfoProvider(null);
             var fileSystem = CreateFileSystem("C:\\Repo\\.sonarlint", "C:\\Repo\\Solution", "C:\\Repo", "C:");
+
+            var testSubject = CreateTestSubject(solutionInfoProvider, fileSystem);
+
+            var sharedFolder = testSubject.GetSharedFolderPath();
+
+            sharedFolder.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void GetSharedFolderPath_SolutionUnderUserProfile_NoSharedFolder_ReturnsNull()
+        {
+            var userProfileDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            var commonSonarLintFolder = Path.Combine(userProfileDir, ".sonarlint");
+
+            var repoDir = Path.Combine(userProfileDir, "Repo");
+            var solutionDir = Path.Combine(repoDir, "Solution");
+
+            var solutionInfoProvider = CreateSolutionInfoProvider("C:\\Repo\\Solution");
+            var fileSystem = CreateFileSystem(userProfileDir, commonSonarLintFolder, repoDir, solutionDir);
 
             var testSubject = CreateTestSubject(solutionInfoProvider, fileSystem);
 
