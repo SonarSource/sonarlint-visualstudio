@@ -4,29 +4,35 @@
   <Commands package="guidVsPackagePkgString">
     <Groups>
       <Group guid="ConnectedModeMenuCmdSet" id="ConnectedModeGroup">
-        <Parent guid="SonarLintCmdSet" id="ConnectedModeMenu"/>
+        <Parent guid="SonarLintCmdSet" id="ConnectedModeMenu" />
       </Group>
     </Groups>
 
     <Buttons>
       <Button guid="ConnectedModeMenuCmdSet" id="ManageServerConnectionsCommand">
-        <Parent guid="ConnectedModeMenuCmdSet" id="ConnectedModeGroup"/>
+        <Parent guid="ConnectedModeMenuCmdSet" id="ConnectedModeGroup" />
         <Strings>
           <ButtonText>Bind to SonarQube or SonarCloud...</ButtonText>
         </Strings>
       </Button>
+      <Button guid="ConnectedModeMenuCmdSet" id="SaveSharedConnectionCommand">
+        <Parent guid="ConnectedModeMenuCmdSet" id="ConnectedModeGroup" />
+        <Strings>
+          <ButtonText>Save Shared Connection Binding</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
-
   </Commands>
 
   <Symbols>
     <GuidSymbol name="ConnectedModeMenuCmdSet" value="{E5D50D82-248A-4300-A2B2-B640FCC4D4FD}">
-      <IDSymbol name="ConnectedModeGroup" value="0x101"/>
-      <IDSymbol name="ManageServerConnectionsCommand" value="0x102"/>
+      <IDSymbol name="ConnectedModeGroup" value="0x101" />
+      <IDSymbol name="ManageServerConnectionsCommand" value="0x102" />
+      <IDSymbol name="SaveSharedConnectionCommand" value="0x103" />
     </GuidSymbol>
 
     <GuidSymbol name="SonarLintCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
-      <IDSymbol name="ConnectedModeMenu" value="0x1024"/>
+      <IDSymbol name="ConnectedModeMenu" value="0x1024" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

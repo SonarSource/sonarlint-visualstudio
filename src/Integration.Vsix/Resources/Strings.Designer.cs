@@ -295,6 +295,42 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failure.
+        /// </summary>
+        internal static string SaveSharedConnectionCommand_SaveFail_Caption {
+            get {
+                return ResourceManager.GetString("SaveSharedConnectionCommand_SaveFail_Caption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to save the binding configuration. See output window for more information.
+        /// </summary>
+        internal static string SaveSharedConnectionCommand_SaveFail_Message {
+            get {
+                return ResourceManager.GetString("SaveSharedConnectionCommand_SaveFail_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Success.
+        /// </summary>
+        internal static string SaveSharedConnectionCommand_SaveSuccess_Caption {
+            get {
+                return ResourceManager.GetString("SaveSharedConnectionCommand_SaveSuccess_Caption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint saved the binding configuration to .sonarlint folder in Git repo root. Please commit this file to share it with other contributors. See documentation for more info..
+        /// </summary>
+        internal static string SaveSharedConnectionCommand_SaveSuccess_Message {
+            get {
+                return ResourceManager.GetString("SaveSharedConnectionCommand_SaveSuccess_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarLint package: error occurred: {0}.
         /// </summary>
         internal static string SL_ERROR {
