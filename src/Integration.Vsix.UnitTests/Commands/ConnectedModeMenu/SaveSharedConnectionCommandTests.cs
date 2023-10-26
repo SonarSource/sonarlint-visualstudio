@@ -59,11 +59,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.ConnectedModeMen
         {
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var project = new BoundSonarQubeProject(new Uri("http://127.0.0.1:9000"), "projectKey", null);
+            var project = new BoundSonarQubeProject(new Uri("http://127.0.0.1:9000"), "projectKey", "organisation");
             var bindingConfiguration = new BindingConfiguration(project, SonarLintMode.Connected, null);
 
             var sharedBindingConfigProvider = new Mock<ISharedBindingConfigProvider>();
-            sharedBindingConfigProvider.Setup(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == "http://127.0.0.1:9000/" && y.ProjectKey == "projectKey" && y.Organization == null))).Returns(true);
+            sharedBindingConfigProvider.Setup(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == "http://127.0.0.1:9000/" && y.ProjectKey == "projectKey" && y.Organization == "organisation"))).Returns(true);
 
             var messageBox = new Mock<IMessageBox>();
 
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.ConnectedModeMen
 
             testSubject.Invoke(command, null);
 
-            sharedBindingConfigProvider.Verify(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == "http://127.0.0.1:9000/" && y.ProjectKey == "projectKey" && y.Organization == null)), Times.Once);
+            sharedBindingConfigProvider.Verify(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == "http://127.0.0.1:9000/" && y.ProjectKey == "projectKey" && y.Organization == "organisation")), Times.Once);
             messageBox.Verify(mb => mb.Show(Strings.SaveSharedConnectionCommand_SaveSuccess_Message, Strings.SaveSharedConnectionCommand_SaveSuccess_Caption, MessageBoxButton.OK, MessageBoxImage.Information), Times.Once);
         }
 
