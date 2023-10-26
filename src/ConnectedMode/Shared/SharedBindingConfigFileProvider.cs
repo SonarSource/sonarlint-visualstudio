@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
@@ -82,6 +83,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
                 }
 
                 var fileContent = JsonConvert.SerializeObject(sharedBindingConfigModel);
+
+                var sharedDirectory = Path.GetDirectoryName(filePath);
+                if (!fileSystem.Directory.Exists(sharedDirectory))
+                {
+                    fileSystem.Directory.CreateDirectory(sharedDirectory);
+                }
                 fileSystem.File.WriteAllText(filePath, fileContent);
                 result = true;
             }
