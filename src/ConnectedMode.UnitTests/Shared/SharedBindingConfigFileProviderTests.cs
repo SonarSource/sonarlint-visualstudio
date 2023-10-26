@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         {
             var configFileContent = @"{""SonarQubeUri"":""https://127.0.0.1:9000"",""ProjectKey"":""projectKey""}";
             var config = new SharedBindingConfigModel() { Uri = "https://127.0.0.1:9000", ProjectKey = "projectKey" };
-            var filePath = "Some Path";
+            var filePath = "C:\\Solution\\.sonarlint\\Solution.json";
 
             var file = CreateFile();
             var fileSystem = GetFileSystem(file.Object);
@@ -151,7 +151,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         {
             string configFileContent = @"{""SonarCloudOrganization"":""Some Organisation"",""ProjectKey"":""projectKey""}";
             var config = new SharedBindingConfigModel() { Organization = "Some Organisation", ProjectKey = "projectKey" };
-            var filePath = "Some Path";
+            var filePath = "C:\\Solution\\.sonarlint\\Solution.json";
 
             var file = CreateFile();
             var fileSystem = GetFileSystem(file.Object);
@@ -170,7 +170,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         public void WriteSharedBindingConfigFile_WriteError_ReturnsFalse()
         {
             var config = new SharedBindingConfigModel() { Organization = "Some Organisation", ProjectKey = "projectKey" };
-            var filePath = "Some Path";
+            var filePath = "C:\\Solution\\.sonarlint\\Solution.json";
 
             var file = CreateFile();
             file.Setup(f => f.WriteAllText(filePath, It.IsAny<string>())).Throws(new FileNotFoundException());
@@ -187,15 +187,46 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
             file.VerifyNoOtherCalls();
         }
 
+        [TestMethod]
+        public void WriteSharedBindingConfigFile_DirectoryDoesNotExist_Creates()
+        {
+            var config = new SharedBindingConfigModel();
+            var filePath = "C:\\Solution\\.sonarlint\\Solution.json";
+
+            var file = CreateFile();
+
+            var directory = new Mock<IDirectory>();
+            directory.Setup(d => d.Exists(It.IsAny<string>())).Returns(true);
+            directory.Setup(d => d.Exists("C:\\Solution\\.sonarlint")).Returns(false);
+
+            var fileSystem = GetFileSystem(file.Object, directory);
+
+            var testSubject = CreateTestSubject(fileSystem.Object);
+
+            var result = testSubject.WriteSharedBindingConfigFile(filePath, config);
+
+            result.Should().BeTrue();
+            directory.Verify(d => d.CreateDirectory("C:\\Solution\\.sonarlint"), Times.Once);
+            directory.Verify(d => d.Exists("C:\\Solution\\.sonarlint"), Times.Once);
+            directory.VerifyNoOtherCalls();
+        }
+
         static SharedBindingConfigFileProvider CreateTestSubject(IFileSystem fileSystem)
         {
             return new SharedBindingConfigFileProvider(Mock.Of<ILogger>(), fileSystem);
         }
 
-        private static Mock<IFileSystem> GetFileSystem(IFile file)
+        private static Mock<IFileSystem> GetFileSystem(IFile file, Mock<IDirectory> directory = null)
         {
+            if (directory == null)
+            {
+                directory = new Mock<IDirectory>();
+                directory.Setup(d => d.Exists(It.IsAny<string>())).Returns(true);
+            }
             var fileSystem = new Mock<IFileSystem>();
             fileSystem.Setup(fs => fs.File).Returns(file);
+            fileSystem.Setup(fs => fs.Directory).Returns(directory.Object);
+
             return fileSystem;
         }
 
