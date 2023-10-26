@@ -129,4 +129,13 @@
     <value>   {0}</value>
     <comment>Output window message format. Used whenever the message should be displayed as a sub-message from a step message so the user can clearly identify the grouping. {0} the actual message to display.</comment>
   </data>
+  <data name="SharedBindingSuggestionMainText" xml:space="preserve">
+    <value>Do you want to start using Connected Mode with Shared Binding Configuration?</value>
+  </data>
+  <data name="SharedBindingSuggestionConnectOptionText" xml:space="preserve">
+    <value>Connect using Shared Binding</value>
+  </data>
+  <data name="SharedBindingSuggestionInfoOptionText" xml:space="preserve">
+    <value>Learn more</value>
+  </data>
 </root>

@@ -33,5 +33,7 @@ namespace SonarLint.VisualStudio.Core
         public const string ConnectedMode = "https://docs.sonarsource.com/sonarlint/visual-studio/team-features/connected-mode/";
         public const string TaintVulnerabilities = "https://docs.sonarsource.com/sonarlint/visual-studio/using-sonarlint/taint-vulnerabilities/";
         public const string DisablingARule = "https://docs.sonarsource.com/sonarlint/visual-studio/using-sonarlint/rules/#disabling-a-rule";
+        // public const string SharedBinding = ""; //todo: add the real link after docs are ready
+        public const string SharedBinding = ConnectedMode;
     }
 }
