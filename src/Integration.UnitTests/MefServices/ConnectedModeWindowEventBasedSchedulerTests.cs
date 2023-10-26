@@ -18,8 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.MefServices;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -41,6 +43,43 @@ public class ConnectedModeWindowEventBasedSchedulerTests
         MefTestHelpers.CheckMultipleExportsReturnSameInstance<ConnectedModeWindowEventBasedScheduler,
                 IConnectedModeWindowEventBasedScheduler,
                 IConnectedModeWindowEventListener>();
+    }
+
+    [TestMethod]
+    public void SubscribeToConnectedModeWindowEvents_SetsHostEventListener()
+    {
+        var hostMock = new Mock<IHost>();
+        var testSubject = CreateTestSubject();
+        
+        testSubject.SubscribeToConnectedModeWindowEvents(hostMock.Object);
+        
+        hostMock.VerifyAdd(x => x.ActiveSectionChanged += It.IsAny<EventHandler>());
+    }
+    
+    [TestMethod]
+    public void SubscribeToConnectedModeWindowEvents_AlreadySubscribed_Throws()
+    {
+        var hostMock = new Mock<IHost>();
+        var testSubject = CreateTestSubject();
+        testSubject.SubscribeToConnectedModeWindowEvents(hostMock.Object);
+        
+        Action act = () => testSubject.SubscribeToConnectedModeWindowEvents(hostMock.Object);
+
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [TestMethod]
+    public void Dispose_UnsubscribesFromEvents()
+    {
+        var hostMock = new Mock<IHost>();
+        var testSubject = CreateTestSubject();
+        testSubject.SubscribeToConnectedModeWindowEvents(hostMock.Object);
+        
+        testSubject.Dispose();
+        testSubject.Dispose();
+        testSubject.Dispose();
+        
+        hostMock.VerifyRemove(x => x.ActiveSectionChanged -= It.IsAny<EventHandler>(), Times.Once);
     }
     
     [TestMethod]

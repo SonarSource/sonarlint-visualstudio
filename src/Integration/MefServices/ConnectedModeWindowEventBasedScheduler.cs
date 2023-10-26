@@ -23,25 +23,43 @@ using System.ComponentModel.Composition;
 
 namespace SonarLint.VisualStudio.Integration.MefServices
 {
-    internal interface IConnectedModeWindowEventListener
+    internal interface IConnectedModeWindowEventListener: IDisposable
     {
-        void ActiveSectionChangedListener(object sender, EventArgs args);
+        void SubscribeToConnectedModeWindowEvents(IHost connectedModeWindowHost);
     }
-
+    
     internal interface IConnectedModeWindowEventBasedScheduler
     {
         void ScheduleActionOnNextEvent(Action action);
     }
-            
-            
-    [Export(typeof(IConnectedModeWindowEventListener))]
+
     [Export(typeof(IConnectedModeWindowEventBasedScheduler))]
+    [Export(typeof(IConnectedModeWindowEventListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ConnectedModeWindowEventBasedScheduler : IConnectedModeWindowEventListener, IConnectedModeWindowEventBasedScheduler
+    internal class ConnectedModeWindowEventBasedScheduler : IConnectedModeWindowEventBasedScheduler, IConnectedModeWindowEventListener
     {
-        private Action nextScheduledAction;
+        private bool disposed = false;
         
-        public void ActiveSectionChangedListener(object sender, EventArgs args)
+        private IHost host;
+        private Action nextScheduledAction;
+
+        public void SubscribeToConnectedModeWindowEvents(IHost connectedModeWindowHost)
+        {
+            if (host != null)
+            {
+                throw new ArgumentException();
+            }
+            
+            host = connectedModeWindowHost;
+            host.ActiveSectionChanged += ActiveSectionChangedListener;
+        }
+        
+        public void ScheduleActionOnNextEvent(Action action)
+        {
+            nextScheduledAction = action;
+        }
+        
+        internal /* for testing */ void ActiveSectionChangedListener(object sender, EventArgs args)
         {
             if (nextScheduledAction == null)
             {
@@ -50,16 +68,22 @@ namespace SonarLint.VisualStudio.Integration.MefServices
 
             HandlePostponedAutobind();
         }
-        
-        public void ScheduleActionOnNextEvent(Action action)
-        {
-            nextScheduledAction = action;
-        }
 
         private void HandlePostponedAutobind()
         {
             nextScheduledAction();
             nextScheduledAction = null;
+        }
+        
+        public void Dispose()
+        {
+            if (disposed)
+            {
+                return;
+            }
+
+            disposed = true;
+            host.ActiveSectionChanged -= ActiveSectionChangedListener;
         }
     }
 }
