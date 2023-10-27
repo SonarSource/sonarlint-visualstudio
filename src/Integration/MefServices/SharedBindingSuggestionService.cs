@@ -32,6 +32,8 @@ namespace SonarLint.VisualStudio.Integration.MefServices
     internal interface ISharedBindingSuggestionService
     {
         void Suggest(ServerType? serverType, Func<ICommand<ConnectConfiguration>> connectCommandProvider);
+
+        void Close();
     }
     
     [Export(typeof(ISharedBindingSuggestionService))]
@@ -63,6 +65,11 @@ namespace SonarLint.VisualStudio.Integration.MefServices
             }
             
             suggestSharedBindingGoldBar.Show(serverType.Value, () => ConnectAfterTeamExplorerInitialized(connectCommandProvider));
+        }
+
+        public void Close()
+        {
+            suggestSharedBindingGoldBar.Close();
         }
 
         private void ConnectAfterTeamExplorerInitialized(Func<ICommand<ConnectConfiguration>> connectCommandProvider)

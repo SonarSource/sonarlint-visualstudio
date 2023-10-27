@@ -227,6 +227,10 @@ namespace SonarLint.VisualStudio.Integration
                 {
                     UpdateSharedBindingSuggestion();
                 }
+                else
+                {
+                    sharedBindingSuggestionService.Close();
+                }
             }
             else
             {
@@ -312,6 +316,7 @@ namespace SonarLint.VisualStudio.Integration
                 {
                     this.solutionTracker.ActiveSolutionChanged -= this.OnActiveSolutionChanged;
                     connectedModeWindowEventListener.Dispose();
+                    sharedBindingSuggestionService.Close();
                 }
 
                 this.isDisposed = true;

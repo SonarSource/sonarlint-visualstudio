@@ -144,6 +144,18 @@ public class SuggestSharedBindingGoldBarTests
         connectExecuted.Should().BeTrue();
     }
 
+    [TestMethod]
+    public void Close_RemovesGoldBar()
+    {
+        var notificationServiceMock = new Mock<INotificationService>();
+        
+        var testSubject = CreateTestSubject(notificationServiceMock.Object);
+        
+        testSubject.Close();
+        
+        notificationServiceMock.Verify(x => x.RemoveNotification(), Times.Once);
+    }
+
     private SuggestSharedBindingGoldBar CreateTestSubject(INotificationService notificationServiceMock,
         IDoNotShowAgainNotificationAction doNotShowAgainNotificationAction = null,
         ISolutionInfoProvider solutionInfoProvider = null,
