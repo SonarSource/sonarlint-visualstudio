@@ -41,6 +41,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
         private readonly IConnectedModeMigration connectedModeMigration;
         private readonly Action onShowHelp;
         private readonly Action onShowTfvcHelp;
+        private readonly Action onShowSharedBinding;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
 
@@ -53,6 +54,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             IConnectedModeMigration connectedModeMigration,
             Action onShowHelp,
             Action onShowTfvcHelp, // null = don't show the Tfvc info section
+            Action onShowSharedBinding,
+            bool isUnderGit,
             ILogger logger)
         {
             this.oldBinding = oldBinding;
@@ -60,23 +63,23 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             this.logger = logger;
             this.onShowHelp = onShowHelp;
             this.onShowTfvcHelp = onShowTfvcHelp;
+            this.onShowSharedBinding = onShowSharedBinding;
             threadHandling = ThreadHandling.Instance;
 
             cancellationTokenSource = new CancellationTokenSource();
 
             InitializeComponent();
 
-            SetTfvcInfoVisibility();
+            SetVisibilities(isUnderGit);
 
             this.Closing += OnClosing;
             dialogResult = false;
         }
-        
-        private void SetTfvcInfoVisibility()
-        {
-            bool shouldShowTfvcText = onShowTfvcHelp != null;
 
-            tfvcInfo.Visibility = shouldShowTfvcText ? Visibility.Visible : Visibility.Hidden;
+        private void SetVisibilities(bool isUnderGit)
+        {
+            tfvcInfo.Visibility = isUnderGit ? Visibility.Hidden : Visibility.Visible;
+            chkSaveSharedBinding.Visibility = isUnderGit ? Visibility.Visible : Visibility.Hidden;
         }
 
         private void NavigateToMigrationProgressPage()
@@ -106,7 +109,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
             NavigateToMigrationProgressPage();
 
-            // Disables all closing / cancel buttons, including the 
+            // Disables all closing / cancel buttons, including the
             // the X in the top-right of the window
             this.IsCloseButtonEnabled = false;
             this.btnPage2_Cancel.Focus();
@@ -224,5 +227,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         private void OnNavigateToTfvcHelp(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
             => onShowTfvcHelp?.Invoke();
+
+        private void OnNavigateToSharedBinding(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+            => onShowSharedBinding?.Invoke();
     }
 }
