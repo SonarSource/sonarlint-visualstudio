@@ -129,7 +129,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         [TestMethod]
         public void WriteSharedBindingConfigFile_SQConfig_Writes()
         {
-            var configFileContent = @"{""SonarQubeUri"":""https://127.0.0.1:9000"",""ProjectKey"":""projectKey""}";
+            var configFileContent = @"{
+  ""SonarQubeUri"": ""https://127.0.0.1:9000"",
+  ""ProjectKey"": ""projectKey""
+}";
             var config = new SharedBindingConfigModel() { Uri = "https://127.0.0.1:9000", ProjectKey = "projectKey" };
             var filePath = "C:\\Solution\\.sonarlint\\Solution.json";
 
@@ -149,7 +152,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         [TestMethod]
         public void WriteSharedBindingConfigFile_SCConfig_Writes()
         {
-            string configFileContent = @"{""SonarCloudOrganization"":""Some Organisation"",""ProjectKey"":""projectKey""}";
+            string configFileContent = @"{
+  ""SonarCloudOrganization"": ""Some Organisation"",
+  ""ProjectKey"": ""projectKey""
+}";
             var config = new SharedBindingConfigModel() { Organization = "Some Organisation", ProjectKey = "projectKey" };
             var filePath = "C:\\Solution\\.sonarlint\\Solution.json";
 
