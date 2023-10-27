@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
         private void SetVisibilities(bool isUnderGit)
         {
             tfvcInfo.Visibility = isUnderGit ? Visibility.Hidden : Visibility.Visible;
-            chk_SaveSharedBinding.Visibility = isUnderGit ? Visibility.Visible : Visibility.Hidden;
+            chkSaveSharedBinding.Visibility = isUnderGit ? Visibility.Visible : Visibility.Hidden;
         }
 
         private void NavigateToMigrationProgressPage()

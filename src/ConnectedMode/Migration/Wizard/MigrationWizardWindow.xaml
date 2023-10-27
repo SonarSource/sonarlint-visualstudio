@@ -111,7 +111,7 @@
                     </TextBlock>
                 </Border>
 
-                <CheckBox x:Name="chk_SaveSharedBinding">
+                <CheckBox x:Name="chkSaveSharedBinding">
                     <CheckBox.Content>
                         <TextBlock>                        
                         <Run>Share Binding Information via Git. See </Run>
@@ -128,9 +128,6 @@
                     <Run>.</Run>
                     <LineBreak />
                 </TextBlock>
-
-
-
             </StackPanel>
 
         </DockPanel>
