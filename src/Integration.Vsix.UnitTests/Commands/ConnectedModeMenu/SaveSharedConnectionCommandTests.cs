@@ -30,6 +30,7 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.TestInfrastructure;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.ConnectedModeMenu
 {
@@ -59,11 +60,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.ConnectedModeMen
         {
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var project = new BoundSonarQubeProject(new Uri("http://127.0.0.1:9000"), "projectKey", "organisation");
+            var organisation = new SonarQubeOrganization("organisationKey", "organisationName");
+
+            var project = new BoundSonarQubeProject(new Uri("http://127.0.0.1:9000"), "projectKey", null, organization: organisation);
             var bindingConfiguration = new BindingConfiguration(project, SonarLintMode.Connected, null);
 
             var sharedBindingConfigProvider = new Mock<ISharedBindingConfigProvider>();
-            sharedBindingConfigProvider.Setup(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == "http://127.0.0.1:9000/" && y.ProjectKey == "projectKey" && y.Organization == "organisation"))).Returns(true);
+            sharedBindingConfigProvider.Setup(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == "http://127.0.0.1:9000/" && y.ProjectKey == "projectKey" && y.Organization == "organisationKey"))).Returns(true);
 
             var messageBox = new Mock<IMessageBox>();
 
@@ -72,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.ConnectedModeMen
 
             testSubject.Invoke(command, null);
 
-            sharedBindingConfigProvider.Verify(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == "http://127.0.0.1:9000/" && y.ProjectKey == "projectKey" && y.Organization == "organisation")), Times.Once);
+            sharedBindingConfigProvider.Verify(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == "http://127.0.0.1:9000/" && y.ProjectKey == "projectKey" && y.Organization == "organisationKey")), Times.Once);
             messageBox.Verify(mb => mb.Show(Strings.SaveSharedConnectionCommand_SaveSuccess_Message, Strings.SaveSharedConnectionCommand_SaveSuccess_Caption, MessageBoxButton.OK, MessageBoxImage.Information), Times.Once);
         }
 
