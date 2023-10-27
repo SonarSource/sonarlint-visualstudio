@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         private bool IsUnderGit
         {
-            get { return !(gitWorkspaceService.GetRepoRoot() == null); }
+            get { return gitWorkspaceService.GetRepoRoot() != null; }
         }
 
         private void OnShowHelp() => browserService.Navigate(DocumentationLinks.MigrateToConnectedModeV7);
