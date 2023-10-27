@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.ConnectedMode.Shared;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 {
@@ -37,6 +38,30 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
             var result = testSubject.IsSonarCloud();
 
             result.Should().Be(expectedValue);
+        }
+
+        [TestMethod]
+        public void GetServerType_Null_ReturnsNull()
+        {
+            SharedBindingConfigModel model = null;
+
+            model.GetServerType().Should().BeNull();
+        }
+        
+        [TestMethod]
+        public void GetServerType_NoOrganization_ReturnsQube()
+        {
+            SharedBindingConfigModel model = new SharedBindingConfigModel{ProjectKey = "abc", Uri = "https://next.sonarqube.com"};
+
+            model.GetServerType().Should().Be(ServerType.SonarQube);
+        }
+        
+        [TestMethod]
+        public void GetServerType_HasOrganization_ReturnsCloud()
+        {
+            SharedBindingConfigModel model = new SharedBindingConfigModel{ProjectKey = "abc", Organization = "my org"};
+
+            model.GetServerType().Should().Be(ServerType.SonarCloud);
         }
     }
 }

@@ -20,6 +20,7 @@
 
 using System;
 using Newtonsoft.Json;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Shared
 {
@@ -50,4 +51,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
 
         public bool IsSonarCloud() => !string.IsNullOrWhiteSpace(Organization);
     }
+
+    public static class SharedBindingConfigModelExtensions
+    {
+        public static ServerType? GetServerType(this SharedBindingConfigModel sharedBindingConfig)
+        {
+            if (sharedBindingConfig == null)
+            {
+                return null;
+            }
+
+            return sharedBindingConfig.IsSonarCloud() ? ServerType.SonarCloud : ServerType.SonarQube;
+        }
+}
 }
