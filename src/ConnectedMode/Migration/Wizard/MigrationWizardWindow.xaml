@@ -111,6 +111,16 @@
                     </TextBlock>
                 </Border>
 
+                <CheckBox x:Name="chkSaveSharedBinding">
+                    <CheckBox.Content>
+                        <TextBlock>                        
+                        <Run>Share Binding Information via Git. See </Run>
+                        <Hyperlink NavigateUri="http://any" RequestNavigate="OnNavigateToSharedBinding" FontWeight="Bold">here</Hyperlink>
+                        <Run>for more information</Run>
+                        </TextBlock>
+                    </CheckBox.Content>
+                </CheckBox>
+
                 <TextBlock TextWrapping="WrapWithOverflow" Margin="0,40,0,0">
                     <Run>If you are ready to migrate, click </Run>
                     <Italic>Continue</Italic><Run>. Otherwise, click </Run>
@@ -118,7 +128,6 @@
                     <Run>.</Run>
                     <LineBreak />
                 </TextBlock>
-
             </StackPanel>
 
         </DockPanel>
