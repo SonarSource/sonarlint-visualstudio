@@ -114,6 +114,16 @@ public class SharedBindingSuggestionServiceTests
         bindingGoldBar.Verify(x => x.Show(It.IsAny<ServerType>(), It.IsAny<Action>()), Times.Never);
     }
 
+    [TestMethod]
+    public void Close_ClosesGoldBar()
+    {
+        var testSubject = CreateTestSubject(out var bindingGoldBar, out _, out _);
+        
+        testSubject.Close();
+
+        bindingGoldBar.Verify(x => x.Close());
+    }
+
     private void CallConnectHandler(Mock<ISuggestSharedBindingGoldBar> mock)
     {
         ((Action)mock.Invocations.Single().Arguments[1])();
