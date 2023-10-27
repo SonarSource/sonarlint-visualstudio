@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         public void ResetConnectionConfiguration()
         {
-            ResetConnectionConfigCalled = true;
+            ResetConnectionConfigCalled++;
         }
 
         public IEnumerable<ConnectionInformation> GetConnectedServers()
@@ -167,7 +167,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             this.IsBusyChanged?.Invoke(this, value);
         }
 
-        public bool ResetConnectionConfigCalled { get; private set; }
+        public int ResetConnectionConfigCalled { get; set; }
 
         #endregion Test helpers
     }
