@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
     [Export(typeof(IConnectedModeWindowEventBasedScheduler))]
     [Export(typeof(IConnectedModeWindowEventListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ConnectedModeWindowEventBasedScheduler : IConnectedModeWindowEventBasedScheduler, IConnectedModeWindowEventListener
+    internal sealed class ConnectedModeWindowEventBasedScheduler : IConnectedModeWindowEventBasedScheduler, IConnectedModeWindowEventListener
     {
         private bool disposed = false;
         
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
         {
             if (host != null)
             {
-                throw new ArgumentException();
+                throw new ArgumentException(nameof(host));
             }
             
             host = connectedModeWindowHost;
