@@ -23,9 +23,12 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using Microsoft.Alm.Authentication;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration.Connection;
+using SonarLint.VisualStudio.Integration.MefServices;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -42,6 +45,8 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IConfigurationProvider configurationProvider;
         private readonly ISharedBindingConfigProvider sharedBindingConfigProvider;
         private readonly ICredentialStoreService credentialStoreService;
+        private readonly IConnectedModeWindowEventListener connectedModeWindowEventListener;
+        private readonly ISharedBindingSuggestionService sharedBindingSuggestionService;
 
         private readonly IProgressStepRunnerWrapper progressStepRunner;
 
@@ -55,6 +60,8 @@ namespace SonarLint.VisualStudio.Integration
             IConfigurationProvider configurationProvider,
             ISharedBindingConfigProvider sharedBindingConfigProvider,
             ICredentialStoreService credentialStoreService,
+            IConnectedModeWindowEventListener connectedModeWindowEventListener,
+            ISharedBindingSuggestionService sharedBindingSuggestionService,
             ILogger logger)
             : this(
                 null,
@@ -64,6 +71,8 @@ namespace SonarLint.VisualStudio.Integration
                 configurationProvider,
                 sharedBindingConfigProvider,
                 credentialStoreService,
+                connectedModeWindowEventListener,
+                sharedBindingSuggestionService,
                 logger)
         {
         }
@@ -75,6 +84,8 @@ namespace SonarLint.VisualStudio.Integration
             IConfigurationProvider configurationProvider,
             ISharedBindingConfigProvider sharedBindingConfigProvider,
             ICredentialStoreService credentialStoreService,
+            IConnectedModeWindowEventListener connectedModeWindowEventListener,
+            ISharedBindingSuggestionService sharedBindingSuggestionService,
             ILogger logger)
         {
             this.VisualStateManager = state ?? new StateManager(this, new TransferableVisualState());
@@ -84,8 +95,11 @@ namespace SonarLint.VisualStudio.Integration
             this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
             this.sharedBindingConfigProvider = sharedBindingConfigProvider;
             this.credentialStoreService = credentialStoreService;
+            this.connectedModeWindowEventListener = connectedModeWindowEventListener;
+            this.sharedBindingSuggestionService = sharedBindingSuggestionService;
             this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
             this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            connectedModeWindowEventListener.SubscribeToConnectedModeWindowEvents(this);
         }
 
         #region IProgressStepRunnerWrapper
@@ -208,9 +222,11 @@ namespace SonarLint.VisualStudio.Integration
             if (clearCurrentBinding || bindingConfig == null || bindingConfig.Mode == SonarLintMode.Standalone)
             {
                 this.ClearCurrentBinding();
-                SharedBindingConfig = sharedBindingConfigProvider.GetSharedBinding();
-                VisualStateManager.HasSharedBinding = SharedBindingConfig != null;
-                VisualStateManager.ResetConnectionConfiguration();
+
+                if (!clearCurrentBinding) // when solution is open, but unbound
+                {
+                    UpdateSharedBindingSuggestion();
+                }
             }
             else
             {
@@ -226,6 +242,16 @@ namespace SonarLint.VisualStudio.Integration
                     this.ApplyBindingInformation(bindingConfig);
                 }
             }
+        }
+
+        private void UpdateSharedBindingSuggestion()
+        {
+            SharedBindingConfig = sharedBindingConfigProvider.GetSharedBinding();
+
+            VisualStateManager.HasSharedBinding = SharedBindingConfig != null;
+            VisualStateManager.ResetConnectionConfiguration();
+
+            sharedBindingSuggestionService.Suggest(SharedBindingConfig.GetServerType(),() => this.ActiveSection?.ConnectCommand);
         }
 
         private void ClearCurrentBinding()
@@ -285,6 +311,7 @@ namespace SonarLint.VisualStudio.Integration
                 if (disposing)
                 {
                     this.solutionTracker.ActiveSolutionChanged -= this.OnActiveSolutionChanged;
+                    connectedModeWindowEventListener.Dispose();
                 }
 
                 this.isDisposed = true;
