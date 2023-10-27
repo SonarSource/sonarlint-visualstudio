@@ -20,8 +20,8 @@
 
 using System;
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 {
@@ -67,9 +67,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         public void StartMigrationWizard(BoundSonarQubeProject oldBinding)
         {
-            var showTfvcHelpOp = GetTfVcHelpAction(); 
-
-            var migrationWizardWindow = new MigrationWizardWindow(oldBinding, connectedModeMigration, OnShowHelp, showTfvcHelpOp, logger);
+            var migrationWizardWindow = new MigrationWizardWindow(oldBinding, connectedModeMigration, OnShowHelp, OnShowTfvcHelp, OnShowSharedBinding, IsUnderGit, logger);
 
             var finishedSuccessfully = migrationWizardWindow.ShowModal();
 
@@ -84,31 +82,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             }
         }
 
-        private Action GetTfVcHelpAction()
+        private bool IsUnderGit
         {
-            Action helpOp;
-
-            // We don't have an existing component that detects whether user is using Tfvc.
-            // However, we can tell if they are using git, which we expect to be the majority
-            // of users. So to reduce the noise, we won't show the Tfvc help for git users.
-            var showTfvcWarning = gitWorkspaceService.GetRepoRoot() == null;
-
-            if (showTfvcWarning)
-            {
-                logger.LogMigrationVerbose("Did not detect a git repo - displaying the Tfvc warning");
-                helpOp = OnShowTfvcHelp;
-            }
-            else
-            {
-                logger.LogMigrationVerbose("Detected a git repo - not displaying the Tfvc warning");
-                helpOp = null;
-            }
-
-            return helpOp;
+            get { return !(gitWorkspaceService.GetRepoRoot() == null); }
         }
 
         private void OnShowHelp() => browserService.Navigate(DocumentationLinks.MigrateToConnectedModeV7);
 
         private void OnShowTfvcHelp() => browserService.Navigate(DocumentationLinks.MigrateToConnectedModeV7_NotesForTfvcUsers);
+
+        private void OnShowSharedBinding() => browserService.Navigate(DocumentationLinks.SharedBinding);
     }
 }
