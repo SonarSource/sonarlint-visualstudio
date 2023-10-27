@@ -100,6 +100,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             trackerMock.VerifyRemove(x => x.ActiveSolutionChanged -= It.IsAny<EventHandler<ActiveSolutionChangedEventArgs>>(), Times.Once);
             connectedModeWindowEventListener.Verify(x => x.Dispose(), Times.Once);
+            sharedBindingSuggestionService.Verify(x => x.Close(), Times.Once);
         }
 
         [TestMethod]
@@ -379,7 +380,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             
             testSubject.SharedBindingConfig.Should().BeSameAs(sharedBindingConfig);
             testSubject.VisualStateManager.HasSharedBinding.Should().BeTrue();
-            CheckSuggestionServiceCalledTimes(1);
+            CheckSuggestionShowCalledTimes(1);
             CheckResetConnectionCalledTimes(testSubject, 1);
         }
         
@@ -396,7 +397,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             
             testSubject.SharedBindingConfig.Should().BeNull();
             testSubject.VisualStateManager.HasSharedBinding.Should().BeFalse();
-            CheckSuggestionServiceCalledTimes(1, serverType: null);
+            CheckSuggestionShowCalledTimes(1, serverType: null);
             CheckResetConnectionCalledTimes(testSubject, 1);
         }
 
@@ -413,7 +414,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             
             testSubject.SharedBindingConfig.Should().BeNull();
             testSubject.VisualStateManager.HasSharedBinding.Should().BeFalse();
-            CheckSuggestionServiceCalledTimes(0);
+            CheckSuggestionClosed();
+            CheckSuggestionShowCalledTimes(0);
             CheckResetConnectionCalledTimes(testSubject, 0);
         }
         
@@ -429,7 +431,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             
             testSubject.SharedBindingConfig.Should().NotBeNull();
             testSubject.VisualStateManager.HasSharedBinding.Should().BeTrue();
-            CheckSuggestionServiceCalledTimes(1);
+            CheckSuggestionShowCalledTimes(1);
             CheckResetConnectionCalledTimes(testSubject, 1);
         }
 
@@ -454,7 +456,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             testSubject.SharedBindingConfig.Should().BeNull();
             this.stateManager.BoundProjectKey.Should().Be("bla");
-            CheckSuggestionServiceCalledTimes(0);
+            CheckSuggestionShowCalledTimes(0);
             CheckResetConnectionCalledTimes(testSubject, 0);
         }
 
@@ -521,12 +523,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             ((ConfigurableStateManager)testSubject.VisualStateManager).ResetConnectionConfigCalled.Should().Be(count);
         }
         
-        private void CheckSuggestionServiceCalledTimes(int count, ServerType? serverType = ServerType.SonarQube)
+        private void CheckSuggestionShowCalledTimes(int count, ServerType? serverType = ServerType.SonarQube)
         {
             sharedBindingSuggestionService.Verify(x => x.Suggest(serverType ?? It.IsAny<ServerType?>(),
                     It.IsAny<Func<ICommand<ConnectConfiguration>>>()),
                 Times.Exactly(count));
             sharedBindingSuggestionService.VerifyNoOtherCalls();
+        }
+
+        private void CheckSuggestionClosed()
+        {
+            sharedBindingSuggestionService.Verify(x => x.Close());
         }
 
         #endregion Helpers

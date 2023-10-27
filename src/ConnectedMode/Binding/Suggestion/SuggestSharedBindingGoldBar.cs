@@ -29,6 +29,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion
     internal interface ISuggestSharedBindingGoldBar
     {
         void Show(ServerType serverType, Action onConnectHandler);
+
+        void Close();
     }
 
     [Export(typeof(ISuggestSharedBindingGoldBar))]
@@ -67,6 +69,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion
                 });
 
             notificationService.ShowNotification(notification);
+        }
+
+        public void Close()
+        {
+            notificationService.RemoveNotification();
         }
 
         private void OnLearnMore()
