@@ -36,7 +36,7 @@
             <corewpf:BoolToVisibilityConverter x:Key="HideWhenBusyConverter" TrueValue="Hidden" FalseValue="Visible"/>
             <sonarlintWpf:ProjectViewModelToBindingArgsConverter x:Key="ProjectViewModelToBindingArgsConverter" />
             <Style x:Key="SharedBindingCheckbox" TargetType="CheckBox">
-                <Setter Property="Margin" Value="5, 0, 0, 0"/>
+                <Setter Property="Margin" Value="10, 0, 0, 0"/>
                 <Style.Triggers>
                     <Trigger Property="IsEnabled" Value="False">
                         <Setter Property="Opacity" Value="0.5" />
