@@ -21,11 +21,13 @@
 using System;
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix.Commands;
-using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu;
+using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -47,7 +49,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             IOutputWindowService outputWindowService,
             IShowInBrowserService showInBrowserService,
             IBrowserService browserService,
-            ShowOptionsPage showOptionsPage)
+            ShowOptionsPage showOptionsPage,
+            IConfigurationProvider configurationProvider,
+            ISharedBindingConfigProvider sharedBindingConfigProvider)
         {
             RegisterCommand((int)PackageCommandId.ProjectExcludePropertyToggle, new ProjectExcludePropertyToggleCommand(projectPropertyManager, projectToLanguageMapper));
             RegisterCommand((int)PackageCommandId.ProjectTestPropertyAuto, new ProjectTestPropertySetCommand(projectPropertyManager, projectToLanguageMapper, null));
@@ -65,9 +69,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             RegisterCommand(CommonGuids.HelpMenuCommandSet, ViewDocumentationCommand.Id, new ViewDocumentationCommand(showInBrowserService));
             RegisterCommand(CommonGuids.HelpMenuCommandSet, AboutCommand.Id, new AboutCommand(browserService));
             RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowCommunityPageCommand.Id, new ShowCommunityPageCommand(showInBrowserService));
-            
+
             // Connected mode buttons
             RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, ManageConnectionsCommand.Id, new ManageConnectionsCommand(teamExplorerController));
+            RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, SaveSharedConnectionCommand.Id, new SaveSharedConnectionCommand(configurationProvider, sharedBindingConfigProvider));
         }
 
         internal /* testing purposes */ OleMenuCommand RegisterCommand(int commandId, VsCommandBase command)
@@ -84,9 +89,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             var idObject = new CommandID(commandGroupGuid, commandId);
             var command = new OleMenuCommand(invokeHandler, delegate { }, beforeQueryStatus, idObject);
-            
+
             menuService.AddCommand(command);
-            
+
             return command;
         }
     }
