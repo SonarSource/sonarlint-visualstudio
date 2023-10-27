@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         public void StartMigrationWizard(BoundSonarQubeProject oldBinding)
         {
-            var migrationWizardWindow = new MigrationWizardWindow(oldBinding, connectedModeMigration, OnShowHelp, OnShowTfvcHelp, OnShowSharedBinding, IsUnderGit, logger);
+            var migrationWizardWindow = new MigrationWizardWindow(oldBinding, connectedModeMigration, OnShowHelp, OnShowTfvcHelp, OnShowSharedBinding, IsUnderGit(), logger);
 
             var finishedSuccessfully = migrationWizardWindow.ShowModal();
 
@@ -82,9 +82,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             }
         }
 
-        private bool IsUnderGit
+        private bool IsUnderGit()
         {
-            get { return gitWorkspaceService.GetRepoRoot() != null; }
+            return gitWorkspaceService.GetRepoRoot() != null;
         }
 
         private void OnShowHelp() => browserService.Navigate(DocumentationLinks.MigrateToConnectedModeV7);
