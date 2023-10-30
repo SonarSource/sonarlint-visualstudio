@@ -91,6 +91,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
 
         private void OnShowTfvcHelp() => browserService.Navigate(DocumentationLinks.MigrateToConnectedModeV7_NotesForTfvcUsers);
 
-        private void OnShowSharedBinding() => browserService.Navigate(DocumentationLinks.SharedBinding);
+        private void OnShowSharedBinding() => browserService.Navigate(DocumentationLinks.SetupSharedBinding);
     }
 }

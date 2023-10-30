@@ -122,7 +122,7 @@ public class SuggestSharedBindingGoldBarTests
 
         infoAction.Action(null);
         
-        browserServiceMock.Verify(x => x.Navigate(DocumentationLinks.SharedBinding), Times.Once);
+        browserServiceMock.Verify(x => x.Navigate(DocumentationLinks.UseSharedBinding), Times.Once);
     }
     
     [TestMethod]
