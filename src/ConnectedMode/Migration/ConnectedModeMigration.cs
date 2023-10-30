@@ -148,17 +148,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             if (shareBinding)
             {
                 progress?.Report(new MigrationProgress(0, 1, "Saving Shared Binding Config...", false));
-                SaveSharedBinding(oldBinding);
+                var saveSuccess = SaveSharedBinding(oldBinding);
+                if (saveSuccess == false)
+                {
+                    progress?.Report(new MigrationProgress(0, 1, "... Failed to save Binding Config. Skippig the step", false));
+                }
             }
 
             progress?.Report(new MigrationProgress(0, 1, "Migration finished successfully!", false));
             logger.WriteLine(MigrationStrings.Process_Finished);
         }
 
-        private void SaveSharedBinding(BoundSonarQubeProject binding)
+        private bool SaveSharedBinding(BoundSonarQubeProject binding)
         {
             var sharedBindingConfigModel = new SharedBindingConfigModel { Organization = binding.Organization?.Key, ProjectKey = binding.ProjectKey, Uri = binding.ServerUri.ToString() };
-            _ = sharedBindingConfigProvider.SaveSharedBinding(sharedBindingConfigModel);
+            return sharedBindingConfigProvider.SaveSharedBinding(sharedBindingConfigModel);
         }
 
         private System.Threading.Tasks.Task<string> GetFileContentAsync(string filePath)
