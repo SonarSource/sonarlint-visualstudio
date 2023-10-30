@@ -193,7 +193,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 this.OnProjectsChanged(connection, projects);
                 notifications.ProgressChanged(Strings.ConnectionResultSuccess);
 
-                if (!string.IsNullOrEmpty(autoBindProjectKey) && !projects.Any(x => x.Key.Equals(autoBindProjectKey)))
+                if (!string.IsNullOrEmpty(autoBindProjectKey) && !projects.Any(project => SonarQubeProject.KeyComparer.Equals(project.Key, autoBindProjectKey)))
                 {
                     AbortAutobindProjectNotFound();
                 }
