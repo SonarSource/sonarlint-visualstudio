@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     /// </summary>
     internal interface IConnectedModeMigration
     {
-        Task MigrateAsync(BoundSonarQubeProject oldBinding, IProgress<MigrationProgress> progress, CancellationToken token);
+        Task MigrateAsync(BoundSonarQubeProject oldBinding, IProgress<MigrationProgress> progress, bool shareBinding, CancellationToken token);
     }
 
     /// <summary>
