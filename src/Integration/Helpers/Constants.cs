@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration
         public const string AdditionalFilesItemTypeName = "AdditionalFiles";
 
         /// <summary>
-        /// The SonarQube home page
+        /// The help page for Connected Mode setup
         /// </summary>
         public const string ConnectedModeHelpPage = DocumentationLinks.ConnectedMode;
 
