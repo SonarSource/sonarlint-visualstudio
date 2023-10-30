@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion
 
         private void OnLearnMore()
         {
-            browserService.Navigate(DocumentationLinks.SharedBinding);
+            browserService.Navigate(DocumentationLinks.UseSharedBinding);
         }
     }
 }

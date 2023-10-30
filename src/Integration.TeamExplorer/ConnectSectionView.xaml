@@ -109,7 +109,7 @@
                         </CheckBox>
                         <tecontrols:TextLink Grid.Column="2"
                                          Command="{Binding BrowseToUrlCommand}"
-                                         CommandParameter="{x:Static root:Constants.SonarQubeHomeWebUrl}"
+                                         CommandParameter="{x:Static root:Constants.ConnectedModeHelpPage}"
                                          Text="{x:Static resx:UIStrings.MoreInfoLinkText}" />
                     </Grid>
                 </StackPanel>
