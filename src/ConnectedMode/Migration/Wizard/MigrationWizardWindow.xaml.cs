@@ -144,7 +144,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             bool migrationSucceeded = false;
             try
             {
-                await connectedModeMigration.MigrateAsync(oldBinding, this, shareBinding(), cancellationTokenSource.Token);
+                await connectedModeMigration.MigrateAsync(oldBinding, this, ShareBinding(), cancellationTokenSource.Token);
                 migrationSucceeded = true;
             }
             catch (OperationCanceledException ex)
@@ -169,7 +169,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
             }
         }
 
-        private bool shareBinding()
+        private bool ShareBinding()
         {
             return chkSaveSharedBinding.IsChecked ?? false;
         }
