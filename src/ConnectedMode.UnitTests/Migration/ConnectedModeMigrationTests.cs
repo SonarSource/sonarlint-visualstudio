@@ -24,6 +24,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.ConnectedModeMigrationTestsExtensions;
 using SonarLint.VisualStudio.Core;
@@ -71,7 +72,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var testSubject = CreateTestSubject(fileProvider.Object, settingsProvider: settingsProvider.Object);
 
-            await testSubject.MigrateAsync(oldBinding, null, CancellationToken.None);
+            await testSubject.MigrateAsync(oldBinding, null, false, CancellationToken.None);
 
             settingsProvider.Verify(x => x.GetAsync("expected project key"), Times.Once);
         }
@@ -88,13 +89,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var testSubject = CreateTestSubject(fileProvider.Object, fileCleaner.Object, fileSystem.Object, settingsProvider.Object);
 
-            await testSubject.MigrateAsync(AnyBoundProject, null, CancellationToken.None);
+            await testSubject.MigrateAsync(AnyBoundProject, null, false, CancellationToken.None);
 
             fileProvider.Verify(x => x.GetFilesAsync(It.IsAny<CancellationToken>()), Times.Once);
 
             fileCleaner.Invocations.Should().HaveCount(0);
             fileSystem.VerifyNoFilesSaved();
             fileSystem.VerifyDirectoryDeleted("expected folder");
+        }
+
+        [DataRow(true, 1)]
+        [DataRow(false, 0)]
+        [TestMethod]
+        public async Task Migrate_SharedBinding_CalledCorrectly(bool isSharedBinding, int callCount)
+        {
+            var sharedBindingConfigProvider = new Mock<ISharedBindingConfigProvider>();
+
+            var testSubject = CreateTestSubject(sharedBindingConfigProvider: sharedBindingConfigProvider.Object);
+
+            await testSubject.MigrateAsync(AnyBoundProject, null, isSharedBinding, CancellationToken.None);
+
+            sharedBindingConfigProvider.Verify(p => p.SaveSharedBinding(It.IsAny<SharedBindingConfigModel>()), Times.Exactly(callCount));
+            sharedBindingConfigProvider.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -116,7 +132,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var testSubject = CreateTestSubject(fileProvider.Object, fileCleaner.Object, fileSystem.Object, settingsProvider.Object);
 
-            await testSubject.MigrateAsync(AnyBoundProject, null, CancellationToken.None);
+            await testSubject.MigrateAsync(AnyBoundProject, null, false, CancellationToken.None);
 
             fileProvider.Verify(x => x.GetFilesAsync(It.IsAny<CancellationToken>()), Times.Once);
             fileSystem.VerifyFileLoaded("file1");
@@ -154,7 +170,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var testSubject = CreateTestSubject(fileProvider.Object, fileCleaner.Object, fileSystem.Object);
 
-            await testSubject.MigrateAsync(AnyBoundProject, null, CancellationToken.None);
+            await testSubject.MigrateAsync(AnyBoundProject, null, false, CancellationToken.None);
 
             fileProvider.Verify(x => x.GetFilesAsync(It.IsAny<CancellationToken>()), Times.Once);
 
@@ -177,7 +193,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         {
             var testSubject = CreateTestSubject();
 
-            Func<Task> act = async () => await testSubject.MigrateAsync(AnyBoundProject, null, CancellationToken.None);
+            Func<Task> act = async () => await testSubject.MigrateAsync(AnyBoundProject, null, false, CancellationToken.None);
 
             act.Should().NotThrow();
         }
@@ -192,7 +208,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             var testSubject = CreateTestSubject();
 
-            await testSubject.MigrateAsync(AnyBoundProject, progressListener.Object, CancellationToken.None);
+            await testSubject.MigrateAsync(AnyBoundProject, progressListener.Object, false, CancellationToken.None);
 
             progressMessages.Should().NotBeEmpty();
         }
@@ -205,7 +221,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var sonarQubeService = CreateSonarQubeService(isAlreadyConnectedToServer);
 
             var testSubject = CreateTestSubject(sonarQubeService: sonarQubeService.Object);
-            await testSubject.MigrateAsync(AnyBoundProject, null, CancellationToken.None);
+            await testSubject.MigrateAsync(AnyBoundProject, null, false, CancellationToken.None);
 
             sonarQubeService.Verify(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(), CancellationToken.None), !isAlreadyConnectedToServer ? Times.Once : Times.Never);
             sonarQubeService.Verify(x => x.Disconnect(), Times.Never);
@@ -221,7 +237,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             logger.Setup(x => x.WriteLine(It.IsAny<string>())).Throws(new InvalidCastException("thrown from test"));
 
             var testSubject = CreateTestSubject(sonarQubeService: sonarQubeService.Object, logger: logger.Object);
-            Func<Task> act = async () => { await testSubject.MigrateAsync(AnyBoundProject, null, CancellationToken.None); };
+            Func<Task> act = async () => { await testSubject.MigrateAsync(AnyBoundProject, null, false, CancellationToken.None); };
 
             await act.Should().ThrowAsync<InvalidCastException>();
             sonarQubeService.Verify(x => x.Disconnect(), !isAlreadyConnectedToServer ? Times.Once : Times.Never);
@@ -234,7 +250,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             logger.Setup(x => x.WriteLine(It.IsAny<string>())).Throws(new StackOverflowException("thrown from test"));
 
             var testSubject = CreateTestSubject(logger: logger.Object);
-            Func<Task> act = async () => { await testSubject.MigrateAsync(AnyBoundProject, null, CancellationToken.None); };
+            Func<Task> act = async () => { await testSubject.MigrateAsync(AnyBoundProject, null, false, CancellationToken.None); };
 
             await act.Should().ThrowAsync<StackOverflowException>();
         }
@@ -247,18 +263,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var migrationProgress = Mock.Of<IProgress<MigrationProgress>>();
 
             var testSubject = CreateTestSubject(unintrusiveBindingController: unintrusiveBindingController.Object);
-            await testSubject.MigrateAsync(AnyBoundProject, migrationProgress, cancellationToken);
+            await testSubject.MigrateAsync(AnyBoundProject, migrationProgress, false, cancellationToken);
 
             unintrusiveBindingController.Verify(x => x.BindAsync(AnyBoundProject, It.IsAny<IProgress<FixedStepsProgress>>(), cancellationToken), Times.Once);
         }
-        
+
         [TestMethod]
         public async Task Migrate_RoslynSuppressionUpdateIsTriggered()
         {
             var suppressionsUpdater = new Mock<ISuppressionIssueStoreUpdater>();
 
             var testSubject = CreateTestSubject(suppressionIssueStoreUpdater: suppressionsUpdater.Object);
-            await testSubject.MigrateAsync(AnyBoundProject, null, CancellationToken.None);
+            await testSubject.MigrateAsync(AnyBoundProject, null, false, CancellationToken.None);
 
             suppressionsUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Once);
         }
@@ -271,7 +287,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                .Returns(() => new NoOpThreadHandler.NoOpAwaitable());
 
             var testSubject = CreateTestSubject(threadHandling: threadHandling.Object);
-            await testSubject.MigrateAsync(AnyBoundProject, It.IsAny<IProgress<MigrationProgress>>(), CancellationToken.None);
+            await testSubject.MigrateAsync(AnyBoundProject, It.IsAny<IProgress<MigrationProgress>>(), false, CancellationToken.None);
 
             threadHandling.Verify(x => x.SwitchToBackgroundThread(), Times.Once);
         }
@@ -284,6 +300,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             ISonarQubeService sonarQubeService = null,
             IUnintrusiveBindingController unintrusiveBindingController = null,
             ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater = null,
+            ISharedBindingConfigProvider sharedBindingConfigProvider = null,
             ILogger logger = null,
             IThreadHandling threadHandling = null)
         {
@@ -294,11 +311,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             unintrusiveBindingController ??= Mock.Of<IUnintrusiveBindingController>();
             suppressionIssueStoreUpdater ??= Mock.Of<ISuppressionIssueStoreUpdater>();
             settingsProvider ??= CreateSettingsProvider(DefaultTestLegacySettings).Object;
-            
+            sharedBindingConfigProvider ??= Mock.Of<ISharedBindingConfigProvider>();
+
             logger ??= new TestLogger(logToConsole: true);
             threadHandling ??= new NoOpThreadHandler();
 
-            return new ConnectedModeMigration(settingsProvider, fileProvider, fileCleaner, fileSystem, sonarQubeService, unintrusiveBindingController, suppressionIssueStoreUpdater, logger, threadHandling);
+            return new ConnectedModeMigration(settingsProvider, fileProvider, fileCleaner, fileSystem, sonarQubeService, unintrusiveBindingController, suppressionIssueStoreUpdater, sharedBindingConfigProvider, logger, threadHandling);
         }
 
         private static Mock<IFileProvider> CreateFileProvider(params string[] filesToReturn)
