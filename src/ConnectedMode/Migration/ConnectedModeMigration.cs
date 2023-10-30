@@ -25,6 +25,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -47,6 +48,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly ISonarQubeService sonarQubeService;
         private readonly IUnintrusiveBindingController unintrusiveBindingController;
         private readonly ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater;
+        private readonly ISharedBindingConfigProvider sharedBindingConfigProvider;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
 
@@ -61,6 +63,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             ISonarQubeService sonarQubeService,
             IUnintrusiveBindingController unintrusiveBindingController,
             ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
+            ISharedBindingConfigProvider sharedBindingConfigProvider,
             ILogger logger,
             IThreadHandling threadHandling)
         {
@@ -71,12 +74,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             this.sonarQubeService = sonarQubeService;
             this.unintrusiveBindingController = unintrusiveBindingController;
             this.suppressionIssueStoreUpdater = suppressionIssueStoreUpdater;
+            this.sharedBindingConfigProvider = sharedBindingConfigProvider;
 
             this.logger = logger;
             this.threadHandling = threadHandling;
         }
 
-        public async Task MigrateAsync(BoundSonarQubeProject oldBinding, IProgress<MigrationProgress> progress, CancellationToken token)
+        public async Task MigrateAsync(BoundSonarQubeProject oldBinding, IProgress<MigrationProgress> progress, bool shareBinding, CancellationToken token)
         {
             isAlreadyConnectedToServer = sonarQubeService.IsConnected;
 
@@ -89,7 +93,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                     await sonarQubeService.ConnectAsync(oldBinding.CreateConnectionInformation(), token);
                 }
 
-                await MigrateImplAsync(oldBinding, progress, token);
+                await MigrateImplAsync(oldBinding, progress, shareBinding, token);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -103,7 +107,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             }
         }
 
-        private async Task MigrateImplAsync(BoundSonarQubeProject oldBinding, IProgress<MigrationProgress> progress, CancellationToken token) 
+        private async Task MigrateImplAsync(BoundSonarQubeProject oldBinding, IProgress<MigrationProgress> progress, bool shareBinding, CancellationToken token)
         {
             logger.WriteLine(MigrationStrings.Process_Starting);
 
@@ -141,8 +145,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             // Trigger a re-fetch of suppressions so the Roslyn settings are updated.
             await suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync();
 
+            if (shareBinding)
+            {
+                progress?.Report(new MigrationProgress(0, 1, "Saving Shared Binding Config...", false));
+                var saveSuccess = SaveSharedBinding(oldBinding);
+                if (saveSuccess == false)
+                {
+                    progress?.Report(new MigrationProgress(0, 1, "... Failed to save Binding Config. Skippig the step", false));
+                }
+            }
+
             progress?.Report(new MigrationProgress(0, 1, "Migration finished successfully!", false));
             logger.WriteLine(MigrationStrings.Process_Finished);
+        }
+
+        private bool SaveSharedBinding(BoundSonarQubeProject binding)
+        {
+            var sharedBindingConfigModel = new SharedBindingConfigModel { Organization = binding.Organization?.Key, ProjectKey = binding.ProjectKey, Uri = binding.ServerUri.ToString() };
+            return sharedBindingConfigProvider.SaveSharedBinding(sharedBindingConfigModel);
         }
 
         private System.Threading.Tasks.Task<string> GetFileContentAsync(string filePath)
