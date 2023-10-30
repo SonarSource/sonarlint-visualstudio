@@ -57,6 +57,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IUnintrusiveBindingController>(),
                 MefTestHelpers.CreateExport<ISuppressionIssueStoreUpdater>(),
+                MefTestHelpers.CreateExport<ISharedBindingConfigProvider>(),
                 MefTestHelpers.CreateExport<ILogger>(),
                 MefTestHelpers.CreateExport<IThreadHandling>());
         }
