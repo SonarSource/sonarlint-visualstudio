@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
+
 namespace SonarLint.VisualStudio.Integration
 {
     public static class Constants
@@ -45,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// The SonarQube home page
         /// </summary>
-        public const string SonarQubeHomeWebUrl = "http://sonarqube.org";
+        public const string ConnectedModeHelpPage = DocumentationLinks.ConnectedMode;
 
         /// <summary>
         /// SonarLint issues home page
