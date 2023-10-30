@@ -38,6 +38,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class SharedBindingConfigFileProvider : ISharedBindingConfigFileProvider
     {
+        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        {
+            Formatting = Formatting.Indented
+        };
+        
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
         internal /*for testing*/ const string SonarCloudUri = "https://sonarcloud.io";
@@ -82,7 +87,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
                     sharedBindingConfigModel.Uri = null;
                 }
 
-                var fileContent = JsonConvert.SerializeObject(sharedBindingConfigModel);
+                var fileContent = JsonConvert.SerializeObject(sharedBindingConfigModel, SerializerSettings);
 
                 var sharedDirectory = Path.GetDirectoryName(filePath);
                 if (!fileSystem.Directory.Exists(sharedDirectory))
