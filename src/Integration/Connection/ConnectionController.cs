@@ -203,7 +203,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
         void IConnectionWorkflowExecutor.EstablishConnection(ConnectionInformation information,
             string autoBindProjectKey)
         {
-            ConnectionWorkflow workflow = new ConnectionWorkflow(this.ServiceProvider, this.host, this.ConnectCommand);
+            ConnectionWorkflow workflow = new ConnectionWorkflow(this.ServiceProvider, this.host, autoBindProjectKey, this.ConnectCommand);
             IProgressEvents progressEvents = workflow.Run(information);
             SetConnectionInProgress(progressEvents);
             autoBindTrigger.TriggerAfterSuccessfulWorkflow(progressEvents, autoBindProjectKey, information);

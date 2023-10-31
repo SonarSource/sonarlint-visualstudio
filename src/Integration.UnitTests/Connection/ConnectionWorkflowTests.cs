@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionWorkflow_ConnectionStep_WhenGivenANullServiceProvider_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action act = () => new ConnectionWorkflow(null, Mock.Of<IHost>(), new RelayCommand(() => { }));
+            Action act = () => new ConnectionWorkflow(null, Mock.Of<IHost>(), string.Empty, new RelayCommand(() => { }));
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionWorkflow_ConnectionStep_WhenGivenANullHost_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action act = () => new ConnectionWorkflow(Mock.Of<IServiceProvider>(), null, new RelayCommand(() => { }));
+            Action act = () => new ConnectionWorkflow(Mock.Of<IServiceProvider>(), null, string.Empty, new RelayCommand(() => { }));
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
         }
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public void ConnectionWorkflow_ConnectionStep_WhenGivenANullParentCommand_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action act = () => new ConnectionWorkflow(Mock.Of<IServiceProvider>(), this.host, null);
+            Action act = () => new ConnectionWorkflow(Mock.Of<IServiceProvider>(), this.host, string.Empty, null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("parentCommand");
         }
@@ -434,6 +434,49 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             AssertCredentialsStored(connectionInfo);
         }
+        
+        [TestMethod]
+        public async Task ConnectionWorkflow_ConnectionStep_AutoBindProjectNotFound_ShowError()
+        {
+            //this test describes a hacky way to fail an auto bind when the project is not found (by throwing), show a relevant error message, but not fail connection (by not aborting)
+            
+            // Arrange
+            folderWorkspaceService.Setup(x => x.IsFolderWorkspace()).Returns(true);
+
+            var connectionInfo = new ConnectionInformation(new Uri("http://server"), "user", "pass".ToSecureString());
+            var projects = new List<SonarQubeProject> { new SonarQubeProject("project1", "") };
+            this.sonarQubeServiceMock.Setup(x => x.ConnectAsync(connectionInfo, It.IsAny<CancellationToken>()))
+                .Returns(Task.Delay(0));
+            this.sonarQubeServiceMock.Setup(x => x.GetAllProjectsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(projects);
+
+            var controller = new ConfigurableProgressController();
+            var executionEvents = new ConfigurableProgressStepExecutionEvents();
+            string connectionMessage = connectionInfo.ServerUri.ToString();
+            var testSubject = CreateTestSubject(serviceProvider, host, new RelayCommand(AssertIfCalled), "nonexistingproject");
+
+            // Act
+            Func<Task> act = async () => await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
+            await act.Should().ThrowExactlyAsync<BindingAbortedException>();
+
+            // Assert
+            controller.NumberOfAbortRequests.Should().Be(0);
+            AssertServiceDisconnectNotCalled();
+            executionEvents.AssertProgressMessages(
+                connectionMessage,
+                Strings.ConnectionStepValidatinCredentials,
+                Strings.ConnectionStepRetrievingProjects,
+                Strings.ConnectionResultSuccess);
+
+            this.sonarQubeServiceMock.Verify(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(),
+                It.IsAny<CancellationToken>()), Times.Once());
+            testSubject.ConnectedServer.Should().Be(connectionInfo);
+            AssertCredentialsStored(connectionInfo);
+            
+            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoShowErrorMessages();
+            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoNotification(NotificationIds.FailedToConnectId);
+            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToFindBoundProjectKeyId);
+        }
 
         #endregion Tests
 
@@ -472,9 +515,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 Times.Never());
         }
 
-        private static ConnectionWorkflow CreateTestSubject(IServiceProvider serviceProvider, IHost host, ICommand parentCommand)
+        private static ConnectionWorkflow CreateTestSubject(IServiceProvider serviceProvider, IHost host, ICommand parentCommand, string autoBindProjectKey = null)
         {
-            return new ConnectionWorkflow(serviceProvider, host, parentCommand, new NoOpThreadHandler());
+            return new ConnectionWorkflow(serviceProvider, host, autoBindProjectKey, parentCommand, new NoOpThreadHandler());
         }
 
         #endregion Helpers
