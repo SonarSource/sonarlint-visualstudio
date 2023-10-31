@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private bool SaveSharedBinding(BoundSonarQubeProject binding)
         {
             var sharedBindingConfigModel = new SharedBindingConfigModel { Organization = binding.Organization?.Key, ProjectKey = binding.ProjectKey, Uri = binding.ServerUri.ToString() };
-            return sharedBindingConfigProvider.SaveSharedBinding(sharedBindingConfigModel);
+            return sharedBindingConfigProvider.SaveSharedBinding(sharedBindingConfigModel) != null;
         }
 
         private System.Threading.Tasks.Task<string> GetFileContentAsync(string filePath)
