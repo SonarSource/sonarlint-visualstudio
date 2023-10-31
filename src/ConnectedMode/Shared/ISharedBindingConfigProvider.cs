@@ -26,6 +26,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
 
         SharedBindingConfigModel GetSharedBinding();
 
-        bool SaveSharedBinding(SharedBindingConfigModel sharedBindingConfigModel);
+        string SaveSharedBinding(SharedBindingConfigModel sharedBindingConfigModel);
     }
 }
