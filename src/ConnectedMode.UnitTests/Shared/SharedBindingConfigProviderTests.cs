@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 
             var result = testSubject.SaveSharedBinding(config);
 
-            result.Should().BeTrue();
+            result.Should().Be("C:\\Folder\\.sonarlint\\Solution.json");
         }
 
         [TestMethod]
@@ -129,7 +129,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 
             var result = testSubject.SaveSharedBinding(config);
 
-            result.Should().BeTrue();
+            result.Should().Be("C:\\Folder\\.sonarlint\\Solution.json");
         }
 
         [TestMethod]
@@ -147,7 +147,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 
             var result = testSubject.SaveSharedBinding(config);
 
-            result.Should().BeFalse();
+            result.Should().BeNull();
             sharedBindingConfigFileProvider.VerifyNoOtherCalls();
             logger.AssertOutputStrings(1);
             logger.AssertPartialOutputStringExists("no SonarLint shared folder or solution is not under git");

@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
             return sharedFolderProvider.GetSharedFolderPath() != null && fileSystem.File.Exists(SharedFilePath);
         }
 
-        public bool SaveSharedBinding(SharedBindingConfigModel sharedBindingConfigModel)
+        public string SaveSharedBinding(SharedBindingConfigModel sharedBindingConfigModel)
         {
             string fileSavePath = null;
             if (sharedFolderProvider.GetSharedFolderPath() != null)
@@ -97,9 +97,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
             if (fileSavePath == null)
             {
                 logger.WriteLine(Resources.SharedBindingConfigProvider_SavePathNotFound);
-                return false;
+                return null;
             }
-            return sharedBindingConfigFileProvider.WriteSharedBindingConfigFile(fileSavePath, sharedBindingConfigModel);
+            return sharedBindingConfigFileProvider.WriteSharedBindingConfigFile(fileSavePath, sharedBindingConfigModel) ? fileSavePath : null;
         }
 
         private string SharedFilePath => Path.Combine(sharedFolderProvider.GetSharedFolderPath(), SharedFileName);

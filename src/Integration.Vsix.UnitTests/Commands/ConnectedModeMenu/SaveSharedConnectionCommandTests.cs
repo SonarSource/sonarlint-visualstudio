@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.ConnectedModeMen
             var bindingConfiguration = new BindingConfiguration(project, SonarLintMode.Connected, null);
 
             var sharedBindingConfigProvider = new Mock<ISharedBindingConfigProvider>();
-            sharedBindingConfigProvider.Setup(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == "http://127.0.0.1:9000/" && y.ProjectKey == "projectKey" && y.Organization == "organisationKey"))).Returns(true);
+            sharedBindingConfigProvider.Setup(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == "http://127.0.0.1:9000/" && y.ProjectKey == "projectKey" && y.Organization == "organisationKey"))).Returns("some Path");
 
             var messageBox = new Mock<IMessageBox>();
 
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.ConnectedModeMen
             testSubject.Invoke(command, null);
 
             sharedBindingConfigProvider.Verify(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == "http://127.0.0.1:9000/" && y.ProjectKey == "projectKey" && y.Organization == "organisationKey")), Times.Once);
-            messageBox.Verify(mb => mb.Show(Strings.SaveSharedConnectionCommand_SaveSuccess_Message, Strings.SaveSharedConnectionCommand_SaveSuccess_Caption, MessageBoxButton.OK, MessageBoxImage.Information), Times.Once);
+            messageBox.Verify(mb => mb.Show(string.Format(Strings.SaveSharedConnectionCommand_SaveSuccess_Message, "some Path"), Strings.SaveSharedConnectionCommand_SaveSuccess_Caption, MessageBoxButton.OK, MessageBoxImage.Information), Times.Once);
         }
 
         [TestMethod]
@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.ConnectedModeMen
             var bindingConfiguration = new BindingConfiguration(project, SonarLintMode.Connected, null);
 
             var sharedBindingConfigProvider = new Mock<ISharedBindingConfigProvider>();
-            sharedBindingConfigProvider.Setup(x => x.SaveSharedBinding(It.IsAny<SharedBindingConfigModel>())).Returns(false);
+            sharedBindingConfigProvider.Setup(x => x.SaveSharedBinding(It.IsAny<SharedBindingConfigModel>())).Returns((string)null);
 
             var messageBox = new Mock<IMessageBox>();
 

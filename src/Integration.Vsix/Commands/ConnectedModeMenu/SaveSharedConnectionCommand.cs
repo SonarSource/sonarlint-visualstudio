@@ -56,11 +56,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 
             var sharedBindingConfig = new SharedBindingConfigModel { ProjectKey = project.ProjectKey, Uri = project.ServerUri.ToString(), Organization = project.Organization?.Key };
 
-            var isSuccess = sharedBindingConfigProvider.SaveSharedBinding(sharedBindingConfig);
+            var savePath = sharedBindingConfigProvider.SaveSharedBinding(sharedBindingConfig);
 
-            if (isSuccess)
+            if (savePath != null)
             {
-                messageBox.Show(Strings.SaveSharedConnectionCommand_SaveSuccess_Message, Strings.SaveSharedConnectionCommand_SaveSuccess_Caption, MessageBoxButton.OK, MessageBoxImage.Information);
+                messageBox.Show(string.Format(Strings.SaveSharedConnectionCommand_SaveSuccess_Message, savePath), Strings.SaveSharedConnectionCommand_SaveSuccess_Caption, MessageBoxButton.OK, MessageBoxImage.Information);
             }
             else
             {
