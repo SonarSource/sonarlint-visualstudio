@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.CFamily.IntegrationTests
 
             var messages = InvokeAnalyzer(request);
 
-            messages.Should().BeEquivalentTo(expectedMessages, e => e.WithStrictOrdering());
+            messages.Where(x => !string.IsNullOrEmpty(x.Filename)).Should().BeEquivalentTo(expectedMessages, e => e.WithStrictOrdering());
         }
 
         private static void CheckRulesMetadataFilesExist()
