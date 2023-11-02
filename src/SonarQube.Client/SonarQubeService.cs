@@ -250,7 +250,7 @@ namespace SonarQube.Client
         {
             var serverInfo = EnsureIsConnected();
 
-            const string SonarQube_ProjectDashboardRelativeUrl = "dashboard/index/{0}";
+            const string SonarQube_ProjectDashboardRelativeUrl = "dashboard?id={0}";
             const string SonarCloud_ProjectDashboardRelativeUrl = "project/overview?id={0}";
 
             var urlFormat = serverInfo.ServerType == ServerType.SonarCloud ? SonarCloud_ProjectDashboardRelativeUrl : SonarQube_ProjectDashboardRelativeUrl;
