@@ -35,7 +35,7 @@ namespace SonarQube.Client.Tests
 
             var result = service.GetProjectDashboardUrl("myProject");
 
-            result.Should().BeEquivalentTo(new Uri("http://localhost:9000/dashboard/index/myProject"));
+            result.Should().BeEquivalentTo(new Uri("http://localhost:9000/dashboard?id=myProject"));
         }
 
         [TestMethod]
