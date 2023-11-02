@@ -29,6 +29,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
     public static class VisualStudioStatusBarHelper
     {
         private const string SccStatusBarHostName = "PART_SccStatusBarHost";
+        private const string StatusBarRightFrameControlContainerName = "PART_StatusBarRightFrameControlContainer";
 
         public static void RemoveStatusBarIcon(FrameworkElement statusBarIcon)
         {
@@ -60,10 +61,8 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         /// </remarks>
         private static void AddStatusBarIcon(Window window, UIElement statusBarIcon)
         {
-            var statusBarPart = window?.Template?.FindName(SccStatusBarHostName, window) as FrameworkElement;
-            var parent = statusBarPart?.Parent as DockPanel;
-
-            if (parent == null)
+            if(!GetOldStatusBarPlacement(SccStatusBarHostName, window, out var statusBarPart, out var parent)
+               && !GetOldStatusBarPlacement(StatusBarRightFrameControlContainerName, window, out statusBarPart, out parent))
             {
                 Debug.Fail("Could not find status bar container");
                 return;
@@ -71,6 +70,13 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
             var index = parent.Children.IndexOf(statusBarPart);
             parent.Children.Insert(index + 1, statusBarIcon);
+        }
+
+        private static bool GetOldStatusBarPlacement(string statusBarElementToAttachAfter, Window window, out FrameworkElement statusBarElement, out DockPanel parent)
+        {
+            statusBarElement = window?.Template?.FindName(statusBarElementToAttachAfter, window) as FrameworkElement;
+            parent = statusBarElement?.Parent as DockPanel;
+            return parent != null;
         }
     }
 }
