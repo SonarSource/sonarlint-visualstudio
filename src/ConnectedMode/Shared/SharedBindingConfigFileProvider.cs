@@ -67,15 +67,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
                 {
                     result.Uri = SonarCloudUri;
                 }
-                
-                if (string.IsNullOrWhiteSpace(result.ProjectKey) 
-                    || result.Uri == null 
-                    || (result.Uri.Scheme != Uri.UriSchemeHttp && result.Uri.Scheme != Uri.UriSchemeHttps))
-                {
-                    return null;
-                }
 
-                return result;
+                if (!string.IsNullOrWhiteSpace(result.ProjectKey)
+                    && result.Uri != null
+                    && (result.Uri.Scheme == Uri.UriSchemeHttp || result.Uri.Scheme == Uri.UriSchemeHttps))
+                {
+                    return result;
+                }
             }
             catch (Exception ex)
             {
