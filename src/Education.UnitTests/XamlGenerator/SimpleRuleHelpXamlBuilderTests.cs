@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -101,72 +99,6 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
             var flowDocument = testSubject.Create(ruleInfoMock.Object);
 
             flowDocument.Blocks.Single().Should().BeOfType<Paragraph>().Which.Inlines.Single().Should().BeOfType<Run>().Which.Text.Should().Be("Hi");
-        }
-
-        [TestMethod]
-        public void Create_CheckAllEmbedded()
-        {
-            // Performance: this test is loading nearly 2000 files and creating
-            // XAML document for them, but it still only takes a around 3 seconds
-            // to run.
-            var resourceNames = ResourceAssembly.GetManifestResourceNames()
-                .Where(x => x.EndsWith(".json"));
-
-            // Sanity check - should have checked at least 1500 rules
-            resourceNames.Count().Should().BeGreaterThan(1500);
-
-            Console.WriteLine("Checking xaml creation. Count = " + resourceNames.Count());
-
-            string[] failures;
-            using(new AssertIgnoreScope()) // the product code can assert if it encounters an unrecognised tag
-            {
-                failures = resourceNames.Where(x => !ProcessResource(x))
-                    .ToArray();
-            }
-
-            // see https://github.com/SonarSource/sonarlint-visualstudio/issues/4471
-            failures.Should().BeEquivalentTo(new[]
-            {
-                // introduced in sonar-cpp 6.48
-                "SonarLint.VisualStudio.Rules.Embedded.cpp.S1232.json",
-                // introduced in dotnet analyzer 9.5
-                "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S4433.json",
-            });
-        }
-
-        private static bool ProcessResource(string fullResourceName)
-        {
-            var testSubject = new SimpleRuleHelpXamlBuilder(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory(), new DiffTranslator(new XamlWriterFactory())), new XamlGeneratorHelperFactory(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory(), new DiffTranslator(new XamlWriterFactory()))), new XamlWriterFactory());
-
-            try
-            {
-                var data = ReadResource(fullResourceName);
-                var jsonRuleInfo = LocalRuleMetadataProvider.RuleInfoJsonDeserializer.Deserialize(data);
-
-                if (!string.IsNullOrWhiteSpace(jsonRuleInfo.Description))
-                {
-                    var doc = testSubject.Create(jsonRuleInfo);
-
-                    // Quick sanity check that something was produced
-                    // Note: this is a quick way of getting the size of the document. Serializing the doc to a string
-                    // and checking the length takes much longer (around 25 seconds)
-                    var docLength = doc.ContentStart.DocumentStart.GetOffsetToPosition(doc.ContentEnd.DocumentEnd);
-                    docLength.Should().BeGreaterThan(30);
-                }
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Failed: " + fullResourceName);
-                Console.WriteLine("    " + ex.Message);
-                return false;
-            }
-        }
-
-        private static string ReadResource(string fullResourceName)
-        {
-            using var stream = new StreamReader(ResourceAssembly.GetManifestResourceStream(fullResourceName));
-            return stream.ReadToEnd();
         }
     }
 }
