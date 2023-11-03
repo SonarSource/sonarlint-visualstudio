@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             if (useSharedConfig && sharedConfig != null)
             {
-                connectionInfo = new ConnectionInformation(sharedConfig.ServerUri,
+                connectionInfo = new ConnectionInformation(sharedConfig.Uri,
                     credentials?.Username,
                     credentials?.Password?.ToSecureString())
                 {

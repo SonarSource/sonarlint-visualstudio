@@ -52,8 +52,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 
             var result = testSubject.ReadSharedBindingConfigFile(filePath);
 
-            result.Uri.Should().Be("https://127.0.0.1:9000");
-            result.ServerUri.Should().BeEquivalentTo(uri);
+            result.Uri.Should().BeEquivalentTo(uri);
             result.ProjectKey.Should().Be("projectKey");
             result.Organization.Should().BeNull();
         }
@@ -63,7 +62,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         {
             string configFileContent = @"{""SonarCloudOrganization"":""Some Organisation"",""ProjectKey"":""projectKey""}";
             string filePath = "Some Path";
-            var uri = new Uri(SharedBindingConfigFileProvider.SonarCloudUri);
+            var uri = SharedBindingConfigFileProvider.SonarCloudUri;
 
             var file = CreateFile(filePath, configFileContent);
             var fileSystem = GetFileSystem(file.Object);
@@ -74,8 +73,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 
             result.Organization.Should().Be("Some Organisation");
             result.ProjectKey.Should().Be("projectKey");
-            result.Uri.Should().Be(SharedBindingConfigFileProvider.SonarCloudUri);
-            result.ServerUri.Should().BeEquivalentTo(uri);
+            result.Uri.Should().BeEquivalentTo(uri);
         }
 
         [TestMethod]
@@ -125,6 +123,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 
             result.Should().BeNull();
         }
+        
+        [TestMethod]
+        public void ReadSharedBindingConfigFile_InvalidProjectKey_ReturnsNull()
+        {
+            var configFileContent = @"{""SonarQubeUri"":""http://localhost"",""ProjectKey"":""  ""}";
+            var filePath = "Some Path";
+
+            var file = CreateFile(filePath, configFileContent);
+            var fileSystem = GetFileSystem(file.Object);
+
+            var testSubject = CreateTestSubject(fileSystem.Object);
+
+            var result = testSubject.ReadSharedBindingConfigFile(filePath);
+
+            result.Should().BeNull();
+        }
 
         [TestMethod]
         public void WriteSharedBindingConfigFile_SQConfig_Writes()
@@ -133,7 +147,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
   ""SonarQubeUri"": ""https://127.0.0.1:9000"",
   ""ProjectKey"": ""projectKey""
 }";
-            var config = new SharedBindingConfigModel() { Uri = "https://127.0.0.1:9000", ProjectKey = "projectKey" };
+            var config = new SharedBindingConfigModel() { Uri = new Uri("https://127.0.0.1:9000"), ProjectKey = "projectKey" };
             var filePath = "C:\\Solution\\.sonarlint\\Solution.json";
 
             var file = CreateFile();

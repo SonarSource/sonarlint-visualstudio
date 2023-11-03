@@ -469,7 +469,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var testSubject = CreateTestSubject();
             var section = ConfigurableSectionController.CreateDefault();
             sharedBindingConfigProviderMock.Setup(x => x.GetSharedBinding())
-                .Returns(serverUri != null ? new SharedBindingConfigModel { Uri = serverUri} : null);
+                .Returns(serverUri != null ? new SharedBindingConfigModel { Uri = new Uri(serverUri)} : null);
             testSubject.SetActiveSection(section);
             var credential = new Credential("a");
             credentialStoreServiceMock.Setup(x => x.ReadCredentials(It.IsAny<TargetUri>())).Returns(credential);

@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
         
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
-        internal /*for testing*/ const string SonarCloudUri = "https://sonarcloud.io";
+        internal /*for testing*/ static readonly Uri SonarCloudUri = new Uri("https://sonarcloud.io");
 
         [ImportingConstructor]
         public SharedBindingConfigFileProvider(ILogger logger) : this(logger, new FileSystem())
@@ -59,22 +59,30 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
 
         public SharedBindingConfigModel ReadSharedBindingConfigFile(string filePath)
         {
-            SharedBindingConfigModel result = null;
-
             try
             {
-                result = JsonConvert.DeserializeObject<SharedBindingConfigModel>(fileSystem.File.ReadAllText(filePath));
+                var result = JsonConvert.DeserializeObject<SharedBindingConfigModel>(fileSystem.File.ReadAllText(filePath));
+                
                 if (result.IsSonarCloud())
                 {
                     result.Uri = SonarCloudUri;
                 }
+                
+                if (string.IsNullOrWhiteSpace(result.ProjectKey) 
+                    || result.Uri == null 
+                    || (result.Uri.Scheme != Uri.UriSchemeHttp && result.Uri.Scheme != Uri.UriSchemeHttps))
+                {
+                    return null;
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
                 logger.LogVerbose($"[SharedBindingConfigFileProvider] Unable to read shared sonarlint config file: {ex.Message}");
             }
 
-            return result;
+            return null;
         }
 
         public bool WriteSharedBindingConfigFile(string filePath, SharedBindingConfigModel sharedBindingConfigModel)
