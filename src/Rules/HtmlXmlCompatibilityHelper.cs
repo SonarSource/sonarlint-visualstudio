@@ -30,11 +30,11 @@ namespace SonarLint.VisualStudio.Rules
         // the empty elements and replace them with elements with closing tags
         // e.g. <br>  =>  <br/>
         // e.g. <col span="123">  =>  <col span="123"/>
-        private static readonly Regex CleanCol = new Regex("(?<element>(<col\\s*)|(col\\s+[^/^>]*))>",
+        private static readonly Regex CleanCol = new Regex("(?<element>(<\\s*col\\s*)|(<\\s*col\\s+[^/^>]*))>",
             RegexOptions.Compiled,
             Core.RegexConstants.DefaultTimeout);
 
-        private static readonly Regex CleanBr = new Regex("(?<element>(<br\\s*)|(br\\s+[^/^>]*))>",
+        private static readonly Regex CleanBr = new Regex("(?<element>(<\\s*br\\s*)|(<\\s*br\\s+[^/^>]*))>",
             RegexOptions.Compiled,
             Core.RegexConstants.DefaultTimeout);
 

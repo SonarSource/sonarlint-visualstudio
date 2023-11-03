@@ -52,29 +52,21 @@ public class RuleXamlBuilderSmokeTest
         Console.WriteLine("Checking xaml creation. Count = " + resourceNames.Count());
 
         string[] failures;
-        using(new AssertIgnoreScope()) // the product code can assert if it encounters an unrecognised tag
+        using (new AssertIgnoreScope()) // the product code can assert if it encounters an unrecognised tag
         {
             failures = resourceNames.Where(x => !ProcessResource(x))
                 .ToArray();
         }
-        
+
         failures.Should().BeEquivalentTo(new[]
         {
             // introduced in sonar-cpp 6.48
             "SonarLint.VisualStudio.Rules.Embedded.cpp.S1232.json",
-            // introduced in dotnet analyzer 9.5
-            "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S4433.json",
-            // possible issues with EnsureHtmlIsXml regexp in rich rule description, need to investigate (same issue for all 5332 rules)
-            "SonarLint.VisualStudio.Rules.Embedded.cpp.S5332.json",
-            "SonarLint.VisualStudio.Rules.Embedded.c.S5332.json",
-            "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S5332.json",
-            "SonarLint.VisualStudio.Rules.Embedded.javascript.S5332.json",
-            "SonarLint.VisualStudio.Rules.Embedded.typescript.S5332.json",
             // some issue with diff highlighting
             "SonarLint.VisualStudio.Rules.Embedded.csharpsquid.S6640.json",
         });
     }
-    
+
     private static bool ProcessResource(string fullResourceName)
     {
         var xamlWriterFactory = new XamlWriterFactory();
@@ -82,14 +74,14 @@ public class RuleXamlBuilderSmokeTest
         var xamlGeneratorHelperFactory = new XamlGeneratorHelperFactory(ruleHelpXamlTranslatorFactory);
         var ruleInfoTranslator = new RuleInfoTranslator(ruleHelpXamlTranslatorFactory, new TestLogger());
         var staticXamlStorage = new StaticXamlStorage(ruleHelpXamlTranslatorFactory);
-        
+
         var simpleXamlBuilder = new SimpleRuleHelpXamlBuilder(ruleHelpXamlTranslatorFactory, xamlGeneratorHelperFactory, xamlWriterFactory);
         var richXamlBuilder = new RichRuleHelpXamlBuilder(ruleInfoTranslator, xamlGeneratorHelperFactory, staticXamlStorage, xamlWriterFactory);
-        
+
         try
         {
             bool res = false;
-            
+
             var data = ReadResource(fullResourceName);
             var jsonRuleInfo = LocalRuleMetadataProvider.RuleInfoJsonDeserializer.Deserialize(data);
 
@@ -104,7 +96,7 @@ public class RuleXamlBuilderSmokeTest
                 Res(richXamlBuilder.Create(jsonRuleInfo, null));
                 res = true;
             }
-            
+
             return res; // simple || rich should be true
         }
         catch (Exception ex)
