@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         [TestMethod]
         public void EnsureHtmlIsXml_ClosesBr()
         {
-            HtmlXmlCompatibilityHelper.EnsureHtmlIsXml("Lalala<br> < br >Hi <br>").Should().BeEquivalentTo("Lalala<br/> < br />Hi");
+            HtmlXmlCompatibilityHelper.EnsureHtmlIsXml("Lalala<br> < br >Hi").Should().BeEquivalentTo("Lalala<br/> < br />Hi");
         }
 
         [TestMethod]
@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         {
             HtmlXmlCompatibilityHelper.EnsureHtmlIsXml("Lalala<col span=\"2\" style=\"background-color:red\">Hi <  col > hello")
                 .Should()
-                .BeEquivalentTo("Lalala<col span=\"2\" style=\"background-color:red\"/>Hi <  col /> hello <col/>");
+                .BeEquivalentTo("Lalala<col span=\"2\" style=\"background-color:red\"/>Hi <  col /> hello");
         }
 
         [TestMethod]
