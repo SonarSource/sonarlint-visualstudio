@@ -33,11 +33,27 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
         }
 
         [TestMethod]
+        public void EnsureHtmlIsXml_ShouldNotMatchBrInText()
+        {
+            HtmlXmlCompatibilityHelper.EnsureHtmlIsXml("<p>some text with br in it <em>SASL</em>")
+                .Should()
+                .BeEquivalentTo("<p>some text with br in it <em>SASL</em>");
+        }
+
+        [TestMethod]
         public void EnsureHtmlIsXml_ClosesCol()
         {
-            HtmlXmlCompatibilityHelper.EnsureHtmlIsXml("Lalala<col span=\"2\" style=\"background-color:red\">Hi")
+            HtmlXmlCompatibilityHelper.EnsureHtmlIsXml("Lalala<col span=\"2\" style=\"background-color:red\">Hi <  col > hello")
                 .Should()
-                .BeEquivalentTo("Lalala<col span=\"2\" style=\"background-color:red\"/>Hi");
+                .BeEquivalentTo("Lalala<col span=\"2\" style=\"background-color:red\"/>Hi <  col /> hello");
+        }
+
+        [TestMethod]
+        public void EnsureHtmlIsXml_ShouldNotMatchColInText()
+        {
+            HtmlXmlCompatibilityHelper.EnsureHtmlIsXml("<p>Lightweight Directory Access Protocol (LDAP) servers provide two main authentication methods: the <em>SASL</em>")
+                .Should()
+                .BeEquivalentTo("<p>Lightweight Directory Access Protocol (LDAP) servers provide two main authentication methods: the <em>SASL</em>");
         }
 
         [TestMethod]
