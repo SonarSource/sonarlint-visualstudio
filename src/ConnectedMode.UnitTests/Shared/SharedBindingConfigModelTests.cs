@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarQube.Client;
 
@@ -51,7 +52,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         [TestMethod]
         public void GetServerType_NoOrganization_ReturnsQube()
         {
-            SharedBindingConfigModel model = new SharedBindingConfigModel{ProjectKey = "abc", Uri = "https://next.sonarqube.com"};
+            SharedBindingConfigModel model = new SharedBindingConfigModel{ProjectKey = "abc", Uri = new Uri("https://next.sonarqube.com")};
 
             model.GetServerType().Should().Be(ServerType.SonarQube);
         }

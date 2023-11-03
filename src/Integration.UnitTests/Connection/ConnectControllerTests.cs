@@ -233,7 +233,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var connectionProviderMock = new Mock<IConnectionInformationProvider>();
             var testSubject = new ConnectionController(this.serviceProvider, this.host, null, connectionProviderMock.Object,
                 connectionWorkflowMock.Object);
-            host.SharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = "https://sonarcloudi.io", Organization = "Org"};
+            host.SharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = new Uri("https://sonarcloudi.io"), Organization = "Org"};
             host.CredentialsForSharedConfig = new Credential("user", "pwd");
             
             testSubject.ConnectCommand.Execute(new ConnectConfiguration(){UseSharedBinding = true});
@@ -254,9 +254,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var connectionProviderMock = new Mock<IConnectionInformationProvider>();
             var testSubject = new ConnectionController(this.serviceProvider, this.host, null, connectionProviderMock.Object,
                 connectionWorkflowMock.Object);
-            host.SharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = "https://sonarcloudi.io", Organization = "Org"};
+            host.SharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = new Uri("https://sonarcloudi.io"), Organization = "Org"};
             var connectionInformation =
-                new ConnectionInformation(host.SharedBindingConfig.ServerUri, "user", "pwd".ToSecureString())
+                new ConnectionInformation(host.SharedBindingConfig.Uri, "user", "pwd".ToSecureString())
                 {
                     Organization = new SonarQubeOrganization(host.SharedBindingConfig.Organization, string.Empty)
                 };
@@ -269,7 +269,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 Times.Once);
             connectionProviderMock.Verify(x => 
                     x.GetConnectionInformation(It.Is<ConnectionInformation>(c => 
-                        c.ServerUri == host.SharedBindingConfig.ServerUri && c.Organization.Key == host.SharedBindingConfig.Organization)),
+                        c.ServerUri == host.SharedBindingConfig.Uri && c.Organization.Key == host.SharedBindingConfig.Organization)),
                 Times.Once);
         }
 
@@ -292,7 +292,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             SetUpOpenSolution();
             var connectionProviderMock = new Mock<IConnectionInformationProvider>();
             host.SharedBindingConfig = new SharedBindingConfigModel
-                { ProjectKey = "projectKey", Uri = "https://sonarcloudi.io", Organization = "Org" };
+                { ProjectKey = "projectKey", Uri = new Uri("https://sonarcloudi.io"), Organization = "Org" };
             host.CredentialsForSharedConfig = new Credential("user", "pwd");
             var expectedConnection = new ConnectionInformation(new Uri("https://127.0.0.0"));
             SetupConnectionProvider(connectionProviderMock, expectedConnection);

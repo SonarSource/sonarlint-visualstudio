@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             return SharedBindingConfig == null 
                 ? null 
-                : credentialStoreService.ReadCredentials(SharedBindingConfig.ServerUri);
+                : credentialStoreService.ReadCredentials(SharedBindingConfig.Uri);
         }
 
         public ISectionController ActiveSection { get; private set; }
