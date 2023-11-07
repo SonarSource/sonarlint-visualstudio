@@ -1,10 +1,10 @@
 # Search for signtool.exe
 
-$searchRoot = ${env:ProgramFiles(x86)} + '\Windows Kits\10\bin\10*'
+$searchRoot = ${env:ProgramFiles(x86)} + 'Microsoft SDKs\ClickOnce\SignTool\'
 
 $exeName = 'signtool.exe'
 
-$signtool = Get-ChildItem -Path $searchRoot -Filter $exeName -Recurse -ErrorAction SilentlyContinue -Force | Select -Last 1
+$signtool = 'C:\Program Files (x86)\Microsoft SDKs\ClickOnce\SignTool\signtool.exe'
 
 
 if (!$signtool){
