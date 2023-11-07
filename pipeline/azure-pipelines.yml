@@ -1,5 +1,6 @@
 variables:
 - group: sonarsource-build-variables
+- group: digicert-keylocker
 - name: BuildParameters.solution
   value: SonarLint.VisualStudio.Integration.sln
 
@@ -104,10 +105,10 @@ jobs:
       retryCount: 5
 
   - task: DownloadSecureFile@1
-    name: pfx
-    displayName: Download pfx file
+    name: SM_CLIENT_CERT
+    displayName: Download p12 file
     inputs:
-      secureFile: SonarSource-2021-2023.pfx
+      secureFile: digicert_authentication_certificate.p12
       retryCount: 5
 
   # Specify the version of Java to use.
@@ -154,7 +155,7 @@ jobs:
     inputs:
       solution: $(BuildParameters.solution)
       vsVersion: 17.0
-      msbuildArgs: /p:VsTargetVersion=$(vsTargetVersion) /p:DeployExtension=false /p:SignArtifacts=$(SHOULD_SIGN) /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)" /p:pfxCertificatePath="$(pfx.secureFilePath)" /p:pfxPassword="$(pfxPassword2021-2023)" /p:pfxSha1=$(pfxSha1-2021-2023) /p:Sha1=$(Build.SourceVersion) /p:BuildNumber=$(Build.BuildId)  $(AdditionalMSBuildArgs)
+      msbuildArgs: /p:VsTargetVersion=$(vsTargetVersion) /p:DeployExtension=false /p:SignArtifacts=$(SHOULD_SIGN) /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)" /p:pfxCertificatePath="$(SM_CLIENT_CERT.secureFilePath)" /p:pfxPassword="$(SM_CLIENT_CERT_PASSWORD)" /p:pfxSha1=$(SM_CERT_FP) /p:Sha1=$(Build.SourceVersion) /p:BuildNumber=$(Build.BuildId)  $(AdditionalMSBuildArgs)
       platform: $(BuildPlatform)
       configuration: $(BuildConfiguration)
       maximumCpuCount: true
