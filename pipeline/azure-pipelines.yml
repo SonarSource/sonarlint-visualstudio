@@ -155,7 +155,7 @@ jobs:
     inputs:
       solution: $(BuildParameters.solution)
       vsVersion: 17.0
-      msbuildArgs: /p:VsTargetVersion=$(vsTargetVersion) /p:DeployExtension=false /p:SignArtifacts=$(SHOULD_SIGN) /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)" /p:pfxCertificatePath="$(SM_CLIENT_CERT.secureFilePath)" /p:pfxPassword="$(SM_CLIENT_CERT_PASSWORD)" /p:pfxSha1=$(SM_CERT_FP) /p:Sha1=$(Build.SourceVersion) /p:BuildNumber=$(Build.BuildId)  $(AdditionalMSBuildArgs)
+      msbuildArgs: /p:VsTargetVersion=$(vsTargetVersion) /p:DeployExtension=false /p:SignArtifacts=$(SHOULD_SIGN) /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)" /p:pfxCertificatePath="$(SM_CLIENT_CERT.secureFilePath)" /p:pfxPassword="$(SM_CLIENT_CERT_PASSWORD)" /p:pfxSha1=$(SM_CLIENT_CERT_PASSWORD) /p:Sha1=$(Build.SourceVersion) /p:BuildNumber=$(Build.BuildId)  $(AdditionalMSBuildArgs)
       platform: $(BuildPlatform)
       configuration: $(BuildConfiguration)
       maximumCpuCount: true
