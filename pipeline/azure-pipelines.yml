@@ -169,7 +169,7 @@ jobs:
 
   - task: CmdLine@2
     inputs:
-      script: 'smctl certificate download --keypair-alias=FLTest-1 --name=KeyCert.pem --out=<Agent.TempDirectory>'
+      script: 'smctl windows certsync'
     env:
       SM_HOST: $(SM_HOST)
       SM_API_KEY: $(SM_API_KEY)
