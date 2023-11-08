@@ -168,6 +168,7 @@ jobs:
   - task: SSMSigningToolsSetup@1
 
   - task: CmdLine@2
+    enabled: false
     inputs:
       script: 'smctl certificate download --keypair-alias=$(SM_KP) --name=KeyCert.pem --out=<Agent.TempDirectory>'
     env:
@@ -178,7 +179,7 @@ jobs:
 
   - task: CmdLine@2
     inputs:
-      script: 'smctl sign --keypair-alias=$(SM_KP) --certificate=$(Agent.TempDirectory)\KeyCert.pem  --config-file $(SSMClientToolsSetup.PKCS11_CONFIG) --input $(Build.SourcesDirectory)\binaries'
+      script: 'smctl sign --keypair-alias=$(SM_KP) --certificate=$(SM_CERT)  --config-file $(SSMClientToolsSetup.PKCS11_CONFIG) --input $(Build.SourcesDirectory)\binaries'
     env:
       SM_HOST: $(SM_HOST)
       SM_API_KEY: $(SM_API_KEY)
