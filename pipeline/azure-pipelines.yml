@@ -178,7 +178,7 @@ jobs:
 
   - task: CmdLine@2
     inputs:
-      script: 'smctl sign --keypair-alias=$(keypair alias) --certificate=$(Agent.TempDirectory)\KeyCert.pem  --config-file $(SSMClientToolsSetup.PKCS11_CONFIG) --input $(Build.SourcesDirectory)\binaries'
+      script: 'smctl sign --keypair-alias=$(SM_KP) --certificate=$(Agent.TempDirectory)\KeyCert.pem  --config-file $(SSMClientToolsSetup.PKCS11_CONFIG) --input $(Build.SourcesDirectory)\binaries'
     env:
       SM_HOST: $(SM_HOST)
       SM_API_KEY: $(SM_API_KEY)
