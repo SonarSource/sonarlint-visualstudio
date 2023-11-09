@@ -186,7 +186,7 @@ jobs:
 
   - task: PowerShell@2
     env:
-      PACKAGES_PATH: '$(Build.SourcesDirectory)\binaries\SonarLint.VSIX-$(Build.BuildId)-$(vsTargetVersion).vsix'
+      PACKAGES_PATH: '$(Build.SourcesDirectory)\binaries\SonarLint.VSIX-$(Build.SourceVersion).$(Build.BuildId)-$(vsTargetVersion).vsix'
       SM_HOST: $(SM_HOST)
       SM_API_KEY: $(SM_API_KEY)
       SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
