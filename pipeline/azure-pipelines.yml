@@ -179,6 +179,7 @@ jobs:
 
   - task: PowerShell@2
     inputs:
+      targetType: 'inline'
       script: |
         smctl windows certsync
         nuget sign "'$(Build.SourcesDirectory)\binaries\*.vsix'" -Overwrite  -HashAlgorithm SHA256   -CertificateFingerprint %SM_CERT_FP%   -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
