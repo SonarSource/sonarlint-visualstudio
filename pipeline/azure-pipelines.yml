@@ -115,8 +115,9 @@ jobs:
   
   - task: SSMSigningToolsSetup@1
 
-  - task: CmdLine@2
+  - task: PowerShell@2    
     inputs:
+      targetType: 'inline'
       script: |
             Write-Output "smctl healthcheck:"
             smctl healthcheck 
@@ -129,6 +130,8 @@ jobs:
       SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
       SM_CERT_FP: $(SM_CERT_FP)
       SM_CERT: $(SM_CERT)
+      SM_KP: $(SM_KP)
+      SIGNTOOL_PATH: $(SIGNTOOL_PATH)
 
   # Specify the version of Java to use.
   # See https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/java-tool-installer-v0?view=azure-pipelines
