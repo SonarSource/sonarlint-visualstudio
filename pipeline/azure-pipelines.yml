@@ -117,7 +117,11 @@ jobs:
 
   - task: CmdLine@2
     inputs:
-      script: 'smctl healthcheck'
+      script: |
+            Write-Output "smctl healthcheck:"
+            smctl healthcheck 
+            Write-Output "smctl sync:"
+            smctl windows certsync
     env:
       SM_HOST: $(SM_HOST)
       SM_API_KEY: $(SM_API_KEY)
@@ -178,12 +182,8 @@ jobs:
 
 
   - task: PowerShell@2
-    inputs:
-      targetType: 'inline'
-      script: |
-        smctl windows certsync
-        nuget sign "$(Build.SourcesDirectory)\binaries\*.vsix" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $env:SM_CERT_FP -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
     env:
+      PACKAGES_PATH: '$(Build.SourcesDirectory)\binaries\*.vsix'
       SM_HOST: $(SM_HOST)
       SM_API_KEY: $(SM_API_KEY)
       SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
@@ -191,6 +191,11 @@ jobs:
       SM_CERT_FP: $(SM_CERT_FP)
       SM_CERT: $(SM_CERT)
       SM_KP: $(SM_KP)
+      SIGNTOOL_PATH: $(SIGNTOOL_PATH)
+    inputs:
+      targetType: 'inline'
+      script: |
+        nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $env:SM_CERT_FP -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
 
   - task: CopyFiles@2
     displayName: 'Copy asmref files to: $(Build.ArtifactStagingDirectory) in the event of a build failure' 
