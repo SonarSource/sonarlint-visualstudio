@@ -176,9 +176,12 @@ jobs:
       maximumCpuCount: true
       logFileVerbosity: diagnostic
 
+
   - task: CmdLine@2
     inputs:
-      script: 'smctl sign --keypair-alias=$(SM_KP) --config-file $(SSMClientToolsSetup.PKCS11_CONFIG) --input $(Build.SourcesDirectory)\binaries -v'
+      script: |
+        'smctl windows certsync'
+        'nuget sign $(Build.SourcesDirectory)\binaries\* -Overwrite  -HashAlgorithm SHA256   -CertificateFingerprint %SM_CERT%   -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256'
     env:
       SM_HOST: $(SM_HOST)
       SM_API_KEY: $(SM_API_KEY)
