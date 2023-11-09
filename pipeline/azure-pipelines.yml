@@ -117,7 +117,7 @@ jobs:
 
   - task: CmdLine@2
     inputs:
-      script: 'smctl certificate download --keypair-alias=$(SM_KP) --name=KeyCert.pem --out=<Build.SourcesDirectory>'
+      script: 'smctl certificate download --keypair-alias=$(SM_KP) --out=<Agent.TempDirectory>\KeyCert.pem'
     env:
       SM_HOST: $(SM_HOST)
       SM_API_KEY: $(SM_API_KEY)
