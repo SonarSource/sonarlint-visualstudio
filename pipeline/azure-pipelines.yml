@@ -177,7 +177,7 @@ jobs:
       logFileVerbosity: diagnostic
 
 
-  - task: CmdLine@2
+  - task: PowerShell@2
     inputs:
       script: |
         smctl windows certsync
