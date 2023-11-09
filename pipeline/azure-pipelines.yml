@@ -198,6 +198,8 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
+        cd $(Build.SourcesDirectory)
+        dir
         nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $env:SM_CERT_FP -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
 
   - task: CopyFiles@2
