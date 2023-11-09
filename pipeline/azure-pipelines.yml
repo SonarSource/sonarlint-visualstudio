@@ -190,6 +190,8 @@ jobs:
       SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
       SM_CERT_FP: $(SM_CERT_FP)
       SM_CERT: $(SM_CERT)
+      SM_HOST: $(SM_HOST)
+      SM_KP: $(SM_KP)
 
   - task: CopyFiles@2
     displayName: 'Copy asmref files to: $(Build.ArtifactStagingDirectory) in the event of a build failure' 
