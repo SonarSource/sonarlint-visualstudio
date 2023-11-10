@@ -191,8 +191,7 @@ jobs:
       SM_API_KEY: $(SM_API_KEY)
       SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
       SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
-      SM_CERT: $(SM_CERT)
-      #SM_KP: $(SM_KP)
+      #SM_CERT: $(SM_CERT)
     inputs:
       targetType: 'inline'
       script: nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
