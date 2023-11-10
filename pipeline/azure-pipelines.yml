@@ -113,11 +113,11 @@ jobs:
   
   - task: SSMClientToolsSetup@1
     displayName: Client Tools Setup
-    condition: eq(variables['SHOULD_SIGN'], 'true')
+  #  condition: eq(variables['SHOULD_SIGN'], 'true')
   
   - task: SSMSigningToolsSetup@1
     displayName: Signing Tools Setup
-    condition: eq(variables['SHOULD_SIGN'], 'true')
+  #  condition: eq(variables['SHOULD_SIGN'], 'true')
 
   - task: PowerShell@2
     displayName: Syncs certificates to local Windows store
@@ -136,8 +136,7 @@ jobs:
       SM_CERT_FP: $(SM_CERT_FP)
       SM_CERT: $(SM_CERT)
       SM_KP: $(SM_KP)
-      SIGNTOOL_PATH: $(SIGNTOOL_PATH)
-
+      #SIGNTOOL_PATH: $(SIGNTOOL_PATH)
   # condition: eq(variables['SHOULD_SIGN'], 'true') If you see this reject the PR
 
   # Specify the version of Java to use.
@@ -205,7 +204,7 @@ jobs:
     inputs:
       targetType: 'inline'
       script: nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $env:SM_CERT_FP -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
-    condition: eq(variables['SHOULD_SIGN'], 'true')
+  #  condition: eq(variables['SHOULD_SIGN'], 'true')
 
   - task: CopyFiles@2
     displayName: 'Copy asmref files to: $(Build.ArtifactStagingDirectory) in the event of a build failure' 
