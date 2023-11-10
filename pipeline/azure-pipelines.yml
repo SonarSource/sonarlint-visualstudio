@@ -187,11 +187,10 @@ jobs:
     displayName: Sign Vsix file
     env:
       PACKAGES_PATH: '$(Build.SourcesDirectory)\binaries\SonarLint.VSIX-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-$(vsTargetVersion).vsix'
-      SM_HOST: $(SM_HOST)
-      SM_API_KEY: $(SM_API_KEY)
-      SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
-      SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
-      #SM_CERT: $(SM_CERT)
+      #SM_HOST: $(SM_HOST)
+      #SM_API_KEY: $(SM_API_KEY)
+      #SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
+      #SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
     inputs:
       targetType: 'inline'
       script: nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
