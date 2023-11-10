@@ -134,9 +134,7 @@ jobs:
       SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
       SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
       SM_CERT_FP: $(SM_CERT_FP)
-      SM_CERT: $(SM_CERT)
-      #SM_KP: $(SM_KP)
-      #SIGNTOOL_PATH: $(SIGNTOOL_PATH)
+      #SM_CERT: $(SM_CERT)
   # condition: eq(variables['SHOULD_SIGN'], 'true') If you see this reject the PR
 
   # Specify the version of Java to use.
