@@ -137,7 +137,8 @@ jobs:
       SM_CERT: $(SM_CERT)
       SM_KP: $(SM_KP)
       SIGNTOOL_PATH: $(SIGNTOOL_PATH)
-    # condition: eq(variables['SHOULD_SIGN'], 'true') If you see this reject the PR
+
+  # condition: eq(variables['SHOULD_SIGN'], 'true') If you see this reject the PR
 
   # Specify the version of Java to use.
   # See https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/java-tool-installer-v0?view=azure-pipelines
