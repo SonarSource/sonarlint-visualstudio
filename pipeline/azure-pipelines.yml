@@ -129,8 +129,8 @@ jobs:
             Write-Output "smctl sync:"
             smctl windows certsync
     env:
-      SM_HOST: $(SM_HOST)
-      #SM_API_KEY: $(SM_API_KEY)
+      #SM_HOST: $(SM_HOST)
+      SM_API_KEY: $(SM_API_KEY)
       #SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
       #SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
   # condition: eq(variables['SHOULD_SIGN'], 'true') If you see this reject the PR
