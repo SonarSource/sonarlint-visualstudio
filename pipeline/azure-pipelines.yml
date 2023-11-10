@@ -124,7 +124,7 @@ jobs:
             smctl windows certsync
     env:
       SM_API_KEY: $(SM_API_KEY)
-    condition: eq(variables['SHOULD_SIGN'], 'true') If you see this reject the PR
+    condition: eq(variables['SHOULD_SIGN'], 'true')
 
   # Specify the version of Java to use.
   # See https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/java-tool-installer-v0?view=azure-pipelines
