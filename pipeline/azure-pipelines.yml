@@ -170,7 +170,7 @@ jobs:
     inputs:
       solution: $(BuildParameters.solution)
       vsVersion: 17.0
-      msbuildArgs: /p:VsTargetVersion=$(vsTargetVersion) /p:DeployExtension=false /p:SignArtifacts=false /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)" /p:Sha1=$(Build.SourceVersion) /p:BuildNumber=$(Build.BuildId)  $(AdditionalMSBuildArgs)
+      msbuildArgs: /p:VsTargetVersion=$(vsTargetVersion) /p:DeployExtension=false /p:Sha1=$(Build.SourceVersion) /p:BuildNumber=$(Build.BuildId)  $(AdditionalMSBuildArgs)
       platform: $(BuildPlatform)
       configuration: $(BuildConfiguration)
       maximumCpuCount: true
@@ -179,14 +179,14 @@ jobs:
   - task: PowerShell@2
     displayName: Sign Vsix file
     env:
-      PACKAGES_PATH: '$(Build.SourcesDirectory)\binaries\SonarLint.VSIX-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-$(vsTargetVersion).vsix'
+      PACKAGE_PATH: '$(Build.SourcesDirectory)\binaries\SonarLint.VSIX-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-$(vsTargetVersion).vsix'
       SM_HOST: $(SM_HOST)
       SM_API_KEY: $(SM_API_KEY)
       SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
       SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
     inputs:
       targetType: 'inline'
-      script: nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
+      script: nuget sign "$env:PACKAGE_PATH" -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
     condition: eq(variables['SHOULD_SIGN'], 'true')
 
   - task: CopyFiles@2
