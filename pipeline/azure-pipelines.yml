@@ -70,13 +70,6 @@ jobs:
       filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\read-versions.props.ps1
 
   - task: PowerShell@2
-    enabled: false
-    displayName: Locate signtool.exe
-    inputs:
-      targetType: filePath
-      filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\locate-signtool.ps1
-
-  - task: PowerShell@2
     displayName: (VS2022 only) Set VsixVersion as a build property for the release pipeline to use
     env:
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
@@ -114,11 +107,11 @@ jobs:
   
   - task: SSMClientToolsSetup@1
     displayName: Client Tools Setup
-  #  condition: eq(variables['SHOULD_SIGN'], 'true')
+    condition: eq(variables['SHOULD_SIGN'], 'true')
   
   - task: SSMSigningToolsSetup@1
     displayName: Signing Tools Setup
-  #  condition: eq(variables['SHOULD_SIGN'], 'true')
+    condition: eq(variables['SHOULD_SIGN'], 'true')
 
   - task: PowerShell@2
     displayName: Syncs certificates to local Windows store
@@ -131,7 +124,7 @@ jobs:
             smctl windows certsync
     env:
       SM_API_KEY: $(SM_API_KEY)
-  # condition: eq(variables['SHOULD_SIGN'], 'true') If you see this reject the PR
+    condition: eq(variables['SHOULD_SIGN'], 'true') If you see this reject the PR
 
   # Specify the version of Java to use.
   # See https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/java-tool-installer-v0?view=azure-pipelines
@@ -189,12 +182,12 @@ jobs:
       PACKAGES_PATH: '$(Build.SourcesDirectory)\binaries\SonarLint.VSIX-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-$(vsTargetVersion).vsix'
       SM_HOST: $(SM_HOST)
       SM_API_KEY: $(SM_API_KEY)
-      #SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
+      SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
       SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
     inputs:
       targetType: 'inline'
       script: nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
-  #  condition: eq(variables['SHOULD_SIGN'], 'true')
+    condition: eq(variables['SHOULD_SIGN'], 'true')
 
   - task: CopyFiles@2
     displayName: 'Copy asmref files to: $(Build.ArtifactStagingDirectory) in the event of a build failure' 
