@@ -111,11 +111,16 @@ jobs:
       secureFile: digicert_authentication_certificate.p12
       retryCount: 5
   
-  - task: SSMClientToolsSetup@1   
+  - task: SSMClientToolsSetup@1
+    displayName: Client Tools Setup
+    condition: $(SHOULD_SIGN)
   
   - task: SSMSigningToolsSetup@1
+    displayName: Signing Tools Setup
+    condition: $(SHOULD_SIGN)
 
-  - task: PowerShell@2    
+  - task: PowerShell@2
+    displayName: Syncs certificates to local Windows store
     inputs:
       targetType: 'inline'
       script: |
@@ -132,6 +137,7 @@ jobs:
       SM_CERT: $(SM_CERT)
       SM_KP: $(SM_KP)
       SIGNTOOL_PATH: $(SIGNTOOL_PATH)
+    condition: $(SHOULD_SIGN)
 
   # Specify the version of Java to use.
   # See https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/java-tool-installer-v0?view=azure-pipelines
@@ -183,8 +189,8 @@ jobs:
       maximumCpuCount: true
       logFileVerbosity: diagnostic
 
-
   - task: PowerShell@2
+    displayName: Sign Vsix file
     env:
       PACKAGES_PATH: '$(Build.SourcesDirectory)\binaries\SonarLint.VSIX-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-$(vsTargetVersion).vsix'
       SM_HOST: $(SM_HOST)
@@ -197,10 +203,7 @@ jobs:
       SIGNTOOL_PATH: $(SIGNTOOL_PATH)
     inputs:
       targetType: 'inline'
-      script: |
-        cd $(Build.SourcesDirectory)\binaries
-        dir
-        nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $env:SM_CERT_FP -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
+      script: nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $env:SM_CERT_FP -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
 
   - task: CopyFiles@2
     displayName: 'Copy asmref files to: $(Build.ArtifactStagingDirectory) in the event of a build failure' 
