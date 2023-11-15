@@ -20,6 +20,8 @@
 
 using System;
 using System.IO.Abstractions;
+using System.Threading.Tasks;
+using System.Windows.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -45,6 +47,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             testSubject.HeadChanged += (o, e) => counter++;
 
             fileSystemWatcher.Raise(w => w.Renamed += null, null, null);
+
+            Dispatcher.CurrentDispatcher.Invoke(() => { }); // Force thread dispatcher to process other threads
 
             counter.Should().Be(1);
         }
