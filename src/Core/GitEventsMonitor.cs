@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Core
         {
             HeadChanged?.BeginInvoke(this, EventArgs.Empty, new AsyncCallback((IAsyncResult ar) =>
             {
-                HeadChanged.EndInvoke(ar);
+                HeadChanged?.EndInvoke(ar);
             }), null);
         }
 
