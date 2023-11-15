@@ -71,7 +71,10 @@ namespace SonarLint.VisualStudio.Core
 
         private void HeadFileChanged(object sender, FileSystemEventArgs e)
         {
-            HeadChanged?.BeginInvoke(this, EventArgs.Empty, null, null);
+            HeadChanged?.BeginInvoke(this, EventArgs.Empty, new AsyncCallback((IAsyncResult ar) =>
+            {
+                HeadChanged.EndInvoke(ar);
+            }), null);
         }
 
         public void Dispose()
