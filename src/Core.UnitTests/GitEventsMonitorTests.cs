@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 
             fileSystemWatcher.Raise(w => w.Renamed += null, null, null);
 
-            Task.Delay(1000).Wait();
+            Task.Delay(10).Wait();
 
             counter.Should().Be(1);
         }
