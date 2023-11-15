@@ -20,6 +20,7 @@
 
 using System;
 using System.IO.Abstractions;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -45,6 +46,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             testSubject.HeadChanged += (o, e) => counter++;
 
             fileSystemWatcher.Raise(w => w.Renamed += null, null, null);
+
+            Task.Delay(1000).Wait();
 
             counter.Should().Be(1);
         }

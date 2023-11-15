@@ -44,10 +44,8 @@ namespace SonarLint.VisualStudio.Core
         private const string GitFolder = ".git";
         private const string HEADFile = "HEAD";
 
-
         public GitEventsMonitor(string repoFolder) : this(repoFolder, new FileSystemWatcherFactory())
         {
-
         }
 
         internal GitEventsMonitor(string repoFolder, IFileSystemWatcherFactory fileSystemFactory)
@@ -73,7 +71,7 @@ namespace SonarLint.VisualStudio.Core
 
         private void HeadFileChanged(object sender, FileSystemEventArgs e)
         {
-            HeadChanged?.Invoke(this, EventArgs.Empty);
+            HeadChanged?.BeginInvoke(this, EventArgs.Empty, null, null);
         }
 
         public void Dispose()
