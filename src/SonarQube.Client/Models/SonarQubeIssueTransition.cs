@@ -23,7 +23,7 @@ namespace SonarQube.Client.Models
     /// <summary>
     /// Supported values for parameter `transition` of api/issues/do_transition
     /// </summary>
-    public enum IssueTransition
+    public enum SonarQubeIssueTransition
     {
         FalsePositive,
         WontFix,
