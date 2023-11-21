@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Core.Configuration
         /// <summary>
         /// Indicates whether Local Hotspot Analysis is supported in the current Connected Mode state
         /// </summary>
-
+        /// <returns>True if connected to SCloud or SQube 9.7 and above, False otherwise</returns>
         bool IsHotspotsAnalysisEnabled();
 
         /// <summary>
