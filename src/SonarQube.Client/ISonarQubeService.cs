@@ -153,6 +153,6 @@ namespace SonarQube.Client
         /// Sets review status for an issue and adds an optional comment.
         /// See api/issues/do_transition and api/issues/add_comment
         /// </summary>
-        Task TransitionIssue(string issueKey, SonarQubeIssueTransition transition, string optionalComment, CancellationToken token);
+        Task TransitionIssueAsync(string issueKey, SonarQubeIssueTransition transition, string optionalComment, CancellationToken token);
     }
 }

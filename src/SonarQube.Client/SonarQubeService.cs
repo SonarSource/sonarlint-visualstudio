@@ -391,7 +391,7 @@ namespace SonarQube.Client
                 },
                 token);
 
-        public Task TransitionIssue(string issueKey, SonarQubeIssueTransition transition, string optionalComment, CancellationToken token)
+        public Task TransitionIssueAsync(string issueKey, SonarQubeIssueTransition transition, string optionalComment, CancellationToken token)
         {
             // no-op, will be implemented later
             return Task.CompletedTask;
