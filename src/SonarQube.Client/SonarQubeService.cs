@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -391,6 +392,7 @@ namespace SonarQube.Client
                 },
                 token);
 
+        [ExcludeFromCodeCoverage]
         public Task TransitionIssueAsync(string issueKey, SonarQubeIssueTransition transition, string optionalComment, CancellationToken token)
         {
             // no-op, will be implemented later
