@@ -148,5 +148,11 @@ namespace SonarQube.Client
         Task<ISSEStreamReader> CreateSSEStreamReader(string projectKey, CancellationToken token);
 
         Task<IList<SonarQubeHotspotSearch>> SearchHotspotsAsync(string projectKey, string branch, CancellationToken token);
+
+        /// <summary>
+        /// Sets review status for an issue and adds an optional comment.
+        /// See api/issues/do_transition and api/issues/add_comment
+        /// </summary>
+        Task TransitionIssue(string issueKey, SonarQubeIssueTransition transition, string optionalComment, CancellationToken token);
     }
 }
