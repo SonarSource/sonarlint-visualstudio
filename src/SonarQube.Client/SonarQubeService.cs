@@ -393,10 +393,10 @@ namespace SonarQube.Client
                 token);
 
         [ExcludeFromCodeCoverage]
-        public Task TransitionIssueAsync(string issueKey, SonarQubeIssueTransition transition, string optionalComment, CancellationToken token)
+        public Task<SonarQubeIssueTransitionResult> TransitionIssueAsync(string issueKey, SonarQubeIssueTransition transition, string optionalComment, CancellationToken token)
         {
             // no-op, will be implemented later
-            return Task.CompletedTask;
+            return Task.FromResult(SonarQubeIssueTransitionResult.Success);
         }
 
         public async Task<IList<SonarQubeIssue>> GetTaintVulnerabilitiesAsync(string projectKey, string branch, CancellationToken token)
