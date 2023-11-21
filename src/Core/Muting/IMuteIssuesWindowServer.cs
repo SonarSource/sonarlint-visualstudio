@@ -20,8 +20,8 @@
 
 namespace SonarLint.VisualStudio.Core.Muting
 {
-    public interface IMuteIssuesWindowServer
+    public interface IMuteIssuesWindowService
     {
-        void Show(string issueId);
+        void Show(string issueKey);
     }
 }
