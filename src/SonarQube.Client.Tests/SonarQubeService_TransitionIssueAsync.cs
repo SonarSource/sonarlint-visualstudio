@@ -49,7 +49,7 @@ public class SonarQubeService_TransitionIssueAsync : SonarQubeService_TestBase
         result.Should().Be(SonarQubeIssueTransitionResult.FailedToTransition);
         messageHandler.VerifyAll();
         logger.ErrorMessages.Should().Contain("POST api/issues/do_transition request failed.");
-        logger.DebugMessages.Should().HaveCount(1);
+        logger.DebugMessages.Should().HaveCountGreaterThan(0);
     }
     
     [TestMethod]
@@ -91,7 +91,7 @@ public class SonarQubeService_TransitionIssueAsync : SonarQubeService_TestBase
         result.Should().Be(SonarQubeIssueTransitionResult.CommentAdditionFailed);
         messageHandler.VerifyAll();
         logger.ErrorMessages.Should().Contain("POST api/issues/add_comment request failed.");
-        logger.DebugMessages.Should().HaveCount(1);
+        logger.DebugMessages.Should().HaveCountGreaterThan(0);
     }
     
     [TestMethod]

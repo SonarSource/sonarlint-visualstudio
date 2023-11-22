@@ -44,11 +44,11 @@ namespace SonarQube.Client.Api.V9_9
         protected override string Path => "api/issues/do_transition";
         protected override HttpMethod HttpMethod => HttpMethod.Post;
 
-        [JsonProperty("transition")] 
-        public string TransitionString => Transition.TransitionToLowerCaseString();
-        
         [JsonProperty("issue")] 
         public string IssueKey { get; set; }
+        
+        [JsonProperty("transition")] 
+        public string TransitionString => Transition.TransitionToLowerCaseString();
 
         [JsonIgnore]
         public SonarQubeIssueTransition Transition { get; set; }
