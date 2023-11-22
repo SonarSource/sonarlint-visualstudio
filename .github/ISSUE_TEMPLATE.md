@@ -3,11 +3,10 @@ The community forum already has answers to many common questions/problems and is
 
 (click on the "Preview" tab above to make the links below clickable)
 
-* for support or to report a bug visit https://community.sonarsource.com/c/help/sl/11
+* for support or to report a bug visit https://community.sonarsource.com/c/sl/visual-studio/35
 
-* to report a false positive visit https://community.sonarsource.com/c/bug/fp/7
+* to report a false positive visit https://community.sonarsource.com/c/clean-code/fp/7
 
-* to suggest new features visit https://community.sonarsource.com/c/suggestions/features/14
-
+* to suggest new features visit https://community.sonarsource.com/c/sl/pm-for-a-day-sl/41
 
 Thank you.
