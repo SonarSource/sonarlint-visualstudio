@@ -17,28 +17,29 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
+namespace SonarLint.VisualStudio.ConnectedMode.Synchronization
 {
-    internal interface IClientSuppressionSynchronizer
+    internal interface IClientServerIssueSynchronizer
     {
         /// <summary>
         /// Notifies listeners that the set of local suppressions has changed
         /// </summary>
-        event EventHandler<LocalSuppressionsChangedEventArgs> LocalSuppressionsChanged;
+        event EventHandler<ClientServerIssueMatchChangedEventArgs> ClientServerIssueMatchChanged;
 
         /// <summary>
         /// Synchronizes server side issues with client side issues.
         /// </summary>
-        void SynchronizeSuppressedIssues();
+        void SynchronizeIssues();
     }
 
-    internal class LocalSuppressionsChangedEventArgs : EventArgs
+    internal class ClientServerIssueMatchChangedEventArgs : EventArgs
     {
-        public LocalSuppressionsChangedEventArgs(IEnumerable<string> changedFiles)
+        public ClientServerIssueMatchChangedEventArgs(IEnumerable<string> changedFiles)
             => ChangedFiles = changedFiles?.ToArray() ?? Array.Empty<string>();
 
         /// <summary>

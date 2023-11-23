@@ -21,7 +21,6 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarQube.Client.Models;

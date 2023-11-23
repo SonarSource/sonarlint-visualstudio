@@ -22,34 +22,34 @@ using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
+namespace SonarLint.VisualStudio.ConnectedMode.Synchronization
 {
     /// <summary>
     /// Listens for notifications that the set of locally-suppressed issues has changed
     /// and triggers an update of the UI (Error List and editor)
     /// </summary>
-    [Export(typeof(LocalSuppressionsChangedHandler))]
+    [Export(typeof(ClientServerIssueMatchChangedHandler))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class LocalSuppressionsChangedHandler : IDisposable
+    internal sealed class ClientServerIssueMatchChangedHandler : IDisposable
     {
-        private readonly IClientSuppressionSynchronizer clientSuppressionSynchronizer;
+        private readonly IClientServerIssueSynchronizer clientServerIssueSynchronizer;
         private readonly IIssueLocationStoreAggregator issueLocationStore;
 
         [ImportingConstructor]
-        public LocalSuppressionsChangedHandler(
-            IClientSuppressionSynchronizer clientSuppressionSynchronizer,
+        public ClientServerIssueMatchChangedHandler(
+            IClientServerIssueSynchronizer clientServerIssueSynchronizer,
             IIssueLocationStoreAggregator issueLocationStore)
         {
-            this.clientSuppressionSynchronizer = clientSuppressionSynchronizer;
+            this.clientServerIssueSynchronizer = clientServerIssueSynchronizer;
             this.issueLocationStore = issueLocationStore;
 
-            clientSuppressionSynchronizer.LocalSuppressionsChanged += OnLocalSuppressionsChanged;
+            clientServerIssueSynchronizer.ClientServerIssueMatchChanged += OnClientServerIssueMatchChanged;
         }
 
-        private void OnLocalSuppressionsChanged(object sender, LocalSuppressionsChangedEventArgs e)
+        private void OnClientServerIssueMatchChanged(object sender, ClientServerIssueMatchChangedEventArgs e)
             => issueLocationStore.Refresh(e.ChangedFiles);
 
         public void Dispose()
-            => clientSuppressionSynchronizer.LocalSuppressionsChanged -= OnLocalSuppressionsChanged;
+            => clientServerIssueSynchronizer.ClientServerIssueMatchChanged -= OnClientServerIssueMatchChanged;
     }
 }

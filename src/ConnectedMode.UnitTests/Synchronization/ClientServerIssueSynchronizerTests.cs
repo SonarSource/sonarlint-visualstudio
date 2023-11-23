@@ -20,24 +20,22 @@
 
 using System;
 using System.Collections.Generic;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.ConnectedMode.Synchronization;
-using SonarLint.VisualStudio.ConnectedMode.UnitTests.Helpers;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Synchronization
 {
     [TestClass]
-    public class ClientSuppressionSynchronizerTests
+    public class ClientServerIssueSynchronizerTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<ClientSuppressionSynchronizer, IClientSuppressionSynchronizer>(
+            MefTestHelpers.CheckTypeCanBeImported<ClientServerIssueSynchronizer, IClientServerIssueSynchronizer>(
                 MefTestHelpers.CreateExport<IIssueLocationStoreAggregator>(),
                 MefTestHelpers.CreateExport<IIssueMatcher>());
         }
@@ -51,11 +49,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var clientIssueStore = CreateIssueStore(localIssues);
             var suppressedIssueMatcher = CreateSuppressedIssueMatcher(issue);
             
-            var testSubject = new ClientSuppressionSynchronizer(clientIssueStore, suppressedIssueMatcher);
+            var testSubject = new ClientServerIssueSynchronizer(clientIssueStore, suppressedIssueMatcher);
 
             issue.IsSuppressed.Should().BeFalse();
 
-            testSubject.SynchronizeSuppressedIssues();
+            testSubject.SynchronizeIssues();
 
             issue.IsSuppressed.Should().BeTrue();
         }
@@ -69,11 +67,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var issueStore = CreateIssueStore(localIssues);
             var suppressedIssueMatcher = CreateSuppressedIssueMatcher();
 
-            var testSubject = new ClientSuppressionSynchronizer(issueStore, suppressedIssueMatcher);
+            var testSubject = new ClientServerIssueSynchronizer(issueStore, suppressedIssueMatcher);
 
             issue.IsSuppressed.Should().BeTrue();
 
-            testSubject.SynchronizeSuppressedIssues();
+            testSubject.SynchronizeIssues();
 
             issue.IsSuppressed.Should().BeFalse();
         }
@@ -89,13 +87,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var issueStore = CreateIssueStore(localIssues);
             var suppressedIssueMatcher = CreateSuppressedIssueMatcher(issue1);
 
-            var testSubject = new ClientSuppressionSynchronizer(issueStore, suppressedIssueMatcher);
+            var testSubject = new ClientServerIssueSynchronizer(issueStore, suppressedIssueMatcher);
 
             issue1.IsSuppressed.Should().BeFalse();
             issue2.IsSuppressed.Should().BeTrue();
             issue3.IsSuppressed.Should().BeFalse();
 
-            testSubject.SynchronizeSuppressedIssues();
+            testSubject.SynchronizeIssues();
 
             issue1.IsSuppressed.Should().BeTrue();
             issue2.IsSuppressed.Should().BeFalse();
@@ -121,16 +119,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             }
             var suppressedIssueMatcher = CreateSuppressedIssueMatcher(matches.ToArray());
 
-            var testSubject = new ClientSuppressionSynchronizer(clientIssueStore, suppressedIssueMatcher);
+            var testSubject = new ClientServerIssueSynchronizer(clientIssueStore, suppressedIssueMatcher);
 
-            var eventMock = new Mock<EventHandler<LocalSuppressionsChangedEventArgs>>();
-            testSubject.LocalSuppressionsChanged += eventMock.Object;
+            var eventMock = new Mock<EventHandler<ClientServerIssueMatchChangedEventArgs>>();
+            testSubject.ClientServerIssueMatchChanged += eventMock.Object;
 
-            testSubject.SynchronizeSuppressedIssues();
+            testSubject.SynchronizeIssues();
 
             // We only expect an event if the local and server values don't match
             var expectedEventCount = (isSuppressedLocally == isSuppressedOnServer) ? 0 : 1;
-            eventMock.Verify(x => x(testSubject, It.IsAny<LocalSuppressionsChangedEventArgs>()), Times.Exactly(expectedEventCount));
+            eventMock.Verify(x => x(testSubject, It.IsAny<ClientServerIssueMatchChangedEventArgs>()), Times.Exactly(expectedEventCount));
         }
 
         [TestMethod]
@@ -160,17 +158,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             };
             var suppressedIssueMatcher = CreateSuppressedIssueMatcher(matches.ToArray());
 
-            var testSubject = new ClientSuppressionSynchronizer(clientIssueStore, suppressedIssueMatcher);
+            var testSubject = new ClientServerIssueSynchronizer(clientIssueStore, suppressedIssueMatcher);
 
-            var eventMock = new Mock<EventHandler<LocalSuppressionsChangedEventArgs>>();
-            testSubject.LocalSuppressionsChanged += eventMock.Object;
+            var eventMock = new Mock<EventHandler<ClientServerIssueMatchChangedEventArgs>>();
+            testSubject.ClientServerIssueMatchChanged += eventMock.Object;
 
-            testSubject.SynchronizeSuppressedIssues();
+            testSubject.SynchronizeIssues();
 
-            eventMock.Verify(x => x(testSubject, It.IsAny<LocalSuppressionsChangedEventArgs>()), Times.Once);
+            eventMock.Verify(x => x(testSubject, It.IsAny<ClientServerIssueMatchChangedEventArgs>()), Times.Once);
 
             eventMock.Invocations[0].Arguments[0].Should().BeSameAs(testSubject);
-            var actualEventArgs = eventMock.Invocations[0].Arguments[1] as LocalSuppressionsChangedEventArgs;
+            var actualEventArgs = eventMock.Invocations[0].Arguments[1] as ClientServerIssueMatchChangedEventArgs;
 
             actualEventArgs.Should().NotBeNull();
 

@@ -20,56 +20,56 @@
 
 using System;
 using System.Collections.Generic;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
+using SonarLint.VisualStudio.ConnectedMode.Synchronization;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Synchronization
 {
     [TestClass]
-    public class LocalSuppressionsChangedHandlerTests
+    public class ClientServerIssueMatchChangedHandlerTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<LocalSuppressionsChangedHandler, LocalSuppressionsChangedHandler>(
-                MefTestHelpers.CreateExport<IClientSuppressionSynchronizer>(),
+            MefTestHelpers.CheckTypeCanBeImported<ClientServerIssueMatchChangedHandler, ClientServerIssueMatchChangedHandler>(
+                MefTestHelpers.CreateExport<IClientServerIssueSynchronizer>(),
                 MefTestHelpers.CreateExport<IIssueLocationStoreAggregator>());
         }
 
         [TestMethod]
         public void Ctor_SubscribesToEvent()
         {
-            var synchronizer = new Mock<IClientSuppressionSynchronizer>();
+            var synchronizer = new Mock<IClientServerIssueSynchronizer>();
 
             _ = CreateTestSubject(synchronizer.Object);
 
-            synchronizer.VerifyAdd(x => x.LocalSuppressionsChanged += It.IsAny<EventHandler<LocalSuppressionsChangedEventArgs>>(), Times.Once());
+            synchronizer.VerifyAdd(x => x.ClientServerIssueMatchChanged += It.IsAny<EventHandler<ClientServerIssueMatchChangedEventArgs>>(), Times.Once());
         }
 
         [TestMethod]
         public void Dispose_UnsubscribesToEvent()
         {
-            var synchronizer = new Mock<IClientSuppressionSynchronizer>();
+            var synchronizer = new Mock<IClientServerIssueSynchronizer>();
 
             var testSubject = CreateTestSubject(synchronizer.Object);
 
             testSubject.Dispose();
 
-            synchronizer.VerifyRemove(x => x.LocalSuppressionsChanged -= It.IsAny<EventHandler<LocalSuppressionsChangedEventArgs>>(), Times.Once());
+            synchronizer.VerifyRemove(x => x.ClientServerIssueMatchChanged -= It.IsAny<EventHandler<ClientServerIssueMatchChangedEventArgs>>(), Times.Once());
         }
 
         [TestMethod]
         public void InvokeEvent_RefreshIsCalled()
         {
             var locationStore = new Mock<IIssueLocationStoreAggregator>();
-            var eventArgs = new LocalSuppressionsChangedEventArgs(new[] { "file1", "file2" });
+            var eventArgs = new ClientServerIssueMatchChangedEventArgs(new[] { "file1", "file2" });
 
-            var clientSuppressionSynchronizer = new Mock<IClientSuppressionSynchronizer>();
+            var clientSuppressionSynchronizer = new Mock<IClientServerIssueSynchronizer>();
 
-            var testSubject = new LocalSuppressionsChangedHandler(clientSuppressionSynchronizer.Object, locationStore.Object);
+            var testSubject = new ClientServerIssueMatchChangedHandler(clientSuppressionSynchronizer.Object, locationStore.Object);
 
-            clientSuppressionSynchronizer.Raise(x => x.LocalSuppressionsChanged += null, eventArgs);
+            clientSuppressionSynchronizer.Raise(x => x.ClientServerIssueMatchChanged += null, eventArgs);
 
             locationStore.Verify(x => x.Refresh(It.IsAny<IEnumerable<string>>()), Times.Once);
             locationStore.VerifyNoOtherCalls();
@@ -77,12 +77,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             locationStore.Invocations[0].Arguments[0].Should().BeEquivalentTo(eventArgs.ChangedFiles);
         }
 
-        private static LocalSuppressionsChangedHandler CreateTestSubject(IClientSuppressionSynchronizer clientSuppressionSynchronizer = null,
+        private static ClientServerIssueMatchChangedHandler CreateTestSubject(IClientServerIssueSynchronizer clientServerIssueSynchronizer = null,
             IIssueLocationStoreAggregator issueLocationStore = null)
         {
-            clientSuppressionSynchronizer ??= Mock.Of<IClientSuppressionSynchronizer>();
+            clientServerIssueSynchronizer ??= Mock.Of<IClientServerIssueSynchronizer>();
             issueLocationStore ??= Mock.Of<IIssueLocationStoreAggregator>();
-            return new LocalSuppressionsChangedHandler(clientSuppressionSynchronizer, issueLocationStore);
+            return new ClientServerIssueMatchChangedHandler(clientServerIssueSynchronizer, issueLocationStore);
         }
     }
 }

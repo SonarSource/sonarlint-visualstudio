@@ -19,7 +19,6 @@
  */
 
 using System;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.ConnectedMode.Synchronization;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -32,7 +31,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Synchronization
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<ServerIssuesChangedHandler, ServerIssuesChangedHandler>(
-                MefTestHelpers.CreateExport<IClientSuppressionSynchronizer>(),
+                MefTestHelpers.CreateExport<IClientServerIssueSynchronizer>(),
                 MefTestHelpers.CreateExport<IServerIssuesStore>());
         }
 
@@ -41,7 +40,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Synchronization
         {
             var serverIssuesStore = new Mock<IServerIssuesStore>();
 
-            _ = new ServerIssuesChangedHandler(Mock.Of<IClientSuppressionSynchronizer>(), serverIssuesStore.Object);
+            _ = new ServerIssuesChangedHandler(Mock.Of<IClientServerIssueSynchronizer>(), serverIssuesStore.Object);
 
             serverIssuesStore.VerifyAdd(x => x.ServerIssuesChanged += It.IsAny<EventHandler>(), Times.Once());
         }
@@ -51,7 +50,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Synchronization
         {
             var serverIssuesStore = new Mock<IServerIssuesStore>();
 
-            var testSubject = new ServerIssuesChangedHandler(Mock.Of<IClientSuppressionSynchronizer>(), serverIssuesStore.Object);
+            var testSubject = new ServerIssuesChangedHandler(Mock.Of<IClientServerIssueSynchronizer>(), serverIssuesStore.Object);
 
             testSubject.Dispose();
 
@@ -62,13 +61,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Synchronization
         public void InvokeEvent_SynchronizeSuppressedIssuesIsCalled()
         {
             var serverIssuesStore = new Mock<IServerIssuesStore>();
-            var clientSuppressionSynchronizer = new Mock<IClientSuppressionSynchronizer>();
+            var clientSuppressionSynchronizer = new Mock<IClientServerIssueSynchronizer>();
 
             _ = new ServerIssuesChangedHandler(clientSuppressionSynchronizer.Object, serverIssuesStore.Object);
 
             serverIssuesStore.Raise(x => x.ServerIssuesChanged += null, EventArgs.Empty);
 
-            clientSuppressionSynchronizer.Verify(x => x.SynchronizeSuppressedIssues(), Times.Once);
+            clientSuppressionSynchronizer.Verify(x => x.SynchronizeIssues(), Times.Once);
         }
     }
 }

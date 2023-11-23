@@ -17,34 +17,34 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using SonarLint.VisualStudio.Core.Suppressions;
-using SonarLint.VisualStudio.IssueVisualization.Models;
-using System.Collections.Generic;
-using System;
-using SonarLint.VisualStudio.ConnectedMode.Synchronization;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
+namespace SonarLint.VisualStudio.ConnectedMode.Synchronization
 {
-    [Export(typeof(IClientSuppressionSynchronizer))]
+    [Export(typeof(IClientServerIssueSynchronizer))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ClientSuppressionSynchronizer : IClientSuppressionSynchronizer
+    internal class ClientServerIssueSynchronizer : IClientServerIssueSynchronizer
     {
         private readonly IIssueLocationStoreAggregator issuesStore;
         private readonly IIssueMatcher issueMatcher;
 
-        public event EventHandler<LocalSuppressionsChangedEventArgs> LocalSuppressionsChanged;
+        public event EventHandler<ClientServerIssueMatchChangedEventArgs> ClientServerIssueMatchChanged;
 
         [ImportingConstructor]
-        public ClientSuppressionSynchronizer(IIssueLocationStoreAggregator issuesStore, IIssueMatcher issueMatcher)
+        public ClientServerIssueSynchronizer(IIssueLocationStoreAggregator issuesStore, IIssueMatcher issueMatcher)
         {
             this.issuesStore = issuesStore;
             this.issueMatcher = issueMatcher;
         }
 
-        public void SynchronizeSuppressedIssues()
+        public void SynchronizeIssues()
         {
             var changedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -64,10 +64,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
                 }
             }
 
-            if (LocalSuppressionsChanged != null && changedFiles.Count > 0)
+            if (ClientServerIssueMatchChanged != null && changedFiles.Count > 0)
             {
-                var eventArgs = new LocalSuppressionsChangedEventArgs(changedFiles);
-                LocalSuppressionsChanged?.Invoke(this, eventArgs);
+                var eventArgs = new ClientServerIssueMatchChangedEventArgs(changedFiles);
+                ClientServerIssueMatchChanged?.Invoke(this, eventArgs);
             }
         }
     }

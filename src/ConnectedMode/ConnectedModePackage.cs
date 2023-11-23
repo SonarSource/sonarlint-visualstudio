@@ -30,7 +30,6 @@ using SonarLint.VisualStudio.ConnectedMode.Install;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.ConnectedMode.Synchronization;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -50,7 +49,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
         private ServerIssuesChangedHandler serverIssuesChangedHandler;
         private BoundSolutionUpdateHandler boundSolutionUpdateHandler;
         private TimedUpdateHandler timedUpdateHandler;
-        private LocalSuppressionsChangedHandler localSuppressionsChangedHandler;
+        private ClientServerIssueMatchChangedHandler clientServerIssueMatchChangedHandler;
         private ImportBeforeInstallTrigger importBeforeInstallTrigger;
         private IHotspotDocumentClosedHandler hotspotDocumentClosedHandler;
         private IHotspotSolutionClosedHandler hotspotSolutionClosedHandler;
@@ -76,7 +75,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             serverIssuesChangedHandler = componentModel.GetService<ServerIssuesChangedHandler>();
             boundSolutionUpdateHandler = componentModel.GetService<BoundSolutionUpdateHandler>();
             timedUpdateHandler = componentModel.GetService<TimedUpdateHandler>();
-            localSuppressionsChangedHandler = componentModel.GetService<LocalSuppressionsChangedHandler>();
+            clientServerIssueMatchChangedHandler = componentModel.GetService<ClientServerIssueMatchChangedHandler>();
 
             hotspotDocumentClosedHandler = componentModel.GetService<IHotspotDocumentClosedHandler>();
 
@@ -114,7 +113,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 serverIssuesChangedHandler?.Dispose();
                 boundSolutionUpdateHandler?.Dispose();
                 timedUpdateHandler?.Dispose();
-                localSuppressionsChangedHandler?.Dispose();
+                clientServerIssueMatchChangedHandler?.Dispose();
                 importBeforeInstallTrigger?.Dispose();
             }
 

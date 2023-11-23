@@ -19,7 +19,6 @@
  */
 
 using System;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.ConnectedMode.Synchronization;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.TestInfrastructure;
