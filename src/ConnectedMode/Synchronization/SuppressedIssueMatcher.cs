@@ -21,19 +21,20 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
+namespace SonarLint.VisualStudio.ConnectedMode.Synchronization
 {
-    public interface ISuppressedIssueMatcher
+    public interface IIssueMatcher
     {
-        bool SuppressionExists(IFilterableIssue issue);
-    }
+        SonarQubeIssue Match(IFilterableIssue issue);
+    }   
 
-    [Export(typeof(ISuppressedIssueMatcher))]
-    public class SuppressedIssueMatcher : ISuppressedIssueMatcher
+    [Export(typeof(IIssueMatcher))]
+    public class SuppressedIssueMatcher : IIssueMatcher
     {
         private readonly IServerIssuesStore serverIssuesStore;
 
@@ -43,7 +44,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             this.serverIssuesStore = serverIssuesStore;
         }
 
-        public bool SuppressionExists(IFilterableIssue issue)
+        public SonarQubeIssue Match(IFilterableIssue issue)
         {
             if (issue == null)
             {
@@ -62,9 +63,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             var serverIssues = serverIssuesStore.Get();
 
             // Try to find an issue with the same ID and either the same line number or some line hash
-            bool isSuppressed = serverIssues.Any(s => s.IsResolved && IsMatch(issue, s));
-
-            return isSuppressed;
+            return serverIssues.FirstOrDefault(s => IsMatch(issue, s));
         }
 
         private static bool IsMatch(IFilterableIssue issue, SonarQubeIssue serverIssue)
