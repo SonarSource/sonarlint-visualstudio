@@ -391,12 +391,33 @@ namespace SonarQube.Client
                     request.ProjectKey = projectKey;
                 },
                 token);
-
-        [ExcludeFromCodeCoverage]
-        public Task<SonarQubeIssueTransitionResult> TransitionIssueAsync(string issueKey, SonarQubeIssueTransition transition, string optionalComment, CancellationToken token)
+        
+        public async Task<SonarQubeIssueTransitionResult> TransitionIssueAsync(string issueKey, SonarQubeIssueTransition transition, string optionalComment, CancellationToken token)
         {
-            // no-op, will be implemented later
-            return Task.FromResult(SonarQubeIssueTransitionResult.Success);
+            var transitionResult = await InvokeCheckedRequestAsync<ITransitionIssueRequest, SonarQubeIssueTransitionResult>(
+                request =>
+                {
+                    request.IssueKey = issueKey;
+                    request.Transition = transition;
+                },
+                token);
+
+            if (transitionResult != SonarQubeIssueTransitionResult.Success || string.IsNullOrEmpty(optionalComment))
+            {
+                return transitionResult;
+            }
+            
+            var commentResult = await InvokeCheckedRequestAsync<ICommentIssueRequest, bool>(
+                request =>
+                {
+                    request.IssueKey = issueKey;
+                    request.Text = optionalComment;
+                },
+                token);
+            
+            return commentResult
+                ? SonarQubeIssueTransitionResult.Success
+                : SonarQubeIssueTransitionResult.CommentAdditionFailed;
         }
 
         public async Task<IList<SonarQubeIssue>> GetTaintVulnerabilitiesAsync(string projectKey, string branch, CancellationToken token)
