@@ -24,22 +24,22 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Helpers;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
+using SonarLint.VisualStudio.ConnectedMode.Synchronization;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Synchronization
 {
     [TestClass]
-    public class SuppressionIssueStoreUpdaterTests
+    public class ServerIssueStoreUpdaterTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<SuppressionIssueStoreUpdater, ISuppressionIssueStoreUpdater>(
+            MefTestHelpers.CheckTypeCanBeImported<ServerIssueStoreUpdater, IServerIssueStoreUpdater>(
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IServerQueryInfoProvider>(),
                 MefTestHelpers.CreateExport<IServerIssuesStoreWriter>(),
@@ -404,7 +404,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             logger.AssertOutputStringExists(Resources.Suppressions_UpdateOperationCancelled);
         }
 
-        private static SuppressionIssueStoreUpdater CreateTestSubject(IServerQueryInfoProvider queryInfo = null,
+        private static ServerIssueStoreUpdater CreateTestSubject(IServerQueryInfoProvider queryInfo = null,
             ISonarQubeService server = null,
             IServerIssuesStoreWriter writer = null,
             ILogger logger = null,
@@ -418,7 +418,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             threadHandling ??= new NoOpThreadHandler();
             actionRunner ??= new SynchronizedCancellableActionRunner(logger);
 
-            return new SuppressionIssueStoreUpdater(server, queryInfo, writer, actionRunner, logger, threadHandling);
+            return new ServerIssueStoreUpdater(server, queryInfo, writer, actionRunner, logger, threadHandling);
         }
 
         private static Mock<IServerQueryInfoProvider> CreateQueryInfoProvider(string projectKey, string branchName)

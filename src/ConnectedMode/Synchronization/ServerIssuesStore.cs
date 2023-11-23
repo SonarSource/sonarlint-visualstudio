@@ -25,7 +25,7 @@ using System.Linq;
 using SonarLint.VisualStudio.Core;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
+namespace SonarLint.VisualStudio.ConnectedMode.Synchronization
 {
     [Export(typeof(IServerIssuesStore))]
     [Export(typeof(IServerIssuesStoreWriter))]

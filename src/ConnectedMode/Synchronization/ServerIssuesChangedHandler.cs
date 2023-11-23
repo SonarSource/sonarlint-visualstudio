@@ -20,12 +20,13 @@
 
 using System;
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
+namespace SonarLint.VisualStudio.ConnectedMode.Synchronization
 {
-    [Export(typeof(ServerSuppressionsChangedHandler))]
+    [Export(typeof(ServerIssuesChangedHandler))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class ServerSuppressionsChangedHandler : IDisposable
+    internal sealed class ServerIssuesChangedHandler : IDisposable
     {
         private readonly IClientSuppressionSynchronizer clientSuppressionSynchronizer;
         private readonly IServerIssuesStore serverIssuesStore;
@@ -33,7 +34,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         private bool disposed;
 
         [ImportingConstructor]
-        public ServerSuppressionsChangedHandler(IClientSuppressionSynchronizer clientSuppressionSynchronizer, IServerIssuesStore serverIssuesStore)
+        public ServerIssuesChangedHandler(IClientSuppressionSynchronizer clientSuppressionSynchronizer, IServerIssuesStore serverIssuesStore)
         {
             this.clientSuppressionSynchronizer = clientSuppressionSynchronizer;
             this.serverIssuesStore = serverIssuesStore;

@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
+using SonarLint.VisualStudio.ConnectedMode.Synchronization;
 using SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.ConnectedModeMigrationTestsExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 MefTestHelpers.CreateExport<IVsAwareFileSystem>(),
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IUnintrusiveBindingController>(),
-                MefTestHelpers.CreateExport<ISuppressionIssueStoreUpdater>(),
+                MefTestHelpers.CreateExport<IServerIssueStoreUpdater>(),
                 MefTestHelpers.CreateExport<ISharedBindingConfigProvider>(),
                 MefTestHelpers.CreateExport<ILogger>(),
                 MefTestHelpers.CreateExport<IThreadHandling>());
@@ -272,9 +272,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         [TestMethod]
         public async Task Migrate_RoslynSuppressionUpdateIsTriggered()
         {
-            var suppressionsUpdater = new Mock<ISuppressionIssueStoreUpdater>();
+            var suppressionsUpdater = new Mock<IServerIssueStoreUpdater>();
 
-            var testSubject = CreateTestSubject(suppressionIssueStoreUpdater: suppressionsUpdater.Object);
+            var testSubject = CreateTestSubject(serverIssueStoreUpdater: suppressionsUpdater.Object);
             await testSubject.MigrateAsync(AnyBoundProject, null, false, CancellationToken.None);
 
             suppressionsUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Once);
@@ -300,7 +300,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             IMigrationSettingsProvider settingsProvider = null,
             ISonarQubeService sonarQubeService = null,
             IUnintrusiveBindingController unintrusiveBindingController = null,
-            ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater = null,
+            IServerIssueStoreUpdater serverIssueStoreUpdater = null,
             ISharedBindingConfigProvider sharedBindingConfigProvider = null,
             ILogger logger = null,
             IThreadHandling threadHandling = null)
@@ -310,14 +310,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             fileSystem ??= Mock.Of<IVsAwareFileSystem>();
             sonarQubeService ??= Mock.Of<ISonarQubeService>();
             unintrusiveBindingController ??= Mock.Of<IUnintrusiveBindingController>();
-            suppressionIssueStoreUpdater ??= Mock.Of<ISuppressionIssueStoreUpdater>();
+            serverIssueStoreUpdater ??= Mock.Of<IServerIssueStoreUpdater>();
             settingsProvider ??= CreateSettingsProvider(DefaultTestLegacySettings).Object;
             sharedBindingConfigProvider ??= Mock.Of<ISharedBindingConfigProvider>();
 
             logger ??= new TestLogger(logToConsole: true);
             threadHandling ??= new NoOpThreadHandler();
 
-            return new ConnectedModeMigration(settingsProvider, fileProvider, fileCleaner, fileSystem, sonarQubeService, unintrusiveBindingController, suppressionIssueStoreUpdater, sharedBindingConfigProvider, logger, threadHandling);
+            return new ConnectedModeMigration(settingsProvider, fileProvider, fileCleaner, fileSystem, sonarQubeService, unintrusiveBindingController, serverIssueStoreUpdater, sharedBindingConfigProvider, logger, threadHandling);
         }
 
         private static Mock<IFileProvider> CreateFileProvider(params string[] filesToReturn)

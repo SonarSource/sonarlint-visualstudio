@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
+namespace SonarLint.VisualStudio.ConnectedMode.Synchronization
 {
     /// <summary>
     /// Stores all server issues known to the client for the current branch i.e. that have been fetched from the server.

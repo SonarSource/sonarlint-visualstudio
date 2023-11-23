@@ -24,7 +24,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
+using SonarLint.VisualStudio.ConnectedMode.Synchronization;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ETW;
@@ -122,13 +122,12 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
                     Debug.Assert(fullSolutionFilePath != null, "Not expecting the solution name to be null in Connected Mode");
                     var solnNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(fullSolutionFilePath);
 
-                    var allSuppressedIssues = serverIssuesStore.Get();
+                    var allSuppressedIssues = serverIssuesStore.Get().Where(x => x.IsResolved);
 
                     var settings = new RoslynSettings
                     {
                         SonarProjectKey = sonarProjectKey,
                         Suppressions = allSuppressedIssues
-                                            .Where(x => x.IsResolved)
                                             .Select(x => IssueConverter.Convert(x))
                                             .Where(x => x.RoslynLanguage != RoslynLanguage.Unknown && !string.IsNullOrEmpty(x.RoslynRuleId))
                                             .ToArray(),

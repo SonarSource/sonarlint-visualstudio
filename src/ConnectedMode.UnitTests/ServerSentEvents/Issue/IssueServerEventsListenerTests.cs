@@ -22,7 +22,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
+using SonarLint.VisualStudio.ConnectedMode.Synchronization;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
         {
             MefTestHelpers.CheckTypeCanBeImported<IssueServerEventsListener, IIssueServerEventsListener>(
                 MefTestHelpers.CreateExport<IIssueServerEventSource>(),
-                MefTestHelpers.CreateExport<ISuppressionIssueStoreUpdater>(),
+                MefTestHelpers.CreateExport<IServerIssueStoreUpdater>(),
                 MefTestHelpers.CreateExport<IStatefulServerBranchProvider>(),
                 MefTestHelpers.CreateExport<IThreadHandling>(),
                 MefTestHelpers.CreateExport<ILogger>());
@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
                 new BranchAndIssueKey("issueKey3", "branch1"));
             
             var issueServerEventSource = SetupIssueServerEventSource(event1);
-            var storeUpdater = new Mock<ISuppressionIssueStoreUpdater>();
+            var storeUpdater = new Mock<IServerIssueStoreUpdater>();
             var branchProvider = CreateBranchProvider("branch1");
 
             var testSubject = CreateTestSubject(issueServerEventSource.Object, storeUpdater.Object, branchProvider.Object);
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
             var event3 = CreateServerEvent(isResolved: false, new BranchAndIssueKey("issueKey3", "branch1"));
 
             var issueServerEventSource = SetupIssueServerEventSource(event1, event2, event3);
-            var storeUpdater = new Mock<ISuppressionIssueStoreUpdater>();
+            var storeUpdater = new Mock<IServerIssueStoreUpdater>();
             var branchProvider = CreateBranchProvider("branch1");
 
             var testSubject = CreateTestSubject(issueServerEventSource.Object, storeUpdater.Object, branchProvider.Object);
@@ -165,18 +165,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
 
         private static IssueServerEventsListener CreateTestSubject(
             IIssueServerEventSource issueServerEventSource = null,
-            ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater = null,
+            IServerIssueStoreUpdater serverIssueStoreUpdater = null,
             IStatefulServerBranchProvider branchProvider = null,
             IThreadHandling threadHandling = null,
             ILogger logger = null)
         {
             issueServerEventSource ??= Mock.Of<IIssueServerEventSource>();
-            suppressionIssueStoreUpdater ??= Mock.Of<ISuppressionIssueStoreUpdater>();
+            serverIssueStoreUpdater ??= Mock.Of<IServerIssueStoreUpdater>();
             branchProvider ??= Mock.Of<IStatefulServerBranchProvider>();
             threadHandling ??= new NoOpThreadHandler();
             logger ??= Mock.Of<ILogger>();
 
-            return new IssueServerEventsListener(issueServerEventSource, suppressionIssueStoreUpdater, branchProvider, threadHandling, logger);
+            return new IssueServerEventsListener(issueServerEventSource, serverIssueStoreUpdater, branchProvider, threadHandling, logger);
         }
 
         private static IIssueChangedServerEvent CreateServerEvent(bool isResolved, params BranchAndIssueKey[] branchAndIssueKeys)

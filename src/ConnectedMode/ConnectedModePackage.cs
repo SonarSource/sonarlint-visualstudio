@@ -31,6 +31,7 @@ using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
+using SonarLint.VisualStudio.ConnectedMode.Synchronization;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using Task = System.Threading.Tasks.Task;
@@ -46,7 +47,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
         private SSESessionManager sseSessionManager;
         private IIssueServerEventsListener issueServerEventsListener;
         private IQualityProfileServerEventsListener qualityProfileServerEventsListener;
-        private ServerSuppressionsChangedHandler serverSuppressionsChangedHandler;
+        private ServerIssuesChangedHandler serverIssuesChangedHandler;
         private BoundSolutionUpdateHandler boundSolutionUpdateHandler;
         private TimedUpdateHandler timedUpdateHandler;
         private LocalSuppressionsChangedHandler localSuppressionsChangedHandler;
@@ -72,7 +73,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             qualityProfileServerEventsListener = componentModel.GetService<IQualityProfileServerEventsListener>();
             qualityProfileServerEventsListener.ListenAsync().Forget();
 
-            serverSuppressionsChangedHandler = componentModel.GetService<ServerSuppressionsChangedHandler>();
+            serverIssuesChangedHandler = componentModel.GetService<ServerIssuesChangedHandler>();
             boundSolutionUpdateHandler = componentModel.GetService<BoundSolutionUpdateHandler>();
             timedUpdateHandler = componentModel.GetService<TimedUpdateHandler>();
             localSuppressionsChangedHandler = componentModel.GetService<LocalSuppressionsChangedHandler>();
@@ -98,7 +99,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             sseSessionManager.CreateSessionIfInConnectedMode();
             importBeforeInstallTrigger = componentModel.GetService<ImportBeforeInstallTrigger>();
             importBeforeInstallTrigger.TriggerUpdateAsync().Forget();
-            var updater = componentModel.GetService<ISuppressionIssueStoreUpdater>();
+            var updater = componentModel.GetService<IServerIssueStoreUpdater>();
             updater.UpdateAllServerSuppressionsAsync().Forget();
             var hotspotsUpdater = componentModel.GetService<IServerHotspotStoreUpdater>();
             hotspotsUpdater.UpdateAllServerHotspotsAsync().Forget();
@@ -110,7 +111,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             {
                 sseSessionManager?.Dispose();
                 issueServerEventsListener?.Dispose();
-                serverSuppressionsChangedHandler?.Dispose();
+                serverIssuesChangedHandler?.Dispose();
                 boundSolutionUpdateHandler?.Dispose();
                 timedUpdateHandler?.Dispose();
                 localSuppressionsChangedHandler?.Dispose();

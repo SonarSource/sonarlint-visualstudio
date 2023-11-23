@@ -24,7 +24,6 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -34,6 +33,7 @@ using SonarQube.Client.Models;
 using EventHandler = System.EventHandler;
 using static SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.TestHelper;
 using System.Linq;
+using SonarLint.VisualStudio.ConnectedMode.Synchronization;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
 {

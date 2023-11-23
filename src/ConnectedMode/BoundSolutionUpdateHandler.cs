@@ -22,7 +22,7 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
+using SonarLint.VisualStudio.ConnectedMode.Synchronization;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode
@@ -32,18 +32,18 @@ namespace SonarLint.VisualStudio.ConnectedMode
     internal sealed class BoundSolutionUpdateHandler : IDisposable
     {
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private readonly ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater;
+        private readonly IServerIssueStoreUpdater serverIssueStoreUpdater;
         private readonly IServerHotspotStoreUpdater serverHotspotStoreUpdater;
 
         private bool disposed;
 
         [ImportingConstructor]
         public BoundSolutionUpdateHandler(IActiveSolutionBoundTracker activeSolutionBoundTracker,
-            ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
+            IServerIssueStoreUpdater serverIssueStoreUpdater,
             IServerHotspotStoreUpdater serverHotspotStoreUpdater)
         {
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
-            this.suppressionIssueStoreUpdater = suppressionIssueStoreUpdater;
+            this.serverIssueStoreUpdater = serverIssueStoreUpdater;
             this.serverHotspotStoreUpdater = serverHotspotStoreUpdater;
 
             this.activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
         private void TriggerUpdate()
         {
-            suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync().Forget();
+            serverIssueStoreUpdater.UpdateAllServerSuppressionsAsync().Forget();
             serverHotspotStoreUpdater.UpdateAllServerHotspotsAsync().Forget();
         }
 

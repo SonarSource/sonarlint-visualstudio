@@ -23,17 +23,17 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.ConnectedMode.Helpers;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarQube.Client;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
+namespace SonarLint.VisualStudio.ConnectedMode.Synchronization
 {
     /// <summary>
     /// Fetches suppressed issues from the server and updates the store
     /// </summary>
-    internal interface ISuppressionIssueStoreUpdater
+    internal interface IServerIssueStoreUpdater
     {
         /// <summary>
         /// Fetches all available suppressions from the server and updates the server issues store
@@ -46,9 +46,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         Task UpdateSuppressedIssuesAsync(bool isResolved, string[] issueKeys, CancellationToken cancellationToken);
     }
 
-    [Export(typeof(ISuppressionIssueStoreUpdater))]
+    [Export(typeof(IServerIssueStoreUpdater))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class SuppressionIssueStoreUpdater : ISuppressionIssueStoreUpdater, IDisposable
+    internal sealed class ServerIssueStoreUpdater : IServerIssueStoreUpdater, IDisposable
     {
         private readonly ISonarQubeService server;
         private readonly IServerQueryInfoProvider serverQueryInfoProvider;
@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
-        public SuppressionIssueStoreUpdater(ISonarQubeService server,
+        public ServerIssueStoreUpdater(ISonarQubeService server,
             IServerQueryInfoProvider serverQueryInfoProvider,
             IServerIssuesStoreWriter storeWriter,
             ICancellableActionRunner actionRunner,
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         {
         }
 
-        internal /* for testing */ SuppressionIssueStoreUpdater(ISonarQubeService server,
+        internal /* for testing */ ServerIssueStoreUpdater(ISonarQubeService server,
             IServerQueryInfoProvider serverQueryInfoProvider,
             IServerIssuesStoreWriter storeWriter,
             ICancellableActionRunner actionRunner,

@@ -26,7 +26,7 @@ using System.Linq;
 using System.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
+using SonarLint.VisualStudio.ConnectedMode.Synchronization;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client;
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly IVsAwareFileSystem fileSystem;
         private readonly ISonarQubeService sonarQubeService;
         private readonly IUnintrusiveBindingController unintrusiveBindingController;
-        private readonly ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater;
+        private readonly IServerIssueStoreUpdater serverIssueStoreUpdater;
         private readonly ISharedBindingConfigProvider sharedBindingConfigProvider;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             IVsAwareFileSystem fileSystem,
             ISonarQubeService sonarQubeService,
             IUnintrusiveBindingController unintrusiveBindingController,
-            ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
+            IServerIssueStoreUpdater serverIssueStoreUpdater,
             ISharedBindingConfigProvider sharedBindingConfigProvider,
             ILogger logger,
             IThreadHandling threadHandling)
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             this.fileSystem = fileSystem;
             this.sonarQubeService = sonarQubeService;
             this.unintrusiveBindingController = unintrusiveBindingController;
-            this.suppressionIssueStoreUpdater = suppressionIssueStoreUpdater;
+            this.serverIssueStoreUpdater = serverIssueStoreUpdater;
             this.sharedBindingConfigProvider = sharedBindingConfigProvider;
 
             this.logger = logger;
@@ -143,7 +143,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             await MakeLegacyFileChangesAsync(legacySettings, changedFiles, progress, token);
 
             // Trigger a re-fetch of suppressions so the Roslyn settings are updated.
-            await suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync();
+            await serverIssueStoreUpdater.UpdateAllServerSuppressionsAsync();
 
             if (shareBinding)
             {
