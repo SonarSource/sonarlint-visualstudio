@@ -18,13 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarQube.Client.Models
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Client.Helpers;
+using SonarQube.Client.Models;
+
+namespace SonarQube.Client.Tests.Helpers;
+
+[TestClass]
+public class SonarQubeIssueTransitionExtensionsTests
 {
-    public enum SonarQubeIssueTransitionResult
+    [DataTestMethod]
+    [DataRow(SonarQubeIssueTransition.FalsePositive, "falsepositive")]
+    [DataRow(SonarQubeIssueTransition.WontFix, "wontfix")]
+    [DataRow(SonarQubeIssueTransition.Accept, "accept")]
+    public void TransitionToLowerCaseString_ConvertsEnumToLowerCaseString(SonarQubeIssueTransition transition, string expectedString)
     {
-        Success,
-        InsufficientPermissions,
-        FailedToTransition,
-        CommentAdditionFailed
+        transition.TransitionToLowerCaseString().Should().Be(expectedString);
     }
 }

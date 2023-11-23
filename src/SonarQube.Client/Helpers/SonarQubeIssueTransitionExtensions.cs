@@ -18,13 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarQube.Client.Models
+using SonarQube.Client.Models;
+
+namespace SonarQube.Client.Helpers
 {
-    public enum SonarQubeIssueTransitionResult
+    internal static class SonarQubeIssueTransitionExtensions
     {
-        Success,
-        InsufficientPermissions,
-        FailedToTransition,
-        CommentAdditionFailed
+        public static string TransitionToLowerCaseString(this SonarQubeIssueTransition transition) =>
+            transition.ToString().ToLowerInvariant();
     }
 }

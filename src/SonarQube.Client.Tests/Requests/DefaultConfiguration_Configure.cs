@@ -74,6 +74,9 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Api.V10_2.SearchHotspotRequest for 10.2",
                     "Registered SonarQube.Client.Api.V10_2.GetTaintVulnerabilitiesWithCCTRequest for 10.2",
                     "Registered SonarQube.Client.Api.V10_2.GetRulesWithCCTRequest for 10.2",
+                    "Registered SonarQube.Client.Api.V9_9.TransitionIssueRequestWithWontFix for 9.9",
+                    "Registered SonarQube.Client.Api.V10_4.TransitionIssueRequestWithAccept for 10.4",
+                    "Registered SonarQube.Client.Api.V9_9.CommentIssueRequest for 9.9"
                 };
 
             DefaultConfiguration.ConfigureSonarQube(new RequestFactory(logger));
@@ -111,7 +114,9 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Api.V8_6.GetHotspotRequest",
                     "Registered SonarQube.Client.Api.V10_2.GetTaintVulnerabilitiesWithCCTRequest",
                     "Registered SonarQube.Client.Api.V7_20.GetExclusionsRequest",
-                    "Registered SonarQube.Client.Api.V9_7.SearchHotspotRequest"
+                    "Registered SonarQube.Client.Api.V9_7.SearchHotspotRequest",
+                    "Registered SonarQube.Client.Api.V10_4.TransitionIssueRequestWithAccept",
+                    "Registered SonarQube.Client.Api.V9_9.CommentIssueRequest"
                 };
 
             DefaultConfiguration.ConfigureSonarCloud(new UnversionedRequestFactory(logger));
@@ -149,6 +154,8 @@ namespace SonarQube.Client.Tests.Requests
             testSubject.Create<IGetProjectBranchesRequest>(serverInfo).Should().NotBeNull();
             testSubject.Create<IGetExclusionsRequest>(serverInfo).Should().NotBeNull();
             testSubject.Create<IGetSonarLintEventStream>(serverInfo).Should().NotBeNull();
+            testSubject.Create<ITransitionIssueRequest>(serverInfo).Should().NotBeNull();
+            testSubject.Create<ICommentIssueRequest>(serverInfo).Should().NotBeNull();
         }
 
         [TestMethod]
@@ -177,6 +184,8 @@ namespace SonarQube.Client.Tests.Requests
             testSubject.Create<IGetSourceCodeRequest>(serverInfo).Should().NotBeNull();
             testSubject.Create<IGetProjectBranchesRequest>(serverInfo).Should().NotBeNull();
             testSubject.Create<IGetExclusionsRequest>(serverInfo).Should().NotBeNull();
+            testSubject.Create<ITransitionIssueRequest>(serverInfo).Should().NotBeNull();
+            testSubject.Create<ICommentIssueRequest>(serverInfo).Should().NotBeNull();
         }
 
         [TestMethod]

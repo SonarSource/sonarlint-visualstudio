@@ -18,13 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarQube.Client.Models
+using System.Collections.Generic;
+using SonarQube.Client.Api.V9_9;
+using SonarQube.Client.Models;
+
+namespace SonarQube.Client.Api.V10_4
 {
-    public enum SonarQubeIssueTransitionResult
+    public class TransitionIssueRequestWithAccept : TransitionIssueRequestWithWontFix
     {
-        Success,
-        InsufficientPermissions,
-        FailedToTransition,
-        CommentAdditionFailed
+        protected override List<SonarQubeIssueTransition> SupportedTransitions { get; } =
+            new List<SonarQubeIssueTransition>
+            {
+                SonarQubeIssueTransition.FalsePositive,
+                SonarQubeIssueTransition.Accept
+            };
     }
 }
