@@ -21,10 +21,13 @@
 using System;
 using System.Collections.Generic;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
+using SonarLint.VisualStudio.ConnectedMode.Synchronization;
+using SonarLint.VisualStudio.ConnectedMode.UnitTests.Helpers;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 {
@@ -36,7 +39,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         {
             MefTestHelpers.CheckTypeCanBeImported<ClientSuppressionSynchronizer, IClientSuppressionSynchronizer>(
                 MefTestHelpers.CreateExport<IIssueLocationStoreAggregator>(),
-                MefTestHelpers.CreateExport<ISuppressedIssueMatcher>());
+                MefTestHelpers.CreateExport<IIssueMatcher>());
         }
 
         [TestMethod]
@@ -184,13 +187,26 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             return issuesStore.Object;
         }
 
-        private static ISuppressedIssueMatcher CreateSuppressedIssueMatcher(params IFilterableIssue[] matches)
+        private static IIssueMatcher CreateSuppressedIssueMatcher(params IFilterableIssue[] matches)
         {
-            var suppressedIssuesMatcher = new Mock<ISuppressedIssueMatcher>();
+            var suppressedIssuesMatcher = new Mock<IIssueMatcher>();
 
             foreach (var match in matches)
             {
-                suppressedIssuesMatcher.Setup(x => x.SuppressionExists(match)).Returns(true);
+                suppressedIssuesMatcher
+                    .Setup(x => x.Match(match))
+                    .Returns(new SonarQubeIssue(default, 
+                        default, 
+                        default, 
+                        default, 
+                        default, 
+                        default, 
+                        true, // suppressed issue
+                        default,
+                        default,
+                        default,
+                        default,
+                        default));
             }
 
             return suppressedIssuesMatcher.Object;
