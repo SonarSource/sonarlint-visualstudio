@@ -1,38 +1,40 @@
-﻿<vsui:DialogWindow  x:Class="SonarLint.VisualStudio.Integration.Muting.MuteWindowDialog"
+﻿<vsui:DialogWindow  x:Class="SonarLint.VisualStudio.Integration.Transition.MuteWindowDialog"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:SonarLint.VisualStudio.Integration.Muting"
+             xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.Resources"
+             xmlns:local="clr-namespace:SonarLint.VisualStudio.Integration.Transition"
              xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              mc:Ignorable="d" 
-             SizeToContent="WidthAndHeight">
+             SizeToContent="WidthAndHeight"
+             Title="{x:Static resx:Strings.MuteWindow_Title}">
     <Grid Height="350" Width="500">
         <Border BorderBrush="Black" Name="BorderWontFix" BorderThickness="1" HorizontalAlignment="Left" Height="75" Margin="25,25,0,0" VerticalAlignment="Top" Width="450" Visibility="{Binding WontFixVisibility}">
             <Grid>
-                <RadioButton Name="rbWontFix" GroupName="Transitions" Content="Won't Fix" VerticalAlignment="Top" Margin="10,16,-10,0" FontWeight="Bold" Grid.ColumnSpan="2" Checked="RadioButton_Checked"/>
-                <Label Content="The issue is valid but does not need fixing. It represents accepted technical debt." HorizontalAlignment="Left" Margin="10,36,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+                <RadioButton Name="rbWontFix" GroupName="Transitions" Content="{x:Static resx:Strings.MuteWindow_WontFixTitle}" VerticalAlignment="Top" Margin="10,16,-10,0" FontWeight="Bold" Grid.ColumnSpan="2" Checked="RadioButton_Checked"/>
+                <Label Content="{x:Static resx:Strings.MuteWindow_WontFixContent}" HorizontalAlignment="Left" Margin="10,36,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
             </Grid>
         </Border>
 
         <Border BorderBrush="Black" Name="BorderAccept" BorderThickness="1" HorizontalAlignment="Left" Height="75" Margin="25,25,0,0" VerticalAlignment="Top" Width="450" Visibility="{Binding AcceptVisibility}">
             <Grid>
-                <RadioButton Name="rbAccept" GroupName="Transitions" Content="Accept" VerticalAlignment="Top" Margin="10,16,-10,0" FontWeight="Bold" Grid.ColumnSpan="2" Checked="RadioButton_Checked"/>
-                <Label Content="The issue is valid but does not need fixing. It represents accepted technical debt." HorizontalAlignment="Left" Margin="10,36,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+                <RadioButton Name="rbAccept" GroupName="Transitions" Content="{x:Static resx:Strings.MuteWindow_AcceptTitle}" VerticalAlignment="Top" Margin="10,16,-10,0" FontWeight="Bold" Grid.ColumnSpan="2" Checked="RadioButton_Checked"/>
+                <Label Content="{x:Static resx:Strings.MuteWindow_AcceptContent}" HorizontalAlignment="Left" Margin="10,36,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
             </Grid>
         </Border>
 
         <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left" Height="75" Margin="25
                 ,115,0,0" VerticalAlignment="Top" Width="450">
             <Grid>
-                <RadioButton x:Name="rbFalsePositive" GroupName="Transitions" Content="False Positive" VerticalAlignment="Top" Margin="10,16,-10,0" FontWeight="Bold" Grid.ColumnSpan="2" Checked="RadioButton_Checked"/>
-                <Label Content="The issue is raised unxpectedly on code that should not trigger an issue." HorizontalAlignment="Left" Margin="10,36,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+                <RadioButton x:Name="rbFalsePositive" GroupName="Transitions" Content="{x:Static resx:Strings.MuteWindow_FalsePositiveTitle}" VerticalAlignment="Top" Margin="10,16,-10,0" FontWeight="Bold" Grid.ColumnSpan="2" Checked="RadioButton_Checked"/>
+                <Label Content="{x:Static resx:Strings.MuteWindow_FalsePositiveContent}" HorizontalAlignment="Left" Margin="10,36,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
             </Grid>
         </Border>
-        <Label Content="Add a comment (optional):" HorizontalAlignment="Left" Margin="25,200,0,0" VerticalAlignment="Top"/>
+        <Label Content="{x:Static resx:Strings.MuteWindow_CommentLabel}" HorizontalAlignment="Left" Margin="25,200,0,0" VerticalAlignment="Top"/>
         <TextBox Name="txtComment" HorizontalAlignment="Center" Height="60" Margin="0,225,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="450"/>
-        <Button Name="Cancel" Content="Cancel" Padding="5,1" HorizontalAlignment="Left" Margin="300,300,0,0" VerticalAlignment="Top" Click="Cancel_Click"/>
-        <Button Name="Submit" Content="Mark Issue as..." Padding="5,1" HorizontalAlignment="Left" Margin="360,300,0,0" VerticalAlignment="Top" Click="Submit_Click">
+        <Button Name="Cancel" Content="{x:Static resx:Strings.MuteWindow_CancelButton}" Padding="5,1" HorizontalAlignment="Left" Margin="300,300,0,0" VerticalAlignment="Top" Click="Cancel_Click"/>
+        <Button Name="Submit" Content="{x:Static resx:Strings.MuteWindow_SubmitButton}" Padding="5,1" HorizontalAlignment="Left" Margin="360,300,0,0" VerticalAlignment="Top" Click="Submit_Click">
             <Button.Style>
                 <Style TargetType="Button">
 

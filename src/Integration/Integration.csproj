@@ -59,13 +59,13 @@
     <None Remove="Connection\UI\OrganizationSelectionWindow.xaml" />
     <None Remove="Notifications\NotificationIndicator.xaml" />
     <None Remove="Progress\ProgressControl.xaml" />
-    <None Remove="Muting\MuteWindowDialog.xaml" />
+    <None Remove="Transition\MuteWindowDialog.xaml" />
 
     <Page Include="Connection\UI\ConnectionInfoDialogView.xaml" />
     <Page Include="Connection\UI\OrganizationSelectionWindow.xaml" />
     <Page Include="Notifications\NotificationIndicator.xaml" />
     <Page Include="Progress\ProgressControl.xaml" />
-    <Page Include="Muting\MuteWindowDialog.xaml" />
+    <Page Include="Transition\MuteWindowDialog.xaml" />
   </ItemGroup>
 
   <ItemGroup>

@@ -23,7 +23,7 @@ using System.Windows.Markup;
 using Microsoft.VisualStudio.PlatformUI;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.Muting
+namespace SonarLint.VisualStudio.Integration.Transition
 {
     /// <summary>
     /// Interaction logic for UserControl1.xaml
@@ -35,10 +35,10 @@ namespace SonarLint.VisualStudio.Integration.Muting
         {
             InitializeComponent();
 
-            NewMethod(showAccept);
+            SetVisibility(showAccept);
         }
 
-        private void NewMethod(bool showAccept)
+        private void SetVisibility(bool showAccept)
         {
             BorderWontFix.Visibility = showAccept ? Visibility.Hidden : Visibility.Visible;
             BorderAccept.Visibility = showAccept ? Visibility.Visible : Visibility.Hidden;
@@ -72,9 +72,6 @@ namespace SonarLint.VisualStudio.Integration.Muting
 
                 case var value when value == rbFalsePositive:
                     SelectedIssueTransition = SonarQubeIssueTransition.FalsePositive;
-                    break;
-
-                default:
                     break;
             }
         }

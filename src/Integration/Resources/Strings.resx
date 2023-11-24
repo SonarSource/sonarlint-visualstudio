@@ -574,4 +574,34 @@ This is the general format to use when writing errors to output window or when t
   <data name="BindingUpdateFailedToCheckSettings" xml:space="preserve">
     <value>[Binding check] Error checking bound project settings file: {0}</value>
   </data>
+  <data name="MuteWindow_AcceptContent" xml:space="preserve">
+    <value>The issue is valid but does not need fixing. It represents accepted technical debt.</value>
+  </data>
+  <data name="MuteWindow_AcceptTitle" xml:space="preserve">
+    <value>Accept</value>
+  </data>
+  <data name="MuteWindow_CancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="MuteWindow_CommentLabel" xml:space="preserve">
+    <value>Add a comment (optional):</value>
+  </data>
+  <data name="MuteWindow_FalsePositiveContent" xml:space="preserve">
+    <value>The issue is raised unxpectedly on code that should not trigger an issue.</value>
+  </data>
+  <data name="MuteWindow_FalsePositiveTitle" xml:space="preserve">
+    <value>False Positive</value>
+  </data>
+  <data name="MuteWindow_SubmitButton" xml:space="preserve">
+    <value>Mark Issue as...</value>
+  </data>
+  <data name="MuteWindow_Title" xml:space="preserve">
+    <value>Mark Issue as Resolved on SonarQube</value>
+  </data>
+  <data name="MuteWindow_WontFixContent" xml:space="preserve">
+    <value>The issue is valid but does not need fixing. It represents accepted technical debt.</value>
+  </data>
+  <data name="MuteWindow_WontFixTitle" xml:space="preserve">
+    <value>Won't Fix</value>
+  </data>
 </root>
