@@ -18,8 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Markup;
 using Microsoft.VisualStudio.PlatformUI;
 using SonarQube.Client.Models;
@@ -33,11 +35,25 @@ namespace SonarLint.VisualStudio.Integration.Transition
     [ExcludeFromCodeCoverage]
     public partial class MuteWindowDialog : DialogWindow
     {
+        private readonly Dictionary<RadioButton, SonarQubeIssueTransition> Transitions;
+
         public MuteWindowDialog(bool showAccept)
         {
             InitializeComponent();
 
             SetVisibility(showAccept);
+
+            Transitions = InitializeTransitions();
+        }
+
+        private Dictionary<RadioButton, SonarQubeIssueTransition> InitializeTransitions()
+        {
+            return new Dictionary<RadioButton, SonarQubeIssueTransition>
+            {
+                { rbWontFix, SonarQubeIssueTransition.WontFix },
+                { rbAccept, SonarQubeIssueTransition.Accept },
+                { rbFalsePositive, SonarQubeIssueTransition.FalsePositive }
+            };
         }
 
         private void SetVisibility(bool showAccept)
@@ -56,26 +72,13 @@ namespace SonarLint.VisualStudio.Integration.Transition
             this.DialogResult = true;
         }
 
-        public SonarQubeIssueTransition SelectedIssueTransition { get; private set; }
+        public SonarQubeIssueTransition? SelectedIssueTransition { get; private set; }
 
         public string Comment => txtComment.Text;
 
         private void RadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            switch (sender)
-            {
-                case var value when value == rbWontFix:
-                    SelectedIssueTransition = SonarQubeIssueTransition.WontFix;
-                    break;
-
-                case var value when value == rbAccept:
-                    SelectedIssueTransition = SonarQubeIssueTransition.Accept;
-                    break;
-
-                case var value when value == rbFalsePositive:
-                    SelectedIssueTransition = SonarQubeIssueTransition.FalsePositive;
-                    break;
-            }
+            SelectedIssueTransition = Transitions[(RadioButton)sender];
         }
     }
 }
