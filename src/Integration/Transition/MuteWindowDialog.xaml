@@ -36,6 +36,26 @@
             <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="VerticalAlignment" Value="Top"/>
         </Style>
+        <Style x:Key="CancelButtonStyle" TargetType="Button">
+            <Setter Property="Margin" Value="300,300,0,0"/>
+        </Style>
+        <Style x:Key="SubmitButtonStyle" TargetType="Button" BasedOn="{StaticResource ButtonStyle}">
+            <Setter Property="Margin" Value="360,300,0,0" />
+            <Setter Property="IsEnabled" Value="False"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Path=IsChecked, ElementName=rbWontFix}" Value="True">
+                    <Setter Property="IsEnabled" Value="True"/>
+                </DataTrigger>
+
+                <DataTrigger Binding="{Binding Path=IsChecked, ElementName=rbAccept}" Value="True">
+                    <Setter Property="IsEnabled" Value="True"/>
+                </DataTrigger>
+
+                <DataTrigger Binding="{Binding Path=IsChecked, ElementName=rbFalsePositive}" Value="True">
+                    <Setter Property="IsEnabled" Value="True"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </vsui:DialogWindow.Resources>
     <Grid Height="350" Width="500">
         <Border Name="BorderWontFix" Style="{StaticResource BorderStyle}" Margin="25,25,0,0" Visibility="{Binding WontFixVisibility}">
@@ -60,27 +80,7 @@
         </Border>
         <Label Content="{x:Static resx:Strings.MuteWindow_CommentLabel}" Style="{StaticResource LabelStyle}" Margin="25,200,0,0"/>
         <TextBox Name="txtComment" HorizontalAlignment="Center" Height="60" Margin="0,225,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="450"/>
-        <Button Name="Cancel" Content="{x:Static resx:Strings.MuteWindow_CancelButton}" Style="{StaticResource ButtonStyle}" Margin="300,300,0,0" Click="Cancel_Click"/>
-        <Button Name="Submit" Content="{x:Static resx:Strings.MuteWindow_SubmitButton}" Click="Submit_Click">
-            <Button.Style>
-                <Style TargetType="Button" BasedOn="{StaticResource ButtonStyle}">
-                    <Setter Property="Margin" Value="360,300,0,0" />
-                    <Setter Property="IsEnabled" Value="False"/>
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding Path=IsChecked, ElementName=rbWontFix}" Value="True">
-                            <Setter Property="IsEnabled" Value="True"/>
-                        </DataTrigger>
-
-                        <DataTrigger Binding="{Binding Path=IsChecked, ElementName=rbAccept}" Value="True">
-                            <Setter Property="IsEnabled" Value="True"/>
-                        </DataTrigger>
-
-                        <DataTrigger Binding="{Binding Path=IsChecked, ElementName=rbFalsePositive}" Value="True">
-                            <Setter Property="IsEnabled" Value="True"/>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Button.Style>
-        </Button>
+        <Button Name="Cancel" Content="{x:Static resx:Strings.MuteWindow_CancelButton}" Style="{StaticResource CancelButtonStyle}" Click="Cancel_Click"/>
+        <Button Name="Submit" Content="{x:Static resx:Strings.MuteWindow_SubmitButton}" Style="{StaticResource SubmitButtonStyle}" Click="Submit_Click"/>
     </Grid>
 </vsui:DialogWindow>
