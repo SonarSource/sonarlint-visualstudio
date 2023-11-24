@@ -27,6 +27,7 @@
         <Style x:Key="LabelStyle" TargetType="Label">
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Margin" Value="25,200,0,0" />
         </Style>
         <Style x:Key="TransitionLabelStyle" BasedOn="{StaticResource LabelStyle}" TargetType="Label">
             <Setter Property="Margin" Value="10,36,0,0" />
@@ -36,7 +37,7 @@
             <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="VerticalAlignment" Value="Top"/>
         </Style>
-        <Style x:Key="CancelButtonStyle" TargetType="Button">
+        <Style x:Key="CancelButtonStyle" BasedOn="{StaticResource ButtonStyle}" TargetType="Button">
             <Setter Property="Margin" Value="300,300,0,0"/>
         </Style>
         <Style x:Key="SubmitButtonStyle" TargetType="Button" BasedOn="{StaticResource ButtonStyle}">
@@ -56,30 +57,44 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+        <Style x:Key="TextStyle" TargetType="TextBox">
+            <Setter Property="Margin" Value="0,225,0,0" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Height" Value="60" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Width" Value="450" />
+        </Style>
+        <Style x:Key="TopBorderStyle" BasedOn="{StaticResource BorderStyle}" TargetType="Border">
+            <Setter Property="Margin" Value="25,25,0,0" />
+        </Style>
+        <Style x:Key="BottomBorderStyle" BasedOn="{StaticResource BorderStyle}" TargetType="Border">
+            <Setter Property="Margin" Value="25,115,0,0" />
+        </Style>
     </vsui:DialogWindow.Resources>
     <Grid Height="350" Width="500">
-        <Border Name="BorderWontFix" Style="{StaticResource BorderStyle}" Margin="25,25,0,0" Visibility="{Binding WontFixVisibility}">
+        <Border Name="BorderWontFix" Style="{StaticResource TopBorderStyle}" Visibility="{Binding WontFixVisibility}">
             <Grid>
                 <RadioButton Name="rbWontFix" Content="{x:Static resx:Strings.MuteWindow_WontFixTitle}" Style="{StaticResource RadioButtonStyle}" Checked="RadioButton_Checked"/>
                 <Label Content="{x:Static resx:Strings.MuteWindow_WontFixContent}" Style="{StaticResource TransitionLabelStyle}" />
             </Grid>
         </Border>
 
-        <Border Name="BorderAccept" Style="{StaticResource BorderStyle}" Margin="25,25,0,0" Visibility="{Binding AcceptVisibility}">
+        <Border Name="BorderAccept" Style="{StaticResource TopBorderStyle}" Visibility="{Binding AcceptVisibility}">
             <Grid>
                 <RadioButton Name="rbAccept" Content="{x:Static resx:Strings.MuteWindow_AcceptTitle}" Style="{StaticResource RadioButtonStyle}" Checked="RadioButton_Checked"/>
                 <Label Content="{x:Static resx:Strings.MuteWindow_AcceptContent}" Style="{StaticResource TransitionLabelStyle}" />
             </Grid>
         </Border>
 
-        <Border Style="{StaticResource BorderStyle}" Margin="25,115,0,0">
+        <Border Style="{StaticResource BottomBorderStyle}">
             <Grid>
                 <RadioButton x:Name="rbFalsePositive" Content="{x:Static resx:Strings.MuteWindow_FalsePositiveTitle}" Style="{StaticResource RadioButtonStyle}" Checked="RadioButton_Checked"/>
                 <Label Content="{x:Static resx:Strings.MuteWindow_FalsePositiveContent}" Style="{StaticResource TransitionLabelStyle}" />
             </Grid>
         </Border>
-        <Label Content="{x:Static resx:Strings.MuteWindow_CommentLabel}" Style="{StaticResource LabelStyle}" Margin="25,200,0,0"/>
-        <TextBox Name="txtComment" HorizontalAlignment="Center" Height="60" Margin="0,225,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="450"/>
+        <Label Content="{x:Static resx:Strings.MuteWindow_CommentLabel}" Style="{StaticResource LabelStyle}" />
+        <TextBox Name="txtComment" Style="{StaticResource TextStyle}"/>
         <Button Name="Cancel" Content="{x:Static resx:Strings.MuteWindow_CancelButton}" Style="{StaticResource CancelButtonStyle}" Click="Cancel_Click"/>
         <Button Name="Submit" Content="{x:Static resx:Strings.MuteWindow_SubmitButton}" Style="{StaticResource SubmitButtonStyle}" Click="Submit_Click"/>
     </Grid>
