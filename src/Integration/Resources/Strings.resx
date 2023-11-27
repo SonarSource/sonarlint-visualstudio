@@ -575,7 +575,7 @@ This is the general format to use when writing errors to output window or when t
     <value>[Binding check] Error checking bound project settings file: {0}</value>
   </data>
   <data name="MuteWindow_AcceptContent" xml:space="preserve">
-    <value>The issue is valid but does not need fixing. It represents accepted technical debt.</value>
+    <value>The issue is valid but will not be fixed now. It represents accepted technical debt.</value>
   </data>
   <data name="MuteWindow_AcceptTitle" xml:space="preserve">
     <value>Accept</value>
