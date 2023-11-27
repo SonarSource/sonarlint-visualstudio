@@ -496,7 +496,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The issue is valid but does not need fixing. It represents accepted technical debt..
+        ///   Looks up a localized string similar to The issue is valid but will not be fixed now. It represents accepted technical debt..
         /// </summary>
         public static string MuteWindow_AcceptContent {
             get {
