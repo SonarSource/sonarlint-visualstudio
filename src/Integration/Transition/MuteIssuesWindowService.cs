@@ -31,7 +31,6 @@ namespace SonarLint.VisualStudio.Integration.Transition
 {
     [Export(typeof(IMuteIssuesWindowService))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    [ExcludeFromCodeCoverage]
     internal class MuteIssuesWindowService : IMuteIssuesWindowService
     {
         private readonly IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration;
@@ -46,6 +45,7 @@ namespace SonarLint.VisualStudio.Integration.Transition
             this.logger = logger;
         }
 
+        [ExcludeFromCodeCoverage]
         public MuteIssuesWindowResponse Show(string issueKey)
         {
             if (!configurationProvider.GetConfiguration().Mode.IsInAConnectedMode())
