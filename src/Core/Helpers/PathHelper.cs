@@ -153,8 +153,7 @@ namespace SonarLint.VisualStudio.Core.Helpers
             }
 
             return localFilePath
-                .Substring(0, localFilePath.Length - longestMatchingPath.Length)
-                .TrimEnd(Path.DirectorySeparatorChar);
+                .Substring(0, localFilePath.Length - longestMatchingPath.Length);
         }
     }
 }

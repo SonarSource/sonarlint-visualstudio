@@ -227,7 +227,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
         public void CalculateServerRoot_SimpleCase()
         {
             PathHelper.CalculateServerRoot(@"C:\dir\dir\projectroot\projectdir\projectdir\projectfile.cs",
-                new[] { @"projectdir\projectdir\projectfile.cs" }).Should().Be(@"C:\dir\dir\projectroot");
+                new[] { @"projectdir\projectdir\projectfile.cs" }).Should().Be(@"C:\dir\dir\projectroot\");
         }
         
         [TestMethod]
@@ -241,7 +241,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
                     @"projectdir\projectdir\projectfile.cs",
                     @"projectdir\projectdir\notprojectfile.cs",
                     @"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-                }).Should().Be(@"C:\dir\dir\projectroot");
+                }).Should().Be(@"C:\dir\dir\projectroot\");
         }
         
         [TestMethod]
@@ -254,7 +254,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
                     @"projectdir\projectfile.cs",
                     @"projectdir\projectdir\projectfile.cs",
                     @"projectdir\projectdir\projectdir\projectfile.cs"
-                }).Should().Be(@"C:\dir\dir\projectroot");
+                }).Should().Be(@"C:\dir\dir\projectroot\");
         }
         
         [TestMethod]

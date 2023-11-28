@@ -78,7 +78,7 @@ public class ProjectRootCalculatorTests
 
         var result = await testSubject.CalculateBasedOnLocalPathAsync(@"c:\root\dir\file.cs", CancellationToken.None);
 
-        result.Should().Be(@"c:\root"); // more extensive testing of the marching algorithm is done in PathHelper tests
+        result.Should().Be(@"c:\root\"); // more extensive testing of the marching algorithm is done in PathHelper tests
     }
 
     private ProjectRootCalculator CreateTestSubject(out Mock<ISonarQubeService> sonarQubeServiceMock, 
