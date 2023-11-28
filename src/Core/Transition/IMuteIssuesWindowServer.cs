@@ -18,10 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Muting
+using SonarQube.Client.Models;
+
+namespace SonarLint.VisualStudio.Core.Transition
 {
     public interface IMuteIssuesWindowService
     {
-        void Show(string issueKey);
+        MuteIssuesWindowResponse Show(string issueKey);
+    }
+
+    public class MuteIssuesWindowResponse
+    {
+        public bool Result { get; set; }
+        public SonarQubeIssueTransition IssueTransition { get; set; }
+        public string Comment { get; set; }
     }
 }

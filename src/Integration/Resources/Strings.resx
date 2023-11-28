@@ -604,4 +604,7 @@ This is the general format to use when writing errors to output window or when t
   <data name="MuteWindow_WontFixTitle" xml:space="preserve">
     <value>Won't Fix</value>
   </data>
+  <data name="MuteIssuesWindowService_NotInConnectedMode" xml:space="preserve">
+    <value>[MuteIssuesWindowService] You can mute issues only in Connected mode</value>
+  </data>
 </root>
