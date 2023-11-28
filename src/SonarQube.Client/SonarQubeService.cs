@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -334,6 +335,13 @@ namespace SonarQube.Client
                 },
                 token);
 
+        [ExcludeFromCodeCoverage]
+        public Task<IList<SonarQubeIssue>> GetIssuesForComponentAsync(string projectKey, string branch, string componentKey, string ruleId,
+            CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(string projectKey, DateTimeOffset eventsSince,
             CancellationToken token) =>
             await InvokeCheckedRequestAsync<IGetNotificationsRequest, SonarQubeNotification[]>(
@@ -352,6 +360,12 @@ namespace SonarQube.Client
                     request.Qualifiers = "BRC"; // Returns root module (TRK) + sub modules
                 },
                 token);
+
+        [ExcludeFromCodeCoverage]
+        public Task<IList<string>> SearchFilesByNameAsync(string projectKey, string branch, string fileName, CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
 
         public async Task<IList<SonarQubeRule>> GetRulesAsync(bool isActive, string qualityProfileKey, CancellationToken token) =>
             await InvokeCheckedRequestAsync<IGetRulesRequest, SonarQubeRule[]>(

@@ -99,10 +99,30 @@ namespace SonarQube.Client
         /// <param name="issueKeys">(optional) The ids of the issues to return. If empty, all issues will be returned.</param>
         Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string projectKey, string branch, string[] issueKeys, CancellationToken token);
 
+        /// <summary>
+        /// Returns the issues in the specified server component with the same rule id
+        /// </summary>
+        /// <param name="projectKey">The project identifier</param>
+        /// <param name="branch">(optional) The Sonar branch for which issues should be returned. If null/empty,
+        ///     the issues for the "main" branch will be returned</param>
+        /// <param name="componentKey">The component identifier. Project/Directory/File</param>
+        /// <param name="ruleId">The Rule identifier. Is used to limit the number of issues in the response</param>
+        /// <param name="token"></param>
+        Task<IList<SonarQubeIssue>> GetIssuesForComponentAsync(string projectKey, string branch, string componentKey, string ruleId, CancellationToken token);
+
         Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(string projectKey,
             DateTimeOffset eventsSince, CancellationToken token);
 
         Task<IList<SonarQubeModule>> GetAllModulesAsync(string projectKey, CancellationToken token);
+        /// <summary>
+        /// Returns the list of server paths with matching file names
+        /// </summary>
+        /// <param name="projectKey">The project identifier</param>
+        /// <param name="branch">(optional) The Sonar branch for which issues should be returned. If null/empty,
+        ///     the issues for the "main" branch will be returned</param>
+        /// <param name="fileName">The file name used for the search</param>
+        /// <param name="token"></param>
+        Task<IList<string>> SearchFilesByNameAsync(string projectKey, string branch, string fileName, CancellationToken token);
 
         Task<SonarQubeHotspot> GetHotspotAsync(string hotspotKey, CancellationToken token);
 
