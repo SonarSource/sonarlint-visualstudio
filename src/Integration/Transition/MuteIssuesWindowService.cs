@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Transition
         [ExcludeFromCodeCoverage]
         public MuteIssuesWindowResponse Show(string issueKey)
         {
-            var dialog = new MuteWindowDialog(connectedModeFeaturesConfiguration.IsNewCctAvailable());
+            var dialog = new MuteWindowDialog(connectedModeFeaturesConfiguration.IsAcceptTransitionAvailable());
             dialog.Owner = Application.Current.MainWindow;
             var dialogResult = dialog.ShowDialog();
 

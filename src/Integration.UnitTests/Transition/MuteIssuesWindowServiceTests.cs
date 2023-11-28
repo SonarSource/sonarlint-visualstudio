@@ -35,5 +35,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Transition
             MefTestHelpers.CheckTypeCanBeImported<MuteIssuesWindowService, IMuteIssuesWindowService>(
                 MefTestHelpers.CreateExport<IConnectedModeFeaturesConfiguration>());
         }
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+        {
+            MefTestHelpers.CheckIsSingletonMefComponent<MuteIssuesWindowService>();
+        }
     }
 }
