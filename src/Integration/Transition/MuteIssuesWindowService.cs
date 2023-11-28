@@ -54,8 +54,6 @@ namespace SonarLint.VisualStudio.Integration.Transition
                 return null;
             }
 
-            var result = new MuteIssuesWindowResponse { Result = false };
-
             var dialog = new MuteWindowDialog(connectedModeFeaturesConfiguration.IsNewCctAvailable());
             dialog.Owner = Application.Current.MainWindow;
             var dialogResult = dialog.ShowDialog();
