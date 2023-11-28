@@ -23,7 +23,6 @@ using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using System.Collections.Generic;
 using System;
-using SonarLint.VisualStudio.ConnectedMode.Synchronization;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
@@ -33,15 +32,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
     internal class ClientSuppressionSynchronizer : IClientSuppressionSynchronizer
     {
         private readonly IIssueLocationStoreAggregator issuesStore;
-        private readonly IIssueMatcher issueMatcher;
+        private readonly ISuppressedIssueMatcher suppressedIssueMatcher;
 
         public event EventHandler<LocalSuppressionsChangedEventArgs> LocalSuppressionsChanged;
 
         [ImportingConstructor]
-        public ClientSuppressionSynchronizer(IIssueLocationStoreAggregator issuesStore, IIssueMatcher issueMatcher)
+        public ClientSuppressionSynchronizer(IIssueLocationStoreAggregator issuesStore, ISuppressedIssueMatcher suppressedIssueMatcher)
         {
             this.issuesStore = issuesStore;
-            this.issueMatcher = issueMatcher;
+            this.suppressedIssueMatcher = suppressedIssueMatcher;
         }
 
         public void SynchronizeSuppressedIssues()
@@ -55,7 +54,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
                 var issueViz = issue as IAnalysisIssueVisualization;
 
                 // If the object was matched then it is suppressed on the server
-                var newIsSuppressedValue = issueMatcher.Match(issueViz)?.IsResolved ?? false;
+                var newIsSuppressedValue = suppressedIssueMatcher.SuppressionExists(issueViz);
 
                 if (issueViz.IsSuppressed != newIsSuppressedValue)
                 {
