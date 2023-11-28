@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
     internal class ConnectionInformationDialog
     {
         #region Static helpers
+
         private static ConnectionInfoDialogView CreateView()
         {
             return new ConnectionInfoDialogView();
@@ -47,7 +48,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             return vm;
         }
-
 
         internal /* testing purposes */ static ConnectionInformation CreateConnectionInformation(ConnectionInfoDialogViewModel viewModel, SecureString password)
         {
@@ -74,6 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             return info;
         }
+
         #endregion
 
         /// <summary>

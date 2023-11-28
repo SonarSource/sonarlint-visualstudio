@@ -18,10 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Muting
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core.Configuration;
+using SonarLint.VisualStudio.Core.Transition;
+using SonarLint.VisualStudio.Integration.Transition;
+using SonarLint.VisualStudio.TestInfrastructure;
+
+namespace SonarLint.VisualStudio.Integration.UnitTests.Transition
 {
-    public interface IMuteIssuesWindowService
+    [TestClass]
+    public class MuteIssuesWindowServiceTests
     {
-        void Show(string issueKey);
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<MuteIssuesWindowService, IMuteIssuesWindowService>(
+                MefTestHelpers.CreateExport<IConnectedModeFeaturesConfiguration>());
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+        {
+            MefTestHelpers.CheckIsSingletonMefComponent<MuteIssuesWindowService>();
+        }
     }
 }
