@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
-using SonarLint.VisualStudio.ConnectedMode.Synchronization;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -41,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<IssueConsumerFactory, IIssueConsumerFactory>(
-                MefTestHelpers.CreateExport<IIssueMatcher>(),
+                MefTestHelpers.CreateExport<ISuppressedIssueMatcher>(),
                 MefTestHelpers.CreateExport<IAnalysisIssueVisualizationConverter>(),
                 MefTestHelpers.CreateExport<ILocalHotspotsStoreUpdater>());
         }
@@ -49,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         [TestMethod]
         public void Create_InitializedIssueConsumerReturned()
         {
-            var testSubject = new IssueConsumerFactory(Mock.Of<IIssueMatcher>(), Mock.Of<IAnalysisIssueVisualizationConverter>(), Mock.Of<ILocalHotspotsStoreUpdater>());
+            var testSubject = new IssueConsumerFactory(Mock.Of<ISuppressedIssueMatcher>(), Mock.Of<IAnalysisIssueVisualizationConverter>(), Mock.Of<ILocalHotspotsStoreUpdater>());
 
             IIssuesSnapshot publishedSnaphot = null;
             var consumer = testSubject.Create(CreateValidTextDocument("file.txt"), "project name", Guid.NewGuid(), x => { publishedSnaphot = x; });

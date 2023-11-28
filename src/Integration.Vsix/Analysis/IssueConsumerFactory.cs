@@ -21,7 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
-using SonarLint.VisualStudio.ConnectedMode.Synchronization;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
@@ -50,12 +50,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal partial class IssueConsumerFactory : IIssueConsumerFactory
     {
-        private readonly IIssueMatcher suppressedIssueMatcher;
+        private readonly ISuppressedIssueMatcher suppressedIssueMatcher;
         private readonly IAnalysisIssueVisualizationConverter converter;
         private readonly ILocalHotspotsStoreUpdater localHotspotsStore;
 
         [ImportingConstructor]
-        internal IssueConsumerFactory(IIssueMatcher suppressedIssueMatcher, IAnalysisIssueVisualizationConverter converter, ILocalHotspotsStoreUpdater localHotspotsStore)
+        internal IssueConsumerFactory(ISuppressedIssueMatcher suppressedIssueMatcher, IAnalysisIssueVisualizationConverter converter, ILocalHotspotsStoreUpdater localHotspotsStore)
         {
             this.suppressedIssueMatcher = suppressedIssueMatcher;
             this.converter = converter;
