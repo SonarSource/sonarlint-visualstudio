@@ -26,14 +26,13 @@ using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
-using SonarLint.VisualStudio.ConnectedMode.Synchronization;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
-using SonarQube.Client.Models;
 using static SonarLint.VisualStudio.Integration.Vsix.Analysis.IssueConsumerFactory;
 using static SonarLint.VisualStudio.Integration.Vsix.Analysis.IssueConsumerFactory.IssueHandler;
 
@@ -42,19 +41,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
     [TestClass]
     public class IssueHandlerTests
     {
-        private static readonly SonarQubeIssue SuppressedSonarQubeIssue = new SonarQubeIssue(default,
-            default,
-            default,
-            default,
-            default,
-            default,
-            true, // suppressed issue
-            default,
-            default,
-            default,
-            default,
-            default);
-        
         [TestMethod]
         public void HandleNewIssues_UpdatedSnapshotAndHotspotStoreHaveExpectedValues()
         {
@@ -111,9 +97,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             };
 
             var notificationHandler = new SnapshotChangeHandler();
-            var issueMatcher = new Mock<IIssueMatcher>();
+            var suppressedIssueMatcher = new Mock<ISuppressedIssueMatcher>();
 
-            var testSubject = CreateTestSubject(notificationHandler.OnSnapshotChanged, issueMatcher.Object);
+            var testSubject = CreateTestSubject(notificationHandler.OnSnapshotChanged, suppressedIssueMatcher.Object);
 
             // Act
             testSubject.HandleNewIssues(inputIssues);
@@ -122,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
 
             foreach (var issue in inputIssues)
             {
-                issueMatcher.Verify(x => x.Match(issue), Times.Once());
+                suppressedIssueMatcher.Verify(x => x.SuppressionExists(issue), Times.Once());
             }
 
             notificationHandler.InvocationCount.Should().Be(1);
@@ -217,12 +203,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             var issue4 = CreateIssue("xxx4", startLine: 4, endLine: 4);
 
             var issues = new[] { issue1, issue2, issue3, issue4 };
-            var suppressedIssueMatcher = new Mock<IIssueMatcher>();
-            suppressedIssueMatcher.Setup(x => x.Match(issue1)).Returns(SuppressedSonarQubeIssue);
-            suppressedIssueMatcher.Setup(x => x.Match(issue4)).Returns(SuppressedSonarQubeIssue);
+            var suppressedIssueMatcher = new Mock<ISuppressedIssueMatcher>();
+            suppressedIssueMatcher.Setup(x => x.SuppressionExists(issue1)).Returns(true);
+            suppressedIssueMatcher.Setup(x => x.SuppressionExists(issue4)).Returns(true);
 
             var notificationHandler = new SnapshotChangeHandler();
-            var testSubject = CreateTestSubject(notificationHandler.OnSnapshotChanged, issueMatcher: suppressedIssueMatcher.Object);
+            var testSubject = CreateTestSubject(notificationHandler.OnSnapshotChanged, suppressedIssueMatcher: suppressedIssueMatcher.Object);
 
             // Act
             testSubject.HandleNewIssues(issues);
@@ -318,12 +304,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         }
 
         private static IssueHandler CreateTestSubject(SnapshotChangedHandler notificationHandler,
-            IIssueMatcher issueMatcher = null, 
+            ISuppressedIssueMatcher suppressedIssueMatcher = null, 
             TranslateSpans translator = null,
             ITextDocument textDocument = null,
             ILocalHotspotsStoreUpdater localHotspotsStoreUpdater = null)
             => CreateTestSubject(notificationHandler, "any project name", Guid.NewGuid(),
-                issueMatcher, translator, textDocument, localHotspotsStoreUpdater);
+                suppressedIssueMatcher, translator, textDocument, localHotspotsStoreUpdater);
 
         private static IssueHandler CreateTestSubject(SnapshotChangedHandler notificationHandler,
             string projectName,
@@ -334,12 +320,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
 
         private static IssueHandler CreateTestSubject(SnapshotChangedHandler notificationHandler,
             string projectName, Guid projectGuid,
-            IIssueMatcher issueMatcher = null,
+            ISuppressedIssueMatcher suppressedIssueMatcher = null,
             TranslateSpans translator = null,
             ITextDocument textDocument = null,
             ILocalHotspotsStoreUpdater localHotspotsStoreUpdater = null)
         {
-            issueMatcher ??= Mock.Of<IIssueMatcher>();
+            suppressedIssueMatcher ??= Mock.Of<ISuppressedIssueMatcher>();
             translator ??= PassthroughSpanTranslator;
             textDocument ??= CreateValidTextDocument("any");
 
@@ -347,7 +333,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
                 textDocument,
                 projectName,
                 projectGuid,                
-                issueMatcher,
+                suppressedIssueMatcher,
                 notificationHandler,
                 localHotspotsStoreUpdater ?? Mock.Of<ILocalHotspotsStoreUpdater>(),
                 // Override the un-testable "TranslateSpans" behaviour
