@@ -24,6 +24,9 @@ namespace SonarQube.Client.Helpers
 {
     public static class FilePathNormalizer
     {
+        private const char WindowsFilePathSeparator = '\\';
+        private const char SonarServerFilePathSeparator = '/';
+        
         /// <summary>
         /// Converts SQ file path format into Windows file path format.
         /// </summary>
@@ -33,11 +36,26 @@ namespace SonarQube.Client.Helpers
         /// </remarks>
         public static string NormalizeSonarQubePath(string path)
         {
-            Debug.Assert(path == null || !path.Contains("\\"),
+            Debug.Assert(path == null || !path.Contains(WindowsFilePathSeparator.ToString()),
                 $"Expecting sonarqube relative path delimiters to be forward-slash but got '{path}'.");
 
-            return path?.Trim('/').Replace('/', '\\')
+            return path?.Trim(SonarServerFilePathSeparator).Replace(SonarServerFilePathSeparator, WindowsFilePathSeparator)
                    ?? string.Empty;
+        }
+
+        /// <summary>
+        /// Converts Windows file path format into SQ file path format.
+        /// </summary>
+        /// <remarks>
+        /// Back-slashes are replaced with forward-slashes.
+        /// Opening slashes are removed.
+        /// </remarks>
+        public static string ServerizeWindowsPath(string path)
+        {
+            Debug.Assert(path == null || !path.Contains(SonarServerFilePathSeparator.ToString()),
+                $"Expecting windows relative path delimiters to be back-slash but got '{path}'.");
+            
+            return path?.Trim(WindowsFilePathSeparator).Replace(WindowsFilePathSeparator, SonarServerFilePathSeparator) ?? string.Empty;
         }
     }
 }
