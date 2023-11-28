@@ -46,197 +46,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
         }
 
         [TestMethod]
-        public void PathHelper_ForceDirectoryEnding()
-        {
-            // Arrange
-            const string withSlash = @"X:\directories\all\the\way\";
-            const string withoutSlash = @"X:\directories\all\the\way";
-
-            // Test case: without trailing slash
-            PathHelper.ForceDirectoryEnding(withoutSlash).Should().Be(withSlash, "Expected to append trailing slash '\'");
-
-            // Test case: with trailing slash
-            PathHelper.ForceDirectoryEnding(withSlash).Should().Be(withSlash, "Expected to return input string without modification");
-        }
-
-        [TestMethod]
-        public void PathHelper_CalculateRelativePath()
-        {
-            // Up one level
-            VerifyCalculateRelativePath
-            (
-                expected: @"..\file2.ext",
-                fromPath: @"X:\dirA\file1.ext",
-                toPath: @"X:\file2.ext"
-            );
-
-            // Up multiple levels
-            VerifyCalculateRelativePath
-            (
-                expected: @"..\..\..\file2.ext",
-                fromPath: @"X:\dirA\dirB\dirC\file1.ext",
-                toPath: @"X:\file2.ext"
-            );
-
-            // Down one level
-            VerifyCalculateRelativePath
-            (
-                expected: @"dirA\file2.ext",
-                fromPath: @"X:\file1.txt",
-                toPath: @"X:\dirA\file2.ext"
-            );
-
-            // Down multiple levels
-            VerifyCalculateRelativePath
-            (
-                expected: @"dirA\dirB\dirC\file2.ext",
-                fromPath: @"X:\file1.ext",
-                toPath: @"X:\dirA\dirB\dirC\file2.ext"
-            );
-
-            // Same level
-            VerifyCalculateRelativePath
-            (
-                expected: @"file2.ext",
-                fromPath: @"X:\file1.ext",
-                toPath: @"X:\file2.ext"
-            );
-
-            // Different roots
-            VerifyCalculateRelativePath
-            (
-                expected: @"Y:\file2.ext",
-                fromPath: @"X:\file1.ext",
-                toPath: @"Y:\file2.ext"
-            );
-
-            // Complicated file names
-            VerifyCalculateRelativePath
-            (
-                expected: @"file with spaces (2).ext",
-                fromPath: @"X:\file with spaces (1).ext",
-                toPath: @"X:\file with spaces (2).ext"
-            );
-
-            // Non canonical paths (contains . and ..)
-            VerifyCalculateRelativePath
-            (
-                expected: @"..\..\file1.ext",
-                fromPath: @"X:\dirA\..\dirA\dirB\dirC\dirD\",
-                toPath: @"X:\dirA\dirB\..\dirB\file1.ext"
-            );
-        }
-
-        [TestMethod]
-        public void PathHelper_CalculateRelativePath_NullArgumentChecks()
-        {
-            // 'absolute' param
-            Exceptions.Expect<ArgumentNullException>(() =>
-            {
-                PathHelper.CalculateRelativePath(@"X:\a\file.proj", null);
-            });
-
-            // 'relativeTo' param
-            Exceptions.Expect<ArgumentNullException>(() =>
-            {
-                PathHelper.CalculateRelativePath(null, @"X:\a\file.sln");
-            });
-        }
-
-        [TestMethod]
-        public void PathHelper_CalculateRelativePath_InputPathsMustBeAbsolute()
-        {
-            // 'absolute' param
-            Exceptions.Expect<ArgumentException>(() =>
-            {
-                PathHelper.CalculateRelativePath(@"X:\a\file.proj", @"not\absolute\file.sln");
-            });
-
-            // 'relativeTo' param
-            Exceptions.Expect<ArgumentException>(() =>
-            {
-                PathHelper.CalculateRelativePath(@"not\absolute\file.proj", @"X:\a\file.sln");
-            });
-        }
-
-        [TestMethod]
-        public void PathHelper_ResolveRelativePath()
-        {
-            // Up one level
-            VerifyResolveRelativePath
-            (
-                expected: @"X:\file1.ext",
-                basePath: @"X:\dirA\",
-                relativePath: @"..\file1.ext"
-            );
-
-            // Up multiple levels
-            VerifyResolveRelativePath
-            (
-                expected: @"X:\file1.ext",
-                basePath: @"X:\dirA\dirB\dirC\",
-                relativePath: @"..\..\..\file1.ext"
-            );
-
-            // Down one level
-            VerifyResolveRelativePath
-            (
-                expected: @"X:\dirA\file1.ext",
-                basePath: @"X:\",
-                relativePath: @"dirA\file1.ext"
-            );
-
-            // Down multiple levels
-            VerifyResolveRelativePath
-            (
-                expected: @"X:\dirA\dirB\dirC\file1.ext",
-                basePath: @"X:\",
-                relativePath: @"dirA\dirB\dirC\file1.ext"
-            );
-
-            // Same level
-            VerifyResolveRelativePath
-            (
-                expected: @"X:\file1.ext",
-                basePath: @"X:\",
-                relativePath: @"file1.ext"
-            );
-
-            // Complicated file names
-            VerifyResolveRelativePath
-            (
-                expected: @"X:\file with spaces.ext",
-                basePath: @"X:\",
-                relativePath: @"file with spaces.ext"
-            );
-        }
-
-        [TestMethod]
-        public void PathHelper_ExpandRelativePath_NullArgumentChecks()
-        {
-            // 'baseDirectoryPath' param
-            Exceptions.Expect<ArgumentNullException>(() =>
-            {
-                PathHelper.ResolveRelativePath(null, @"..\file.proj");
-            });
-
-            // 'relativePath' param
-            Exceptions.Expect<ArgumentNullException>(() =>
-            {
-                PathHelper.ResolveRelativePath(@"X:\a", null);
-            });
-        }
-
-        [TestMethod]
-        public void PathHelper_ExpandRelativePath_BasePathMustBeAbsolute()
-        {
-            Exceptions.Expect<ArgumentException>(() =>
-            {
-                PathHelper.ResolveRelativePath(@"not\absolute\file.sln", @"..\a\relative.path");
-            });
-        }
-
-        [TestMethod]
         public void PathHelper_IsPathRootedUnder_RootedPath_IsTrue()
         {
             // Arrange
@@ -414,21 +223,68 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
             PathHelper.IsServerFileMatch(localFilePath, serverFilePath).Should().Be(expected);
         }
 
+        [TestMethod]
+        public void CalculateServerRoot_SimpleCase()
+        {
+            PathHelper.CalculateServerRoot(@"C:\dir\dir\projectroot\projectdir\projectdir\projectfile.cs",
+                new[] { @"projectdir\projectdir\projectfile.cs" }).Should().Be(@"C:\dir\dir\projectroot");
+        }
+        
+        [TestMethod]
+        public void CalculateServerRoot_OnlyOneMatch()
+        {
+            PathHelper.CalculateServerRoot(@"C:\dir\dir\projectroot\projectdir\projectdir\projectfile.cs", 
+                new[]
+                {
+                    @"a\b\c",
+                    @"a\b\c\d\e\f",
+                    @"projectdir\projectdir\projectfile.cs",
+                    @"projectdir\projectdir\notprojectfile.cs",
+                    @"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                }).Should().Be(@"C:\dir\dir\projectroot");
+        }
+        
+        [TestMethod]
+        public void CalculateServerRoot_SelectsLongestMatchOutOfMultiple()
+        {
+            PathHelper.CalculateServerRoot(@"C:\dir\dir\projectroot\projectdir\projectdir\projectfile.cs", 
+                new[]
+                {
+                    @"projectfile.cs",
+                    @"projectdir\projectfile.cs",
+                    @"projectdir\projectdir\projectfile.cs",
+                    @"projectdir\projectdir\projectdir\projectfile.cs"
+                }).Should().Be(@"C:\dir\dir\projectroot");
+        }
+        
+        [TestMethod]
+        public void CalculateServerRoot_NoMatch()
+        {
+            PathHelper.CalculateServerRoot(@"C:\dir\dir\projectroot\projectdir\projectdir\projectfile.cs", 
+                new[]
+                {
+                    @"notprojectfile.cs",
+                    @"projectdir\notprojectfile.cs",
+                    @"projectdir\projectdir\notprojectfile.cs",
+                    @"projectdir\projectdir\projectdir\notprojectfile.cs"
+                }).Should().Be(null);
+        }
+        
+        [TestMethod]
+        public void CalculateServerRoot_EmptyList()
+        {
+            PathHelper.CalculateServerRoot(@"C:\dir\dir\projectroot\projectdir\projectdir\projectfile.cs", Array.Empty<string>())
+                .Should().Be(null);
+        }
+        
+        [TestMethod]
+        public void CalculateServerRoot_NullList()
+        {
+            PathHelper.CalculateServerRoot(@"C:\dir\dir\projectroot\projectdir\projectdir\projectfile.cs", null)
+                .Should().Be(null);
+        }
+
         #region Helpers
-
-        private static void VerifyCalculateRelativePath(string expected, string fromPath, string toPath)
-        {
-            string actual = PathHelper.CalculateRelativePath(fromPath, toPath);
-
-            actual.Should().Be(expected);
-        }
-
-        private static void VerifyResolveRelativePath(string expected, string basePath, string relativePath)
-        {
-            string actual = PathHelper.ResolveRelativePath(relativePath, basePath);
-
-            actual.Should().Be(expected);
-        }
 
         private static string GetBasePath()
         {

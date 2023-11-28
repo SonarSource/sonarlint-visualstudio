@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.Core.Binding;
 namespace SonarLint.VisualStudio.ConnectedMode
 {
     [Export(typeof(IStatefulServerBranchProvider))]
+    // note: this class does not seem to be safe from concurrent updates
     internal sealed class StatefulServerBranchProvider : IStatefulServerBranchProvider, IDisposable
     {
         private readonly IServerBranchProvider serverBranchProvider;
