@@ -21,24 +21,19 @@
 using System;
 using System.Diagnostics;
 using System.Security;
-using System.Threading.Tasks;
 using System.Windows;
-using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Connection.UI;
-using SonarLint.VisualStudio.Integration.Transition;
 using SonarQube.Client.Models;
 
-//TODO: This should be cleaned up if you see this reject the PR
 namespace SonarLint.VisualStudio.Integration.Connection
 {
     internal class ConnectionInformationDialog
     {
         #region Static helpers
 
-        private static MuteWindowDialog CreateView()
+        private static ConnectionInfoDialogView CreateView()
         {
-            return new MuteWindowDialog(true);
+            return new ConnectionInfoDialogView();
         }
 
         internal /*for testing purposes*/ static ConnectionInfoDialogViewModel CreateViewModel(ConnectionInformation currentConnection)
@@ -89,39 +84,16 @@ namespace SonarLint.VisualStudio.Integration.Connection
         /// <returns>Captured connection information if closed successfully, null otherwise.</returns>
         public ConnectionInformation ShowDialog(ConnectionInformation currentConnection)
         {
-            ThreadHandling.Instance.RunOnBackgroundThread(() => test(currentConnection)).Forget();
-
-            return null;
-        }
-
-        private async Task<ConnectionInformation> test(ConnectionInformation currentConnection)
-        {
-            //await ThreadHandling.Instance.SwitchToBackgroundThread();
-            var tid = System.Threading.Thread.CurrentThread.ManagedThreadId;
-
             ConnectionInfoDialogViewModel vm = CreateViewModel(currentConnection);
+            ConnectionInfoDialogView dialog = CreateView();
+            dialog.ViewModel = vm;
+            dialog.Owner = Application.Current.MainWindow;
 
-            bool? result = null; string comment; SonarQubeIssueTransition? sonarQubeIssueTransition;
-
-            await ThreadHandling.Instance.RunOnUIThreadAsync(() =>
-            {
-                tid = System.Threading.Thread.CurrentThread.ManagedThreadId;
-                var dialog = CreateView();
-                //dialog.ViewModel = vm;
-
-                dialog.Owner = Application.Current.MainWindow;
-
-                result = dialog.ShowDialog();
-                comment = dialog.Comment;
-                sonarQubeIssueTransition = dialog.SelectedIssueTransition;
-            });
-
-            //await ThreadHandling.Instance.SwitchToBackgroundThread();
-            tid = System.Threading.Thread.CurrentThread.ManagedThreadId;
+            bool? result = dialog.ShowDialog();
 
             if (result.GetValueOrDefault())
             {
-                return null;
+                return CreateConnectionInformation(vm, dialog.Password);
             }
 
             return null;
