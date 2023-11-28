@@ -496,15 +496,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [MuteIssuesWindowService] You can mute issues only in Connected mode.
-        /// </summary>
-        public static string MuteIssuesWindowService_NotInConnectedMode {
-            get {
-                return ResourceManager.GetString("MuteIssuesWindowService_NotInConnectedMode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The issue is valid but will not be fixed now. It represents accepted technical debt..
         /// </summary>
         public static string MuteWindow_AcceptContent {

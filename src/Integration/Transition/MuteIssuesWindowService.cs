@@ -21,11 +21,8 @@
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Configuration;
 using SonarLint.VisualStudio.Core.Transition;
-using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Transition
 {
@@ -34,26 +31,16 @@ namespace SonarLint.VisualStudio.Integration.Transition
     internal class MuteIssuesWindowService : IMuteIssuesWindowService
     {
         private readonly IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration;
-        private readonly IConfigurationProvider configurationProvider;
-        private readonly ILogger logger;
 
         [ImportingConstructor]
-        public MuteIssuesWindowService(IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration, IConfigurationProvider configurationProvider, ILogger logger)
+        public MuteIssuesWindowService(IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration)
         {
             this.connectedModeFeaturesConfiguration = connectedModeFeaturesConfiguration;
-            this.configurationProvider = configurationProvider;
-            this.logger = logger;
         }
 
         [ExcludeFromCodeCoverage]
         public MuteIssuesWindowResponse Show(string issueKey)
         {
-            if (!configurationProvider.GetConfiguration().Mode.IsInAConnectedMode())
-            {
-                logger.LogVerbose(Strings.MuteIssuesWindowService_NotInConnectedMode);
-                return null;
-            }
-
             var dialog = new MuteWindowDialog(connectedModeFeaturesConfiguration.IsNewCctAvailable());
             dialog.Owner = Application.Current.MainWindow;
             var dialogResult = dialog.ShowDialog();
