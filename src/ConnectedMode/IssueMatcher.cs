@@ -41,7 +41,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
         bool IsLikelyMatch(IFilterableIssue issue, SonarQubeIssue serverIssue);
 
         /// <summary>
-        /// Returns the first matching issue. Note: for this method to work correctly, all <paramref name="serverIssuesFromSameFile"/> need to be from the same server file
+        /// Returns the first matching issue. Note: for this method to work correctly, all <paramref name="serverIssuesFromSameFile"/> need to be from the same server file.
+        /// False Positives are possible, since <see cref="IsLikelyMatch"/> can return true for multiple issues in the same file and only the firs one is returned.
         /// </summary>
         /// <param name="issue">Local issue</param>
         /// <param name="serverIssuesFromSameFile">List of server issues from the same file</param>
