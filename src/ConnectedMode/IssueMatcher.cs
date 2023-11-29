@@ -32,18 +32,21 @@ namespace SonarLint.VisualStudio.ConnectedMode
     {
         /// <summary>
         /// This method attempts to match <paramref name="issue"/> with <paramref name="serverIssue"/>.
-        /// There's a possibility of False Positive matches: in case false tail-match of file paths, as the project root is not taken into account,
-        /// or when line number matches but line hash doesn't.
         /// </summary>
+        /// <remarks>There's a possibility of False Positive matches: in case false tail-match of file paths, as the project root is not taken into account,
+        /// or when line number matches but line hash doesn't.
+        /// </remarks>
         /// <param name="issue">Local issue</param>
         /// <param name="serverIssue">Server issue</param>
         /// <returns>The best possible match based on rule id, file name (tail matched to the server path), line number and line hash (not checked when line numbers match)</returns>
         bool IsLikelyMatch(IFilterableIssue issue, SonarQubeIssue serverIssue);
 
         /// <summary>
-        /// Returns the first matching issue. Note: for this method to work correctly, all <paramref name="serverIssuesFromSameFile"/> need to be from the same server file.
-        /// False Positives are possible, since <see cref="IsLikelyMatch"/> can return true for multiple issues in the same file and only the firs one is returned.
+        /// Returns the first likely matching issue. 
         /// </summary>
+        /// <remarks>For this method to work correctly, all <paramref name="serverIssuesFromSameFile"/>; need to be from the same server file.
+        /// False Positives are possible, since &lt;see cref="IsLikelyMatch"/&gt; can return true for multiple issues in the same file and only the firs one is returned.
+        /// </remarks>
         /// <param name="issue">Local issue</param>
         /// <param name="serverIssuesFromSameFile">List of server issues from the same file</param>
         /// <returns>A matching server issue, if present in the <paramref name="serverIssuesFromSameFile"/> list, or null</returns>
